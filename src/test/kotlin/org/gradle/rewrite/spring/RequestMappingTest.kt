@@ -11,10 +11,16 @@ class RequestMappingTest : Parser(dependencies("spring-web"), Charsets.UTF_8, fa
             import org.springframework.http.ResponseEntity;
             import org.springframework.web.bind.annotation.*;
             import static org.springframework.web.bind.annotation.RequestMethod.GET;
+            import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
             
             @RestController
             @RequestMapping("/users")
             public class UsersController {
+                @RequestMapping(method = HEAD)
+                public ResponseEntity<List<String>> getUsers() {
+                    return null;
+                }
+            
                 @RequestMapping(method = GET)
                 public ResponseEntity<List<String>> getUsers() {
                     return null;
@@ -38,11 +44,16 @@ class RequestMappingTest : Parser(dependencies("spring-web"), Charsets.UTF_8, fa
             import java.util.*;
             import org.springframework.http.ResponseEntity;
             import org.springframework.web.bind.annotation.*;
-            import static org.springframework.web.bind.annotation.RequestMethod.GET;
+            import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
             
             @RestController
             @GetMapping("/users")
             public class UsersController {
+                @RequestMapping(method = HEAD)
+                public ResponseEntity<List<String>> getUsers() {
+                    return null;
+                }
+            
                 @GetMapping
                 public ResponseEntity<List<String>> getUsers() {
                     return null;

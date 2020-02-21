@@ -36,13 +36,16 @@ public class RequestMapping extends RefactorVisitor {
                                                 .flatMap(key -> assign.getAssignment().whenType(Tr.Ident.class)
                                                         .or(() -> assign.getAssignment().whenType(Tr.FieldAccess.class)
                                                                 .map(Tr.FieldAccess::getName))
-                                                        .map(methodEnum -> methodEnum.getSimpleName().substring(0, 1) + methodEnum.getSimpleName().substring(1).toLowerCase() + "Mapping")))
+                                                        .map(methodEnum -> {
+                                                            maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
+                                                            return methodEnum.getSimpleName().substring(0, 1) + methodEnum.getSimpleName().substring(1).toLowerCase() + "Mapping";
+                                                        })))
                                         .orElse("GetMapping"))
                                 .findAny()
                                 .orElse("GetMapping");
 
                         // drop the "method" argument
-                        args = args = args.withArgs(args.getArgs().stream()
+                        args = args.withArgs(args.getArgs().stream()
                                 .filter(arg -> arg.whenType(Tr.Assign.class)
                                         .map(assign -> assign.getVariable().whenType(Tr.Ident.class)
                                                 .filter(key -> key.getSimpleName().equals("method"))
@@ -68,6 +71,9 @@ public class RequestMapping extends RefactorVisitor {
                     if (toAnnotationType.equals("HeadMapping") || toAnnotationType.equals("OptionMapping")) {
                         return a; // there is no HeadMapping or OptionMapping in Spring Web.
                     }
+
+                    maybeAddImport("org.springframework.web.bind.annotation." + toAnnotationType);
+                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
 
                     return a.withArgs(args)
                             .withAnnotationType(Tr.Ident.build(randomId(), toAnnotationType,
