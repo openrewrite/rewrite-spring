@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "org.gradle"
-description = "Refactor security bugs automatically"
+description = "Refactor improve Spring usage automatically"
 
 repositories {
     maven { url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local") }
@@ -25,8 +25,7 @@ configurations.all {
 dependencies {
     implementation("com.netflix.devinsight.rewrite:rewrite-core:latest.integration")
 
-    // FIXME the IDE throws "unknown enum constant com.fasterxml.jackson.annotation.JsonTypeInfo.Id.MINIMAL_CLASS sometimes?
-    implementation("com.fasterxml.jackson.core:jackson-annotations:2.10.2")
+    implementation("org.springframework:spring-webmvc:5.2.3.RELEASE")
 
     compileOnly("org.projectlombok:lombok:1.18.10")
     annotationProcessor("org.projectlombok:lombok:1.18.10")
@@ -50,7 +49,7 @@ tasks.named<Test>("test") {
 publishing {
     publications {
         create<MavenPublication>("jar") {
-            artifactId = "rewrite-security-bugs"
+            artifactId = "rewrite-spring"
             artifact(tasks.named<Jar>("jar").get())
         }
     }
