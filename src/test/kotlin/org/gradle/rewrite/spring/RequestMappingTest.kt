@@ -17,7 +17,7 @@ class RequestMappingTest : Parser(dependencies("spring-web"), Charsets.UTF_8, fa
             @RequestMapping("/users")
             public class UsersController {
                 @RequestMapping(method = HEAD)
-                public ResponseEntity<List<String>> getUsers() {
+                public ResponseEntity<List<String>> getUsersHead() {
                     return null;
                 }
             
@@ -50,7 +50,7 @@ class RequestMappingTest : Parser(dependencies("spring-web"), Charsets.UTF_8, fa
             @GetMapping("/users")
             public class UsersController {
                 @RequestMapping(method = HEAD)
-                public ResponseEntity<List<String>> getUsers() {
+                public ResponseEntity<List<String>> getUsersHead() {
                     return null;
                 }
             
