@@ -11,16 +11,16 @@ import java.util.List;
 
 import static com.netflix.rewrite.tree.Formatting.EMPTY;
 import static com.netflix.rewrite.tree.Tr.randomId;
+import static com.netflix.rewrite.tree.TypeUtils.isOfClassType;
 import static java.util.stream.Collectors.toList;
 
 
 public class RequestMapping extends RefactorVisitor {
     @Override
     public List<AstTransform> visitAnnotation(Tr.Annotation annotation) {
-        Type.Class type = TypeUtils.asClass(annotation.getType());
         return maybeTransform(annotation,
-                type != null &&
-                        type.getFullyQualifiedName().equals("org.springframework.web.bind.annotation.RequestMapping"),
+                isOfClassType(annotation.getType(), "org.springframework.web.bind.annotation.RequestMapping") &&
+                getCursor().getParentOrThrow().getTree() instanceof Tr.MethodDecl,
                 super::visitAnnotation,
                 a -> {
                     String toAnnotationType;

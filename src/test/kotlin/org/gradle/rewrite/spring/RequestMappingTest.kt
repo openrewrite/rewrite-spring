@@ -47,7 +47,7 @@ class RequestMappingTest : Parser(dependencies("spring-web"), Charsets.UTF_8, fa
             import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
             
             @RestController
-            @GetMapping("/users")
+            @RequestMapping("/users")
             public class UsersController {
                 @RequestMapping(method = HEAD)
                 public ResponseEntity<List<String>> getUsersHead() {

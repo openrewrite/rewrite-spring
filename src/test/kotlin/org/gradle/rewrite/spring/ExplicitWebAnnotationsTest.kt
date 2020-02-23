@@ -9,6 +9,7 @@ class ExplicitWebAnnotationsTest : Parser(dependencies("spring-web"), Charsets.U
         val controller = parse("""
             import org.springframework.http.ResponseEntity;
             import org.springframework.web.bind.annotation.*;
+            
             @RestController
             @RequestMapping("/users")
             public class UsersController {
@@ -25,6 +26,7 @@ class ExplicitWebAnnotationsTest : Parser(dependencies("spring-web"), Charsets.U
         assertRefactored(fixed, """
             import org.springframework.http.ResponseEntity;
             import org.springframework.web.bind.annotation.*;
+            
             @RestController
             @RequestMapping("/users")
             public class UsersController {
