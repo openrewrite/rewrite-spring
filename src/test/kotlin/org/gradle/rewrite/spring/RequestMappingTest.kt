@@ -69,6 +69,6 @@ class RequestMappingTest : Parser(dependencies("spring-web"), Charsets.UTF_8, fa
                     return null;
                 }
             }
-        """.trimIndent())
+        """)
     }
 }
