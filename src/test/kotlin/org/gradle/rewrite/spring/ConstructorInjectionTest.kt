@@ -12,7 +12,7 @@ class ConstructorInjectionTest {
             public class UsersController {
                 @Autowired
                 private UsersService usersService;
-                
+            
                 @Autowired
                 UsernameService usernameService;
             }
@@ -23,8 +23,11 @@ class ConstructorInjectionTest {
         assertRefactored(fixed, """
             public class UsersController {
                 private final UsersService usersService;
-                
+            
                 private final UsernameService usernameService;
+            
+                public UsersController(UsersService usersService, UsernameService usernameService) {
+                }
             }
         """.trimIndent())
     }
