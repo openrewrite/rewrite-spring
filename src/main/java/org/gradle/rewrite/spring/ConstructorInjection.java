@@ -3,11 +3,10 @@ package org.gradle.rewrite.spring;
 import com.netflix.rewrite.tree.*;
 import com.netflix.rewrite.visitor.refactor.AstTransform;
 import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
+import com.netflix.rewrite.visitor.refactor.ScopedRefactorVisitor;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.netflix.rewrite.tree.Formatting.*;
@@ -72,11 +71,6 @@ public class ConstructorInjection extends RefactorVisitor {
                                     .map(mv -> mv.getTypeExpr().printTrimmed() + " " + mv.getVars().get(0).printTrimmed())
                                     .collect(joining(", "));
 
-//                            String assignments = getInjectedFields(cd).map(mv -> {
-//                                String name = mv.getVars().get(0).getSimpleName();
-//                                return "this." + name + "=" + name + ";";
-//                            }).collect(joining("\n    ", "    ", "\n"));
-
                             int lastField = 0;
                             for (int i = 0; i < statements.size(); i++) {
                                 if (statements.get(i) instanceof Tr.VariableDecls) {
@@ -111,6 +105,26 @@ public class ConstructorInjection extends RefactorVisitor {
                                             formatter().findIndent(cd.getBody().getIndent(), cd.getBody().getStatements().toArray(Tree[]::new)).getPrefix()),
                                     null,
                                     constructorFormatting.withPrefix("\n" + constructorFormatting.getPrefix()));
+
+                            // add assignment statements to constructor
+                            andThen(new ScopedRefactorVisitor(constructor.getId()) {
+                                @Override
+                                public List<AstTransform> visitMethod(Tr.MethodDecl method) {
+                                    return maybeTransform(method,
+                                            isScope(method),
+                                            super::visitMethod,
+                                            Tr.MethodDecl::getBody,
+                                            (body, cursor) -> body.withStatements(
+                                                    TreeBuilder.buildSnippet(cursor.enclosingCompilationUnit(),
+                                                            cursor,
+                                                            getInjectedFields(cd).map(mv -> {
+                                                                String name = mv.getVars().get(0).getSimpleName();
+                                                                return "this." + name + " = " + name + ";";
+                                                            }).collect(joining("\n", "", "\n"))
+                                                    ))
+                                    );
+                                }
+                            });
 
                             statements.add(lastField + 1, constructor);
                         }

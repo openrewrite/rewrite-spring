@@ -27,6 +27,8 @@ class ConstructorInjectionTest {
                 private final UsernameService usernameService;
             
                 public UsersController(UsersService usersService, UsernameService usernameService) {
+                    this.usersService = usersService;
+                    this.usernameService = usernameService;
                 }
             }
         """.trimIndent())
