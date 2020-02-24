@@ -1,21 +1,22 @@
 package org.gradle.rewrite.spring;
 
-import com.netflix.rewrite.tree.*;
+import com.netflix.rewrite.tree.Tr;
+import com.netflix.rewrite.tree.Tree;
+import com.netflix.rewrite.tree.Type;
 import com.netflix.rewrite.visitor.refactor.AstTransform;
 import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
-import com.netflix.rewrite.visitor.refactor.ScopedRefactorVisitor;
 import com.netflix.rewrite.visitor.refactor.op.AddAnnotation;
+import com.netflix.rewrite.visitor.refactor.op.GenerateConstructorUsingFields;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
-import static com.netflix.rewrite.tree.Formatting.*;
+import static com.netflix.rewrite.tree.Formatting.firstPrefix;
+import static com.netflix.rewrite.tree.Formatting.formatFirstPrefix;
 import static com.netflix.rewrite.tree.Tr.randomId;
 import static com.netflix.rewrite.tree.TypeUtils.isOfClassType;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public class ConstructorInjection extends RefactorVisitor {
     private final boolean generateLombokRequiredArgsAnnotation;
@@ -79,74 +80,12 @@ public class ConstructorInjection extends RefactorVisitor {
                             .collect(toList());
 
                     if (!hasRequiredArgsConstructor(cd)) {
-                        if (generateLombokRequiredArgsAnnotation) {
-                            andThen(new AddAnnotation(cd.getId(), "lombok.RequiredArgsConstructor"));
-                        } else {
-                            //noinspection ConstantConditions
-                            String constructorArgs = getInjectedFields(cd)
-                                    .map(mv -> mv.getTypeExpr().printTrimmed() + " " + mv.getVars().get(0).printTrimmed())
-                                    .collect(joining(", "));
-
-                            int lastField = 0;
-                            for (int i = 0; i < statements.size(); i++) {
-                                if (statements.get(i) instanceof Tr.VariableDecls) {
-                                    lastField = i;
-                                }
-                            }
-
-                            List<Statement> constructorParams = getInjectedFields(cd)
-                                    .map(mv -> new Tr.VariableDecls(randomId(),
-                                            emptyList(),
-                                            emptyList(),
-                                            mv.getTypeExpr() != null ? mv.getTypeExpr().withFormatting(EMPTY) : null,
-                                            null,
-                                            formatFirstPrefix(mv.getDimensionsBeforeName(), ""),
-                                            formatFirstPrefix(mv.getVars(), " "),
-                                            EMPTY))
-                                    .collect(toList());
-
-                            for (int i = 1; i < constructorParams.size(); i++) {
-                                constructorParams.set(i, constructorParams.get(i).withFormatting(format(" ")));
-                            }
-
-                            Formatting constructorFormatting = formatter().format(cd.getBody());
-                            Tr.MethodDecl constructor = new Tr.MethodDecl(randomId(), emptyList(),
-                                    singletonList(new Tr.Modifier.Public(randomId(), EMPTY)),
-                                    null,
-                                    null,
-                                    Tr.Ident.build(randomId(), cd.getSimpleName(), cd.getType(), format(" ")),
-                                    new Tr.MethodDecl.Parameters(randomId(), constructorParams, EMPTY),
-                                    null,
-                                    new Tr.Block<>(randomId(), null, emptyList(), format(" "),
-                                            formatter().findIndent(cd.getBody().getIndent(), cd.getBody().getStatements().toArray(Tree[]::new)).getPrefix()),
-                                    null,
-                                    constructorFormatting.withPrefix("\n" + constructorFormatting.getPrefix()));
-
-                            // add assignment statements to constructor
-                            andThen(new ScopedRefactorVisitor(constructor.getId()) {
-                                @Override
-                                public List<AstTransform> visitMethod(Tr.MethodDecl method) {
-                                    return maybeTransform(method,
-                                            isScope(method),
-                                            super::visitMethod,
-                                            Tr.MethodDecl::getBody,
-                                            (body, cursor) -> body.withStatements(
-                                                    TreeBuilder.buildSnippet(cursor.enclosingCompilationUnit(),
-                                                            cursor,
-                                                            getInjectedFields(cd).map(mv -> {
-                                                                String name = mv.getVars().get(0).getSimpleName();
-                                                                return "this." + name + " = " + name + ";";
-                                                            }).collect(joining("\n", "", "\n"))
-                                                    ))
-                                    );
-                                }
-                            });
-
-                            statements.add(lastField + 1, constructor);
-                        }
+                        andThen(generateLombokRequiredArgsAnnotation ?
+                                new AddAnnotation(cd.getId(), "lombok.RequiredArgsConstructor") :
+                                new GenerateConstructorUsingFields(cd.getId(), getInjectedFields(cd)));
                     }
 
-                    List<String> setterNames = getInjectedFields(cd)
+                    List<String> setterNames = getInjectedFields(cd).stream()
                             .map(mv -> {
                                 String name = mv.getVars().get(0).getSimpleName();
                                 return "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
@@ -163,7 +102,7 @@ public class ConstructorInjection extends RefactorVisitor {
     }
 
     private boolean hasRequiredArgsConstructor(Tr.ClassDecl cd) {
-        Set<String> injectedFieldNames = getInjectedFields(cd).map(f -> f.getVars().get(0).getSimpleName()).collect(toSet());
+        Set<String> injectedFieldNames = getInjectedFields(cd).stream().map(f -> f.getVars().get(0).getSimpleName()).collect(toSet());
 
         return cd.getBody().getStatements().stream().anyMatch(stat -> stat.whenType(Tr.MethodDecl.class)
                 .filter(Tr.MethodDecl::isConstructor)
@@ -175,10 +114,11 @@ public class ConstructorInjection extends RefactorVisitor {
                 .orElse(false));
     }
 
-    private Stream<Tr.VariableDecls> getInjectedFields(Tr.ClassDecl cd) {
+    private List<Tr.VariableDecls> getInjectedFields(Tr.ClassDecl cd) {
         return cd.getBody().getStatements().stream()
                 .filter(stat -> stat.whenType(Tr.VariableDecls.class).map(this::isFieldInjected).orElse(false))
-                .map(Tr.VariableDecls.class::cast);
+                .map(Tr.VariableDecls.class::cast)
+                .collect(toList());
     }
 
     private boolean isFieldInjected(Tr.VariableDecls mv) {
