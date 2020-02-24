@@ -15,6 +15,10 @@ class ConstructorInjectionTest {
             
                 @Autowired
                 UsernameService usernameService;
+                
+                public void setUsersService(UsersService usersService) {
+                    this.usersService = usersService;
+                }
             }
         """.trimIndent())
 
@@ -22,6 +26,65 @@ class ConstructorInjectionTest {
 
         assertRefactored(fixed, """
             public class UsersController {
+                private final UsersService usersService;
+            
+                private final UsernameService usernameService;
+            
+                public UsersController(UsersService usersService, UsernameService usernameService) {
+                    this.usersService = usersService;
+                    this.usernameService = usernameService;
+                }
+            }
+        """.trimIndent())
+    }
+
+    @Test
+    fun constructorInjectionWithLombok() {
+        val controller = Parser(dependenciesFromClasspath("spring-beans")).parse("""
+            import org.springframework.beans.factory.annotation.Autowired;
+            public class UsersController {
+                @Autowired
+                private UsersService usersService;
+            
+                @Autowired
+                UsernameService usernameService;
+            }
+        """.trimIndent())
+
+        val fixed = controller.refactor().visit(ConstructorInjection(true, false)).fix().fixed
+
+        assertRefactored(fixed, """
+            import lombok.RequiredArgsConstructor;
+            
+            @RequiredArgsConstructor
+            public class UsersController {
+                private final UsersService usersService;
+            
+                private final UsernameService usernameService;
+            }
+        """.trimIndent())
+    }
+
+    @Test
+    fun constructorInjectionWithJSR305() {
+        val controller = Parser(dependenciesFromClasspath("spring-beans")).parse("""
+            import org.springframework.beans.factory.annotation.Autowired;
+            public class UsersController {
+                @Autowired(required = false)
+                private UsersService usersService;
+            
+                @Autowired
+                UsernameService usernameService;
+            }
+        """.trimIndent())
+
+        val fixed = controller.refactor().visit(ConstructorInjection(false, true)).fix().fixed
+
+        assertRefactored(fixed, """
+            import javax.annotation.Nonnull;
+            
+            public class UsersController {
+                @Nonnull
                 private final UsersService usersService;
             
                 private final UsernameService usernameService;

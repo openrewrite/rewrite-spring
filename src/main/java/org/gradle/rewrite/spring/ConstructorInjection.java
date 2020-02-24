@@ -4,6 +4,7 @@ import com.netflix.rewrite.tree.*;
 import com.netflix.rewrite.visitor.refactor.AstTransform;
 import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
 import com.netflix.rewrite.visitor.refactor.ScopedRefactorVisitor;
+import com.netflix.rewrite.visitor.refactor.op.AddAnnotation;
 
 import java.util.List;
 import java.util.Set;
@@ -46,7 +47,24 @@ public class ConstructorInjection extends RefactorVisitor {
                                     .map(mv -> {
                                         Tr.VariableDecls fixedField = mv
                                                 .withAnnotations(mv.getAnnotations().stream()
-                                                        .filter(ann -> !isFieldInjectionAnnotation(ann))
+                                                        .filter(ann -> !isFieldInjectionAnnotation(ann) ||
+                                                                (generateJsr305Annotations && ann.getArgs() != null && ann.getArgs().getArgs().stream()
+                                                                        .anyMatch(arg -> arg.whenType(Tr.Assign.class)
+                                                                                .map(assign -> ((Tr.Ident) assign.getVariable()).getSimpleName().equals("required"))
+                                                                                .orElse(false))))
+                                                        .map(ann -> {
+                                                            if (isFieldInjectionAnnotation(ann)) {
+                                                                maybeAddImport("javax.annotation.Nonnull");
+
+                                                                Type.Class nonnullType = Type.Class.build("javax.annotation.Nonnull");
+                                                                return ann
+                                                                        .withAnnotationType(Tr.Ident.build(randomId(), "Nonnull", nonnullType,
+                                                                                ann.getAnnotationType().getFormatting()))
+                                                                        .withArgs(null)
+                                                                        .withType(nonnullType);
+                                                            }
+                                                            return ann;
+                                                        })
                                                         .collect(toList()))
                                                 .withModifiers("private", "final");
 
@@ -60,11 +78,9 @@ public class ConstructorInjection extends RefactorVisitor {
                                     .orElse(stat))
                             .collect(toList());
 
-                    Tr.ClassDecl fixedCd = cd;
-
                     if (!hasRequiredArgsConstructor(cd)) {
                         if (generateLombokRequiredArgsAnnotation) {
-//                            fixedCd = fixedCd.withAnnotations();
+                            andThen(new AddAnnotation(cd.getId(), "lombok.RequiredArgsConstructor"));
                         } else {
                             //noinspection ConstantConditions
                             String constructorArgs = getInjectedFields(cd)
@@ -130,7 +146,18 @@ public class ConstructorInjection extends RefactorVisitor {
                         }
                     }
 
-                    return fixedCd.withBody(fixedCd.getBody().withStatements(statements));
+                    List<String> setterNames = getInjectedFields(cd)
+                            .map(mv -> {
+                                String name = mv.getVars().get(0).getSimpleName();
+                                return "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
+                            })
+                            .collect(toList());
+
+                    return cd.withBody(cd.getBody().withStatements(statements.stream()
+                            .filter(stat -> stat.whenType(Tr.MethodDecl.class)
+                                    .map(md -> !setterNames.contains(md.getSimpleName()))
+                                    .orElse(true))
+                            .collect(toList())));
                 }
         );
     }

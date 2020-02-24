@@ -27,9 +27,6 @@ dependencies {
 
     implementation("org.springframework:spring-webmvc:5.2.3.RELEASE")
 
-    compileOnly("org.projectlombok:lombok:1.18.10")
-    annotationProcessor("org.projectlombok:lombok:1.18.10")
-
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
@@ -38,8 +35,11 @@ dependencies {
 
     testImplementation("org.assertj:assertj-core:latest.release")
 
-    testImplementation("com.google.code.findbugs:jsr305")
+    // for testing ConstructorInjection
+    testRuntimeOnly("org.projectlombok:lombok:1.18.10")
+    testRuntimeOnly("com.google.code.findbugs:jsr305")
     testRuntimeOnly("javax.inject:javax.inject:1")
+
     testRuntimeOnly("ch.qos.logback:logback-classic:1.0.13")
 }
 
