@@ -1,6 +1,6 @@
 = Rewrite for Spring - Automated Best Practices Refactoring for Spring Apps
 
-A refactoring tool to automatically apply best practices in Java Spring Boot applications.
+A refactoring tool to automatically apply best practices in Java Spring Boot applications. Originally inspired by the https://github.com/thanus/reboot[Reboot] project.
 
 == Prefer constructor injection
 
