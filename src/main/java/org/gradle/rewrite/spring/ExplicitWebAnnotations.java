@@ -6,17 +6,28 @@ import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
 import com.netflix.rewrite.visitor.refactor.op.RenameVariable;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.netflix.rewrite.tree.TypeUtils.isOfClassType;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public class ExplicitWebAnnotations extends RefactorVisitor {
+    private static final Set<String> PARAM_ANNOTATIONS = Set.of(
+            "PathVariable",
+            "RequestParam",
+            "RequestHeader",
+            "RequestAttribute",
+            "CookieValue",
+            "ModelAttribute",
+            "SessionAttribute"
+    ).stream().map(className -> "org.springframework.web.bind.annotation." + className).collect(toSet());
+
     @Override
     public List<AstTransform> visitAnnotation(Tr.Annotation annotation) {
         return maybeTransform(annotation,
-                isOfClassType(annotation.getType(), "org.springframework.web.bind.annotation.PathVariable") &&
+                PARAM_ANNOTATIONS.stream().anyMatch(annClass -> isOfClassType(annotation.getType(), annClass)) &&
                         annotation.getArgs() != null && nameArgumentValue(annotation).isPresent(),
                 super::visitAnnotation,
                 (a, cursor) -> {
