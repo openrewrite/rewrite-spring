@@ -16,7 +16,7 @@ class ExplicitWebAnnotationsTest : Parser(dependencies("spring-web"), Charsets.U
                 @GetMapping("/{id}")
                 public ResponseEntity<String> getUser(@PathVariable("id") Long id,
                                                       @PathVariable(required = false) Long p2,
-                                                      @PathVariable(value = "p2") Long p2) {
+                                                      @PathVariable(value = "p3") Long anotherName) {
                 }
             }
         """.trimIndent())
@@ -33,7 +33,7 @@ class ExplicitWebAnnotationsTest : Parser(dependencies("spring-web"), Charsets.U
                 @GetMapping("/{id}")
                 public ResponseEntity<String> getUser(@PathVariable Long id,
                                                       @PathVariable(required = false) Long p2,
-                                                      @PathVariable Long p2) {
+                                                      @PathVariable Long p3) {
                 }
             }
         """)
