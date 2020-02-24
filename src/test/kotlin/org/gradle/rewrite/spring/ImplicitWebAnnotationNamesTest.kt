@@ -3,7 +3,7 @@ package org.gradle.rewrite.spring
 import com.netflix.rewrite.Parser
 import org.junit.jupiter.api.Test
 
-class ExplicitWebAnnotationsTest : Parser(dependencies("spring-web"), Charsets.UTF_8, false) {
+class ImplicitWebAnnotationNamesTest : Parser(dependenciesFromClasspath("spring-web")) {
     @Test
     fun removeUnnecessaryAnnotationArgument() {
         val controller = parse("""
@@ -21,7 +21,7 @@ class ExplicitWebAnnotationsTest : Parser(dependencies("spring-web"), Charsets.U
             }
         """.trimIndent())
 
-        val fixed = controller.refactor().visit(ExplicitWebAnnotations()).fix().fixed
+        val fixed = controller.refactor().visit(ImplicitWebAnnotationNames()).fix().fixed
 
         assertRefactored(fixed, """
             import org.springframework.http.ResponseEntity;

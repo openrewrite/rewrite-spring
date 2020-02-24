@@ -43,13 +43,3 @@ fun Type?.asClass(): Type.Class? = TypeUtils.asClass(this)
 fun Type?.asArray(): Type.Array? = TypeUtils.asArray(this)
 
 fun Type?.asGeneric(): Type.GenericTypeVariable? = TypeUtils.asGeneric(this)
-
-fun dependencies(vararg artifactNames: String): List<Path> = System
-        .getProperty("java.class.path")
-        .split(System.getProperty("path.separator").toRegex())
-        .filter { cpEntry ->
-            artifactNames.any { name ->
-                "$name-.*?\\.jar$".toRegex().containsMatchIn(cpEntry)
-            }
-        }
-        .map { cpEntry -> File(cpEntry).toPath() }

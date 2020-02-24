@@ -13,7 +13,7 @@ import static com.netflix.rewrite.tree.TypeUtils.isOfClassType;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-public class ExplicitWebAnnotations extends RefactorVisitor {
+public class ImplicitWebAnnotationNames extends RefactorVisitor {
     private static final Set<String> PARAM_ANNOTATIONS = Set.of(
             "PathVariable",
             "RequestParam",
@@ -23,6 +23,11 @@ public class ExplicitWebAnnotations extends RefactorVisitor {
             "ModelAttribute",
             "SessionAttribute"
     ).stream().map(className -> "org.springframework.web.bind.annotation." + className).collect(toSet());
+
+    @Override
+    public String getRuleName() {
+        return "spring.web.ImplicitWebAnnotationNames";
+    }
 
     @Override
     public List<AstTransform> visitAnnotation(Tr.Annotation annotation) {

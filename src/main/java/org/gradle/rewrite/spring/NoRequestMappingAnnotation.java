@@ -3,7 +3,6 @@ package org.gradle.rewrite.spring;
 import com.netflix.rewrite.tree.Expression;
 import com.netflix.rewrite.tree.Tr;
 import com.netflix.rewrite.tree.Type;
-import com.netflix.rewrite.tree.TypeUtils;
 import com.netflix.rewrite.visitor.refactor.AstTransform;
 import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
 
@@ -15,7 +14,12 @@ import static com.netflix.rewrite.tree.TypeUtils.isOfClassType;
 import static java.util.stream.Collectors.toList;
 
 
-public class RequestMapping extends RefactorVisitor {
+public class NoRequestMappingAnnotation extends RefactorVisitor {
+    @Override
+    public String getRuleName() {
+        return "spring.web.NoRequestMappingAnnotation";
+    }
+
     @Override
     public List<AstTransform> visitAnnotation(Tr.Annotation annotation) {
         return maybeTransform(annotation,

@@ -3,7 +3,7 @@ package org.gradle.rewrite.spring
 import com.netflix.rewrite.Parser
 import org.junit.jupiter.api.Test
 
-class RequestMappingTest : Parser(dependencies("spring-web"), Charsets.UTF_8, false) {
+class NoRequestMappingAnnotationTest : Parser(dependenciesFromClasspath("spring-web")) {
     @Test
     fun requestMapping() {
         val controller = parse("""
@@ -38,7 +38,7 @@ class RequestMappingTest : Parser(dependencies("spring-web"), Charsets.UTF_8, fa
             }
         """.trimIndent())
 
-        val fixed = controller.refactor().visit(RequestMapping()).fix().fixed
+        val fixed = controller.refactor().visit(NoRequestMappingAnnotation()).fix().fixed
 
         assertRefactored(fixed, """
             import java.util.*;

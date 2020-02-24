@@ -38,6 +38,8 @@ dependencies {
 
     testImplementation("org.assertj:assertj-core:latest.release")
 
+    testImplementation("com.google.code.findbugs:jsr305")
+    testRuntimeOnly("javax.inject:javax.inject:1")
     testRuntimeOnly("ch.qos.logback:logback-classic:1.0.13")
 }
 
