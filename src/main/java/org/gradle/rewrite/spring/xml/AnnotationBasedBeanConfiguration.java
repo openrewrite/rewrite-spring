@@ -156,7 +156,7 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                         Expression valueTree;
 
                         if (TypeUtils.isString(type)) {
-                            valueTree = new Tr.Literal(randomId(), value, value, Type.Primitive.String, EMPTY);
+                            valueTree = new Tr.Literal(randomId(), value, "\"" + value + "\"", Type.Primitive.String, EMPTY);
                         } else if (primitive != null) {
                             Object primitiveValue;
 
@@ -194,7 +194,9 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                                     return ann; // not reachable
                             }
 
-                            valueTree = new Tr.Literal(randomId(), primitiveValue, value, primitive, EMPTY);
+                            valueTree = new Tr.Literal(randomId(), primitiveValue,
+                                    Type.Primitive.Char.equals(primitive) ? "'" + value + "'" : value,
+                                    primitive, EMPTY);
                         } else {
                             // not reachable?
                             return ann;
