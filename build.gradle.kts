@@ -37,6 +37,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:latest.release")
 
     // for testing ConstructorInjection
+    testImplementation("javax.annotation:javax.annotation-api:latest.release")
     testRuntimeOnly("org.projectlombok:lombok:1.18.10")
     testRuntimeOnly("com.google.code.findbugs:jsr305")
     testRuntimeOnly("javax.inject:javax.inject:1")

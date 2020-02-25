@@ -24,6 +24,12 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
                 public void setUserRepository(UserRepository userRepository) {
                     this.userRepository = userRepository;
                 }
+                
+                public void onInit() {
+                }
+                
+                public void onDestroy() {
+                }
             }
         """.trimIndent(), repository)
 
@@ -39,7 +45,8 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
                 ">
              
                 <bean id="userRepository" class="repositories.UserRepository"/>
-            	<bean id="userService" class="services.UserService" lazy-init="true" scope="prototype">
+            	<bean id="userService" class="services.UserService" lazy-init="true" 
+                        scope="prototype" init-method="onInit" destroy-method="onDestroy">
                     <property name="userRepository" ref="userRepository"/>
             	</bean>
             	<context:annotation-config />
@@ -52,6 +59,8 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
         assertRefactored(fixed, """
             package services;
 
+            import javax.annotation.PostConstruct;
+            import javax.annotation.PreDestroy;
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.beans.factory.config.ConfigurableBeanFactory;
             import org.springframework.context.annotation.Lazy;
@@ -68,6 +77,14 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
                 
                 public void setUserRepository(UserRepository userRepository) {
                     this.userRepository = userRepository;
+                }
+                
+                @PostConstruct
+                public void onInit() {
+                }
+                
+                @PreDestroy
+                public void onDestroy() {
                 }
             }
         """)

@@ -15,7 +15,6 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.xml.sax.InputSource;
 
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,6 +65,20 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                     andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Scope"));
                     andThen(new SetScopeAnnotationToPrototype(classDecl.getId()));
                 }
+
+                if (beanDefinition.getInitMethodName() != null) {
+                    classDecl.getMethods().stream()
+                            .filter(m -> m.getSimpleName().equals(beanDefinition.getInitMethodName()))
+                            .findAny()
+                            .ifPresent(m -> andThen(new AddAnnotation(m.getId(), "javax.annotation.PostConstruct")));
+                }
+
+                if (beanDefinition.getDestroyMethodName() != null) {
+                    classDecl.getMethods().stream()
+                            .filter(m -> m.getSimpleName().equals(beanDefinition.getDestroyMethodName()))
+                            .findAny()
+                            .ifPresent(m -> andThen(new AddAnnotation(m.getId(), "javax.annotation.PreDestroy")));
+                }
             }
 
             return super.visitClassDecl(classDecl);
@@ -92,7 +105,7 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
         public List<AstTransform> visitAnnotation(Tr.Annotation annotation) {
             return maybeTransform(annotation,
                     isScope(getCursor().getParentOrThrow().getTree()) &&
-                    TypeUtils.isOfClassType(annotation.getType(), "org.springframework.context.annotation.Scope"),
+                            TypeUtils.isOfClassType(annotation.getType(), "org.springframework.context.annotation.Scope"),
                     super::visitAnnotation,
                     ann -> {
                         Type.Class cbf = Type.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
@@ -100,7 +113,7 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                         return ann.withArgs(
                                 new Tr.Annotation.Arguments(randomId(),
                                         singletonList(TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE")
-                                            .withType( cbf)),
+                                                .withType(cbf)),
                                         EMPTY)
                         );
                     }
