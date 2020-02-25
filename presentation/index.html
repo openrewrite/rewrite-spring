@@ -1,0 +1,259 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reset.css">
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/monokai.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>Spring XML Configuration to Annotation Configuration</section>
+				<section data-markdown>
+					<textarea data-template>
+### Add `@Component`/`@Autowired`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns=...>
+  <bean id="userRepository" class="repositories.UserRepository"/>
+	<bean id="userService" class="services.UserService">
+        <property name="userRepository" ref="userRepository"/>
+	</bean>
+</beans>
+```
+					</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+### Before
+
+```java
+package services;
+
+import repositories.*;
+
+public class UserService {
+  private UserRepository userRepository;
+
+  public void setUserRepository(UserRepository userRepository) {
+    this.userRepository = userRepository;
+  }
+}
+```
+					</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+### After
+
+```java
+package services;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import repositories.*;
+
+@Component
+public class UserService {
+  @Autowired
+  private UserRepository userRepository;
+
+  public void setUserRepository(UserRepository userRepository) {
+    this.userRepository = userRepository;
+  }
+}
+```
+
+Imports are automatically managed, reflecting import folding options in local IDE configuration files.
+					</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+### Add `@Lazy`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns=...>
+  <bean id="userService" class="services.UserService"
+		lazy-init="true"/>
+</beans>
+```
+							</textarea>
+					</section>
+					<section data-markdown>
+						<textarea data-template>
+### Before
+
+```java
+package services;
+
+import repositories.*;
+
+public class UserService {
+}
+```
+						</textarea>
+					</section>
+					<section data-markdown>
+						<textarea data-template>
+### After
+
+```java
+package services;
+
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+import repositories.*;
+
+@Component
+@Lazy
+public class UserService {
+}
+```
+						</textarea>
+					</section>
+					<section data-markdown>
+						<textarea data-template>
+### Add `@Scope`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns=...>
+	<bean id="userService" class="services.UserService"
+		scope="prototype"/>
+</beans>
+```
+						</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+### Before
+
+```java
+package services;
+
+import repositories.*;
+
+public class UserService {
+}
+```
+					</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+### After
+
+```java
+package services;
+
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import repositories.*;
+
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class UserService {
+}
+```
+					</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+### Add `@Scope`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns=...>
+	<bean id="userService" class="services.UserService">
+    <property name="maxUsers" value="1000"/>
+	</bean>
+</beans>
+```
+					</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+### Before
+
+```java
+package services;
+
+import repositories.*;
+
+public class UserService {
+	private int maxUsers;
+
+	public void setMaxUsers(int maxUsers) {
+		this.maxUsers = maxUsers;
+	}
+}
+```
+					</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+### After
+
+```java
+package services;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import repositories.*;
+
+@Component
+public class UserService {
+	@Value(1000)
+	private int maxUsers;
+
+	public void setMaxUsers(int maxUsers) {
+		this.maxUsers = maxUsers;
+	}
+}
+```
+					</textarea>
+				</section>
+			</div>
+		</div>
+
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				hash: true,
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/highlight/highlight.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+
+					// Zoom in and out with Alt+click
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+				],
+				autoSlide: 3000
+			});
+		</script>
+	</body>
+</html>
