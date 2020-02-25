@@ -20,6 +20,7 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             
             public class UserService {
                 private UserRepository userRepository;
+                private int maxUsers;
                 
                 public void setUserRepository(UserRepository userRepository) {
                     this.userRepository = userRepository;
@@ -29,6 +30,10 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
                 }
                 
                 public void onDestroy() {
+                }
+                
+                public void setMaxUsers(int maxUsers) {
+                    this.maxUsers = maxUsers;
                 }
             }
         """.trimIndent(), repository)
@@ -48,6 +53,7 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             	<bean id="userService" class="services.UserService" lazy-init="true" 
                         scope="prototype" init-method="onInit" destroy-method="onDestroy">
                     <property name="userRepository" ref="userRepository"/>
+                    <property name="maxUsers" value="1000"/>
             	</bean>
             	<context:annotation-config />
             </beans>
@@ -62,6 +68,7 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             import javax.annotation.PostConstruct;
             import javax.annotation.PreDestroy;
             import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.beans.factory.annotation.Value;
             import org.springframework.beans.factory.config.ConfigurableBeanFactory;
             import org.springframework.context.annotation.Lazy;
             import org.springframework.context.annotation.Scope;
@@ -74,6 +81,9 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             public class UserService {
                 @Autowired
                 private UserRepository userRepository;
+            
+                @Value(1000)
+                private int maxUsers;
                 
                 public void setUserRepository(UserRepository userRepository) {
                     this.userRepository = userRepository;
@@ -85,6 +95,10 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
                 
                 @PreDestroy
                 public void onDestroy() {
+                }
+                
+                public void setMaxUsers(int maxUsers) {
+                    this.maxUsers = maxUsers;
                 }
             }
         """)

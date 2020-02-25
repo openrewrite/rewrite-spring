@@ -1,14 +1,14 @@
 package org.gradle.rewrite.spring.xml;
 
-import com.netflix.rewrite.tree.Tr;
-import com.netflix.rewrite.tree.TreeBuilder;
-import com.netflix.rewrite.tree.Type;
-import com.netflix.rewrite.tree.TypeUtils;
+import com.netflix.rewrite.tree.*;
 import com.netflix.rewrite.visitor.refactor.AstTransform;
 import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
 import com.netflix.rewrite.visitor.refactor.ScopedRefactorVisitor;
 import com.netflix.rewrite.visitor.refactor.op.AddAnnotation;
+import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanReference;
+import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -16,6 +16,7 @@ import org.xml.sax.InputSource;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.netflix.rewrite.tree.Formatting.EMPTY;
@@ -86,10 +87,18 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
 
         @Override
         public List<AstTransform> visitMultiVariable(Tr.VariableDecls multiVariable) {
-            if (getCursor().getParentOrThrow().getParentOrThrow().getTree() instanceof Tr.ClassDecl &&
-                    stream(beanDefinition.getPropertyValues().spliterator(), false)
-                            .anyMatch(prop -> prop.getName().equals(multiVariable.getVars().get(0).getSimpleName()))) {
-                andThen(new AddAnnotation(multiVariable.getId(), "org.springframework.beans.factory.annotation.Autowired"));
+            Optional<PropertyValue> maybeBeanProperty = stream(beanDefinition.getPropertyValues().spliterator(), false)
+                    .filter(prop -> prop.getName().equals(multiVariable.getVars().get(0).getSimpleName()))
+                    .findAny();
+
+            if (getCursor().getParentOrThrow().getParentOrThrow().getTree() instanceof Tr.ClassDecl && maybeBeanProperty.isPresent()) {
+                PropertyValue beanProperty = maybeBeanProperty.get();
+                if (beanProperty.getValue() instanceof BeanReference) {
+                    andThen(new AddAnnotation(multiVariable.getId(), "org.springframework.beans.factory.annotation.Autowired"));
+                } else if (beanProperty.getValue() instanceof TypedStringValue) {
+                    andThen(new AddAnnotation(multiVariable.getId(), "org.springframework.beans.factory.annotation.Value"));
+                    andThen(new SetValueValue(multiVariable.getId(), ((TypedStringValue) beanProperty.getValue()).getValue()));
+                }
             }
 
             return super.visitMultiVariable(multiVariable);
@@ -116,6 +125,82 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                                                 .withType(cbf)),
                                         EMPTY)
                         );
+                    }
+            );
+        }
+    }
+
+    private static class SetValueValue extends ScopedRefactorVisitor {
+        private final String value;
+
+        public SetValueValue(UUID scope, String value) {
+            super(scope);
+            this.value = value;
+        }
+
+        @Override
+        public List<AstTransform> visitAnnotation(Tr.Annotation annotation) {
+            return maybeTransform(annotation,
+                    isScope(getCursor().getParentOrThrow().getTree()) &&
+                            TypeUtils.isOfClassType(annotation.getType(), "org.springframework.beans.factory.annotation.Value"),
+                    super::visitAnnotation,
+                    (ann, cursor) -> {
+                        Tr.VariableDecls mv = cursor.getParentOrThrow().getTree();
+                        if (mv.getTypeExpr() == null) {
+                            return ann; // not possible
+                        }
+
+                        Type type = mv.getTypeExpr().getType();
+                        Type.Primitive primitive = TypeUtils.asPrimitive(type);
+
+                        Expression valueTree;
+
+                        if (TypeUtils.isString(type)) {
+                            valueTree = new Tr.Literal(randomId(), value, value, Type.Primitive.String, EMPTY);
+                        } else if (primitive != null) {
+                            Object primitiveValue;
+
+                            switch (primitive) {
+                                case Int:
+                                    primitiveValue = Integer.parseInt(value);
+                                    break;
+                                case Boolean:
+                                    primitiveValue = Boolean.parseBoolean(value);
+                                    break;
+                                case Byte:
+                                case Char:
+                                    primitiveValue = value.length() > 0 ? value.charAt(0) : 0;
+                                    break;
+                                case Double:
+                                    primitiveValue = Double.parseDouble(value);
+                                    break;
+                                case Float:
+                                    primitiveValue = Float.parseFloat(value);
+                                    break;
+                                case Long:
+                                    primitiveValue = Long.parseLong(value);
+                                    break;
+                                case Short:
+                                    primitiveValue = Short.parseShort(value);
+                                    break;
+                                case Null:
+                                    primitiveValue = null;
+                                    break;
+                                case Void:
+                                case String:
+                                case None:
+                                case Wildcard:
+                                default:
+                                    return ann; // not reachable
+                            }
+
+                            valueTree = new Tr.Literal(randomId(), primitiveValue, value, primitive, EMPTY);
+                        } else {
+                            // not reachable?
+                            return ann;
+                        }
+
+                        return ann.withArgs(new Tr.Annotation.Arguments(randomId(), singletonList(valueTree), EMPTY));
                     }
             );
         }
