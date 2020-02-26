@@ -3,6 +3,9 @@ package org.gradle.rewrite.spring.xml
 import com.netflix.rewrite.Parser
 import org.gradle.rewrite.spring.assertRefactored
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EmptySource
+import org.junit.jupiter.params.provider.ValueSource
 import java.io.InputStream
 
 class AnnotationBasedBeanConfigurationTest: Parser() {
@@ -85,6 +88,45 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
                 private int maxUsers;
                 
                 public void setMaxUsers(int maxUsers) {
+                    this.maxUsers = maxUsers;
+                }
+            }
+        """)
+    }
+
+    @ParameterizedTest
+    @EmptySource // technically Spring can't even do this for primitive types, but we don't need to unnecessarily limit argument resolution here
+    @ValueSource(strings = ["name=\"maxUsers\"", "index=\"0\"", "type=\"int\""])
+    fun constructorArgValue(arg: String) {
+        val service = parse("""
+            package services;
+            
+            public class UserService {
+                private int maxUsers;
+            
+                public UserService(int maxUsers) {
+                    this.maxUsers = maxUsers;
+                }
+            }
+        """.trimIndent(), repository)
+
+        val fixed = service.refactor().visit(AnnotationBasedBeanConfiguration(beanDefinitions("""
+            <bean id="userService" class="services.UserService">
+                <constructor-arg $arg value="1000" />
+            </bean>
+        """))).fix().fixed
+
+        assertRefactored(fixed, """
+            package services;
+            
+            import org.springframework.beans.factory.annotation.Value;
+            import org.springframework.stereotype.Component;
+
+            @Component
+            public class UserService {
+                private int maxUsers;
+            
+                public UserService(@Value(1000) int maxUsers) {
                     this.maxUsers = maxUsers;
                 }
             }

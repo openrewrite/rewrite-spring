@@ -4,9 +4,9 @@ import com.netflix.rewrite.tree.*;
 import com.netflix.rewrite.visitor.refactor.AstTransform;
 import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
 import com.netflix.rewrite.visitor.refactor.op.AddAnnotation;
-import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
@@ -15,10 +15,14 @@ import org.xml.sax.InputSource;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.netflix.rewrite.tree.Formatting.EMPTY;
 import static com.netflix.rewrite.tree.Tr.randomId;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 
 public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
@@ -87,78 +91,141 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
 
         @Override
         public List<AstTransform> visitMultiVariable(Tr.VariableDecls multiVariable) {
-            Optional<PropertyValue> maybeBeanProperty = stream(beanDefinition.getPropertyValues().spliterator(), false)
-                    .filter(prop -> prop.getName().equals(multiVariable.getVars().get(0).getSimpleName()))
-                    .findAny();
+            getCursor().getParentOrThrow().getParentOrThrow().getTree().whenType(Tr.ClassDecl.class).ifPresent(classDecl -> {
+                stream(beanDefinition.getPropertyValues().spliterator(), false)
+                        .filter(prop -> prop.getName().equals(multiVariable.getVars().get(0).getSimpleName()))
+                        .findAny()
+                        .ifPresent(beanProperty -> {
+                            if (beanProperty.getValue() instanceof BeanReference) {
+                                andThen(new AddAnnotation(multiVariable.getId(), "org.springframework.beans.factory.annotation.Autowired"));
+                            } else if (beanProperty.getValue() instanceof TypedStringValue) {
+                                valueExpression(beanProperty.getValue(), multiVariable).ifPresent(valueTree ->
+                                        andThen(new AddAnnotation(multiVariable.getId(),
+                                                "org.springframework.beans.factory.annotation.Value", valueTree)));
+                            }
+                        });
 
-            if (getCursor().getParentOrThrow().getParentOrThrow().getTree() instanceof Tr.ClassDecl && maybeBeanProperty.isPresent()) {
-                PropertyValue beanProperty = maybeBeanProperty.get();
-                if (beanProperty.getValue() instanceof BeanReference) {
-                    andThen(new AddAnnotation(multiVariable.getId(), "org.springframework.beans.factory.annotation.Autowired"));
-                } else if (beanProperty.getValue() instanceof TypedStringValue && multiVariable.getTypeExpr() != null) {
-                    String value = ((TypedStringValue) beanProperty.getValue()).getValue();
-                    if (value == null) {
-                        return super.visitMultiVariable(multiVariable);
-                    }
+                ConstructorArgumentValues constructorArgs = beanDefinition.getConstructorArgumentValues();
+                if (constructorArgs.getArgumentCount() > 0) {
+                    classDecl.getMethods().stream()
+                            .filter(m -> m.isConstructor() && m.getParams().getParams().size() == constructorArgs.getArgumentCount())
+                            .findAny()
+                            .ifPresent(injectableConstructor -> {
+                                List<ConstructorArgumentValues.ValueHolder> indexedValues = Stream.concat(
+                                                constructorArgs.getIndexedArgumentValues().entrySet().stream()
+                                                        .sorted(Map.Entry.comparingByKey())
+                                                        .map(Map.Entry::getValue),
+                                                constructorArgs.getGenericArgumentValues().stream()
+                                                        .filter(valueHolder -> valueHolder.getType() == null && valueHolder.getName() == null)
+                                        ).collect(toList());
 
-                    Type type = multiVariable.getTypeExpr().getType();
-                    Type.Primitive primitive = TypeUtils.asPrimitive(type);
+                                for (int i = 0; i < indexedValues.size(); i++) {
+                                    int param = i;
+                                    valueExpression(indexedValues.get(i).getValue(), multiVariable).ifPresent(valueTree ->
+                                            andThen(new AddAnnotation(injectableConstructor.getParams().getParams().get(param).getId(),
+                                                    "org.springframework.beans.factory.annotation.Value", valueTree)));
+                                }
 
-                    Expression valueTree;
+                                List<ConstructorArgumentValues.ValueHolder> genericValues = constructorArgs.getGenericArgumentValues().stream()
+                                        .filter(valueHolder -> valueHolder.getType() != null || valueHolder.getName() != null)
+                                        .collect(toList());
 
-                    if (TypeUtils.isString(type)) {
-                        valueTree = new Tr.Literal(randomId(), value, "\"" + value + "\"", Type.Primitive.String, EMPTY);
-                    } else if (primitive != null) {
-                        Object primitiveValue;
+                                for (ConstructorArgumentValues.ValueHolder genericValue : genericValues) {
+                                    valueExpression(genericValue.getValue(), multiVariable).ifPresent(valueTree -> {
+                                        Statement param;
+                                        if(genericValue.getType() != null) {
+                                            param = injectableConstructor.getParams().getParams().stream()
+                                                    .filter(methodParam -> {
+                                                        Type genericValueType = Optional.ofNullable((Type) Type.Primitive.fromKeyword(genericValue.getType()))
+                                                                .orElseGet(() -> Type.Class.build(genericValue.getType()));
 
-                        switch (primitive) {
-                            case Int:
-                                primitiveValue = Integer.parseInt(value);
-                                break;
-                            case Boolean:
-                                primitiveValue = Boolean.parseBoolean(value);
-                                break;
-                            case Byte:
-                            case Char:
-                                primitiveValue = value.length() > 0 ? value.charAt(0) : 0;
-                                break;
-                            case Double:
-                                primitiveValue = Double.parseDouble(value);
-                                break;
-                            case Float:
-                                primitiveValue = Float.parseFloat(value);
-                                break;
-                            case Long:
-                                primitiveValue = Long.parseLong(value);
-                                break;
-                            case Short:
-                                primitiveValue = Short.parseShort(value);
-                                break;
-                            case Null:
-                                primitiveValue = null;
-                                break;
-                            case Void:
-                            case String:
-                            case None:
-                            case Wildcard:
-                            default:
-                                return super.visitMultiVariable(multiVariable); // not reachable
-                        }
+                                                        //noinspection ConstantConditions
+                                                        return methodParam.whenType(Tr.VariableDecls.class)
+                                                                .map(methodParamVar -> methodParamVar.getTypeExpr().getType().equals(genericValueType))
+                                                                .orElse(false);
+                                                    })
+                                                    .findAny()
+                                                    .orElse(null);
+                                        } else {
+                                            param = injectableConstructor.getParams().getParams().stream()
+                                                    .filter(methodParam -> methodParam.whenType(Tr.VariableDecls.class)
+                                                        .map(methodParamVar -> methodParamVar.getVars().get(0).getSimpleName().equals(genericValue.getName()))
+                                                        .orElse(false))
+                                                    .findAny()
+                                                    .orElse(null);
+                                        }
 
-                        valueTree = new Tr.Literal(randomId(), primitiveValue,
-                                Type.Primitive.Char.equals(primitive) ? "'" + value + "'" : value,
-                                primitive, EMPTY);
-                    } else {
-                        // not reachable?
-                        return super.visitMultiVariable(multiVariable);
-                    }
-
-                    andThen(new AddAnnotation(multiVariable.getId(),
-                            "org.springframework.beans.factory.annotation.Value", valueTree));
+                                        if(param != null) {
+                                            andThen(new AddAnnotation(param.getId(),
+                                                    "org.springframework.beans.factory.annotation.Value", valueTree));
+                                        }
+                                    });
+                                }
+                            });
                 }
-            }
+            });
 
             return super.visitMultiVariable(multiVariable);
+        }
+
+        private Optional<Expression> valueExpression(Object typedStringValue, Tr.VariableDecls multiVariable) {
+            if (!(typedStringValue instanceof TypedStringValue) || multiVariable.getTypeExpr() == null) {
+                return Optional.empty();
+            }
+
+            String value = ((TypedStringValue) typedStringValue).getValue();
+            if (value == null) {
+                return Optional.empty();
+            }
+
+            Type type = multiVariable.getTypeExpr().getType();
+            Type.Primitive primitive = TypeUtils.asPrimitive(type);
+
+            if (TypeUtils.isString(type)) {
+                return Optional.of(new Tr.Literal(randomId(), value, "\"" + value + "\"", Type.Primitive.String, EMPTY));
+            } else if (primitive != null) {
+                Object primitiveValue;
+
+                switch (primitive) {
+                    case Int:
+                        primitiveValue = Integer.parseInt(value);
+                        break;
+                    case Boolean:
+                        primitiveValue = Boolean.parseBoolean(value);
+                        break;
+                    case Byte:
+                    case Char:
+                        primitiveValue = value.length() > 0 ? value.charAt(0) : 0;
+                        break;
+                    case Double:
+                        primitiveValue = Double.parseDouble(value);
+                        break;
+                    case Float:
+                        primitiveValue = Float.parseFloat(value);
+                        break;
+                    case Long:
+                        primitiveValue = Long.parseLong(value);
+                        break;
+                    case Short:
+                        primitiveValue = Short.parseShort(value);
+                        break;
+                    case Null:
+                        primitiveValue = null;
+                        break;
+                    case Void:
+                    case String:
+                    case None:
+                    case Wildcard:
+                    default:
+                        return Optional.empty(); // not reachable
+                }
+
+                return Optional.of(new Tr.Literal(randomId(), primitiveValue,
+                        Type.Primitive.Char.equals(primitive) ? "'" + value + "'" : value,
+                        primitive, EMPTY));
+            }
+
+            return Optional.empty();
         }
     }
 }
