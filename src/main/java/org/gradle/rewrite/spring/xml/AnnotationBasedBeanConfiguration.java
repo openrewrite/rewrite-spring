@@ -55,6 +55,7 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
         public List<AstTransform> visitClassDecl(Tr.ClassDecl classDecl) {
             if (TypeUtils.isOfClassType(classDecl.getType(), beanDefinition.getBeanClassName())) {
                 andThen(new AddAnnotation(classDecl.getId(), "org.springframework.stereotype.Component"));
+
                 if (beanDefinition.isLazyInit()) {
                     andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Lazy"));
                 }
