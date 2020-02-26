@@ -45,8 +45,6 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             	xmlns:aop="http://www.springframework.org/schema/aop"
             	xsi:schemaLocation="http://www.springframework.org/schema/beans
                 http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-                http://www.springframework.org/schema/context
-                http://www.springframework.org/schema/context/spring-context-3.0.xsd
                 ">
              
                 <bean id="userRepository" class="repositories.UserRepository"/>
@@ -55,7 +53,6 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
                     <property name="userRepository" ref="userRepository"/>
                     <property name="maxUsers" value="1000"/>
             	</bean>
-            	<context:annotation-config />
             </beans>
         """.trimIndent()
 

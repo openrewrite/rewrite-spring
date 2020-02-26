@@ -3,7 +3,6 @@ package org.gradle.rewrite.spring.xml;
 import com.netflix.rewrite.tree.*;
 import com.netflix.rewrite.visitor.refactor.AstTransform;
 import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
-import com.netflix.rewrite.visitor.refactor.ScopedRefactorVisitor;
 import com.netflix.rewrite.visitor.refactor.op.AddAnnotation;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -17,11 +16,9 @@ import org.xml.sax.InputSource;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static com.netflix.rewrite.tree.Formatting.EMPTY;
 import static com.netflix.rewrite.tree.Tr.randomId;
-import static java.util.Collections.singletonList;
 import static java.util.stream.StreamSupport.stream;
 
 public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
@@ -63,8 +60,10 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                 }
 
                 if (beanDefinition.isPrototype()) {
-                    andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Scope"));
-                    andThen(new SetScopeAnnotationToPrototype(classDecl.getId()));
+                    Type.Class cbf = Type.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
+                    maybeAddImport(cbf.getFullyQualifiedName());
+                    andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Scope",
+                            TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE").withType(cbf)));
                 }
 
                 if (beanDefinition.getInitMethodName() != null) {
@@ -95,116 +94,70 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                 PropertyValue beanProperty = maybeBeanProperty.get();
                 if (beanProperty.getValue() instanceof BeanReference) {
                     andThen(new AddAnnotation(multiVariable.getId(), "org.springframework.beans.factory.annotation.Autowired"));
-                } else if (beanProperty.getValue() instanceof TypedStringValue) {
-                    andThen(new AddAnnotation(multiVariable.getId(), "org.springframework.beans.factory.annotation.Value"));
-                    andThen(new SetValueValue(multiVariable.getId(), ((TypedStringValue) beanProperty.getValue()).getValue()));
+                } else if (beanProperty.getValue() instanceof TypedStringValue && multiVariable.getTypeExpr() != null) {
+                    String value = ((TypedStringValue) beanProperty.getValue()).getValue();
+                    if (value == null) {
+                        return super.visitMultiVariable(multiVariable);
+                    }
+
+                    Type type = multiVariable.getTypeExpr().getType();
+                    Type.Primitive primitive = TypeUtils.asPrimitive(type);
+
+                    Expression valueTree;
+
+                    if (TypeUtils.isString(type)) {
+                        valueTree = new Tr.Literal(randomId(), value, "\"" + value + "\"", Type.Primitive.String, EMPTY);
+                    } else if (primitive != null) {
+                        Object primitiveValue;
+
+                        switch (primitive) {
+                            case Int:
+                                primitiveValue = Integer.parseInt(value);
+                                break;
+                            case Boolean:
+                                primitiveValue = Boolean.parseBoolean(value);
+                                break;
+                            case Byte:
+                            case Char:
+                                primitiveValue = value.length() > 0 ? value.charAt(0) : 0;
+                                break;
+                            case Double:
+                                primitiveValue = Double.parseDouble(value);
+                                break;
+                            case Float:
+                                primitiveValue = Float.parseFloat(value);
+                                break;
+                            case Long:
+                                primitiveValue = Long.parseLong(value);
+                                break;
+                            case Short:
+                                primitiveValue = Short.parseShort(value);
+                                break;
+                            case Null:
+                                primitiveValue = null;
+                                break;
+                            case Void:
+                            case String:
+                            case None:
+                            case Wildcard:
+                            default:
+                                return super.visitMultiVariable(multiVariable); // not reachable
+                        }
+
+                        valueTree = new Tr.Literal(randomId(), primitiveValue,
+                                Type.Primitive.Char.equals(primitive) ? "'" + value + "'" : value,
+                                primitive, EMPTY);
+                    } else {
+                        // not reachable?
+                        return super.visitMultiVariable(multiVariable);
+                    }
+
+                    andThen(new AddAnnotation(multiVariable.getId(),
+                            "org.springframework.beans.factory.annotation.Value", valueTree));
                 }
             }
 
             return super.visitMultiVariable(multiVariable);
-        }
-    }
-
-    private static class SetScopeAnnotationToPrototype extends ScopedRefactorVisitor {
-        public SetScopeAnnotationToPrototype(UUID scope) {
-            super(scope);
-        }
-
-        @Override
-        public List<AstTransform> visitAnnotation(Tr.Annotation annotation) {
-            return maybeTransform(annotation,
-                    isScope(getCursor().getParentOrThrow().getTree()) &&
-                            TypeUtils.isOfClassType(annotation.getType(), "org.springframework.context.annotation.Scope"),
-                    super::visitAnnotation,
-                    ann -> {
-                        Type.Class cbf = Type.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
-                        maybeAddImport(cbf.getFullyQualifiedName());
-                        return ann.withArgs(
-                                new Tr.Annotation.Arguments(randomId(),
-                                        singletonList(TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE")
-                                                .withType(cbf)),
-                                        EMPTY)
-                        );
-                    }
-            );
-        }
-    }
-
-    private static class SetValueValue extends ScopedRefactorVisitor {
-        private final String value;
-
-        public SetValueValue(UUID scope, String value) {
-            super(scope);
-            this.value = value;
-        }
-
-        @Override
-        public List<AstTransform> visitAnnotation(Tr.Annotation annotation) {
-            return maybeTransform(annotation,
-                    isScope(getCursor().getParentOrThrow().getTree()) &&
-                            TypeUtils.isOfClassType(annotation.getType(), "org.springframework.beans.factory.annotation.Value"),
-                    super::visitAnnotation,
-                    (ann, cursor) -> {
-                        Tr.VariableDecls mv = cursor.getParentOrThrow().getTree();
-                        if (mv.getTypeExpr() == null) {
-                            return ann; // not possible
-                        }
-
-                        Type type = mv.getTypeExpr().getType();
-                        Type.Primitive primitive = TypeUtils.asPrimitive(type);
-
-                        Expression valueTree;
-
-                        if (TypeUtils.isString(type)) {
-                            valueTree = new Tr.Literal(randomId(), value, "\"" + value + "\"", Type.Primitive.String, EMPTY);
-                        } else if (primitive != null) {
-                            Object primitiveValue;
-
-                            switch (primitive) {
-                                case Int:
-                                    primitiveValue = Integer.parseInt(value);
-                                    break;
-                                case Boolean:
-                                    primitiveValue = Boolean.parseBoolean(value);
-                                    break;
-                                case Byte:
-                                case Char:
-                                    primitiveValue = value.length() > 0 ? value.charAt(0) : 0;
-                                    break;
-                                case Double:
-                                    primitiveValue = Double.parseDouble(value);
-                                    break;
-                                case Float:
-                                    primitiveValue = Float.parseFloat(value);
-                                    break;
-                                case Long:
-                                    primitiveValue = Long.parseLong(value);
-                                    break;
-                                case Short:
-                                    primitiveValue = Short.parseShort(value);
-                                    break;
-                                case Null:
-                                    primitiveValue = null;
-                                    break;
-                                case Void:
-                                case String:
-                                case None:
-                                case Wildcard:
-                                default:
-                                    return ann; // not reachable
-                            }
-
-                            valueTree = new Tr.Literal(randomId(), primitiveValue,
-                                    Type.Primitive.Char.equals(primitive) ? "'" + value + "'" : value,
-                                    primitive, EMPTY);
-                        } else {
-                            // not reachable?
-                            return ann;
-                        }
-
-                        return ann.withArgs(new Tr.Annotation.Arguments(randomId(), singletonList(valueTree), EMPTY));
-                    }
-            );
         }
     }
 }
