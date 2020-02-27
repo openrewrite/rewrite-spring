@@ -1,8 +1,8 @@
 package org.gradle.rewrite.spring
 
-import com.netflix.rewrite.Parser
-import com.netflix.rewrite.Parser.dependenciesFromClasspath
 import org.junit.jupiter.api.Test
+import org.openrewrite.Parser
+import org.openrewrite.Parser.dependenciesFromClasspath
 
 class ConstructorInjectionTest {
     @Test

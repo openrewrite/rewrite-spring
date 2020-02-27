@@ -1,9 +1,9 @@
 package org.gradle.rewrite.spring.xml;
 
-import com.netflix.rewrite.tree.*;
-import com.netflix.rewrite.visitor.refactor.AstTransform;
-import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
-import com.netflix.rewrite.visitor.refactor.op.AddAnnotation;
+import org.openrewrite.tree.*;
+import org.openrewrite.visitor.refactor.AstTransform;
+import org.openrewrite.visitor.refactor.RefactorVisitor;
+import org.openrewrite.visitor.refactor.op.AddAnnotation;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
@@ -17,25 +17,24 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.netflix.rewrite.tree.Formatting.EMPTY;
-import static com.netflix.rewrite.tree.Tr.randomId;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
+import static org.openrewrite.tree.Formatting.EMPTY;
+import static org.openrewrite.tree.J.randomId;
 
-public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
+public class AnnotationBasedConfiguration extends RefactorVisitor {
     private final BeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
 
-    public AnnotationBasedBeanConfiguration(InputStream beansXml) {
+    public AnnotationBasedConfiguration(InputStream beansXml) {
         var reader = new XmlBeanDefinitionReader(registry);
         reader.setValidating(false);
         reader.loadBeanDefinitions(new InputSource(beansXml));
     }
 
     @Override
-    public List<AstTransform> visitCompilationUnit(Tr.CompilationUnit cu) {
+    public List<AstTransform> visitCompilationUnit(J.CompilationUnit cu) {
         List<AstTransform> changes = super.visitCompilationUnit(cu);
         for (String beanDefinitionName : registry.getBeanDefinitionNames()) {
             andThen(new AnnotateBeanClass(registry.getBeanDefinition(beanDefinitionName)));
@@ -56,7 +55,7 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
         }
 
         @Override
-        public List<AstTransform> visitClassDecl(Tr.ClassDecl classDecl) {
+        public List<AstTransform> visitClassDecl(J.ClassDecl classDecl) {
             if (TypeUtils.isOfClassType(classDecl.getType(), beanDefinition.getBeanClassName())) {
                 andThen(new AddAnnotation(classDecl.getId(), "org.springframework.stereotype.Component"));
 
@@ -90,8 +89,8 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
         }
 
         @Override
-        public List<AstTransform> visitMultiVariable(Tr.VariableDecls multiVariable) {
-            getCursor().getParentOrThrow().getParentOrThrow().getTree().whenType(Tr.ClassDecl.class).ifPresent(classDecl -> {
+        public List<AstTransform> visitMultiVariable(J.VariableDecls multiVariable) {
+            getCursor().getParentOrThrow().getParentOrThrow().getTree().whenType(J.ClassDecl.class).ifPresent(classDecl -> {
                 stream(beanDefinition.getPropertyValues().spliterator(), false)
                         .filter(prop -> prop.getName().equals(multiVariable.getVars().get(0).getSimpleName()))
                         .findAny()
@@ -140,7 +139,7 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                                                                 .orElseGet(() -> Type.Class.build(genericValue.getType()));
 
                                                         //noinspection ConstantConditions
-                                                        return methodParam.whenType(Tr.VariableDecls.class)
+                                                        return methodParam.whenType(J.VariableDecls.class)
                                                                 .map(methodParamVar -> methodParamVar.getTypeExpr().getType().equals(genericValueType))
                                                                 .orElse(false);
                                                     })
@@ -148,7 +147,7 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                                                     .orElse(null);
                                         } else {
                                             param = injectableConstructor.getParams().getParams().stream()
-                                                    .filter(methodParam -> methodParam.whenType(Tr.VariableDecls.class)
+                                                    .filter(methodParam -> methodParam.whenType(J.VariableDecls.class)
                                                         .map(methodParamVar -> methodParamVar.getVars().get(0).getSimpleName().equals(genericValue.getName()))
                                                         .orElse(false))
                                                     .findAny()
@@ -168,7 +167,7 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
             return super.visitMultiVariable(multiVariable);
         }
 
-        private Optional<Expression> valueExpression(Object typedStringValue, Tr.VariableDecls multiVariable) {
+        private Optional<Expression> valueExpression(Object typedStringValue, J.VariableDecls multiVariable) {
             if (!(typedStringValue instanceof TypedStringValue) || multiVariable.getTypeExpr() == null) {
                 return Optional.empty();
             }
@@ -181,8 +180,8 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
             Type type = multiVariable.getTypeExpr().getType();
             Type.Primitive primitive = TypeUtils.asPrimitive(type);
 
-            if (TypeUtils.isString(type)) {
-                return Optional.of(new Tr.Literal(randomId(), value, "\"" + value + "\"", Type.Primitive.String, EMPTY));
+            if (TypeUtils.isString(type) || value.contains("${") || value.contains("#{")) {
+                return Optional.of(new J.Literal(randomId(), value, "\"" + value + "\"", Type.Primitive.String, EMPTY));
             } else if (primitive != null) {
                 Object primitiveValue;
 
@@ -220,7 +219,7 @@ public class AnnotationBasedBeanConfiguration extends RefactorVisitor {
                         return Optional.empty(); // not reachable
                 }
 
-                return Optional.of(new Tr.Literal(randomId(), primitiveValue,
+                return Optional.of(new J.Literal(randomId(), primitiveValue,
                         Type.Primitive.Char.equals(primitive) ? "'" + value + "'" : value,
                         primitive, EMPTY));
             }

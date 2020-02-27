@@ -15,24 +15,22 @@
  */
 package org.gradle.rewrite.spring
 
-import com.netflix.rewrite.tree.Statement
-import com.netflix.rewrite.tree.Tr
-import com.netflix.rewrite.tree.Type
-import com.netflix.rewrite.tree.TypeUtils
 import org.assertj.core.api.Assertions.assertThat
-import java.io.File
-import java.nio.file.Path
+import org.openrewrite.tree.J
+import org.openrewrite.tree.Statement
+import org.openrewrite.tree.Type
+import org.openrewrite.tree.TypeUtils
 
 /**
  * The first statement of the first method in the first class declaration
  */
-fun Tr.CompilationUnit.firstMethodStatement(): Statement =
+fun J.CompilationUnit.firstMethodStatement(): Statement =
         classes[0].methods[0].body!!.statements[0]
 
-fun Tr.CompilationUnit.fields(ns: IntRange = 0..0) =
+fun J.CompilationUnit.fields(ns: IntRange = 0..0) =
         classes[0].fields.subList(ns.first, ns.last + 1)
 
-fun assertRefactored(cu: Tr.CompilationUnit, refactored: String) {
+fun assertRefactored(cu: J.CompilationUnit, refactored: String) {
     assertThat(cu.printTrimmed()).isEqualTo(refactored.trimIndent())
 }
 

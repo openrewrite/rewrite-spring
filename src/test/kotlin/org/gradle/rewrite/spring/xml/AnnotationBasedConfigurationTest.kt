@@ -1,14 +1,14 @@
 package org.gradle.rewrite.spring.xml
 
-import com.netflix.rewrite.Parser
 import org.gradle.rewrite.spring.assertRefactored
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EmptySource
 import org.junit.jupiter.params.provider.ValueSource
+import org.openrewrite.Parser
 import java.io.InputStream
 
-class AnnotationBasedBeanConfigurationTest: Parser() {
+class AnnotationBasedConfigurationTest: Parser() {
     private val repository = """
         package repositories;
         public class UserRepository {
@@ -31,7 +31,7 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             }
         """.trimIndent(), repository)
 
-        val fixed = service.refactor().visit(AnnotationBasedBeanConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
             <bean id="userService" class="services.UserService">
                 <property name="userRepository" ref="userRepository" />
             </bean>
@@ -56,8 +56,9 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
         """)
     }
 
-    @Test
-    fun propertyValue() {
+    @ParameterizedTest
+    @ValueSource(strings = ["1000", "\${maxUsers}", "#{1000}"])
+    fun propertyValue(value: String) {
         val service = parse("""
             package services;
             
@@ -70,9 +71,9 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             }
         """.trimIndent(), repository)
 
-        val fixed = service.refactor().visit(AnnotationBasedBeanConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
             <bean id="userService" class="services.UserService">
-                <property name="maxUsers" value="1000" />
+                <property name="maxUsers" value="$value" />
             </bean>
         """))).fix().fixed
 
@@ -84,7 +85,7 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
 
             @Component
             public class UserService {
-                @Value(1000)
+                @Value(${if(value.contains("\${") || value.contains("#{")) "\"$value\"" else value})
                 private int maxUsers;
                 
                 public void setMaxUsers(int maxUsers) {
@@ -110,7 +111,7 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             }
         """.trimIndent(), repository)
 
-        val fixed = service.refactor().visit(AnnotationBasedBeanConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
             <bean id="userService" class="services.UserService">
                 <constructor-arg $arg value="1000" />
             </bean>
@@ -142,7 +143,7 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             }
         """.trimIndent(), repository)
 
-        val fixed = service.refactor().visit(AnnotationBasedBeanConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
             <bean id="userService" class="services.UserService" lazy-init="true" />
         """))).fix().fixed
 
@@ -168,7 +169,7 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             }
         """.trimIndent(), repository)
 
-        val fixed = service.refactor().visit(AnnotationBasedBeanConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
             <bean id="userService" class="services.UserService" scope="prototype" />
         """))).fix().fixed
 
@@ -200,7 +201,7 @@ class AnnotationBasedBeanConfigurationTest: Parser() {
             }
         """.trimIndent(), repository)
 
-        val fixed = service.refactor().visit(AnnotationBasedBeanConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
             <bean id="userService" class="services.UserService" init-method="onInit" destroy-method="onDestroy" />
         """))).fix().fixed
 

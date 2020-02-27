@@ -1,17 +1,17 @@
 package org.gradle.rewrite.spring;
 
-import com.netflix.rewrite.tree.Expression;
-import com.netflix.rewrite.tree.Tr;
-import com.netflix.rewrite.tree.Type;
-import com.netflix.rewrite.visitor.refactor.AstTransform;
-import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
+import org.openrewrite.tree.Expression;
+import org.openrewrite.tree.J;
+import org.openrewrite.tree.Type;
+import org.openrewrite.visitor.refactor.AstTransform;
+import org.openrewrite.visitor.refactor.RefactorVisitor;
 
 import java.util.List;
 
-import static com.netflix.rewrite.tree.Formatting.EMPTY;
-import static com.netflix.rewrite.tree.Tr.randomId;
-import static com.netflix.rewrite.tree.TypeUtils.isOfClassType;
 import static java.util.stream.Collectors.toList;
+import static org.openrewrite.tree.Formatting.EMPTY;
+import static org.openrewrite.tree.J.randomId;
+import static org.openrewrite.tree.TypeUtils.isOfClassType;
 
 
 public class NoRequestMappingAnnotation extends RefactorVisitor {
@@ -21,25 +21,25 @@ public class NoRequestMappingAnnotation extends RefactorVisitor {
     }
 
     @Override
-    public List<AstTransform> visitAnnotation(Tr.Annotation annotation) {
+    public List<AstTransform> visitAnnotation(J.Annotation annotation) {
         return maybeTransform(annotation,
                 isOfClassType(annotation.getType(), "org.springframework.web.bind.annotation.RequestMapping") &&
-                getCursor().getParentOrThrow().getTree() instanceof Tr.MethodDecl,
+                getCursor().getParentOrThrow().getTree() instanceof J.MethodDecl,
                 super::visitAnnotation,
                 a -> {
                     String toAnnotationType;
-                    Tr.Annotation.Arguments args = a.getArgs();
+                    J.Annotation.Arguments args = a.getArgs();
 
                     if (args == null) {
                         toAnnotationType = "GetMapping";
                     } else {
                         toAnnotationType = args.getArgs().stream().
-                                map(arg -> arg.whenType(Tr.Assign.class)
-                                        .flatMap(assign -> assign.getVariable().whenType(Tr.Ident.class)
+                                map(arg -> arg.whenType(J.Assign.class)
+                                        .flatMap(assign -> assign.getVariable().whenType(J.Ident.class)
                                                 .filter(key -> key.getSimpleName().equals("method"))
-                                                .flatMap(key -> assign.getAssignment().whenType(Tr.Ident.class)
-                                                        .or(() -> assign.getAssignment().whenType(Tr.FieldAccess.class)
-                                                                .map(Tr.FieldAccess::getName))
+                                                .flatMap(key -> assign.getAssignment().whenType(J.Ident.class)
+                                                        .or(() -> assign.getAssignment().whenType(J.FieldAccess.class)
+                                                                .map(J.FieldAccess::getName))
                                                         .map(methodEnum -> {
                                                             maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
                                                             return methodEnum.getSimpleName().substring(0, 1) + methodEnum.getSimpleName().substring(1).toLowerCase() + "Mapping";
@@ -50,8 +50,8 @@ public class NoRequestMappingAnnotation extends RefactorVisitor {
 
                         // drop the "method" argument
                         args = args.withArgs(args.getArgs().stream()
-                                .filter(arg -> arg.whenType(Tr.Assign.class)
-                                        .map(assign -> assign.getVariable().whenType(Tr.Ident.class)
+                                .filter(arg -> arg.whenType(J.Assign.class)
+                                        .map(assign -> assign.getVariable().whenType(J.Ident.class)
                                                 .filter(key -> key.getSimpleName().equals("method"))
                                                 .isEmpty())
                                         .orElse(true))
@@ -59,8 +59,8 @@ public class NoRequestMappingAnnotation extends RefactorVisitor {
 
                         // if there is only one remaining argument now, and it is "path" or "value", then we can drop the key name
                         args = args.withArgs(args.getArgs().stream()
-                                .map(arg -> arg.whenType(Tr.Assign.class)
-                                        .flatMap(assign -> assign.getVariable().whenType(Tr.Ident.class)
+                                .map(arg -> arg.whenType(J.Assign.class)
+                                        .flatMap(assign -> assign.getVariable().whenType(J.Ident.class)
                                                 .filter(key -> key.getSimpleName().equals("path") || key.getSimpleName().equals("value"))
                                                 .map(key -> (Expression) assign.getAssignment().withFormatting(EMPTY)))
                                         .orElse(arg))
@@ -80,7 +80,7 @@ public class NoRequestMappingAnnotation extends RefactorVisitor {
                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
 
                     return a.withArgs(args)
-                            .withAnnotationType(Tr.Ident.build(randomId(), toAnnotationType,
+                            .withAnnotationType(J.Ident.build(randomId(), toAnnotationType,
                                     Type.Class.build("org.springframework.web.bind.annotation." + toAnnotationType), EMPTY));
                 });
     }

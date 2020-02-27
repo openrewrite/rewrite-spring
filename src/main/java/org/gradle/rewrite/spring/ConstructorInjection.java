@@ -1,22 +1,22 @@
 package org.gradle.rewrite.spring;
 
-import com.netflix.rewrite.tree.Tr;
-import com.netflix.rewrite.tree.Tree;
-import com.netflix.rewrite.tree.Type;
-import com.netflix.rewrite.visitor.refactor.AstTransform;
-import com.netflix.rewrite.visitor.refactor.RefactorVisitor;
-import com.netflix.rewrite.visitor.refactor.op.AddAnnotation;
-import com.netflix.rewrite.visitor.refactor.op.GenerateConstructorUsingFields;
+import org.openrewrite.tree.J;
+import org.openrewrite.tree.Tree;
+import org.openrewrite.tree.Type;
+import org.openrewrite.visitor.refactor.AstTransform;
+import org.openrewrite.visitor.refactor.RefactorVisitor;
+import org.openrewrite.visitor.refactor.op.AddAnnotation;
+import org.openrewrite.visitor.refactor.op.GenerateConstructorUsingFields;
 
 import java.util.List;
 import java.util.Set;
 
-import static com.netflix.rewrite.tree.Formatting.firstPrefix;
-import static com.netflix.rewrite.tree.Formatting.formatFirstPrefix;
-import static com.netflix.rewrite.tree.Tr.randomId;
-import static com.netflix.rewrite.tree.TypeUtils.isOfClassType;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.openrewrite.tree.Formatting.firstPrefix;
+import static org.openrewrite.tree.Formatting.formatFirstPrefix;
+import static org.openrewrite.tree.J.randomId;
+import static org.openrewrite.tree.TypeUtils.isOfClassType;
 
 public class ConstructorInjection extends RefactorVisitor {
     private final boolean generateLombokRequiredArgsAnnotation;
@@ -37,21 +37,21 @@ public class ConstructorInjection extends RefactorVisitor {
     }
 
     @Override
-    public List<AstTransform> visitClassDecl(Tr.ClassDecl classDecl) {
+    public List<AstTransform> visitClassDecl(J.ClassDecl classDecl) {
         return maybeTransform(classDecl,
                 classDecl.getFields().stream().anyMatch(this::isFieldInjected),
                 super::visitClassDecl,
                 (cd, cursor) -> {
                     List<Tree> statements = cd.getBody().getStatements().stream()
-                            .map(stat -> stat.whenType(Tr.VariableDecls.class)
+                            .map(stat -> stat.whenType(J.VariableDecls.class)
                                     .filter(this::isFieldInjected)
                                     .map(mv -> {
-                                        Tr.VariableDecls fixedField = mv
+                                        J.VariableDecls fixedField = mv
                                                 .withAnnotations(mv.getAnnotations().stream()
                                                         .filter(ann -> !isFieldInjectionAnnotation(ann) ||
                                                                 (generateJsr305Annotations && ann.getArgs() != null && ann.getArgs().getArgs().stream()
-                                                                        .anyMatch(arg -> arg.whenType(Tr.Assign.class)
-                                                                                .map(assign -> ((Tr.Ident) assign.getVariable()).getSimpleName().equals("required"))
+                                                                        .anyMatch(arg -> arg.whenType(J.Assign.class)
+                                                                                .map(assign -> ((J.Ident) assign.getVariable()).getSimpleName().equals("required"))
                                                                                 .orElse(false))))
                                                         .map(ann -> {
                                                             if (isFieldInjectionAnnotation(ann)) {
@@ -59,7 +59,7 @@ public class ConstructorInjection extends RefactorVisitor {
 
                                                                 Type.Class nonnullType = Type.Class.build("javax.annotation.Nonnull");
                                                                 return ann
-                                                                        .withAnnotationType(Tr.Ident.build(randomId(), "Nonnull", nonnullType,
+                                                                        .withAnnotationType(J.Ident.build(randomId(), "Nonnull", nonnullType,
                                                                                 ann.getAnnotationType().getFormatting()))
                                                                         .withArgs(null)
                                                                         .withType(nonnullType);
@@ -93,7 +93,7 @@ public class ConstructorInjection extends RefactorVisitor {
                             .collect(toList());
 
                     return cd.withBody(cd.getBody().withStatements(statements.stream()
-                            .filter(stat -> stat.whenType(Tr.MethodDecl.class)
+                            .filter(stat -> stat.whenType(J.MethodDecl.class)
                                     .map(md -> !setterNames.contains(md.getSimpleName()))
                                     .orElse(true))
                             .collect(toList())));
@@ -101,31 +101,31 @@ public class ConstructorInjection extends RefactorVisitor {
         );
     }
 
-    private boolean hasRequiredArgsConstructor(Tr.ClassDecl cd) {
+    private boolean hasRequiredArgsConstructor(J.ClassDecl cd) {
         Set<String> injectedFieldNames = getInjectedFields(cd).stream().map(f -> f.getVars().get(0).getSimpleName()).collect(toSet());
 
-        return cd.getBody().getStatements().stream().anyMatch(stat -> stat.whenType(Tr.MethodDecl.class)
-                .filter(Tr.MethodDecl::isConstructor)
+        return cd.getBody().getStatements().stream().anyMatch(stat -> stat.whenType(J.MethodDecl.class)
+                .filter(J.MethodDecl::isConstructor)
                 .map(md -> md.getParams().getParams().stream()
-                        .map(p -> p.whenType(Tr.VariableDecls.class)
+                        .map(p -> p.whenType(J.VariableDecls.class)
                                 .map(mv -> mv.getVars().get(0).getSimpleName())
                                 .orElseThrow(() -> new RuntimeException("not possible to get here")))
                         .allMatch(injectedFieldNames::contains))
                 .orElse(false));
     }
 
-    private List<Tr.VariableDecls> getInjectedFields(Tr.ClassDecl cd) {
+    private List<J.VariableDecls> getInjectedFields(J.ClassDecl cd) {
         return cd.getBody().getStatements().stream()
-                .filter(stat -> stat.whenType(Tr.VariableDecls.class).map(this::isFieldInjected).orElse(false))
-                .map(Tr.VariableDecls.class::cast)
+                .filter(stat -> stat.whenType(J.VariableDecls.class).map(this::isFieldInjected).orElse(false))
+                .map(J.VariableDecls.class::cast)
                 .collect(toList());
     }
 
-    private boolean isFieldInjected(Tr.VariableDecls mv) {
+    private boolean isFieldInjected(J.VariableDecls mv) {
         return mv.getAnnotations().stream().anyMatch(this::isFieldInjectionAnnotation);
     }
 
-    private boolean isFieldInjectionAnnotation(Tr.Annotation ann) {
+    private boolean isFieldInjectionAnnotation(J.Annotation ann) {
         return isOfClassType(ann.getType(), "javax.inject.Inject") ||
                 isOfClassType(ann.getType(), "org.springframework.beans.factory.annotation.Autowired");
     }

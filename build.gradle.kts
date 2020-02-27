@@ -23,7 +23,7 @@ configurations.all {
 }
 
 dependencies {
-    implementation("com.netflix.devinsight.rewrite:rewrite-core:latest.integration")
+    implementation("com.netflix.devinsight.rewrite:rewrite-java:latest.integration")
 
     implementation("org.springframework:spring-beans:5.2.3.RELEASE")
     implementation("org.springframework:spring-webmvc:5.2.3.RELEASE")

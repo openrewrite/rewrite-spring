@@ -1,7 +1,7 @@
 package org.gradle.rewrite.spring
 
-import com.netflix.rewrite.Parser
 import org.junit.jupiter.api.Test
+import org.openrewrite.Parser
 
 class ImplicitWebAnnotationNamesTest : Parser(dependenciesFromClasspath("spring-web")) {
     @Test
