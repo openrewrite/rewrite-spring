@@ -2,6 +2,7 @@ package org.gradle.rewrite.spring.xml;
 
 import org.openrewrite.java.refactor.AddAnnotation;
 import org.openrewrite.java.refactor.JavaRefactorVisitor;
+import org.openrewrite.java.refactor.ScopedJavaRefactorVisitor;
 import org.openrewrite.java.tree.*;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
@@ -9,9 +10,7 @@ import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -37,17 +36,15 @@ class MakeComponentScannable extends JavaRefactorVisitor {
 
     @Override
     public J visitCompilationUnit(J.CompilationUnit cu) {
-        for (String beanDefinitionName : registry.getBeanDefinitionNames()) {
-            andThen(new AnnotateBeanClass(registry.getBeanDefinition(beanDefinitionName)));
-        }
+        andThen(new AnnotateBeanClass(registry));
         return super.visitCompilationUnit(cu);
     }
 
     private static class AnnotateBeanClass extends JavaRefactorVisitor {
-        private final BeanDefinition beanDefinition;
+        private final BeanDefinitionRegistry beanDefinitionRegistry;
 
-        private AnnotateBeanClass(BeanDefinition beanDefinition) {
-            this.beanDefinition = beanDefinition;
+        private AnnotateBeanClass(BeanDefinitionRegistry beanDefinitionRegistry) {
+            this.beanDefinitionRegistry = beanDefinitionRegistry;
         }
 
         @Override
@@ -57,36 +54,50 @@ class MakeComponentScannable extends JavaRefactorVisitor {
 
         @Override
         public J visitClassDecl(J.ClassDecl classDecl) {
-            if (TypeUtils.isOfClassType(classDecl.getType(), beanDefinition.getBeanClassName())) {
-                andThen(new AddAnnotation(classDecl.getId(), "org.springframework.stereotype.Component"));
+            Arrays.stream(beanDefinitionRegistry.getBeanDefinitionNames())
+                    .map(beanDefinitionRegistry::getBeanDefinition)
+                    .filter(bd -> TypeUtils.isOfClassType(classDecl.getType(), bd.getBeanClassName()))
+                    .findAny()
+                    .ifPresent(beanDefinition -> {
+                        andThen(new AddAnnotation(classDecl.getId(), "org.springframework.stereotype.Component"));
+                        andThen(new AutowireFields(classDecl, beanDefinition));
 
-                if (beanDefinition.isLazyInit()) {
-                    andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Lazy"));
-                }
+                        if (beanDefinition.isLazyInit()) {
+                            andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Lazy"));
+                        }
 
-                if (beanDefinition.isPrototype()) {
-                    JavaType.Class cbf = JavaType.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
-                    maybeAddImport(cbf.getFullyQualifiedName());
-                    andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Scope",
-                            TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE").withType(cbf)));
-                }
+                        if (beanDefinition.isPrototype()) {
+                            JavaType.Class cbf = JavaType.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
+                            maybeAddImport(cbf.getFullyQualifiedName());
+                            andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Scope",
+                                    TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE").withType(cbf)));
+                        }
 
-                if (beanDefinition.getInitMethodName() != null) {
-                    classDecl.getMethods().stream()
-                            .filter(m -> m.getSimpleName().equals(beanDefinition.getInitMethodName()))
-                            .findAny()
-                            .ifPresent(m -> andThen(new AddAnnotation(m.getId(), "javax.annotation.PostConstruct")));
-                }
+                        if (beanDefinition.getInitMethodName() != null) {
+                            classDecl.getMethods().stream()
+                                    .filter(m -> m.getSimpleName().equals(beanDefinition.getInitMethodName()))
+                                    .findAny()
+                                    .ifPresent(m -> andThen(new AddAnnotation(m.getId(), "javax.annotation.PostConstruct")));
+                        }
 
-                if (beanDefinition.getDestroyMethodName() != null) {
-                    classDecl.getMethods().stream()
-                            .filter(m -> m.getSimpleName().equals(beanDefinition.getDestroyMethodName()))
-                            .findAny()
-                            .ifPresent(m -> andThen(new AddAnnotation(m.getId(), "javax.annotation.PreDestroy")));
-                }
-            }
+                        if (beanDefinition.getDestroyMethodName() != null) {
+                            classDecl.getMethods().stream()
+                                    .filter(m -> m.getSimpleName().equals(beanDefinition.getDestroyMethodName()))
+                                    .findAny()
+                                    .ifPresent(m -> andThen(new AddAnnotation(m.getId(), "javax.annotation.PreDestroy")));
+                        }
+                    });
 
             return super.visitClassDecl(classDecl);
+        }
+    }
+
+    private static class AutowireFields extends ScopedJavaRefactorVisitor {
+        private final BeanDefinition beanDefinition;
+
+        public AutowireFields(J.ClassDecl classDecl, BeanDefinition beanDefinition) {
+            super(classDecl.getId());
+            this.beanDefinition = beanDefinition;
         }
 
         @Override
@@ -112,12 +123,12 @@ class MakeComponentScannable extends JavaRefactorVisitor {
                             .findAny()
                             .ifPresent(injectableConstructor -> {
                                 List<ConstructorArgumentValues.ValueHolder> indexedValues = Stream.concat(
-                                                constructorArgs.getIndexedArgumentValues().entrySet().stream()
-                                                        .sorted(Map.Entry.comparingByKey())
-                                                        .map(Map.Entry::getValue),
-                                                constructorArgs.getGenericArgumentValues().stream()
-                                                        .filter(valueHolder -> valueHolder.getType() == null && valueHolder.getName() == null)
-                                        ).collect(toList());
+                                        constructorArgs.getIndexedArgumentValues().entrySet().stream()
+                                                .sorted(Map.Entry.comparingByKey())
+                                                .map(Map.Entry::getValue),
+                                        constructorArgs.getGenericArgumentValues().stream()
+                                                .filter(valueHolder -> valueHolder.getType() == null && valueHolder.getName() == null)
+                                ).collect(toList());
 
                                 for (int i = 0; i < indexedValues.size(); i++) {
                                     int param = i;
@@ -149,8 +160,8 @@ class MakeComponentScannable extends JavaRefactorVisitor {
                                         } else {
                                             param = injectableConstructor.getParams().getParams().stream()
                                                     .filter(methodParam -> methodParam.whenType(J.VariableDecls.class)
-                                                        .map(methodParamVar -> methodParamVar.getVars().get(0).getSimpleName().equals(genericValue.getName()))
-                                                        .orElse(false))
+                                                            .map(methodParamVar -> methodParamVar.getVars().get(0).getSimpleName().equals(genericValue.getName()))
+                                                            .orElse(false))
                                                     .findAny()
                                                     .orElse(null);
                                         }
