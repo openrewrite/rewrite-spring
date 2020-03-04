@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
 
 plugins {
@@ -11,6 +12,7 @@ group = "org.gradle"
 description = "Refactor improve Spring usage automatically"
 
 repositories {
+    mavenLocal()
     maven { url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local") }
     mavenCentral()
 }
@@ -36,12 +38,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 
     testImplementation("org.assertj:assertj-core:latest.release")
-
-    // for testing ConstructorInjection
-    testImplementation("javax.annotation:javax.annotation-api:latest.release")
-    testRuntimeOnly("org.projectlombok:lombok:1.18.10")
-    testRuntimeOnly("com.google.code.findbugs:jsr305")
-    testRuntimeOnly("javax.inject:javax.inject:1")
+    testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.0.13")
 }
@@ -49,6 +46,12 @@ dependencies {
 tasks.named<Test>("test") {
     useJUnitPlatform()
     jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
+}
+
+tasks.withType(KotlinCompile::class.java).configureEach {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 publishing {

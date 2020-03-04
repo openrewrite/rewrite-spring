@@ -1,24 +1,22 @@
 package org.gradle.rewrite.spring;
 
-import org.openrewrite.tree.J;
-import org.openrewrite.tree.Tree;
-import org.openrewrite.tree.Type;
-import org.openrewrite.visitor.refactor.AstTransform;
-import org.openrewrite.visitor.refactor.RefactorVisitor;
-import org.openrewrite.visitor.refactor.op.AddAnnotation;
-import org.openrewrite.visitor.refactor.op.GenerateConstructorUsingFields;
+import org.openrewrite.java.refactor.AddAnnotation;
+import org.openrewrite.java.refactor.GenerateConstructorUsingFields;
+import org.openrewrite.java.refactor.JavaRefactorVisitor;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 
 import java.util.List;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.openrewrite.tree.Formatting.firstPrefix;
-import static org.openrewrite.tree.Formatting.formatFirstPrefix;
-import static org.openrewrite.tree.J.randomId;
-import static org.openrewrite.tree.TypeUtils.isOfClassType;
+import static org.openrewrite.Formatting.firstPrefix;
+import static org.openrewrite.Formatting.formatFirstPrefix;
+import static org.openrewrite.Tree.randomId;
+import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
-public class ConstructorInjection extends RefactorVisitor {
+public class ConstructorInjection extends JavaRefactorVisitor {
     private final boolean generateLombokRequiredArgsAnnotation;
     private final boolean generateJsr305Annotations;
 
@@ -32,73 +30,73 @@ public class ConstructorInjection extends RefactorVisitor {
     }
 
     @Override
-    public String getRuleName() {
+    public String getName() {
         return "spring.ConstructorInjection";
     }
 
     @Override
-    public List<AstTransform> visitClassDecl(J.ClassDecl classDecl) {
-        return maybeTransform(classDecl,
-                classDecl.getFields().stream().anyMatch(this::isFieldInjected),
-                super::visitClassDecl,
-                (cd, cursor) -> {
-                    List<Tree> statements = cd.getBody().getStatements().stream()
-                            .map(stat -> stat.whenType(J.VariableDecls.class)
-                                    .filter(this::isFieldInjected)
-                                    .map(mv -> {
-                                        J.VariableDecls fixedField = mv
-                                                .withAnnotations(mv.getAnnotations().stream()
-                                                        .filter(ann -> !isFieldInjectionAnnotation(ann) ||
-                                                                (generateJsr305Annotations && ann.getArgs() != null && ann.getArgs().getArgs().stream()
-                                                                        .anyMatch(arg -> arg.whenType(J.Assign.class)
-                                                                                .map(assign -> ((J.Ident) assign.getVariable()).getSimpleName().equals("required"))
-                                                                                .orElse(false))))
-                                                        .map(ann -> {
-                                                            if (isFieldInjectionAnnotation(ann)) {
-                                                                maybeAddImport("javax.annotation.Nonnull");
+    public J visitClassDecl(J.ClassDecl classDecl) {
+        J.ClassDecl cd = refactor(classDecl, super::visitClassDecl);
 
-                                                                Type.Class nonnullType = Type.Class.build("javax.annotation.Nonnull");
-                                                                return ann
-                                                                        .withAnnotationType(J.Ident.build(randomId(), "Nonnull", nonnullType,
-                                                                                ann.getAnnotationType().getFormatting()))
-                                                                        .withArgs(null)
-                                                                        .withType(nonnullType);
-                                                            }
-                                                            return ann;
-                                                        })
-                                                        .collect(toList()))
-                                                .withModifiers("private", "final");
-
-                                        maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
-
-                                        return (Tree) (fixedField.getAnnotations().isEmpty() && !mv.getAnnotations().isEmpty() ?
-                                                fixedField.withModifiers(formatFirstPrefix(fixedField.getModifiers(),
-                                                        firstPrefix(mv.getAnnotations()))) :
-                                                fixedField);
-                                    })
-                                    .orElse(stat))
-                            .collect(toList());
-
-                    if (!hasRequiredArgsConstructor(cd)) {
-                        andThen(generateLombokRequiredArgsAnnotation ?
-                                new AddAnnotation(cd.getId(), "lombok.RequiredArgsConstructor") :
-                                new GenerateConstructorUsingFields(cd.getId(), getInjectedFields(cd)));
-                    }
-
-                    List<String> setterNames = getInjectedFields(cd).stream()
+        if(cd.getFields().stream().anyMatch(this::isFieldInjected)) {
+            List<J> statements = cd.getBody().getStatements().stream()
+                    .map(stat -> stat.whenType(J.VariableDecls.class)
+                            .filter(this::isFieldInjected)
                             .map(mv -> {
-                                String name = mv.getVars().get(0).getSimpleName();
-                                return "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
-                            })
-                            .collect(toList());
+                                J.VariableDecls fixedField = mv
+                                        .withAnnotations(mv.getAnnotations().stream()
+                                                .filter(ann -> !isFieldInjectionAnnotation(ann) ||
+                                                        (generateJsr305Annotations && ann.getArgs() != null && ann.getArgs().getArgs().stream()
+                                                                .anyMatch(arg -> arg.whenType(J.Assign.class)
+                                                                        .map(assign -> ((J.Ident) assign.getVariable()).getSimpleName().equals("required"))
+                                                                        .orElse(false))))
+                                                .map(ann -> {
+                                                    if (isFieldInjectionAnnotation(ann)) {
+                                                        maybeAddImport("javax.annotation.Nonnull");
 
-                    return cd.withBody(cd.getBody().withStatements(statements.stream()
-                            .filter(stat -> stat.whenType(J.MethodDecl.class)
-                                    .map(md -> !setterNames.contains(md.getSimpleName()))
-                                    .orElse(true))
-                            .collect(toList())));
-                }
-        );
+                                                        JavaType.Class nonnullType = JavaType.Class.build("javax.annotation.Nonnull");
+                                                        return ann
+                                                                .withAnnotationType(J.Ident.build(randomId(), "Nonnull", nonnullType,
+                                                                        ann.getAnnotationType().getFormatting()))
+                                                                .withArgs(null)
+                                                                .withType(nonnullType);
+                                                    }
+                                                    return ann;
+                                                })
+                                                .collect(toList()))
+                                        .withModifiers("private", "final");
+
+                                maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
+
+                                return (J) (fixedField.getAnnotations().isEmpty() && !mv.getAnnotations().isEmpty() ?
+                                        fixedField.withModifiers(formatFirstPrefix(fixedField.getModifiers(),
+                                                firstPrefix(mv.getAnnotations()))) :
+                                        fixedField);
+                            })
+                            .orElse(stat))
+                    .collect(toList());
+
+            if (!hasRequiredArgsConstructor(cd)) {
+                andThen(generateLombokRequiredArgsAnnotation ?
+                        new AddAnnotation(cd.getId(), "lombok.RequiredArgsConstructor") :
+                        new GenerateConstructorUsingFields(cd, getInjectedFields(cd)));
+            }
+
+            List<String> setterNames = getInjectedFields(cd).stream()
+                    .map(mv -> {
+                        String name = mv.getVars().get(0).getSimpleName();
+                        return "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
+                    })
+                    .collect(toList());
+
+            cd = cd.withBody(cd.getBody().withStatements(statements.stream()
+                    .filter(stat -> stat.whenType(J.MethodDecl.class)
+                            .map(md -> !setterNames.contains(md.getSimpleName()))
+                            .orElse(true))
+                    .collect(toList())));
+        }
+
+        return cd;
     }
 
     private boolean hasRequiredArgsConstructor(J.ClassDecl cd) {

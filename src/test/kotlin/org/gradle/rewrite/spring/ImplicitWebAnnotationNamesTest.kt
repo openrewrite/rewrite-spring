@@ -1,9 +1,9 @@
 package org.gradle.rewrite.spring
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.Parser
+import org.openrewrite.java.JavaParser
 
-class ImplicitWebAnnotationNamesTest : Parser(dependenciesFromClasspath("spring-web")) {
+class ImplicitWebAnnotationNamesTest : JavaParser(dependenciesFromClasspath("spring-web")) {
     @Test
     fun removeUnnecessaryAnnotationArgument() {
         val controller = parse("""

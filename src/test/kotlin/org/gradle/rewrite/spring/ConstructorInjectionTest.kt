@@ -1,13 +1,13 @@
 package org.gradle.rewrite.spring
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.Parser
-import org.openrewrite.Parser.dependenciesFromClasspath
+import org.openrewrite.java.JavaParser
+import org.openrewrite.java.JavaParser.dependenciesFromClasspath
 
 class ConstructorInjectionTest {
     @Test
     fun constructorInjection() {
-        val controller = Parser(dependenciesFromClasspath("spring-beans")).parse("""
+        val controller = JavaParser(dependenciesFromClasspath("spring-beans")).parse("""
             import org.springframework.beans.factory.annotation.Autowired;
             public class UsersController {
                 @Autowired
@@ -40,7 +40,7 @@ class ConstructorInjectionTest {
 
     @Test
     fun constructorInjectionWithLombok() {
-        val controller = Parser(dependenciesFromClasspath("spring-beans")).parse("""
+        val controller = JavaParser(dependenciesFromClasspath("spring-beans")).parse("""
             import org.springframework.beans.factory.annotation.Autowired;
             public class UsersController {
                 @Autowired
@@ -67,7 +67,7 @@ class ConstructorInjectionTest {
 
     @Test
     fun constructorInjectionWithJSR305() {
-        val controller = Parser(dependenciesFromClasspath("spring-beans")).parse("""
+        val controller = JavaParser(dependenciesFromClasspath("spring-beans")).parse("""
             import org.springframework.beans.factory.annotation.Autowired;
             public class UsersController {
                 @Autowired(required = false)

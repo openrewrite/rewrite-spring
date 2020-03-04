@@ -1,19 +1,14 @@
 package org.gradle.rewrite.spring.xml;
 
-import org.openrewrite.tree.*;
-import org.openrewrite.visitor.refactor.AstTransform;
-import org.openrewrite.visitor.refactor.RefactorVisitor;
-import org.openrewrite.visitor.refactor.op.AddAnnotation;
+import org.openrewrite.java.refactor.AddAnnotation;
+import org.openrewrite.java.refactor.JavaRefactorVisitor;
+import org.openrewrite.java.tree.*;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
-import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.xml.sax.InputSource;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,33 +16,34 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
-import static org.openrewrite.tree.Formatting.EMPTY;
-import static org.openrewrite.tree.J.randomId;
+import static org.openrewrite.Formatting.EMPTY;
+import static org.openrewrite.Tree.randomId;
 
-public class AnnotationBasedConfiguration extends RefactorVisitor {
-    private final BeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
-
-    public AnnotationBasedConfiguration(InputStream beansXml) {
-        var reader = new XmlBeanDefinitionReader(registry);
-        reader.setValidating(false);
-        reader.loadBeanDefinitions(new InputSource(beansXml));
-    }
+/**
+ * Any changes necessary to make a component defined in XML configuration configurable via
+ * component scanning instead.
+ */
+class MakeComponentScannable extends JavaRefactorVisitor {
+    private final BeanDefinitionRegistry registry;
 
     @Override
-    public List<AstTransform> visitCompilationUnit(J.CompilationUnit cu) {
-        List<AstTransform> changes = super.visitCompilationUnit(cu);
-        for (String beanDefinitionName : registry.getBeanDefinitionNames()) {
-            andThen(new AnnotateBeanClass(registry.getBeanDefinition(beanDefinitionName)));
-        }
-        return changes;
-    }
-
-    @Override
-    public String getRuleName() {
+    public String getName() {
         return "spring.beans.AnnotationBasedBeanConfiguration";
     }
 
-    private static class AnnotateBeanClass extends RefactorVisitor {
+    public MakeComponentScannable(BeanDefinitionRegistry registry) {
+        this.registry = registry;
+    }
+
+    @Override
+    public J visitCompilationUnit(J.CompilationUnit cu) {
+        for (String beanDefinitionName : registry.getBeanDefinitionNames()) {
+            andThen(new AnnotateBeanClass(registry.getBeanDefinition(beanDefinitionName)));
+        }
+        return super.visitCompilationUnit(cu);
+    }
+
+    private static class AnnotateBeanClass extends JavaRefactorVisitor {
         private final BeanDefinition beanDefinition;
 
         private AnnotateBeanClass(BeanDefinition beanDefinition) {
@@ -55,7 +51,12 @@ public class AnnotationBasedConfiguration extends RefactorVisitor {
         }
 
         @Override
-        public List<AstTransform> visitClassDecl(J.ClassDecl classDecl) {
+        public boolean isCursored() {
+            return true;
+        }
+
+        @Override
+        public J visitClassDecl(J.ClassDecl classDecl) {
             if (TypeUtils.isOfClassType(classDecl.getType(), beanDefinition.getBeanClassName())) {
                 andThen(new AddAnnotation(classDecl.getId(), "org.springframework.stereotype.Component"));
 
@@ -64,7 +65,7 @@ public class AnnotationBasedConfiguration extends RefactorVisitor {
                 }
 
                 if (beanDefinition.isPrototype()) {
-                    Type.Class cbf = Type.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
+                    JavaType.Class cbf = JavaType.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
                     maybeAddImport(cbf.getFullyQualifiedName());
                     andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Scope",
                             TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE").withType(cbf)));
@@ -89,7 +90,7 @@ public class AnnotationBasedConfiguration extends RefactorVisitor {
         }
 
         @Override
-        public List<AstTransform> visitMultiVariable(J.VariableDecls multiVariable) {
+        public J visitMultiVariable(J.VariableDecls multiVariable) {
             getCursor().getParentOrThrow().getParentOrThrow().getTree().whenType(J.ClassDecl.class).ifPresent(classDecl -> {
                 stream(beanDefinition.getPropertyValues().spliterator(), false)
                         .filter(prop -> prop.getName().equals(multiVariable.getVars().get(0).getSimpleName()))
@@ -135,8 +136,8 @@ public class AnnotationBasedConfiguration extends RefactorVisitor {
                                         if(genericValue.getType() != null) {
                                             param = injectableConstructor.getParams().getParams().stream()
                                                     .filter(methodParam -> {
-                                                        Type genericValueType = Optional.ofNullable((Type) Type.Primitive.fromKeyword(genericValue.getType()))
-                                                                .orElseGet(() -> Type.Class.build(genericValue.getType()));
+                                                        JavaType genericValueType = Optional.ofNullable((JavaType) JavaType.Primitive.fromKeyword(genericValue.getType()))
+                                                                .orElseGet(() -> JavaType.Class.build(genericValue.getType()));
 
                                                         //noinspection ConstantConditions
                                                         return methodParam.whenType(J.VariableDecls.class)
@@ -177,11 +178,11 @@ public class AnnotationBasedConfiguration extends RefactorVisitor {
                 return Optional.empty();
             }
 
-            Type type = multiVariable.getTypeExpr().getType();
-            Type.Primitive primitive = TypeUtils.asPrimitive(type);
+            JavaType type = multiVariable.getTypeExpr().getType();
+            JavaType.Primitive primitive = TypeUtils.asPrimitive(type);
 
             if (TypeUtils.isString(type) || value.contains("${") || value.contains("#{")) {
-                return Optional.of(new J.Literal(randomId(), value, "\"" + value + "\"", Type.Primitive.String, EMPTY));
+                return Optional.of(new J.Literal(randomId(), value, "\"" + value + "\"", JavaType.Primitive.String, EMPTY));
             } else if (primitive != null) {
                 Object primitiveValue;
 
@@ -220,7 +221,7 @@ public class AnnotationBasedConfiguration extends RefactorVisitor {
                 }
 
                 return Optional.of(new J.Literal(randomId(), primitiveValue,
-                        Type.Primitive.Char.equals(primitive) ? "'" + value + "'" : value,
+                        JavaType.Primitive.Char.equals(primitive) ? "'" + value + "'" : value,
                         primitive, EMPTY));
             }
 

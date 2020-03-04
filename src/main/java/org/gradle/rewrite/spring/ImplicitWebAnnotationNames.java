@@ -1,19 +1,17 @@
 package org.gradle.rewrite.spring;
 
-import org.openrewrite.tree.J;
-import org.openrewrite.visitor.refactor.AstTransform;
-import org.openrewrite.visitor.refactor.RefactorVisitor;
-import org.openrewrite.visitor.refactor.op.RenameVariable;
+import org.openrewrite.java.refactor.JavaRefactorVisitor;
+import org.openrewrite.java.refactor.RenameVariable;
+import org.openrewrite.java.tree.J;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.openrewrite.tree.TypeUtils.isOfClassType;
+import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
-public class ImplicitWebAnnotationNames extends RefactorVisitor {
+public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
     private static final Set<String> PARAM_ANNOTATIONS = Set.of(
             "PathVariable",
             "RequestParam",
@@ -25,43 +23,49 @@ public class ImplicitWebAnnotationNames extends RefactorVisitor {
     ).stream().map(className -> "org.springframework.web.bind.annotation." + className).collect(toSet());
 
     @Override
-    public String getRuleName() {
+    public String getName() {
         return "spring.web.ImplicitWebAnnotationNames";
     }
 
     @Override
-    public List<AstTransform> visitAnnotation(J.Annotation annotation) {
-        return maybeTransform(annotation,
-                PARAM_ANNOTATIONS.stream().anyMatch(annClass -> isOfClassType(annotation.getType(), annClass)) &&
-                        annotation.getArgs() != null && nameArgumentValue(annotation).isPresent(),
-                super::visitAnnotation,
-                (a, cursor) -> {
-                    J.Annotation.Arguments args = a.getArgs();
+    public boolean isCursored() {
+        return true;
+    }
 
-                    if (args == null) {
-                        return a;
-                    }
+    @Override
+    public J visitAnnotation(J.Annotation annotation) {
+        J.Annotation a = refactor(annotation, super::visitAnnotation);
 
-                    // drop the "method" argument
-                    args = args.withArgs(args.getArgs().stream()
-                            .filter(arg -> arg.whenType(J.Assign.class)
-                                    .map(assign -> assign.getVariable().whenType(J.Ident.class)
-                                            .filter(key -> key.getSimpleName().equals("value") || key.getSimpleName().equals("name"))
-                                            .isEmpty())
-                                    .orElse(false))
-                            .collect(toList()));
+        if(PARAM_ANNOTATIONS.stream().anyMatch(annClass -> isOfClassType(annotation.getType(), annClass)) &&
+                annotation.getArgs() != null && nameArgumentValue(annotation).isPresent()) {
+            J.Annotation.Arguments args = a.getArgs();
 
-                    // remove the argument parentheses altogether
-                    if (args.getArgs().isEmpty()) {
-                        args = null;
-                    }
+            if (args == null) {
+                return a;
+            }
 
-                    nameArgumentValue(a).ifPresent(value -> andThen(new RenameVariable(
-                            cursor.getParentOrThrow().<J.VariableDecls>getTree().getVars().get(0),
-                            (String) value.getValue())));
+            // drop the "method" argument
+            args = args.withArgs(args.getArgs().stream()
+                    .filter(arg -> arg.whenType(J.Assign.class)
+                            .map(assign -> assign.getVariable().whenType(J.Ident.class)
+                                    .filter(key -> key.getSimpleName().equals("value") || key.getSimpleName().equals("name"))
+                                    .isEmpty())
+                            .orElse(false))
+                    .collect(toList()));
 
-                    return a.withArgs(args);
-                });
+            // remove the argument parentheses altogether
+            if (args.getArgs().isEmpty()) {
+                args = null;
+            }
+
+            nameArgumentValue(a).ifPresent(value -> andThen(new RenameVariable(
+                    getCursor().getParentOrThrow().<J.VariableDecls>getTree().getVars().get(0),
+                    (String) value.getValue())));
+
+            a = a.withArgs(args);
+        }
+
+        return a;
     }
 
     private Optional<J.Literal> nameArgumentValue(J.Annotation annotation) {

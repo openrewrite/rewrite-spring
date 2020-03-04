@@ -1,9 +1,9 @@
 package org.gradle.rewrite.spring
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.Parser
+import org.openrewrite.java.JavaParser
 
-class NoRequestMappingAnnotationTest : Parser(dependenciesFromClasspath("spring-web")) {
+class NoRequestMappingAnnotationTest : JavaParser(dependenciesFromClasspath("spring-web")) {
     @Test
     fun requestMapping() {
         val controller = parse("""

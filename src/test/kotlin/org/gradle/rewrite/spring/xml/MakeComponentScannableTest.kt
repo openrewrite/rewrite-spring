@@ -5,18 +5,18 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EmptySource
 import org.junit.jupiter.params.provider.ValueSource
-import org.openrewrite.Parser
-import java.io.InputStream
+import org.openrewrite.java.JavaParser
 
-class AnnotationBasedConfigurationTest: Parser() {
-    private val repository = """
-        package repositories;
-        public class UserRepository {
-        }
-    """.trimIndent()
 
+class MakeComponentScannableTest : JavaParser() {
     @Test
     fun propertyRef() {
+        val repository = """
+            package repositories;
+            public class UserRepository {
+            }
+        """.trimIndent()
+
         val service = parse("""
             package services;
             
@@ -31,7 +31,8 @@ class AnnotationBasedConfigurationTest: Parser() {
             }
         """.trimIndent(), repository)
 
-        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(MakeComponentScannable(beanDefinitions("""
+            <bean id="userRepository" class="repositories.UserRepository"/>
             <bean id="userService" class="services.UserService">
                 <property name="userRepository" ref="userRepository" />
             </bean>
@@ -69,9 +70,9 @@ class AnnotationBasedConfigurationTest: Parser() {
                     this.maxUsers = maxUsers;
                 }
             }
-        """.trimIndent(), repository)
+        """.trimIndent())
 
-        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(MakeComponentScannable(beanDefinitions("""
             <bean id="userService" class="services.UserService">
                 <property name="maxUsers" value="$value" />
             </bean>
@@ -85,7 +86,7 @@ class AnnotationBasedConfigurationTest: Parser() {
 
             @Component
             public class UserService {
-                @Value(${if(value.contains("\${") || value.contains("#{")) "\"$value\"" else value})
+                @Value(${if (value.contains("\${") || value.contains("#{")) "\"$value\"" else value})
                 private int maxUsers;
                 
                 public void setMaxUsers(int maxUsers) {
@@ -109,9 +110,9 @@ class AnnotationBasedConfigurationTest: Parser() {
                     this.maxUsers = maxUsers;
                 }
             }
-        """.trimIndent(), repository)
+        """.trimIndent())
 
-        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(MakeComponentScannable(beanDefinitions("""
             <bean id="userService" class="services.UserService">
                 <constructor-arg $arg value="1000" />
             </bean>
@@ -141,9 +142,9 @@ class AnnotationBasedConfigurationTest: Parser() {
             
             public class UserService {
             }
-        """.trimIndent(), repository)
+        """.trimIndent())
 
-        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(MakeComponentScannable(beanDefinitions("""
             <bean id="userService" class="services.UserService" lazy-init="true" />
         """))).fix().fixed
 
@@ -167,9 +168,9 @@ class AnnotationBasedConfigurationTest: Parser() {
             
             public class UserService {
             }
-        """.trimIndent(), repository)
+        """.trimIndent())
 
-        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(MakeComponentScannable(beanDefinitions("""
             <bean id="userService" class="services.UserService" scope="prototype" />
         """))).fix().fixed
 
@@ -199,9 +200,9 @@ class AnnotationBasedConfigurationTest: Parser() {
                 public void onDestroy() {
                 }
             }
-        """.trimIndent(), repository)
+        """.trimIndent())
 
-        val fixed = service.refactor().visit(AnnotationBasedConfiguration(beanDefinitions("""
+        val fixed = service.refactor().visit(MakeComponentScannable(beanDefinitions("""
             <bean id="userService" class="services.UserService" init-method="onInit" destroy-method="onDestroy" />
         """))).fix().fixed
 
@@ -224,19 +225,4 @@ class AnnotationBasedConfigurationTest: Parser() {
             }
         """)
     }
-
-    private fun beanDefinitions(beanDefinitions: String): InputStream = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <beans xmlns="http://www.springframework.org/schema/beans"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-            xmlns:aop="http://www.springframework.org/schema/aop"
-            xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-            http://www.springframework.org/schema/context
-            http://www.springframework.org/schema/context/spring-context-3.0.xsd
-            ">
-            <bean id="userRepository" class="repositories.UserRepository"/>
-            $beanDefinitions
-        </beans>
-    """.trimIndent().byteInputStream()
 }
