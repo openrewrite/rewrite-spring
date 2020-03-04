@@ -1,16 +1,15 @@
 package org.gradle.rewrite.spring.xml;
 
+import org.gradle.rewrite.spring.xml.parse.RewriteBeanDefinition;
+import org.gradle.rewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
+import org.gradle.rewrite.spring.xml.parse.RewriteNamespaceHandler;
 import org.openrewrite.RefactorModule;
 import org.openrewrite.SourceVisitor;
 import org.openrewrite.java.tree.J;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
-import org.springframework.beans.factory.xml.*;
-import org.springframework.context.config.ContextNamespaceHandler;
-import org.springframework.core.env.StandardEnvironment;
-import org.w3c.dom.Element;
+import org.springframework.beans.factory.xml.DefaultNamespaceHandlerResolver;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.xml.sax.InputSource;
 
 import java.io.IOException;
@@ -29,7 +28,7 @@ import static java.util.Collections.singletonList;
 public class MigrateSpringXmlConfigurationJava implements RefactorModule<J.CompilationUnit, J> {
     private final Path mainSourceSet;
     private final String configurationPackage;
-    private final BeanDefinitionRegistry beanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
+    private final RewriteBeanDefinitionRegistry beanDefinitionRegistry = new RewriteBeanDefinitionRegistry();
 
     public MigrateSpringXmlConfigurationJava(Path mainSourceSet, String configurationPackage, List<Path> xmlConfigurations) {
         this.mainSourceSet = mainSourceSet;
@@ -39,7 +38,6 @@ public class MigrateSpringXmlConfigurationJava implements RefactorModule<J.Compi
 
     static void loadBeanDefinitions(List<Path> xmlConfigurations, BeanDefinitionRegistry beanDefinitionRegistry) {
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanDefinitionRegistry);
-        reader.setEnvironment(new NoPropertyResolution());
         reader.setValidating(false);
 
         DefaultNamespaceHandlerResolver namespaceHandlerResolver = (DefaultNamespaceHandlerResolver) reader.getNamespaceHandlerResolver();
@@ -48,7 +46,14 @@ public class MigrateSpringXmlConfigurationJava implements RefactorModule<J.Compi
             getHandlerMappings.setAccessible(true);
             @SuppressWarnings("unchecked") Map<String, Object> handlerMappings = (Map<String, Object>) getHandlerMappings
                     .invoke(namespaceHandlerResolver);
-            handlerMappings.put("http://www.springframework.org/schema/context", new MigratingContextNamespaceHandler());
+
+            // Override default handler mappings to preserve the attributes in the original XML so we
+            // can build annotations that, when interpreted by Spring, will do something similar as the original
+            // handler mappings.
+            handlerMappings.put("http://www.springframework.org/schema/context", new RewriteNamespaceHandler(Map.of(
+                    "property-placeholder", RewriteBeanDefinition.Type.PropertyPlaceholder,
+                    "component-scan", RewriteBeanDefinition.Type.ComponentScan)));
+
             System.out.println(handlerMappings);
         } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new RuntimeException(e);
@@ -63,62 +68,11 @@ public class MigrateSpringXmlConfigurationJava implements RefactorModule<J.Compi
         }
     }
 
-    /**
-     * Unlike the default implementation, doesn't actually do component scanning, just preserves the options
-     * on the element so we can build an annotation on it to apply to a generated configuration class
-     */
-    private static class MigratingContextNamespaceHandler extends ContextNamespaceHandler {
-        public MigratingContextNamespaceHandler() {
-            init();
-        }
-
-        @Override
-        public void init() {
-            super.init();
-            registerBeanDefinitionParser("component-scan", new SetClassBeanDefinitionParser(
-                    "org.springframework.context.annotation.ComponentScan"));
-        }
-
-        /**
-         * See {@link org.springframework.context.annotation.ComponentScanBeanDefinitionParser} for the replaced implementation
-         */
-        private static class SetClassBeanDefinitionParser extends AbstractSimpleBeanDefinitionParser {
-            private final String className;
-
-            private SetClassBeanDefinitionParser(String className) {
-                this.className = className;
-            }
-
-            @Override
-            protected boolean shouldGenerateId() {
-                return true;
-            }
-
-            @Override
-            protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
-                beanDefinition.getBeanDefinition().setBeanClassName(className);
-                super.postProcess(beanDefinition, element);
-            }
-        }
-    }
-
-    private static class NoPropertyResolution extends StandardEnvironment {
-        @Override
-        public String resolvePlaceholders(String text) {
-            return text;
-        }
-
-        @Override
-        public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
-            return text;
-        }
-    }
-
     @Override
     public List<SourceVisitor<J>> getVisitors() {
         return asList(
                 new MakeComponentScannable(beanDefinitionRegistry),
-                new AddConfigurationClass(beanDefinitionRegistry)
+                new AddConfigurationClass(beanDefinitionRegistry, mainSourceSet)
         );
     }
 

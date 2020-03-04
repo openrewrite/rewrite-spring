@@ -6,8 +6,10 @@ import org.openrewrite.java.tree.J
 import java.nio.file.Path
 
 class AddConfigurationClassTest {
+    private val mainSourceSet = Path.of("sourceSet")
+
     private val config = J.CompilationUnit
-            .buildEmptyClass(Path.of("sourceSet"), "my.org", "MyConfiguration")
+            .buildEmptyClass(mainSourceSet, "my.org", "MyConfiguration")
             .withMetadata(listOf("spring.beans.fileType" to "ConfigurationClass").toMap())
 
     @Test
@@ -16,7 +18,7 @@ class AddConfigurationClassTest {
             <context:property-placeholder location="${'$'}{projectConfigPrefix:file:///}${'$'}{projectConfigDir}/environment.properties" order="1" ignore-unresolvable="true" />
             <context:property-placeholder location="${'$'}{projectConfigPrefix:file:///}${'$'}{projectConfigDir}/sso.properties" order="3" />
             <context:property-placeholder location="classpath:project.properties" order="2" ignore-unresolvable="true" ignore-resource-not-found="true" />
-        """))).fix().fixed
+        """), mainSourceSet)).fix().fixed
 
         assertRefactored(fixed, """
             package my.org;
@@ -53,7 +55,7 @@ class AddConfigurationClassTest {
     fun componentScan() {
         val fixed = config.refactor().visit(AddConfigurationClass(beanDefinitions("""
             <context:component-scan base-package="nz.govt.project" />
-        """))).fix().fixed
+        """), mainSourceSet)).fix().fixed
 
         assertRefactored(fixed, """
             package my.org;
@@ -73,7 +75,7 @@ class AddConfigurationClassTest {
         val fixed = config.refactor().visit(AddConfigurationClass(beanDefinitions("""
             <context:component-scan base-package="nz.govt.project" />
             <context:component-scan base-package="au.govt.project" />
-        """))).fix().fixed
+        """), mainSourceSet)).fix().fixed
 
         assertRefactored(fixed, """
             package my.org;
@@ -87,6 +89,39 @@ class AddConfigurationClassTest {
                 "nz.govt.project"
             })
             public class MyConfiguration {
+            }
+        """)
+    }
+
+    @Test
+    fun wireBeanNotInSourceSet() {
+        val fixed = config.refactor().visit(AddConfigurationClass(beanDefinitions("""
+            <bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close"/>  
+
+            <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+                <property name="dataSource" ref="dataSource"/>
+            </bean>
+        """), mainSourceSet)).fix().fixed
+
+        assertRefactored(fixed, """
+            package my.org;
+            
+            import org.apache.tomcat.jdbc.pool.DataSource;
+            import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+            
+            @Configuration
+            public class MyConfiguration {
+                @Bean(destroyMethod="close")
+                public DataSource dataSource() {
+                    return new DataSource();
+                }
+                
+                @Bean
+                public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+                    DataSourceTransactionManager dstm = new DataSourceTransactionManager();
+                    dstm.setDataSource(dataSource);
+                    return dstm;
+                }
             }
         """)
     }

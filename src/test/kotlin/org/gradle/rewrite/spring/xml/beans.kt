@@ -1,12 +1,11 @@
 package org.gradle.rewrite.spring.xml
 
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder
-import org.springframework.beans.factory.support.BeanDefinitionRegistry
-import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry
+import org.gradle.rewrite.spring.xml.parse.RewriteBeanDefinitionRegistry
 import java.nio.file.Files
 import java.nio.file.Path
 
-fun beanDefinitions(beanDefinitions: String): BeanDefinitionRegistry {
+fun beanDefinitions(beanDefinitions: String): RewriteBeanDefinitionRegistry {
     MemoryFileSystemBuilder.newEmpty().build("project").use { fs ->
         val path: Path = fs.getPath("beans.xml")
 
@@ -27,7 +26,7 @@ fun beanDefinitions(beanDefinitions: String): BeanDefinitionRegistry {
             )
         }
 
-        val beanDefinitionRegistry = SimpleBeanDefinitionRegistry()
+        val beanDefinitionRegistry = RewriteBeanDefinitionRegistry()
         MigrateSpringXmlConfigurationJava.loadBeanDefinitions(listOf(path), beanDefinitionRegistry)
         return beanDefinitionRegistry
     }
