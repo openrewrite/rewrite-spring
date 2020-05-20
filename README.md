@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [What is this?](#what-is-this-)
+- [Spring XML to annotation-based configuration](#spring-xml-to-annotation-based-configuration)
 - [Prefer constructor injection](#prefer-constructor-injection)
   * [Before](#before)
   * [After](#after)
@@ -23,6 +24,10 @@
 ## What is this?
 
 This project implements a [Rewrite module](https://github.com/openrewrite/rewrite) to automatically apply best practices in Java Spring Boot applications. Originally inspired by the [Reboot](https://github.com/thanus/reboot) project.
+
+## Spring XML to annotation-based configuration
+
+See the [demo slides](https://slides.com/rewrite/spring) here of work-in-progress features related to migration off of XML configuration to annotation-based configuration.
 
 ## Prefer constructor injection
 
