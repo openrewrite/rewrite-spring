@@ -15,12 +15,12 @@
  */
 package org.openrewrite.spring.xml;
 
+import org.openrewrite.Refactor;
+import org.openrewrite.RefactorModule;
+import org.openrewrite.java.tree.J;
 import org.openrewrite.spring.xml.parse.RewriteBeanDefinition;
 import org.openrewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
 import org.openrewrite.spring.xml.parse.RewriteNamespaceHandler;
-import org.openrewrite.RefactorModule;
-import org.openrewrite.SourceVisitor;
-import org.openrewrite.java.tree.J;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.DefaultNamespaceHandlerResolver;
@@ -37,7 +37,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 public class MigrateSpringXmlConfigurationJava implements RefactorModule<J.CompilationUnit, J> {
@@ -84,17 +83,15 @@ public class MigrateSpringXmlConfigurationJava implements RefactorModule<J.Compi
     }
 
     @Override
-    public List<SourceVisitor<J>> getVisitors() {
-        return asList(
-                new MakeComponentScannable(beanDefinitionRegistry),
-                new AddConfigurationClass(beanDefinitionRegistry, mainSourceSet)
-        );
+    public Refactor<J.CompilationUnit, J> apply(Refactor<J.CompilationUnit, J> refactor) {
+        return refactor.visit(new MakeComponentScannable(beanDefinitionRegistry))
+                .visit(new AddConfigurationClass(beanDefinitionRegistry, mainSourceSet));
     }
 
     @Override
     public List<J.CompilationUnit> getDeclaredOutputs() {
         return singletonList(J.CompilationUnit
                 .buildEmptyClass(mainSourceSet, configurationPackage, "MyConfiguration")
-                .withMetadata(Map.of("spring.beans.fileType", "ConfigurationClass")));
+                .withMetadata(Map.of(SpringMetadata.FILE_TYPE, "ConfigurationClass")));
     }
 }

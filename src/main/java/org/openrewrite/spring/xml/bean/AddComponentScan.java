@@ -15,10 +15,10 @@
  */
 package org.openrewrite.spring.xml.bean;
 
+import org.openrewrite.refactor.Formatter;
 import org.openrewrite.spring.xml.parse.RewriteBeanDefinition;
 import org.openrewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
 import org.openrewrite.java.refactor.AddAnnotation;
-import org.openrewrite.java.refactor.Formatter;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;

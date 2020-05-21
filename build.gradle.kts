@@ -5,7 +5,6 @@ import nebula.plugin.info.InfoBrokerPlugin
 import nebula.plugin.contacts.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jfrog.gradle.plugin.artifactory.dsl.*
-import org.w3c.dom.Element
 
 buildscript {
     repositories {
