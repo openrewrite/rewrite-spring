@@ -47,7 +47,7 @@ public class AddConfigurationClass extends JavaRefactorVisitor {
     @Override
     public J visitCompilationUnit(J.CompilationUnit cu) {
         if (cu.getMetadata()
-                .getOrDefault("spring.beans.fileType", "unknown")
+                .getOrDefault(SpringMetadata.FILE_TYPE, "unknown")
                 .equals("ConfigurationClass")) {
             return super.visitCompilationUnit(cu);
         }

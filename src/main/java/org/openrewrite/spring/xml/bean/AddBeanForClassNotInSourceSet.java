@@ -15,13 +15,12 @@
  */
 package org.openrewrite.spring.xml.bean;
 
-import org.openrewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.spring.xml.parse.RewriteBeanDefinition;
+import org.openrewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
 
 import java.nio.file.Path;
-
-import static java.util.Collections.emptyList;
+import java.util.Map;
 
 public class AddBeanForClassNotInSourceSet extends BeanDefinitionVisitor {
     private final Path mainSourceSet;
@@ -34,13 +33,16 @@ public class AddBeanForClassNotInSourceSet extends BeanDefinitionVisitor {
     @Override
     public J visitClassDecl(J.ClassDecl classDecl) {
         if (isScope()) {
-            registry.getBeanDefinitions(null).entrySet().stream()
-                    .filter(bdByName -> !mainSourceSet.resolve(bdByName.getValue().getBeanClassName().replace(".", "/"))
-                            .toFile().exists())
-                    .forEach(bean -> {
-                        JavaType.Class beanType = JavaType.Class.build(bean.getValue().getBeanClassName());
-                        andThen(new AddBeanMethod(classDecl, bean.getKey(), beanType, false, emptyList()));
-                    });
+            for (Map.Entry<String, RewriteBeanDefinition> beanDefinitionByName : registry.getBeanDefinitions(null).entrySet()) {
+                RewriteBeanDefinition bean = beanDefinitionByName.getValue();
+                if (!mainSourceSet.resolve(bean.getBeanClassName().replace(".", "/"))
+                        .toFile().exists()) {
+                    AddBeanMethod beanMethod = new AddBeanMethod(classDecl, beanDefinitionByName.getKey(), bean, registry);
+                    andThen(beanMethod);
+
+                    andThen(new AddBeanMethodBody(beanMethod.getMethodId(), bean.getBeanDefinitionBody()));
+                }
+            }
         }
 
         return super.visitClassDecl(classDecl);

@@ -25,7 +25,7 @@ class AddConfigurationClassTest {
 
     private val config = J.CompilationUnit
             .buildEmptyClass(mainSourceSet, "my.org", "MyConfiguration")
-            .withMetadata(listOf("spring.beans.fileType" to "ConfigurationClass").toMap())
+            .withMetadata(listOf(SpringMetadata.FILE_TYPE to "ConfigurationClass").toMap())
 
     @Test
     fun propertyPlaceholder() {
@@ -122,20 +122,23 @@ class AddConfigurationClassTest {
             package my.org;
             
             import org.apache.tomcat.jdbc.pool.DataSource;
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
             import org.springframework.jdbc.datasource.DataSourceTransactionManager;
             
             @Configuration
             public class MyConfiguration {
+            
                 @Bean(destroyMethod="close")
                 public DataSource dataSource() {
                     return new DataSource();
                 }
-                
+            
                 @Bean
                 public DataSourceTransactionManager transactionManager(DataSource dataSource) {
-                    DataSourceTransactionManager dstm = new DataSourceTransactionManager();
-                    dstm.setDataSource(dataSource);
-                    return dstm;
+                    DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
+                    dataSourceTransactionManager.setDataSource(dataSource);
+                    return dataSourceTransactionManager;
                 }
             }
         """)

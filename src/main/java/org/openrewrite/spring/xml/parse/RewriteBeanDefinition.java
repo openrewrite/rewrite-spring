@@ -16,6 +16,7 @@
 package org.openrewrite.spring.xml.parse;
 
 import org.openrewrite.internal.lang.NonNull;
+import org.openrewrite.java.tree.JavaType;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -23,7 +24,11 @@ import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class RewriteBeanDefinition implements BeanDefinition {
     public static final String TYPE_PROPERTY_KEY = "__rewrite_type";
@@ -32,6 +37,74 @@ public class RewriteBeanDefinition implements BeanDefinition {
 
     public RewriteBeanDefinition(BeanDefinition delegate) {
         this.delegate = delegate;
+    }
+
+    public JavaType.Class getType() {
+        return JavaType.Class.build(getBeanClassName());
+    }
+
+    public String getBeanDefinitionBody() {
+        JavaType.Class beanType = getType();
+        String newClass = "new " + beanType.getClassName() + "(";
+
+        ConstructorArgumentValues cav = getConstructorArgumentValues();
+        if(!cav.isEmpty()) {
+            if(!cav.getIndexedArgumentValues().isEmpty()) {
+                newClass = cav.getIndexedArgumentValues().values().stream()
+                        .map(ConstructorArgumentValues.ValueHolder::getName)
+                        .collect(Collectors.joining(","));
+            }
+            else {
+                List<ConstructorArgumentValues.ValueHolder> args = cav.getGenericArgumentValues();
+                Optional<List<ConstructorArgumentValues.ValueHolder>> argsInOrder = beanType.getConstructors().stream()
+                        .filter(c -> c.getParamNames().size() == args.size())
+                        .map(c -> {
+                            List<ConstructorArgumentValues.ValueHolder> outOfOrder = new ArrayList<>(args);
+                            List<ConstructorArgumentValues.ValueHolder> inOrder = new ArrayList<>();
+
+                            for(JavaType paramType : c.getGenericSignature().getParamTypes()) {
+                                if (!(paramType instanceof JavaType.FullyQualified)) {
+                                    return null;
+                                }
+
+                                String paramTypeName = ((JavaType.FullyQualified) paramType).getFullyQualifiedName();
+                                for(int i = 0; i < outOfOrder.size(); i++) {
+                                    if(paramTypeName.equals(outOfOrder.get(i).getType())) {
+                                        inOrder.add(outOfOrder.get(i));
+                                        outOfOrder.remove(i);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            return outOfOrder.isEmpty() ? inOrder : null;
+                        })
+                        .filter(Objects::nonNull)
+                        .findAny();
+            }
+        }
+
+        newClass += ")";
+
+        if(getPropertyValues().isEmpty()) {
+           return "return " + newClass;
+        }
+
+        else {
+            final String variableName = beanType.getClassName().substring(0, 1).toLowerCase() +
+                    beanType.getClassName().substring(1);
+
+            return beanType.getClassName() + " " + variableName + " = " + newClass + ";" +
+                    getPropertyValues().getPropertyValueList().stream()
+                        .map(pv -> variableName + ".set" +
+                                pv.getName().substring(0, 1).toUpperCase() +
+                                pv.getName().substring(1) +
+                                "(" +
+                                pv.getName() +
+                                ");")
+                        .collect(Collectors.joining("\n", "\n", "\n")) +
+                    "return " + variableName + ";\n";
+        }
     }
 
     @SuppressWarnings("unchecked")

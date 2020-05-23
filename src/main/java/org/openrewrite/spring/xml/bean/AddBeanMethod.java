@@ -16,12 +16,17 @@
 package org.openrewrite.spring.xml.bean;
 
 import org.openrewrite.Formatting;
+import org.openrewrite.java.refactor.AddAnnotation;
 import org.openrewrite.java.refactor.ScopedJavaRefactorVisitor;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.spring.xml.parse.RewriteBeanDefinition;
+import org.openrewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -36,14 +41,92 @@ class AddBeanMethod extends ScopedJavaRefactorVisitor {
     private final boolean statik;
     private final List<Statement> arguments;
 
+    @Nullable
+    private final String initMethod;
+
+    @Nullable
+    private final String destroyMethod;
+
     private final UUID methodId = randomId();
 
-    public AddBeanMethod(J.ClassDecl scope, String name, JavaType.Class returnType, boolean statik, List<Statement> arguments) {
+    public AddBeanMethod(J.ClassDecl scope,
+                         String beanName,
+                         RewriteBeanDefinition bean,
+                         RewriteBeanDefinitionRegistry registry) {
+        this(scope, beanName, bean.getType(), false,
+                Formatting.formatFirstPrefix(bean.getPropertyValues().stream()
+                        .map(pv -> {
+                            RewriteBeanDefinition propertyBean = registry.getBeanDefinition(pv.getName());
+                            JavaType.Class propertyBeanType = JavaType.Class.build(propertyBean.getBeanClassName());
+
+                            return new J.VariableDecls(
+                                    randomId(),
+                                    emptyList(),
+                                    emptyList(),
+                                    J.Ident.build(
+                                            randomId(),
+                                            propertyBeanType.getClassName(),
+                                            propertyBeanType,
+                                            Formatting.EMPTY
+                                    ),
+                                    null,
+                                    emptyList(),
+                                    singletonList(new J.VariableDecls.NamedVar(
+                                            randomId(),
+                                            J.Ident.build(
+                                                    randomId(),
+                                                    pv.getName(),
+                                                    propertyBeanType,
+                                                    format(" ")),
+                                            emptyList(),
+                                            null,
+                                            propertyBeanType,
+                                            EMPTY)
+                                    ),
+                                    format(" "));
+                        })
+                        .collect(Collectors.toList()), ""),
+                bean.isLazyInit(),
+                bean.isPrototype(),
+                bean.getInitMethodName(),
+                bean.getDestroyMethodName());
+    }
+
+    public AddBeanMethod(J.ClassDecl scope,
+                         String name,
+                         JavaType.Class returnType,
+                         boolean statik,
+                         List<Statement> arguments) {
+        this(scope, name, returnType, statik, arguments, false, false, null, null);
+    }
+
+    public AddBeanMethod(J.ClassDecl scope,
+                         String name,
+                         JavaType.Class returnType,
+                         boolean statik,
+                         List<Statement> arguments,
+                         boolean lazy,
+                         boolean prototype,
+                         @Nullable String initMethod,
+                         @Nullable String destroyMethod) {
         super(scope.getId());
         this.name = name;
         this.returnType = returnType;
         this.statik = statik;
         this.arguments = arguments;
+        this.initMethod = initMethod;
+        this.destroyMethod = destroyMethod;
+
+        if (lazy) {
+            andThen(new AddAnnotation(methodId, "org.springframework.context.annotation.Lazy"));
+        }
+
+        if (prototype) {
+            JavaType.Class cbf = JavaType.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
+            maybeAddImport(cbf.getFullyQualifiedName());
+            andThen(new AddAnnotation(methodId, "org.springframework.context.annotation.Scope",
+                    TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE").withType(cbf)));
+        }
     }
 
     public UUID getMethodId() {
@@ -75,7 +158,7 @@ class AddBeanMethod extends ScopedJavaRefactorVisitor {
             Formatting format = formatter.format(classDecl.getBody());
 
             J.MethodDecl beanMethod = new J.MethodDecl(methodId,
-                    singletonList(buildBeanAnnotation(emptyList())),
+                    singletonList(buildBeanAnnotation()),
                     emptyList(),
                     null,
                     TreeBuilder.buildName(returnType.getClassName(), EMPTY).withType(returnType),
@@ -102,7 +185,29 @@ class AddBeanMethod extends ScopedJavaRefactorVisitor {
         return c;
     }
 
-    private static J.Annotation buildBeanAnnotation(List<Expression> arguments) {
+    private J.Annotation buildBeanAnnotation() {
+        List<Expression> arguments = new ArrayList<>();
+
+        if(initMethod != null) {
+            arguments.add(new J.Assign(
+                    randomId(),
+                    J.Ident.build(randomId(), "initMethod", JavaType.Primitive.String, EMPTY),
+                    new J.Literal(randomId(), initMethod, "\"" + initMethod + "\"", JavaType.Primitive.String, EMPTY),
+                    JavaType.Primitive.String,
+                    EMPTY
+            ));
+        }
+
+        if(destroyMethod != null) {
+            arguments.add(new J.Assign(
+                    randomId(),
+                    J.Ident.build(randomId(), "destroyMethod", JavaType.Primitive.String, EMPTY),
+                    new J.Literal(randomId(), destroyMethod, "\"" + destroyMethod + "\"", JavaType.Primitive.String, EMPTY),
+                    JavaType.Primitive.String,
+                    initMethod != null ? format(" ") : EMPTY
+            ));
+        }
+
         return new J.Annotation(randomId(),
                 J.Ident.build(randomId(), BEAN_TYPE.getClassName(), BEAN_TYPE, EMPTY),
                 arguments.isEmpty() ? null : new J.Annotation.Arguments(randomId(), arguments, EMPTY),
