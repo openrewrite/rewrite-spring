@@ -23,6 +23,11 @@ import java.util.List;
 
 public class BeanMethodsNotPublic extends JavaRefactorVisitor {
     @Override
+    public String getName() {
+        return "spring.BeanMethodsNotPublic";
+    }
+
+    @Override
     public J visitMethod(J.MethodDecl method) {
         J.MethodDecl m = refactor(method, super::visitMethod);
 
