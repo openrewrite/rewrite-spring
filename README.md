@@ -10,16 +10,9 @@
 - [What is this?](#what-is-this-)
 - [Spring XML to annotation-based configuration](#spring-xml-to-annotation-based-configuration)
 - [Prefer constructor injection](#prefer-constructor-injection)
-  * [Before](#before)
-  * [After](#after)
-  * [After (if Lombok option is selected)](#after-if-lombok-option-is-selected)
-  * [After (if Lombok option is NOT selected)](#after-if-lombok-option-is-not-selected)
 - [Don't use `@RequestMapping` on methods](#dont-use-requestmapping-on-methods)
-  * [Before](#before-1)
-  * [After](#after-1)
 - [Don't specify a name argument on annotations like `@PathVariable`](#dont-specify-a-name-argument-on-annotations-like-pathvariable)
-  * [Before](#before-2)
-  * [After](#after-2)
+- [`public` is not necessary on `@Bean` methods](#public-is-not-necessary-on-bean-methods)
 
 ## What is this?
 
@@ -242,3 +235,7 @@ public class UsersController {
     }
 }
 ```
+
+## `public` is not necessary on `@Bean` methods
+
+Default visibility on `@Bean` methods is supported and simpler.
