@@ -239,3 +239,7 @@ public class UsersController {
 ## `public` is not necessary on `@Bean` methods
 
 Default visibility on `@Bean` methods is supported and simpler.
+
+## Remove unnecessary `@Autowired`
+
+Generally we almost never need to use `@Autowired` anymore. It isn't needed on constructors or fields any longer. Currently, this rule removes `@Autowired` from constructors.
