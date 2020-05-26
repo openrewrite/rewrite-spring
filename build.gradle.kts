@@ -53,6 +53,10 @@ java {
 
 dependencies {
     implementation("org.openrewrite:rewrite-java:latest.release")
+    implementation("org.openrewrite:rewrite-xml:latest.release")
+
+    // for locating list of released Spring Boot versions
+    implementation("com.squareup.okhttp3:okhttp:latest.release")
 
     implementation("org.springframework:spring-beans:latest.release")
     implementation("org.springframework:spring-webmvc:latest.release")
