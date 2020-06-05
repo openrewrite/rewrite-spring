@@ -15,9 +15,10 @@
  */
 package org.openrewrite.spring;
 
-import org.openrewrite.java.refactor.AddAnnotation;
-import org.openrewrite.java.refactor.GenerateConstructorUsingFields;
-import org.openrewrite.java.refactor.JavaRefactorVisitor;
+import org.openrewrite.config.AutoConfigure;
+import org.openrewrite.java.AddAnnotation;
+import org.openrewrite.java.GenerateConstructorUsingFields;
+import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
@@ -31,22 +32,17 @@ import static org.openrewrite.Formatting.formatFirstPrefix;
 import static org.openrewrite.Tree.randomId;
 import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
+@AutoConfigure
 public class ConstructorInjection extends JavaRefactorVisitor {
-    private final boolean generateLombokRequiredArgsAnnotation;
-    private final boolean generateJsr305Annotations;
+    private boolean useLombokRequiredArgsAnnotation = false;
+    private boolean useJsr305Annotations = false;
 
-    public ConstructorInjection(boolean generateLombokRequiredArgsAnnotation, boolean generateJsr305Annotations) {
-        this.generateLombokRequiredArgsAnnotation = generateLombokRequiredArgsAnnotation;
-        this.generateJsr305Annotations = generateJsr305Annotations;
+    public void setUseJsr305Annotations(boolean useJsr305Annotations) {
+        this.useJsr305Annotations = useJsr305Annotations;
     }
 
-    public ConstructorInjection() {
-        this(false, false);
-    }
-
-    @Override
-    public String getName() {
-        return "spring.ConstructorInjection";
+    public void setUseLombokRequiredArgsAnnotation(boolean useLombokRequiredArgsAnnotation) {
+        this.useLombokRequiredArgsAnnotation = useLombokRequiredArgsAnnotation;
     }
 
     @Override
@@ -61,7 +57,7 @@ public class ConstructorInjection extends JavaRefactorVisitor {
                                 J.VariableDecls fixedField = mv
                                         .withAnnotations(mv.getAnnotations().stream()
                                                 .filter(ann -> !isFieldInjectionAnnotation(ann) ||
-                                                        (generateJsr305Annotations && ann.getArgs() != null && ann.getArgs().getArgs().stream()
+                                                        (useJsr305Annotations && ann.getArgs() != null && ann.getArgs().getArgs().stream()
                                                                 .anyMatch(arg -> arg.whenType(J.Assign.class)
                                                                         .map(assign -> ((J.Ident) assign.getVariable()).getSimpleName().equals("required"))
                                                                         .orElse(false))))
@@ -92,8 +88,8 @@ public class ConstructorInjection extends JavaRefactorVisitor {
                     .collect(toList());
 
             if (!hasRequiredArgsConstructor(cd)) {
-                andThen(generateLombokRequiredArgsAnnotation ?
-                        new AddAnnotation(cd.getId(), "lombok.RequiredArgsConstructor") :
+                andThen(useLombokRequiredArgsAnnotation ?
+                        new AddAnnotation.Scoped(cd, "lombok.RequiredArgsConstructor") :
                         new GenerateConstructorUsingFields(cd, getInjectedFields(cd)));
             }
 

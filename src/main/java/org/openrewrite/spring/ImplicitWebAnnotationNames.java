@@ -15,8 +15,9 @@
  */
 package org.openrewrite.spring;
 
-import org.openrewrite.java.refactor.JavaRefactorVisitor;
-import org.openrewrite.java.refactor.RenameVariable;
+import org.openrewrite.config.AutoConfigure;
+import org.openrewrite.java.JavaRefactorVisitor;
+import org.openrewrite.java.RenameVariable;
 import org.openrewrite.java.tree.J;
 
 import java.util.Optional;
@@ -26,6 +27,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
+@AutoConfigure
 public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
     private static final Set<String> PARAM_ANNOTATIONS = Set.of(
             "PathVariable",
@@ -37,14 +39,8 @@ public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
             "SessionAttribute"
     ).stream().map(className -> "org.springframework.web.bind.annotation." + className).collect(toSet());
 
-    @Override
-    public String getName() {
-        return "spring.web.ImplicitWebAnnotationNames";
-    }
-
-    @Override
-    public boolean isCursored() {
-        return true;
+    public ImplicitWebAnnotationNames() {
+        setCursoringOn();
     }
 
     @Override

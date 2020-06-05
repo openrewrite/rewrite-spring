@@ -15,17 +15,15 @@
  */
 package org.openrewrite.spring;
 
-import org.openrewrite.java.refactor.JavaRefactorVisitor;
+import org.openrewrite.config.AutoConfigure;
+import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.J;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@AutoConfigure
 public class BeanMethodsNotPublic extends JavaRefactorVisitor {
-    @Override
-    public String getName() {
-        return "spring.BeanMethodsNotPublic";
-    }
 
     @Override
     public J visitMethod(J.MethodDecl method) {

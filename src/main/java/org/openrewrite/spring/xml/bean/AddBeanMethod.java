@@ -16,8 +16,8 @@
 package org.openrewrite.spring.xml.bean;
 
 import org.openrewrite.Formatting;
-import org.openrewrite.java.refactor.AddAnnotation;
-import org.openrewrite.java.refactor.ScopedJavaRefactorVisitor;
+import org.openrewrite.java.AddAnnotation;
+import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.spring.xml.parse.RewriteBeanDefinition;
 import org.openrewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
@@ -25,7 +25,6 @@ import org.openrewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -33,12 +32,15 @@ import static java.util.Collections.singletonList;
 import static org.openrewrite.Formatting.*;
 import static org.openrewrite.Tree.randomId;
 
-class AddBeanMethod extends ScopedJavaRefactorVisitor {
+class AddBeanMethod extends JavaRefactorVisitor {
     private static final JavaType.Class BEAN_TYPE = JavaType.Class.build("org.springframework.context.annotation.Bean");
 
+    private final J.ClassDecl scope;
     private final String name;
     private final JavaType.Class returnType;
     private final boolean statik;
+    private final boolean lazy;
+    private final boolean prototype;
     private final List<Statement> arguments;
 
     @Nullable
@@ -46,8 +48,6 @@ class AddBeanMethod extends ScopedJavaRefactorVisitor {
 
     @Nullable
     private final String destroyMethod;
-
-    private final UUID methodId = randomId();
 
     public AddBeanMethod(J.ClassDecl scope,
                          String beanName,
@@ -109,36 +109,27 @@ class AddBeanMethod extends ScopedJavaRefactorVisitor {
                          boolean prototype,
                          @Nullable String initMethod,
                          @Nullable String destroyMethod) {
-        super(scope.getId());
+        this.scope = scope;
         this.name = name;
         this.returnType = returnType;
         this.statik = statik;
+        this.lazy = lazy;
+        this.prototype = prototype;
         this.arguments = arguments;
         this.initMethod = initMethod;
         this.destroyMethod = destroyMethod;
-
-        if (lazy) {
-            andThen(new AddAnnotation(methodId, "org.springframework.context.annotation.Lazy"));
-        }
-
-        if (prototype) {
-            JavaType.Class cbf = JavaType.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
-            maybeAddImport(cbf.getFullyQualifiedName());
-            andThen(new AddAnnotation(methodId, "org.springframework.context.annotation.Scope",
-                    TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE").withType(cbf)));
-        }
     }
 
-    public UUID getMethodId() {
-        return methodId;
+    @Override
+    public boolean isIdempotent() {
+        return false;
     }
 
     @Override
     public J visitClassDecl(J.ClassDecl classDecl) {
         J.ClassDecl c = refactor(classDecl, super::visitClassDecl);
 
-        if (isScope()) {
-
+        if (scope.isScope(classDecl)) {
             List<J> statements = new ArrayList<>(c.getBody().getStatements());
 
             int insertionIndex = statements.size();
@@ -157,7 +148,7 @@ class AddBeanMethod extends ScopedJavaRefactorVisitor {
 
             Formatting format = formatter.format(classDecl.getBody());
 
-            J.MethodDecl beanMethod = new J.MethodDecl(methodId,
+            J.MethodDecl beanMethod = new J.MethodDecl(randomId(),
                     singletonList(buildBeanAnnotation()),
                     emptyList(),
                     null,
@@ -169,6 +160,17 @@ class AddBeanMethod extends ScopedJavaRefactorVisitor {
                             emptyList(), format(" "), format.getPrefix()),
                     null,
                     EMPTY).withModifiers("public");
+
+            if (lazy) {
+                andThen(new AddAnnotation.Scoped(beanMethod, "org.springframework.context.annotation.Lazy"));
+            }
+
+            if (prototype) {
+                JavaType.Class cbf = JavaType.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
+                maybeAddImport(cbf.getFullyQualifiedName());
+                andThen(new AddAnnotation.Scoped(beanMethod, "org.springframework.context.annotation.Scope",
+                        TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE").withType(cbf)));
+            }
 
             if (statik) {
                 beanMethod = beanMethod.withModifiers("static");

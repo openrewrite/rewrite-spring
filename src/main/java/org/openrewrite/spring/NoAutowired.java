@@ -16,17 +16,15 @@
 package org.openrewrite.spring;
 
 import org.openrewrite.Formatting;
-import org.openrewrite.java.refactor.JavaRefactorVisitor;
+import org.openrewrite.config.AutoConfigure;
+import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.J;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@AutoConfigure
 public class NoAutowired extends JavaRefactorVisitor {
-    @Override
-    public String getName() {
-        return "spring.NoAutowired";
-    }
 
     @Override
     public J visitMethod(J.MethodDecl method) {

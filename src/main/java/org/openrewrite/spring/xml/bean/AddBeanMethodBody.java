@@ -15,34 +15,30 @@
  */
 package org.openrewrite.spring.xml.bean;
 
-import org.openrewrite.java.refactor.ScopedJavaRefactorVisitor;
+import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TreeBuilder;
 
-import java.util.UUID;
-
-class AddBeanMethodBody extends ScopedJavaRefactorVisitor {
+class AddBeanMethodBody extends JavaRefactorVisitor {
+    private final J.MethodDecl scope;
     private final String snippet;
     private final JavaType.Class[] imports;
 
-    public AddBeanMethodBody(UUID scope, String snippet, JavaType.Class... imports) {
-        super(scope);
+    public AddBeanMethodBody(J.MethodDecl methodDecl, String snippet, JavaType.Class... imports) {
+        this.scope = methodDecl;
         this.snippet = snippet;
         this.imports = imports;
-    }
-
-    @Override
-    public boolean isCursored() {
-        return true;
+        setCursoringOn();
     }
 
     @Override
     public J visitMethod(J.MethodDecl method) {
         J.MethodDecl m = refactor(method, super::visitMethod);
 
-        if (isScope() && m.getBody() != null) {
-            m = m.withBody(m.getBody().withStatements(TreeBuilder.buildSnippet(enclosingCompilationUnit(), getCursor(), snippet, imports)));
+        if (scope.isScope(method) && m.getBody() != null) {
+            m = m.withBody(m.getBody().withStatements(TreeBuilder.buildSnippet(enclosingCompilationUnit(),
+                    getCursor(), snippet, imports)));
         }
 
         return m;

@@ -66,7 +66,9 @@ class ConstructorInjectionTest {
             }
         """.trimIndent())
 
-        val fixed = controller.refactor().visit(ConstructorInjection(true, false)).fix().fixed
+        val fixed = controller.refactor()
+                .visit(ConstructorInjection().apply { setUseLombokRequiredArgsAnnotation(true) })
+                .fix().fixed
 
         assertRefactored(fixed, """
             import lombok.RequiredArgsConstructor;
@@ -93,7 +95,9 @@ class ConstructorInjectionTest {
             }
         """.trimIndent())
 
-        val fixed = controller.refactor().visit(ConstructorInjection(false, true)).fix().fixed
+        val fixed = controller.refactor()
+                .visit(ConstructorInjection().apply { setUseJsr305Annotations(true) })
+                .fix().fixed
 
         assertRefactored(fixed, """
             import javax.annotation.Nonnull;

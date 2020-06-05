@@ -15,11 +15,14 @@
  */
 package org.openrewrite.spring;
 
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import okhttp3.*;
+import org.openrewrite.Validated;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.xml.XPathMatcher;
-import org.openrewrite.xml.refactor.ChangeTagValue;
-import org.openrewrite.xml.refactor.XmlRefactorVisitor;
+import org.openrewrite.xml.ChangeTagValue;
+import org.openrewrite.xml.XmlRefactorVisitor;
 import org.openrewrite.xml.tree.Xml;
 
 import java.io.IOException;
@@ -38,34 +41,51 @@ public class UseSpringBootVersionMaven extends XmlRefactorVisitor {
 
     private final XPathMatcher parentVersion = new XPathMatcher("/project/parent/version");
 
-    @Nullable
-    final String latestMatchingVersion;
-
-    public UseSpringBootVersionMaven(String version) {
-        this(
-                version,
-                new OkHttpClient.Builder()
-                        .connectionSpecs(Arrays.asList(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS))
-                        .build(),
-                "https://repo1.maven.org/maven2"
-        );
-    }
+    private OkHttpClient httpClient = new OkHttpClient.Builder()
+            .connectionSpecs(Arrays.asList(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS))
+            .build();
 
     /**
-     * @param version 2.3.0.RELEASE, 2.3.+, 2.+
+     * 2.3.0.RELEASE, 2.3.+, 2.+
      */
-    public UseSpringBootVersionMaven(String version, OkHttpClient httpClient, String repositoryUrl) {
-        this.latestMatchingVersion = latestMatchingVersion(version, httpClient, repositoryUrl);
+    private String requestedVersion;
+
+    private String repositoryUrl = "https://repo1.maven.org/maven2";
+
+    //VisibleForTesting
+    @Nullable
+    String latestMatchingVersion;
+
+    public UseSpringBootVersionMaven() {
+        setCursoringOn();
     }
 
     @Override
-    public String getName() {
-        return "spring.UseSpringBootVersionMaven{version=" + latestMatchingVersion + "}";
+    public Iterable<Tag> getTags() {
+        return Tags.of("version.requested", requestedVersion, "version", latestMatchingVersion);
+    }
+
+    public void setVersion(String version) {
+        this.requestedVersion = version;
+    }
+
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
+    }
+
+    public void setHttpClient(OkHttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
     @Override
-    public boolean isCursored() {
-        return true;
+    public Validated validate() {
+        return super.validate();
+    }
+
+    @Override
+    public Xml visitDocument(Xml.Document document) {
+        this.latestMatchingVersion = latestMatchingVersion(requestedVersion, httpClient, repositoryUrl);
+        return super.visitDocument(document);
     }
 
     @Override
@@ -79,16 +99,17 @@ public class UseSpringBootVersionMaven extends XmlRefactorVisitor {
                         .flatMap(Xml.Tag::getValue)
                         .map(artifactId -> artifactId.equals("spring-boot-starter-parent"))
                         .orElse(false)) {
-            if(latestMatchingVersion != null && tag.getValue().map(v -> !v.equals(latestMatchingVersion))
+            if (latestMatchingVersion != null && tag.getValue().map(v -> !v.equals(latestMatchingVersion))
                     .orElse(true)) {
-                andThen(new ChangeTagValue(tag, latestMatchingVersion));
+                andThen(new ChangeTagValue.Scoped(tag, latestMatchingVersion));
             }
         }
 
         return super.visitTag(tag);
     }
 
-    private static String latestMatchingVersion(String version, OkHttpClient httpClient, String repositoryUrl) {
+    //VisibleForTesting
+    static String latestMatchingVersion(String version, OkHttpClient httpClient, String repositoryUrl) {
         if (!version.contains("+")) {
             return version;
         }

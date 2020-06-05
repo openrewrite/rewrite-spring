@@ -19,8 +19,8 @@ import org.openrewrite.spring.xml.bean.AddBeanForClassNotInSourceSet;
 import org.openrewrite.spring.xml.bean.AddComponentScan;
 import org.openrewrite.spring.xml.bean.AddPropertySourcesPlaceholderConfigurer;
 import org.openrewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
-import org.openrewrite.java.refactor.AddAnnotation;
-import org.openrewrite.java.refactor.JavaRefactorVisitor;
+import org.openrewrite.java.AddAnnotation;
+import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.J;
 
 import java.nio.file.Path;
@@ -32,11 +32,6 @@ public class AddConfigurationClass extends JavaRefactorVisitor {
     public AddConfigurationClass(RewriteBeanDefinitionRegistry beanDefinitionRegistry, Path mainSourceSet) {
         this.beanDefinitionRegistry = beanDefinitionRegistry;
         this.mainSourceSet = mainSourceSet;
-    }
-
-    @Override
-    public String getName() {
-        return "spring.beans.AddBeansToConfiguration";
     }
 
     @Override
@@ -56,7 +51,7 @@ public class AddConfigurationClass extends JavaRefactorVisitor {
 
     @Override
     public J visitClassDecl(J.ClassDecl classDecl) {
-        andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Configuration"));
+        andThen(new AddAnnotation.Scoped(classDecl, "org.springframework.context.annotation.Configuration"));
         andThen(new AddComponentScan(classDecl, beanDefinitionRegistry));
         andThen(new AddBeanForClassNotInSourceSet(classDecl, beanDefinitionRegistry, mainSourceSet));
         andThen(new AddPropertySourcesPlaceholderConfigurer(classDecl, beanDefinitionRegistry));

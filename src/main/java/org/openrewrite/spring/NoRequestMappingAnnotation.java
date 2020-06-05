@@ -15,7 +15,8 @@
  */
 package org.openrewrite.spring;
 
-import org.openrewrite.java.refactor.JavaRefactorVisitor;
+import org.openrewrite.config.AutoConfigure;
+import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -25,15 +26,10 @@ import static org.openrewrite.Formatting.EMPTY;
 import static org.openrewrite.Tree.randomId;
 import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
+@AutoConfigure
 public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
-    @Override
-    public String getName() {
-        return "spring.web.NoRequestMappingAnnotation";
-    }
-
-    @Override
-    public boolean isCursored() {
-        return true;
+    public NoRequestMappingAnnotation() {
+        setCursoringOn();
     }
 
     @Override

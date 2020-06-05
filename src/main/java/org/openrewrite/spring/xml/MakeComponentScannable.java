@@ -15,9 +15,8 @@
  */
 package org.openrewrite.spring.xml;
 
-import org.openrewrite.java.refactor.AddAnnotation;
-import org.openrewrite.java.refactor.JavaRefactorVisitor;
-import org.openrewrite.java.refactor.ScopedJavaRefactorVisitor;
+import org.openrewrite.java.AddAnnotation;
+import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.*;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
@@ -25,7 +24,10 @@ import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -39,11 +41,6 @@ import static org.openrewrite.Tree.randomId;
  */
 class MakeComponentScannable extends JavaRefactorVisitor {
     private final BeanDefinitionRegistry registry;
-
-    @Override
-    public String getName() {
-        return "spring.beans.AnnotationBasedBeanConfiguration";
-    }
 
     public MakeComponentScannable(BeanDefinitionRegistry registry) {
         this.registry = registry;
@@ -60,11 +57,7 @@ class MakeComponentScannable extends JavaRefactorVisitor {
 
         private AnnotateBeanClass(BeanDefinitionRegistry beanDefinitionRegistry) {
             this.beanDefinitionRegistry = beanDefinitionRegistry;
-        }
-
-        @Override
-        public boolean isCursored() {
-            return true;
+            setCursoringOn();
         }
 
         @Override
@@ -74,17 +67,17 @@ class MakeComponentScannable extends JavaRefactorVisitor {
                     .filter(bd -> TypeUtils.isOfClassType(classDecl.getType(), bd.getBeanClassName()))
                     .findAny()
                     .ifPresent(beanDefinition -> {
-                        andThen(new AddAnnotation(classDecl.getId(), "org.springframework.stereotype.Component"));
+                        andThen(new AddAnnotation.Scoped(classDecl, "org.springframework.stereotype.Component"));
                         andThen(new AutowireFields(classDecl, beanDefinition));
 
                         if (beanDefinition.isLazyInit()) {
-                            andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Lazy"));
+                            andThen(new AddAnnotation.Scoped(classDecl, "org.springframework.context.annotation.Lazy"));
                         }
 
                         if (beanDefinition.isPrototype()) {
                             JavaType.Class cbf = JavaType.Class.build("org.springframework.beans.factory.config.ConfigurableBeanFactory");
                             maybeAddImport(cbf.getFullyQualifiedName());
-                            andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.Scope",
+                            andThen(new AddAnnotation.Scoped(classDecl, "org.springframework.context.annotation.Scope",
                                     TreeBuilder.buildName("ConfigurableBeanFactory.SCOPE_PROTOTYPE").withType(cbf)));
                         }
 
@@ -92,14 +85,14 @@ class MakeComponentScannable extends JavaRefactorVisitor {
                             classDecl.getMethods().stream()
                                     .filter(m -> m.getSimpleName().equals(beanDefinition.getInitMethodName()))
                                     .findAny()
-                                    .ifPresent(m -> andThen(new AddAnnotation(m.getId(), "javax.annotation.PostConstruct")));
+                                    .ifPresent(m -> andThen(new AddAnnotation.Scoped(m, "javax.annotation.PostConstruct")));
                         }
 
                         if (beanDefinition.getDestroyMethodName() != null) {
                             classDecl.getMethods().stream()
                                     .filter(m -> m.getSimpleName().equals(beanDefinition.getDestroyMethodName()))
                                     .findAny()
-                                    .ifPresent(m -> andThen(new AddAnnotation(m.getId(), "javax.annotation.PreDestroy")));
+                                    .ifPresent(m -> andThen(new AddAnnotation.Scoped(m, "javax.annotation.PreDestroy")));
                         }
                     });
 
@@ -107,12 +100,14 @@ class MakeComponentScannable extends JavaRefactorVisitor {
         }
     }
 
-    private static class AutowireFields extends ScopedJavaRefactorVisitor {
+    private static class AutowireFields extends JavaRefactorVisitor {
+        private final J.ClassDecl scope;
         private final BeanDefinition beanDefinition;
 
         public AutowireFields(J.ClassDecl classDecl, BeanDefinition beanDefinition) {
-            super(classDecl.getId());
+            this.scope = classDecl;
             this.beanDefinition = beanDefinition;
+            setCursoringOn();
         }
 
         @Override
@@ -123,10 +118,10 @@ class MakeComponentScannable extends JavaRefactorVisitor {
                         .findAny()
                         .ifPresent(beanProperty -> {
                             if (beanProperty.getValue() instanceof BeanReference) {
-                                andThen(new AddAnnotation(multiVariable.getId(), "org.springframework.beans.factory.annotation.Autowired"));
+                                andThen(new AddAnnotation.Scoped(multiVariable, "org.springframework.beans.factory.annotation.Autowired"));
                             } else if (beanProperty.getValue() instanceof TypedStringValue) {
                                 valueExpression(beanProperty.getValue(), multiVariable).ifPresent(valueTree ->
-                                        andThen(new AddAnnotation(multiVariable.getId(),
+                                        andThen(new AddAnnotation.Scoped(multiVariable,
                                                 "org.springframework.beans.factory.annotation.Value", valueTree)));
                             }
                         });
@@ -148,7 +143,7 @@ class MakeComponentScannable extends JavaRefactorVisitor {
                                 for (int i = 0; i < indexedValues.size(); i++) {
                                     int param = i;
                                     valueExpression(indexedValues.get(i).getValue(), multiVariable).ifPresent(valueTree ->
-                                            andThen(new AddAnnotation(injectableConstructor.getParams().getParams().get(param).getId(),
+                                            andThen(new AddAnnotation.Scoped(injectableConstructor.getParams().getParams().get(param),
                                                     "org.springframework.beans.factory.annotation.Value", valueTree)));
                                 }
 
@@ -182,7 +177,7 @@ class MakeComponentScannable extends JavaRefactorVisitor {
                                         }
 
                                         if(param != null) {
-                                            andThen(new AddAnnotation(param.getId(),
+                                            andThen(new AddAnnotation.Scoped(param,
                                                     "org.springframework.beans.factory.annotation.Value", valueTree));
                                         }
                                     });

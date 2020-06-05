@@ -44,7 +44,7 @@ public class AddPropertySourcesPlaceholderConfigurer extends BeanDefinitionVisit
 
     @Override
     public J visitClassDecl(J.ClassDecl classDecl) {
-        if(isScope()) {
+        if(configurationClass.isScope(classDecl)) {
             AtomicInteger seq = new AtomicInteger();
 
             List<RewriteBeanDefinition> propertyPlaceholders = registry.getBeanDefinitions(RewriteBeanDefinition.Type.PropertyPlaceholder).values().stream()
@@ -74,7 +74,7 @@ public class AddPropertySourcesPlaceholderConfigurer extends BeanDefinitionVisit
                 boolean ignoreUnresolvablePlaceholders = propertyPlaceholders.stream()
                         .anyMatch(pp -> pp.getBooleanProperty("ignoreUnresolvable").orElse(false));
 
-                andThen(new AddBeanMethodBody(addBeanMethod.getMethodId(),
+                andThen(new AddBeanMethodBody(addBeanMethod,
                         "PropertySourcesPlaceholderConfigurer pspc = new PropertySourcesPlaceholderConfigurer();\n" +
                                 "Resource[] resources = new Resource[]{\n" +
                                 propertyPlaceholders.stream()

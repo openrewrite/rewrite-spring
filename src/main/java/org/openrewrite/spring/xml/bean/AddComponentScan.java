@@ -18,7 +18,7 @@ package org.openrewrite.spring.xml.bean;
 import org.openrewrite.refactor.Formatter;
 import org.openrewrite.spring.xml.parse.RewriteBeanDefinition;
 import org.openrewrite.spring.xml.parse.RewriteBeanDefinitionRegistry;
-import org.openrewrite.java.refactor.AddAnnotation;
+import org.openrewrite.java.AddAnnotation;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -39,7 +39,7 @@ public class AddComponentScan extends BeanDefinitionVisitor {
 
     @Override
     public J visitClassDecl(J.ClassDecl classDecl) {
-        if(isScope()) {
+        if(configurationClass.isScope(classDecl)) {
             List<String> basePackagesToComponentScan = registry.getBeanDefinitions(RewriteBeanDefinition.Type.ComponentScan).values().stream()
                     .map(bd -> bd.<String>getProperty("basePackage").orElse(null))
                     .filter(Objects::nonNull)
@@ -82,7 +82,7 @@ public class AddComponentScan extends BeanDefinitionVisitor {
                             JavaType.Class.build("java.lang.String"), EMPTY);
                 }
 
-                andThen(new AddAnnotation(classDecl.getId(), "org.springframework.context.annotation.ComponentScan", arguments));
+                andThen(new AddAnnotation.Scoped(classDecl, "org.springframework.context.annotation.ComponentScan", arguments));
             }
         }
 
