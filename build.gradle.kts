@@ -37,7 +37,7 @@ group = "org.openrewrite.plan"
 description = "Eliminate legacy Spring patterns. Automatically."
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 configurations.all {
