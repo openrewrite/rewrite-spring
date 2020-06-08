@@ -15,7 +15,7 @@
  */
 package org.openrewrite.spring;
 
-import org.openrewrite.config.AutoConfigure;
+import org.openrewrite.AutoConfigure;
 import org.openrewrite.java.AddAnnotation;
 import org.openrewrite.java.GenerateConstructorUsingFields;
 import org.openrewrite.java.JavaRefactorVisitor;

@@ -47,10 +47,6 @@ configurations.all {
     }
 }
 
-java {
-    withSourcesJar()
-}
-
 dependencies {
     implementation("org.openrewrite:rewrite-java:latest.release")
     implementation("org.openrewrite:rewrite-xml:latest.release")
