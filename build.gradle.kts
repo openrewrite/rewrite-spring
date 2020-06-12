@@ -75,6 +75,15 @@ tasks.named<Test>("test") {
     jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
 }
 
+tasks.named<JavaCompile>("compileJava") {
+    sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+    targetCompatibility = JavaVersion.VERSION_1_8.toString()
+
+    options.isFork = true
+    options.forkOptions.executable = "javac"
+    options.compilerArgs.addAll(listOf("--release", "8"))
+}
+
 tasks.withType(KotlinCompile::class.java).configureEach {
     kotlinOptions {
         jvmTarget = "1.8"
