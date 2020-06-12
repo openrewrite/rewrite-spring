@@ -43,6 +43,10 @@ public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
             String toAnnotationType;
             J.Annotation.Arguments args = a.getArgs();
 
+            if (!onlyOneMethod(args)) {
+                return a;
+            }
+
             if (args == null) {
                 toAnnotationType = "GetMapping";
             } else {
@@ -99,5 +103,22 @@ public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
         }
 
         return a;
+    }
+
+    private boolean onlyOneMethod(J.Annotation.Arguments arguments) {
+        for (Expression arg : arguments.getArgs()) {
+            if (arg instanceof J.Assign) {
+                J.Assign assignArg = (J.Assign) arg;
+                if ("method".equals(assignArg.getVariable().whenType(J.Ident.class)
+                        .map(J.Ident::getSimpleName).orElse("unknown"))) {
+                    // if there are more than two methods specified on this annotation, it can't be replaced
+                    // by a single method-specific annotation
+                    return !(assignArg.getAssignment() instanceof J.NewArray) ||
+                            ((J.NewArray) assignArg.getAssignment()).getInitializer().getElements().size() == 1;
+                }
+            }
+        }
+
+        return true;
     }
 }

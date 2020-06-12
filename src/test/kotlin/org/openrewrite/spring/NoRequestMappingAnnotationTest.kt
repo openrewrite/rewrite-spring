@@ -15,6 +15,7 @@
  */
 package org.openrewrite.spring
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openrewrite.java.Java11Parser
@@ -96,5 +97,47 @@ class NoRequestMappingAnnotationTest {
                 }
             }
         """)
+    }
+
+    @Issue("#3")
+    @Test
+    fun requestMappingWithMultipleMethods() {
+        val controller = jp.parse("""
+            import java.util.*;
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.*;
+            import static org.springframework.web.bind.annotation.RequestMethod.GET;
+            import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
+            
+            @RestController
+            @RequestMapping("/users")
+            public class UsersController {
+                @RequestMapping(method = { HEAD, GET })
+                public ResponseEntity<List<String>> getUsersHead() {
+                    return null;
+                }
+            }
+        """.trimIndent())
+
+        val fix = controller.refactor().visit(NoRequestMappingAnnotation()).fix()
+
+        assertRefactored(fix.fixed, """
+            import java.util.*;
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.*;
+            import static org.springframework.web.bind.annotation.RequestMethod.GET;
+            import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
+            
+            @RestController
+            @RequestMapping("/users")
+            public class UsersController {
+                @RequestMapping(method = { HEAD, GET })
+                public ResponseEntity<List<String>> getUsersHead() {
+                    return null;
+                }
+            }
+        """)
+
+        assertThat(fix.rulesThatMadeChanges).isEmpty()
     }
 }
