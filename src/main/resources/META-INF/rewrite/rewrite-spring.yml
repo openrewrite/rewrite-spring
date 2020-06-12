@@ -18,3 +18,9 @@ type: beta.openrewrite.org/v1/profile
 name: spring
 include:
   - 'org.openrewrite.spring.*'
+
+exclude:
+  # this one is just too risky for now until
+  # we have a groovy and kotlin binding that
+  # can fix tests
+  - org.openrewrite.spring.ConstructorInjection
