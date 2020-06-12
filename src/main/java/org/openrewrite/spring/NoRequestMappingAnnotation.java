@@ -21,6 +21,8 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
+import java.util.Optional;
+
 import static java.util.stream.Collectors.toList;
 import static org.openrewrite.Formatting.EMPTY;
 import static org.openrewrite.Tree.randomId;
@@ -36,7 +38,7 @@ public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
     public J visitAnnotation(J.Annotation annotation) {
         J.Annotation a = refactor(annotation, super::visitAnnotation);
 
-        if(isOfClassType(annotation.getType(), "org.springframework.web.bind.annotation.RequestMapping") &&
+        if (isOfClassType(annotation.getType(), "org.springframework.web.bind.annotation.RequestMapping") &&
                 getCursor().getParentOrThrow().getTree() instanceof J.MethodDecl) {
             String toAnnotationType;
             J.Annotation.Arguments args = a.getArgs();
@@ -48,9 +50,10 @@ public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
                         map(arg -> arg.whenType(J.Assign.class)
                                 .flatMap(assign -> assign.getVariable().whenType(J.Ident.class)
                                         .filter(key -> key.getSimpleName().equals("method"))
-                                        .flatMap(key -> assign.getAssignment().whenType(J.Ident.class)
-                                                .or(() -> assign.getAssignment().whenType(J.FieldAccess.class)
-                                                        .map(J.FieldAccess::getName))
+                                        .flatMap(key -> Optional.ofNullable(assign.getAssignment().whenType(J.Ident.class)
+                                                .orElseGet(() -> assign.getAssignment().whenType(J.FieldAccess.class)
+                                                        .map(J.FieldAccess::getName)
+                                                        .orElse(null)))
                                                 .map(methodEnum -> {
                                                     maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
                                                     return methodEnum.getSimpleName().substring(0, 1) + methodEnum.getSimpleName().substring(1).toLowerCase() + "Mapping";
@@ -62,9 +65,9 @@ public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
                 // drop the "method" argument
                 args = args.withArgs(args.getArgs().stream()
                         .filter(arg -> arg.whenType(J.Assign.class)
-                                .map(assign -> assign.getVariable().whenType(J.Ident.class)
+                                .map(assign -> !assign.getVariable().whenType(J.Ident.class)
                                         .filter(key -> key.getSimpleName().equals("method"))
-                                        .isEmpty())
+                                        .isPresent())
                                 .orElse(true))
                         .collect(toList()));
 

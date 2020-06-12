@@ -16,20 +16,23 @@
 package org.openrewrite.spring;
 
 import org.openrewrite.AutoConfigure;
+import org.openrewrite.Formatting;
 import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.RenameVariable;
 import org.openrewrite.java.tree.J;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.openrewrite.Formatting.formatFirstPrefix;
 import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
 @AutoConfigure
 public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
-    private static final Set<String> PARAM_ANNOTATIONS = Set.of(
+    private static final Set<String> PARAM_ANNOTATIONS = Stream.of(
             "PathVariable",
             "RequestParam",
             "RequestHeader",
@@ -37,7 +40,7 @@ public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
             "CookieValue",
             "ModelAttribute",
             "SessionAttribute"
-    ).stream().map(className -> "org.springframework.web.bind.annotation." + className).collect(toSet());
+    ).map(className -> "org.springframework.web.bind.annotation." + className).collect(toSet());
 
     public ImplicitWebAnnotationNames() {
         setCursoringOn();
@@ -55,14 +58,16 @@ public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
                 return a;
             }
 
-            // drop the "method" argument
+            // drop the "name" argument
             args = args.withArgs(args.getArgs().stream()
                     .filter(arg -> arg.whenType(J.Assign.class)
-                            .map(assign -> assign.getVariable().whenType(J.Ident.class)
+                            .map(assign -> !assign.getVariable().whenType(J.Ident.class)
                                     .filter(key -> key.getSimpleName().equals("value") || key.getSimpleName().equals("name"))
-                                    .isEmpty())
+                                    .isPresent())
                             .orElse(false))
                     .collect(toList()));
+
+            args = args.withArgs(formatFirstPrefix(args.getArgs(), ""));
 
             // remove the argument parentheses altogether
             if (args.getArgs().isEmpty()) {

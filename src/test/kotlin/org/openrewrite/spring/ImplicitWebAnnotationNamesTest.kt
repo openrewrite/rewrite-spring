@@ -65,4 +65,38 @@ class ImplicitWebAnnotationNamesTest {
             }
         """)
     }
+
+    @Issue("#4")
+    @Test
+    fun removeUnnecessarySpacingInFollowingAnnotationArgument() {
+        val controller = jp.parse("""
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.*;
+            
+            @RestController
+            @RequestMapping("/users")
+            public class UsersController {
+                @GetMapping("/{id}")
+                public ResponseEntity<String> getUser(
+                    @RequestParam(name = "count", defaultValue = 3) int count) {
+                }
+            }
+        """.trimIndent())
+
+        val fixed = controller.refactor().visit(ImplicitWebAnnotationNames()).fix().fixed
+
+        assertRefactored(fixed, """
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.*;
+            
+            @RestController
+            @RequestMapping("/users")
+            public class UsersController {
+                @GetMapping("/{id}")
+                public ResponseEntity<String> getUser(
+                    @RequestParam(defaultValue = 3) int count) {
+                }
+            }
+        """)
+    }
 }

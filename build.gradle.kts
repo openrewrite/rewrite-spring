@@ -51,6 +51,9 @@ configurations.all {
 }
 
 dependencies {
+    compileOnly("org.openrewrite:rewrite-java-8:latest.release")
+    compileOnly("org.openrewrite:rewrite-java-11:latest.release")
+
     implementation("org.openrewrite:rewrite-java:latest.release")
     implementation("org.openrewrite:rewrite-xml:latest.release")
 

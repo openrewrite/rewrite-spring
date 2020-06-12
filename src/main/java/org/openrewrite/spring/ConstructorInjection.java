@@ -16,9 +16,7 @@
 package org.openrewrite.spring;
 
 import org.openrewrite.AutoConfigure;
-import org.openrewrite.java.AddAnnotation;
-import org.openrewrite.java.GenerateConstructorUsingFields;
-import org.openrewrite.java.JavaRefactorVisitor;
+import org.openrewrite.java.*;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
@@ -36,6 +34,20 @@ import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 public class ConstructorInjection extends JavaRefactorVisitor {
     private boolean useLombokRequiredArgsAnnotation = false;
     private boolean useJsr305Annotations = false;
+
+    private final JavaParser javaParser;
+
+    public ConstructorInjection() {
+        JavaParser.Builder<? extends JavaParser, ?> javaParserBuilder;
+        if(System.getProperty("java.version").startsWith("1.8")) {
+            javaParserBuilder = Java8Parser.builder();
+        }
+        else {
+            javaParserBuilder = Java11Parser.builder();
+        }
+
+        this.javaParser = javaParserBuilder.build();
+    }
 
     public void setUseJsr305Annotations(boolean useJsr305Annotations) {
         this.useJsr305Annotations = useJsr305Annotations;
@@ -90,7 +102,7 @@ public class ConstructorInjection extends JavaRefactorVisitor {
             if (!hasRequiredArgsConstructor(cd)) {
                 andThen(useLombokRequiredArgsAnnotation ?
                         new AddAnnotation.Scoped(cd, "lombok.RequiredArgsConstructor") :
-                        new GenerateConstructorUsingFields(cd, getInjectedFields(cd)));
+                        new GenerateConstructorUsingFields(javaParser, cd, getInjectedFields(cd)));
             }
 
             List<String> setterNames = getInjectedFields(cd).stream()
