@@ -15,13 +15,25 @@
  */
 package org.openrewrite.spring
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.java.Java11Parser
 import org.openrewrite.java.JavaParser
+import org.openrewrite.java.JavaParser.dependenciesFromClasspath
 
-class ImplicitWebAnnotationNamesTest : JavaParser(dependenciesFromClasspath("spring-web")) {
+class ImplicitWebAnnotationNamesTest {
+    val jp = Java11Parser.builder()
+            .classpath(dependenciesFromClasspath("spring-web"))
+            .build()
+
+    @BeforeEach
+    fun beforeEach() {
+        jp.reset()
+    }
+
     @Test
     fun removeUnnecessaryAnnotationArgument() {
-        val controller = parse("""
+        val controller = jp.parse("""
             import org.springframework.http.ResponseEntity;
             import org.springframework.web.bind.annotation.*;
             

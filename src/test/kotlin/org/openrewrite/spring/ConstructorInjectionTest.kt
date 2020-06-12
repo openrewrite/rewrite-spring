@@ -15,14 +15,24 @@
  */
 package org.openrewrite.spring
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.openrewrite.java.JavaParser
+import org.openrewrite.java.Java11Parser
 import org.openrewrite.java.JavaParser.dependenciesFromClasspath
 
 class ConstructorInjectionTest {
+    val jp = Java11Parser.builder()
+            .classpath(dependenciesFromClasspath("spring-beans"))
+            .build()
+
+    @BeforeEach
+    fun beforeEach() {
+        jp.reset()
+    }
+
     @Test
     fun constructorInjection() {
-        val controller = JavaParser(dependenciesFromClasspath("spring-beans")).parse("""
+        val controller = jp.parse("""
             import org.springframework.beans.factory.annotation.Autowired;
             public class UsersController {
                 @Autowired
@@ -55,7 +65,7 @@ class ConstructorInjectionTest {
 
     @Test
     fun constructorInjectionWithLombok() {
-        val controller = JavaParser(dependenciesFromClasspath("spring-beans")).parse("""
+        val controller = jp.parse("""
             import org.springframework.beans.factory.annotation.Autowired;
             public class UsersController {
                 @Autowired
@@ -84,7 +94,7 @@ class ConstructorInjectionTest {
 
     @Test
     fun constructorInjectionWithJSR305() {
-        val controller = JavaParser(dependenciesFromClasspath("spring-beans")).parse("""
+        val controller = jp.parse("""
             import org.springframework.beans.factory.annotation.Autowired;
             public class UsersController {
                 @Autowired(required = false)

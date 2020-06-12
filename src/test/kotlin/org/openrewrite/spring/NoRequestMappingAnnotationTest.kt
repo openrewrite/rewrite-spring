@@ -15,13 +15,24 @@
  */
 package org.openrewrite.spring
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.java.Java11Parser
 import org.openrewrite.java.JavaParser
 
-class NoRequestMappingAnnotationTest : JavaParser(dependenciesFromClasspath("spring-web")) {
+class NoRequestMappingAnnotationTest {
+    val jp = Java11Parser.builder()
+            .classpath(JavaParser.dependenciesFromClasspath("spring-web"))
+            .build()
+
+    @BeforeEach
+    fun beforeEach() {
+        jp.reset()
+    }
+
     @Test
     fun requestMapping() {
-        val controller = parse("""
+        val controller = jp.parse("""
             import java.util.*;
             import org.springframework.http.ResponseEntity;
             import org.springframework.web.bind.annotation.*;

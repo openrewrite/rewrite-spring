@@ -15,13 +15,24 @@
  */
 package org.openrewrite.spring
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.java.Java11Parser
 import org.openrewrite.java.JavaParser
 
-class BeanMethodsNotPublicTest : JavaParser(dependenciesFromClasspath("spring-context")) {
+class BeanMethodsNotPublicTest {
+    val jp = Java11Parser.builder()
+            .classpath(JavaParser.dependenciesFromClasspath("spring-context"))
+            .build()
+
+    @BeforeEach
+    fun beforeEach() {
+        jp.reset()
+    }
+
     @Test
     fun removePublicModifierFromBeanMethods() {
-        val configuration = parse("""
+        val configuration = jp.parse("""
             import javax.sql.DataSource;
             import org.springframework.context.annotation.Bean;
             

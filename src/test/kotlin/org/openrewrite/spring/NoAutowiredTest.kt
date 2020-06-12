@@ -15,13 +15,24 @@
  */
 package org.openrewrite.spring
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.java.Java11Parser
 import org.openrewrite.java.JavaParser
 
-class NoAutowiredTest : JavaParser(dependenciesFromClasspath("spring-beans")) {
+class NoAutowiredTest {
+    val jp = Java11Parser.builder()
+            .classpath(JavaParser.dependenciesFromClasspath("spring-beans"))
+            .build()
+
+    @BeforeEach
+    fun beforeEach() {
+        jp.reset()
+    }
+
     @Test
     fun removeAutowiredAnnotations() {
-        val configuration = parse("""
+        val configuration = jp.parse("""
             import javax.sql.DataSource;
             import org.springframework.beans.factory.annotation.Autowired;
             

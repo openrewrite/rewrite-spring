@@ -37,6 +37,9 @@ group = "org.openrewrite.plan"
 description = "Eliminate legacy Spring patterns. Automatically."
 
 repositories {
+    // TODO remove after rewrite-test is included in JCenter
+    maven { url = uri("https://dl.bintray.com/openrewrite/maven") }
+
     jcenter()
 }
 
@@ -63,6 +66,9 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
+
+    testImplementation("org.openrewrite:rewrite-java-11:latest.release")
+    testImplementation("org.openrewrite:rewrite-test:latest.release")
 
     testImplementation("org.assertj:assertj-core:latest.release")
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
