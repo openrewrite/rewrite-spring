@@ -123,10 +123,12 @@ configure<PublishingExtension> {
                 (asElement().getElementsByTagName("dependencies").item(0) as org.w3c.dom.Element).let { dependencies ->
                     dependencies.getElementsByTagName("dependency").let { dependencyList ->
                         (0 until dependencyList.length).forEach { i ->
-                            (dependencyList.item(i) as org.w3c.dom.Element).let { dependency ->
-                                if ((dependency.getElementsByTagName("scope")
-                                                .item(0) as org.w3c.dom.Element).textContent == "provided") {
-                                    dependencies.removeChild(dependency)
+                            if(dependencyList.item(i) != null) {
+                                (dependencyList.item(i) as org.w3c.dom.Element).let { dependency ->
+                                    if ((dependency.getElementsByTagName("scope")
+                                                    .item(0) as org.w3c.dom.Element).textContent == "provided") {
+                                        dependencies.removeChild(dependency)
+                                    }
                                 }
                             }
                         }
