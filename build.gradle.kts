@@ -122,15 +122,18 @@ configure<PublishingExtension> {
             pom.withXml {
                 (asElement().getElementsByTagName("dependencies").item(0) as org.w3c.dom.Element).let { dependencies ->
                     dependencies.getElementsByTagName("dependency").let { dependencyList ->
-                        (0 until dependencyList.length).forEach { i ->
-                            if(dependencyList.item(i) != null) {
-                                (dependencyList.item(i) as org.w3c.dom.Element).let { dependency ->
-                                    if ((dependency.getElementsByTagName("scope")
-                                                    .item(0) as org.w3c.dom.Element).textContent == "provided") {
-                                        dependencies.removeChild(dependency)
-                                    }
+                        var i = 0
+                        var length = dependencyList.length
+                        while (i < length) {
+                            (dependencyList.item(i) as org.w3c.dom.Element).let { dependency ->
+                                if ((dependency.getElementsByTagName("scope")
+                                                .item(0) as org.w3c.dom.Element).textContent == "provided") {
+                                    dependencies.removeChild(dependency)
+                                    i--
+                                    length--
                                 }
                             }
+                            i++
                         }
                     }
                 }
