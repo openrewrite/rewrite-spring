@@ -38,12 +38,23 @@ public class ConstructorInjection extends JavaRefactorVisitor {
     private final JavaParser javaParser;
 
     public ConstructorInjection() {
+        // TODO simplify this when conditional parser builder is added to rewrite-java
         JavaParser.Builder<? extends JavaParser, ?> javaParserBuilder;
-        if(System.getProperty("java.version").startsWith("1.8")) {
-            javaParserBuilder = Java8Parser.builder();
-        }
-        else {
-            javaParserBuilder = Java11Parser.builder();
+        try {
+            if (System.getProperty("java.version").startsWith("1.8")) {
+                javaParserBuilder = (JavaParser.Builder<? extends JavaParser, ?>) Class
+                        .forName("org.openrewrite.java.Java8Parser")
+                        .getDeclaredMethod("builder")
+                        .invoke(null);
+            } else {
+                javaParserBuilder = (JavaParser.Builder<? extends JavaParser, ?>) Class
+                        .forName("org.openrewrite.java.Java11Parser")
+                        .getDeclaredMethod("builder")
+                        .invoke(null);
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to create a Java parser instance. " +
+                    "`rewrite-java-8` or `rewrite-java-11` must be on the classpath.");
         }
 
         this.javaParser = javaParserBuilder.build();
@@ -61,7 +72,7 @@ public class ConstructorInjection extends JavaRefactorVisitor {
     public J visitClassDecl(J.ClassDecl classDecl) {
         J.ClassDecl cd = refactor(classDecl, super::visitClassDecl);
 
-        if(cd.getFields().stream().anyMatch(this::isFieldInjected)) {
+        if (cd.getFields().stream().anyMatch(this::isFieldInjected)) {
             List<J> statements = cd.getBody().getStatements().stream()
                     .map(stat -> stat.whenType(J.VariableDecls.class)
                             .filter(this::isFieldInjected)

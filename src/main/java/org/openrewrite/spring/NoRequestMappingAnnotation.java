@@ -106,6 +106,10 @@ public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
     }
 
     private boolean onlyOneMethod(J.Annotation.Arguments arguments) {
+        if(arguments == null) {
+            return true;
+        }
+
         for (Expression arg : arguments.getArgs()) {
             if (arg instanceof J.Assign) {
                 J.Assign assignArg = (J.Assign) arg;
