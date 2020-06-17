@@ -51,7 +51,9 @@ public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
         J.Annotation a = refactor(annotation, super::visitAnnotation);
 
         if(PARAM_ANNOTATIONS.stream().anyMatch(annClass -> isOfClassType(annotation.getType(), annClass)) &&
-                annotation.getArgs() != null && nameArgumentValue(annotation).isPresent()) {
+                annotation.getArgs() != null && nameArgumentValue(annotation).isPresent() &&
+                // ModelAttribute can be on methods as well as parameters
+                getCursor().getParentOrThrow().getTree() instanceof J.VariableDecls) {
             J.Annotation.Arguments args = a.getArgs();
 
             if (args == null) {
@@ -73,6 +75,7 @@ public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
             if (args.getArgs().isEmpty()) {
                 args = null;
             }
+
 
             nameArgumentValue(a).ifPresent(value -> andThen(new RenameVariable(
                     getCursor().getParentOrThrow().<J.VariableDecls>getTree().getVars().get(0),

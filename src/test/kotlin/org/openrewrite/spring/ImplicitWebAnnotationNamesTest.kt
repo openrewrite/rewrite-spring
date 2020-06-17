@@ -99,4 +99,33 @@ class ImplicitWebAnnotationNamesTest {
             }
         """)
     }
+
+    @Test
+    fun dontRemoveModelAttributeOnMethods() {
+        val controller = jp.parse("""
+            import org.springframework.web.bind.annotation.*;
+            import java.util.*;
+            
+            public class UsersController {
+                @ModelAttribute("types")
+                public Collection<String> populateUserTypes() {
+                    return Arrays.asList("free", "premium");
+                }
+            }
+        """.trimIndent())
+
+        val fixed = controller.refactor().visit(ImplicitWebAnnotationNames()).fix().fixed
+
+        assertRefactored(fixed, """
+            import org.springframework.web.bind.annotation.*;
+            import java.util.*;
+            
+            public class UsersController {
+                @ModelAttribute("types")
+                public Collection<String> populateUserTypes() {
+                    return Arrays.asList("free", "premium");
+                }
+            }
+        """)
+    }
 }
