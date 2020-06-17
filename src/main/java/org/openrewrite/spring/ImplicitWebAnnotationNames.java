@@ -100,6 +100,7 @@ public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
                         .findAny()
                         .flatMap(arg -> arg.whenType(J.Assign.class)
                                 .map(assign -> assign.getAssignment().whenType(J.Literal.class))
-                                .orElse(arg.whenType(J.Literal.class)));
+                                .orElse(arg.whenType(J.Literal.class)))
+                        .filter(value -> value.getValue().toString().matches("[a-z][A-Za-z0-9]*"));
     }
 }

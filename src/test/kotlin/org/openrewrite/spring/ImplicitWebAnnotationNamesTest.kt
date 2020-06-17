@@ -128,4 +128,29 @@ class ImplicitWebAnnotationNamesTest {
             }
         """)
     }
+
+    @Test
+    fun onlyDropCamelCasedNames() {
+        val controller = jp.parse("""
+            import org.springframework.web.bind.annotation.*;
+            
+            public class UsersController {
+                public ResponseEntity<String> getUser(@PathVariable("id") Long id,
+                                                      @PathVariable(value = "another_name") Long anotherName) {
+                }
+            }
+        """.trimIndent())
+
+        val fixed = controller.refactor().visit(ImplicitWebAnnotationNames()).fix().fixed
+
+        assertRefactored(fixed, """
+            import org.springframework.web.bind.annotation.*;
+            
+            public class UsersController {
+                public ResponseEntity<String> getUser(@PathVariable Long id,
+                                                      @PathVariable(value = "another_name") Long anotherName) {
+                }
+            }
+        """)
+    }
 }
