@@ -18,6 +18,10 @@
 
 This project implements a [Rewrite module](https://github.com/openrewrite/rewrite) to automatically apply best practices in Java Spring Boot applications. Originally inspired by the [Reboot](https://github.com/thanus/reboot) project.
 
+## How to use?
+
+Turn on the `spring` profile in the [Rewrite Maven](https://github.com/openrewrite/rewrite-maven-plugin) plugin.
+
 ## Spring XML to annotation-based configuration
 
 See the [demo slides](https://slides.com/rewrite/spring) here of work-in-progress features related to migration off of XML configuration to annotation-based configuration.
