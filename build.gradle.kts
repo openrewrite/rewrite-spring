@@ -76,6 +76,9 @@ dependencies {
     testImplementation("org.assertj:assertj-core:latest.release")
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
+    // to test SpringBootServletInitializerTest
+    testImplementation("org.springframework.boot:spring-boot:1.5.22.RELEASE")
+
     testRuntimeOnly("ch.qos.logback:logback-classic:1.0.13")
 }
 

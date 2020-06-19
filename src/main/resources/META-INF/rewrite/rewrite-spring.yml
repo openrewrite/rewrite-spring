@@ -13,7 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+---
+type: beta.openrewrite.org/v1/visitor
+name: org.openrewrite.spring.SpringBootServletInitializerPackage
 
+visitors:
+  - org.openrewrite.java.ChangeType:
+      type: org.springframework.boot.web.support.SpringBootServletInitializer
+      targetType: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+---
 type: beta.openrewrite.org/v1/profile
 name: spring
 include:
