@@ -37,10 +37,8 @@ group = "org.openrewrite.plan"
 description = "Eliminate legacy Spring patterns. Automatically."
 
 repositories {
-    // TODO remove after rewrite-test is included in JCenter
     maven { url = uri("https://dl.bintray.com/openrewrite/maven") }
-
-    jcenter()
+    mavenCentral()
 }
 
 configurations.all {
@@ -56,6 +54,8 @@ dependencies {
 
     implementation("org.openrewrite:rewrite-java:latest.release")
     implementation("org.openrewrite:rewrite-xml:latest.release")
+    implementation("org.openrewrite:rewrite-properties:latest.release")
+    implementation("org.openrewrite:rewrite-yaml:latest.release")
 
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
@@ -75,6 +75,11 @@ dependencies {
 
     testImplementation("org.assertj:assertj-core:latest.release")
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
+
+    // for generating properties migration configurations
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:latest.release")
+    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:latest.release")
+    testImplementation("io.github.classgraph:classgraph:latest.release")
 
     // to test SpringBootServletInitializerTest
     testImplementation("org.springframework.boot:spring-boot:1.5.22.RELEASE")
