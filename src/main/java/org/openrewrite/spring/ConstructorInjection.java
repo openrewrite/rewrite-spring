@@ -16,7 +16,10 @@
 package org.openrewrite.spring;
 
 import org.openrewrite.AutoConfigure;
-import org.openrewrite.java.*;
+import org.openrewrite.java.AddAnnotation;
+import org.openrewrite.java.GenerateConstructorUsingFields;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
@@ -32,33 +35,10 @@ import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
 @AutoConfigure
 public class ConstructorInjection extends JavaRefactorVisitor {
+    private final JavaParser javaParser = JavaParser.fromJavaVersion().build();
+
     private boolean useLombokRequiredArgsAnnotation = false;
     private boolean useJsr305Annotations = false;
-
-    private final JavaParser javaParser;
-
-    public ConstructorInjection() {
-        // TODO simplify this when conditional parser builder is added to rewrite-java
-        JavaParser.Builder<? extends JavaParser, ?> javaParserBuilder;
-        try {
-            if (System.getProperty("java.version").startsWith("1.8")) {
-                javaParserBuilder = (JavaParser.Builder<? extends JavaParser, ?>) Class
-                        .forName("org.openrewrite.java.Java8Parser")
-                        .getDeclaredMethod("builder")
-                        .invoke(null);
-            } else {
-                javaParserBuilder = (JavaParser.Builder<? extends JavaParser, ?>) Class
-                        .forName("org.openrewrite.java.Java11Parser")
-                        .getDeclaredMethod("builder")
-                        .invoke(null);
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to create a Java parser instance. " +
-                    "`rewrite-java-8` or `rewrite-java-11` must be on the classpath.");
-        }
-
-        this.javaParser = javaParserBuilder.build();
-    }
 
     public void setUseJsr305Annotations(boolean useJsr305Annotations) {
         this.useJsr305Annotations = useJsr305Annotations;

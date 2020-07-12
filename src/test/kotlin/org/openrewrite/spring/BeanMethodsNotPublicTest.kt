@@ -17,11 +17,10 @@ package org.openrewrite.spring
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.openrewrite.java.Java11Parser
 import org.openrewrite.java.JavaParser
 
 class BeanMethodsNotPublicTest {
-    val jp = Java11Parser.builder()
+    private val jp = JavaParser.fromJavaVersion()
             .classpath(JavaParser.dependenciesFromClasspath("spring-context"))
             .build()
 

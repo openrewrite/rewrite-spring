@@ -18,11 +18,10 @@ package org.openrewrite.spring
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.openrewrite.java.Java11Parser
 import org.openrewrite.java.JavaParser
 
 class NoRequestMappingAnnotationTest {
-    val jp = Java11Parser.builder()
+    private val jp = JavaParser.fromJavaVersion()
             .classpath(JavaParser.dependenciesFromClasspath("spring-web"))
             .build()
 

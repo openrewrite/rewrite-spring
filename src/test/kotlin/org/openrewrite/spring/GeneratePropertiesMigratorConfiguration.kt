@@ -20,10 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.classgraph.ClassGraph
-import io.github.classgraph.Resource
 import org.openrewrite.spring.internal.SpringBootReleases
 import java.io.File
-import java.io.InputStream
 
 /**
  * TODO move this to buildSrc or somewhere else where it can be run automatically
@@ -85,7 +83,7 @@ object GeneratePropertiesMigratorConfiguration {
                                 
                                 ---
                                 type: beta.openrewrite.org/v1/visitor
-                                name: org.openrewrite.spring.SpringBootConfigurationProperties.$majorMinor
+                                name: org.openrewrite.spring.boot.SpringBootConfigurationProperties.$majorMinor
 
                                 visitors:
                             """.trimIndent())
@@ -104,7 +102,7 @@ object GeneratePropertiesMigratorConfiguration {
                                 
                                 ---
                                 type: beta.openrewrite.org/v1/visitor
-                                name: org.openrewrite.spring.SpringBootConfigurationYaml.$majorMinor
+                                name: org.openrewrite.spring.boot.SpringBootConfigurationYaml.$majorMinor
 
                                 visitors:
                             """.trimIndent())

@@ -37,6 +37,7 @@ group = "org.openrewrite.plan"
 description = "Eliminate legacy Spring patterns. Automatically."
 
 repositories {
+    mavenLocal()
     maven { url = uri("https://dl.bintray.com/openrewrite/maven") }
     mavenCentral()
 }
@@ -49,13 +50,10 @@ configurations.all {
 }
 
 dependencies {
-    compileOnly("org.openrewrite:rewrite-java-8:latest.release")
-    compileOnly("org.openrewrite:rewrite-java-11:latest.release")
-
-    implementation("org.openrewrite:rewrite-java:latest.release")
-    implementation("org.openrewrite:rewrite-xml:latest.release")
-    implementation("org.openrewrite:rewrite-properties:latest.release")
-    implementation("org.openrewrite:rewrite-yaml:latest.release")
+    implementation("org.openrewrite:rewrite-java:latest.integration")
+    implementation("org.openrewrite:rewrite-xml:latest.integration")
+    implementation("org.openrewrite:rewrite-properties:latest.integration")
+    implementation("org.openrewrite:rewrite-yaml:latest.integration")
 
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
@@ -70,8 +68,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 
-    testImplementation("org.openrewrite:rewrite-java-11:latest.release")
-    testImplementation("org.openrewrite:rewrite-test:latest.release")
+    testImplementation("org.openrewrite:rewrite-test:latest.integration")
 
     testImplementation("org.assertj:assertj-core:latest.release")
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
@@ -82,8 +79,10 @@ dependencies {
     testImplementation("io.github.classgraph:classgraph:latest.release")
 
     // to test SpringBootServletInitializerTest
-    testImplementation("org.springframework.boot:spring-boot:1.5.22.RELEASE")
+    testImplementation("org.springframework.boot:spring-boot-autoconfigure:1.5.22.RELEASE")
 
+    testRuntimeOnly("org.openrewrite:rewrite-java-11:latest.integration")
+    testRuntimeOnly("org.openrewrite:rewrite-java-8:latest.integration")
     testRuntimeOnly("ch.qos.logback:logback-classic:1.0.13")
 }
 

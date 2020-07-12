@@ -17,12 +17,11 @@ package org.openrewrite.spring
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.openrewrite.java.Java11Parser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaParser.dependenciesFromClasspath
 
 class ImplicitWebAnnotationNamesTest {
-    val jp = Java11Parser.builder()
+    private val jp = JavaParser.fromJavaVersion()
             .classpath(dependenciesFromClasspath("spring-web"))
             .build()
 
