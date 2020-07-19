@@ -47,6 +47,8 @@ object GeneratePropertiesMigratorConfiguration {
         val config = File("src/main/resources/META-INF/rewrite/spring-boot-configuration-migration.yml")
         config.writeText("\n${File("gradle/licenseHeader.txt").readText()}\n".prependIndent("# "))
 
+        var previousVersion: String? = null
+        val alreadyDefined = mutableSetOf<String>()
         latestPatchReleases.filter { v -> v.startsWith("2") }.forEach { version ->
             val versionDir = File(releasesDir, version)
 
@@ -62,7 +64,7 @@ object GeneratePropertiesMigratorConfiguration {
             println("Scanning version $version")
 
             ClassGraph()
-                    .overrideClasspath(versionDir.listFiles().map { it.toURI() })
+                    .overrideClasspath(versionDir.listFiles()!!.map { it.toURI() })
                     .acceptPaths("META-INF")
                     .enableMemoryMapping()
                     .scan()
@@ -75,16 +77,17 @@ object GeneratePropertiesMigratorConfiguration {
                                         metadata.properties.filter { it.deprecation?.replacement != null }
                                     }
                                 }
+                                .filter { alreadyDefined.add(it.name) }
 
                         if (replacements.isNotEmpty()) {
                             val majorMinor = version.split(".").subList(0, 2).joinToString("_")
 
                             config.appendText("""
-                                
+
                                 ---
                                 type: beta.openrewrite.org/v1/visitor
-                                name: org.openrewrite.spring.boot.SpringBootConfigurationProperties.$majorMinor
-
+                                name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.$majorMinor
+                                ${previousVersion?.let { "extends: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.$previousVersion" } ?: ""}
                                 visitors:
                             """.trimIndent())
 
@@ -102,8 +105,8 @@ object GeneratePropertiesMigratorConfiguration {
                                 
                                 ---
                                 type: beta.openrewrite.org/v1/visitor
-                                name: org.openrewrite.spring.boot.SpringBootConfigurationYaml.$majorMinor
-
+                                name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.$majorMinor
+                                ${previousVersion?.let { "extends: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.$previousVersion" } ?: ""}
                                 visitors:
                             """.trimIndent())
 
@@ -116,6 +119,8 @@ object GeneratePropertiesMigratorConfiguration {
                                         """.trimIndent().prependIndent("  ")
                                     }
                             )
+
+                            previousVersion = majorMinor
                         }
                     }
         }

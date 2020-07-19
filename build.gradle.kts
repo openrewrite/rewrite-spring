@@ -54,6 +54,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-xml:latest.integration")
     implementation("org.openrewrite:rewrite-properties:latest.integration")
     implementation("org.openrewrite:rewrite-yaml:latest.integration")
+    implementation("org.openrewrite:rewrite-maven:latest.integration")
 
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
