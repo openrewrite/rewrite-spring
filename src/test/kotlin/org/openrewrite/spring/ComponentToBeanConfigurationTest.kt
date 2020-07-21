@@ -25,7 +25,7 @@ import java.nio.file.Path
 
 class ComponentToBeanConfigurationTest {
     private val jp = JavaParser.fromJavaVersion()
-            .classpath(dependenciesFromClasspath("spring-boot-autoconfigure", "spring-context"))
+            .classpath(dependenciesFromClasspath("spring-boot-autoconfigure", "spring-beans", "spring-context"))
             .build()
 
     private val app = "io/moderne/app/MyApplication" to """
@@ -133,6 +133,59 @@ class ComponentToBeanConfigurationTest {
                 @Bean
                 MyService myService(MyRepository repo) {
                     return new MyService(repo);
+                }
+            }
+        """)
+    }
+
+    @Test
+    fun beanWithFieldInjectedCollaborators(@TempDir tempDir: Path) {
+        val serviceFieldInjectable = "io/moderne/app/services/MyService" to """
+            package io.moderne.app.services;
+            
+            import io.moderne.app.repositories.MyRepository;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Service;
+            
+            @Service
+            public class MyService {
+                @Autowired
+                private MyRepository repo;
+            
+                public void setRepo(MyRepository repo) {
+                    this.repo = repo;
+                }
+            }
+        """.trimIndent()
+
+        parse(tempDir, app, repository, serviceFieldInjectable).map { cu ->
+            assertThat(cu.refactor().visit(visitor).fix().fixed.printTrimmed()).doesNotContain("@Component")
+        }
+
+        val generated = visitor.generated
+
+        assertThat(generated).isNotNull()
+
+        assertRefactored(generated!!, """
+            package io.moderne.app;
+            
+            import io.moderne.app.repositories.MyRepository;
+            import io.moderne.app.services.MyService;
+            import org.springframework.context.annotation.Configuration;
+            
+            @Configuration
+            public class MyConfiguration {
+            
+                @Bean
+                MyRepository myRepository() {
+                    return new MyRepository();
+                }
+            
+                @Bean
+                MyService myService(MyRepository repo) {
+                    MyService myService = new MyService();
+                    myService.setRepo(repo);
+                    return myService;
                 }
             }
         """)
