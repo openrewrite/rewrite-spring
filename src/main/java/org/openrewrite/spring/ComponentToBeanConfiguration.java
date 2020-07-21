@@ -131,14 +131,14 @@ public class ComponentToBeanConfiguration extends JavaRefactorVisitor
                     String params = "";
                     if (!fieldCollaborators.isEmpty()) {
                         params = fieldCollaborators.stream()
-                                .map(Tree::printTrimmed)
+                                .map(param -> param.getTypeExpr().printTrimmed() + " " + param.getVars().iterator().next().printTrimmed())
                                 .collect(Collectors.joining(", "));
                         paramTypes = fieldCollaborators.stream()
                                 .map(J.VariableDecls::getTypeAsClass)
                                 .collect(toList());
                     } else if (!constructorCollaborators.isEmpty()) {
                         params = constructorCollaborators.stream()
-                                .map(Tree::printTrimmed)
+                                .map(param -> param.getTypeExpr().printTrimmed() + " " + param.getVars().iterator().next().printTrimmed())
                                 .collect(Collectors.joining(", "));
                         paramTypes = constructorCollaborators.stream()
                                 .map(J.VariableDecls::getTypeAsClass)
@@ -150,10 +150,28 @@ public class ComponentToBeanConfiguration extends JavaRefactorVisitor
                     }
 
                     String className = componentType.getClassName();
+                    String lowerClassName = Character.toLowerCase(className.charAt(0)) + className.substring(1);
+
                     String beanDefinitionSource = "@Bean\n" +
-                            className + " " + Character.toLowerCase(className.charAt(0)) + className.substring(1) + "(" + params + ") {\n" +
-                            "    return new " + className + "(" + constructorArgs + ");\n" +
-                            "}";
+                            className + " " + lowerClassName + "(" + params + ") {\n";
+
+                    if (!fieldCollaborators.isEmpty()) {
+                        beanDefinitionSource += className + " " + lowerClassName + " = new " + className + "();\n";
+                        for (J.VariableDecls fieldCollaborator : fieldCollaborators) {
+                            beanDefinitionSource += fieldCollaborator.getVars().stream().findAny()
+                                    .map(field -> {
+                                        String lowerName = field.getSimpleName();
+                                        return lowerClassName + ".set" + Character.toUpperCase(lowerName.charAt(0)) + lowerName.substring(1) +
+                                                "(" + lowerName + ");\n";
+                                    })
+                                    .orElse("");
+                        }
+                        beanDefinitionSource += "return " + lowerClassName + ";\n";
+                    } else {
+                        beanDefinitionSource += "return new " + className + "(" + constructorArgs + ");\n";
+                    }
+
+                    beanDefinitionSource += "}";
 
                     J.MethodDecl beanDefinition = TreeBuilder.buildMethodDeclaration(
                             JavaParser.fromJavaVersion()
