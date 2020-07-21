@@ -39,6 +39,7 @@ description = "Eliminate legacy Spring patterns. Automatically."
 repositories {
     mavenLocal()
     maven { url = uri("https://dl.bintray.com/openrewrite/maven") }
+    maven { url = uri("https://oss.jfrog.org/artifactory/libs-snapshot") }
     mavenCentral()
 }
 
