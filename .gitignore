@@ -4,3 +4,4 @@ build/
 gradle.properties
 .java-version
 .boot-releases
+out/

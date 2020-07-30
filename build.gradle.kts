@@ -85,7 +85,6 @@ dependencies {
     testRuntimeOnly("org.openrewrite:rewrite-java-11:latest.integration")
     testRuntimeOnly("org.openrewrite:rewrite-java-8:latest.integration")
     testRuntimeOnly("ch.qos.logback:logback-classic:1.0.13")
-    testRuntimeOnly("org.mockito:mockito-core:3.4.4")
     testRuntimeOnly("org.mockito:mockito-all:1.10.19")
 }
 
