@@ -15,77 +15,70 @@
  */
 package org.openrewrite.mockito
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.assertRefactored
+import org.openrewrite.loadVisitors
 
-class MockUtilsToStaticTest {
-    private val jp = JavaParser.fromJavaVersion()
+class MockUtilsToStaticTest: RefactoringVisitorTests<JavaParser> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath(JavaParser.dependenciesFromClasspath("mockito-all"))
             .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("mockito")
 
     @Test
-    fun basicInstanceToStaticSwap() {
-        val cu = jp.parse("""
-            package mockito.example;
-
-            import org.mockito.internal.util.MockUtil;
-            
-            public class MockitoMockUtils {
-                public void isMockExample() {
-                    new MockUtil().isMock("I am a real String");
+    fun basicInstanceToStaticSwap() = assertRefactored(
+            before = """
+                package mockito.example;
+    
+                import org.mockito.internal.util.MockUtil;
+                
+                public class MockitoMockUtils {
+                    public void isMockExample() {
+                        new MockUtil().isMock("I am a real String");
+                    }
                 }
-            }
-        """.trimIndent())
-        val fixed = cu.refactor().visit(MockUtilsToStatic()).fix().fixed
-
-        assertRefactored(fixed, """
-            package mockito.example;
-
-            import org.mockito.internal.util.MockUtil;
-            
-            public class MockitoMockUtils {
-                public void isMockExample() {
-                    MockUtil.isMock("I am a real String");
+            """,
+            after = """
+                package mockito.example;
+    
+                import org.mockito.internal.util.MockUtil;
+                
+                public class MockitoMockUtils {
+                    public void isMockExample() {
+                        MockUtil.isMock("I am a real String");
+                    }
                 }
-            }
-        """.trimIndent())
-    }
+            """
+    )
 
     @Test
     @Disabled("Right now MockUtilsToStatic() is leaving behind a trailing ';' when it removes the 'MockUtil util = new MockUtil();'")
-    fun mockUtilsVariableToStatic() {
-        val cu = jp.parse("""
-            package mockito.example;
-
-            import org.mockito.internal.util.MockUtil;
-            
-            public class MockitoMockUtils {
-                public void isMockExample() {
-                    MockUtil util = new MockUtil();
-                    util.isMock("I am a real String");
+    fun mockUtilsVariableToStatic() = assertRefactored(
+            before = """
+                package mockito.example;
+    
+                import org.mockito.internal.util.MockUtil;
+                
+                public class MockitoMockUtils {
+                    public void isMockExample() {
+                        MockUtil util = new MockUtil();
+                        util.isMock("I am a real String");
+                    }
                 }
-            }
-        """.trimIndent())
-        val fixed = cu.refactor().visit(MockUtilsToStatic()).fix().fixed
-
-        assertRefactored(fixed, """
-            package mockito.example;
-
-            import org.mockito.internal.util.MockUtil;
-
-            public class MockitoMockUtils {
-                public void isMockExample() {
-                    MockUtil.isMock("I am a real String");
+            """,
+            after = """
+                package mockito.example;
+    
+                import org.mockito.internal.util.MockUtil;
+    
+                public class MockitoMockUtils {
+                    public void isMockExample() {
+                        MockUtil.isMock("I am a real String");
+                    }
                 }
-            }
-        """.trimIndent())
-    }
+            """
+    )
 }

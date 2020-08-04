@@ -15,141 +15,126 @@
  */
 package org.openrewrite.spring
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaParser.dependenciesFromClasspath
 
-class ImplicitWebAnnotationNamesTest {
-    private val jp = JavaParser.fromJavaVersion()
+class ImplicitWebAnnotationNamesTest: RefactoringVisitorTests<JavaParser> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath(dependenciesFromClasspath("spring-web"))
             .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(ImplicitWebAnnotationNames())
 
     @Test
-    fun removeUnnecessaryAnnotationArgument() {
-        val controller = jp.parse("""
-            import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
-            
-            @RestController
-            @RequestMapping("/users")
-            public class UsersController {
-                @GetMapping("/{id}")
-                public ResponseEntity<String> getUser(@PathVariable("id") Long id,
-                                                      @PathVariable(required = false) Long p2,
-                                                      @PathVariable(value = "p3") Long anotherName) {
+    fun removeUnnecessaryAnnotationArgument() = assertRefactored(
+            before = """
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @GetMapping("/{id}")
+                    public ResponseEntity<String> getUser(@PathVariable("id") Long id,
+                                                          @PathVariable(required = false) Long p2,
+                                                          @PathVariable(value = "p3") Long anotherName) {
+                    }
                 }
-            }
-        """.trimIndent())
-
-        val fixed = controller.refactor().visit(ImplicitWebAnnotationNames()).fix().fixed
-
-        assertRefactored(fixed, """
-            import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
-            
-            @RestController
-            @RequestMapping("/users")
-            public class UsersController {
-                @GetMapping("/{id}")
-                public ResponseEntity<String> getUser(@PathVariable Long id,
-                                                      @PathVariable(required = false) Long p2,
-                                                      @PathVariable Long p3) {
+            """,
+            after = """
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @GetMapping("/{id}")
+                    public ResponseEntity<String> getUser(@PathVariable Long id,
+                                                          @PathVariable(required = false) Long p2,
+                                                          @PathVariable Long p3) {
+                    }
                 }
-            }
-        """)
-    }
+            """
+    )
 
     @Issue("#4")
     @Test
-    fun removeUnnecessarySpacingInFollowingAnnotationArgument() {
-        val controller = jp.parse("""
-            import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
-            
-            @RestController
-            @RequestMapping("/users")
-            public class UsersController {
-                @GetMapping("/{id}")
-                public ResponseEntity<String> getUser(
-                    @RequestParam(name = "count", defaultValue = 3) int count) {
+    fun removeUnnecessarySpacingInFollowingAnnotationArgument() = assertRefactored(
+            before = """
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @GetMapping("/{id}")
+                    public ResponseEntity<String> getUser(
+                        @RequestParam(name = "count", defaultValue = 3) int count) {
+                    }
                 }
-            }
-        """.trimIndent())
-
-        val fixed = controller.refactor().visit(ImplicitWebAnnotationNames()).fix().fixed
-
-        assertRefactored(fixed, """
-            import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
-            
-            @RestController
-            @RequestMapping("/users")
-            public class UsersController {
-                @GetMapping("/{id}")
-                public ResponseEntity<String> getUser(
-                    @RequestParam(defaultValue = 3) int count) {
+            """,
+            after = """
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @GetMapping("/{id}")
+                    public ResponseEntity<String> getUser(
+                        @RequestParam(defaultValue = 3) int count) {
+                    }
                 }
-            }
-        """)
-    }
+            """
+    )
 
     @Test
-    fun dontRemoveModelAttributeOnMethods() {
-        val controller = jp.parse("""
-            import org.springframework.web.bind.annotation.*;
-            import java.util.*;
-            
-            public class UsersController {
-                @ModelAttribute("types")
-                public Collection<String> populateUserTypes() {
-                    return Arrays.asList("free", "premium");
+    fun dontRemoveModelAttributeOnMethods() = assertRefactored(
+            before = """
+                import org.springframework.web.bind.annotation.*;
+                import java.util.*;
+                
+                public class UsersController {
+                    @ModelAttribute("types")
+                    public Collection<String> populateUserTypes() {
+                        return Arrays.asList("free", "premium");
+                    }
                 }
-            }
-        """.trimIndent())
-
-        val fixed = controller.refactor().visit(ImplicitWebAnnotationNames()).fix().fixed
-
-        assertRefactored(fixed, """
-            import org.springframework.web.bind.annotation.*;
-            import java.util.*;
-            
-            public class UsersController {
-                @ModelAttribute("types")
-                public Collection<String> populateUserTypes() {
-                    return Arrays.asList("free", "premium");
+            """,
+            after = """
+                import org.springframework.web.bind.annotation.*;
+                import java.util.*;
+                
+                public class UsersController {
+                    @ModelAttribute("types")
+                    public Collection<String> populateUserTypes() {
+                        return Arrays.asList("free", "premium");
+                    }
                 }
-            }
-        """)
-    }
+            """
+    )
 
     @Test
-    fun onlyDropCamelCasedNames() {
-        val controller = jp.parse("""
-            import org.springframework.web.bind.annotation.*;
-            
-            public class UsersController {
-                public ResponseEntity<String> getUser(@PathVariable("id") Long id,
-                                                      @PathVariable(value = "another_name") Long anotherName) {
+    fun onlyDropCamelCasedNames() = assertRefactored(
+            before = """
+                import org.springframework.web.bind.annotation.*;
+                
+                public class UsersController {
+                    public ResponseEntity<String> getUser(@PathVariable("id") Long id,
+                                                          @PathVariable(value = "another_name") Long anotherName) {
+                    }
                 }
-            }
-        """.trimIndent())
-
-        val fixed = controller.refactor().visit(ImplicitWebAnnotationNames()).fix().fixed
-
-        assertRefactored(fixed, """
-            import org.springframework.web.bind.annotation.*;
+            """,
+            after = """
+                import org.springframework.web.bind.annotation.*;
             
-            public class UsersController {
-                public ResponseEntity<String> getUser(@PathVariable Long id,
-                                                      @PathVariable(value = "another_name") Long anotherName) {
+                public class UsersController {
+                    public ResponseEntity<String> getUser(@PathVariable Long id,
+                                                          @PathVariable(value = "another_name") Long anotherName) {
+                    }
                 }
-            }
-        """)
-    }
+            """
+    )
 }

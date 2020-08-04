@@ -17,47 +17,41 @@ package org.openrewrite.spring.boot2
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.assertRefactored
 
-class RestTemplateBuilderRequestFactoryTest {
-    private val jp = JavaParser.fromJavaVersion()
+class RestTemplateBuilderRequestFactoryTest: RefactoringVisitorTests<JavaParser> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath(JavaParser.dependenciesFromClasspath("spring-boot", "spring-web"))
             .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(RestTemplateBuilderRequestFactory())
 
     @Test
-    fun useSupplierArgument() {
-        val a = jp.parse("""
-            import org.springframework.boot.web.client.RestTemplateBuilder;
-            import org.springframework.http.client.ClientHttpRequestFactory;
-            import org.springframework.http.client.SimpleClientHttpRequestFactory;
-
-            public class A {
-                {
-                    new RestTemplateBuilder()
-                        .requestFactory(new SimpleClientHttpRequestFactory());
+    fun useSupplierArgument() = assertRefactored(
+            before = """
+                import org.springframework.boot.web.client.RestTemplateBuilder;
+                import org.springframework.http.client.ClientHttpRequestFactory;
+                import org.springframework.http.client.SimpleClientHttpRequestFactory;
+    
+                public class A {
+                    {
+                        new RestTemplateBuilder()
+                            .requestFactory(new SimpleClientHttpRequestFactory());
+                    }
                 }
-            }
-        """.trimIndent())
-
-        val fixed = a.refactor().visit(RestTemplateBuilderRequestFactory()).fix().fixed
-
-        assertRefactored(fixed, """
-            import org.springframework.boot.web.client.RestTemplateBuilder;
-            import org.springframework.http.client.ClientHttpRequestFactory;
-            import org.springframework.http.client.SimpleClientHttpRequestFactory;
-
-            public class A {
-                {
-                    new RestTemplateBuilder()
-                        .requestFactory(() -> new SimpleClientHttpRequestFactory());
-                }
-            }
-        """.trimIndent())
-    }
+            """,
+            after = """
+                import org.springframework.boot.web.client.RestTemplateBuilder;
+                import org.springframework.http.client.ClientHttpRequestFactory;
+                import org.springframework.http.client.SimpleClientHttpRequestFactory;
+    
+                public class A {
+                    {
+                        new RestTemplateBuilder()
+                            .requestFactory(() -> new SimpleClientHttpRequestFactory());
+                    }
+                } 
+            """
+    )
 }

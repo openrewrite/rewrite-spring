@@ -35,4 +35,4 @@ visitors:
 type: beta.openrewrite.org/v1/profile
 name: mockito
 include:
-  - 'org.openrewrite.mockito.*'
+  - 'org.openrewrite.mockito.UpgradeToMockito3'
