@@ -15,64 +15,56 @@
  */
 package org.openrewrite.spring.boot2
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.assertRefactored
 
-class ConditionalOnBeanAnyNestedConditionTest {
-    private val jp = JavaParser.fromJavaVersion()
+class ConditionalOnBeanAnyNestedConditionTest: RefactoringVisitorTests<JavaParser> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath(JavaParser.dependenciesFromClasspath("spring-boot-autoconfigure", "spring-boot", "spring-web"))
             .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(ConditionalOnBeanAnyNestedCondition())
 
     @Test
-    fun addAnyNestedCondition() {
-        val b = """
-            class This {}
-            class That {}
-        """.trimIndent()
-
-        val a = jp.parse("""
-            import org.springframework.boot.autoconfigure.condition.ConditionalOnBean; 
-            
-            class ThisOrThatCondition {
-            
-                @ConditionalOnBean(This.class)
-                static class ThisCondition {
+    fun addAnyNestedCondition() = assertRefactored(
+            dependencies = listOf("""
+                class This {}
+                class That {}
+            """),
+            before = """
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnBean; 
+                
+                class ThisOrThatCondition {
+                
+                    @ConditionalOnBean(This.class)
+                    static class ThisCondition {
+                    }
+        
+                    @ConditionalOnBean(That.class)
+                    static class ThatCondition {
+                    }
                 }
+            """,
+            after = """
+                import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                import org.springframework.context.annotation.ConfigurationPhase;
+                
+                class ThisOrThatCondition extends AnyNestedCondition {
+                
+                    public ThisOrThatCondition() {
+                        super(ConfigurationPhase.REGISTER_BEAN);
+                    }
+                
+                    @ConditionalOnBean(This.class)
+                    static class ThisCondition {
+                    }
     
-                @ConditionalOnBean(That.class)
-                static class ThatCondition {
+                    @ConditionalOnBean(That.class)
+                    static class ThatCondition {
+                    }
                 }
-            }
-        """.trimIndent(), b)
-
-        val fixed = a.refactor().visit(ConditionalOnBeanAnyNestedCondition()).fix().fixed
-
-        assertRefactored(fixed, """
-            import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
-            import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-            import org.springframework.context.annotation.ConfigurationPhase;
-            
-            class ThisOrThatCondition extends AnyNestedCondition {
-            
-                public ThisOrThatCondition() {
-                    super(ConfigurationPhase.REGISTER_BEAN);
-                }
-            
-                @ConditionalOnBean(This.class)
-                static class ThisCondition {
-                }
-
-                @ConditionalOnBean(That.class)
-                static class ThatCondition {
-                }
-            }
-        """.trimIndent())
-    }
+            """
+    )
 }

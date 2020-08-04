@@ -18,125 +18,115 @@ package org.openrewrite.spring
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.java.JavaParser
 
-class NoRequestMappingAnnotationTest {
-    private val jp = JavaParser.fromJavaVersion()
-            .classpath(JavaParser.dependenciesFromClasspath("spring-web"))
+class NoRequestMappingAnnotationTest: RefactoringVisitorTests<JavaParser> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath(JavaParser.dependenciesFromClasspath("mockito-all", "junit"))
             .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(NoRequestMappingAnnotation())
 
     @Test
-    fun requestMapping() {
-        val controller = jp.parse("""
-            import java.util.*;
-            import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
-            import static org.springframework.web.bind.annotation.RequestMethod.GET;
-            import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
-            
-            @RestController
-            @RequestMapping("/users")
-            public class UsersController {
-                @RequestMapping(method = HEAD)
-                public ResponseEntity<List<String>> getUsersHead() {
-                    return null;
-                }
-            
-                @RequestMapping(method = GET)
-                public ResponseEntity<List<String>> getUsers() {
-                    return null;
-                }
-
-                @RequestMapping(path = "/{id}", method = RequestMethod.GET)
-                public ResponseEntity<String> getUser(@PathVariable("id") Long id) {
-                    return null;
-                }
+    fun requestMapping() = assertRefactored(
+            before = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                import static org.springframework.web.bind.annotation.RequestMethod.GET;
+                import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
                 
-                @RequestMapping
-                public ResponseEntity<List<String>> getUsersNoRequestMethod() {
-                    return null;
-                }
-            }
-        """.trimIndent())
-
-        val fixed = controller.refactor().visit(NoRequestMappingAnnotation()).fix().fixed
-
-        assertRefactored(fixed, """
-            import java.util.*;
-            import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
-            import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
-            
-            @RestController
-            @RequestMapping("/users")
-            public class UsersController {
-                @RequestMapping(method = HEAD)
-                public ResponseEntity<List<String>> getUsersHead() {
-                    return null;
-                }
-            
-                @GetMapping
-                public ResponseEntity<List<String>> getUsers() {
-                    return null;
-                }
-
-                @GetMapping("/{id}")
-                public ResponseEntity<String> getUser(@PathVariable("id") Long id) {
-                    return null;
-                }
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @RequestMapping(method = HEAD)
+                    public ResponseEntity<List<String>> getUsersHead() {
+                        return null;
+                    }
                 
-                @GetMapping
-                public ResponseEntity<List<String>> getUsersNoRequestMethod() {
-                    return null;
+                    @RequestMapping(method = GET)
+                    public ResponseEntity<List<String>> getUsers() {
+                        return null;
+                    }
+    
+                    @RequestMapping(path = "/{id}", method = RequestMethod.GET)
+                    public ResponseEntity<String> getUser(@PathVariable("id") Long id) {
+                        return null;
+                    }
+                    
+                    @RequestMapping
+                    public ResponseEntity<List<String>> getUsersNoRequestMethod() {
+                        return null;
+                    }
                 }
-            }
-        """)
-    }
+            """,
+            after = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @RequestMapping(method = HEAD)
+                    public ResponseEntity<List<String>> getUsersHead() {
+                        return null;
+                    }
+                
+                    @GetMapping
+                    public ResponseEntity<List<String>> getUsers() {
+                        return null;
+                    }
+    
+                    @GetMapping("/{id}")
+                    public ResponseEntity<String> getUser(@PathVariable("id") Long id) {
+                        return null;
+                    }
+                    
+                    @GetMapping
+                    public ResponseEntity<List<String>> getUsersNoRequestMethod() {
+                        return null;
+                    }
+                }
+            """
+    )
 
     @Issue("#3")
     @Test
-    fun requestMappingWithMultipleMethods() {
-        val controller = jp.parse("""
-            import java.util.*;
-            import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
-            import static org.springframework.web.bind.annotation.RequestMethod.GET;
-            import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
-            
-            @RestController
-            @RequestMapping("/users")
-            public class UsersController {
-                @RequestMapping(method = { HEAD, GET })
-                public ResponseEntity<List<String>> getUsersHead() {
-                    return null;
+    fun requestMappingWithMultipleMethods() = assertRefactored(
+            before = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                import static org.springframework.web.bind.annotation.RequestMethod.GET;
+                import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @RequestMapping(method = { HEAD, GET })
+                    public ResponseEntity<List<String>> getUsersHead() {
+                        return null;
+                    }
                 }
-            }
-        """.trimIndent())
-
-        val fix = controller.refactor().visit(NoRequestMappingAnnotation()).fix()
-
-        assertRefactored(fix.fixed, """
-            import java.util.*;
-            import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
-            import static org.springframework.web.bind.annotation.RequestMethod.GET;
-            import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
-            
-            @RestController
-            @RequestMapping("/users")
-            public class UsersController {
-                @RequestMapping(method = { HEAD, GET })
-                public ResponseEntity<List<String>> getUsersHead() {
-                    return null;
+            """,
+            after = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                import static org.springframework.web.bind.annotation.RequestMethod.GET;
+                import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @RequestMapping(method = { HEAD, GET })
+                    public ResponseEntity<List<String>> getUsersHead() {
+                        return null;
+                    }
                 }
-            }
-        """)
-
-        assertThat(fix.rulesThatMadeChanges).isEmpty()
-    }
+            """
+    )
 }

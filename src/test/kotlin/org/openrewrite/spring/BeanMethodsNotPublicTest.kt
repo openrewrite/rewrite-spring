@@ -17,54 +17,50 @@ package org.openrewrite.spring
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.java.JavaParser
+import org.openrewrite.loadVisitors
 
-class BeanMethodsNotPublicTest {
-    private val jp = JavaParser.fromJavaVersion()
+class BeanMethodsNotPublicTest: RefactoringVisitorTests<JavaParser> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath(JavaParser.dependenciesFromClasspath("spring-context"))
             .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(BeanMethodsNotPublic())
 
     @Test
-    fun removePublicModifierFromBeanMethods() {
-        val configuration = jp.parse("""
-            import javax.sql.DataSource;
-            import org.springframework.context.annotation.Bean;
-            
-            public class DatabaseConfiguration { 
-                @Bean
-                public DataSource dataSource() {
-                    return new DataSource();
-                }
+    fun removePublicModifierFromBeanMethods() = assertRefactored(
+            before = """
+                import javax.sql.DataSource;
+                import org.springframework.context.annotation.Bean;
                 
-                @Bean
-                public final DataSource dataSource2() {
-                    return new DataSource();
+                public class DatabaseConfiguration { 
+                    @Bean
+                    public DataSource dataSource() {
+                        return new DataSource();
+                    }
+                    
+                    @Bean
+                    public final DataSource dataSource2() {
+                        return new DataSource();
+                    }
                 }
-            }
-        """.trimIndent())
-
-        val fixed = configuration.refactor().visit(BeanMethodsNotPublic()).fix().fixed
-
-        assertRefactored(fixed, """
-            import javax.sql.DataSource;
-            import org.springframework.context.annotation.Bean;
-            
-            public class DatabaseConfiguration { 
-                @Bean
-                DataSource dataSource() {
-                    return new DataSource();
-                }
+            """,
+            after = """
+                import javax.sql.DataSource;
+                import org.springframework.context.annotation.Bean;
                 
-                @Bean
-                final DataSource dataSource2() {
-                    return new DataSource();
+                public class DatabaseConfiguration { 
+                    @Bean
+                    DataSource dataSource() {
+                        return new DataSource();
+                    }
+                    
+                    @Bean
+                    final DataSource dataSource2() {
+                        return new DataSource();
+                    }
                 }
-            }
-        """.trimIndent())
-    }
+            """
+    )
 }

@@ -15,44 +15,31 @@
  */
 package org.openrewrite.spring
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.openrewrite.RefactorPlan
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.tree.J
+import org.openrewrite.loadVisitors
 
-class SpringBootServletInitializerTest {
-    private val jp = JavaParser.fromJavaVersion()
+class SpringBootServletInitializerTest : RefactoringVisitorTests<JavaParser> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath(JavaParser.dependenciesFromClasspath("spring-boot"))
             .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("spring")
 
     @Test
-    fun changeType() {
-        val a = jp.parse("""
-            import org.springframework.boot.web.support.SpringBootServletInitializer;
+    fun changeType() = assertRefactored(
+            before = """
+                import org.springframework.boot.web.support.SpringBootServletInitializer;
             
-            public class MyApplication extends SpringBootServletInitializer {
-            }
-        """.trimIndent())
-
-        val plan = RefactorPlan.builder()
-                .scanResources()
-                .build()
-
-        val fixed = a.refactor()
-                .visit(plan.visitors(J::class.java, "spring"))
-                .fix().fixed
-
-        assertRefactored(fixed, """
-            import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-            
-            public class MyApplication extends SpringBootServletInitializer {
-            }
-        """)
-    }
+                public class MyApplication extends SpringBootServletInitializer {
+                }
+            """,
+            after = """
+                import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+                
+                public class MyApplication extends SpringBootServletInitializer {
+                }
+            """
+    )
 }

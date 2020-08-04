@@ -64,7 +64,7 @@ public class UseSpringBootVersionMaven extends XmlRefactorVisitor {
 
     @Override
     public Validated validate() {
-        return super.validate();
+        return Validated.required("requestedVersion", requestedVersion);
     }
 
     @Override

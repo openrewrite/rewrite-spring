@@ -17,112 +17,103 @@ package org.openrewrite.spring
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaParser.dependenciesFromClasspath
 
-class ConstructorInjectionTest {
-    private val jp = JavaParser.fromJavaVersion()
-            .classpath(dependenciesFromClasspath("spring-beans"))
+class ConstructorInjectionTest : RefactoringVisitorTests<JavaParser> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath(JavaParser.dependenciesFromClasspath("spring-beans"))
             .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf()
 
     @Test
-    fun constructorInjection() {
-        val controller = jp.parse("""
-            import org.springframework.beans.factory.annotation.Autowired;
-            public class UsersController {
-                @Autowired
-                private UsersService usersService;
-            
-                @Autowired
-                UsernameService usernameService;
+    fun constructorInjection() = assertRefactored(
+            visitors = listOf(ConstructorInjection()),
+            before = """
+                import org.springframework.beans.factory.annotation.Autowired;
                 
-                public void setUsersService(UsersService usersService) {
-                    this.usersService = usersService;
+                public class UsersController {
+                    @Autowired
+                    private UsersService usersService;
+                
+                    @Autowired
+                    UsernameService usernameService;
+                    
+                    public void setUsersService(UsersService usersService) {
+                        this.usersService = usersService;
+                    }
                 }
-            }
-        """.trimIndent())
-
-        val fixed = controller.refactor().visit(ConstructorInjection()).fix().fixed
-
-        assertRefactored(fixed, """
-            public class UsersController {
-                private final UsersService usersService;
-            
-                private final UsernameService usernameService;
-            
-                public UsersController(UsersService usersService, UsernameService usernameService) {
-                    this.usersService = usersService;
-                    this.usernameService = usernameService;
+            """,
+            after = """
+                public class UsersController {
+                    private final UsersService usersService;
+                
+                    private final UsernameService usernameService;
+                
+                    public UsersController(UsersService usersService, UsernameService usernameService) {
+                        this.usersService = usersService;
+                        this.usernameService = usernameService;
+                    }
                 }
-            }
-        """.trimIndent())
-    }
+            """
+    )
 
     @Test
-    fun constructorInjectionWithLombok() {
-        val controller = jp.parse("""
-            import org.springframework.beans.factory.annotation.Autowired;
-            public class UsersController {
-                @Autowired
-                private UsersService usersService;
+    fun constructorInjectionWithLombok() = assertRefactored(
+            visitors = listOf(ConstructorInjection().apply { setUseLombokRequiredArgsAnnotation(true) }),
+            before = """
+                import org.springframework.beans.factory.annotation.Autowired;
+                
+                public class UsersController {
+                    @Autowired
+                    private UsersService usersService;
+                
+                    @Autowired
+                    UsernameService usernameService;
+                }
+            """,
+            after = """
+                import lombok.RequiredArgsConstructor;
             
-                @Autowired
-                UsernameService usernameService;
-            }
-        """.trimIndent())
-
-        val fixed = controller.refactor()
-                .visit(ConstructorInjection().apply { setUseLombokRequiredArgsAnnotation(true) })
-                .fix().fixed
-
-        assertRefactored(fixed, """
-            import lombok.RequiredArgsConstructor;
-            
-            @RequiredArgsConstructor
-            public class UsersController {
-                private final UsersService usersService;
-            
-                private final UsernameService usernameService;
-            }
-        """.trimIndent())
-    }
+                @RequiredArgsConstructor
+                public class UsersController {
+                    private final UsersService usersService;
+                
+                    private final UsernameService usernameService;
+                }
+            """
+    )
 
     @Test
-    fun constructorInjectionWithJSR305() {
-        val controller = jp.parse("""
-            import org.springframework.beans.factory.annotation.Autowired;
-            public class UsersController {
-                @Autowired(required = false)
-                private UsersService usersService;
-            
-                @Autowired
-                UsernameService usernameService;
-            }
-        """.trimIndent())
+    fun constructorInjectionWithJSR305() = assertRefactored(
+            visitors = listOf(ConstructorInjection().apply { setUseJsr305Annotations(true) }),
+            before = """
+                import org.springframework.beans.factory.annotation.Autowired;
 
-        val fixed = controller.refactor()
-                .visit(ConstructorInjection().apply { setUseJsr305Annotations(true) })
-                .fix().fixed
-
-        assertRefactored(fixed, """
-            import javax.annotation.Nonnull;
-            
-            public class UsersController {
-                @Nonnull
-                private final UsersService usersService;
-            
-                private final UsernameService usernameService;
-            
-                public UsersController(UsersService usersService, UsernameService usernameService) {
-                    this.usersService = usersService;
-                    this.usernameService = usernameService;
+                public class UsersController {
+                    @Autowired(required = false)
+                    private UsersService usersService;
+                
+                    @Autowired
+                    UsernameService usernameService;
                 }
-            }
-        """.trimIndent())
-    }
+            """,
+            after = """
+                import javax.annotation.Nonnull;
+            
+                public class UsersController {
+                    @Nonnull
+                    private final UsersService usersService;
+                
+                    private final UsernameService usernameService;
+                
+                    public UsersController(UsersService usersService, UsernameService usernameService) {
+                        this.usersService = usersService;
+                        this.usernameService = usernameService;
+                    }
+                }
+            """
+    )
 }

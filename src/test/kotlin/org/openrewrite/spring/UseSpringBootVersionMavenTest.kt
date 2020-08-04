@@ -16,34 +16,37 @@
 package org.openrewrite.spring
 
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.xml.XmlParser
 
-class UseSpringBootVersionMavenTest : XmlParser() {
+class UseSpringBootVersionMavenTest : RefactoringVisitorTests<XmlParser> {
+    override val parser: XmlParser = XmlParser()
+    private val useLatestSpringBoot = UseSpringBootVersionMaven()
+            .apply {
+                setVersion("2.+")
+            }
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(useLatestSpringBoot)
+
     @Test
-    fun upgradeSpringBootVersion() {
-        val useLatestSpringBoot = UseSpringBootVersionMaven()
-                .apply { setVersion("2.+") }
-
-        val x = parse("""
-            <project>
-              <parent>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-parent</artifactId>
-                <version>2.0.0.RELEASE</version>
-              </parent>
-            </project>
-        """.trimIndent())
-
-        val fixed = x.refactor().visit(useLatestSpringBoot).fix().fixed
-
-        assertRefactored(fixed, """
-            <project>
-              <parent>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-parent</artifactId>
-                <version>${useLatestSpringBoot.latestMatchingVersion}</version>
-              </parent>
-            </project>
-        """.trimIndent())
-    }
+    fun upgradeSpringBootVersion() = assertRefactored(
+            before = """
+                <project>
+                  <parent>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-parent</artifactId>
+                    <version>2.0.0.RELEASE</version>
+                  </parent>
+                </project>
+            """,
+            after = """
+                <project>
+                  <parent>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-parent</artifactId>
+                    <version>${useLatestSpringBoot.latestMatchingVersion}</version>
+                  </parent>
+                </project>
+            """
+    )
 }

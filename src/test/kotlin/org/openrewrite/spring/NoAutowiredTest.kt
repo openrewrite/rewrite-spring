@@ -17,45 +17,40 @@ package org.openrewrite.spring
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactoringVisitorTests
 import org.openrewrite.java.JavaParser
 
-class NoAutowiredTest {
-    private val jp = JavaParser.fromJavaVersion()
+class NoAutowiredTest: RefactoringVisitorTests<JavaParser> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath(JavaParser.dependenciesFromClasspath("spring-beans"))
             .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(NoAutowired())
 
     @Test
-    fun removeAutowiredAnnotations() {
-        val configuration = jp.parse("""
-            import javax.sql.DataSource;
-            import org.springframework.beans.factory.annotation.Autowired;
-            
-            public class DatabaseConfiguration { 
-                private final DataSource dataSource;
-            
-                @Autowired
-                public DatabaseConfiguration(DataSource dataSource) {
+    fun removeAutowiredAnnotations() = assertRefactored(
+            before = """
+                import javax.sql.DataSource;
+                import org.springframework.beans.factory.annotation.Autowired;
+                
+                public class DatabaseConfiguration { 
+                    private final DataSource dataSource;
+                
+                    @Autowired
+                    public DatabaseConfiguration(DataSource dataSource) {
+                    }
                 }
-            }
-        """.trimIndent())
-
-        val fixed = configuration.refactor().visit(NoAutowired()).fix().fixed
-
-        assertRefactored(fixed, """
-            import javax.sql.DataSource;
-            import org.springframework.beans.factory.annotation.Autowired;
-            
-            public class DatabaseConfiguration { 
-                private final DataSource dataSource;
-            
-                public DatabaseConfiguration(DataSource dataSource) {
+            """,
+            after = """
+                import javax.sql.DataSource;
+                import org.springframework.beans.factory.annotation.Autowired;
+                
+                public class DatabaseConfiguration { 
+                    private final DataSource dataSource;
+                
+                    public DatabaseConfiguration(DataSource dataSource) {
+                    }
                 }
-            }
-        """.trimIndent())
-    }
+            """
+    )
 }
