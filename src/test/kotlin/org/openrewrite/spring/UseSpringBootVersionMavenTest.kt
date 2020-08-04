@@ -17,15 +17,19 @@ package org.openrewrite.spring
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactoringVisitorTests
+import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.xml.XmlParser
+import org.openrewrite.xml.tree.Xml
 
-class UseSpringBootVersionMavenTest : RefactoringVisitorTests<XmlParser> {
-    override val parser: XmlParser = XmlParser()
+class UseSpringBootVersionMavenTest(
+        override val parser: XmlParser = XmlParser()
+) : RefactorVisitorTestForParser<Xml.Document> {
+
     private val useLatestSpringBoot = UseSpringBootVersionMaven()
             .apply {
                 setVersion("2.+")
             }
+
     override val visitors: Iterable<RefactorVisitor<*>> = listOf(useLatestSpringBoot)
 
     @Test

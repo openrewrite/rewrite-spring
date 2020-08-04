@@ -18,15 +18,17 @@ package org.openrewrite.mockito
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactoringVisitorTests
+import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
+import org.openrewrite.java.tree.J
 import org.openrewrite.loadVisitors
 
-class MockUtilsToStaticTest: RefactoringVisitorTests<JavaParser> {
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
-            .classpath(JavaParser.dependenciesFromClasspath("mockito-all"))
-            .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("mockito")
+class MockUtilsToStaticTest(
+        override val parser: JavaParser = JavaParser.fromJavaVersion()
+                .classpath("mockito-all")
+                .build(),
+        override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("mockito")
+) : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     @Test
     fun basicInstanceToStaticSwap() = assertRefactored(

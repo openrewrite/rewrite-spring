@@ -16,8 +16,6 @@
 package org.openrewrite.spring;
 
 import org.openrewrite.AutoConfigure;
-import org.openrewrite.SourceGenerator;
-import org.openrewrite.Tree;
 import org.openrewrite.Validated;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AddAnnotation;
@@ -45,9 +43,9 @@ import static org.openrewrite.java.JavaParser.dependenciesFromClasspath;
  * Generates a new {@code @Configuration} class (or updates an existing one) with {@code @Bean} definitions for all
  * {@code @Component} annotated types and places it in the same package as the main {@code @SpringBootApplication}.
  */
+// FIXME generator!
 @AutoConfigure
-public class ComponentToBeanConfiguration extends JavaRefactorVisitor
-        implements SourceGenerator<J.CompilationUnit> {
+public class ComponentToBeanConfiguration extends JavaRefactorVisitor {
     private String configurationClass;
 
     @Nullable
@@ -72,30 +70,30 @@ public class ComponentToBeanConfiguration extends JavaRefactorVisitor
         this.configurationClass = configurationClass;
     }
 
-    @Override
-    public J.CompilationUnit getGenerated() {
-        if (existingConfiguration == null && springBootApplication == null) {
-            // TODO how do we warn about this, don't know where to put new configuration class?
-            return null;
-        }
-
-        return Optional.ofNullable(existingConfiguration)
-                .orElseGet(() -> {
-                    Path sourceSet = Paths.get(springBootApplication.getSourcePath())
-                            .getParent();
-
-                    String pkg = springBootApplication.getPackageDecl().getExpr().printTrimmed();
-                    for (int i = 0; i < pkg.chars().filter(n -> n == '.').count(); i++) {
-                        sourceSet = sourceSet.getParent();
-                    }
-
-                    J.CompilationUnit configurationClass = J.CompilationUnit.buildEmptyClass(sourceSet, pkg, this.configurationClass);
-                    return configurationClass.refactor()
-                            .visit(new AddAnnotation.Scoped(configurationClass.getClasses().get(0),
-                                    "org.springframework.context.annotation.Configuration"))
-                            .fix(1).getFixed();
-                }).refactor().visit(new AddBeanDefinitions()).fix().getFixed();
-    }
+//    @Override
+//    public J.CompilationUnit getGenerated() {
+//        if (existingConfiguration == null && springBootApplication == null) {
+//            // TODO how do we warn about this, don't know where to put new configuration class?
+//            return null;
+//        }
+//
+//        return Optional.ofNullable(existingConfiguration)
+//                .orElseGet(() -> {
+//                    Path sourceSet = Paths.get(springBootApplication.getSourcePath())
+//                            .getParent();
+//
+//                    String pkg = springBootApplication.getPackageDecl().getExpr().printTrimmed();
+//                    for (int i = 0; i < pkg.chars().filter(n -> n == '.').count(); i++) {
+//                        sourceSet = sourceSet.getParent();
+//                    }
+//
+//                    J.CompilationUnit configurationClass = J.CompilationUnit.buildEmptyClass(sourceSet, pkg, this.configurationClass);
+//                    return configurationClass.refactor()
+//                            .visit(new AddAnnotation.Scoped(configurationClass.getClasses().get(0),
+//                                    "org.springframework.context.annotation.Configuration"))
+//                            .fix(1).getFixed();
+//                }).refactor().visit(new AddBeanDefinitions()).fix().getFixed();
+//    }
 
     private class AddBeanDefinitions extends JavaRefactorVisitor {
         public AddBeanDefinitions() {

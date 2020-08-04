@@ -17,15 +17,16 @@ package org.openrewrite.spring
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactoringVisitorTests
+import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.JavaParser.dependenciesFromClasspath
+import org.openrewrite.java.tree.J
 
-class ImplicitWebAnnotationNamesTest: RefactoringVisitorTests<JavaParser> {
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
-            .classpath(dependenciesFromClasspath("spring-web"))
-            .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = listOf(ImplicitWebAnnotationNames())
+class ImplicitWebAnnotationNamesTest(
+        override val parser: JavaParser = JavaParser.fromJavaVersion()
+                .classpath("spring-web")
+                .build(),
+        override val visitors: Iterable<RefactorVisitor<*>> = listOf(ImplicitWebAnnotationNames())
+) : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     @Test
     fun removeUnnecessaryAnnotationArgument() = assertRefactored(

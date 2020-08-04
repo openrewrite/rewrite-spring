@@ -15,18 +15,18 @@
  */
 package org.openrewrite.spring
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactoringVisitorTests
+import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
-import org.openrewrite.loadVisitors
+import org.openrewrite.java.tree.J
 
-class BeanMethodsNotPublicTest: RefactoringVisitorTests<JavaParser> {
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
-            .classpath(JavaParser.dependenciesFromClasspath("spring-context"))
-            .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = listOf(BeanMethodsNotPublic())
+class BeanMethodsNotPublicTest(
+        override val parser: JavaParser = JavaParser.fromJavaVersion()
+                .classpath("spring-context")
+                .build(),
+        override val visitors: Iterable<RefactorVisitor<*>> = listOf(BeanMethodsNotPublic())
+) : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     @Test
     fun removePublicModifierFromBeanMethods() = assertRefactored(

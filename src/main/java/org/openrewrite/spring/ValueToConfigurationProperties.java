@@ -18,7 +18,7 @@ package org.openrewrite.spring;
 import org.openrewrite.AutoConfigure;
 import org.openrewrite.Formatting;
 import org.openrewrite.MultiSourceVisitor;
-import org.openrewrite.SourceVisitor;
+import org.openrewrite.RefactorVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AddAnnotation;
 import org.openrewrite.java.ChangeFieldName;
@@ -32,14 +32,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.openrewrite.Formatting.formatFirstPrefix;
 import static org.openrewrite.Tree.randomId;
 
 @AutoConfigure
 public class ValueToConfigurationProperties extends JavaRefactorVisitor implements MultiSourceVisitor {
-    private final List<SourceVisitor<J>> renameValueFields = new ArrayList<>();
+    private final List<RefactorVisitor<J>> renameValueFields = new ArrayList<>();
 
     @Nullable
     private String commonPrefix;

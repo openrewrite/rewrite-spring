@@ -16,48 +16,42 @@
 package org.openrewrite.spring
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.openrewrite.RefactorVisitor
+import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.assertRefactored
+import org.openrewrite.java.tree.J
 
-class ValueToConfigurationPropertiesTest {
-    private val jp = JavaParser.fromJavaVersion()
-            .classpath(JavaParser.dependenciesFromClasspath("spring-boot", "spring-beans"))
-            .build()
-
-    @BeforeEach
-    fun beforeEach() {
-        jp.reset()
-    }
+class ValueToConfigurationPropertiesTest(
+        override val parser: JavaParser = JavaParser.fromJavaVersion()
+                .classpath("spring-boot", "spring-beans")
+                .build(),
+        override val visitors: Iterable<RefactorVisitor<*>> = listOf(ValueToConfigurationProperties())
+) : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     @Test
-    fun sharedPrefix() {
-        val a = jp.parse("""
+    fun sharedPrefix() = assertRefactored(
+        before = """
             import org.springframework.beans.factory.annotation.Value;
 
             class MyConfiguration {
                 @Value("${"$"}{app.refresh-rate}")
                 private int refreshRate;
             }
-        """.trimIndent())
-
-        val fixed = a.refactor().visit(ValueToConfigurationProperties()).fix().fixed
-
-        assertRefactored(fixed, """
+        """,
+        after = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
             
             @ConfigurationProperties("app")
             class MyConfiguration {
                 private int refreshRate;
             }
-        """.trimIndent())
-    }
+        """
+    )
 
     @Test
-    fun changeFieldName() {
-        val aSource = """
+    fun changeFieldName() = assertRefactored(
+        before = """
             import org.springframework.beans.factory.annotation.Value;
 
             class MyConfiguration {
@@ -72,24 +66,8 @@ class ValueToConfigurationPropertiesTest {
                     this.refresh = refresh;
                 }
             }
-        """.trimIndent()
-
-        val bSource = """
-            class MyService {
-                MyConfiguration config;
-            
-                {
-                    config.getRefresh();
-                    config.setRefresh(1);
-                }
-            }
-        """.trimIndent()
-
-        val (a, b) = jp.parseStrings(aSource, bSource)
-        val recipe = ValueToConfigurationProperties()
-        val aFixed = a.refactor().visit(recipe).fix().fixed
-
-        assertRefactored(aFixed, """
+        """,
+        after = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
             
             @ConfigurationProperties("app")
@@ -104,11 +82,38 @@ class ValueToConfigurationPropertiesTest {
                     this.refreshRate = refresh;
                 }
             }
-        """.trimIndent())
+        """
+    )
 
-        val bFixed = b.refactor().visit(recipe).fix().fixed
+    @Test
+    fun changeFieldNameReferences() = assertRefactored(
+        before = """
+            class MyService {
+                MyConfiguration config;
+            
+                {
+                    config.getRefresh();
+                    config.setRefresh(1);
+                }
+            }
+        """,
+        dependencies = listOf("""
+            import org.springframework.beans.factory.annotation.Value;
 
-        assertRefactored(bFixed, """
+            class MyConfiguration {
+                @Value("${"$"}{app.refresh-rate}")
+                private int refresh;
+            
+                public int getRefresh() {
+                    return this.refresh;
+                }
+            
+                public void setRefresh(int refresh) {
+                    this.refresh = refresh;
+                }
+            }
+        """),
+        after = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
             
             @ConfigurationProperties("app")
@@ -120,84 +125,84 @@ class ValueToConfigurationPropertiesTest {
                     config.setRefreshRate(1);
                 }
             }
-        """.trimIndent())
-    }
+        """
+    )
 
     /**
      * FIXME Implement me!
      */
-    @Disabled
-    @Test
-    fun nestedClass() {
-        val aSource = """
-            import org.springframework.beans.factory.annotation.Value;
-
-            class MyConfiguration {
-                @Value("${"$"}{app.screen.refresh-rate}")
-                private int refresh;
-            
-                @Value("${"$"}{app.name}")
-                private String name;
-            
-                public int getRefresh() {
-                    return this.refresh;
-                }
-            }
-        """.trimIndent()
-
-        val bSource = """
-            class MyService {
-                MyConfiguration config;
-            
-                {
-                    config.getRefresh();
-                }
-            }
-        """.trimIndent()
-
-        val (a, b) = jp.parseStrings(aSource, bSource)
-        val recipe = ValueToConfigurationProperties()
-        val aFixed = a.refactor().visit(recipe).fix().fixed
-
-        assertRefactored(aFixed, """
-            import org.springframework.boot.context.properties.ConfigurationProperties;
-            
-            @ConfigurationProperties("app")
-            class MyConfiguration {
-                private Screen screen;
-            
-                private String name;
-            
-                public Screen getScreen() {
-                    return this.screen;
-                }
-                
-                public void setScreen() {
-                    this.screen = screen;
-                }
-            
-                public static class Screen {
-                    private int refreshRate;
-                
-                    public int getRefreshRate() {
-                        return this.refreshRate;
-                    }
-                }
-            }
-        """.trimIndent())
-
-        val bFixed = b.refactor().visit(recipe).fix().fixed
-
-        assertRefactored(bFixed, """
-            class MyService {
-                MyConfiguration config;
-            
-                {
-                    config.getScreen().getRefreshRate();
-                }
-            }
-        """.trimIndent())
-    }
+//    @Disabled
+//    @Test
+//    fun nestedClass() {
+//        val aSource = """
+//            import org.springframework.beans.factory.annotation.Value;
+//
+//            class MyConfiguration {
+//                @Value("${"$"}{app.screen.refresh-rate}")
+//                private int refresh;
+//
+//                @Value("${"$"}{app.name}")
+//                private String name;
+//
+//                public int getRefresh() {
+//                    return this.refresh;
+//                }
+//            }
+//        """.trimIndent()
+//
+//        val bSource = """
+//            class MyService {
+//                MyConfiguration config;
+//
+//                {
+//                    config.getRefresh();
+//                }
+//            }
+//        """.trimIndent()
+//
+//        val (a, b) = jp.parseStrings(aSource, bSource)
+//        val recipe = ValueToConfigurationProperties()
+//        val aFixed = a.refactor().visit(recipe).fix().fixed
+//
+//        assertRefactored(aFixed, """
+//            import org.springframework.boot.context.properties.ConfigurationProperties;
+//
+//            @ConfigurationProperties("app")
+//            class MyConfiguration {
+//                private Screen screen;
+//
+//                private String name;
+//
+//                public Screen getScreen() {
+//                    return this.screen;
+//                }
+//
+//                public void setScreen() {
+//                    this.screen = screen;
+//                }
+//
+//                public static class Screen {
+//                    private int refreshRate;
+//
+//                    public int getRefreshRate() {
+//                        return this.refreshRate;
+//                    }
+//                }
+//            }
+//        """.trimIndent())
+//
+//        val bFixed = b.refactor().visit(recipe).fix().fixed
+//
+//        assertRefactored(bFixed, """
+//            class MyService {
+//                MyConfiguration config;
+//
+//                {
+//                    config.getScreen().getRefreshRate();
+//                }
+//            }
+//        """.trimIndent())
+//    }
 
     @Test
     fun longestCommonPrefix() {

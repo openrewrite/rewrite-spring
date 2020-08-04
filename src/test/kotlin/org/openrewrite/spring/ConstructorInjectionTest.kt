@@ -15,18 +15,18 @@
  */
 package org.openrewrite.spring
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactoringVisitorTests
+import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.JavaParser.dependenciesFromClasspath
+import org.openrewrite.java.tree.J
 
-class ConstructorInjectionTest : RefactoringVisitorTests<JavaParser> {
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
-            .classpath(JavaParser.dependenciesFromClasspath("spring-beans"))
-            .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = listOf()
+class ConstructorInjectionTest(
+        override val parser: JavaParser = JavaParser.fromJavaVersion()
+                .classpath("spring-beans")
+                .build(),
+        override val visitors: Iterable<RefactorVisitor<*>> = listOf()
+) : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     @Test
     fun constructorInjection() = assertRefactored(

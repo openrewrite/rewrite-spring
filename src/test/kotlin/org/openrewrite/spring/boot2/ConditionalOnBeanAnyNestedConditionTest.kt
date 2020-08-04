@@ -17,14 +17,17 @@ package org.openrewrite.spring.boot2
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactoringVisitorTests
+import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
+import org.openrewrite.java.tree.J
 
-class ConditionalOnBeanAnyNestedConditionTest: RefactoringVisitorTests<JavaParser> {
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
-            .classpath(JavaParser.dependenciesFromClasspath("spring-boot-autoconfigure", "spring-boot", "spring-web"))
-            .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = listOf(ConditionalOnBeanAnyNestedCondition())
+class ConditionalOnBeanAnyNestedConditionTest(
+        override val parser: JavaParser = JavaParser.fromJavaVersion()
+                .classpath("spring-boot-autoconfigure", "spring-boot", "spring-web")
+                .build(),
+        override val visitors: Iterable<RefactorVisitor<*>> =
+                listOf(ConditionalOnBeanAnyNestedCondition())
+) : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     @Test
     fun addAnyNestedCondition() = assertRefactored(
