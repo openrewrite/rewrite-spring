@@ -232,48 +232,4 @@ class MockitoUpgrade1To3Tests() : RefactorVisitorTestForParser<J.CompilationUnit
                 }
             """
     )
-
-    /**
-     * Mockito 1 has InvocationOnMock.getArgumentAt(int, Class)
-     * Mockito 3 has InvocationOnMock.getArgument(int, Class)
-     * swap 'em
-     */
-    @Test
-    fun replacesGetArgumentAt2() = assertRefactored(
-            visitors = listOf(ChangeMethodName().apply { setMethod("org.mockito.invocation.InvocationOnMock getArgumentAt(int, java.lang.Class)"); setName("getArgument") }),
-            before = """
-                package mockito.example;
-
-                import org.junit.jupiter.api.Test;
-                
-                import static org.mockito.Matchers.any;
-                import static org.mockito.Mockito.mock;
-                import static org.mockito.Mockito.when;
-                
-                public class MockitoDoAnswer {
-                    @Test
-                    public void aTest() {
-                        String foo = mock(String.class);
-                        when(foo.concat(any())).then(invocation -> invocation.getArgumentAt(0, String.class));
-                    }
-                }
-            """,
-            after = """
-                package mockito.example;
-
-                import org.junit.jupiter.api.Test;
-                
-                import static org.mockito.Matchers.any;
-                import static org.mockito.Mockito.mock;
-                import static org.mockito.Mockito.when;
-                
-                public class MockitoDoAnswer {
-                    @Test
-                    public void aTest() {
-                        String foo = mock(String.class);
-                        when(foo.concat(any())).then(invocation -> invocation.getArgument(0, String.class));
-                    }
-                }
-            """
-    )
 }
