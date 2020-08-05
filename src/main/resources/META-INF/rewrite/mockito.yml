@@ -15,24 +15,34 @@
 #
 ---
 type: beta.openrewrite.org/v1/visitor
-name: org.openrewrite.mockito.UpgradeToMockito3
-
+name: org.openrewrite.mockito.MockAsOuterClass
 visitors:
   - org.openrewrite.java.ChangeType:
       type: org.mockito.MockitoAnnotations.Mock
       targetType: org.mockito.Mock
+---
+type: beta.openrewrite.org/v1/visitor
+name: org.openrewrite.mockito.MatchersAny
+visitors:
   - org.openrewrite.java.ChangeMethodName:
       method: org.mockito.Matchers anyVararg()
       name: any
+---
+type: beta.openrewrite.org/v1/visitor
+name: org.openrewrite.mockito.UseArgumentMatchers
+visitors:
   - org.openrewrite.java.ChangeType:
       type: org.mockito.Matchers
       targetType: org.mockito.ArgumentMatchers
+---
+type: beta.openrewrite.org/v1/visitor
+name: org.openrewrite.mockito.InvocationOnMockGetArgument
+visitors:
   - org.openrewrite.java.ChangeMethodName:
       method: org.mockito.invocation.InvocationOnMock getArgumentAt(int, java.lang.Class)
       name: getArgument
-  - org.openrewrite.mockito.MockUtilsToStatic:
 ---
 type: beta.openrewrite.org/v1/profile
 name: mockito
 include:
-  - 'org.openrewrite.mockito.UpgradeToMockito3'
+  - 'org.openrewrite.mockito.*'
