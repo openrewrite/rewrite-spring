@@ -85,7 +85,7 @@ class ValueToConfigurationPropertiesTest() : RefactorVisitorTestForParser<J.Comp
     )
 
     @Test
-    fun changeFieldNameReferences() = assertUnchanged(
+    fun changeFieldNameReferences() = assertRefactored(
         before = """
             class MyService {
                 MyConfiguration config;
@@ -111,8 +111,22 @@ class ValueToConfigurationPropertiesTest() : RefactorVisitorTestForParser<J.Comp
                     this.refresh = refresh;
                 }
             }
-        """)
+        """),
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            
+            @ConfigurationProperties("app")
+            class MyService {
+                MyConfiguration config;
+            
+                {
+                    config.getRefreshRate();
+                    config.setRefreshRate(1);
+                }
+            }
+        """
     )
+
 
     /**
      * FIXME Implement me!
