@@ -23,12 +23,12 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 import org.openrewrite.loadVisitors
 
-class MockUtilsToStaticTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("mockito-all")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("mockito")
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class MockUtilsToStaticTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("mockito-all")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("mockito")
 
     @Test
     fun basicInstanceToStaticSwap() = assertRefactored(

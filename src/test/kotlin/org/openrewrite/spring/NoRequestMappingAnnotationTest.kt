@@ -21,12 +21,12 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class NoRequestMappingAnnotationTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("mockito-all", "junit")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> = listOf(NoRequestMappingAnnotation())
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class NoRequestMappingAnnotationTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("spring-web")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(NoRequestMappingAnnotation())
 
     @Test
     fun requestMapping() = assertRefactored(
@@ -95,24 +95,8 @@ class NoRequestMappingAnnotationTest(
 
     @Issue("#3")
     @Test
-    fun requestMappingWithMultipleMethods() = assertRefactored(
+    fun requestMappingWithMultipleMethods() = assertUnchanged(
             before = """
-                import java.util.*;
-                import org.springframework.http.ResponseEntity;
-                import org.springframework.web.bind.annotation.*;
-                import static org.springframework.web.bind.annotation.RequestMethod.GET;
-                import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
-                
-                @RestController
-                @RequestMapping("/users")
-                public class UsersController {
-                    @RequestMapping(method = { HEAD, GET })
-                    public ResponseEntity<List<String>> getUsersHead() {
-                        return null;
-                    }
-                }
-            """,
-            after = """
                 import java.util.*;
                 import org.springframework.http.ResponseEntity;
                 import org.springframework.web.bind.annotation.*;

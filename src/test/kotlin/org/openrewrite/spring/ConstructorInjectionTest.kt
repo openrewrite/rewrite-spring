@@ -21,12 +21,12 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class ConstructorInjectionTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("spring-beans")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> = listOf()
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class ConstructorInjectionTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("spring-beans")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf()
 
     @Test
     fun constructorInjection() = assertRefactored(

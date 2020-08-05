@@ -21,12 +21,11 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class BeanMethodsNotPublicTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("spring-context")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> = listOf(BeanMethodsNotPublic())
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class BeanMethodsNotPublicTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("spring-context")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(BeanMethodsNotPublic())
 
     @Test
     fun removePublicModifierFromBeanMethods() = assertRefactored(

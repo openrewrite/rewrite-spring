@@ -21,12 +21,12 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class NoAutowiredTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("spring-beans")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> = listOf(NoAutowired())
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class NoAutowiredTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("spring-beans")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(NoAutowired())
 
     @Test
     fun removeAutowiredAnnotations() = assertRefactored(

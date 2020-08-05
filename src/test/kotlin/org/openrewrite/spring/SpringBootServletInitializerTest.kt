@@ -22,12 +22,12 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 import org.openrewrite.loadVisitors
 
-class SpringBootServletInitializerTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("spring-boot")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("spring")
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class SpringBootServletInitializerTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("spring-boot")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("spring")
 
     @Test
     fun changeType() = assertRefactored(

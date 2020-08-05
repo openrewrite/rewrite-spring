@@ -22,12 +22,11 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class ValueToConfigurationPropertiesTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("spring-boot", "spring-beans")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> = listOf(ValueToConfigurationProperties())
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class ValueToConfigurationPropertiesTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("spring-boot", "spring-beans")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(ValueToConfigurationProperties())
 
     @Test
     fun sharedPrefix() = assertRefactored(
@@ -86,7 +85,7 @@ class ValueToConfigurationPropertiesTest(
     )
 
     @Test
-    fun changeFieldNameReferences() = assertRefactored(
+    fun changeFieldNameReferences() = assertUnchanged(
         before = """
             class MyService {
                 MyConfiguration config;
@@ -112,20 +111,7 @@ class ValueToConfigurationPropertiesTest(
                     this.refresh = refresh;
                 }
             }
-        """),
-        after = """
-            import org.springframework.boot.context.properties.ConfigurationProperties;
-            
-            @ConfigurationProperties("app")
-            class MyService {
-                MyConfiguration config;
-            
-                {
-                    config.getRefreshRate();
-                    config.setRefreshRate(1);
-                }
-            }
-        """
+        """)
     )
 
     /**

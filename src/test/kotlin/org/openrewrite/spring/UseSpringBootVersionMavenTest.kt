@@ -21,9 +21,9 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.xml.XmlParser
 import org.openrewrite.xml.tree.Xml
 
-class UseSpringBootVersionMavenTest(
-        override val parser: XmlParser = XmlParser()
-) : RefactorVisitorTestForParser<Xml.Document> {
+class UseSpringBootVersionMavenTest() : RefactorVisitorTestForParser<Xml.Document> {
+
+    override val parser: XmlParser = XmlParser()
 
     private val useLatestSpringBoot = UseSpringBootVersionMaven()
             .apply {
@@ -43,7 +43,8 @@ class UseSpringBootVersionMavenTest(
                   </parent>
                 </project>
             """,
-            after = """
+            after = {
+                """
                 <project>
                   <parent>
                     <groupId>org.springframework.boot</groupId>
@@ -52,5 +53,6 @@ class UseSpringBootVersionMavenTest(
                   </parent>
                 </project>
             """
+            }
     )
 }

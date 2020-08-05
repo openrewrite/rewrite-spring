@@ -21,12 +21,12 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class RestTemplateBuilderRequestFactoryTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("spring-boot", "spring-web")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> = listOf(RestTemplateBuilderRequestFactory())
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class RestTemplateBuilderRequestFactoryTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("spring-boot", "spring-web")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(RestTemplateBuilderRequestFactory())
 
     @Test
     fun useSupplierArgument() = assertRefactored(

@@ -21,12 +21,12 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class ImplicitWebAnnotationNamesTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("spring-web")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> = listOf(ImplicitWebAnnotationNames())
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class ImplicitWebAnnotationNamesTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("spring-web")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(ImplicitWebAnnotationNames())
 
     @Test
     fun removeUnnecessaryAnnotationArgument() = assertRefactored(
@@ -92,19 +92,8 @@ class ImplicitWebAnnotationNamesTest(
     )
 
     @Test
-    fun dontRemoveModelAttributeOnMethods() = assertRefactored(
+    fun dontRemoveModelAttributeOnMethods() = assertUnchanged(
             before = """
-                import org.springframework.web.bind.annotation.*;
-                import java.util.*;
-                
-                public class UsersController {
-                    @ModelAttribute("types")
-                    public Collection<String> populateUserTypes() {
-                        return Arrays.asList("free", "premium");
-                    }
-                }
-            """,
-            after = """
                 import org.springframework.web.bind.annotation.*;
                 import java.util.*;
                 

@@ -21,13 +21,13 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class ConditionalOnBeanAnyNestedConditionTest(
-        override val parser: JavaParser = JavaParser.fromJavaVersion()
-                .classpath("spring-boot-autoconfigure", "spring-boot", "spring-web")
-                .build(),
-        override val visitors: Iterable<RefactorVisitor<*>> =
-                listOf(ConditionalOnBeanAnyNestedCondition())
-) : RefactorVisitorTestForParser<J.CompilationUnit> {
+class ConditionalOnBeanAnyNestedConditionTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+
+    override val parser: JavaParser = JavaParser.fromJavaVersion()
+            .classpath("spring-boot-autoconfigure", "spring-boot", "spring-web")
+            .build()
+    override val visitors: Iterable<RefactorVisitor<*>> =
+            listOf(ConditionalOnBeanAnyNestedCondition())
 
     @Test
     fun addAnyNestedCondition() = assertRefactored(
