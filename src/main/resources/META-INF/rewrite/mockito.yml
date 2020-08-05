@@ -22,15 +22,11 @@ visitors:
       targetType: org.mockito.Mock
 ---
 type: beta.openrewrite.org/v1/visitor
-name: org.openrewrite.mockito.MatchersAny
+name: org.openrewrite.mockito.ArgumentMatchersAny
 visitors:
   - org.openrewrite.java.ChangeMethodName:
       method: org.mockito.Matchers anyVararg()
       name: any
----
-type: beta.openrewrite.org/v1/visitor
-name: org.openrewrite.mockito.UseArgumentMatchers
-visitors:
   - org.openrewrite.java.ChangeType:
       type: org.mockito.Matchers
       targetType: org.mockito.ArgumentMatchers
