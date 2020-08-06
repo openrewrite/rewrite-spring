@@ -51,11 +51,11 @@ configurations.all {
 }
 
 dependencies {
-    implementation("org.openrewrite:rewrite-java:latest.integration")
-    implementation("org.openrewrite:rewrite-xml:latest.integration")
-    implementation("org.openrewrite:rewrite-properties:latest.integration")
-    implementation("org.openrewrite:rewrite-yaml:latest.integration")
-    implementation("org.openrewrite:rewrite-maven:latest.integration")
+    implementation("org.openrewrite:rewrite-java:latest.release")
+    implementation("org.openrewrite:rewrite-xml:latest.release")
+    implementation("org.openrewrite:rewrite-properties:latest.release")
+    implementation("org.openrewrite:rewrite-yaml:latest.release")
+    implementation("org.openrewrite:rewrite-maven:latest.release")
 
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
