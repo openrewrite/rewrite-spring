@@ -21,6 +21,7 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
+import javax.swing.text.html.Option;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
@@ -52,17 +53,22 @@ public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
             } else {
                 toAnnotationType = args.getArgs().stream().
                         map(arg -> arg.whenType(J.Assign.class)
-                                .flatMap(assign -> assign.getVariable().whenType(J.Ident.class)
+                                .flatMap(assign ->  assign.getVariable()
+                                        .whenType(J.Ident.class)
                                         .filter(key -> key.getSimpleName().equals("method"))
-                                        .flatMap(key -> Optional.ofNullable(assign.getAssignment().whenType(J.Ident.class)
-                                                .orElseGet(() -> assign.getAssignment().whenType(J.FieldAccess.class)
-                                                        .map(J.FieldAccess::getName)
-                                                        .orElse(null)))
-                                                .map(methodEnum -> {
-                                                    maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
-                                                    return methodEnum.getSimpleName().substring(0, 1) + methodEnum.getSimpleName().substring(1).toLowerCase() + "Mapping";
-                                                })))
-                                .orElse("GetMapping"))
+                                        .flatMap(key ->
+                                                Optional.ofNullable(assign.getAssignment()
+                                                        .whenType(J.Ident.class)
+                                                        .orElseGet(() -> assign.getAssignment().whenType(J.FieldAccess.class)
+                                                                .map(J.FieldAccess::getName)
+                                                                .orElse(null)))
+                                                        .map(methodEnum -> {
+                                                            maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
+                                                            return methodEnum.getSimpleName().substring(0, 1) + methodEnum.getSimpleName().substring(1).toLowerCase() + "Mapping";
+                                                        }))
+                                ))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
                         .findAny()
                         .orElse("GetMapping");
 

@@ -93,6 +93,71 @@ class NoRequestMappingAnnotationTest() : RefactorVisitorTestForParser<J.Compilat
             """
     )
 
+    @Test
+    fun postMapping() = assertRefactored(
+            before = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                import static org.springframework.web.bind.annotation.RequestMethod.POST;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @RequestMapping(method = POST)
+                    public ResponseEntity<List<String>> getUsersPost() {
+                        return null;
+                    }
+                }
+            """,
+            after = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @PostMapping
+                    public ResponseEntity<List<String>> getUsersPost() {
+                        return null;
+                    }
+                }
+            """
+    )
+
+    @Test
+    fun hasValueParameter() = assertRefactored(
+            before = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @RequestMapping(value = "/user/{userId}/edit", method = RequestMethod.POST)
+                    public ResponseEntity<List<String>> getUsersPost(String userId) {
+                        return null;
+                    }
+                }
+            """,
+            after = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @PostMapping("/user/{userId}/edit")
+                    public ResponseEntity<List<String>> getUsersPost(String userId) {
+                        return null;
+                    }
+                }
+            """
+    )
+
     @Issue("#3")
     @Test
     fun requestMappingWithMultipleMethods() = assertUnchanged(
