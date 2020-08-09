@@ -21,7 +21,7 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class ConditionalOnBeanAnyNestedConditionTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+class ConditionalOnBeanAnyNestedConditionTest : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("spring-boot-autoconfigure", "spring-boot", "spring-web")
@@ -36,7 +36,7 @@ class ConditionalOnBeanAnyNestedConditionTest() : RefactorVisitorTestForParser<J
                 class That {}
             """),
             before = """
-                import org.springframework.boot.autoconfigure.condition.ConditionalOnBean; 
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
                 
                 class ThisOrThatCondition {
                 

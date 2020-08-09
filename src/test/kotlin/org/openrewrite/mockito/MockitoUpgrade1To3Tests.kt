@@ -24,7 +24,7 @@ import org.openrewrite.java.tree.J
 /**
  * Validates the profiles related to upgrading from Mockito 1 to Mockito 3
  */
-class MockitoUpgrade1To3Tests() : RefactorVisitorTestForParser<J.CompilationUnit> {
+class MockitoUpgrade1To3Tests : RefactorVisitorTestForParser<J.CompilationUnit> {
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("mockito-all", "junit")
             .build()

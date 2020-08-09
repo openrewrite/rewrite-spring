@@ -21,7 +21,7 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class NoRequestMappingAnnotationTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+class NoRequestMappingAnnotationTest : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("spring-web")

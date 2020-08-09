@@ -21,7 +21,7 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.xml.XmlParser
 import org.openrewrite.xml.tree.Xml
 
-class UseSpringBootVersionMavenTest() : RefactorVisitorTestForParser<Xml.Document> {
+class UseSpringBootVersionMavenTest : RefactorVisitorTestForParser<Xml.Document> {
 
     override val parser: XmlParser = XmlParser()
 

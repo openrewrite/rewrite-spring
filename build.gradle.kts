@@ -37,9 +37,8 @@ group = "org.openrewrite.plan"
 description = "Eliminate legacy Spring patterns. Automatically."
 
 repositories {
-    mavenLocal()
+//    mavenLocal()
     maven { url = uri("https://dl.bintray.com/openrewrite/maven") }
-    maven { url = uri("https://oss.jfrog.org/artifactory/libs-snapshot") }
     mavenCentral()
 }
 
@@ -51,11 +50,11 @@ configurations.all {
 }
 
 dependencies {
-    implementation("org.openrewrite:rewrite-java:latest.release")
-    implementation("org.openrewrite:rewrite-xml:latest.release")
-    implementation("org.openrewrite:rewrite-properties:latest.release")
-    implementation("org.openrewrite:rewrite-yaml:latest.release")
-    implementation("org.openrewrite:rewrite-maven:latest.release")
+    implementation("org.openrewrite:rewrite-java:latest.integration")
+    implementation("org.openrewrite:rewrite-xml:latest.integration")
+    implementation("org.openrewrite:rewrite-properties:latest.integration")
+    implementation("org.openrewrite:rewrite-yaml:latest.integration")
+    implementation("org.openrewrite:rewrite-maven:latest.integration")
 
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")

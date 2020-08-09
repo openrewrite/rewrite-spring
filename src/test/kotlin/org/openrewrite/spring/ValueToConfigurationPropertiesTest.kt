@@ -22,7 +22,7 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class ValueToConfigurationPropertiesTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.CompilationUnit> {
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("spring-boot", "spring-beans")
             .build()

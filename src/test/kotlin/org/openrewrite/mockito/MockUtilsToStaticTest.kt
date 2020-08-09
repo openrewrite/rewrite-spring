@@ -23,7 +23,7 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 import org.openrewrite.loadVisitors
 
-class MockUtilsToStaticTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+class MockUtilsToStaticTest : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("mockito-all")

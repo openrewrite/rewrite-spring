@@ -22,7 +22,7 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 import org.openrewrite.loadVisitors
 
-class SpringBootServletInitializerTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+class SpringBootServletInitializerTest : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("spring-boot")

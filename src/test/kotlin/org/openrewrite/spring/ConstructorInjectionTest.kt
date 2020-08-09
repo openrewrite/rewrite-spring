@@ -21,7 +21,7 @@ import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
-class ConstructorInjectionTest() : RefactorVisitorTestForParser<J.CompilationUnit> {
+class ConstructorInjectionTest : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("spring-beans")
