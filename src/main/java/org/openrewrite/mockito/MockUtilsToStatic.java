@@ -20,11 +20,14 @@ import org.openrewrite.Cursor;
 import org.openrewrite.Formatting;
 import org.openrewrite.Tree;
 import org.openrewrite.java.ChangeMethodTargetToStatic;
+import org.openrewrite.java.DeleteStatement;
 import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * In Mockito 1 you use a code snippet like:
@@ -58,7 +61,7 @@ public class MockUtilsToStatic extends JavaRefactorVisitor {
     @Override
     public J visitNewClass(J.NewClass newClass) {
         if(methodMatcher.matches(newClass)) {
-            // Check to see if the new MockUtil() is being assigned to a variable, like
+            // Check to see if the new MockUtil() is being assigned to a variable or field, like
             // MockUtil util = new MockUtil();
             // If it is, then we'll get rid of it
              Optional.ofNullable(getCursor().getParent())
@@ -66,25 +69,8 @@ public class MockUtilsToStatic extends JavaRefactorVisitor {
                     .map(Cursor::getParent)
                     .map(Cursor::getTree)
                     .filter(it -> it instanceof J.VariableDecls.VariableDecls)
-                    .ifPresent(namedVar -> andThen(new NamedVarScope((J.VariableDecls.VariableDecls)namedVar)));
+                    .ifPresent(namedVar -> andThen(new DeleteStatement((J.VariableDecls.VariableDecls)namedVar)));
         }
         return super.visitNewClass(newClass);
-    }
-
-    private static class NamedVarScope extends JavaRefactorVisitor {
-        public final J.VariableDecls.VariableDecls namedVar;
-
-        private NamedVarScope(J.VariableDecls.VariableDecls namedVar) {
-            this.namedVar = namedVar;
-            setCursoringOn();
-        }
-
-        @Override
-        public J visitMultiVariable(J.VariableDecls multiVariable) {
-            if(namedVar.isScope(multiVariable)) {
-                return new J.Empty(Tree.randomId(), Formatting.EMPTY);
-            }
-            return super.visitMultiVariable(multiVariable);
-        }
     }
 }

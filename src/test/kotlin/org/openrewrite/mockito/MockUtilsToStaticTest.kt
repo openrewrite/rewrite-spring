@@ -28,7 +28,7 @@ class MockUtilsToStaticTest() : RefactorVisitorTestForParser<J.CompilationUnit> 
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("mockito-all")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("mockito")
+    override val visitors: Iterable<RefactorVisitor<*>> = listOf(MockUtilsToStatic())
 
     @Test
     fun basicInstanceToStaticSwap() = assertRefactored(
@@ -57,7 +57,6 @@ class MockUtilsToStaticTest() : RefactorVisitorTestForParser<J.CompilationUnit> 
     )
 
     @Test
-    @Disabled("Right now MockUtilsToStatic() is leaving behind a trailing ';' when it removes the 'MockUtil util = new MockUtil();'")
     fun mockUtilsVariableToStatic() = assertRefactored(
             before = """
                 package mockito.example;
@@ -67,6 +66,33 @@ class MockUtilsToStaticTest() : RefactorVisitorTestForParser<J.CompilationUnit> 
                 public class MockitoMockUtils {
                     public void isMockExample() {
                         MockUtil util = new MockUtil();
+                        util.isMock("I am a real String");
+                    }
+                }
+            """,
+            after = """
+                package mockito.example;
+    
+                import org.mockito.internal.util.MockUtil;
+    
+                public class MockitoMockUtils {
+                    public void isMockExample() {
+                        MockUtil.isMock("I am a real String");
+                    }
+                }
+            """
+    )
+
+    @Test
+    fun mockUtilsFieldToStatic() = assertRefactored(
+            before = """
+                package mockito.example;
+    
+                import org.mockito.internal.util.MockUtil;
+                
+                public class MockitoMockUtils {
+                    MockUtil util = new MockUtil();
+                    public void isMockExample() {
                         util.isMock("I am a real String");
                     }
                 }
