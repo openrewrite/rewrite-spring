@@ -15,13 +15,11 @@
  */
 package org.openrewrite.mockito
 
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
 import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
-import org.openrewrite.loadVisitors
 
 class MockUtilsToStaticTest : RefactorVisitorTestForParser<J.CompilationUnit> {
 

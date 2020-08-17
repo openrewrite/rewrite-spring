@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 ---
-type: beta.openrewrite.org/v1/visitor
+type: openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.SpringBootServletInitializerPackage
 
 visitors:
@@ -22,8 +22,8 @@ visitors:
       type: org.springframework.boot.web.support.SpringBootServletInitializer
       targetType: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 ---
-type: beta.openrewrite.org/v1/profile
-name: spring
+type: openrewrite.org/v1beta/recipe
+name: org.openrewrite.spring
 include:
   - 'org.openrewrite.spring.*'
 

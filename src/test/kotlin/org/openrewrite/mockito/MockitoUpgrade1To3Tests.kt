@@ -17,18 +17,17 @@ package org.openrewrite.mockito
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.*
-import org.openrewrite.java.ChangeMethodName
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
 
 /**
- * Validates the profiles related to upgrading from Mockito 1 to Mockito 3
+ * Validates the recipes related to upgrading from Mockito 1 to Mockito 3
  */
 class MockitoUpgrade1To3Tests : RefactorVisitorTestForParser<J.CompilationUnit> {
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("mockito-all", "junit")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("mockito")
+    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("org.openrewrite.mockito")
 
     /**
      * Replace org.mockito.MockitoAnnotations.Mock with org.mockito.Mock

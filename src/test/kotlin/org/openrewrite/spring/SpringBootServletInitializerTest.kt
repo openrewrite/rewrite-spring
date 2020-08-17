@@ -27,7 +27,7 @@ class SpringBootServletInitializerTest : RefactorVisitorTestForParser<J.Compilat
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("spring-boot")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("spring")
+    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("org.openrewrite.spring")
 
     @Test
     fun changeType() = assertRefactored(

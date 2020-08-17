@@ -20,7 +20,7 @@ This project implements a [Rewrite module](https://github.com/openrewrite/rewrit
 
 ## How to use?
 
-Turn on the `spring` profile in the [Rewrite Maven](https://github.com/openrewrite/rewrite-maven-plugin) plugin.
+Turn on the `org.openrewrite.spring` recipe in the [Rewrite Maven](https://github.com/openrewrite/rewrite-maven-plugin) plugin.
 
 ## Spring XML to annotation-based configuration
 
