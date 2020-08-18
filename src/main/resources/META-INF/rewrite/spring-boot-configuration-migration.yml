@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_0
 
 visitors:
@@ -524,7 +524,7 @@ visitors:
       toProperty: spring.thymeleaf.servlet.content-type
 
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_0
 
 visitors:
@@ -1034,7 +1034,7 @@ visitors:
       toProperty: spring.thymeleaf.servlet.content-type
 
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_1
 extends: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_0
 visitors:
@@ -1112,7 +1112,7 @@ visitors:
       toProperty: spring.resources.chain.compressed
 
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_1
 extends: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_0
 visitors:
@@ -1190,7 +1190,7 @@ visitors:
       toProperty: spring.resources.chain.compressed
 
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_2
 extends: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_1
 visitors:
@@ -1241,7 +1241,7 @@ visitors:
       toProperty: spring.reactor.debug-agent.enabled
 
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_2
 extends: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_1
 visitors:
@@ -1292,7 +1292,7 @@ visitors:
       toProperty: spring.reactor.debug-agent.enabled
 
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_3
 extends: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_2
 visitors:
@@ -1358,7 +1358,7 @@ visitors:
       toProperty: spring.mvc.log-request-details
 
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_3
 extends: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_2
 visitors:

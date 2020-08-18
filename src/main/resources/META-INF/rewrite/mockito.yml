@@ -14,14 +14,14 @@
 # limitations under the License.
 #
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.mockito.MockAsOuterClass
 visitors:
   - org.openrewrite.java.ChangeType:
       type: org.mockito.MockitoAnnotations.Mock
       targetType: org.mockito.Mock
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.mockito.ArgumentMatchersAny
 visitors:
   - org.openrewrite.java.ChangeMethodName:
@@ -31,14 +31,14 @@ visitors:
       type: org.mockito.Matchers
       targetType: org.mockito.ArgumentMatchers
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.mockito.InvocationOnMockGetArgument
 visitors:
   - org.openrewrite.java.ChangeMethodName:
       method: org.mockito.invocation.InvocationOnMock getArgumentAt(int, java.lang.Class)
       name: getArgument
 ---
-type: openrewrite.org/v1beta/recipe
+type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.mockito
 include:
   - 'org.openrewrite.mockito.*'

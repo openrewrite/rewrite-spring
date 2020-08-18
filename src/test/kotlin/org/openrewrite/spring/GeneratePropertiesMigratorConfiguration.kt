@@ -85,7 +85,7 @@ object GeneratePropertiesMigratorConfiguration {
                             config.appendText("""
 
                                 ---
-                                type: openrewrite.org/v1beta/visitor
+                                type: specs.openrewrite.org/v1beta/visitor
                                 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.$majorMinor
                                 ${previousVersion?.let { "extends: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.$previousVersion" } ?: ""}
                                 visitors:
@@ -104,7 +104,7 @@ object GeneratePropertiesMigratorConfiguration {
                             config.appendText("""
                                 
                                 ---
-                                type: openrewrite.org/v1beta/visitor
+                                type: specs.openrewrite.org/v1beta/visitor
                                 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.$majorMinor
                                 ${previousVersion?.let { "extends: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.$previousVersion" } ?: ""}
                                 visitors:

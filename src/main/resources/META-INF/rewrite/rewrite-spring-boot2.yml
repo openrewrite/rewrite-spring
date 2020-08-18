@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 ---
-type: openrewrite.org/v1beta/visitor
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.UpgradeDependencies
 visitors:
   - org.openrewrite.maven.UpgradeVersion:
@@ -28,7 +28,7 @@ visitors:
       groupId: org.mockito
       toVersion: 3.x
 ---
-type: openrewrite.org/v1beta/recipe
+type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.spring-boot2-migration
 include:
   - org.openrewrite.spring.boot.*
