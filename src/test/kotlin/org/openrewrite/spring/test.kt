@@ -16,6 +16,7 @@
 package org.openrewrite.spring
 
 import org.assertj.core.api.Assertions.assertThat
+import org.openrewrite.SourceFile
 import org.openrewrite.Tree
 import org.openrewrite.java.tree.J
 import org.openrewrite.java.tree.Statement
@@ -32,6 +33,9 @@ fun J.CompilationUnit.fields(ns: IntRange = 0..0) =
         classes[0].fields.subList(ns.first, ns.last + 1)
 
 fun assertRefactored(cu: Tree, refactored: String) {
+    assertThat(cu.printTrimmed()).isEqualTo(refactored.trimIndent())
+}
+fun assertRefactored(cu: SourceFile, refactored: String) {
     assertThat(cu.printTrimmed()).isEqualTo(refactored.trimIndent())
 }
 
