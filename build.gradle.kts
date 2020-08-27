@@ -37,7 +37,7 @@ group = "org.openrewrite.plan"
 description = "Eliminate legacy Spring patterns. Automatically."
 
 repositories {
-//    mavenLocal()
+    mavenLocal()
     maven { url = uri("https://dl.bintray.com/openrewrite/maven") }
     mavenCentral()
 }
@@ -59,8 +59,8 @@ dependencies {
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
 
-    implementation("org.springframework:spring-beans:latest.release")
-    implementation("org.springframework:spring-webmvc:latest.release")
+    implementation("org.springframework:spring-beans:5.2.8.RELEASE")
+    implementation("org.springframework:spring-webmvc:5.2.8.RELEASE")
 
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -105,6 +105,10 @@ tasks.named<JavaCompile>("compileJava") {
 tasks.withType(KotlinCompile::class.java).configureEach {
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+
+    doFirst {
+        destinationDir.mkdirs()
     }
 }
 

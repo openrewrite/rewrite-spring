@@ -21,6 +21,7 @@ import org.openrewrite.RefactorVisitor
 import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
+import org.openrewrite.spring.boot2.ValueToConfigurationProperties
 
 class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.CompilationUnit> {
     override val parser: JavaParser = JavaParser.fromJavaVersion()

@@ -18,6 +18,7 @@ package org.openrewrite.spring
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
 import org.openrewrite.RefactorVisitorTestForParser
+import org.openrewrite.spring.boot2.UseSpringBootVersionMaven
 import org.openrewrite.xml.XmlParser
 import org.openrewrite.xml.tree.Xml
 
