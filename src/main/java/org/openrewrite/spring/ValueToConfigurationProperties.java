@@ -86,7 +86,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor implemen
                     new J.Literal(randomId(), commonPrefix, '"' + commonPrefix + '"', JavaType.Primitive.String, Formatting.EMPTY)));
         }
 
-        valueAnnotatedFields.forEach(field -> andThen(new ProcessMultiVariable(commonPrefix, field)));
+//        valueAnnotatedFields.forEach(field -> andThen(new ProcessMultiVariable(commonPrefix, field)));
 
         return cd;
     }
@@ -239,8 +239,8 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor implemen
                 List<J> innerStatements = innerClassDecl.getBody().getStatements();
                 innerStatements.add(fieldDeclaration);
                 innerClassDecl = innerClassDecl.withBody(innerClassDecl.getBody().withStatements(innerStatements));
-                andThen(new GenerateGetter.Scoped(fieldDeclaration));
-                andThen(new GenerateSetter.Scoped(fieldDeclaration));
+                andThen(new GenerateGetter.Scoped(innerClassDecl, fieldDeclaration));
+                andThen(new GenerateSetter.Scoped(innerClassDecl, fieldDeclaration));
                 andThen(new AutoFormat(innerClassDecl));
                 String fieldName = uncapitalize(className);
                 assert innerClassDecl.getType() != null;
@@ -281,8 +281,8 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor implemen
                         .filter(it -> it.getVars().get(0).getSimpleName().equals(fieldName))
                         .findAny()
                         .ifPresent(field -> {
-                            andThen(new GenerateGetter.Scoped(field));
-                            andThen(new GenerateSetter.Scoped(field));
+                            andThen(new GenerateGetter.Scoped(cd, field));
+                            andThen(new GenerateSetter.Scoped(cd, field));
                         });
             }
             return cd;

@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.openrewrite.*
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
+import java.io.File
 
 class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.CompilationUnit> {
     override val parser: JavaParser = JavaParser.fromJavaVersion()
@@ -289,6 +290,138 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
         println("\n-----------------------------------\n")
         println(aFixed.printTrimmed())
         assertThat(aFixed).isNotNull
+    }
+
+    @Test
+    fun cheat() {
+        val target = File("F:\\Projects\\openrewrite\\spring-petclinic-migration\\src\\main\\java\\org\\springframework\\samples\\petclinic\\PetClinicConfiguration.java")
+        assertThat(target).exists()
+        val contents = """
+            package org.springframework.samples.petclinic;
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.samples.petclinic.PetClinicConfiguration.Aws;
+            import org.springframework.samples.petclinic.PetClinicConfiguration.Mail;
+
+            @ConfigurationProperties("app")
+            public class PetClinicConfiguration {
+                private PetClinicConfiguration.Aws aws;
+                private PetClinicConfiguration.Mail mail;
+                private String name;
+                private String port;
+
+                public String getName() {
+                    return name;
+                }
+
+                public void setName(String name) {
+                    this.name = name;
+                }
+
+                public String getPort() {
+                    return port;
+                }
+
+                public void setPort(String port) {
+                    this.port = port;
+                }
+
+                public PetClinicConfiguration.Mail getMail() {
+                    return mail;
+                }
+
+                public void setMail(PetClinicConfiguration.Mail value) {
+                    mail = value;
+                }
+
+                public PetClinicConfiguration.Mail getMail() {
+                    return mail;
+                }
+
+                public void setMail(PetClinicConfiguration.Mail value) {
+                    mail = value;
+                }
+
+                public static class Mail {
+                    private String techSupportContact;
+
+                    public String getTechSupportContact() {
+                        return techSupportContact;
+                    }
+
+                    public void setTechSupportContact(String value) {
+                        techSupportContact = value;
+                    }
+
+                    private String apiToken;
+
+                    public String getApiToken() {
+                        return apiToken;
+                    }
+
+                    public void setApiToken(String value) {
+                        apiToken = value;
+                    }
+
+                    private String oauthSecret;
+
+                    public String getOauthSecret() {
+                        return oauthSecret;
+                    }
+
+                    public void setOauthSecret(String value) {
+                        oauthSecret = value;
+                    }
+                }
+
+                public PetClinicConfiguration.Mail getMail() {
+                    return mail;
+                }
+
+                public void setMail(PetClinicConfiguration.Mail value) {
+                    mail = value;
+                }
+
+                public PetClinicConfiguration.Aws getAws() {
+                    return aws;
+                }
+
+                public void setAws(PetClinicConfiguration.Aws value) {
+                    aws = value;
+                }
+
+                public static class Aws {
+                    private String accessKey;
+
+                    public String getAccessKey() {
+                        return accessKey;
+                    }
+
+                    public void setAccessKey(String value) {
+                        accessKey = value;
+                    }
+
+                    private String secretKey;
+
+                    public String getSecretKey() {
+                        return secretKey;
+                    }
+
+                    public void setSecretKey(String value) {
+                        secretKey = value;
+                    }
+                }
+
+                public PetClinicConfiguration.Aws getAws() {
+                    return aws;
+                }
+
+                public void setAws(PetClinicConfiguration.Aws value) {
+                    aws = value;
+                }
+            }
+        """.trimIndent()
+
+        target.writeText(contents)
     }
 
     @Test
