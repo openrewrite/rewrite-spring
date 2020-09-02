@@ -86,7 +86,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor implemen
                     new J.Literal(randomId(), commonPrefix, '"' + commonPrefix + '"', JavaType.Primitive.String, Formatting.EMPTY)));
         }
 
-//        valueAnnotatedFields.forEach(field -> andThen(new ProcessMultiVariable(commonPrefix, field)));
+        valueAnnotatedFields.forEach(field -> andThen(new ProcessMultiVariable(commonPrefix, field)));
 
         return cd;
     }
@@ -97,6 +97,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor implemen
      * Returns: app.screen.refreshRate
      */
     private static String getValueValue(J.Annotation value) {
+        assert value.getArgs() != null;
         String valueValue = (String) ((J.Literal) value.getArgs().getArgs().get(0)).getValue();
         assert valueValue != null;
         valueValue = valueValue.replace("${", "")
@@ -185,7 +186,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor implemen
                     // TODO: Replace existing references to defunct field/getter/setter with references to their successors across all sources
                     // TODO: Recursively handle stuff that's still not sufficiently un-nested
 
-                    andThen(new DeleteStatement(v));
+                    andThen(new DeleteStatement.Scoped(v));
                     andThen(new CreateOrUpdateInnerClass(enclosingClass, v, newClassName));
                 }
             }
@@ -231,26 +232,28 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor implemen
                                 TreeBuilder.buildInnerClassDeclaration(jp,
                                         enclosingClass,
                                         "public static class " + className + " {\n}\n"));
-
+                String originalFieldName = originalField.getVars().get(0).getSimpleName();
                 J.VariableDecls fieldDeclaration = TreeBuilder.buildFieldDeclaration(jp,
                         innerClassDecl,
-                        "private " + originalField.getTypeExpr().print().trim() + " " +  originalField.getVars().get(0).getSimpleName() + ";\n",
+                        "private " + originalField.getTypeExpr().print().trim() + " " +  originalFieldName + ";\n",
                         originalField.getTypeAsClass());
                 List<J> innerStatements = innerClassDecl.getBody().getStatements();
                 innerStatements.add(fieldDeclaration);
                 innerClassDecl = innerClassDecl.withBody(innerClassDecl.getBody().withStatements(innerStatements));
-                andThen(new GenerateGetter.Scoped(innerClassDecl, fieldDeclaration));
-                andThen(new GenerateSetter.Scoped(innerClassDecl, fieldDeclaration));
+                andThen(new GenerateGetter.Scoped(innerClassDecl.getType(), originalFieldName));
+                andThen(new GenerateSetter.Scoped(innerClassDecl.getType(), originalFieldName));
                 andThen(new AutoFormat(innerClassDecl));
-                String fieldName = uncapitalize(className);
+
+                // Generate a field + getters and setters on the enclosing class to hold/access an instance of the inner class
+                String fieldStoringInnerClassName = uncapitalize(className);
                 assert innerClassDecl.getType() != null;
                 andThen(new AddField.Scoped(enclosingClass,
                         Collections.singletonList(new J.Modifier.Private(randomId(), EMPTY)),
                         innerClassDecl.getType().getFullyQualifiedName(),
-                        fieldName,
+                        fieldStoringInnerClassName,
                         null));
                 andThen(new RemoveGettersAndSetters(originalField, enclosingClass));
-                andThen(new GenerateGettersAndSetters(enclosingClass, fieldName));
+                andThen(new GenerateGettersAndSetters(enclosingClass, fieldStoringInnerClassName));
 
                 // Filter any existing declaration of the inner class so we don't end up with multiple declarations
                 List<J> statements = c.getBody().getStatements().stream()
@@ -281,8 +284,8 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor implemen
                         .filter(it -> it.getVars().get(0).getSimpleName().equals(fieldName))
                         .findAny()
                         .ifPresent(field -> {
-                            andThen(new GenerateGetter.Scoped(cd, field));
-                            andThen(new GenerateSetter.Scoped(cd, field));
+                            andThen(new GenerateGetter.Scoped(cd.getType(), fieldName));
+                            andThen(new GenerateSetter.Scoped(cd.getType(), fieldName));
                         });
             }
             return cd;
