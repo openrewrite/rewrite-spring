@@ -15,6 +15,14 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/visitor
+name: org.openrewrite.spring.boot.SpringBootServletInitializerPackage
+
+visitors:
+  - org.openrewrite.java.ChangeType:
+      type: org.springframework.boot.web.support.SpringBootServletInitializer
+      targetType: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+---
+type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.UpgradeDependencies
 visitors:
   - org.openrewrite.maven.UpgradeVersion:

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.spring
+package org.openrewrite.spring.boot2
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.openrewrite.*
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
-import java.io.File
 
 class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.CompilationUnit> {
     override val parser: JavaParser = JavaParser.fromJavaVersion()
@@ -167,7 +166,7 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
 
         val aFixed = fixed[0]
         val bFixed = fixed[1]
-        assertRefactored(aFixed, """
+        org.openrewrite.spring.assertRefactored(aFixed, """
             import org.springframework.boot.context.properties.ConfigurationProperties;
 
             @ConfigurationProperties("app")
@@ -193,7 +192,7 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
                 }
             }
         """)
-        assertRefactored(bFixed, """
+        org.openrewrite.spring.assertRefactored(bFixed, """
             class MyService {
                 MyConfiguration config;
 
@@ -293,12 +292,77 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
     }
 
     @Test
-    fun longestCommonPrefix() {
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a.b", "a")).isEqualTo("a")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a", "a.b")).isEqualTo("a")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a", "a")).isEqualTo("a")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a", "b")).isEqualTo("")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix(null, "a")).isEqualTo("a")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a.b.c.d", "a.b")).isEqualTo("a.b")
+    fun testPrefixTreeBuilding() {
+        val springApplication = """
+            package org.example;
+            import org.springframework.boot.autoconfigure.SpringBootApplication;
+            @SpringBootApplication
+            public class ASpringBootApplication {
+                public static void main(String[] args) {}
+            }
+        """.trimIndent()
+        val classUsingValue = """
+            package org.example;
+            import org.springframework.beans.factory.annotation.Value;
+            
+            public class CodeSnippet {
+                public CodeSnippet(@Value("${"$"}{app.config.constructor-param}") String baz) {}
+                @Value("${"$"}{app.config.foo}")
+                String foo;
+                
+                @Value("${"$"}{app.config.bar}")
+                String bar;
+                
+                @Value("${"$"}{screen.resolution.height}")
+                int height;
+                
+                @Value("${"$"}{screen.resolution.width}")
+                int width;
+                
+                @Value("${"$"}{screen.refresh-rate}")
+                int refreshRate;
+                
+            }
+        """.trimIndent()
+        val vtcp = ValueToConfigurationProperties2()
+        val results = Refactor()
+                .visit(vtcp)
+                .fix(parser.parse(classUsingValue, springApplication))
+                .map { it.fixed }
+
+
+        val prefixtree = vtcp.prefixTree
+
+        val foo = prefixtree.get("app.config.foo")
+        assertThat(foo).isNotNull
+        assertThat(foo).isInstanceOf(ValueToConfigurationProperties2.PrefixTerminalNode::class.java)
+        val bar = prefixtree.get("app.config.bar")
+        assertThat(bar).isNotNull
+        assertThat(bar).isInstanceOf(ValueToConfigurationProperties2.PrefixTerminalNode::class.java)
+        val refreshRate = prefixtree.get("screen.refreshRate")
+        assertThat(refreshRate).isNotNull
+        assertThat(refreshRate).isInstanceOf(ValueToConfigurationProperties2.PrefixTerminalNode::class.java)
+        val width = prefixtree.get("screen.resolution.height")
+        assertThat(width).isNotNull
+        assertThat(width).isInstanceOf(ValueToConfigurationProperties2.PrefixTerminalNode::class.java)
+
+        val config = prefixtree.get("app.config")
+        assertThat(config).isNotNull
+        assertThat(config).isInstanceOf(ValueToConfigurationProperties2.PrefixParentNode::class.java)
+
+        val longestCommonPrefixPaths = prefixtree.longestCommonPrefixes
+        assertThat(longestCommonPrefixPaths).isNotEmpty
+        assertThat(longestCommonPrefixPaths).contains(listOf("app", "config"), listOf("screen"));
     }
+
+
+//    @Test
+//    fun longestCommonPrefix() {
+//        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a.b", "a")).isEqualTo("a")
+//        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a", "a.b")).isEqualTo("a")
+//        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a", "a")).isEqualTo("a")
+//        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a", "b")).isEqualTo("")
+//        assertThat(ValueToConfigurationProperties.longestCommonPrefix(null, "a")).isEqualTo("a")
+//        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a.b.c.d", "a.b")).isEqualTo("a.b")
+//    }
 }

@@ -69,7 +69,7 @@ public class MockUtilsToStatic extends JavaRefactorVisitor {
                     .map(Cursor::getParent)
                     .map(Cursor::getTree)
                     .filter(it -> it instanceof J.VariableDecls.VariableDecls)
-                    .ifPresent(namedVar -> andThen(new DeleteStatement((J.VariableDecls.VariableDecls)namedVar)));
+                    .ifPresent(namedVar -> andThen(new DeleteStatement.Scoped((J.VariableDecls.VariableDecls)namedVar)));
         }
         return super.visitNewClass(newClass);
     }
