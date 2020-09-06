@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.spring
+package org.openrewrite.spring.boot2
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
 import org.openrewrite.RefactorVisitorTestForParser
-import org.openrewrite.spring.boot2.UseSpringBootVersionMaven
 import org.openrewrite.xml.XmlParser
 import org.openrewrite.xml.tree.Xml
 
