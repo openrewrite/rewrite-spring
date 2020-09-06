@@ -25,14 +25,14 @@ visitors:
 type: specs.openrewrite.org/v1beta/visitor
 name: org.openrewrite.spring.boot.UpgradeDependencies
 visitors:
-  - org.openrewrite.maven.UpgradeVersion:
+  - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       toVersion: 2.x
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       toVersion: 2.x
-  - org.openrewrite.maven.UpgradeVersion:
+  - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.mockito
       toVersion: 3.x
 ---
