@@ -27,7 +27,7 @@ class MockitoUpgrade1To3Tests : RefactorVisitorTestForParser<J.CompilationUnit> 
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("mockito-all", "junit")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("org.openrewrite.mockito")
+    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("org.openrewrite.java.Mockito")
 
     /**
      * Replace org.mockito.MockitoAnnotations.Mock with org.mockito.Mock
