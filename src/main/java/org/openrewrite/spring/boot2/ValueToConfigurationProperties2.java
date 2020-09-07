@@ -1,6 +1,7 @@
 package org.openrewrite.spring.boot2;
 
 import org.openrewrite.AutoConfigure;
+import org.openrewrite.SourceFile;
 import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.tree.J;
@@ -8,6 +9,8 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TreeBuilder;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,7 +68,6 @@ public class ValueToConfigurationProperties2 extends JavaRefactorVisitor {
     // Visible for testing
     PrefixParentNode prefixTree = new PrefixParentNode("root");
     J.CompilationUnit springBootApplication = null;
-    boolean firstPhaseComplete = false;
     boolean configClassesGenerated = false;
     JavaParser jp = null;
 
@@ -74,26 +76,16 @@ public class ValueToConfigurationProperties2 extends JavaRefactorVisitor {
     }
 
     @Override
-    public void nextCycle() {
-        firstPhaseComplete = true;
-    }
-
-    @Override
     public J visitCompilationUnit(J.CompilationUnit cu) {
-        if (!firstPhaseComplete) {
-            if (springBootApplication != null) {
-                jp = JavaParser.fromJavaVersion()
-                        .styles(cu.getStyles())
-                        .build();
-                andThen(new UpdateConfigurationPropertiesClasses());
-            }
+        if (!configClassesGenerated && springBootApplication != null) {
+            andThen(new UpdateConfigurationPropertiesClasses());
         }
         return super.visitCompilationUnit(cu);
     }
 
     @Override
     public J visitClassDecl(J.ClassDecl classDecl) {
-        if (!firstPhaseComplete) {
+        if (!configClassesGenerated) {
             classDecl.getFields()
                     .forEach(prefixTree::put);
             classDecl.getMethods()
@@ -104,6 +96,9 @@ public class ValueToConfigurationProperties2 extends JavaRefactorVisitor {
                 J.CompilationUnit cu = getCursor().firstEnclosing(J.CompilationUnit.class);
                 assert cu != null;
                 springBootApplication = cu;
+                jp = JavaParser.fromJavaVersion()
+                        .styles(cu.getStyles())
+                        .build();
             }
         }
         return super.visitClassDecl(classDecl);
@@ -115,11 +110,10 @@ public class ValueToConfigurationProperties2 extends JavaRefactorVisitor {
     }
 
     @Override
-    public Collection<J> generate() {
-        if(firstPhaseComplete && !configClassesGenerated) {
+    public Collection<SourceFile> generate() {
+        if(!configClassesGenerated && springBootApplication != null) {
             configClassesGenerated = true;
             return prefixTree.getLongestCommonPrefixes().stream().map(commonPrefix -> {
-                JavaParser jp = springBootApplication.buildParser();
                 String className = toConfigPropsClassName(commonPrefix);
                 String peckage = (springBootApplication.getPackageDecl() == null) ? "" : springBootApplication.getPackageDecl().printTrimmed() + ";\n\n";
                 String newClassText = peckage +
@@ -127,8 +121,10 @@ public class ValueToConfigurationProperties2 extends JavaRefactorVisitor {
                         "@ConfigurationProperties(\"" + String.join(".", commonPrefix) + "\")\n" +
                         "public class " + className + "{\n" +
                         "}\n";
-                J.CompilationUnit cu = jp.parse(newClassText).get(0);
-                return (J) cu;
+                Path sourcePath = Paths.get(springBootApplication.getSourcePath()).toAbsolutePath().getParent().resolve(className + ".java");
+                return jp.parse(newClassText)
+                        .get(0)
+                        .withSourcePath(sourcePath.toString());
             }).collect(Collectors.toList());
         } else {
             return Collections.emptyList();
