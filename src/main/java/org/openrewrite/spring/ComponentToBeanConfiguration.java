@@ -171,10 +171,7 @@ public class ComponentToBeanConfiguration extends JavaRefactorVisitor {
 
                     beanDefinitionSource += "}";
 
-                    J.MethodDecl beanDefinition = TreeBuilder.buildMethodDeclaration(
-                            JavaParser.fromJavaVersion()
-                                    .classpath(dependenciesFromClasspath("spring-context"))
-                                    .build(),
+                    J.MethodDecl beanDefinition = treeBuilder.buildMethodDeclaration(
                             configClass,
                             beanDefinitionSource,
                             Stream.concat(

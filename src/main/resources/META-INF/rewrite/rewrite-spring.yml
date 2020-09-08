@@ -15,7 +15,7 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring
+name: org.openrewrite.java.Spring
 include:
   - 'org.openrewrite.spring.*'
 

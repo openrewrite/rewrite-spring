@@ -31,13 +31,13 @@ import java.util.stream.Collectors;
 
 /**
  * In Mockito 1 you use a code snippet like:
- *
+ * <p>
  * new MockUtil().isMock(foo);
- *
+ * <p>
  * In Mockito 2+ this class now has a private constructor and only exposes static methods:
- *
+ * <p>
  * MockUtil.isMock(foo);
- *
+ * <p>
  * This recipe makes a best-effort attempt to remove MockUtil instances, but if someone did something unexpected like
  * subclassing MockUtils that will not be handled and will have to be hand-remediated.
  */
@@ -60,16 +60,16 @@ public class MockUtilsToStatic extends JavaRefactorVisitor {
 
     @Override
     public J visitNewClass(J.NewClass newClass) {
-        if(methodMatcher.matches(newClass)) {
+        if (methodMatcher.matches(newClass)) {
             // Check to see if the new MockUtil() is being assigned to a variable or field, like
             // MockUtil util = new MockUtil();
             // If it is, then we'll get rid of it
-             Optional.ofNullable(getCursor().getParent())
+            Optional.ofNullable(getCursor().getParent())
                     .filter(it -> it.getTree() instanceof J.VariableDecls.NamedVar)
                     .map(Cursor::getParent)
                     .map(Cursor::getTree)
                     .filter(it -> it instanceof J.VariableDecls.VariableDecls)
-                    .ifPresent(namedVar -> andThen(new DeleteStatement.Scoped((J.VariableDecls.VariableDecls)namedVar)));
+                    .ifPresent(namedVar -> andThen(new DeleteStatement.Scoped((J.VariableDecls.VariableDecls) namedVar)));
         }
         return super.visitNewClass(newClass);
     }

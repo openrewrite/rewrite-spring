@@ -81,8 +81,7 @@ public class ConditionalOnBeanAnyNestedCondition extends JavaRefactorVisitor {
                 maybeAddImport(ANY_NESTED_CONDITION);
 
                 if (classDecl.getMethods().stream().noneMatch(J.MethodDecl::isConstructor)) {
-                    andThen(new GenerateConstructorUsingFields.Scoped(JavaParser.fromJavaVersion().build(),
-                            classDecl, emptyList()));
+                    andThen(new GenerateConstructorUsingFields.Scoped(classDecl, emptyList()));
                 }
 
                 andThen(new CallSuperWithConfigurationPhase(classDecl));

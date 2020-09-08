@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.spring
+package org.openrewrite.spring.boot2
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
@@ -27,7 +27,7 @@ class SpringBootServletInitializerTest : RefactorVisitorTestForParser<J.Compilat
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("spring-boot")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("org.openrewrite.spring")
+    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("org.openrewrite.java.SpringBoot2Migration")
 
     @Test
     fun changeType() = assertRefactored(

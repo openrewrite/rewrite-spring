@@ -70,6 +70,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 
     testImplementation("org.openrewrite:rewrite-test:latest.integration")
+    testRuntimeOnly("org.openrewrite:rewrite-java-11:latest.integration")
 
     testImplementation("org.assertj:assertj-core:latest.release")
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")

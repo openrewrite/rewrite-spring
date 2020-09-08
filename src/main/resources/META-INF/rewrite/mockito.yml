@@ -15,14 +15,14 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.mockito.MockAsOuterClass
+name: org.openrewrite.java.mockito.MockAsOuterClass
 visitors:
   - org.openrewrite.java.ChangeType:
       type: org.mockito.MockitoAnnotations.Mock
       targetType: org.mockito.Mock
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.mockito.ArgumentMatchersAny
+name: org.openrewrite.java.mockito.ArgumentMatchersAny
 visitors:
   - org.openrewrite.java.ChangeMethodName:
       method: org.mockito.Matchers anyVararg()
@@ -32,13 +32,13 @@ visitors:
       targetType: org.mockito.ArgumentMatchers
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.mockito.InvocationOnMockGetArgument
+name: org.openrewrite.java.mockito.InvocationOnMockGetArgument
 visitors:
   - org.openrewrite.java.ChangeMethodName:
       method: org.mockito.invocation.InvocationOnMock getArgumentAt(int, java.lang.Class)
       name: getArgument
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.mockito
+name: org.openrewrite.java.Mockito
 include:
-  - 'org.openrewrite.mockito.*'
+  - 'org.openrewrite.java.mockito.*'

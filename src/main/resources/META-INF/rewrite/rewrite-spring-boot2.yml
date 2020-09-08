@@ -15,7 +15,7 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.SpringBootServletInitializerPackage
+name: org.openrewrite.java.spring.boot.SpringBootServletInitializerPackage
 
 visitors:
   - org.openrewrite.java.ChangeType:
@@ -23,22 +23,28 @@ visitors:
       targetType: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.UpgradeDependencies
+name: org.openrewrite.java.spring.boot.UpgradeDependencies
 visitors:
-  - org.openrewrite.maven.UpgradeVersion:
+  - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       toVersion: 2.x
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       toVersion: 2.x
-  - org.openrewrite.maven.UpgradeVersion:
+  - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.mockito
       toVersion: 3.x
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring-boot2-migration
+name: org.openrewrite.java.SpringBoot2Migration
 include:
-  - org.openrewrite.spring.boot.*
-  - org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_3
-  - org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_3
+  - org.openrewrite.java.spring.boot.*
+  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationYaml.2_0
+  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationProperties.2_0
+  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationYaml.2_1
+  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationProperties.2_1
+  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationYaml.2_2
+  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationProperties.2_2
+  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationYaml.2_3
+  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationProperties.2_3
