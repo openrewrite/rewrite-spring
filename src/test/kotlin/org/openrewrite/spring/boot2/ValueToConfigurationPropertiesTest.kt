@@ -328,8 +328,7 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
         val results = Refactor()
                 .visit(vtcp)
                 .fix(parser.parse(classUsingValue, springApplication))
-                .map { it.fixed }
-
+                .map { it.fixed.printTrimmed() }
 
         val prefixtree = vtcp.prefixTree
 
