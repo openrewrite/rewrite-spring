@@ -15,15 +15,15 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.java.spring.boot.SpringBootServletInitializerPackage
-
+name: org.openrewrite.java.spring.boot2.SpringBootServletInitializerPackage
 visitors:
   - org.openrewrite.java.ChangeType:
       type: org.springframework.boot.web.support.SpringBootServletInitializer
       targetType: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.java.spring.boot.UpgradeDependencies
+name: org.openrewrite.java.spring.boot2.UpgradeDependencies
 visitors:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
@@ -35,16 +35,20 @@ visitors:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.mockito
       toVersion: 3.x
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.SpringBoot2Migration
 include:
-  - org.openrewrite.java.spring.boot.*
-  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationYaml.2_0
-  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationProperties.2_0
-  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationYaml.2_1
-  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationProperties.2_1
-  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationYaml.2_2
-  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationProperties.2_2
-  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationYaml.2_3
-  - org.openrewrite.java.spring.boot.config.SpringBootConfigurationProperties.2_3
+  - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
+  - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
+  - org.openrewrite.java.spring.boot2.UpgradeDependencies
+  - org.openrewrite.java.spring.boot2.SpringBootServletInitializerPackage
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_0
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_0
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_1
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_1
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_2
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_2
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_3
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_3

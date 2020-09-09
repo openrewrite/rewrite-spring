@@ -15,7 +15,7 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_0
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_0
 
 visitors:
   - org.openrewrite.properties.ChangePropertyKey:
@@ -525,7 +525,7 @@ visitors:
 
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_0
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_0
 
 visitors:
   - org.openrewrite.yaml.ChangePropertyKey:
@@ -1035,7 +1035,7 @@ visitors:
 
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_1
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_1
 visitors:
   - org.openrewrite.properties.ChangePropertyKey:
       property: management.metrics.binders.files.enabled
@@ -1112,7 +1112,7 @@ visitors:
 
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_1
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_1
 visitors:
   - org.openrewrite.yaml.ChangePropertyKey:
       property: management.metrics.binders.files.enabled
@@ -1189,7 +1189,7 @@ visitors:
 
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_2
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_2
 visitors:
   - org.openrewrite.properties.ChangePropertyKey:
       property: logging.file
@@ -1239,7 +1239,7 @@ visitors:
 
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_2
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_2
 visitors:
   - org.openrewrite.yaml.ChangePropertyKey:
       property: logging.file
@@ -1289,7 +1289,7 @@ visitors:
 
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_3
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_3
 visitors:
   - org.openrewrite.properties.ChangePropertyKey:
       property: management.metrics.web.client.requests-metric-name
@@ -1354,7 +1354,7 @@ visitors:
 
 ---
 type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_3
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_3
 visitors:
   - org.openrewrite.yaml.ChangePropertyKey:
       property: management.metrics.web.client.requests-metric-name

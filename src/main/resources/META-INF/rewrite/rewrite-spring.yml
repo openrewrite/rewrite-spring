@@ -17,7 +17,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.Spring
 include:
-  - 'org.openrewrite.spring.*'
+  - 'org.openrewrite.java.spring.*'
 
 exclude:
   # this one is just too risky for now until
