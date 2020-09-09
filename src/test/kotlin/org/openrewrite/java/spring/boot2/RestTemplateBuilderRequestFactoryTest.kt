@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.boot2
 
-import org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
 import org.openrewrite.RefactorVisitorTestForParser

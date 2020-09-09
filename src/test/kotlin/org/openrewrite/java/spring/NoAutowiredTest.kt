@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring
 
-import org.openrewrite.java.spring.NoAutowired
 import org.junit.jupiter.api.Test
 import org.openrewrite.RefactorVisitor
 import org.openrewrite.RefactorVisitorTestForParser
