@@ -23,7 +23,7 @@ exclude:
   # this one is just too risky for now until
   # we have a groovy and kotlin binding that
   # can fix tests
-  - org.openrewrite.spring.ConstructorInjection
+  - org.openrewrite.java.spring.ConstructorInjection
   # not always preferable, but when you prefer to be more
   # declarative and rely less on component scanning
-  - org.openrewrite.spring.ComponentToBeanConfiguration
+  - org.openrewrite.java.spring.ComponentToBeanConfiguration
