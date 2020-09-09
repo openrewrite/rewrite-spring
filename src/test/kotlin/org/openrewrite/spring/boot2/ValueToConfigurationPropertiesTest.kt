@@ -16,12 +16,11 @@
 package org.openrewrite.spring.boot2
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactorVisitorTestForParser
+import org.openrewrite.*
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
-import org.openrewrite.spring.boot2.ValueToConfigurationProperties
 
 class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.CompilationUnit> {
     override val parser: JavaParser = JavaParser.fromJavaVersion()
@@ -29,9 +28,14 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
             .build()
     override val visitors: Iterable<RefactorVisitor<*>> = listOf(ValueToConfigurationProperties())
 
+    companion object {
+        const val disabledReason = "ValueToConfigurationProperties is still a work in progress"
+    }
+
     @Test
+    @Disabled(disabledReason)
     fun sharedPrefix() = assertRefactored(
-        before = """
+            before = """
             import org.springframework.beans.factory.annotation.Value;
 
             class MyConfiguration {
@@ -39,7 +43,7 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
                 private int refreshRate;
             }
         """,
-        after = """
+            after = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
             
             @ConfigurationProperties("app")
@@ -50,8 +54,9 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
     )
 
     @Test
+    @Disabled(disabledReason)
     fun changeFieldName() = assertRefactored(
-        before = """
+            before = """
             import org.springframework.beans.factory.annotation.Value;
 
             class MyConfiguration {
@@ -67,7 +72,7 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
                 }
             }
         """,
-        after = """
+            after = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
             
             @ConfigurationProperties("app")
@@ -86,8 +91,9 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
     )
 
     @Test
+    @Disabled(disabledReason)
     fun changeFieldNameReferences() = assertRefactored(
-        before = """
+            before = """
             class MyService {
                 MyConfiguration config;
             
@@ -97,7 +103,7 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
                 }
             }
         """,
-        dependencies = listOf("""
+            dependencies = listOf("""
             import org.springframework.beans.factory.annotation.Value;
 
             class MyConfiguration {
@@ -113,7 +119,7 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
                 }
             }
         """),
-        after = """
+            after = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
             
             @ConfigurationProperties("app")
@@ -128,90 +134,140 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
         """
     )
 
+    @Test
+    @Disabled(disabledReason)
+    fun nestedClass() {
+        val aSource = """
+            import org.springframework.beans.factory.annotation.Value;
 
-    /**
-     * FIXME Implement me!
-     */
-//    @Disabled
-//    @Test
-//    fun nestedClass() {
-//        val aSource = """
-//            import org.springframework.beans.factory.annotation.Value;
-//
-//            class MyConfiguration {
-//                @Value("${"$"}{app.screen.refresh-rate}")
-//                private int refresh;
-//
-//                @Value("${"$"}{app.name}")
-//                private String name;
-//
-//                public int getRefresh() {
-//                    return this.refresh;
-//                }
-//            }
-//        """.trimIndent()
-//
-//        val bSource = """
-//            class MyService {
-//                MyConfiguration config;
-//
-//                {
-//                    config.getRefresh();
-//                }
-//            }
-//        """.trimIndent()
-//
-//        val (a, b) = jp.parseStrings(aSource, bSource)
-//        val recipe = ValueToConfigurationProperties()
-//        val aFixed = a.refactor().visit(recipe).fix().fixed
-//
-//        assertRefactored(aFixed, """
-//            import org.springframework.boot.context.properties.ConfigurationProperties;
-//
-//            @ConfigurationProperties("app")
-//            class MyConfiguration {
-//                private Screen screen;
-//
-//                private String name;
-//
-//                public Screen getScreen() {
-//                    return this.screen;
-//                }
-//
-//                public void setScreen() {
-//                    this.screen = screen;
-//                }
-//
-//                public static class Screen {
-//                    private int refreshRate;
-//
-//                    public int getRefreshRate() {
-//                        return this.refreshRate;
-//                    }
-//                }
-//            }
-//        """.trimIndent())
-//
-//        val bFixed = b.refactor().visit(recipe).fix().fixed
-//
-//        assertRefactored(bFixed, """
-//            class MyService {
-//                MyConfiguration config;
-//
-//                {
-//                    config.getScreen().getRefreshRate();
-//                }
-//            }
-//        """.trimIndent())
-//    }
+            class MyConfiguration {
+                @Value("${"$"}{app.screen.refresh-rate}")
+                private int refresh;
+
+                @Value("${"$"}{app.name}")
+                private String name;
+
+                public int getRefresh() {
+                    return this.refresh;
+                }
+            }
+        """.trimIndent()
+
+        val bSource = """
+            class MyService {
+                MyConfiguration config;
+
+                {
+                    config.getRefresh();
+                }
+            }
+        """.trimIndent()
+
+        val fixed: List<SourceFile> = Refactor()
+                .visit(ValueToConfigurationProperties())
+                .fix(parser.parse(aSource, bSource))
+                .map { it.fixed }
+                .toList()
+
+        val aFixed = fixed[0]
+        val bFixed = fixed[1]
+        org.openrewrite.spring.assertRefactored(aFixed, """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+
+            @ConfigurationProperties("app")
+            class MyConfiguration {
+                private Screen screen;
+
+                private String name;
+
+                public Screen getScreen() {
+                    return this.screen;
+                }
+
+                public void setScreen() {
+                    this.screen = screen;
+                }
+
+                public static class Screen {
+                    private int refreshRate;
+
+                    public int getRefreshRate() {
+                        return this.refreshRate;
+                    }
+                }
+            }
+        """)
+        org.openrewrite.spring.assertRefactored(bFixed, """
+            class MyService {
+                MyConfiguration config;
+
+                {
+                    config.getScreen().getRefreshRate();
+                }
+            }
+        """.trimIndent())
+    }
 
     @Test
-    fun longestCommonPrefix() {
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a.b", "a")).isEqualTo("a")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a", "a.b")).isEqualTo("a")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a", "a")).isEqualTo("a")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a", "b")).isEqualTo("")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix(null, "a")).isEqualTo("a")
-        assertThat(ValueToConfigurationProperties.longestCommonPrefix("a.b.c.d", "a.b")).isEqualTo("a.b")
+    fun testPrefixTreeBuilding() {
+        val springApplication = """
+            package org.example;
+            import org.springframework.boot.autoconfigure.SpringBootApplication;
+            @SpringBootApplication
+            public class ASpringBootApplication {
+                public static void main(String[] args) {}
+            }
+        """.trimIndent()
+        val classUsingValue = """
+            package org.example;
+            import org.springframework.beans.factory.annotation.Value;
+            
+            public class CodeSnippet {
+                public CodeSnippet(@Value("${"$"}{app.config.constructor-param}") String baz) {}
+                @Value("${"$"}{app.config.foo}")
+                String foo;
+                
+                @Value("${"$"}{app.config.bar}")
+                String bar;
+                
+                @Value("${"$"}{screen.resolution.height}")
+                int height;
+                
+                @Value("${"$"}{screen.resolution.width}")
+                int width;
+                
+                @Value("${"$"}{screen.refresh-rate}")
+                int refreshRate;
+                
+            }
+        """.trimIndent()
+        val vtcp = ValueToConfigurationProperties()
+        val results = Refactor()
+                .visit(vtcp)
+                .fix(parser.parse(classUsingValue, springApplication))
+                .map { it.fixed.printTrimmed() }
+
+        val prefixtree = vtcp.prefixTree
+
+        val foo = prefixtree.get("app.config.foo")
+        assertThat(foo).isNotNull
+        assertThat(foo).isInstanceOf(ValueToConfigurationProperties.PrefixTerminalNode::class.java)
+        val bar = prefixtree.get("app.config.bar")
+        assertThat(bar).isNotNull
+        assertThat(bar).isInstanceOf(ValueToConfigurationProperties.PrefixTerminalNode::class.java)
+        val refreshRate = prefixtree.get("screen.refreshRate")
+        assertThat(refreshRate).isNotNull
+        assertThat(refreshRate).isInstanceOf(ValueToConfigurationProperties.PrefixTerminalNode::class.java)
+        val width = prefixtree.get("screen.resolution.height")
+        assertThat(width).isNotNull
+        assertThat(width).isInstanceOf(ValueToConfigurationProperties.PrefixTerminalNode::class.java)
+
+        val config = prefixtree.get("app.config")
+        assertThat(config).isNotNull
+        assertThat(config).isInstanceOf(ValueToConfigurationProperties.PrefixParentNode::class.java)
+
+        val longestCommonPrefixPaths = prefixtree.longestCommonPrefixes
+        assertThat(longestCommonPrefixPaths).isNotEmpty
+        assertThat(longestCommonPrefixPaths).contains(listOf("app", "config"), listOf("screen"));
     }
 }

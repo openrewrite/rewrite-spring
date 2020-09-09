@@ -25,7 +25,7 @@ buildscript {
 
 plugins {
     `java-library`
-    id("org.jetbrains.kotlin.jvm") version "1.3.72"
+    id("org.jetbrains.kotlin.jvm") version "1.4.0"
     id("io.spring.release") version "0.20.1"
 }
 

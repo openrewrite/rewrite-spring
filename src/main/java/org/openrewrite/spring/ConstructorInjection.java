@@ -93,7 +93,7 @@ public class ConstructorInjection extends JavaRefactorVisitor {
             if (!hasRequiredArgsConstructor(cd)) {
                 andThen(useLombokRequiredArgsAnnotation ?
                         new AddAnnotation.Scoped(cd, "lombok.RequiredArgsConstructor") :
-                        new GenerateConstructorUsingFields.Scoped(javaParser, cd, getInjectedFields(cd)));
+                        new GenerateConstructorUsingFields.Scoped(cd, getInjectedFields(cd)));
             }
 
             List<String> setterNames = getInjectedFields(cd).stream()
