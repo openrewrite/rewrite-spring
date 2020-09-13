@@ -16,11 +16,9 @@
 package org.openrewrite.java.spring.boot2
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.openrewrite.*
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.assertRefactored
 import org.openrewrite.java.tree.J
 
 class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.CompilationUnit> {
@@ -29,188 +27,8 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
             .build()
     override val visitors: Iterable<RefactorVisitor<*>> = listOf(ValueToConfigurationProperties())
 
-    companion object {
-        const val disabledReason = "ValueToConfigurationProperties is still a work in progress"
-    }
-
     @Test
-    @Disabled(disabledReason)
-    fun sharedPrefix() = assertRefactored(
-            before = """
-            import org.springframework.beans.factory.annotation.Value;
-
-            class MyConfiguration {
-                @Value("${"$"}{app.refresh-rate}")
-                private int refreshRate;
-            }
-        """,
-            after = """
-            import org.springframework.boot.context.properties.ConfigurationProperties;
-            
-            @ConfigurationProperties("app")
-            class MyConfiguration {
-                private int refreshRate;
-            }
-        """
-    )
-
-    @Test
-    @Disabled(disabledReason)
-    fun changeFieldName() = assertRefactored(
-            before = """
-            import org.springframework.beans.factory.annotation.Value;
-
-            class MyConfiguration {
-                @Value("${"$"}{app.refresh-rate}")
-                private int refresh;
-            
-                public int getRefresh() {
-                    return this.refresh;
-                }
-            
-                public void setRefresh(int refresh) {
-                    this.refresh = refresh;
-                }
-            }
-        """,
-            after = """
-            import org.springframework.boot.context.properties.ConfigurationProperties;
-            
-            @ConfigurationProperties("app")
-            class MyConfiguration {
-                private int refreshRate;
-            
-                public int getRefreshRate() {
-                    return this.refreshRate;
-                }
-            
-                public void setRefreshRate(int refresh) {
-                    this.refreshRate = refresh;
-                }
-            }
-        """
-    )
-
-    @Test
-    @Disabled(disabledReason)
-    fun changeFieldNameReferences() = assertRefactored(
-            before = """
-            class MyService {
-                MyConfiguration config;
-            
-                {
-                    config.getRefresh();
-                    config.setRefresh(1);
-                }
-            }
-        """,
-            dependencies = listOf("""
-            import org.springframework.beans.factory.annotation.Value;
-
-            class MyConfiguration {
-                @Value("${"$"}{app.refresh-rate}")
-                private int refresh;
-            
-                public int getRefresh() {
-                    return this.refresh;
-                }
-            
-                public void setRefresh(int refresh) {
-                    this.refresh = refresh;
-                }
-            }
-        """),
-            after = """
-            import org.springframework.boot.context.properties.ConfigurationProperties;
-            
-            @ConfigurationProperties("app")
-            class MyService {
-                MyConfiguration config;
-            
-                {
-                    config.getRefreshRate();
-                    config.setRefreshRate(1);
-                }
-            }
-        """
-    )
-
-    @Test
-    @Disabled(disabledReason)
-    fun nestedClass() {
-        val aSource = """
-            import org.springframework.beans.factory.annotation.Value;
-
-            class MyConfiguration {
-                @Value("${"$"}{app.screen.refresh-rate}")
-                private int refresh;
-
-                @Value("${"$"}{app.name}")
-                private String name;
-
-                public int getRefresh() {
-                    return this.refresh;
-                }
-            }
-        """.trimIndent()
-
-        val bSource = """
-            class MyService {
-                MyConfiguration config;
-
-                {
-                    config.getRefresh();
-                }
-            }
-        """.trimIndent()
-
-        val fixed: List<SourceFile> = Refactor()
-                .visit(ValueToConfigurationProperties())
-                .fix(parser.parse(aSource, bSource))
-                .map { it.fixed }
-                .toList()
-
-        val aFixed = fixed[0]
-        val bFixed = fixed[1]
-        assertRefactored(aFixed, """
-            import org.springframework.boot.context.properties.ConfigurationProperties;
-
-            @ConfigurationProperties("app")
-            class MyConfiguration {
-                private Screen screen;
-
-                private String name;
-
-                public Screen getScreen() {
-                    return this.screen;
-                }
-
-                public void setScreen() {
-                    this.screen = screen;
-                }
-
-                public static class Screen {
-                    private int refreshRate;
-
-                    public int getRefreshRate() {
-                        return this.refreshRate;
-                    }
-                }
-            }
-        """)
-        assertRefactored(bFixed, """
-            class MyService {
-                MyConfiguration config;
-
-                {
-                    config.getScreen().getRefreshRate();
-                }
-            }
-        """.trimIndent())
-    }
-
-    @Test
-    fun testPrefixTreeBuilding() {
+    fun testBasicVTCP() {
         val springApplication = """
             package org.example;
             import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -223,7 +41,7 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
             package org.example;
             import org.springframework.beans.factory.annotation.Value;
             
-            public class CodeSnippet {
+            public class ExampleValueClass {
                 public CodeSnippet(@Value("${"$"}{app.config.constructor-param}") String baz) {}
                 @Value("${"$"}{app.config.foo}")
                 String foo;
@@ -239,14 +57,13 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
                 
                 @Value("${"$"}{screen.refresh-rate}")
                 int refreshRate;
-                
             }
         """.trimIndent()
         val vtcp = ValueToConfigurationProperties()
         val results = Refactor()
                 .visit(vtcp)
                 .fix(parser.parse(classUsingValue, springApplication))
-                .map { it.fixed.printTrimmed() }
+                .map { it.fixed as J.CompilationUnit }
 
         val prefixtree = vtcp.prefixTree
 
@@ -269,6 +86,30 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
 
         val longestCommonPrefixPaths = prefixtree.longestCommonPrefixes
         assertThat(longestCommonPrefixPaths).isNotEmpty
-        assertThat(longestCommonPrefixPaths).contains(listOf("app", "config"), listOf("screen"));
+        assertThat(longestCommonPrefixPaths).contains(listOf("app", "config"), listOf("screen"))
+
+
+        // Now check out some actual results
+        assertThat(results.size).isEqualTo(3)
+                .`as`("There should be the generated AppConfigConfiguration and ScreenConfiguration classes, " +
+                        "plus a modified ExampleValueClass")
+
+        val appConfig = results.find { it.classes.first().name.simpleName == "AppConfigConfiguration" }
+        assertThat(appConfig).isNotNull
+        val screenConfig = results.find { it.classes.first().name.simpleName == "ScreenConfiguration" }
+        assertThat(screenConfig).isNotNull
+        val exampleValue = results.find { it.classes.first().name.simpleName == "ExampleValueClass" }
+        assertThat(exampleValue).isNotNull
+
+        appConfig!!.assertHasMethod("getFoo", "setFoo", "getConstructorParam", "setConstructorParam")
+        screenConfig!!.assertHasMethod("getResolution", "setResolution", "getRefreshRate", "setRefreshRate")
+
     }
+
+    private fun J.CompilationUnit.assertHasMethod(vararg names: String) =
+        names.forEach { name ->
+            assertThat(classes.first().methods.find { it.name.simpleName == name }).isNotNull
+        }
+
+
 }
