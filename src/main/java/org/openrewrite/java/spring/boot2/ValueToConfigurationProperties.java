@@ -443,7 +443,10 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                                 // type-attributed correctly. Which could cause confusion/trouble for visitors coming later
                                 statements.add(assignment);
                             }
-                            return constructor.withBody(body.withStatements(statements));
+                            // Make sure the "}" doesn't end up on the same line as the final statement
+                            body = body.withStatements(statements)
+                                    .withEnd(body.getEnd().withPrefix("\n"));
+                            return constructor.withBody(body);
                         })
                         .collect(Collectors.toList());
                 // Put the modified constructors back into the class body and clean up their formatting
