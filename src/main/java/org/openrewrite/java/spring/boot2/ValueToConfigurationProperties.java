@@ -66,13 +66,6 @@ import static org.openrewrite.internal.StringUtils.uncapitalize;
  * Go through ALL classes and anywhere anything @Value annotated appears, replace it with the corresponding @ConfigurationProperties type.
  * May involve collapsing multiple arguments into a single argument, updating references to those arguments
  * <p>
- * Edge cases to remember:
- * Existing field doesn't have the same name as its @Value annotation would imply
- * There are already @ConfigurationProperties classes for some prefixes
- * Map of prefix to existing class?
- * Constructors or methods with @Value annotated arguments
- * One ConfigurationProperties argument may replace many @Value annotated arguments
- * Pre-existing @ConfigurationProperties annotated class with no prefix?
  */
 @AutoConfigure
 public class ValueToConfigurationProperties extends JavaRefactorVisitor {
@@ -107,7 +100,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
     @Override
     public J visitCompilationUnit(J.CompilationUnit cu) {
         if (configClassesGenerated && springBootApplication != null) {
-            andThen(new UpdateConfigurationPropertiesClasses());
+            andThen(new PopulateConfigurationPropertiesClasses());
             andThen(new UpdateReferences());
             andThen(new RemoveValueAnnotations());
         }
@@ -155,7 +148,6 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                 } else {
                     sourcePath = parentDir.resolve(className + ".java");
                 }
-
                 J.CompilationUnit cu = fillConfigurationPropertiesTypeAttribution(
                         jp.reset().parse(newClassText)
                                 .get(0)
@@ -172,7 +164,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
         return (J.CompilationUnit) new FillTypeAttributions(new JavaType.Class[]{configurationPropertiesAnnotationType}).visitCompilationUnit(cu);
     }
 
-    private class UpdateConfigurationPropertiesClasses extends JavaRefactorVisitor {
+    private class PopulateConfigurationPropertiesClasses extends JavaRefactorVisitor {
         @Override
         public J visitClassDecl(J.ClassDecl classDecl) {
             J.ClassDecl cd = refactor(classDecl, super::visitClassDecl);
@@ -227,7 +219,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
             if(pt instanceof PrefixTerminalNode) {
                 PrefixTerminalNode node = (PrefixTerminalNode) pt;
                 String fieldName = node.name;
-                String fieldTypeExpr = node.getType().toTypeTree().printTrimmed();
+                String fieldTypeExpr = node.type.toTypeTree().printTrimmed();
                 andThen(new AddField.Scoped(cd,
                         Collections.singletonList(new J.Modifier.Private(randomId(), EMPTY)),
                         fieldTypeExpr,
@@ -352,12 +344,9 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                         .map(it -> prefixTree.get(it))
                         .collect(Collectors.toList());
 
-                List<String> configPropsClassNames = prefixes.stream()
+                List<J.CompilationUnit> configPropsCompilationUnits = prefixes.stream()
                         .map(PrefixTree::getEnclosingClassName)
                         .distinct()
-                        .collect(Collectors.toList());
-
-                List<J.CompilationUnit> configPropsCompilationUnits = configPropsClassNames.stream()
                         .map(generatedClasses::get)
                         .collect(Collectors.toList());
 
@@ -378,7 +367,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                                 List<Statement> parameterStatements = parameters.getParams();
                                 J.ClassDecl configPropsClass = configPropsCu.getClasses().get(0);
                                 J.VariableDecls newParam = treeBuilder.buildFieldDeclaration(finalCd,
-                                        configPropsClass.getSimpleName() + " " + uncapitalize(configPropsClass.getSimpleName()),
+                                        configPropsClass.getSimpleName() + " " + uncapitalize(configPropsClass.getSimpleName() + ";"),
                                         configPropsClass.getType()
                                 )
                                         .withFormatting(Formatting.format(" "));
@@ -537,7 +526,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
     interface PrefixTree {
         String getName();
 
-        PrefixTree put(List<String> pathSegments, J source);
+        PrefixTree put(List<String> pathSegments, JavaType type);
 
         default PrefixTree get(String path) {
             return get(Arrays.asList(path.split("\\.")));
@@ -608,8 +597,6 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
          */
         boolean isPartOfCommonPrefix();
 
-
-
         default String getFullPath() {
             if(isRoot()) {
                 return "";
@@ -633,26 +620,28 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
     static class PrefixTerminalNode implements PrefixTree {
         final String name;
         final PrefixParentNode parent;
-        List<J> originalAppearances = new ArrayList<>();
+        final JavaType type;
 
-        public PrefixTerminalNode(PrefixParentNode parent, String name, J originalAppearance) {
+        public PrefixTerminalNode(PrefixParentNode parent, String name, JavaType type) {
             this.name = name;
             this.parent = parent;
-            originalAppearances.add(originalAppearance);
+            this.type = type;
         }
 
         @Override
-        public PrefixTree put(List<String> pathSegments, J source) {
+        public PrefixTree put(List<String> pathSegments, JavaType type) {
             if (pathSegments == null) {
                 throw new IllegalArgumentException("pathSegments may not be null");
             }
-            if (source == null) {
-                throw new IllegalArgumentException("source may not be null");
+            if (type != null && this.type != type) {
+                throw new IllegalArgumentException(
+                        "terminal node cannot have two types. type is currently recorded as \"" +
+                                this.type.toTypeTree().printTrimmed() + "\", cannot reassign it to \"" +
+                                type.toTypeTree().printTrimmed());
             }
             if (pathSegments.size() > 1) {
                 throw new IllegalArgumentException("Cannot add new path segment to terminal node");
             }
-            originalAppearances.add(source);
             return this;
         }
 
@@ -696,32 +685,6 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
         public String getName() {
             return name;
         }
-
-        public JavaType getType() {
-            J originalAppearance = originalAppearances.get(0);
-            if(originalAppearance instanceof J.VariableDecls) {
-                J.VariableDecls feild = (J.VariableDecls) originalAppearance;
-                return feild.getVars().get(0).getType();
-            } else if(originalAppearance instanceof J.MethodDecl) {
-                J.MethodDecl method = (J.MethodDecl) originalAppearance;
-                Optional<JavaType> param = method.getParams().getParams().stream()
-                        .filter(it -> it instanceof J.VariableDecls)
-                        .map(J.VariableDecls.class::cast)
-                        .filter(it -> {
-                            List<J.Annotation> valueAnnotations = it.findAnnotations(valueAnnotationSignature);
-                            if(valueAnnotations.size() == 0) {
-                                return false;
-                            }
-                            return getFullPath().equals(getValueValue(valueAnnotations.get(0)));
-                        })
-                        .map( it -> it.getVars().get(0).getType())
-                        .findAny();
-                if(param.isPresent()) {
-                    return param.get();
-                }
-            }
-            throw new RuntimeException("Could not determine type of \"" + originalAppearance.print() + "\"");
-        }
     }
 
     /**
@@ -737,17 +700,17 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
             this.parent = parent;
         }
 
-        PrefixTree buildChild(List<String> pathSegments, J source) {
+        PrefixTree buildChild(List<String> pathSegments, JavaType type) {
             if (pathSegments.size() == 0) {
                 throw new IllegalArgumentException("pathSegments may not be null");
             }
             String nodeName = pathSegments.get(0);
             List<String> remainingSegments = pathSegments.subList(1, pathSegments.size());
             if (remainingSegments.size() == 0) {
-                return new PrefixTerminalNode(this, nodeName, source);
+                return new PrefixTerminalNode(this, nodeName, type);
             } else {
                 PrefixParentNode intermediateNode = new PrefixParentNode(this, nodeName);
-                PrefixTree child = intermediateNode.buildChild(remainingSegments, source);
+                PrefixTree child = intermediateNode.buildChild(remainingSegments, type);
                 intermediateNode.children.put(child.getName(), child);
                 return intermediateNode;
             }
@@ -761,7 +724,9 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
             J.Annotation valueAnnotation = valueAnnotations.get(0);
             String path = getValueValue(valueAnnotation);
             List<String> pathSegments = Arrays.asList(path.split("\\."));
-            put(pathSegments, field);
+            if(field.getTypeExpr() != null) {
+                put(pathSegments, field.getTypeExpr().getType());
+            }
         }
 
         /**
@@ -779,22 +744,21 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
         }
 
         void put(J.MethodDecl methodDecl) {
-            Optional<J.Annotation> maybeAnnotation = methodDecl.getParams().getParams().stream()
-                    .filter(decl -> decl instanceof J.VariableDecls)
+            methodDecl.getParams().getParams().stream()
+                    .filter(param -> param instanceof J.VariableDecls)
                     .map(J.VariableDecls.class::cast)
-                    .map(decl -> decl.findAnnotations(valueAnnotationSignature))
-                    .filter(it -> it != null && it.size() > 0)
-                    .map(annotations -> annotations.get(0))
-                    .findAny();
-
-            if (maybeAnnotation.isPresent()) {
-                List<String> pathSegments = Arrays.asList(getValueValue(maybeAnnotation.get()).split("\\."));
-                put(pathSegments, methodDecl);
-            }
+                    .filter(param -> param.findAnnotations(valueAnnotationSignature).size() > 0)
+                    .forEach(param -> {
+                        if(param.getTypeExpr() != null) {
+                            J.Annotation valueAnnotation = param.findAnnotations(valueAnnotationSignature).get(0);
+                            List<String> pathSegments = Arrays.asList(getValueValue(valueAnnotation).split("\\."));
+                            put(pathSegments, param.getTypeExpr().getType());
+                        }
+                    });
         }
 
         @Override
-        public PrefixTree put(List<String> pathSegments, J source) {
+        public PrefixTree put(List<String> pathSegments, JavaType type) {
             if (pathSegments == null) {
                 throw new IllegalArgumentException("pathSegments may not be null");
             }
@@ -805,9 +769,9 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
 
             if (children.containsKey(nodeName)) {
                 PrefixTree existingNode = children.get(nodeName);
-                existingNode.put(pathSegments.subList(1, pathSegments.size()), source);
+                existingNode.put(pathSegments.subList(1, pathSegments.size()), type);
             } else {
-                children.put(nodeName, buildChild(pathSegments, source));
+                children.put(nodeName, buildChild(pathSegments, type));
             }
             return this;
         }

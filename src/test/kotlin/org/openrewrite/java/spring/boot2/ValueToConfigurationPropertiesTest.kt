@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.openrewrite.*
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
+import org.openrewrite.java.tree.JavaType
 
 class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.CompilationUnit> {
     override val parser: JavaParser = JavaParser.fromJavaVersion()
@@ -42,7 +43,7 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
             import org.springframework.beans.factory.annotation.Value;
             
             public class ExampleValueClass {
-                public CodeSnippet(@Value("${"$"}{app.config.constructor-param}") String baz) {}
+                public ExampleValueClass(@Value("${"$"}{app.config.constructor-param}") String baz) {}
                 @Value("${"$"}{app.config.foo}")
                 String foo;
                 
@@ -88,7 +89,6 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
         assertThat(longestCommonPrefixPaths).isNotEmpty
         assertThat(longestCommonPrefixPaths).contains(listOf("app", "config"), listOf("screen"))
 
-
         // Now check out some actual results
         assertThat(results.size).isEqualTo(3)
                 .`as`("There should be the generated AppConfigConfiguration and ScreenConfiguration classes, " +
@@ -101,14 +101,22 @@ class ValueToConfigurationPropertiesTest : RefactorVisitorTestForParser<J.Compil
         val exampleValue = results.find { it.classes.first().name.simpleName == "ExampleValueClass" }
         assertThat(exampleValue).isNotNull
 
-        appConfig!!.assertHasMethod("getFoo", "setFoo", "getConstructorParam", "setConstructorParam")
-        screenConfig!!.assertHasMethod("getResolution", "setResolution", "getRefreshRate", "setRefreshRate")
-
+        appConfig.assertHasMethod("getFoo", "setFoo", "getConstructorParam", "setConstructorParam")
+        screenConfig.assertHasMethod("getResolution", "setResolution", "getRefreshRate", "setRefreshRate")
+        // The constructor of ExampleValue should have been amended to accept an AppConfigConfiguration
+        // and a ScreenConfiguration as its two arguments
+        val constructors = exampleValue!!.classes.first().methods.filter { it.isConstructor }
+        assertThat(constructors.size).isEqualTo(1)
+        val constructor = constructors.first()
+        val constructorParams = constructor.params.params
+        assertThat(constructorParams.size).isEqualTo(2)
+        assertThat(constructorParams.find { it.hasClassType(JavaType.Class.build("org.example.AppConfigConfiguration")) }).isNotNull
+        assertThat(constructorParams.find { it.hasClassType(JavaType.Class.build("org.example.ScreenConfiguration")) }).isNotNull
     }
 
-    private fun J.CompilationUnit.assertHasMethod(vararg names: String) =
+    private fun J.CompilationUnit?.assertHasMethod(vararg names: String) =
         names.forEach { name ->
-            assertThat(classes.first().methods.find { it.name.simpleName == name }).isNotNull
+            assertThat(this!!.classes.first().methods.find { it.name.simpleName == name }).isNotNull
         }
 
 
