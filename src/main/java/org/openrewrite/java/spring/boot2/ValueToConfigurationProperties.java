@@ -65,7 +65,6 @@ import static org.openrewrite.internal.StringUtils.uncapitalize;
  * 3. Reference Update phase:
  * Go through ALL classes and anywhere anything @Value annotated appears, replace it with the corresponding @ConfigurationProperties type.
  * May involve collapsing multiple arguments into a single argument, updating references to those arguments
- * <p>
  */
 @AutoConfigure
 public class ValueToConfigurationProperties extends JavaRefactorVisitor {
@@ -225,8 +224,8 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                         fieldTypeExpr,
                         fieldName,
                         null));
-                andThen(new GenerateGetter.Scoped(cd.getType(), fieldName));
-                andThen(new GenerateSetter.Scoped(cd.getType(), fieldName));
+                andThen(new GenerateGetter.Scoped(cd, fieldName));
+                andThen(new GenerateSetter.Scoped(cd, fieldName));
             } else if(pt instanceof PrefixParentNode) {
                 // Search through any inner class declarations that may exist, use existing declaration if one exists
                 String fieldName = pt.getName();
@@ -255,8 +254,8 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                         innerClassDecl.getType().getFullyQualifiedName(),
                         fieldName,
                         null));
-                andThen(new GenerateGetter.Scoped(cd.getType(), fieldName));
-                andThen(new GenerateSetter.Scoped(cd.getType(), fieldName));
+                andThen(new GenerateGetter.Scoped(cd, fieldName));
+                andThen(new GenerateSetter.Scoped(cd, fieldName));
                 // There needs to be a field and getter/setter for the inner class. Any of these may already exist
 
                 // Recurse on any children
@@ -437,7 +436,8 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                                 String initializingExpression = node.getInitializingExpression();
                                 J.Assign assignment = (J.Assign) treeBuilder.buildSnippet(getCursor(),
                                         "this." + field.getVars().get(0).getSimpleName() + " = " + initializingExpression + ";",
-                                        field.getTypeAsClass()).get(0);
+                                        field.getTypeExpr().getType()).get(0);
+
                                 // Area to improve:
                                 // None of the statements/expressions in the above snippet are going to come out
                                 // type-attributed correctly. Which could cause confusion/trouble for visitors coming later
