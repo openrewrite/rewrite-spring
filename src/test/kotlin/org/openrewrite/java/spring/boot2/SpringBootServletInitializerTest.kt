@@ -20,14 +20,14 @@ import org.openrewrite.RefactorVisitor
 import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.tree.J
-import org.openrewrite.loadVisitors
+import org.openrewrite.loadVisitorsForTest
 
 class SpringBootServletInitializerTest : RefactorVisitorTestForParser<J.CompilationUnit> {
 
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("spring-boot")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitors("org.openrewrite.java.SpringBoot2Migration")
+    override val visitors: Iterable<RefactorVisitor<*>> = loadVisitorsForTest("org.openrewrite.java.SpringBoot2Migration")
 
     @Test
     fun changeType() = assertRefactored(

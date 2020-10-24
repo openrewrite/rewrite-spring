@@ -34,7 +34,7 @@ apply(plugin = "nebula.maven-resolved-dependencies")
 apply(plugin = "io.spring.publishing")
 
 group = "org.openrewrite.recipe"
-description = "Eliminate legacy Spring patterns. Automatically."
+description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
 repositories {
     mavenLocal()
