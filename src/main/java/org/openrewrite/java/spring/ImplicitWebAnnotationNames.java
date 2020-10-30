@@ -94,6 +94,7 @@ public class ImplicitWebAnnotationNames extends JavaRefactorVisitor {
                                 .filter(assign -> assign.getVariable().whenType(J.Ident.class)
                                         .map(key -> key.getSimpleName().equals("value") || key.getSimpleName().equals("name"))
                                         .orElse(false))
+                                .filter(assign -> assign.getAssignment() instanceof J.Literal)
                                 .map(assign -> (J.Literal) assign.getAssignment())
                                 .isPresent() || arg.whenType(J.Literal.class).isPresent())
                         .findAny()
