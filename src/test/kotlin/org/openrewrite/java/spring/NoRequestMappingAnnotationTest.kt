@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.Issue
 import org.openrewrite.RefactorVisitor
 import org.openrewrite.RefactorVisitorTestForParser
 import org.openrewrite.java.JavaParser
@@ -159,7 +158,6 @@ class NoRequestMappingAnnotationTest : RefactorVisitorTestForParser<J.Compilatio
             """
     )
 
-    @Issue("#3")
     @Test
     fun requestMappingWithMultipleMethods() = assertUnchanged(
             before = """
@@ -174,6 +172,40 @@ class NoRequestMappingAnnotationTest : RefactorVisitorTestForParser<J.Compilatio
                 public class UsersController {
                     @RequestMapping(method = { HEAD, GET })
                     public ResponseEntity<List<String>> getUsersHead() {
+                        return null;
+                    }
+                }
+            """
+    )
+
+    @Test
+    fun multipleParameters() = assertRefactored(
+            before = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                import org.springframework.http.MediaType;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @RequestMapping(value = "/user/{userId}/edit", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE })
+                    public ResponseEntity<List<String>> getUsersPost(String userId) {
+                        return null;
+                    }
+                }
+            """,
+            after = """
+                import java.util.*;
+                import org.springframework.http.ResponseEntity;
+                import org.springframework.web.bind.annotation.*;
+                import org.springframework.http.MediaType;
+                
+                @RestController
+                @RequestMapping("/users")
+                public class UsersController {
+                    @PostMapping(value = "/user/{userId}/edit", produces = { MediaType.APPLICATION_JSON_VALUE })
+                    public ResponseEntity<List<String>> getUsersPost(String userId) {
                         return null;
                     }
                 }

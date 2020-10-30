@@ -16,12 +16,14 @@
 package org.openrewrite.java.spring;
 
 import org.openrewrite.AutoConfigure;
+import org.openrewrite.Formatting;
 import org.openrewrite.java.JavaRefactorVisitor;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static org.openrewrite.Formatting.EMPTY;
@@ -63,7 +65,7 @@ public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
                                                                 .orElse(null)))
                                                         .map(methodEnum -> {
                                                             maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
-                                                            return methodEnum.getSimpleName().substring(0, 1) + methodEnum.getSimpleName().substring(1).toLowerCase() + "Mapping";
+                                                            return methodEnum.getSimpleName().charAt(0) + methodEnum.getSimpleName().substring(1).toLowerCase() + "Mapping";
                                                         }))
                                 ))
                         .filter(Optional::isPresent)
@@ -88,6 +90,28 @@ public class NoRequestMappingAnnotation extends JavaRefactorVisitor {
                                         .map(key -> (Expression) assign.getAssignment().withFormatting(EMPTY)))
                                 .orElse(arg))
                         .collect(toList()));
+
+                // If more than one argument remains, ensure that there's a "value =" before the value argument
+                if(args.getArgs().size() > 1) {
+                    args = args.withArgs(args.getArgs().stream()
+                            .map(it -> {
+                                if(it instanceof J.Literal) {
+                                    return new J.Assign(
+                                            randomId(),
+                                            J.Ident.build(
+                                                    randomId(),
+                                                    "value",
+                                                    null,
+                                                    Formatting.format("", " ")),
+                                            ((J.Literal) it).withFormatting(Formatting.format(" ")),
+                                            JavaType.Class.build("java.lang.String"),
+                                            EMPTY);
+                                } else {
+                                    return it;
+                                }
+                            })
+                            .collect(toList()));
+                }
 
                 // remove the argument parentheses altogether
                 if (args.getArgs().isEmpty()) {
