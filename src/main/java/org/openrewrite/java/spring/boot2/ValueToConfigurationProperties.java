@@ -150,7 +150,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                 J.CompilationUnit cu = fillConfigurationPropertiesTypeAttribution(
                         jp.reset().parse(newClassText)
                                 .get(0)
-                                .withSourcePath(sourcePath.toUri()));
+                                .withSourcePath(sourcePath.toString()));
                 generatedClasses.put(className, cu);
                 return cu;
 
