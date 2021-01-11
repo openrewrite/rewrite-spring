@@ -140,7 +140,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                         "@ConfigurationProperties(\"" + String.join(".", commonPrefix) + "\")\n" +
                         "public class " + className + " {\n" +
                         "}\n";
-                Path parentDir = Paths.get(springBootApplication.getSourcePath().toString()).getParent();
+                Path parentDir = springBootApplication.getSourcePath().getParent();
                 Path sourcePath;
                 if(parentDir == null) {
                     sourcePath = Paths.get(className + ".java");
@@ -150,7 +150,7 @@ public class ValueToConfigurationProperties extends JavaRefactorVisitor {
                 J.CompilationUnit cu = fillConfigurationPropertiesTypeAttribution(
                         jp.reset().parse(newClassText)
                                 .get(0)
-                                .withSourcePath(sourcePath.toString()));
+                                .withSourcePath(sourcePath));
                 generatedClasses.put(className, cu);
                 return cu;
 

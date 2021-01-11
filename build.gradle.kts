@@ -26,7 +26,7 @@ buildscript {
 
 plugins {
     `java-library`
-    id("org.jetbrains.kotlin.jvm") version "1.4.0"
+    id("org.jetbrains.kotlin.jvm") version "1.4.21"
     id("io.spring.release") version "0.20.1"
     id("com.github.jk1.dependency-license-report") version "1.16"
 }
@@ -48,6 +48,13 @@ configurations.all {
     resolutionStrategy {
         cacheChangingModulesFor(0, TimeUnit.SECONDS)
         cacheDynamicVersionsFor(0, TimeUnit.SECONDS)
+    }
+
+    // We use kotlin exclusively for tests
+    // The kotlin plugin adds kotlin-stdlib dependencies to the main sourceSet, even if it doesn't use any kotlin
+    // To avoid shipping dependencies we don't actually need, exclude them from the main sourceSet classpath but add them _back_ in for the test source sets
+    if (name == "compileClasspath" || name == "runtimeClasspath") {
+        exclude(group = "org.jetbrains.kotlin")
     }
 }
 
