@@ -16,20 +16,23 @@
 package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactorVisitorTestForParser
+import org.openrewrite.Recipe
+import org.openrewrite.RecipeTest
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.tree.J
+import org.openrewrite.java.search.FindAnnotation
 
-class NoAutowiredTest : RefactorVisitorTestForParser<J.CompilationUnit> {
+class NoAutowiredTest : RecipeTest {
 
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
+    override val parser: JavaParser
+        get() = JavaParser.fromJavaVersion()
             .classpath("spring-beans")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = listOf(NoAutowired())
+    override val recipe: Recipe
+        get() = Recipe().doNext(FindAnnotation("@org.springframework.beans.factory.annotation.Autowired")).doNext(NoAutowired())
 
     @Test
-    fun removeAutowiredAnnotations() = assertRefactored(
+    fun removeAutowiredAnnotations() = assertChanged(
+            parser,
             before = """
                 import javax.sql.DataSource;
                 import org.springframework.beans.factory.annotation.Autowired;
