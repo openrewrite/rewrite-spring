@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
 import org.openrewrite.RecipeTest
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.search.FindAnnotation
 
 class NoAutowiredTest : RecipeTest {
 
@@ -28,7 +27,7 @@ class NoAutowiredTest : RecipeTest {
             .classpath("spring-beans")
             .build()
     override val recipe: Recipe
-        get() = Recipe().doNext(FindAnnotation("@org.springframework.beans.factory.annotation.Autowired")).doNext(NoAutowired())
+        get() = NoAutowired()
 
     @Test
     fun removeAutowiredAnnotations() = assertChanged(
@@ -46,6 +45,23 @@ class NoAutowiredTest : RecipeTest {
                 }
             """,
             after = """
+                import javax.sql.DataSource;
+                import org.springframework.beans.factory.annotation.Autowired;
+                
+                public class DatabaseConfiguration { 
+                    private final DataSource dataSource;
+                
+                    
+                    public DatabaseConfiguration(DataSource dataSource) {
+                    }
+                }
+            """
+    )
+
+    @Test
+    fun noAutowiredAnnotations() = assertUnchanged(
+        parser,
+        before = """
                 import javax.sql.DataSource;
                 import org.springframework.beans.factory.annotation.Autowired;
                 

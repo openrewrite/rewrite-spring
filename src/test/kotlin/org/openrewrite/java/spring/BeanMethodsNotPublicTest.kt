@@ -16,19 +16,21 @@
 package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactorVisitorTestForParser
+import org.openrewrite.Recipe
+import org.openrewrite.RecipeTest
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.tree.J
 
-class BeanMethodsNotPublicTest : RefactorVisitorTestForParser<J.CompilationUnit> {
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
+class BeanMethodsNotPublicTest : RecipeTest {
+    override val parser: JavaParser
+        get() = JavaParser.fromJavaVersion()
             .classpath("spring-context")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = listOf(BeanMethodsNotPublic())
+
+    override val recipe: Recipe
+        get() = BeanMethodsNotPublic()
 
     @Test
-    fun removePublicModifierFromBeanMethods() = assertRefactored(
+    fun removePublicModifierFromBeanMethods() = assertChanged(
             before = """
                 import javax.sql.DataSource;
                 import org.springframework.context.annotation.Bean;

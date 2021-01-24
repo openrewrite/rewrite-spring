@@ -15,53 +15,77 @@
  */
 package org.openrewrite.java.spring;
 
-import org.openrewrite.AutoConfigure;
-import org.openrewrite.java.JavaRefactorVisitor;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeProcessor;
+import org.openrewrite.java.JavaIsoProcessor;
+import org.openrewrite.java.search.FindAnnotation;
 import org.openrewrite.java.tree.J;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@AutoConfigure
-public class BeanMethodsNotPublic extends JavaRefactorVisitor {
+public class BeanMethodsNotPublic extends Recipe {
 
-    @Override
-    public J visitMethod(J.MethodDecl method) {
-        J.MethodDecl m = refactor(method, super::visitMethod);
+    public BeanMethodsNotPublic() {
+        doNext(new FindAnnotation("@org.springframework.context.annotation.Bean"));
+        doNext(new BeanMethodsNotPublicRecipe());
+    }
 
-        if (!m.findAnnotations("@org.springframework.context.annotation.Bean").isEmpty()) {
-            J.Modifier publicMod = null;
-            int publicModIndex = 0;
+    private class BeanMethodsNotPublicRecipe extends Recipe {
 
-            for (int i = 0; i < m.getModifiers().size(); i++) {
-                if (m.getModifiers().get(i) instanceof J.Modifier.Public) {
-                    publicMod = m.getModifiers().get(i);
-                    publicModIndex = i;
-                    break;
-                }
-            }
-
-            if (publicMod != null) {
-                List<J.Modifier> modifiers = new ArrayList<>(m.getModifiers());
-
-                if (publicModIndex == 0 && modifiers.size() > 1) {
-                    modifiers.set(1, modifiers.get(1).withPrefix(publicMod.getFormatting().getPrefix()));
-                }
-
-                modifiers.remove(publicMod);
-
-                m = m.withModifiers(modifiers);
-
-                if (modifiers.isEmpty()) {
-                    if (m.getTypeParameters() != null) {
-                        m.withTypeParameters(m.getTypeParameters().withPrefix(publicMod.getFormatting().getPrefix()));
-                    } else {
-                        m = m.withReturnTypeExpr(m.getReturnTypeExpr().withPrefix(publicMod.getFormatting().getPrefix()));
-                    }
-                }
-            }
+        @Override
+        protected TreeProcessor<?, ExecutionContext> getProcessor() {
+            return new BeanMethodsNotPublicProcessor();
         }
 
-        return m;
+        private class BeanMethodsNotPublicProcessor extends JavaIsoProcessor<ExecutionContext> {
+            @Override
+            public J.MethodDecl visitMethod(J.MethodDecl method, ExecutionContext executionContext) {
+                J.MethodDecl m = super.visitMethod(method, executionContext);
+                if (m.getAnnotations() == null || m.getAnnotations().isEmpty()) {
+                    return m;
+                }
+
+                List<J.Annotation> autowireds = m.getAnnotations()
+                        .stream().filter(a -> a.getMarkers() != null)
+                        .collect(Collectors.toList());
+                if (!autowireds.isEmpty()) {
+                    J.Modifier publicMod = null;
+                    int publicModIndex = 0;
+
+                    for (int i = 0; i < m.getModifiers().size(); i++) {
+                        if (m.getModifiers().get(i).getType() == J.Modifier.Type.Public) {
+                            publicMod = m.getModifiers().get(i);
+                            publicModIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (publicMod != null) {
+                        List<J.Modifier> modifiers = new ArrayList<>(m.getModifiers());
+
+                        if (publicModIndex == 0 && modifiers.size() > 1) {
+                            modifiers.set(1, modifiers.get(1).withPrefix(publicMod.getPrefix()));
+                        }
+
+                        modifiers.remove(publicMod);
+
+                        m = m.withModifiers(modifiers);
+
+                        if (modifiers.isEmpty()) {
+                            if (m.getTypeParameters() != null) {
+                                m.withTypeParameters(m.getTypeParameters().withBefore(publicMod.getPrefix()));
+                            } else {
+                                m = m.withReturnTypeExpr(m.getReturnTypeExpr().withPrefix(publicMod.getPrefix()));
+                            }
+                        }
+                    }
+                }
+                return m;
+            }
+        }
     }
+
 }
