@@ -17,62 +17,46 @@ package org.openrewrite.java.spring;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.format.AutoFormatVisitor;
+import org.openrewrite.java.format.NormalizeFormatVisitor;
 import org.openrewrite.java.tree.J;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class BeanMethodsNotPublic extends Recipe {
 
     private final AnnotationMatcher beanAnnotationMatcher = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
 
-    private class BeanMethodsNotPublicRecipe extends JavaIsoVisitor<ExecutionContext> {
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+        return new BeanMethodsNotPublicVisitor();
+    }
+
+    private class BeanMethodsNotPublicVisitor extends JavaIsoVisitor<ExecutionContext> {
+        public BeanMethodsNotPublicVisitor() {
+            setCursoringOn();
+        }
 
         @Override
         public J.MethodDecl visitMethod(J.MethodDecl method, ExecutionContext executionContext) {
             J.MethodDecl m = super.visitMethod(method, executionContext);
-            if (m.getAnnotations().isEmpty()) {
+            if (m.getAnnotations().stream().noneMatch(beanAnnotationMatcher::matches)) {
                 return m;
             }
 
-            List<J.Annotation> beanAnnotations = m.getAnnotations()
-                    .stream().filter(beanAnnotationMatcher::matches)
-                    .collect(Collectors.toList());
-            if (!beanAnnotations.isEmpty()) {
-                J.Modifier publicMod = null;
-                int publicModIndex = 0;
-
-                for (int i = 0; i < m.getModifiers().size(); i++) {
-                    if (m.getModifiers().get(i).getType() == J.Modifier.Type.Public) {
-                        publicMod = m.getModifiers().get(i);
-                        publicModIndex = i;
-                        break;
-                    }
-                }
-
-                if (publicMod != null) {
-                    List<J.Modifier> modifiers = new ArrayList<>(m.getModifiers());
-
-                    if (publicModIndex == 0 && modifiers.size() > 1) {
-                        modifiers.set(1, modifiers.get(1).withPrefix(publicMod.getPrefix()));
-                    }
-
-                    modifiers.remove(publicMod);
-
-                    m = m.withModifiers(modifiers);
-
-                    if (modifiers.isEmpty()) {
-                        if (m.getTypeParameters() != null) {
-                            m.withTypeParameters(m.getTypeParameters().withBefore(publicMod.getPrefix()));
-                        } else {
-                            m = m.withReturnTypeExpr(m.getReturnTypeExpr().withPrefix(publicMod.getPrefix()));
-                        }
-                    }
-                }
+            List<J.Modifier> nonPublicModifiers = ListUtils.map(m.getModifiers(), a -> a.getType() == J.Modifier.Type.Public ? null : a);
+            if (m.getModifiers() != nonPublicModifiers) {
+                m = m.withModifiers(nonPublicModifiers);
+                m = (J.MethodDecl) new AutoFormatVisitor<>().visit(m, executionContext, getCursor().getParent());
             }
+
             return m;
         }
     }

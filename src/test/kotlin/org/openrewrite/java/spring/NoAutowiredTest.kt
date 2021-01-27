@@ -64,10 +64,10 @@ class NoAutowiredTest : RecipeTest {
                 import javax.sql.DataSource;
                 import org.springframework.beans.factory.annotation.Autowired;
                 
-                @Primary
                 public class DatabaseConfiguration { 
                     private final DataSource dataSource;
-                
+
+                    @Primary
                     public DatabaseConfiguration(DataSource dataSource) {
                     }
                 }

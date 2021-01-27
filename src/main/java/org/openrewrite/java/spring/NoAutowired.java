@@ -22,6 +22,9 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.format.AutoFormatVisitor;
+import org.openrewrite.java.format.NormalizeFormatVisitor;
+import org.openrewrite.java.format.RemoveTrailingWhitespace;
+import org.openrewrite.java.format.RemoveTrailingWhitespaceVisitor;
 import org.openrewrite.java.tree.J;
 
 public class NoAutowired extends Recipe {

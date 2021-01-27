@@ -42,7 +42,12 @@ class BeanMethodsNotPublicTest : RecipeTest {
                     }
                     
                     @Bean
-                    public final DataSource dataSource2() {
+                    public static final DataSource dataSource2() {
+                        return new DataSource();
+                    }
+                    
+                    @Bean
+                    public final DataSource dataSource3() {
                         return new DataSource();
                     }
                 }
@@ -58,7 +63,12 @@ class BeanMethodsNotPublicTest : RecipeTest {
                     }
                     
                     @Bean
-                    final DataSource dataSource2() {
+                    static final DataSource dataSource2() {
+                        return new DataSource();
+                    }
+                    
+                    @Bean
+                    final DataSource dataSource3() {
                         return new DataSource();
                     }
                 }
