@@ -15,46 +15,41 @@
  */
 package org.openrewrite.java.spring;
 
-import org.openrewrite.Formatting;
-import org.openrewrite.AutoConfigure;
-import org.openrewrite.java.JavaRefactorVisitor;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
+import org.openrewrite.java.AnnotationMatcher;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.format.AutoFormatVisitor;
+import org.openrewrite.java.format.NormalizeFormatVisitor;
+import org.openrewrite.java.format.RemoveTrailingWhitespace;
+import org.openrewrite.java.format.RemoveTrailingWhitespaceVisitor;
 import org.openrewrite.java.tree.J;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@AutoConfigure
-public class NoAutowired extends JavaRefactorVisitor {
+public class NoAutowired extends Recipe {
 
     @Override
-    public J visitMethod(J.MethodDecl method) {
-        J.MethodDecl m = refactor(method, super::visitMethod);
+    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+        return new NoAutowiredAnnotationsVisitor();
+    }
 
-        List<J.Annotation> autowireds = method.findAnnotations("@org.springframework.beans.factory.annotation.Autowired");
-        if (method.isConstructor() && !autowireds.isEmpty()) {
-            J.Annotation autowired = autowireds.iterator().next();
+    private class NoAutowiredAnnotationsVisitor extends JavaIsoVisitor<ExecutionContext> {
+        private final AnnotationMatcher annotationMatcher = new AnnotationMatcher("@org.springframework.beans.factory.annotation.Autowired");
 
-            List<J.Annotation> annotations = new ArrayList<>(m.getAnnotations());
-            String autowiredPrefix = autowired.getFormatting().getPrefix();
-
-            if(annotations.get(0) == autowired && annotations.size() > 1) {
-                annotations.set(1, annotations.get(1).withPrefix(autowiredPrefix));
-            }
-            else if(!m.getModifiers().isEmpty()) {
-                m = m.withModifiers(Formatting.formatFirstPrefix(m.getModifiers(), autowiredPrefix));
-            }
-            else if(m.getTypeParameters() != null) {
-                m = m.withTypeParameters(m.getTypeParameters().withPrefix(autowiredPrefix));
-            }
-            else {
-                m = m.withName(m.getName().withPrefix(autowiredPrefix));
-            }
-
-            annotations.remove(autowired);
-
-            m = m.withAnnotations(annotations);
+        public NoAutowiredAnnotationsVisitor() {
+            setCursoringOn();
         }
 
-        return m;
+        @Override
+        public J.MethodDecl visitMethod(J.MethodDecl method, ExecutionContext executionContext) {
+            J.MethodDecl m = super.visitMethod(method, executionContext);
+            m = m.withAnnotations(ListUtils.map(m.getAnnotations(), a -> annotationMatcher.matches(a) ? null : a));
+            if (m.getAnnotations() != method.getAnnotations()) {
+                m = (J.MethodDecl) new AutoFormatVisitor<>().visit(m, executionContext, getCursor().getParentOrThrow());
+            }
+            return m;
+        }
     }
 }
+

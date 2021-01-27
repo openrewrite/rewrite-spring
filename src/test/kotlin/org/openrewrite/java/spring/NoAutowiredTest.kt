@@ -16,27 +16,29 @@
 package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactorVisitorTestForParser
+import org.openrewrite.Recipe
+import org.openrewrite.RecipeTest
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.tree.J
 
-class NoAutowiredTest : RefactorVisitorTestForParser<J.CompilationUnit> {
+class NoAutowiredTest : RecipeTest {
 
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
+    override val parser: JavaParser
+        get() = JavaParser.fromJavaVersion()
             .classpath("spring-beans")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = listOf(NoAutowired())
+    override val recipe: Recipe
+        get() = NoAutowired()
 
     @Test
-    fun removeAutowiredAnnotations() = assertRefactored(
+    fun removeAutowiredAnnotations() = assertChanged(
+            parser,
             before = """
                 import javax.sql.DataSource;
                 import org.springframework.beans.factory.annotation.Autowired;
                 
                 public class DatabaseConfiguration { 
                     private final DataSource dataSource;
-                
+
                     @Autowired
                     public DatabaseConfiguration(DataSource dataSource) {
                     }
@@ -48,10 +50,29 @@ class NoAutowiredTest : RefactorVisitorTestForParser<J.CompilationUnit> {
                 
                 public class DatabaseConfiguration { 
                     private final DataSource dataSource;
-                
+
+
                     public DatabaseConfiguration(DataSource dataSource) {
                     }
                 }
             """
     )
+
+    @Test
+    fun noAutowiredAnnotations() = assertUnchanged(
+        parser,
+        before = """
+                import javax.sql.DataSource;
+                import org.springframework.beans.factory.annotation.Autowired;
+                
+                public class DatabaseConfiguration { 
+                    private final DataSource dataSource;
+
+                    @Primary
+                    public DatabaseConfiguration(DataSource dataSource) {
+                    }
+                }
+            """
+    )
+
 }
