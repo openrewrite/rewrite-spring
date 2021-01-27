@@ -51,6 +51,7 @@ class NoAutowiredTest : RecipeTest {
                 public class DatabaseConfiguration { 
                     private final DataSource dataSource;
 
+
                     public DatabaseConfiguration(DataSource dataSource) {
                     }
                 }
