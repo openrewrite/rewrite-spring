@@ -22,13 +22,9 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.format.AutoFormatVisitor;
-import org.openrewrite.java.format.NormalizeFormatVisitor;
 import org.openrewrite.java.tree.J;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class BeanMethodsNotPublic extends Recipe {
 

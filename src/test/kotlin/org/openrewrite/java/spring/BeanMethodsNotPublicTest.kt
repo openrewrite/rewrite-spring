@@ -34,20 +34,22 @@ class BeanMethodsNotPublicTest : RecipeTest {
             before = """
                 import javax.sql.DataSource;
                 import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Primary;
                 
                 public class DatabaseConfiguration { 
+                    @Primary
                     @Bean
                     public DataSource dataSource() {
                         return new DataSource();
                     }
                     
                     @Bean
-                    public static final DataSource dataSource2() {
+                    public final DataSource dataSource2() {
                         return new DataSource();
                     }
                     
                     @Bean
-                    public final DataSource dataSource3() {
+                    public static final DataSource dataSource3() {
                         return new DataSource();
                     }
                 }
@@ -55,20 +57,23 @@ class BeanMethodsNotPublicTest : RecipeTest {
             after = """
                 import javax.sql.DataSource;
                 import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Primary;
                 
                 public class DatabaseConfiguration { 
+                    
+                    @Primary
                     @Bean
                     DataSource dataSource() {
                         return new DataSource();
                     }
                     
                     @Bean
-                    static final DataSource dataSource2() {
+                    final DataSource dataSource2() {
                         return new DataSource();
                     }
                     
                     @Bean
-                    final DataSource dataSource3() {
+                    static final DataSource dataSource3() {
                         return new DataSource();
                     }
                 }
