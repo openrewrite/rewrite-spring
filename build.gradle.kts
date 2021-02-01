@@ -65,6 +65,8 @@ dependencies {
     implementation("org.openrewrite:rewrite-yaml:latest.integration")
     implementation("org.openrewrite:rewrite-maven:latest.integration")
 
+    implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:latest.release")
+
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
 
