@@ -17,20 +17,21 @@ package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.Issue
-import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactorVisitorTestForParser
+import org.openrewrite.Recipe
+import org.openrewrite.RecipeTest
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.tree.J
 
-class ImplicitWebAnnotationNamesTest : RefactorVisitorTestForParser<J.CompilationUnit> {
+class ImplicitWebAnnotationNamesTest : RecipeTest {
 
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
+    override val parser: JavaParser
+        get() = JavaParser.fromJavaVersion()
             .classpath("spring-web")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = listOf(ImplicitWebAnnotationNames())
+    override val recipe: Recipe
+        get() = ImplicitWebAnnotationNames()
 
     @Test
-    fun removeUnnecessaryAnnotationArgument() = assertRefactored(
+    fun removeUnnecessaryAnnotationArgument() = assertChanged(
             before = """
                 import org.springframework.http.ResponseEntity;
                 import org.springframework.web.bind.annotation.*;
@@ -42,6 +43,7 @@ class ImplicitWebAnnotationNamesTest : RefactorVisitorTestForParser<J.Compilatio
                     public ResponseEntity<String> getUser(@PathVariable("id") Long id,
                                                           @PathVariable(required = false) Long p2,
                                                           @PathVariable(value = "p3") Long anotherName) {
+                        System.out.println(anotherName);
                     }
                 }
             """,
@@ -56,6 +58,7 @@ class ImplicitWebAnnotationNamesTest : RefactorVisitorTestForParser<J.Compilatio
                     public ResponseEntity<String> getUser(@PathVariable Long id,
                                                           @PathVariable(required = false) Long p2,
                                                           @PathVariable Long p3) {
+                        System.out.println(p3);
                     }
                 }
             """
@@ -63,7 +66,7 @@ class ImplicitWebAnnotationNamesTest : RefactorVisitorTestForParser<J.Compilatio
 
     @Issue("#4")
     @Test
-    fun removeUnnecessarySpacingInFollowingAnnotationArgument() = assertRefactored(
+    fun removeUnnecessarySpacingInFollowingAnnotationArgument() = assertChanged(
             before = """
                 import org.springframework.http.ResponseEntity;
                 import org.springframework.web.bind.annotation.*;
@@ -108,7 +111,7 @@ class ImplicitWebAnnotationNamesTest : RefactorVisitorTestForParser<J.Compilatio
     )
 
     @Test
-    fun onlyDropCamelCasedNames() = assertRefactored(
+    fun onlyDropCamelCasedNames() = assertChanged(
             before = """
                 import org.springframework.web.bind.annotation.*;
                 
