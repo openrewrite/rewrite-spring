@@ -33,6 +33,14 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
+/**
+ * Remove implicit web-annotation names (name, value) and rename the associated variable.
+ * Note. kebab and snake case annotation argument names are excluded
+ *
+ * <li> @PathVariable(value = "p3") Long anotherName --> @PathVariable Long p3
+ * <li> @PathVariable("id") Long id --> @PathVariable Long id
+ *
+ */
 public class ImplicitWebAnnotationNames extends Recipe {
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -59,7 +67,6 @@ public class ImplicitWebAnnotationNames extends Recipe {
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation a = super.visitAnnotation(annotation, ctx);
 
-            // Removing implicit parameter --> @PathVariable(value = "p3") Long anotherName --> @PathVariable Long p3
             if (PARAM_ANNOTATIONS.stream().anyMatch(annotationClass -> isOfClassType(annotation.getType(), annotationClass)) &&
                     annotation.getArgs() != null && getCursor().getParentOrThrow().getValue() instanceof J.VariableDecls) {
 
@@ -94,7 +101,9 @@ public class ImplicitWebAnnotationNames extends Recipe {
             assert value != null;
             if (namedVar.getSimpleName().equals(value)) {
                 return true;
-            } else if (value.toString().matches("[a-z][A-Za-z0-9]*")) {
+            }
+            // kebab and snake case argument names are not renamed
+            else if (value.toString().matches("[a-z][A-Za-z0-9]*")) {
                 doAfterVisit(new RenameVariable<>(namedVar, value.toString()));
                 return true;
             }
