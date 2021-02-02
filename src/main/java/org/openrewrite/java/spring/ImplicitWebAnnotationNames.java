@@ -22,16 +22,14 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RenameVariable;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
 import org.openrewrite.marker.Marker;
-import org.openrewrite.marker.Markers;
 
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
@@ -58,73 +56,49 @@ public class ImplicitWebAnnotationNames extends Recipe {
         }
 
         @Override
-        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
-            J.Annotation a = annotation;
-            if (a.getArgs() == null) {
-                return a;
-            }
+        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+            J.Annotation a = super.visitAnnotation(annotation, ctx);
 
             // Removing implicit parameter --> @PathVariable(value = "p3") Long anotherName --> @PathVariable Long p3
-            if (PARAM_ANNOTATIONS.stream()
-                    .anyMatch(annotationClass -> isOfClassType(annotation.getType(), annotationClass)) &&
+            if (PARAM_ANNOTATIONS.stream().anyMatch(annotationClass -> isOfClassType(annotation.getType(), annotationClass)) &&
                     annotation.getArgs() != null && getCursor().getParentOrThrow().getValue() instanceof J.VariableDecls) {
 
-                // Removing implicit parameter --> @PathVariable(value = "p3") Long anotherName --> @PathVariable Long p3
-                // Collect a list of J.Assign arguments to be removed
-                List<J.Assign> modifiedExpression = a.getArgs().stream()
-                        .filter(z -> {
-                            if (z instanceof J.Assign && ((J.Assign) z).getVariable() instanceof J.Ident) {
-                                J.Ident ident = (J.Ident) ((J.Assign) z).getVariable();
-                                if (ident.getSimpleName().matches("name|value")) {
-                                    return true;
+                a = maybeAutoFormat(a, a.withArgs(ListUtils.map(a.getArgs(), arg -> {
+                    Cursor varDecsCursor = getCursor().getParentOrThrow();
+                    J.VariableDecls.NamedVar namedVar = varDecsCursor.<J.VariableDecls>getValue().getVars().get(0);
+                    if (arg instanceof J.Assign) {
+                        J.Assign assign = (J.Assign) arg;
+                        if (assign.getVariable() instanceof J.Ident && assign.getAssignment() instanceof J.Literal) {
+                            J.Ident assignName = (J.Ident) assign.getVariable();
+                            if (assignName.getSimpleName().equals("value") || assignName.getSimpleName().equals("name")) {
+                                if (maybeRemoveArg(namedVar, (J.Literal) assign.getAssignment())) {
+                                    return null;
                                 }
-                            }
-                            return false;
-                        })
-                        .map(J.Assign.class::cast)
-                        .collect(Collectors.toList());
-
-                // Remove the argument check for a rename
-                if (!modifiedExpression.isEmpty()) {
-                    a = a.withArgs(ListUtils.map(a.getArgs(), z -> {
-                        for (J.Assign o : modifiedExpression) {
-                            if (o == z) {
-                                // Grab the Variable Declarations Cursor
-                                Cursor varDecsCursor = getCursor().getParentOrThrow();
-                                J.VariableDecls.NamedVar namedVar = varDecsCursor.<J.VariableDecls>getValue().getVars().get(0);
-                                Cursor namedVarCursor = new Cursor(varDecsCursor, namedVar);
-                                String newName = ((J.Literal)o.getAssignment()).getValue().toString();
-                                String oldName = namedVar.getSimpleName();
-                                if (newName != oldName) {
-                                    RenameVariable renameVariable = new RenameVariable(namedVarCursor, newName);
-                                    doAfterVisit(renameVariable);
-                                }
-
-                                // return null to remove argument
-                                return null;
                             }
                         }
-                        return z;
-                    }));
-                }
-                if (a.getArgs().isEmpty()) {
-                    a = a.withArgs(null);
-                }
+                    } else if (arg instanceof J.Literal) {
+                        if (maybeRemoveArg(namedVar, (J.Literal) arg)) {
+                            return null;
+                        }
+                    }
+
+                    return arg;
+                })), ctx);
             }
-            return super.visitAnnotation(a, executionContext);
+
+            return a;
         }
 
-        @Override
-        public J.VariableDecls.NamedVar visitVariable(J.VariableDecls.NamedVar variable, ExecutionContext executionContext) {
-            J.VariableDecls.NamedVar namedVar = super.visitVariable(variable, executionContext);
-            if(namedVar.getName().getSimpleName().equals("anotherName")){
-                System.out.println("");
-            };
-            return namedVar;
+        private boolean maybeRemoveArg(J.VariableDecls.NamedVar namedVar, J.Literal assignValue) {
+            Object value = assignValue.getValue();
+            assert value != null;
+            if (namedVar.getSimpleName().equals(value)) {
+                return true;
+            } else if (value.toString().matches("[a-z][A-Za-z0-9]*")) {
+                doAfterVisit(new RenameVariable<>(namedVar, value.toString()));
+                return true;
+            }
+            return false;
         }
-    }
-
-    private static class RenameArgMarker implements Marker {
-
     }
 }
