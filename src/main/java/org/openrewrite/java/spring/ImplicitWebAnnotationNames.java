@@ -34,9 +34,10 @@ import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
 /**
- * Remove implicit web-annotation names (name, value) and rename the associated variable.
+ * Remove implicit web-annotation argument names and rename the associated variable.
+ * <br>
  * Note. kebab and snake case annotation argument names are excluded
- *
+ * <p>
  * <li> @PathVariable(value = "p3") Long anotherName --> @PathVariable Long p3
  * <li> @PathVariable("id") Long id --> @PathVariable Long id
  *
