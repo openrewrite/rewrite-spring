@@ -39,7 +39,7 @@ class RestTemplateBuilderRequestFactoryTest : RecipeTest {
                 public class A {
                     {
                         RestTemplateBuilder builder = new RestTemplateBuilder()
-                            .requestFactory(new SimpleClientHttpRequestFactory());
+                                .requestFactory(new SimpleClientHttpRequestFactory());
                     }
                 }
             """,
@@ -51,7 +51,7 @@ class RestTemplateBuilderRequestFactoryTest : RecipeTest {
                 public class A {
                     {
                         RestTemplateBuilder builder = new RestTemplateBuilder()
-                            .requestFactory(() -> new SimpleClientHttpRequestFactory());
+                                .requestFactory(() -> new SimpleClientHttpRequestFactory());
                     }
                 }
             """
