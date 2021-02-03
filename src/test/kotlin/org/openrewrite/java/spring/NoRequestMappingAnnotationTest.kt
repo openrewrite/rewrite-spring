@@ -16,20 +16,21 @@
 package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.RefactorVisitor
-import org.openrewrite.RefactorVisitorTestForParser
+import org.openrewrite.Recipe
+import org.openrewrite.RecipeTest
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.tree.J
 
-class NoRequestMappingAnnotationTest : RefactorVisitorTestForParser<J.CompilationUnit> {
+class NoRequestMappingAnnotationTest : RecipeTest {
 
-    override val parser: JavaParser = JavaParser.fromJavaVersion()
+    override val parser: JavaParser
+        get() = JavaParser.fromJavaVersion()
             .classpath("spring-web")
             .build()
-    override val visitors: Iterable<RefactorVisitor<*>> = listOf(NoRequestMappingAnnotation())
+    override val recipe: Recipe
+        get() = NoRequestMappingAnnotation()
 
     @Test
-    fun requestMapping() = assertRefactored(
+    fun requestMapping() = assertChanged(
             before = """
                 import java.util.*;
                 import org.springframework.http.ResponseEntity;
@@ -94,7 +95,7 @@ class NoRequestMappingAnnotationTest : RefactorVisitorTestForParser<J.Compilatio
     )
 
     @Test
-    fun postMapping() = assertRefactored(
+    fun postMapping() = assertChanged(
             before = """
                 import java.util.*;
                 import org.springframework.http.ResponseEntity;
@@ -127,7 +128,7 @@ class NoRequestMappingAnnotationTest : RefactorVisitorTestForParser<J.Compilatio
     )
 
     @Test
-    fun hasValueParameter() = assertRefactored(
+    fun hasValueParameter() = assertChanged(
             before = """
                 import java.util.*;
                 import org.springframework.http.ResponseEntity;
@@ -136,7 +137,7 @@ class NoRequestMappingAnnotationTest : RefactorVisitorTestForParser<J.Compilatio
                 @RestController
                 @RequestMapping("/users")
                 public class UsersController {
-                    @RequestMapping(value = "/user/{userId}/edit", method = RequestMethod.POST)
+                    @RequestMapping(value = "/user/{userId}/edit", method = {RequestMethod.POST})
                     public ResponseEntity<List<String>> getUsersPost(String userId) {
                         return null;
                     }
@@ -179,7 +180,7 @@ class NoRequestMappingAnnotationTest : RefactorVisitorTestForParser<J.Compilatio
     )
 
     @Test
-    fun multipleParameters() = assertRefactored(
+    fun multipleParameters() = assertChanged(
             before = """
                 import java.util.*;
                 import org.springframework.http.ResponseEntity;
@@ -204,7 +205,7 @@ class NoRequestMappingAnnotationTest : RefactorVisitorTestForParser<J.Compilatio
                 @RestController
                 @RequestMapping("/users")
                 public class UsersController {
-                    @PostMapping(value = "/user/{userId}/edit", produces = { MediaType.APPLICATION_JSON_VALUE })
+                    @PostMapping(value = "/user/{userId}/edit", produces = {MediaType.APPLICATION_JSON_VALUE})
                     public ResponseEntity<List<String>> getUsersPost(String userId) {
                         return null;
                     }
