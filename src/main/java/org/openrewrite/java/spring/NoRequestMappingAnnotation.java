@@ -118,7 +118,7 @@ public class NoRequestMappingAnnotation extends Recipe {
 
         private boolean methodArgumentHasSingleType(J.Assign assign) {
             return !(assign.getAssignment() instanceof J.NewArray)
-                    || ((J.NewArray) assign.getAssignment()).getInitializer().size() <= 1;
+                    || ((J.NewArray) assign.getAssignment()).getInitializer().size() == 1;
         }
 
         private Optional<RequestMethod> requestMethodType(@Nullable J.Assign assign) {
