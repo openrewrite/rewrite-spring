@@ -27,6 +27,7 @@ import org.openrewrite.java.tree.*;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -143,19 +144,11 @@ public class NoRequestMappingAnnotation extends Recipe {
             String methodName;
             switch (method) {
                 case POST:
-                    methodName = "PostMapping";
-                    break;
                 case PUT:
-                    methodName = "PutMapping";
-                    break;
                 case DELETE:
-                    methodName = "DeleteMapping";
-                    break;
                 case PATCH:
-                    methodName = "PatchMapping";
-                    break;
                 case GET:
-                    methodName = "GetMapping";
+                    methodName = method.name().charAt(0) + method.name().substring(1).toLowerCase();
                     break;
                 default:
                     methodName = null;
