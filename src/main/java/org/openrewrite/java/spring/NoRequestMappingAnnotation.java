@@ -50,7 +50,6 @@ public class NoRequestMappingAnnotation extends Recipe {
         private static final String SPRING_BIND_ANNOTATION_PACKAGE = "org.springframework.web.bind.annotation";
         private static final AnnotationMatcher REQUEST_MAPPING_ANNOTATION_MATCHER = new AnnotationMatcher(SPRING_BIND_ANNOTATION_PACKAGE + ".RequestMapping");
 
-
         public NoRequestMappingAnnotationVisitor() {
             setCursoringOn();
         }
@@ -151,7 +150,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                 case DELETE:
                 case PATCH:
                 case GET:
-                    methodName = method.name().charAt(0) + method.name().substring(1).toLowerCase();
+                    methodName = method.name().charAt(0) + method.name().substring(1).toLowerCase() + "Mapping";
                     break;
                 default:
                     methodName = null;
