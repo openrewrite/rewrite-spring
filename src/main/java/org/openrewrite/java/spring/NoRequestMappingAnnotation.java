@@ -71,11 +71,17 @@ public class NoRequestMappingAnnotation extends Recipe {
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport(resolvedRequestMappingAnnotationClassName);
                     if (a.getArgs() == null || a.getArgs().isEmpty()) {
-                        JavaTemplate.Builder tb = template(associatedRequestMapping(requestType.get()));
-                        a = a.withTemplate(tb.build(), a.getAnnotationType().getCoordinates().replace());
+                        JavaTemplate.Builder tb = template("@" + associatedRequestMapping(requestType.get()));
+                        a = a.withTemplate(tb.build(), a.getCoordinates().replace());
                     } else {
-                        JavaTemplate.Builder tb = template(associatedRequestMapping(requestType.get()) + "(#{})");
-                        a = a.withTemplate(tb.build(), a.getAnnotationType().getCoordinates().replace(), a.getArgs());
+                        // JavaTemplate work around
+                        String t = "@" + associatedRequestMapping(requestType.get()) + "(";
+                        for (int i=0; i<a.getArgs().size(); i++){
+                            t = t+"#{},";
+                        }
+                        t = t.substring(0, t.length()-1) + ")";
+                        JavaTemplate.Builder tb = template(t);
+                        a = a.withTemplate(tb.build(), a.getCoordinates().replace(), a.getArgs().toArray());
                     }
                 }
 
