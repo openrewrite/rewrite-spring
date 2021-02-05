@@ -22,7 +22,7 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.internal.JavaTemplate;
 import org.openrewrite.java.tree.*;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -70,12 +70,13 @@ public class NoRequestMappingAnnotation extends Recipe {
                 // Change the Annotation Type
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport(resolvedRequestMappingAnnotationClassName);
-                    // JavaTemplate work-around for argument array
-                    List<Expression> args = a.getArgs();
-                    JavaTemplate template = JavaTemplate.builder("@"+ associatedRequestMapping(requestType.get())).build();
-                    a = maybeAutoFormat(a, template.generate(getCursor(), a.getCoordinates().replace()), ctx);
-                    // JavaTemplate work-around for argument array
-                    a = maybeAutoFormat(a, a.withArgs(args), ctx);
+                    if (a.getArgs() == null || a.getArgs().isEmpty()) {
+                        JavaTemplate.Builder tb = template(associatedRequestMapping(requestType.get()));
+                        a = a.withTemplate(tb.build(), a.getAnnotationType().getCoordinates().replace());
+                    } else {
+                        JavaTemplate.Builder tb = template(associatedRequestMapping(requestType.get()) + "(#{})");
+                        a = a.withTemplate(tb.build(), a.getAnnotationType().getCoordinates().replace(), a.getArgs());
+                    }
                 }
 
                 // if there is only one remaining argument now, and it is "path" or "value", then we can drop the key name
