@@ -22,7 +22,7 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.internal.JavaTemplate;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.*;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -70,21 +70,25 @@ public class NoRequestMappingAnnotation extends Recipe {
                     a = maybeAutoFormat(a, a.withArgs(ListUtils.map(a.getArgs(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
                 }
 
+                // Remove the argument
+                if (requestMethodArg.isPresent() && methodArgumentHasSingleType(requestMethodArg.get()) && resolvedRequestMappingAnnotationClassName != null) {
+                    a = maybeAutoFormat(a, a.withArgs(ListUtils.map(a.getArgs(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
+                }
                 // Change the Annotation Type
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport(resolvedRequestMappingAnnotationClassName);
                     if (a.getArgs() == null || a.getArgs().isEmpty()) {
-                        JavaTemplate.Builder tb = template("@" + associatedRequestMapping(requestType.get()));
-                        a = a.withTemplate(tb.build(), a.getCoordinates().replace());
+                        String newAnno = "@"+associatedRequestMapping(requestType.get());
+                        JavaTemplate tb = template(newAnno).build();
+                        //a = a.withTemplate(tb, a.getAnnotationType().getCoordinates().replace());
                     } else {
                         // JavaTemplate work around
-                        String t = "@" + associatedRequestMapping(requestType.get()) + "(";
-                        for (int i=0; i<a.getArgs().size(); i++){
-                            t = t+"#{},";
-                        }
-                        t = t.substring(0, t.length()-1) + ")";
-                        JavaTemplate.Builder tb = template(t);
-                        a = a.withTemplate(tb.build(), a.getCoordinates().replace(), a.getArgs().toArray());
+                        StringBuilder sb = new StringBuilder("(");
+                        a.getArgs().forEach(arg -> {sb.append(arg.print()+",");});
+                        sb.deleteCharAt(sb.lastIndexOf(","));
+                        sb.append(")");
+                        JavaTemplate tb = template(sb.toString()).build();
+                        a.withTemplate(tb, a.getArgs().get(0).getCoordinates().replace());
                     }
                 }
 
