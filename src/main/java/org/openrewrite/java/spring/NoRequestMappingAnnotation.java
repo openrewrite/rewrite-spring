@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Replace method declaration @RequestMapping annotations with the associated variant
@@ -70,25 +71,18 @@ public class NoRequestMappingAnnotation extends Recipe {
                     a = maybeAutoFormat(a, a.withArgs(ListUtils.map(a.getArgs(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
                 }
 
-                // Remove the argument
-                if (requestMethodArg.isPresent() && methodArgumentHasSingleType(requestMethodArg.get()) && resolvedRequestMappingAnnotationClassName != null) {
-                    a = maybeAutoFormat(a, a.withArgs(ListUtils.map(a.getArgs(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
-                }
                 // Change the Annotation Type
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport(resolvedRequestMappingAnnotationClassName);
                     if (a.getArgs() == null || a.getArgs().isEmpty()) {
-                        String newAnno = "@"+associatedRequestMapping(requestType.get());
-                        JavaTemplate tb = template(newAnno).build();
-                        //a = a.withTemplate(tb, a.getAnnotationType().getCoordinates().replace());
+                        a = a.withTemplate(template("@"+associatedRequestMapping(requestType.get())).build(), a.getCoordinates().replace());
                     } else {
                         // JavaTemplate work around
-                        StringBuilder sb = new StringBuilder("(");
-                        a.getArgs().forEach(arg -> {sb.append(arg.print()+",");});
-                        sb.deleteCharAt(sb.lastIndexOf(","));
+                        StringBuilder sb = new StringBuilder("@" + associatedRequestMapping(requestType.get()) + "(");
+                        sb.append(String.join(",", a.getArgs().stream().map(J::print).collect(Collectors.toList())));
                         sb.append(")");
                         JavaTemplate tb = template(sb.toString()).build();
-                        a.withTemplate(tb, a.getArgs().get(0).getCoordinates().replace());
+                        a = a.withTemplate(tb, a.getCoordinates().replace());
                     }
                 }
 
