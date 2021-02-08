@@ -77,7 +77,6 @@ public class NoRequestMappingAnnotation extends Recipe {
                     if (a.getArgs() == null || a.getArgs().isEmpty()) {
                         a = a.withTemplate(template("@"+associatedRequestMapping(requestType.get())).build(), a.getCoordinates().replace());
                     } else {
-                        // JavaTemplate work around
                         StringBuilder sb = new StringBuilder("@" + associatedRequestMapping(requestType.get()) + "(");
                         sb.append(String.join(",", a.getArgs().stream().map(J::print).collect(Collectors.toList())));
                         sb.append(")");
