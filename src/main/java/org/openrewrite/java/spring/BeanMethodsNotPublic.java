@@ -21,21 +21,19 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.format.AutoFormatVisitor;
 import org.openrewrite.java.tree.J;
 
-import java.util.List;
-
 public class BeanMethodsNotPublic extends Recipe {
-
-    private final AnnotationMatcher beanAnnotationMatcher = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new BeanMethodsNotPublicVisitor();
     }
 
-    private class BeanMethodsNotPublicVisitor extends JavaIsoVisitor<ExecutionContext> {
+    private static class BeanMethodsNotPublicVisitor extends JavaIsoVisitor<ExecutionContext> {
+
+        private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
+
         public BeanMethodsNotPublicVisitor() {
             setCursoringOn();
         }
@@ -43,17 +41,11 @@ public class BeanMethodsNotPublic extends Recipe {
         @Override
         public J.MethodDecl visitMethod(J.MethodDecl method, ExecutionContext executionContext) {
             J.MethodDecl m = super.visitMethod(method, executionContext);
-            if (m.getAnnotations().stream().noneMatch(beanAnnotationMatcher::matches)) {
+            if (m.getAnnotations().stream().noneMatch(BEAN_ANNOTATION_MATCHER::matches)) {
                 return m;
             }
 
-            List<J.Modifier> nonPublicModifiers = ListUtils.map(m.getModifiers(), a -> a.getType() == J.Modifier.Type.Public ? null : a);
-            if (m.getModifiers() != nonPublicModifiers) {
-                m = m.withModifiers(nonPublicModifiers);
-                m = (J.MethodDecl) new AutoFormatVisitor<>().visit(m, executionContext, getCursor().getParent());
-            }
-
-            return m;
+            return maybeAutoFormat(m, m.withModifiers(ListUtils.map(m.getModifiers(), a -> a.getType() == J.Modifier.Type.Public ? null : a)), executionContext);
         }
     }
 }

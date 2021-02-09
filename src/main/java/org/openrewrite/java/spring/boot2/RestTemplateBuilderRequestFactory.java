@@ -19,8 +19,8 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.internal.JavaTemplate;
 import org.openrewrite.java.tree.J;
 
 /**
@@ -44,8 +44,8 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
             if (requestFactory.matches(method)) {
-                JavaTemplate.Builder tb = template("() -> #{}");
-                m = m.withTemplate(tb.build(), m.getArgs().get(0).getCoordinates().replace(), m.getArgs().get(0));
+                JavaTemplate.Builder tb = template("(() -> #{})");
+                m = m.withTemplate(tb.build(), m.getCoordinates().replaceArguments(), m.getArgs().get(0));
             }
             return m;
         }
