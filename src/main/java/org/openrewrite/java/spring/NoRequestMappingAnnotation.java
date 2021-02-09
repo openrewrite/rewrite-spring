@@ -56,9 +56,9 @@ public class NoRequestMappingAnnotation extends Recipe {
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation a = super.visitAnnotation(annotation, ctx);
-            if (REQUEST_MAPPING_ANNOTATION_MATCHER.matches(a) && getCursor().getParentOrThrow().getValue() instanceof J.MethodDecl) {
+            if (REQUEST_MAPPING_ANNOTATION_MATCHER.matches(a) && getCursor().getParentOrThrow().getValue() instanceof J.MethodDeclaration) {
 
-                Optional<J.Assign> requestMethodArg = requestMethodArgument(a);
+                Optional<J.Assignment> requestMethodArg = requestMethodArgument(a);
                 Optional<RequestMethod> requestType = requestMethodArg.isPresent() ? requestMethodArg.flatMap(this::requestMethodType) : Optional.of(RequestMethod.GET);
                 String resolvedRequestMappingAnnotationClassName = requestType.map(this::associatedRequestMapping).orElse(null);
 
@@ -66,29 +66,29 @@ public class NoRequestMappingAnnotation extends Recipe {
 
                 // Remove the argument
                 if (requestMethodArg.isPresent() && methodArgumentHasSingleType(requestMethodArg.get()) && resolvedRequestMappingAnnotationClassName != null) {
-                    a = maybeAutoFormat(a, a.withArgs(ListUtils.map(a.getArgs(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
+                    a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
                 }
 
                 // Change the Annotation Type
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport(resolvedRequestMappingAnnotationClassName);
-                    if (a.getArgs() == null || a.getArgs().isEmpty()) {
+                    if (a.getArguments() == null || a.getArguments().isEmpty()) {
                         a = a.withTemplate(template("@"+associatedRequestMapping(requestType.get())).build(), a.getCoordinates().replace());
                     } else {
                         String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
-                                "(" + a.getArgs().stream().map(J::print).collect(Collectors.joining(",")) + ")";
+                                "(" + a.getArguments().stream().map(J::print).collect(Collectors.joining(",")) + ")";
                         JavaTemplate tb = template(annotationTemplateString).build();
                         a = a.withTemplate(tb, a.getCoordinates().replace());
                     }
                 }
 
                 // if there is only one remaining argument now, and it is "path" or "value", then we can drop the key name
-                if (a.getArgs() != null && a.getArgs().size() == 1) {
-                    a = maybeAutoFormat(a, a.withArgs(ListUtils.map(a.getArgs(), arg -> {
-                        if (arg instanceof J.Assign && ((J.Assign) arg).getVariable() instanceof J.Ident) {
-                            J.Ident ident = (J.Ident)((J.Assign)arg).getVariable();
+                if (a.getArguments() != null && a.getArguments().size() == 1) {
+                    a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> {
+                        if (arg instanceof J.Assignment && ((J.Assignment) arg).getVariable() instanceof J.Identifier) {
+                            J.Identifier ident = (J.Identifier)((J.Assignment)arg).getVariable();
                             if (ident.getSimpleName().equals("path") || ident.getSimpleName().equals("value")) {
-                                return ((J.Assign) arg).getAssignment();
+                                return ((J.Assignment) arg).getAssignment();
                             }
                         }
                         return arg;
@@ -98,36 +98,36 @@ public class NoRequestMappingAnnotation extends Recipe {
             return a;
         }
 
-        private Optional<J.Assign> requestMethodArgument(J.Annotation annotation) {
-            if (annotation.getArgs() == null) {
+        private Optional<J.Assignment> requestMethodArgument(J.Annotation annotation) {
+            if (annotation.getArguments() == null) {
                 return Optional.empty();
             }
-            return annotation.getArgs().stream()
-                    .filter(arg -> arg instanceof J.Assign
-                            && ((J.Assign) arg).getVariable() instanceof J.Ident
-                            && ((J.Ident) ((J.Assign) arg).getVariable()).getSimpleName().equals("method"))
-                    .map(J.Assign.class::cast)
+            return annotation.getArguments().stream()
+                    .filter(arg -> arg instanceof J.Assignment
+                            && ((J.Assignment) arg).getVariable() instanceof J.Identifier
+                            && ((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName().equals("method"))
+                    .map(J.Assignment.class::cast)
                     .findFirst();
         }
 
-        private boolean methodArgumentHasSingleType(J.Assign assign) {
-            return !(assign.getAssignment() instanceof J.NewArray)
-                    || ((J.NewArray) assign.getAssignment()).getInitializer().size() == 1;
+        private boolean methodArgumentHasSingleType(J.Assignment assignment) {
+            return !(assignment.getAssignment() instanceof J.NewArray)
+                    || ((J.NewArray) assignment.getAssignment()).getInitializer().size() == 1;
         }
 
-        private Optional<RequestMethod> requestMethodType(@Nullable J.Assign assign) {
+        private Optional<RequestMethod> requestMethodType(@Nullable J.Assignment assignment) {
             RequestMethod method;
-            if (assign == null) {
+            if (assignment == null) {
                 method = RequestMethod.GET;
             }
-            else if (assign.getAssignment() instanceof J.Ident) {
-                method = RequestMethod.valueOf(((J.Ident)assign.getAssignment()).getIdent().getSimpleName());
+            else if (assignment.getAssignment() instanceof J.Identifier) {
+                method = RequestMethod.valueOf(((J.Identifier) assignment.getAssignment()).getTypeInformation().getSimpleName());
             }
-            else if (assign.getAssignment() instanceof J.FieldAccess) {
-                method = RequestMethod.valueOf(((J.FieldAccess)assign.getAssignment()).getSimpleName());
+            else if (assignment.getAssignment() instanceof J.FieldAccess) {
+                method = RequestMethod.valueOf(((J.FieldAccess) assignment.getAssignment()).getSimpleName());
             }
-            else if (assign.getAssignment() instanceof J.NewArray && ((J.NewArray) assign.getAssignment()).getInitializer().size() == 1) {
-                J.NewArray newArray = ((J.NewArray)assign.getAssignment());
+            else if (assignment.getAssignment() instanceof J.NewArray && ((J.NewArray) assignment.getAssignment()).getInitializer().size() == 1) {
+                J.NewArray newArray = ((J.NewArray) assignment.getAssignment());
                 method = RequestMethod.valueOf(((J.FieldAccess)newArray.getInitializer().get(0)).getSimpleName());
             } else {
                 method = null;

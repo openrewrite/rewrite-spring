@@ -23,11 +23,8 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RenameVariable;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.marker.Marker;
 
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
@@ -69,23 +66,23 @@ public class ImplicitWebAnnotationNames extends Recipe {
             J.Annotation a = super.visitAnnotation(annotation, ctx);
 
             if (PARAM_ANNOTATIONS.stream().anyMatch(annotationClass -> isOfClassType(annotation.getType(), annotationClass)) &&
-                    annotation.getArgs() != null && getCursor().getParentOrThrow().getValue() instanceof J.VariableDecls) {
+                    annotation.getArguments() != null && getCursor().getParentOrThrow().getValue() instanceof J.VariableDeclarations) {
 
-                a = maybeAutoFormat(a, a.withArgs(ListUtils.map(a.getArgs(), arg -> {
+                a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                     Cursor varDecsCursor = getCursor().getParentOrThrow();
-                    J.VariableDecls.NamedVar namedVar = varDecsCursor.<J.VariableDecls>getValue().getVars().get(0);
-                    if (arg instanceof J.Assign) {
-                        J.Assign assign = (J.Assign) arg;
-                        if (assign.getVariable() instanceof J.Ident && assign.getAssignment() instanceof J.Literal) {
-                            J.Ident assignName = (J.Ident) assign.getVariable();
+                    J.VariableDeclarations.NamedVariable namedVariable = varDecsCursor.<J.VariableDeclarations>getValue().getVariables().get(0);
+                    if (arg instanceof J.Assignment) {
+                        J.Assignment assignment = (J.Assignment) arg;
+                        if (assignment.getVariable() instanceof J.Identifier && assignment.getAssignment() instanceof J.Literal) {
+                            J.Identifier assignName = (J.Identifier) assignment.getVariable();
                             if (assignName.getSimpleName().equals("value") || assignName.getSimpleName().equals("name")) {
-                                if (maybeRemoveArg(namedVar, (J.Literal) assign.getAssignment())) {
+                                if (maybeRemoveArg(namedVariable, (J.Literal) assignment.getAssignment())) {
                                     return null;
                                 }
                             }
                         }
                     } else if (arg instanceof J.Literal) {
-                        if (maybeRemoveArg(namedVar, (J.Literal) arg)) {
+                        if (maybeRemoveArg(namedVariable, (J.Literal) arg)) {
                             return null;
                         }
                     }
@@ -97,15 +94,15 @@ public class ImplicitWebAnnotationNames extends Recipe {
             return a;
         }
 
-        private boolean maybeRemoveArg(J.VariableDecls.NamedVar namedVar, J.Literal assignValue) {
+        private boolean maybeRemoveArg(J.VariableDeclarations.NamedVariable namedVariable, J.Literal assignValue) {
             Object value = assignValue.getValue();
             assert value != null;
-            if (namedVar.getSimpleName().equals(value)) {
+            if (namedVariable.getSimpleName().equals(value)) {
                 return true;
             }
             // kebab and snake case argument names are not renamed
             else if (value.toString().matches("[a-z][A-Za-z0-9]*")) {
-                doAfterVisit(new RenameVariable<>(namedVar, value.toString()));
+                doAfterVisit(new RenameVariable<>(namedVariable, value.toString()));
                 return true;
             }
             return false;

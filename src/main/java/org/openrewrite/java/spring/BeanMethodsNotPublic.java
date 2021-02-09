@@ -39,8 +39,8 @@ public class BeanMethodsNotPublic extends Recipe {
         }
 
         @Override
-        public J.MethodDecl visitMethod(J.MethodDecl method, ExecutionContext executionContext) {
-            J.MethodDecl m = super.visitMethod(method, executionContext);
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+            J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
             if (m.getAnnotations().stream().noneMatch(BEAN_ANNOTATION_MATCHER::matches)) {
                 return m;
             }
