@@ -23,11 +23,9 @@ import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -77,10 +75,9 @@ public class NoRequestMappingAnnotation extends Recipe {
                     if (a.getArgs() == null || a.getArgs().isEmpty()) {
                         a = a.withTemplate(template("@"+associatedRequestMapping(requestType.get())).build(), a.getCoordinates().replace());
                     } else {
-                        StringBuilder sb = new StringBuilder("@" + associatedRequestMapping(requestType.get()) + "(");
-                        sb.append(String.join(",", a.getArgs().stream().map(J::print).collect(Collectors.toList())));
-                        sb.append(")");
-                        JavaTemplate tb = template(sb.toString()).build();
+                        String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
+                                "(" + a.getArgs().stream().map(J::print).collect(Collectors.joining(",")) + ")";
+                        JavaTemplate tb = template(annotationTemplateString).build();
                         a = a.withTemplate(tb, a.getCoordinates().replace());
                     }
                 }

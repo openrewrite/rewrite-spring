@@ -36,7 +36,8 @@ class BeanMethodsNotPublicTest : RecipeTest {
                 import org.springframework.context.annotation.Bean;
                 import org.springframework.context.annotation.Primary;
                 
-                public class DatabaseConfiguration { 
+                public class DatabaseConfiguration {
+                
                     @Primary
                     @Bean
                     public DataSource dataSource() {
@@ -59,8 +60,8 @@ class BeanMethodsNotPublicTest : RecipeTest {
                 import org.springframework.context.annotation.Bean;
                 import org.springframework.context.annotation.Primary;
                 
-                public class DatabaseConfiguration { 
-                    
+                public class DatabaseConfiguration {
+                
                     @Primary
                     @Bean
                     DataSource dataSource() {
