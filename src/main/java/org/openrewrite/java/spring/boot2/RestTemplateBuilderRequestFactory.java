@@ -45,7 +45,7 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
             J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
             if (requestFactory.matches(method)) {
                 JavaTemplate.Builder tb = template("(() -> #{})");
-                m = m.withTemplate(tb.build(), m.getCoordinates().replaceArguments(), m.getArgs().get(0));
+                m = m.withTemplate(tb.build(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
             }
             return m;
         }

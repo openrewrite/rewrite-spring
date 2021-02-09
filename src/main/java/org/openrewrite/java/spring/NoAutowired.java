@@ -22,9 +22,6 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.format.AutoFormatVisitor;
-import org.openrewrite.java.format.NormalizeFormatVisitor;
-import org.openrewrite.java.format.RemoveTrailingWhitespace;
-import org.openrewrite.java.format.RemoveTrailingWhitespaceVisitor;
 import org.openrewrite.java.tree.J;
 
 public class NoAutowired extends Recipe {
@@ -42,11 +39,11 @@ public class NoAutowired extends Recipe {
         }
 
         @Override
-        public J.MethodDecl visitMethod(J.MethodDecl method, ExecutionContext executionContext) {
-            J.MethodDecl m = super.visitMethod(method, executionContext);
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+            J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
             m = m.withAnnotations(ListUtils.map(m.getAnnotations(), a -> annotationMatcher.matches(a) ? null : a));
             if (m.getAnnotations() != method.getAnnotations()) {
-                m = (J.MethodDecl) new AutoFormatVisitor<>().visit(m, executionContext, getCursor().getParentOrThrow());
+                m = (J.MethodDeclaration) new AutoFormatVisitor<>().visit(m, executionContext, getCursor().getParentOrThrow());
             }
             return m;
         }
