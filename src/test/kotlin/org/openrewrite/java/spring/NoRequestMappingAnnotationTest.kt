@@ -171,7 +171,7 @@ class NoRequestMappingAnnotationTest : RecipeTest {
                 @RestController
                 @RequestMapping("/users")
                 public class UsersController {
-                    @RequestMapping(method = { HEAD, GET })
+                    @RequestMapping(method = {HEAD, GET})
                     public ResponseEntity<List<String>> getUsersHead() {
                         return null;
                     }
