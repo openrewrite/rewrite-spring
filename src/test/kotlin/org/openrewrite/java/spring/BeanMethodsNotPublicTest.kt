@@ -31,53 +31,53 @@ class BeanMethodsNotPublicTest : RecipeTest {
 
     @Test
     fun removePublicModifierFromBeanMethods() = assertChanged(
-            before = """
-                import javax.sql.DataSource;
-                import org.springframework.context.annotation.Bean;
-                import org.springframework.context.annotation.Primary;
-                
-                public class DatabaseConfiguration {
-                
-                    @Primary
-                    @Bean
-                    public DataSource dataSource() {
-                        return new DataSource();
-                    }
-                    
-                    @Bean
-                    public final DataSource dataSource2() {
-                        return new DataSource();
-                    }
-                    
-                    @Bean
-                    public static final DataSource dataSource3() {
-                        return new DataSource();
-                    }
+        before = """
+            import javax.sql.DataSource;
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Primary;
+            
+            public class DatabaseConfiguration {
+            
+                @Primary
+                @Bean
+                public DataSource dataSource() {
+                    return new DataSource();
                 }
-            """,
-            after = """
-                import javax.sql.DataSource;
-                import org.springframework.context.annotation.Bean;
-                import org.springframework.context.annotation.Primary;
                 
-                public class DatabaseConfiguration {
-                
-                    @Primary
-                    @Bean
-                    DataSource dataSource() {
-                        return new DataSource();
-                    }
-                    
-                    @Bean
-                    final DataSource dataSource2() {
-                        return new DataSource();
-                    }
-                    
-                    @Bean
-                    static final DataSource dataSource3() {
-                        return new DataSource();
-                    }
+                @Bean
+                public final DataSource dataSource2() {
+                    return new DataSource();
                 }
-            """
+                
+                @Bean
+                public static final DataSource dataSource3() {
+                    return new DataSource();
+                }
+            }
+        """,
+        after = """
+            import javax.sql.DataSource;
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Primary;
+            
+            public class DatabaseConfiguration {
+            
+                @Primary
+                @Bean
+                DataSource dataSource() {
+                    return new DataSource();
+                }
+            
+                @Bean
+                final DataSource dataSource2() {
+                    return new DataSource();
+                }
+            
+                @Bean
+                static final DataSource dataSource3() {
+                    return new DataSource();
+                }
+            }
+        """
     )
 }
