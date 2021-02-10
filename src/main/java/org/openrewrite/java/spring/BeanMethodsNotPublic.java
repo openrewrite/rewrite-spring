@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -44,8 +45,8 @@ public class BeanMethodsNotPublic extends Recipe {
             if (m.getAnnotations().stream().noneMatch(BEAN_ANNOTATION_MATCHER::matches)) {
                 return m;
             }
-
-            return maybeAutoFormat(m, m.withModifiers(ListUtils.map(m.getModifiers(), a -> a.getType() == J.Modifier.Type.Public ? null : a)), executionContext);
+            return maybeAutoFormat(m, m.withModifiers(ListUtils.map(m.getModifiers(), a -> a.getType() == J.Modifier.Type.Public ? null : a)), executionContext,
+                    getCursor().dropParentUntil(it -> it instanceof J));
         }
     }
 }
