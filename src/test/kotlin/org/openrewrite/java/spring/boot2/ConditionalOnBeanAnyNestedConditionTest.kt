@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
 import org.openrewrite.RecipeTest
@@ -42,6 +43,38 @@ class ConditionalOnBeanAnyNestedConditionTest : RecipeTest {
         
                     @ConditionalOnBean(That.class)
                     static class ThatCondition {
+                    }
+                }
+            """
+    )
+
+    @Test
+    fun addConditionalOnBeansAreNotClasses() = assertUnchanged(
+        before = """
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                
+                class ThisOrThatCondition {
+                
+                    @Bean
+                    @ConditionalOnBean(OtherA.class)
+                    A a {
+                    }
+                    
+                    @Bean
+                    @ConditionalOnBean(OtherB.class)
+                    B b {
+                    }
+                    
+                    class A {
+                    }
+                    
+                    class OtherA {
+                    }
+                    
+                    class B {
+                    }
+                    
+                    class OtherB {
                     }
                 }
             """
@@ -77,6 +110,45 @@ class ConditionalOnBeanAnyNestedConditionTest : RecipeTest {
                     }
     
                     @ConditionalOnBean(That.class)
+                    static class ThatCondition {
+                    }
+                }
+            """
+    )
+
+    @Disabled
+    @Test
+    fun addAnyNestedConditionMultipleConditionalTypes() = assertChanged(
+        before = """
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+                
+                class ThisOrThatCondition {
+                
+                    @ConditionalOnBean(This.class)
+                    static class ThisCondition {
+                    }
+        
+                    @ConditionalOnProperty(value="that.enabled", havingValue = "true", matchIfMissing = false)
+                    static class ThatCondition {
+                    }
+                }
+            """,
+        after = """
+                import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+                
+                class ThisOrThatCondition extends AnyNestedCondition {
+                    public ThisOrThatCondition() {
+                        super(ConfigurationPhase.REGISTER_BEAN);
+                    }
+                
+                    @ConditionalOnBean(This.class)
+                    static class ThisCondition {
+                    }
+    
+                    @ConditionalOnProperty(value="that.enabled", havingValue = "true", matchIfMissing = false)
                     static class ThatCondition {
                     }
                 }

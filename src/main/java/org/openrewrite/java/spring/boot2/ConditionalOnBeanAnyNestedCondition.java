@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -39,6 +40,7 @@ import java.util.Set;
  *
  *
  */
+//TODO:  Revisit this recipe so that it handles multiple conditional annotations and double check the
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
     private static final String CONDITIONAL_BEAN_CLASS = "@org.springframework.boot.autoconfigure.condition.ConditionalOnBean";
 
@@ -53,7 +55,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
      */
     private static class ConditionalOnBeanAnyNestedConditionVisitor extends JavaIsoVisitor<ExecutionContext> {
 
-        private ConditionalOnBeanAnyNestedConditionVisitor() {
+        {
             setCursoringOn();
         }
 
@@ -70,12 +72,15 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
     }
 
     private static class CollectConditionalOnBeanAnnotationsVisitor extends JavaIsoVisitor<Set<J.Annotation>> {
-
         private static final AnnotationMatcher matcher = new AnnotationMatcher(CONDITIONAL_BEAN_CLASS);
+        {
+            setCursoringOn();
+        }
+
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, Set<J.Annotation> conditionalOnBeanAnnotations) {
             J.Annotation a = super.visitAnnotation(annotation, conditionalOnBeanAnnotations);
-            if (matcher.matches(a)) {
+            if (matcher.matches(a) && getCursor().getParent().getValue() instanceof J.ClassDeclaration) {
                 conditionalOnBeanAnnotations.add(a);
             }
             return a;
