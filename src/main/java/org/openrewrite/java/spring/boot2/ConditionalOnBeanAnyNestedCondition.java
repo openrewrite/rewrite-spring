@@ -136,7 +136,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         private String anyConditionClassTemplate(List<String> conditionalIdentifiers, String parameterFormatString) {
             String conditionalClassFormat = "@ConditionalOnBean(" + parameterFormatString + ")class %sCondition {}";
             String conditionClassName = conditionalClassNameFromCandidates(conditionalIdentifiers);
-            StringBuilder s = new StringBuilder("class ").append(conditionClassName)
+            StringBuilder s = new StringBuilder("private class ").append(conditionClassName)
                     .append(" extends AnyNestedCondition {")
                     .append(conditionClassName).append("(){super(ConfigurationPhase.REGISTER_BEAN)}");
             conditionalIdentifiers.stream().sorted().forEach(ci -> s.append(String.format(conditionalClassFormat, ci, getSimpleName(ci))));
