@@ -57,10 +57,6 @@ public class ImplicitWebAnnotationNames extends Recipe {
                 "SessionAttribute"
         ).map(className -> "org.springframework.web.bind.annotation." + className).collect(toSet());
 
-        public ImplicitWebAnnotationNamesVisitor() {
-            setCursoringOn();
-        }
-
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation a = super.visitAnnotation(annotation, ctx);

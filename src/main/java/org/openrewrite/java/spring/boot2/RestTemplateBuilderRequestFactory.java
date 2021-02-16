@@ -36,9 +36,6 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
     }
 
     private static class RestTemplateBuilderRequestFactoryVisitor extends JavaIsoVisitor<ExecutionContext> {
-        public RestTemplateBuilderRequestFactoryVisitor() {
-            setCursoringOn();
-        }
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {

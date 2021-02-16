@@ -55,10 +55,6 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         private static final String ANY_CONDITION_TEMPLATES = "any_condition_templates";
         private static final AnnotationMatcher CONDITIONAL_BEAN_MATCHER = new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
 
-        {
-            setCursoringOn();
-        }
-
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
             J.Annotation a = super.visitAnnotation(annotation, executionContext);

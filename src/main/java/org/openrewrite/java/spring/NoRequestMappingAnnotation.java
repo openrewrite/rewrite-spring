@@ -49,10 +49,6 @@ public class NoRequestMappingAnnotation extends Recipe {
         private static final String SPRING_BIND_ANNOTATION_PACKAGE = "org.springframework.web.bind.annotation";
         private static final AnnotationMatcher REQUEST_MAPPING_ANNOTATION_MATCHER = new AnnotationMatcher(SPRING_BIND_ANNOTATION_PACKAGE + ".RequestMapping");
 
-        public NoRequestMappingAnnotationVisitor() {
-            setCursoringOn();
-        }
-
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation a = super.visitAnnotation(annotation, ctx);
@@ -121,7 +117,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                 method = RequestMethod.GET;
             }
             else if (assignment.getAssignment() instanceof J.Identifier) {
-                method = RequestMethod.valueOf(((J.Identifier) assignment.getAssignment()).getTypeInformation().getSimpleName());
+                method = RequestMethod.valueOf(((J.Identifier) assignment.getAssignment()).getSimpleName());
             }
             else if (assignment.getAssignment() instanceof J.FieldAccess) {
                 method = RequestMethod.valueOf(((J.FieldAccess) assignment.getAssignment()).getSimpleName());

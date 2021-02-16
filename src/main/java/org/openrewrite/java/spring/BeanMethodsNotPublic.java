@@ -34,11 +34,6 @@ public class BeanMethodsNotPublic extends Recipe {
     private static class BeanMethodsNotPublicVisitor extends JavaIsoVisitor<ExecutionContext> {
 
         private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
-
-        public BeanMethodsNotPublicVisitor() {
-            setCursoringOn();
-        }
-
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
