@@ -16,10 +16,10 @@
 package org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.RecipeTest
 import org.openrewrite.java.JavaParser
+import org.openrewrite.java.JavaRecipeTest
 
-class ConditionalOnBeanAnyNestedConditionTest : RecipeTest {
+class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
 
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
