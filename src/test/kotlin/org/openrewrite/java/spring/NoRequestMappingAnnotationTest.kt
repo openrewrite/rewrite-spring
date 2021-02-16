@@ -17,10 +17,10 @@ package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
-import org.openrewrite.RecipeTest
 import org.openrewrite.java.JavaParser
+import org.openrewrite.java.JavaRecipeTest
 
-class NoRequestMappingAnnotationTest : RecipeTest {
+class NoRequestMappingAnnotationTest : JavaRecipeTest {
 
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
