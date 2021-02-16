@@ -34,10 +34,6 @@ public class NoAutowired extends Recipe {
     private class NoAutowiredAnnotationsVisitor extends JavaIsoVisitor<ExecutionContext> {
         private final AnnotationMatcher annotationMatcher = new AnnotationMatcher("@org.springframework.beans.factory.annotation.Autowired");
 
-        public NoAutowiredAnnotationsVisitor() {
-            setCursoringOn();
-        }
-
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
