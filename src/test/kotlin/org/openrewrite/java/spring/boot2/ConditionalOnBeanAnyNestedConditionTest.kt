@@ -99,7 +99,7 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                         return new ThingFour();
                     }
                 
-                    private class ConditionAaOrBb extends AnyNestedCondition {
+                    private static class ConditionAaOrBb extends AnyNestedCondition {
                         ConditionAaOrBb() {
                             super(ConfigurationPhase.REGISTER_BEAN);
                         }
@@ -113,7 +113,7 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                         }
                     }
                 
-                    private class ConditionBbOrCc extends AnyNestedCondition {
+                    private static class ConditionBbOrCc extends AnyNestedCondition {
                         ConditionBbOrCc() {
                             super(ConfigurationPhase.REGISTER_BEAN);
                         }
@@ -166,7 +166,7 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                         return new ThingTwo();
                     }
                 
-                    private class ConditionAaOrBb extends AnyNestedCondition {
+                    private static class ConditionAaOrBb extends AnyNestedCondition {
                         ConditionAaOrBb() {
                             super(ConfigurationPhase.REGISTER_BEAN);
                         }
@@ -208,7 +208,7 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                         return new ThingOneTwo();
                     }
                 
-                    private class ConditionAaOrBb extends AnyNestedCondition {
+                    private static class ConditionAaOrBb extends AnyNestedCondition {
                         ConditionAaOrBb() {
                             super(ConfigurationPhase.REGISTER_BEAN);
                         }
