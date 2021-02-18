@@ -34,10 +34,11 @@ import java.util.stream.Collectors;
  * as defined by the request method type (GET, POST, PUT, PATCH, DELETE)
  * <p>
  * (HEAD, OPTIONS, TRACE) methods do not have associated RequestMapping variant and are not converted
- * <li> @RequestMapping() --> @GetMapping
- * <li> @RequestMapping(method = POST) --> @PostMapping
- * <li> @RequestMapping(method = { HEAD, GET }) --> No change
- *
+ * <ul>
+ * <li> @RequestMapping() changes to @GetMapping
+ * <li> @RequestMapping(method = POST) changes to @PostMapping
+ * <li> @RequestMapping(method = { HEAD, GET }) No change
+ * </ul>
  */
 public class NoRequestMappingAnnotation extends Recipe {
     @Override

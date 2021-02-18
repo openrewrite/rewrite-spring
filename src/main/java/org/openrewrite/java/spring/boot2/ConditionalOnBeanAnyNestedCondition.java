@@ -21,12 +21,13 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -46,13 +47,14 @@ import java.util.stream.Collectors;
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new FindMultiConditionalOnBeanAnnotation();
+        return new ConditionalOnBeanAnyNestedConditionVisitor();
     }
 
-    private static class FindMultiConditionalOnBeanAnnotation extends JavaIsoVisitor<ExecutionContext> {
+    private static class ConditionalOnBeanAnyNestedConditionVisitor extends JavaIsoVisitor<ExecutionContext> {
         private static final String CONDITIONAL_CLASS = "org.springframework.context.annotation.Conditional";
         private static final String ANY_NESTED_CONDITION_CLASS = "org.springframework.boot.autoconfigure.condition.AnyNestedCondition";
         private static final String ANY_CONDITION_TEMPLATES = "any_condition_templates";
+        private static final String SPRING_TEMPLATE_CLASSPATH[] = {"spring-boot-autoconfigure", "spring-boot", "spring-web", "spring-context"};
         private static final AnnotationMatcher CONDITIONAL_BEAN_MATCHER = new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
 
         @Override
@@ -91,7 +93,10 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
 
                     if (anyConditionClassExists) {
                         JavaTemplate t = template("@Conditional(" + conditionalClassName + ".class)")
-                                .imports(CONDITIONAL_CLASS).build();
+                                .imports(CONDITIONAL_CLASS)
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpath(SPRING_TEMPLATE_CLASSPATH).build())
+                                .build();
                         a = maybeAutoFormat(a, a.withTemplate(t, a.getCoordinates().replace()), executionContext, getCursor().getParentOrThrow());
                         maybeAddImport(CONDITIONAL_CLASS);
                     } else {
@@ -99,7 +104,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                         Cursor classDeclarationCursor = getCursor().dropParentUntil(J.ClassDeclaration.class::isInstance);
                         Set<String> anyConditionClasses = classDeclarationCursor.getMessage(ANY_CONDITION_TEMPLATES);
                         if (anyConditionClasses == null) {
-                            anyConditionClasses = new HashSet<>();
+                            anyConditionClasses = new TreeSet<>();
                             classDeclarationCursor.putMessage(ANY_CONDITION_TEMPLATES, anyConditionClasses);
                         }
                         anyConditionClasses.add(anyConditionClassTemplate(conditionalOnBeanCandidates, nestedConditionParameterFormat));
@@ -115,12 +120,16 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
             Set<String> conditionalTemplates = getCursor().pollMessage(ANY_CONDITION_TEMPLATES);
             if (conditionalTemplates != null && !conditionalTemplates.isEmpty()) {
                 for (String s : conditionalTemplates) {
-                    JavaTemplate t = template(s).imports(ANY_NESTED_CONDITION_CLASS).build();
+                    JavaTemplate t = template(s)
+                            .imports(ANY_NESTED_CONDITION_CLASS)
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpath(SPRING_TEMPLATE_CLASSPATH).build())
+                            .build();
                     c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), executionContext);
                 }
-                maybeAddImport(ANY_NESTED_CONDITION_CLASS);
                 // Schedule another visit to modify the associated annotations now that the new conditional classes have been added to the AST
-                doAfterVisit(new ConditionalOnBeanAnyNestedCondition());
+                doAfterVisit(new ConditionalOnBeanAnyNestedConditionVisitor());
+                maybeAddImport(ANY_NESTED_CONDITION_CLASS);
             }
             return c;
         }
@@ -132,9 +141,9 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         private String anyConditionClassTemplate(List<String> conditionalIdentifiers, String parameterFormatString) {
             String conditionalClassFormat = "@ConditionalOnBean(" + parameterFormatString + ")class %sCondition {}";
             String conditionClassName = conditionalClassNameFromCandidates(conditionalIdentifiers);
-            StringBuilder s = new StringBuilder("private class ").append(conditionClassName)
+            StringBuilder s = new StringBuilder("private static class ").append(conditionClassName)
                     .append(" extends AnyNestedCondition {")
-                    .append(conditionClassName).append("(){super(ConfigurationPhase.REGISTER_BEAN)}");
+                    .append(conditionClassName).append("(){super(ConfigurationPhase.REGISTER_BEAN);}");
             conditionalIdentifiers.stream().sorted().forEach(ci -> s.append(String.format(conditionalClassFormat, ci, getSimpleName(ci))));
             s.append("}");
             return s.toString();

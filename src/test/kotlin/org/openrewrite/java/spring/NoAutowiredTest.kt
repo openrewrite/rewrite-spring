@@ -46,7 +46,6 @@ class NoAutowiredTest : JavaRecipeTest {
             """,
             after = """
                 import javax.sql.DataSource;
-                import org.springframework.beans.factory.annotation.Autowired;
                 
                 public class DatabaseConfiguration { 
                     private final DataSource dataSource;
@@ -63,7 +62,6 @@ class NoAutowiredTest : JavaRecipeTest {
         parser,
         before = """
                 import javax.sql.DataSource;
-                import org.springframework.beans.factory.annotation.Autowired;
                 
                 public class DatabaseConfiguration { 
                     private final DataSource dataSource;

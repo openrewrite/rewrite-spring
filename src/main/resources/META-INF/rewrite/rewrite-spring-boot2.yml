@@ -14,36 +14,28 @@
 # limitations under the License.
 #
 ---
-type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.java.spring.boot2.SpringBootServletInitializerPackage
-visitors:
-  - org.openrewrite.java.ChangeType:
-      type: org.springframework.boot.web.support.SpringBootServletInitializer
-      targetType: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
-
----
-type: specs.openrewrite.org/v1beta/visitor
-name: org.openrewrite.java.spring.boot2.UpgradeDependencies
-visitors:
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.spring.boot2
+recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
-      toVersion: 2.x
+      newVersion: 2.x
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
-      toVersion: 2.x
-  - org.openrewrite.maven.UpgradeDependencyVersion:
-      groupId: org.mockito
-      toVersion: 3.x
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.SpringBoot2Migration
-include:
+      newVersion: 2.x
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.support.SpringBootServletInitializer
+      newFullyQualifiedTypeName: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.support.SpringBootServletInitializer
+      newFullyQualifiedTypeName: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+  - org.openrewrite.java.spring.NoAutowired
+  - org.openrewrite.java.spring.NoRequestMappingAnnotation
+  - org.openrewrite.java.spring.ImplicitWebAnnotationNames
+  - org.openrewrite.java.spring.BeanMethodsNotPublic
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
-  - org.openrewrite.java.spring.boot2.UpgradeDependencies
-  - org.openrewrite.java.spring.boot2.SpringBootServletInitializerPackage
   - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_0
   - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_0
   - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_1

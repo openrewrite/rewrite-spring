@@ -32,7 +32,8 @@ public class NoAutowired extends Recipe {
     }
 
     private class NoAutowiredAnnotationsVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private final AnnotationMatcher annotationMatcher = new AnnotationMatcher("@org.springframework.beans.factory.annotation.Autowired");
+        private static final String AUTOWIRED_CLASS = "org.springframework.beans.factory.annotation.Autowired";
+        private final AnnotationMatcher annotationMatcher = new AnnotationMatcher("@" + AUTOWIRED_CLASS);
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
@@ -40,6 +41,7 @@ public class NoAutowired extends Recipe {
             m = m.withAnnotations(ListUtils.map(m.getAnnotations(), a -> annotationMatcher.matches(a) ? null : a));
             if (m.getAnnotations() != method.getAnnotations()) {
                 m = (J.MethodDeclaration) new AutoFormatVisitor<>().visit(m, executionContext, getCursor().getParentOrThrow());
+                maybeRemoveImport(AUTOWIRED_CLASS);
             }
             return m;
         }

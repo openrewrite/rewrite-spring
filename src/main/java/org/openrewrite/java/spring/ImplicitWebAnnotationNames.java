@@ -35,8 +35,9 @@ import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
  * <br>
  * Note. kebab and snake case annotation argument names are excluded
  * <p>
- * <li> @PathVariable(value = "p3") Long anotherName --> @PathVariable Long p3
- * <li> @PathVariable("id") Long id --> @PathVariable Long id
+ * <ul>
+ * <li> @PathVariable(value = "p3") Long anotherName changes to @PathVariable Long p3
+ * <li> @PathVariable("id") Long id changes to @PathVariable Long id
  *
  */
 public class ImplicitWebAnnotationNames extends Recipe {
