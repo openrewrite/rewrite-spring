@@ -73,7 +73,7 @@ dependencies {
     implementation("org.springframework:spring-beans:5.2.8.RELEASE")
     implementation("org.springframework:spring-webmvc:5.2.8.RELEASE")
 
-    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:latest.integration")
+    //runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:latest.integration")
 
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
