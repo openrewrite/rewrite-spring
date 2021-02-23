@@ -27,7 +27,7 @@ import org.openrewrite.java.tree.J;
  * https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder
  */
 public class RestTemplateBuilderRequestFactory extends Recipe {
-    private static final MethodMatcher requestFactory = new MethodMatcher(
+    private static final MethodMatcher REQUEST_FACTORY_METHOD_MATCHER = new MethodMatcher(
             "org.springframework.boot.web.client.RestTemplateBuilder requestFactory(org.springframework.http.client.ClientHttpRequestFactory)");
 
     @Override
@@ -40,7 +40,7 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-            if (requestFactory.matches(method)) {
+            if (REQUEST_FACTORY_METHOD_MATCHER.matches(method)) {
                 JavaTemplate.Builder tb = template("(() -> #{})");
                 m = m.withTemplate(tb.build(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
             }

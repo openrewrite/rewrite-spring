@@ -37,7 +37,7 @@ public class BeanMethodsNotPublic extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
-            if (m.getAnnotations().stream().noneMatch(BEAN_ANNOTATION_MATCHER::matches)) {
+            if (m.getAllAnnotations().stream().noneMatch(BEAN_ANNOTATION_MATCHER::matches)) {
                 return m;
             }
             return maybeAutoFormat(m, m.withModifiers(ListUtils.map(m.getModifiers(), a -> a.getType() == J.Modifier.Type.Public ? null : a)), executionContext,
