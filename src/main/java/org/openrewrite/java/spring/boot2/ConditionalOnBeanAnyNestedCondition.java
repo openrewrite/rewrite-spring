@@ -15,19 +15,15 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.io.InputStream;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +50,6 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         private static final String CONDITIONAL_CLASS = "org.springframework.context.annotation.Conditional";
         private static final String ANY_NESTED_CONDITION_CLASS = "org.springframework.boot.autoconfigure.condition.AnyNestedCondition";
         private static final String ANY_CONDITION_TEMPLATES = "any_condition_templates";
-        private static final String SPRING_TEMPLATE_CLASSPATH[] = {"spring-boot-autoconfigure", "spring-boot", "spring-web", "spring-context"};
         private static final AnnotationMatcher CONDITIONAL_BEAN_MATCHER = new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
 
         @Override
@@ -95,7 +90,8 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                         JavaTemplate t = template("@Conditional(" + conditionalClassName + ".class)")
                                 .imports(CONDITIONAL_CLASS)
                                 .javaParser(JavaParser.fromJavaVersion()
-                                        .classpath(SPRING_TEMPLATE_CLASSPATH).build())
+                                        .dependsOn(Collections.singletonList(Parser.Input.fromResource("/META-INF/rewrite/Conditional.java")))
+                                        .build())
                                 .build();
                         a = maybeAutoFormat(a, a.withTemplate(t, a.getCoordinates().replace()), executionContext, getCursor().getParentOrThrow());
                         maybeAddImport(CONDITIONAL_CLASS);
@@ -123,7 +119,8 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     JavaTemplate t = template(s)
                             .imports(ANY_NESTED_CONDITION_CLASS)
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpath(SPRING_TEMPLATE_CLASSPATH).build())
+                                    .dependsOn(Parser.Input.fromResource("/META-INF/rewrite/AnyNestedCondition.java", "---"))
+                                    .build())
                             .build();
                     c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), executionContext);
                 }

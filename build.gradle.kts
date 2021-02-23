@@ -65,13 +65,8 @@ dependencies {
     implementation("org.openrewrite:rewrite-yaml:latest.integration")
     implementation("org.openrewrite:rewrite-maven:latest.integration")
 
-    implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:latest.release")
-
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
-
-    implementation("org.springframework:spring-beans:5.2.8.RELEASE")
-    implementation("org.springframework:spring-webmvc:5.2.8.RELEASE")
 
     //runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:latest.integration")
 
@@ -83,7 +78,6 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 
     testImplementation("org.openrewrite:rewrite-test:latest.integration")
-    testRuntimeOnly("org.openrewrite:rewrite-java-11:latest.integration")
 
     testImplementation("org.assertj:assertj-core:latest.release")
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
@@ -93,12 +87,13 @@ dependencies {
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:latest.release")
     testImplementation("io.github.classgraph:classgraph:latest.release")
 
-    // to test SpringBootServletInitializerTest
-    testImplementation("org.springframework.boot:spring-boot-autoconfigure:1.5.22.RELEASE")
-
     testRuntimeOnly("org.openrewrite:rewrite-java-11:latest.integration")
     testRuntimeOnly("org.openrewrite:rewrite-java-8:latest.integration")
-    testRuntimeOnly("ch.qos.logback:logback-classic:1.0.13")
+
+
+    testRuntimeOnly("org.springframework:spring-beans:5.2.8.RELEASE")
+    testRuntimeOnly("org.springframework:spring-webmvc:5.2.8.RELEASE")
+    testRuntimeOnly("org.springframework.boot:spring-boot-autoconfigure:1.5.22.RELEASE")
 }
 
 tasks.named<Test>("test") {

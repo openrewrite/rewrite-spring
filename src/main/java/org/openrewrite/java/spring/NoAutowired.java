@@ -38,7 +38,7 @@ public class NoAutowired extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
-            m = m.withAnnotations(ListUtils.map(m.getAnnotations(), a -> annotationMatcher.matches(a) ? null : a));
+            m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), a -> annotationMatcher.matches(a) ? null : a));
             if (m.getAnnotations() != method.getAnnotations()) {
                 m = (J.MethodDeclaration) new AutoFormatVisitor<>().visit(m, executionContext, getCursor().getParentOrThrow());
                 maybeRemoveImport(AUTOWIRED_CLASS);
