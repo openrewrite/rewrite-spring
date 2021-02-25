@@ -21,10 +21,20 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.format.AutoFormatVisitor;
 import org.openrewrite.java.tree.J;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class NoAutowired extends Recipe {
+    @Override
+    public String getDisplayName() {
+        return "Remove Autowired Annotation from MethodDeclarations";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Removes Autowired Annotation from MethodDeclarations";
+    }
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -38,9 +48,16 @@ public class NoAutowired extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
-            m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), a -> annotationMatcher.matches(a) ? null : a));
-            if (m.getAnnotations() != method.getAnnotations()) {
-                m = (J.MethodDeclaration) new AutoFormatVisitor<>().visit(m, executionContext, getCursor().getParentOrThrow());
+            AtomicBoolean foundChange = new AtomicBoolean(false);
+            m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), a -> {
+                        if (annotationMatcher.matches(a)) {
+                            foundChange.getAndSet(true);
+                            return null;
+                        }
+                        return a;
+                    }
+            ));
+            if (foundChange.get()) {
                 maybeRemoveImport(AUTOWIRED_CLASS);
             }
             return m;

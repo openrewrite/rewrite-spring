@@ -31,6 +31,16 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
             "org.springframework.boot.web.client.RestTemplateBuilder requestFactory(org.springframework.http.client.ClientHttpRequestFactory)");
 
     @Override
+    public String getDisplayName() {
+        return "RestTemplateBuilderRequestFactory";
+    }
+
+    @Override
+    public String getDescription() {
+        return "RestTemplateBuilder requestFactory invocation converted to take supplier";
+    }
+
+    @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new RestTemplateBuilderRequestFactoryVisitor();
     }

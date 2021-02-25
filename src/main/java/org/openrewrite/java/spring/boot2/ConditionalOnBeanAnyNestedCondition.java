@@ -22,8 +22,10 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 
-import java.io.InputStream;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +43,16 @@ import java.util.stream.Collectors;
  * class ConditionAaOrBb extends AnyNestedCondition {...}
  */
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
+    @Override
+    public String getDisplayName() {
+        return "Convert multi condition ConditionalOnBean Annotations to AnyNestedCondition";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Convert multi condition ConditionalOnBean Annotations to AnyNestedCondition";
+    }
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new ConditionalOnBeanAnyNestedConditionVisitor();
@@ -61,7 +73,9 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                 List<String> conditionalOnBeanCandidates = a.getArguments().stream()
                         .filter(p -> p instanceof J.NewArray && ((J.NewArray) p).getInitializer().size() > 1)
                         .flatMap(p -> ((J.NewArray) p).getInitializer().stream().map(J.FieldAccess.class::cast)
-                                .map(J.FieldAccess::getTarget).map(J.Identifier.class::cast))
+                                .map(J.FieldAccess::getTarget)
+                                .filter(J.Identifier.class::isInstance)
+                                .map(J.Identifier.class::cast))
                         .map(J.Identifier::getSimpleName).collect(Collectors.toList());
                 String nestedConditionParameterFormat = "%s.class";
 

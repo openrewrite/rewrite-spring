@@ -27,13 +27,35 @@ recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.mockito
       toVersion: 3.x
+  - org.openrewrite.maven.RemoveProperty:
+      propertyName: thymeleaf.version
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.webjars
+      artifactId: webjars-locator
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.webjars
+      artifactId: jquery
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.webjars
+      artifactId: jquery-ui
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.webjars
+      artifactId: bootstrap
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.support.SpringBootServletInitializer
       newFullyQualifiedTypeName: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+  - org.openrewrite.maven.AddDependency:
+      groupId: javax.validation
+      artifactId: validation-api
+      version: 2.0.0.Final
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
+      newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
   - org.openrewrite.java.spring.NoAutowired
   - org.openrewrite.java.spring.NoRequestMappingAnnotation
   - org.openrewrite.java.spring.ImplicitWebAnnotationNames
   - org.openrewrite.java.spring.BeanMethodsNotPublic
+  - org.openrewrite.java.spring.boot2.SpringRunnerToSpringBootTestAnnotation
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
   - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_0

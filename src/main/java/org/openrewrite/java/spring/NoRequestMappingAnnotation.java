@@ -41,6 +41,16 @@ import java.util.stream.Collectors;
  */
 public class NoRequestMappingAnnotation extends Recipe {
     @Override
+    public String getDisplayName() {
+        return "No Method Declaration Request Mapping Annotations";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Replace method declaration @RequestMapping annotations with the associated variant as defined by the request method type (GET, POST, PUT, PATCH, DELETE)";
+    }
+
+    @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new NoRequestMappingAnnotationVisitor();
     }
