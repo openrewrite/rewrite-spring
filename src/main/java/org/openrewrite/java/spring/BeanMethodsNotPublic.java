@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring;
 
-import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -24,7 +23,17 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
 
+
 public class BeanMethodsNotPublic extends Recipe {
+    @Override
+    public String getDisplayName() {
+        return "BeanMe";
+    }
+
+    @Override
+    public String getDescription() {
+        return "remove public modifier from Bean methods";
+    }
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -41,6 +41,16 @@ import java.util.stream.Collectors;
  */
 public class NoRequestMappingAnnotation extends Recipe {
     @Override
+    public String getDisplayName() {
+        return null;
+    }
+
+    @Override
+    public String getDescription() {
+        return null;
+    }
+
+    @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new NoRequestMappingAnnotationVisitor();
     }

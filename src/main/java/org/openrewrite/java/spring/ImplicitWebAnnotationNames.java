@@ -34,13 +34,23 @@ import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
  * Remove implicit web-annotation argument names and rename the associated variable.
  * <br>
  * Note. kebab and snake case annotation argument names are excluded
- * <p>
+ *
  * <ul>
  * <li> @PathVariable(value = "p3") Long anotherName changes to @PathVariable Long p3
  * <li> @PathVariable("id") Long id changes to @PathVariable Long id
- *
+ * </ul>
  */
 public class ImplicitWebAnnotationNames extends Recipe {
+    @Override
+    public String getDisplayName() {
+        return "Remove Implicit Web Annotation Names";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Removes Implicit Web Annotation names and renames associated parameter";
+    }
+
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new ImplicitWebAnnotationNamesVisitor();

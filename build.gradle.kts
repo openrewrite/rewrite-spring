@@ -1,11 +1,13 @@
-import io.spring.gradle.bintray.SpringBintrayExtension
-import nl.javadude.gradle.plugins.license.LicenseExtension
-import java.util.*
-import nebula.plugin.info.InfoBrokerPlugin
-import nebula.plugin.contacts.*
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jfrog.gradle.plugin.artifactory.dsl.*
 import com.github.jk1.license.LicenseReportExtension
+import io.spring.gradle.bintray.SpringBintrayExtension
+import nebula.plugin.contacts.Contact
+import nebula.plugin.contacts.ContactsExtension
+import nebula.plugin.info.InfoBrokerPlugin
+import nl.javadude.gradle.plugins.license.LicenseExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention
+import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
+import java.util.*
 
 buildscript {
     repositories {
@@ -90,7 +92,7 @@ dependencies {
     testRuntimeOnly("org.openrewrite:rewrite-java-11:latest.integration")
     testRuntimeOnly("org.openrewrite:rewrite-java-8:latest.integration")
 
-
+    testRuntimeOnly("junit:junit:latest.release")
     testRuntimeOnly("org.springframework:spring-beans:5.2.8.RELEASE")
     testRuntimeOnly("org.springframework:spring-webmvc:5.2.8.RELEASE")
     testRuntimeOnly("org.springframework.boot:spring-boot-autoconfigure:1.5.22.RELEASE")

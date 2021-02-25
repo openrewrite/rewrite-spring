@@ -15,20 +15,24 @@
  */
 package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.openrewrite.Issue
 import org.openrewrite.Recipe
-import org.openrewrite.java.JavaRecipeTest
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.spring.boot2.SpringRunnerToSpringExtension
+import org.openrewrite.java.JavaRecipeTest
+import org.openrewrite.java.spring.boot2.SpringRunnerToSpringBootTestAnnotation
 
-class SpringRunnerToSpringExtensionTest : JavaRecipeTest {
+class SpringRunnerToSpringBootTestAnnotationTest : JavaRecipeTest {
     override val parser: JavaParser = JavaParser.fromJavaVersion()
             .classpath("junit", "spring-test")
             .build()
 
     override val recipe: Recipe
-        get() = SpringRunnerToSpringExtension()
+        get() = SpringRunnerToSpringBootTestAnnotation()
 
+    @Issue("#331")
+    @Disabled
     @Test
     fun springRunnerToExtension() = assertChanged(
             before = """
@@ -42,11 +46,13 @@ class SpringRunnerToSpringExtensionTest : JavaRecipeTest {
                 import org.junit.jupiter.api.extension.ExtendWith;
                 import org.springframework.test.context.junit.jupiter.SpringExtension;
                 
-                @ExtendWith(SpringExtension.class)
+                @SpringBootTest
                 class A {}
             """
     )
 
+    @Issue("#331")
+    @Disabled
     @Test
     fun springJUnit4ClassRunnerRunnerToExtension() = assertChanged(
             before = """
@@ -60,7 +66,7 @@ class SpringRunnerToSpringExtensionTest : JavaRecipeTest {
                 import org.junit.jupiter.api.extension.ExtendWith;
                 import org.springframework.test.context.junit.jupiter.SpringExtension;
                 
-                @ExtendWith(SpringExtension.class)
+                @SpringBootTest
                 class A {}
             """
     )

@@ -36,13 +36,13 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                 class ConfigClass {
                     @Bean
                     @ConditionalOnBean({Aa.class})
-                    public ThingOne thisThingOne() {
+                    public ThingOne thingOne() {
                         return new ThingOne();
                     }
                     
                     @Bean
                     @ConditionalOnBean(Aa.class)
-                    public ThingTwo thisThatTwo() {
+                    public ThingTwo thingTwo() {
                         return new ThingTwo();
                     }
                 }
@@ -57,7 +57,7 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                 class ConfigClass {
                     @Bean
                     @ConditionalOnBean({Aa.class, Bb.class})
-                    public ThingOneTwo thisThatThing() {
+                    public ThingOneTwo thingOneTwo() {
                         return new ThingOneTwo();
                     }
                     
@@ -83,7 +83,7 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                 class ConfigClass {
                     @Bean
                     @Conditional(ConditionAaOrBb.class)
-                    public ThingOneTwo thisThatThing() {
+                    public ThingOneTwo thingOneTwo() {
                         return new ThingOneTwo();
                     }
                 
@@ -134,6 +134,11 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
         before = """
                 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
                 import org.springframework.context.annotation.Bean;
+                
+                class ThingOne {}
+                
+                class ThingTwo {}
+                
                 class ConfigClass {
                     @Bean
                     @ConditionalOnBean({Aa.class, Bb.class})
@@ -152,6 +157,10 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
                 import org.springframework.context.annotation.Bean;
                 import org.springframework.context.annotation.Conditional;
+                
+                class ThingOne {}
+                
+                class ThingTwo {}
                 
                 class ConfigClass {
                     @Bean
@@ -187,10 +196,11 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
         before = """
                 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
                 import org.springframework.context.annotation.Bean;
+                class ThingOneTwo {}
                 class ConfigClass {
                     @Bean
                     @ConditionalOnBean(type = {"com.foo.Aa.class", "com.foo.Bb.class"})
-                    public ThingOneTwo thisThatThing() {
+                    public ThingOneTwo thingOneTwo() {
                         return new ThingOneTwo();
                     }
                 }
@@ -201,10 +211,12 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                 import org.springframework.context.annotation.Bean;
                 import org.springframework.context.annotation.Conditional;
                 
+                class ThingOneTwo {}
+                
                 class ConfigClass {
                     @Bean
                     @Conditional(ConditionAaOrBb.class)
-                    public ThingOneTwo thisThatThing() {
+                    public ThingOneTwo thingOneTwo() {
                         return new ThingOneTwo();
                     }
                 

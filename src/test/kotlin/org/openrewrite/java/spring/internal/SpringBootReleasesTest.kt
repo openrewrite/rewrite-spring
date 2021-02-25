@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.internal
 
 import org.assertj.core.api.Assertions.assertThat
-import org.openrewrite.java.spring.internal.SpringBootReleases
 import org.junit.jupiter.api.Test
 
 class SpringBootReleasesTest {
