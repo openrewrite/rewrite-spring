@@ -27,7 +27,7 @@ public class SpringRunnerToSpringBootTestAnnotation extends Recipe {
     }
 
     private static class SpringRunnerToSpringBootTestAnnotationVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final AnnotationMatcher SPRING_RUNNER_MATCHER = new AnnotationMatcher("@org.junit.runner.RunWith");// (org.springframework.test.context.junit4.SpringRunner)");
+        private static final AnnotationMatcher SPRING_RUNNER_MATCHER = new AnnotationMatcher("@org.junit.runner.RunWith");
 
         private final JavaTemplate t = template("@SpringBootTest")
                 .imports("org.springframework.boot.test.context.SpringBootTest")
@@ -40,6 +40,9 @@ public class SpringRunnerToSpringBootTestAnnotation extends Recipe {
             J.Annotation a = super.visitAnnotation(annotation, executionContext);
             if (SPRING_RUNNER_MATCHER.matches(a)) {
                 a = maybeAutoFormat(a, a.withTemplate(t, a.getCoordinates().replace()), executionContext);
+                maybeRemoveImport("org.junit.runner.RunWith");
+                maybeRemoveImport("org.springframework.test.context.junit4.SpringRunner");
+                maybeAddImport("org.springframework.boot.test.context.SpringBootTest");
             }
             return a;
         }

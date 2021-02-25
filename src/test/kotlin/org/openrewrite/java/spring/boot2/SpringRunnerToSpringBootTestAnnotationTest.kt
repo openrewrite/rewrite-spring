@@ -43,8 +43,7 @@ class SpringRunnerToSpringBootTestAnnotationTest : JavaRecipeTest {
                 class A {}
             """,
             after = """
-                import org.junit.jupiter.api.extension.ExtendWith;
-                import org.springframework.test.context.junit.jupiter.SpringExtension;
+                import org.springframework.boot.test.context.SpringBootTest;
                 
                 @SpringBootTest
                 class A {}
@@ -63,8 +62,7 @@ class SpringRunnerToSpringBootTestAnnotationTest : JavaRecipeTest {
                 class A {}
             """,
             after = """
-                import org.junit.jupiter.api.extension.ExtendWith;
-                import org.springframework.test.context.junit.jupiter.SpringExtension;
+                import org.springframework.boot.test.context.SpringBootTest;
                 
                 @SpringBootTest
                 class A {}

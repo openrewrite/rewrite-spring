@@ -27,7 +27,7 @@ import org.openrewrite.java.tree.J;
 public class BeanMethodsNotPublic extends Recipe {
     @Override
     public String getDisplayName() {
-        return "BeanMe";
+        return "Bean Methods Not Public";
     }
 
     @Override

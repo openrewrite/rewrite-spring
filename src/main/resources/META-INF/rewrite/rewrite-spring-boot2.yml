@@ -17,10 +17,6 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2
 recipeList:
-  - org.openrewrite.maven.ChangeDependencyVersion:
-      groupId: org.webjars
-      artifactId: webjars-locator
-      newVersion: 0.40
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       newVersion: 2.x
