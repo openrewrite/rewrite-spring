@@ -70,7 +70,7 @@ dependencies {
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
 
-    //runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:latest.integration")
+    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:latest.integration")
 
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")

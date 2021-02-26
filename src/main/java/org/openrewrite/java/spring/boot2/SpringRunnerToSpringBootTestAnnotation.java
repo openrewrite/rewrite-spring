@@ -42,6 +42,7 @@ public class SpringRunnerToSpringBootTestAnnotation extends Recipe {
                 a = maybeAutoFormat(a, a.withTemplate(t, a.getCoordinates().replace()), executionContext);
                 maybeRemoveImport("org.junit.runner.RunWith");
                 maybeRemoveImport("org.springframework.test.context.junit4.SpringRunner");
+                maybeRemoveImport("org.springframework.test.context.junit4.SpringJUnit4ClassRunner");
                 maybeAddImport("org.springframework.boot.test.context.SpringBootTest");
             }
             return a;
