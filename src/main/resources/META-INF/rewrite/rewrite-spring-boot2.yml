@@ -57,7 +57,7 @@ recipeList:
   - org.openrewrite.java.spring.NoRequestMappingAnnotation
   - org.openrewrite.java.spring.ImplicitWebAnnotationNames
   - org.openrewrite.java.spring.BeanMethodsNotPublic
-  - org.openrewrite.java.spring.boot2.SpringRunnerToSpringBootTestAnnotation
+  - org.openrewrite.java.spring.boot2.SpringRunnerToSpringExtension
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
   - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_0

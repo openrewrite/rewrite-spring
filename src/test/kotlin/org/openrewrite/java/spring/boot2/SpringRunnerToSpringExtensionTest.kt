@@ -15,56 +15,50 @@
  */
 package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2
 
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.openrewrite.Issue
 import org.openrewrite.Recipe
-import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
-import org.openrewrite.java.spring.boot2.SpringRunnerToSpringBootTestAnnotation
+import org.openrewrite.java.JavaParser
+import org.openrewrite.java.spring.boot2.SpringRunnerToSpringExtension
 
-class SpringRunnerToSpringBootTestAnnotationTest : JavaRecipeTest {
+class SpringRunnerToSpringExtensionTest : JavaRecipeTest {
     override val parser: JavaParser = JavaParser.fromJavaVersion()
-            .classpath("junit", "spring-test")
-            .build()
+        .classpath("junit", "spring-test")
+        .build()
 
     override val recipe: Recipe
-        get() = SpringRunnerToSpringBootTestAnnotation()
+        get() = SpringRunnerToSpringExtension()
 
-    @Issue("#331")
-    @Disabled
     @Test
     fun springRunnerToExtension() = assertChanged(
-            before = """
+        before = """
                 import org.junit.runner.RunWith;
                 import org.springframework.test.context.junit4.SpringRunner;
-
                 @RunWith(SpringRunner.class)
                 class A {}
             """,
-            after = """
-                import org.springframework.boot.test.context.SpringBootTest;
+        after = """
+                import org.junit.jupiter.api.extension.ExtendWith;
+                import org.springframework.test.context.junit.jupiter.SpringExtension;
                 
-                @SpringBootTest
+                @ExtendWith(SpringExtension.class)
                 class A {}
             """
     )
 
-    @Issue("#331")
-    @Disabled
     @Test
     fun springJUnit4ClassRunnerRunnerToExtension() = assertChanged(
-            before = """
+        before = """
                 import org.junit.runner.RunWith;
                 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
                 @RunWith(SpringJUnit4ClassRunner.class)
                 class A {}
             """,
-            after = """
-                import org.springframework.boot.test.context.SpringBootTest;
+        after = """
+                import org.junit.jupiter.api.extension.ExtendWith;
+                import org.springframework.test.context.junit.jupiter.SpringExtension;
                 
-                @SpringBootTest
+                @ExtendWith(SpringExtension.class)
                 class A {}
             """
     )
@@ -72,7 +66,7 @@ class SpringRunnerToSpringBootTestAnnotationTest : JavaRecipeTest {
 
     @Test
     fun leavesOtherRunnersAlone() = assertUnchanged(
-            before = """
+        before = """
                 package a;
                 
                 import org.junit.runner.RunWith;
@@ -80,12 +74,12 @@ class SpringRunnerToSpringBootTestAnnotationTest : JavaRecipeTest {
                 @RunWith(B.class)
                 class A {}
             """,
-            dependsOn = arrayOf(
-                    """
+        dependsOn = arrayOf(
+            """
                         package a;
                         
                         class B {}
                     """
-            )
+        )
     )
 }
