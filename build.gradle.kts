@@ -93,9 +93,10 @@ dependencies {
     testRuntimeOnly("org.openrewrite:rewrite-java-8:latest.integration")
 
     testRuntimeOnly("junit:junit:latest.release")
-    testRuntimeOnly("org.springframework:spring-beans:5.2.8.RELEASE")
-    testRuntimeOnly("org.springframework:spring-webmvc:5.2.8.RELEASE")
-    testRuntimeOnly("org.springframework.boot:spring-boot-autoconfigure:1.5.22.RELEASE")
+    testRuntimeOnly("org.springframework:spring-test:4.+")
+    testRuntimeOnly("org.springframework:spring-beans:4.+")
+    testRuntimeOnly("org.springframework:spring-webmvc:4.+")
+    testRuntimeOnly("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
 }
 
 tasks.named<Test>("test") {
