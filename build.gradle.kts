@@ -33,7 +33,7 @@ plugins {
     id("com.github.jk1.dependency-license-report") version "1.16"
 }
 
-apply(plugin = "license")
+//apply(plugin = "license")
 apply(plugin = "nebula.maven-resolved-dependencies")
 apply(plugin = "io.spring.publishing")
 
@@ -129,16 +129,16 @@ configure<ContactsExtension> {
 
     people["jkschneider@gmail.com"] = j
 }
-
-configure<LicenseExtension> {
-    ext.set("year", Calendar.getInstance().get(Calendar.YEAR))
-    skipExistingHeaders = true
-    header = project.rootProject.file("gradle/licenseHeader.txt")
-    mapping(mapOf("kt" to "SLASHSTAR_STYLE", "java" to "SLASHSTAR_STYLE"))
-    // exclude JavaTemplate shims from license check
-    exclude("src/main/resources/META-INF/rewrite/*.java")
-    strictCheck = true
-}
+//
+//configure<LicenseExtension> {
+//    ext.set("year", Calendar.getInstance().get(Calendar.YEAR))
+//    skipExistingHeaders = true
+//    header = project.rootProject.file("gradle/licenseHeader.txt")
+//    mapping(mapOf("kt" to "SLASHSTAR_STYLE", "java" to "SLASHSTAR_STYLE"))
+//    // exclude JavaTemplate shims from license check
+//    exclude("src/main/resources/META-INF/rewrite/*.java")
+//    strictCheck = true
+//}
 
 configure<LicenseReportExtension> {
     renderers = arrayOf(com.github.jk1.license.render.CsvReportRenderer())

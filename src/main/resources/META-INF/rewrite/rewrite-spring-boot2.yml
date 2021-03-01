@@ -34,15 +34,8 @@ recipeList:
   - org.openrewrite.maven.RemoveDependency:
       groupId: org.webjars
       artifactId: webjars-locator
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: org.webjars
-      artifactId: jquery
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: org.webjars
-      artifactId: jquery-ui
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: org.webjars
-      artifactId: bootstrap
+  - org.openrewrite.maven.RemoveProperty:
+      propertyName: thymeleaf.version
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.support.SpringBootServletInitializer
       newFullyQualifiedTypeName: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
