@@ -61,6 +61,9 @@ configurations.all {
 }
 
 dependencies {
+    compileOnly("org.projectlombok:lombok:latest.release")
+    annotationProcessor("org.projectlombok:lombok:latest.release")
+
     implementation("org.openrewrite:rewrite-java:latest.integration")
     implementation("org.openrewrite:rewrite-xml:latest.integration")
     implementation("org.openrewrite:rewrite-properties:latest.integration")
@@ -111,6 +114,8 @@ tasks.named<JavaCompile>("compileJava") {
     options.isFork = true
     options.forkOptions.executable = "javac"
     options.compilerArgs.addAll(listOf("--release", "8"))
+    options.encoding = "UTF-8"
+    options.compilerArgs.add("-parameters")
 }
 
 tasks.withType(KotlinCompile::class.java).configureEach {
