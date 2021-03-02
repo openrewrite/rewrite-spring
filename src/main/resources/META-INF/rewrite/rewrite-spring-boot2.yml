@@ -34,12 +34,10 @@ recipeList:
   - org.openrewrite.maven.RemoveDependency:
       groupId: org.webjars
       artifactId: webjars-locator
-  - org.openrewrite.maven.RemoveProperty:
-      propertyName: thymeleaf.version
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.support.SpringBootServletInitializer
       newFullyQualifiedTypeName: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
-  - org.openrewrite.java.spring.ChangeDepricatedHibernateValidationToJavax
+  - org.openrewrite.java.spring.ChangeDeprecatedHibernateValidationToJavax
   - org.openrewrite.java.spring.MaybeAddJavaxValidationDependencies:
       springBootVersion: 2.x
       javaxValidationApiVersion: 2.x
