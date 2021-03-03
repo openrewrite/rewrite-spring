@@ -2,6 +2,5 @@ build/
 .gradle/
 .idea/
 gradle.properties
-.java-version
 .boot-releases
 out/
