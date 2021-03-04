@@ -53,7 +53,7 @@ nexusPublishing {
 
 signing {
     setRequired({
-        !project.hasProperty("skipSigning")
+        !project.version.toString().endsWith("SNAPSHOT") || project.hasProperty("forceSigning")
     })
     val signingKey = project.findProperty("signingKey") as String? ?: System.getenv("SIGNING_KEY")
     val signingPassword = project.findProperty("signingPassword") as String? ?: System.getenv("SIGNING_PASSWORD")
