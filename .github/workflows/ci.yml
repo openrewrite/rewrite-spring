@@ -43,7 +43,7 @@ jobs:
       - name: publish-snapshots
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 30
-        run: ./gradlew ${GRADLE_SWITCHES} snapshot publish
+        run: ./gradlew ${GRADLE_SWITCHES} snapshot publish -PforceSigning
         env:
           OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
