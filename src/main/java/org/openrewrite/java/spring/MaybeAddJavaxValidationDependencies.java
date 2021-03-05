@@ -1,5 +1,6 @@
 package org.openrewrite.java.spring;
 
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
@@ -15,6 +16,7 @@ import org.openrewrite.maven.tree.Maven;
  * e.g {@link ChangeDeprecatedHibernateValidationToJavax}
  */
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class MaybeAddJavaxValidationDependencies extends Recipe {
 
     static String JAVAX_VALIDATION_EXISTS = "javax-validation-exists";

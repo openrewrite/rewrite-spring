@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Changes Depricated Hibernate validation constraints to their associated Javax validation variant.
- * <p></p>
+ *
  * Then sets the 'javax-validation-exists' ExecutionContext value to True which allows the {@link MaybeAddJavaxValidationDependencies}
  * to add the associated dependencies
  */

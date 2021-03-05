@@ -37,6 +37,12 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.support.SpringBootServletInitializer
       newFullyQualifiedTypeName: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.HttpMessageConverters
+      newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.http.HttpMessageConverters
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedName: org.springframework.boot.autoconfigure.web.ErrorController
+      newFullyQualifiedName: org.springframework.boot.web.servlet.error.ErrorController
   - org.openrewrite.java.spring.ChangeDeprecatedHibernateValidationToJavax
   - org.openrewrite.java.spring.MaybeAddJavaxValidationDependencies:
       springBootVersion: 2.x
