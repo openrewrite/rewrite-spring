@@ -2,7 +2,6 @@ import com.github.jk1.license.LicenseReportExtension
 import nebula.plugin.contacts.Contact
 import nebula.plugin.contacts.ContactsExtension
 import nebula.plugin.info.InfoBrokerPlugin
-import nl.javadude.gradle.plugins.license.LicenseExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
@@ -177,9 +176,10 @@ configure<PublishingExtension> {
                         while (i < length) {
                             (dependencyList.item(i) as org.w3c.dom.Element).let { dependency ->
                                 if ((dependency.getElementsByTagName("scope")
-                                                .item(0) as org.w3c.dom.Element).textContent == "provided"
+                                        .item(0) as org.w3c.dom.Element).textContent == "provided"
                                     || (dependency.getElementsByTagName("groupId")
-                                        .item(0) as org.w3c.dom.Element).textContent == "org.jetbrains.kotlin") {
+                                        .item(0) as org.w3c.dom.Element).textContent == "org.jetbrains.kotlin"
+                                ) {
                                     dependencies.removeChild(dependency)
                                     i--
                                     length--
@@ -198,7 +198,7 @@ tasks.withType<GenerateMavenPom> {
     doLast {
         // because pom.withXml adds blank lines
         destination.writeText(
-                destination.readLines().filter { it.isNotBlank() }.joinToString("\n")
+            destination.readLines().filter { it.isNotBlank() }.joinToString("\n")
         )
     }
 
@@ -214,28 +214,30 @@ tasks.withType<GenerateMavenPom> {
         }
 
         fun reduceDependenciesAtIndent(indent: Int):
-                (List<String>, ResolvedDependency) -> List<String> =
-                { dependenciesAsList: List<String>, dep: ResolvedDependency ->
-                    dependenciesAsList + listOf(" ".repeat(indent) + dep.module.id.toString()) + (
-                            if (observedDependencies.add(dep)) {
-                                dep.children
-                                        .sortedBy(gav)
-                                        .fold(emptyList(), reduceDependenciesAtIndent(indent + 2))
-                            } else {
-                                // this dependency subtree has already been printed, so skip it
-                                emptyList()
-                            }
-                            )
-                }
+                    (List<String>, ResolvedDependency) -> List<String> =
+            { dependenciesAsList: List<String>, dep: ResolvedDependency ->
+                dependenciesAsList + listOf(" ".repeat(indent) + dep.module.id.toString()) + (
+                        if (observedDependencies.add(dep)) {
+                            dep.children
+                                .sortedBy(gav)
+                                .fold(emptyList(), reduceDependenciesAtIndent(indent + 2))
+                        } else {
+                            // this dependency subtree has already been printed, so skip it
+                            emptyList()
+                        }
+                        )
+            }
 
         project.plugins.withType<InfoBrokerPlugin> {
-            add("Resolved-Dependencies", runtimeClasspath
+            add(
+                "Resolved-Dependencies", runtimeClasspath
                     .resolvedConfiguration
                     .lenientConfiguration
                     .firstLevelModuleDependencies
                     .sortedBy(gav)
                     .fold(emptyList(), reduceDependenciesAtIndent(6))
-                    .joinToString("\n", "\n", "\n" + " ".repeat(4)))
+                    .joinToString("\n", "\n", "\n" + " ".repeat(4))
+            )
         }
     }
 }
