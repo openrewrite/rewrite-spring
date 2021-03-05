@@ -1,6 +1,5 @@
 build/
 .gradle/
 .idea/
-gradle.properties
 .boot-releases
 out/
