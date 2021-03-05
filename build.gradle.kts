@@ -1,7 +1,6 @@
 import com.github.jk1.license.LicenseReportExtension
 import nebula.plugin.contacts.Contact
 import nebula.plugin.contacts.ContactsExtension
-import nebula.plugin.info.InfoBrokerPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
@@ -190,54 +189,6 @@ configure<PublishingExtension> {
                     }
                 }
             }
-        }
-    }
-}
-
-tasks.withType<GenerateMavenPom> {
-    doLast {
-        // because pom.withXml adds blank lines
-        destination.writeText(
-            destination.readLines().filter { it.isNotBlank() }.joinToString("\n")
-        )
-    }
-
-    doFirst {
-        val runtimeClasspath = configurations.getByName("runtimeClasspath")
-
-        val gav = { dep: ResolvedDependency ->
-            "${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion}"
-        }
-
-        val observedDependencies = TreeSet<ResolvedDependency> { d1, d2 ->
-            gav(d1).compareTo(gav(d2))
-        }
-
-        fun reduceDependenciesAtIndent(indent: Int):
-                    (List<String>, ResolvedDependency) -> List<String> =
-            { dependenciesAsList: List<String>, dep: ResolvedDependency ->
-                dependenciesAsList + listOf(" ".repeat(indent) + dep.module.id.toString()) + (
-                        if (observedDependencies.add(dep)) {
-                            dep.children
-                                .sortedBy(gav)
-                                .fold(emptyList(), reduceDependenciesAtIndent(indent + 2))
-                        } else {
-                            // this dependency subtree has already been printed, so skip it
-                            emptyList()
-                        }
-                        )
-            }
-
-        project.plugins.withType<InfoBrokerPlugin> {
-            add(
-                "Resolved-Dependencies", runtimeClasspath
-                    .resolvedConfiguration
-                    .lenientConfiguration
-                    .firstLevelModuleDependencies
-                    .sortedBy(gav)
-                    .fold(emptyList(), reduceDependenciesAtIndent(6))
-                    .joinToString("\n", "\n", "\n" + " ".repeat(4))
-            )
         }
     }
 }
