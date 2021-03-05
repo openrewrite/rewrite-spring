@@ -17,7 +17,8 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2
 recipeList:
-  - org.openrewrite.java.testing.JUnit5Migration
+  - org.openrewrite.java.testing.JUnit4to5Migration
+  - org.openrewrite.java.testing.JUnit5BestPractices
   - org.openrewrite.java.testing.Mockito1to3Migration
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
