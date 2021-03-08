@@ -16,6 +16,8 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2
+displayName: Spring Boot 2
+description: Spring Boot 2 best practices.
 recipeList:
   - org.openrewrite.java.testing.JUnit4to5Migration
   - org.openrewrite.java.testing.JUnit5BestPractices

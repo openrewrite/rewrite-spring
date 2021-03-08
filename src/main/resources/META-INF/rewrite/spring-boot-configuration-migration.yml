@@ -16,6 +16,7 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_0
+displayName: Spring Boot configuration properties 2.0
 recipeList:
   - org.openrewrite.properties.ChangePropertyKey:
       oldPropertyKey: spring.main.show-banner
@@ -525,6 +526,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_0
+displayName: Spring Boot configuration yaml 2.0
 recipeList:
   - org.openrewrite.yaml.ChangePropertyKey:
       oldPropertyKey: spring.main.show-banner
@@ -1034,6 +1036,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_1
+displayName: Spring Boot configuration properties 2.1
 recipeList:
   - org.openrewrite.properties.ChangePropertyKey:
       oldPropertyKey: management.metrics.binders.files.enabled
@@ -1111,6 +1114,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_1
+displayName: Spring Boot configuration yaml 2.1
 recipeList:
   - org.openrewrite.yaml.ChangePropertyKey:
       oldPropertyKey: management.metrics.binders.files.enabled
@@ -1188,6 +1192,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_2
+displayName: Spring Boot configuration properties 2.2
 recipeList:
   - org.openrewrite.properties.ChangePropertyKey:
       oldPropertyKey: logging.file
@@ -1238,6 +1243,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_2
+displayName: Spring Boot configuration yaml 2.2
 recipeList:
   - org.openrewrite.yaml.ChangePropertyKey:
       oldPropertyKey: logging.file
@@ -1288,6 +1294,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.2_3
+displayName: Spring Boot configuration properties 2.3
 recipeList:
   - org.openrewrite.properties.ChangePropertyKey:
       oldPropertyKey: server.jetty.max-http-post-size
@@ -1356,6 +1363,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_3
+displayName: Spring Boot configuration yaml 2.3
 recipeList:
   - org.openrewrite.yaml.ChangePropertyKey:
       oldPropertyKey: server.jetty.max-http-post-size
