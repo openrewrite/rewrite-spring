@@ -15,8 +15,8 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.JUnit5Migration
-displayName: JUnit 4 to 5 migration for Spring Boot projects
+name: org.openrewrite.java.spring.Boot2JUnit4to5Migration
+displayName: JUnit 4 to 5 migration for Spring Boot 2.x projects
 description: JUnit 4 to 5 with SpringRunner to SpringExtension
 recipeList:
   - org.openrewrite.java.testing.JUnit4to5Migration
