@@ -4,8 +4,8 @@ name: publish
 on:
   push:
     tags:
-      - v*.*.*
-      - v*.*.*-rc.*
+      - v[0-9]+.[0-9]+.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+
 
 env:
   GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
@@ -14,6 +14,7 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'openrewrite'
     steps:
       - uses: actions/checkout@v2
         with:
