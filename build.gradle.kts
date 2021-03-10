@@ -15,6 +15,8 @@ plugins {
     `maven-publish`
     signing
 
+    id("org.openrewrite.project-defaults") version "0.1.0-SNAPSHOT"
+
     id("nebula.maven-resolved-dependencies") version "17.3.2"
     id("nebula.release") version "15.3.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
