@@ -16,21 +16,30 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.Boot2JUnit4to5Migration
-displayName: JUnit 4 to 5 migration for Spring Boot 2.x projects
-description: JUnit 4 to 5 with SpringRunner to SpringExtension
+displayName: JUnit Jupiter migration from JUnit 4.x for Spring Boot 2.x projects
+description: Migrates Sping Boot 2.x projects having JUnit 4.x tests to JUnit Jupiter
+tags:
+  - testing
+  - junit
+  - spring
 recipeList:
-  - org.openrewrite.java.testing.JUnit4to5Migration
+  - org.openrewrite.java.testing.junit5.JUnit4to5Migration
   - org.openrewrite.java.spring.boot2.SpringRunnerToSpringExtension
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2
 displayName: Spring Boot 2
-description: Spring Boot 2 best practices.
+description: Migrates Spring Boot 1.x to 2.x including best practices.
+tags:
+  - testing
+  - junit
+  - mockito
+  - spring
 recipeList:
-  - org.openrewrite.java.testing.JUnit4to5Migration
-  - org.openrewrite.java.testing.JUnit5BestPractices
-  - org.openrewrite.java.testing.Mockito1to3Migration
+  - org.openrewrite.java.testing.junit5.JUnit4to5Migration
+  - org.openrewrite.java.testing.junit5.JUnit5BestPractices
+  - org.openrewrite.java.testing.junit5.UseMockitoExtension
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       newVersion: 2.x
