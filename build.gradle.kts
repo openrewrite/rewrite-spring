@@ -15,12 +15,12 @@ plugins {
     `maven-publish`
     signing
 
+    id("org.jetbrains.kotlin.jvm") version "1.4.21"
     id("nebula.maven-resolved-dependencies") version "17.3.2"
     id("nebula.release") version "15.3.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
 
     id("com.github.hierynomus.license") version "0.15.0" apply false
-    id("org.jetbrains.kotlin.jvm") version "1.4.21"
     id("com.github.jk1.dependency-license-report") version "1.16"
 
     id("nebula.maven-publish") version "17.3.2"
@@ -30,6 +30,10 @@ plugins {
     id("nebula.javadoc-jar") version "17.3.2"
     id("nebula.source-jar") version "17.3.2"
     id("nebula.maven-apache-license") version "17.3.2"
+}
+
+configure<nebula.plugin.release.git.base.ReleasePluginExtension> {
+    defaultVersionStrategy = nebula.plugin.release.NetflixOssStrategies.SNAPSHOT(project)
 }
 
 group = "org.openrewrite.recipe"
