@@ -46,10 +46,7 @@ repositories {
 
 nexusPublishing {
     repositories {
-        sonatype {
-            username.set(project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME"))
-            password.set(project.findProperty("ossrhToken") as String? ?: System.getenv("OSSRH_TOKEN"))
-        }
+        sonatype()
     }
 }
 
@@ -57,8 +54,8 @@ signing {
     setRequired({
         !project.version.toString().endsWith("SNAPSHOT") || project.hasProperty("forceSigning")
     })
-    val signingKey = project.findProperty("signingKey") as String? ?: System.getenv("SIGNING_KEY")
-    val signingPassword = project.findProperty("signingPassword") as String? ?: System.getenv("SIGNING_PASSWORD")
+    val signingKey: String? by project
+    val signingPassword: String? by project
     useInMemoryPgpKeys(signingKey, signingPassword)
     sign(publishing.publications["nebula"])
 }
