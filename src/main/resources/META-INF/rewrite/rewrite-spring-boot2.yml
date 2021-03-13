@@ -24,7 +24,15 @@ tags:
   - spring
 recipeList:
   - org.openrewrite.java.testing.junit5.JUnit4to5Migration
-  - org.openrewrite.java.spring.boot2.SpringRunnerToSpringExtension
+  - org.openrewrite.java.testing.junit5.RunnerToExtension:
+      runners:
+        - org.springframework.test.context.junit4.SpringRunner
+      extension: org.springframework.test.context.junit.jupiter.SpringExtension
+  - org.openrewrite.java.testing.junit5.RunnerToExtension:
+      runners:
+        - org.springframework.boot.junit.runner.classpath.ModifiedClassPathRunner
+        - org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathRunner
+      extension: org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathExtension
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
