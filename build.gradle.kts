@@ -2,7 +2,6 @@ import com.github.jk1.license.LicenseReportExtension
 import nebula.plugin.contacts.Contact
 import nebula.plugin.contacts.ContactsExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.*
 
 buildscript {
     repositories {
@@ -114,6 +113,7 @@ dependencies {
     testRuntimeOnly("org.springframework:spring-beans:4.+")
     testRuntimeOnly("org.springframework:spring-webmvc:4.+")
     testRuntimeOnly("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
+    testRuntimeOnly("org.springframework.boot:spring-boot-test:1.5.+")
 }
 
 tasks.named<Test>("test") {

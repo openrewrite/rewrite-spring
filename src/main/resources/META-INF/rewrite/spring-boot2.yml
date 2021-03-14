@@ -24,6 +24,7 @@ tags:
   - spring
 recipeList:
   - org.openrewrite.java.testing.junit5.JUnit4to5Migration
+  - org.openrewrite.java.spring.boot2.OutputCaptureExtension
   - org.openrewrite.java.testing.junit5.RunnerToExtension:
       runners:
         - org.springframework.test.context.junit4.SpringRunner
