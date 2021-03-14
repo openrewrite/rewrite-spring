@@ -104,7 +104,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                         JavaTemplate t = template("@Conditional(" + conditionalClassName + ".class)")
                                 .imports(CONDITIONAL_CLASS)
                                 .javaParser(JavaParser.fromJavaVersion()
-                                        .dependsOn(Collections.singletonList(Parser.Input.fromResource("/META-INF/rewrite/Conditional.java")))
+                                        .dependsOn(Collections.singletonList(Parser.Input.fromResource("/Conditional.java")))
                                         .build())
                                 .build();
                         a = maybeAutoFormat(a, a.withTemplate(t, a.getCoordinates().replace()), executionContext, getCursor().getParentOrThrow());
@@ -133,7 +133,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     JavaTemplate t = template(s)
                             .imports(ANY_NESTED_CONDITION_CLASS)
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .dependsOn(Parser.Input.fromResource("/META-INF/rewrite/AnyNestedCondition.java", "---"))
+                                    .dependsOn(Parser.Input.fromResource("/AnyNestedCondition.java", "---"))
                                     .build())
                             .build();
                     c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), executionContext);

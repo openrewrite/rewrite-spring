@@ -20,11 +20,11 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
 class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
-
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-boot-autoconfigure", "spring-boot", "spring-web")
             .build()
+
     override val recipe = ConditionalOnBeanAnyNestedCondition()
 
     @Test
