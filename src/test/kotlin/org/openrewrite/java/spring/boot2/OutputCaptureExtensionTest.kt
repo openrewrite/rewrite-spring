@@ -42,8 +42,8 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
                 OutputCapture capture = new OutputCapture();
             
                 void test() {
-                    capture.toString();
-                    this.capture.toString();
+                    System.out.println(capture.toString());
+                    System.out.println(this.capture.toString());
                 }
             
                 void doesntUse() {
@@ -59,8 +59,8 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
             class Test {
             
                 void test(CapturedOutput capture) {
-                    capture.toString();
-                    capture.toString();
+                    System.out.println(capture.toString());
+                    System.out.println(capture.toString());
                 }
             
                 void doesntUse() {

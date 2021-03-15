@@ -22,7 +22,6 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
 class ImplicitWebAnnotationNamesTest : JavaRecipeTest {
-
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-web")
@@ -32,103 +31,103 @@ class ImplicitWebAnnotationNamesTest : JavaRecipeTest {
 
     @Test
     fun removeUnnecessaryAnnotationArgument() = assertChanged(
-            before = """
-                import org.springframework.http.ResponseEntity;
-                import org.springframework.web.bind.annotation.*;
-                
-                @RestController
-                @RequestMapping("/users")
-                public class UsersController {
-                    @GetMapping("/{id}")
-                    public ResponseEntity<String> getUser(@PathVariable("id") Long id,
-                                                          @PathVariable(required = false) Long p2,
-                                                          @PathVariable(value = "p3") Long anotherName) {
-                        System.out.println(anotherName);
-                    }
+        before = """
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.*;
+            
+            @RestController
+            @RequestMapping("/users")
+            public class UsersController {
+                @GetMapping("/{id}")
+                public ResponseEntity<String> getUser(@PathVariable("id") Long id,
+                                                      @PathVariable(required = false) Long p2,
+                                                      @PathVariable(value = "p3") Long anotherName) {
+                    System.out.println(anotherName);
                 }
-            """,
-            after = """
-                import org.springframework.http.ResponseEntity;
-                import org.springframework.web.bind.annotation.*;
-                
-                @RestController
-                @RequestMapping("/users")
-                public class UsersController {
-                    @GetMapping("/{id}")
-                    public ResponseEntity<String> getUser(@PathVariable Long id,
-                                                          @PathVariable(required = false) Long p2,
-                                                          @PathVariable Long p3) {
-                        System.out.println(p3);
-                    }
+            }
+        """,
+        after = """
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.*;
+            
+            @RestController
+            @RequestMapping("/users")
+            public class UsersController {
+                @GetMapping("/{id}")
+                public ResponseEntity<String> getUser(@PathVariable Long id,
+                                                      @PathVariable(required = false) Long p2,
+                                                      @PathVariable Long p3) {
+                    System.out.println(p3);
                 }
-            """
+            }
+        """
     )
 
     @Issue("#4")
     @Test
     fun removeUnnecessarySpacingInFollowingAnnotationArgument() = assertChanged(
-            before = """
-                import org.springframework.http.ResponseEntity;
-                import org.springframework.web.bind.annotation.*;
-                
-                @RestController
-                @RequestMapping("/users")
-                public class UsersController {
-                    @GetMapping("/{id}")
-                    public ResponseEntity<String> getUser(
-                        @RequestParam(name = "count", defaultValue = 3) int count) {
-                    }
+        before = """
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.*;
+            
+            @RestController
+            @RequestMapping("/users")
+            public class UsersController {
+                @GetMapping("/{id}")
+                public ResponseEntity<String> getUser(
+                    @RequestParam(name = "count", defaultValue = 3) int count) {
                 }
-            """,
-            after = """
-                import org.springframework.http.ResponseEntity;
-                import org.springframework.web.bind.annotation.*;
-                
-                @RestController
-                @RequestMapping("/users")
-                public class UsersController {
-                    @GetMapping("/{id}")
-                    public ResponseEntity<String> getUser(
-                        @RequestParam(defaultValue = 3) int count) {
-                    }
+            }
+        """,
+        after = """
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.*;
+            
+            @RestController
+            @RequestMapping("/users")
+            public class UsersController {
+                @GetMapping("/{id}")
+                public ResponseEntity<String> getUser(
+                    @RequestParam(defaultValue = 3) int count) {
                 }
-            """
+            }
+        """
     )
 
     @Test
     fun dontRemoveModelAttributeOnMethods() = assertUnchanged(
-            before = """
-                import org.springframework.web.bind.annotation.*;
-                import java.util.*;
-                
-                public class UsersController {
-                    @ModelAttribute("types")
-                    public Collection<String> populateUserTypes() {
-                        return Arrays.asList("free", "premium");
-                    }
+        before = """
+            import org.springframework.web.bind.annotation.*;
+            import java.util.*;
+            
+            public class UsersController {
+                @ModelAttribute("types")
+                public Collection<String> populateUserTypes() {
+                    return Arrays.asList("free", "premium");
                 }
-            """
+            }
+        """
     )
 
     @Test
     fun onlyDropCamelCasedNames() = assertChanged(
-            before = """
-                import org.springframework.web.bind.annotation.*;
-                
-                public class UsersController {
-                    public ResponseEntity<String> getUser(@PathVariable("id") Long id,
-                                                          @PathVariable(value = "another_name") Long anotherName) {
-                    }
-                }
-            """,
-            after = """
-                import org.springframework.web.bind.annotation.*;
+        before = """
+            import org.springframework.web.bind.annotation.*;
             
-                public class UsersController {
-                    public ResponseEntity<String> getUser(@PathVariable Long id,
-                                                          @PathVariable(value = "another_name") Long anotherName) {
-                    }
+            public class UsersController {
+                public ResponseEntity<String> getUser(@PathVariable("id") Long id,
+                                                      @PathVariable(value = "another_name") Long anotherName) {
                 }
-            """
+            }
+        """,
+        after = """
+            import org.springframework.web.bind.annotation.*;
+        
+            public class UsersController {
+                public ResponseEntity<String> getUser(@PathVariable Long id,
+                                                      @PathVariable(value = "another_name") Long anotherName) {
+                }
+            }
+        """
     )
 }

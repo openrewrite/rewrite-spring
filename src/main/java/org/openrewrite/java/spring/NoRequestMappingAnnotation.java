@@ -56,8 +56,7 @@ public class NoRequestMappingAnnotation extends Recipe {
     }
 
     private static class NoRequestMappingAnnotationVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final String SPRING_BIND_ANNOTATION_PACKAGE = "org.springframework.web.bind.annotation";
-        private static final AnnotationMatcher REQUEST_MAPPING_ANNOTATION_MATCHER = new AnnotationMatcher(SPRING_BIND_ANNOTATION_PACKAGE + ".RequestMapping");
+        private static final AnnotationMatcher REQUEST_MAPPING_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.RequestMapping");
 
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
@@ -68,18 +67,20 @@ public class NoRequestMappingAnnotation extends Recipe {
                 Optional<String> requestType = requestMethodArg.isPresent() ? requestMethodArg.flatMap(this::requestMethodType) : Optional.of("GET");
                 String resolvedRequestMappingAnnotationClassName = requestType.map(this::associatedRequestMapping).orElse(null);
 
-                requestType.ifPresent(requestMethod -> maybeRemoveImport(SPRING_BIND_ANNOTATION_PACKAGE + ".RequestMethod." + requestMethod));
+                requestType.ifPresent(requestMethod -> maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod." + requestMethod));
 
                 // Remove the argument
                 if (requestMethodArg.isPresent() && methodArgumentHasSingleType(requestMethodArg.get()) && resolvedRequestMappingAnnotationClassName != null) {
-                    a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
+                    if (a.getArguments() != null) {
+                        a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
+                    }
                 }
 
                 // Change the Annotation Type
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport(resolvedRequestMappingAnnotationClassName);
                     if (a.getArguments() == null || a.getArguments().isEmpty()) {
-                        a = a.withTemplate(template("@"+associatedRequestMapping(requestType.get())).build(), a.getCoordinates().replace());
+                        a = a.withTemplate(template("@" + associatedRequestMapping(requestType.get())).build(), a.getCoordinates().replace());
                     } else {
                         String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
                                 "(" + a.getArguments().stream().map(J::print).collect(Collectors.joining(",")) + ")";
@@ -92,7 +93,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                 if (a.getArguments() != null && a.getArguments().size() == 1) {
                     a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                         if (arg instanceof J.Assignment && ((J.Assignment) arg).getVariable() instanceof J.Identifier) {
-                            J.Identifier ident = (J.Identifier)((J.Assignment)arg).getVariable();
+                            J.Identifier ident = (J.Identifier) ((J.Assignment) arg).getVariable();
                             if (ident.getSimpleName().equals("path") || ident.getSimpleName().equals("value")) {
                                 return ((J.Assignment) arg).getAssignment();
                             }
@@ -117,24 +118,25 @@ public class NoRequestMappingAnnotation extends Recipe {
         }
 
         private boolean methodArgumentHasSingleType(J.Assignment assignment) {
-            return !(assignment.getAssignment() instanceof J.NewArray)
-                    || ((J.NewArray) assignment.getAssignment()).getInitializer().size() == 1;
+            if (!(assignment.getAssignment() instanceof J.NewArray)) {
+                return true;
+            }
+            J.NewArray newArray = (J.NewArray) assignment.getAssignment();
+            return newArray.getInitializer() != null && newArray.getInitializer().size() == 1;
         }
 
         private Optional<String> requestMethodType(@Nullable J.Assignment assignment) {
             String method;
             if (assignment == null) {
                 method = "GET";
-            }
-            else if (assignment.getAssignment() instanceof J.Identifier) {
+            } else if (assignment.getAssignment() instanceof J.Identifier) {
                 method = ((J.Identifier) assignment.getAssignment()).getSimpleName();
-            }
-            else if (assignment.getAssignment() instanceof J.FieldAccess) {
+            } else if (assignment.getAssignment() instanceof J.FieldAccess) {
                 method = ((J.FieldAccess) assignment.getAssignment()).getSimpleName();
-            }
-            else if (assignment.getAssignment() instanceof J.NewArray && ((J.NewArray) assignment.getAssignment()).getInitializer().size() == 1) {
+            } else if (methodArgumentHasSingleType(assignment)) {
                 J.NewArray newArray = ((J.NewArray) assignment.getAssignment());
-                method = ((J.FieldAccess)newArray.getInitializer().get(0)).getSimpleName();
+                assert newArray.getInitializer() != null;
+                method = ((J.FieldAccess) newArray.getInitializer().get(0)).getSimpleName();
             } else {
                 method = null;
             }
@@ -152,8 +154,6 @@ public class NoRequestMappingAnnotation extends Recipe {
                 case "GET":
                     methodName = method.charAt(0) + method.toLowerCase().substring(1) + "Mapping";
                     break;
-                default:
-                    methodName = null;
             }
             return methodName;
         }

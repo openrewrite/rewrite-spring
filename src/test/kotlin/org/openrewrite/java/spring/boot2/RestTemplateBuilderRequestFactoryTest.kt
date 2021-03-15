@@ -21,39 +21,39 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
 class RestTemplateBuilderRequestFactoryTest : JavaRecipeTest {
-
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-boot", "spring-web")
             .build()
+
     override val recipe: Recipe
         get() = RestTemplateBuilderRequestFactory()
 
     @Test
     fun useSupplierArgument() = assertChanged(
-            before = """
-                import org.springframework.boot.web.client.RestTemplateBuilder;
-                import org.springframework.http.client.ClientHttpRequestFactory;
-                import org.springframework.http.client.SimpleClientHttpRequestFactory;
-    
-                public class A {
-                    {
-                        RestTemplateBuilder builder = new RestTemplateBuilder()
-                                .requestFactory(new SimpleClientHttpRequestFactory());
-                    }
+        before = """
+            import org.springframework.boot.web.client.RestTemplateBuilder;
+            import org.springframework.http.client.ClientHttpRequestFactory;
+            import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
+            public class A {
+                static {
+                    RestTemplateBuilder builder = new RestTemplateBuilder()
+                            .requestFactory(new SimpleClientHttpRequestFactory());
                 }
-            """,
-            after = """
-                import org.springframework.boot.web.client.RestTemplateBuilder;
-                import org.springframework.http.client.ClientHttpRequestFactory;
-                import org.springframework.http.client.SimpleClientHttpRequestFactory;
-    
-                public class A {
-                    {
-                        RestTemplateBuilder builder = new RestTemplateBuilder()
-                                .requestFactory(() -> new SimpleClientHttpRequestFactory());
-                    }
+            }
+        """,
+        after = """
+            import org.springframework.boot.web.client.RestTemplateBuilder;
+            import org.springframework.http.client.ClientHttpRequestFactory;
+            import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
+            public class A {
+                static {
+                    RestTemplateBuilder builder = new RestTemplateBuilder()
+                            .requestFactory(() -> new SimpleClientHttpRequestFactory());
                 }
-            """
+            }
+        """
     )
 }

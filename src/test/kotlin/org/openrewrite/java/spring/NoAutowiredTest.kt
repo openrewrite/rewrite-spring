@@ -21,56 +21,54 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
 class NoAutowiredTest : JavaRecipeTest {
-
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-beans")
             .build()
+
     override val recipe: Recipe
         get() = NoAutowired()
 
     @Test
     fun removeAutowiredAnnotations() = assertChanged(
-            parser,
-            before = """
-                import javax.sql.DataSource;
-                import org.springframework.beans.factory.annotation.Autowired;
-                
-                public class DatabaseConfiguration { 
-                    private final DataSource dataSource;
+        before = """
+            import javax.sql.DataSource;
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class DatabaseConfiguration { 
+                private final DataSource dataSource;
 
-                    @Autowired
-                    public DatabaseConfiguration(DataSource dataSource) {
-                    }
+                @Autowired
+                public DatabaseConfiguration(DataSource dataSource) {
                 }
-            """,
-            after = """
-                import javax.sql.DataSource;
-                
-                public class DatabaseConfiguration { 
-                    private final DataSource dataSource;
+            }
+        """,
+        after = """
+            import javax.sql.DataSource;
+            
+            public class DatabaseConfiguration { 
+                private final DataSource dataSource;
 
-                    
-                    public DatabaseConfiguration(DataSource dataSource) {
-                    }
+                
+                public DatabaseConfiguration(DataSource dataSource) {
                 }
-            """
+            }
+        """
     )
 
     @Test
     fun noAutowiredAnnotations() = assertUnchanged(
-        parser,
         before = """
-                import javax.sql.DataSource;
-                
-                public class DatabaseConfiguration { 
-                    private final DataSource dataSource;
+            import javax.sql.DataSource;
+            
+            public class DatabaseConfiguration { 
+                private final DataSource dataSource;
 
-                    @Primary
-                    public DatabaseConfiguration(DataSource dataSource) {
-                    }
+                @Primary
+                public DatabaseConfiguration(DataSource dataSource) {
                 }
-            """
+            }
+        """
     )
 
 }

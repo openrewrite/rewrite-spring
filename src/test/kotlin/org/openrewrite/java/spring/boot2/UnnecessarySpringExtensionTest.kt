@@ -26,15 +26,9 @@ import org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
 class UnnecessarySpringExtensionTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
-            .classpath("junit-jupiter-api")
+            .classpath("spring-boot-test", "junit-jupiter-api")
             .dependsOn(
                 listOf(
-                    Parser.Input.fromString(
-                        """
-                            package org.springframework.boot.test.context;
-                            public @interface SpringBootTest {}
-                        """.trimIndent()
-                    ),
                     Parser.Input.fromString(
                         """
                             package org.springframework.test.context.junit.jupiter;

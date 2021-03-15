@@ -14,7 +14,7 @@ plugins {
     `maven-publish`
     signing
 
-    id("org.jetbrains.kotlin.jvm") version "1.4.21"
+    id("org.jetbrains.kotlin.jvm") version "1.4.31"
     id("nebula.maven-resolved-dependencies") version "17.3.2"
     id("nebula.release") version "15.3.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
@@ -85,6 +85,10 @@ dependencies {
 
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
+
+    // eliminates "unknown enum constant DeprecationLevel.WARNING" warnings from the build log
+    // see https://github.com/gradle/kotlin-dsl-samples/issues/1301 for why (okhttp is leaking parts of kotlin stdlib)
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:latest.integration")
 

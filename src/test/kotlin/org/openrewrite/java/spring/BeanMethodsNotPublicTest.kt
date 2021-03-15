@@ -50,7 +50,7 @@ class BeanMethodsNotPublicTest : JavaRecipeTest {
                 }
                 
                 @Bean
-                public static final DataSource dataSource3() {
+                public static DataSource dataSource3() {
                     return new DataSource();
                 }
             }
@@ -74,7 +74,7 @@ class BeanMethodsNotPublicTest : JavaRecipeTest {
                 }
             
                 @Bean
-                static final DataSource dataSource3() {
+                static DataSource dataSource3() {
                     return new DataSource();
                 }
             }
