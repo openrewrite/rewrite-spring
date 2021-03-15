@@ -42,6 +42,9 @@ description = "Eliminate legacy Spring patterns and migrate between major Spring
 
 repositories {
     mavenLocal()
+    maven {
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+    }
     mavenCentral()
 }
 
