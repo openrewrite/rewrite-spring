@@ -1,7 +1,9 @@
 import com.github.jk1.license.LicenseReportExtension
 import nebula.plugin.contacts.Contact
 import nebula.plugin.contacts.ContactsExtension
+import nl.javadude.gradle.plugins.license.LicenseExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.*
 
 buildscript {
     repositories {
@@ -19,7 +21,7 @@ plugins {
     id("nebula.release") version "15.3.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
 
-    id("com.github.hierynomus.license") version "0.15.0" apply false
+    id("com.github.hierynomus.license") version "0.15.0"
     id("com.github.jk1.dependency-license-report") version "1.16"
 
     id("nebula.maven-publish") version "17.3.2"
@@ -139,6 +141,7 @@ tasks.named<JavaCompile>("compileJava") {
 tasks.withType(KotlinCompile::class.java).configureEach {
     kotlinOptions {
         jvmTarget = "1.8"
+        useIR = true
     }
 
     doFirst {
@@ -153,15 +156,15 @@ configure<ContactsExtension> {
     people["jkschneider@gmail.com"] = j
 }
 
-// configure<LicenseExtension> {
-//     ext.set("year", Calendar.getInstance().get(Calendar.YEAR))
-//     skipExistingHeaders = true
-//     header = project.rootProject.file("gradle/licenseHeader.txt")
-//     mapping(mapOf("kt" to "SLASHSTAR_STYLE", "java" to "SLASHSTAR_STYLE"))
-//     // exclude JavaTemplate shims from license check
-//     exclude("src/main/resources/META-INF/rewrite/*.java")
-//     strictCheck = true
-// }
+ configure<LicenseExtension> {
+     ext.set("year", Calendar.getInstance().get(Calendar.YEAR))
+     skipExistingHeaders = true
+     header = project.rootProject.file("gradle/licenseHeader.txt")
+     mapping(mapOf("kt" to "SLASHSTAR_STYLE", "java" to "SLASHSTAR_STYLE"))
+     // exclude JavaTemplate shims from license check
+     exclude("src/main/resources/META-INF/rewrite/*.java")
+     strictCheck = true
+ }
 
 configure<LicenseReportExtension> {
     renderers = arrayOf(com.github.jk1.license.render.CsvReportRenderer())
