@@ -93,7 +93,7 @@ public class OutputCaptureExtension extends Recipe {
                     return s;
                 })));
 
-                if (c.getBody() != classDecl.getBody()) {
+                if (classDecl.getBody().getStatements().size() != c.getBody().getStatements().size()) {
                     c = c.withTemplate(addOutputCaptureExtension.build(), c.getCoordinates()
                             .addAnnotation(Comparator.comparing(
                                     J.Annotation::getSimpleName,

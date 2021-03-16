@@ -68,4 +68,16 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
             }
         """
     )
+
+    @Issue("#50")
+    @Test
+    fun onlyCaptureOutputCaptureRules() = assertUnchanged(
+        before = """
+            class FooConfig {
+                void test(String name) {
+                    System.out.println(name);
+                }
+            }
+        """
+    )
 }
