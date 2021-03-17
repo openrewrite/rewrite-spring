@@ -32,7 +32,6 @@ recipeList:
       extension: org.springframework.test.context.junit.jupiter.SpringExtension
   - org.openrewrite.java.testing.junit5.RunnerToExtension:
       runners:
-        - org.springframework.cloud.test.ModifiedClassPathRunner
         - org.springframework.boot.junit.runner.classpath.ModifiedClassPathRunner
         - org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathRunner
       extension: org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathExtension
