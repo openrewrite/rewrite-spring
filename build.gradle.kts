@@ -32,6 +32,7 @@ plugins {
     id("nebula.source-jar") version "17.3.2"
     id("nebula.maven-apache-license") version "17.3.2"
 }
+apply(plugin = "nebula.publish-verification")
 
 configure<nebula.plugin.release.git.base.ReleasePluginExtension> {
     defaultVersionStrategy = nebula.plugin.release.NetflixOssStrategies.SNAPSHOT(project)
@@ -69,24 +70,19 @@ configurations.all {
         cacheChangingModulesFor(0, TimeUnit.SECONDS)
         cacheDynamicVersionsFor(0, TimeUnit.SECONDS)
     }
-
-    // We use kotlin exclusively for tests
-    // The kotlin plugin adds kotlin-stdlib dependencies to the main sourceSet, even if it doesn't use any kotlin
-    // To avoid shipping dependencies we don't actually need, exclude them from the main sourceSet classpath but add them _back_ in for the test source sets
-    if (name == "compileClasspath" || name == "runtimeClasspath") {
-        exclude(group = "org.jetbrains.kotlin")
-    }
 }
 
+val rewriteVersion = "latest.release"
+val testingFrameworksVersion = "latest.release"
 dependencies {
     compileOnly("org.projectlombok:lombok:latest.release")
     annotationProcessor("org.projectlombok:lombok:latest.release")
 
-    implementation("org.openrewrite:rewrite-java:latest.integration")
-    implementation("org.openrewrite:rewrite-xml:latest.integration")
-    implementation("org.openrewrite:rewrite-properties:latest.integration")
-    implementation("org.openrewrite:rewrite-yaml:latest.integration")
-    implementation("org.openrewrite:rewrite-maven:latest.integration")
+    implementation("org.openrewrite:rewrite-java:${rewriteVersion}")
+    implementation("org.openrewrite:rewrite-xml:${rewriteVersion}")
+    implementation("org.openrewrite:rewrite-properties:${rewriteVersion}")
+    implementation("org.openrewrite:rewrite-yaml:${rewriteVersion}")
+    implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
 
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:latest.release")
@@ -95,7 +91,7 @@ dependencies {
     // see https://github.com/gradle/kotlin-dsl-samples/issues/1301 for why (okhttp is leaking parts of kotlin stdlib)
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:latest.integration")
+    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:${testingFrameworksVersion}")
 
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -104,7 +100,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 
-    testImplementation("org.openrewrite:rewrite-test:latest.integration")
+    testImplementation("org.openrewrite:rewrite-test:${rewriteVersion}")
 
     testImplementation("org.assertj:assertj-core:latest.release")
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
@@ -114,8 +110,8 @@ dependencies {
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:latest.release")
     testImplementation("io.github.classgraph:classgraph:latest.release")
 
-    testRuntimeOnly("org.openrewrite:rewrite-java-11:latest.integration")
-    testRuntimeOnly("org.openrewrite:rewrite-java-8:latest.integration")
+    testRuntimeOnly("org.openrewrite:rewrite-java-11:${rewriteVersion}")
+    testRuntimeOnly("org.openrewrite:rewrite-java-8:${rewriteVersion}")
 
     testRuntimeOnly("junit:junit:latest.release")
     testRuntimeOnly("org.springframework:spring-test:4.+")
@@ -186,10 +182,7 @@ configure<PublishingExtension> {
                         while (i < length) {
                             (dependencyList.item(i) as org.w3c.dom.Element).let { dependency ->
                                 if ((dependency.getElementsByTagName("scope")
-                                        .item(0) as org.w3c.dom.Element).textContent == "provided"
-                                    || (dependency.getElementsByTagName("groupId")
-                                        .item(0) as org.w3c.dom.Element).textContent == "org.jetbrains.kotlin"
-                                ) {
+                                        .item(0) as org.w3c.dom.Element).textContent == "provided") {
                                     dependencies.removeChild(dependency)
                                     i--
                                     length--
