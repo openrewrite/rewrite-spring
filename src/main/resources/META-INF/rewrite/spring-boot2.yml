@@ -15,13 +15,14 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.Boot2JUnit4to5Migration
+name: org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
 displayName: JUnit Jupiter migration from JUnit 4.x for Spring Boot 2.x projects
 description: Migrates Sping Boot 2.x projects having JUnit 4.x tests to JUnit Jupiter
 tags:
   - testing
   - junit
   - spring
+  - spring-boot
 recipeList:
   - org.openrewrite.java.testing.junit5.JUnit4to5Migration
   - org.openrewrite.java.spring.boot2.OutputCaptureExtension
@@ -42,17 +43,29 @@ recipeList:
       scope: test
       onlyIfUsing:
         - org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathExtension
-
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
+displayName: Spring Boot 2.x best practices
+description: Applies best practices to Spring Boot 2 applications.
+tags:
+  - spring
+  - spring-boot
+recipeList:
+  - org.openrewrite.java.spring.NoRequestMappingAnnotation
+  - org.openrewrite.java.spring.ImplicitWebAnnotationNames
+  - org.openrewrite.java.spring.BeanMethodsNotPublic
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2
-displayName: Spring Boot 2
+displayName: Spring Boot 2.x migration from Spring Boot 1.x
 description: Migrates Spring Boot 1.x to 2.x including best practices.
 tags:
   - testing
   - junit
   - mockito
   - spring
+  - spring-boot
 recipeList:
   - org.openrewrite.java.testing.junit5.JUnit4to5Migration
   - org.openrewrite.java.testing.junit5.JUnit5BestPractices
@@ -86,9 +99,6 @@ recipeList:
       springBootVersion: 2.x
       javaxValidationApiVersion: 2.x
   - org.openrewrite.java.spring.NoAutowired
-  - org.openrewrite.java.spring.NoRequestMappingAnnotation
-  - org.openrewrite.java.spring.ImplicitWebAnnotationNames
-  - org.openrewrite.java.spring.BeanMethodsNotPublic
   - org.openrewrite.java.spring.boot2.SpringRunnerToSpringExtension
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
@@ -101,3 +111,4 @@ recipeList:
   - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_2
   - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_3
   - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_3
+  - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
