@@ -17,7 +17,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
 displayName: JUnit Jupiter migration from JUnit 4.x for Spring Boot 2.x projects
-description: Migrates Sping Boot 2.x projects having JUnit 4.x tests to JUnit Jupiter
+description: Migrates Spring Boot 2.x projects having JUnit 4.x tests to JUnit Jupiter
 tags:
   - testing
   - junit
@@ -57,7 +57,7 @@ recipeList:
   - org.openrewrite.java.spring.BeanMethodsNotPublic
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2
+name: org.openrewrite.java.spring.boot2.SpringBoot1To2Migration
 displayName: Spring Boot 2.x migration from Spring Boot 1.x
 description: Migrates Spring Boot 1.x to 2.x including best practices.
 tags:
@@ -103,12 +103,12 @@ recipeList:
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
   - org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_0
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_0
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_1
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_1
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_2
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_2
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml.2_3
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties.2_3
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_0
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_0
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_1
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_1
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_2
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_2
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_3
+  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_3
   - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices

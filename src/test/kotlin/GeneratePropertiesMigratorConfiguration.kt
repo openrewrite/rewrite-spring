@@ -85,7 +85,7 @@ object GeneratePropertiesMigratorConfiguration {
 
                                 ---
                                 type: specs.openrewrite.org/v1beta/recipe
-                                name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties.$majorMinor
+                                name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties_$majorMinor
                                 recipeList:
                             """.trimIndent())
 
