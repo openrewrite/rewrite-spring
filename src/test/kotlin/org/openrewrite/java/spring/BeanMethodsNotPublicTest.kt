@@ -38,18 +38,20 @@ class BeanMethodsNotPublicTest : JavaRecipeTest {
             
             public class DatabaseConfiguration {
             
+                // primary comments
                 @Primary
                 @Bean
                 public DataSource dataSource() {
                     return new DataSource();
                 }
                 
-                @Bean
+                @Bean // comments
                 public final DataSource dataSource2() {
                     return new DataSource();
                 }
                 
                 @Bean
+                // comments
                 public static DataSource dataSource3() {
                     return new DataSource();
                 }
@@ -62,17 +64,20 @@ class BeanMethodsNotPublicTest : JavaRecipeTest {
             
             public class DatabaseConfiguration {
             
+                // primary comments
                 @Primary
                 @Bean
                 DataSource dataSource() {
                     return new DataSource();
                 }
             
+                // comments
                 @Bean
                 final DataSource dataSource2() {
                     return new DataSource();
                 }
             
+                // comments
                 @Bean
                 static DataSource dataSource3() {
                     return new DataSource();

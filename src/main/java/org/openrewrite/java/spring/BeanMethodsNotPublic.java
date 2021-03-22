@@ -21,7 +21,11 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.J;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class BeanMethodsNotPublic extends Recipe {
@@ -49,8 +53,22 @@ public class BeanMethodsNotPublic extends Recipe {
             if (m.getAllAnnotations().stream().noneMatch(BEAN_ANNOTATION_MATCHER::matches)) {
                 return m;
             }
-            return maybeAutoFormat(m, m.withModifiers(ListUtils.map(m.getModifiers(), a -> a.getType() == J.Modifier.Type.Public ? null : a)), executionContext,
-                    getCursor().dropParentUntil(it -> it instanceof J));
+            // remove public modifier and copy any associated comments to the method
+            final List<Comment> modifierComments = new ArrayList<>();
+            List<J.Modifier> modifiers = ListUtils.map(m.getModifiers(), mod -> {
+                if (mod.getType() == J.Modifier.Type.Public) {
+                    modifierComments.addAll(mod.getComments());
+                    return null;
+                }
+                return mod;
+            });
+            if (!modifierComments.isEmpty()) {
+                m = m.withComments(ListUtils.concatAll(m.getComments(), modifierComments));
+            }
+            if (m.getModifiers() != modifiers) {
+                m = maybeAutoFormat(m, m.withModifiers(modifiers), executionContext, getCursor().dropParentUntil(it -> it instanceof J));
+            }
+            return m;
         }
     }
 }
