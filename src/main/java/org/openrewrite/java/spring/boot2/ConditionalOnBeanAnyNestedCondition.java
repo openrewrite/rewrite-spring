@@ -22,11 +22,11 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#conditionalonbean-semantic-change"><b>ConditionalOnBean semantic change</b></a>
@@ -43,6 +43,18 @@ import java.util.stream.Collectors;
  * class ConditionAaOrBb extends AnyNestedCondition {...}
  */
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
+
+    private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
+            JavaParser.fromJavaVersion()
+                    .dependsOn(
+                            Stream.concat(
+                                    Stream.of(Parser.Input.fromResource("/Conditional.java")),
+                                    Parser.Input.fromResource("/AnyNestedCondition.java", "---").stream()
+                            ).collect(Collectors.toList())
+                    )
+                    .build()
+    );
+
     @Override
     public String getDisplayName() {
         return "Convert multi condition ConditionalOnBean Annotations to AnyNestedCondition";
@@ -103,9 +115,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     if (anyConditionClassExists) {
                         JavaTemplate t = template("@Conditional(" + conditionalClassName + ".class)")
                                 .imports(CONDITIONAL_CLASS)
-                                .javaParser(JavaParser.fromJavaVersion()
-                                        .dependsOn(Collections.singletonList(Parser.Input.fromResource("/Conditional.java")))
-                                        .build())
+                                .javaParser(JAVA_PARSER.get())
                                 .build();
                         a = maybeAutoFormat(a, a.withTemplate(t, a.getCoordinates().replace()), executionContext, getCursor().getParentOrThrow());
                         maybeAddImport(CONDITIONAL_CLASS);

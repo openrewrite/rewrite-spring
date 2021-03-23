@@ -36,6 +36,12 @@ import java.util.Optional;
 
 public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
 
+    private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
+            JavaParser.fromJavaVersion()
+                    .dependsOn(Collections.singletonList(Parser.Input.fromResource("/TestPropertyValues.java")))
+                    .build()
+    );
+
     public static final String ENV_UTILS_ADD_ENV_FQN = "org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment";
     public static final String TEST_PROPERTY_VALUES_FQN = "org.springframework.boot.test.util.TestPropertyValues";
     public static final MethodMatcher METHOD_MATCHER = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(..)");
@@ -195,12 +201,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = m.withTemplate(
                     template(marker.templateString)
-                        .javaParser(
-                            JavaParser.fromJavaVersion()
-                                .logCompilationWarningsAndErrors(true)
-                                .dependsOn(Collections.singletonList(Parser.Input.fromResource("/TestPropertyValues.java")))
-                                .build()
-                        )
+                        .javaParser(JAVA_PARSER.get())
                         .imports(TEST_PROPERTY_VALUES_FQN)
                         .build(),
                     m.getCoordinates().replace(),
