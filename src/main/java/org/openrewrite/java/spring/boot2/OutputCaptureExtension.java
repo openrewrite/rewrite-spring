@@ -130,8 +130,11 @@ public class OutputCaptureExtension extends Recipe {
         };
     }
 
-    private static final MethodMatcher matcher = new MethodMatcher(
+    private static final MethodMatcher outputCaptureMatcher = new MethodMatcher(
             "org.springframework.boot.test.rule.OutputCapture expect(..)"
+    );
+    private static final MethodMatcher outputCaptureRuleMatcher = new MethodMatcher(
+            "org.springframework.boot.test.system.OutputCaptureRule expect(..)"
     );
 
     private class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
@@ -149,7 +152,7 @@ public class OutputCaptureExtension extends Recipe {
 
             J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
 
-            if (!matcher.matches(m)) {
+            if (!outputCaptureMatcher.matches(m) && !outputCaptureRuleMatcher.matches(m)) {
                 return m;
             }
             return m.withTemplate(matchesTemplate, m.getCoordinates().replace(), m.getArguments().get(0), variableName);
@@ -166,7 +169,8 @@ public class OutputCaptureExtension extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext context) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, context);
-            if (!FindMethods.find(m, "org.springframework.boot.test.rule.OutputCapture *(..)").isEmpty()) {
+            if (!FindMethods.find(m, "org.springframework.boot.test.rule.OutputCapture *(..)").isEmpty() ||
+                    !FindMethods.find(m, "org.springframework.boot.test.system.OutputCaptureRule *(..)").isEmpty()) {
                 // FIXME need addParameter coordinate here...
 //                m = m.withTemplate(parameter.build(), m.getCoordinates().replaceParameters());
 

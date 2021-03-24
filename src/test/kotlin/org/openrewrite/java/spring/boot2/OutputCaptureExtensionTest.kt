@@ -21,8 +21,6 @@ import org.openrewrite.Parser
 import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
-import org.springframework.boot.test.rule.OutputCapture
-
 
 class OutputCaptureExtensionTest : JavaRecipeTest {
     override val parser: Parser<*>?
