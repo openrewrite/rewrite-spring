@@ -21,11 +21,14 @@ import org.openrewrite.Parser
 import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
+import org.springframework.boot.test.rule.OutputCapture
+
 
 class OutputCaptureExtensionTest : JavaRecipeTest {
     override val parser: Parser<*>?
         get() = JavaParser.fromJavaVersion()
-            .classpath("spring-boot-test")
+            .classpath("spring-boot-test", "hamcrest-core", "junit")
+            .logCompilationWarningsAndErrors(true)
             .build()
 
     override val recipe: Recipe
@@ -35,6 +38,7 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
     @Test
     fun outputCaptureExtension() = assertChanged(
         before = """
+            import org.junit.Rule;
             import org.springframework.boot.test.rule.OutputCapture;
             
             class Test {
@@ -51,10 +55,11 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
             }
         """,
         after = """
+
             import org.junit.jupiter.api.extension.ExtendWith;
             import org.springframework.boot.test.system.CapturedOutput;
             import org.springframework.boot.test.system.OutputCaptureExtension;
-            
+
             @ExtendWith(OutputCaptureExtension.class)
             class Test {
             
@@ -63,6 +68,45 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
                     System.out.println(capture.toString());
                 }
             
+                void doesntUse() {
+                }
+            }
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/51")
+    @Test
+    fun outputCaptureMatcherConversion() = assertChanged(
+        before = """
+            import org.hamcrest.CoreMatchers;
+            import org.junit.Rule;
+            import org.springframework.boot.test.rule.OutputCapture;
+            
+            class Test {
+                @Rule
+                OutputCapture capture = new OutputCapture();
+            
+                void test() {
+                    System.out.println("I am here");
+                    this.capture.expect(CoreMatchers.containsString("here"));
+                }
+                void doesntUse() {
+                }
+            }
+        """,
+        after = """
+            import org.hamcrest.CoreMatchers;
+            import org.junit.jupiter.api.extension.ExtendWith;
+            import org.springframework.boot.test.system.CapturedOutput;
+            import org.springframework.boot.test.system.OutputCaptureExtension;
+            
+            @ExtendWith(OutputCaptureExtension.class)
+            class Test {
+            
+                void test(CapturedOutput capture) {
+                    System.out.println("I am here");
+                    CoreMatchers.containsString("here").matches(capture.getAll());
+                }
                 void doesntUse() {
                 }
             }

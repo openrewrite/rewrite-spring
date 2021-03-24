@@ -15,13 +15,16 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.SneakyThrows;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.ChangeMethodTargetToVariable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
@@ -39,7 +42,12 @@ public class OutputCaptureExtension extends Recipe {
             JavaParser.fromJavaVersion()
                     .dependsOn(Arrays.asList(
                             Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
-                                    "public class OutputCaptureExtension {}"),
+                                    "public class OutputCaptureExtension {\n" +
+                                    "}"),
+                            Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
+                                    "public interface CapturedOutput {\n" +
+                                    "  String getAll();\n" +
+                                    "}"),
                             Parser.Input.fromString("package org.junit.jupiter.api.extension.ExtendWith;\n" +
                                     "public @interface ExtendWith {\n" +
                                     "  Class[] value();\n" +
@@ -65,7 +73,6 @@ public class OutputCaptureExtension extends Recipe {
                     .javaParser(JAVA_PARSER.get())
                     .imports("org.junit.jupiter.api.extension.ExtendWith",
                             "org.springframework.boot.test.system.OutputCaptureExtension");
-
             @SneakyThrows
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
@@ -80,18 +87,26 @@ public class OutputCaptureExtension extends Recipe {
                     JavaType.Class fieldType = field.getTypeAsClass();
                     if (TypeUtils.isOfClassType(fieldType, "org.springframework.boot.test.system.OutputCaptureRule") ||
                             TypeUtils.isOfClassType(fieldType, "org.springframework.boot.test.rule.OutputCapture")) {
-                        maybeRemoveImport("org.springframework.boot.test.system.OutputCaptureRule");
-                        maybeRemoveImport("org.springframework.boot.test.rule.OutputCapture");
 
                         String fieldName = field.getVariables().get(0).getSimpleName();
 
+                        //Add the CapturedOutput parameter to any method that has a method call to OutputCapture
+                        doAfterVisit(new AddCapturedOutputParameter(fieldName));
+
+                        //Convert any method invocations from OutputCaptureRule.expect(Matcher) -> Matcher.match(CapturedOutput.getAll())
+                        doAfterVisit(new ConvertExpectMethods(fieldName));
+
+                        //Covert any remaining method calls from OutputCapture -> CapturedOutput
                         doAfterVisit(new ChangeMethodTargetToVariable("org.springframework.boot.test.rule.OutputCapture *(..)",
                                 fieldName, "org.springframework.boot.test.system.CapturedOutput"));
                         doAfterVisit(new ChangeMethodTargetToVariable("org.springframework.boot.test.system.OutputCaptureRule *(..)",
                                 fieldName, "org.springframework.boot.test.system.CapturedOutput"));
-                        doAfterVisit(new AddCapturedOutputParameter(fieldName));
 
                         getCursor().putMessageOnFirstEnclosing(J.ClassDeclaration.class, "addOutputCaptureExtension", true);
+
+                        maybeRemoveImport("org.springframework.boot.test.system.OutputCaptureRule");
+                        maybeRemoveImport("org.springframework.boot.test.rule.OutputCapture");
+                        maybeRemoveImport("org.junit.Rule");
 
                         return null;
                     }
@@ -115,6 +130,32 @@ public class OutputCaptureExtension extends Recipe {
         };
     }
 
+    private static final MethodMatcher matcher = new MethodMatcher(
+            "org.springframework.boot.test.rule.OutputCapture expect(..)"
+    );
+
+    private class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
+
+        private final JavaTemplate matchesTemplate = template("#{}.matches(#{}.getAll())")
+                .javaParser(JAVA_PARSER.get()).build();
+
+        private final String variableName;
+        private ConvertExpectMethods(String variableName) {
+            this.variableName = variableName;
+        }
+
+        @Override
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
+
+            J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
+
+            if (!matcher.matches(m)) {
+                return m;
+            }
+            return m.withTemplate(matchesTemplate, m.getCoordinates().replace(), m.getArguments().get(0), variableName);
+        }
+    }
+
     private static class AddCapturedOutputParameter extends JavaIsoVisitor<ExecutionContext> {
         private final String variableName;
 
@@ -125,7 +166,7 @@ public class OutputCaptureExtension extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext context) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, context);
-            if (!FindMethods.find(m, "org.springframework.boot.test.system.CapturedOutput *(..)").isEmpty()) {
+            if (!FindMethods.find(m, "org.springframework.boot.test.rule.OutputCapture *(..)").isEmpty()) {
                 // FIXME need addParameter coordinate here...
 //                m = m.withTemplate(parameter.build(), m.getCoordinates().replaceParameters());
 
