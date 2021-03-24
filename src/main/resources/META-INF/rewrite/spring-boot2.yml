@@ -67,9 +67,8 @@ tags:
   - spring
   - spring-boot
 recipeList:
-  - org.openrewrite.java.testing.junit5.JUnit4to5Migration
+  - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
   - org.openrewrite.java.testing.junit5.JUnit5BestPractices
-  - org.openrewrite.java.testing.junit5.UseMockitoExtension
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       newVersion: 2.x
