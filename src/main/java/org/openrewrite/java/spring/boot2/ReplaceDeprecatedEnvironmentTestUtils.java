@@ -26,6 +26,7 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.SemanticallyEqual;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.marker.SearchResult;
 
@@ -44,7 +45,12 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
 
     public static final String ENV_UTILS_ADD_ENV_FQN = "org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment";
     public static final String TEST_PROPERTY_VALUES_FQN = "org.springframework.boot.test.util.TestPropertyValues";
-    public static final MethodMatcher METHOD_MATCHER = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(..)");
+    public static final MethodMatcher APP_CONTEXT_MATCHER =
+        new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.context.ConfigurableApplicationContext, String...)");
+    public static final MethodMatcher ENVIRONMENT_MATCHER =
+        new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.core.env.ConfigurableEnvironment, String...)");
+    public static final MethodMatcher NAMED_ENVIRONMENT_MATCHER =
+        new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(String, org.springframework.core.env.ConfigurableEnvironment, String...)");
 
     @Override
     public String getDisplayName() {
@@ -54,7 +60,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     @Override
     public String getDescription() {
         return "Replaces any references to the deprecated org.springframework.boot.test.util.EnvironmentTestUtils" +
-                " with org.springframework.boot.test.util.TestPropertyValues and the appropriate functionality";
+                " with org.springframework.boot.test.util.TestPropertyValues and the appropriate functionality.";
     }
 
     @Override
@@ -71,7 +77,6 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             this.parameters = parameters;
         }
 
-
         @Override
         public @Nullable String getDescription() {
             return templateString;
@@ -79,6 +84,14 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     }
 
     private static class FindEnvironmentTestUtilsVisitor extends JavaIsoVisitor<ExecutionContext> {
+
+        public static final int MINIMUM_ARGUMENT_COUNT = 2;
+        private static final int MINIMUM_ARGUMENT_COUNT_WITH_NAME = 3;
+
+        @Override
+        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
+            return super.visitClassDeclaration(classDecl, executionContext);
+        }
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
@@ -134,23 +147,44 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             Expression contextOrEnvironmentToCheck = getContextOrEnvironmentArgument(methodInvocation);
             Expression collectedContextOrEnvironment = getContextOrEnvironmentArgument(collectedMethod);
 
-            return SemanticallyEqual.areEqual(contextOrEnvironmentToCheck, collectedContextOrEnvironment);
+            Expression environmentNameToCheck = getEnvironmentNameArgument(methodInvocation);
+            Expression collectedEnvironmentName = getEnvironmentNameArgument(collectedMethod);
+
+            return SemanticallyEqual.areEqual(contextOrEnvironmentToCheck, collectedContextOrEnvironment)
+                && (environmentNameToCheck == null && collectedEnvironmentName == null)
+                || (environmentNameToCheck != null && collectedEnvironmentName != null
+                && SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
         }
 
-        private Expression getPairArgument(J.MethodInvocation methodInvocation) {
-            if (methodInvocation.getArguments().size() < 2) {
-                throw new IllegalArgumentException("getPairArgument requires a method with at least 2 arguments");
+        private Expression getEnvironmentNameArgument(J.MethodInvocation methodInvocation) {
+            if (methodInvocation.getArguments().size() < MINIMUM_ARGUMENT_COUNT_WITH_NAME) {
+                return null;
             }
-            // for one variant of addEnvironment there are 3 arguments, the others have 2
-            return methodInvocation.getArguments().get(methodInvocation.getArguments().size() == 3 ? 2 : 1);
+            Expression firstArgument = methodInvocation.getArguments().get(0);
+
+            if (firstArgument.getType().equals(JavaType.Primitive.String)) {
+                return firstArgument;
+            }
+            return null;
+        }
+
+        private List<Expression> getPairArguments(J.MethodInvocation methodInvocation) {
+            if (methodInvocation.getArguments().size() < MINIMUM_ARGUMENT_COUNT) {
+                throw new IllegalArgumentException("getPairArguments requires a method with at least " + MINIMUM_ARGUMENT_COUNT + " arguments");
+            }
+            List<Expression> pairArguments = new ArrayList<>();
+            int startingIndex = isNamedEnvironmentMethod(methodInvocation) ? 2 : 1;
+            for (int i = startingIndex; i < methodInvocation.getArguments().size(); i++) {
+                pairArguments.add(methodInvocation.getArguments().get(i));
+            }
+            return pairArguments;
         }
 
         private Expression getContextOrEnvironmentArgument(J.MethodInvocation methodInvocation) {
-            if (methodInvocation.getArguments().size() < 2) {
-                throw new IllegalArgumentException("getContextOrEnvironmentArgument requires a method with at least 2 arguments");
+            if (methodInvocation.getArguments().size() < MINIMUM_ARGUMENT_COUNT) {
+                throw new IllegalArgumentException("getContextOrEnvironmentArgument requires a method with at least " + MINIMUM_ARGUMENT_COUNT + " arguments");
             }
-            // for one variant of addEnvironment there are 3 arguments, the others have 2
-            return methodInvocation.getArguments().get(methodInvocation.getArguments().size() == 3 ? 1 : 0);
+            return methodInvocation.getArguments().get(isNamedEnvironmentMethod(methodInvocation) ? 1 : 0);
         }
 
         private J.MethodInvocation coalesceToFluentMethod(List<J.MethodInvocation> collectedMethods) {
@@ -171,28 +205,46 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             }
             List<Expression> parameters = new ArrayList<>();
             for (J.MethodInvocation collectedMethod : collectedMethods) {
-                parameters.add(getPairArgument(collectedMethod));
+                parameters.addAll(getPairArguments(collectedMethod));
             }
             parameters.add(getContextOrEnvironmentArgument(collectedMethods.get(0)));
+
+            if (isNamedEnvironmentMethod(collectedMethods.get(0))) {
+                parameters.add(collectedMethods.get(0).getArguments().get(0));
+            }
 
             return parameters;
         }
 
         private String generateTemplateString(List<J.MethodInvocation> collectedMethods) {
-            StringBuilder template = new StringBuilder("TestPropertyValues.of(#{})");
-            for (int i = 1; i < collectedMethods.size(); i++) {
-                template.append(".and(#{})");
+            StringBuilder template = new StringBuilder("TestPropertyValues");
+            boolean appendOf = true;
+            for (int i = 0; i < collectedMethods.size(); i++) {
+                J.MethodInvocation methodInvocation = collectedMethods.get(i);
+                for (int j = isNamedEnvironmentMethod(methodInvocation) ? 2 : 1; j < methodInvocation.getArguments().size(); j++) {
+                    template.append(".").append(appendOf ? "of" : "and").append("(#{})");
+                    appendOf = false;
+                }
             }
-            template.append(".applyTo(#{})");
+            if (isNamedEnvironmentMethod(collectedMethods.get(0))) {
+                template.append(".applyTo(#{}, TestPropertyValues.Type.MAP, #{})");
+            } else {
+                template.append(".applyTo(#{})");
+            }
             return template.toString();
         }
 
         private boolean isAddEnvironmentMethod(J.MethodInvocation method) {
-            return METHOD_MATCHER.matches(method);
+            return APP_CONTEXT_MATCHER.matches(method) || ENVIRONMENT_MATCHER.matches(method) || isNamedEnvironmentMethod(method);
+        }
+
+        private boolean isNamedEnvironmentMethod(J.MethodInvocation method) {
+            return NAMED_ENVIRONMENT_MATCHER.matches(method);
         }
     }
 
     private static class RemoveEnvironmentTestUtilsVisitor extends JavaIsoVisitor<ExecutionContext> {
+
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
             J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
