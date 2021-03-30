@@ -15,16 +15,10 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.SneakyThrows;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.ChangeMethodTargetToVariable;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
@@ -73,6 +67,7 @@ public class OutputCaptureExtension extends Recipe {
                     .javaParser(JAVA_PARSER.get())
                     .imports("org.junit.jupiter.api.extension.ExtendWith",
                             "org.springframework.boot.test.system.OutputCaptureExtension");
+
             @SneakyThrows
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
@@ -130,36 +125,36 @@ public class OutputCaptureExtension extends Recipe {
         };
     }
 
-    private static final MethodMatcher outputCaptureMatcher = new MethodMatcher(
+    private static final MethodMatcher OUTPUT_CAPTURE_MATCHER = new MethodMatcher(
             "org.springframework.boot.test.rule.OutputCapture expect(..)"
     );
-    private static final MethodMatcher outputCaptureRuleMatcher = new MethodMatcher(
+    private static final MethodMatcher OUTPUT_CAPTURE_RULE_MATCHER = new MethodMatcher(
             "org.springframework.boot.test.system.OutputCaptureRule expect(..)"
     );
 
-    private class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
-
+    private static class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
         private final JavaTemplate matchesTemplate = template("#{}.matches(#{}.getAll())")
                 .javaParser(JAVA_PARSER.get()).build();
 
         private final String variableName;
+
         private ConvertExpectMethods(String variableName) {
             this.variableName = variableName;
         }
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-
             J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
-
-            if (!outputCaptureMatcher.matches(m) && !outputCaptureRuleMatcher.matches(m)) {
+            if (!OUTPUT_CAPTURE_MATCHER.matches(m) && !OUTPUT_CAPTURE_RULE_MATCHER.matches(m)) {
                 return m;
             }
-            return m.withTemplate(matchesTemplate, m.getCoordinates().replace(), m.getArguments().get(0), variableName);
+            m = m.withTemplate(matchesTemplate, m.getCoordinates().replace(), m.getArguments().get(0), variableName);
+            return m;
         }
     }
 
     private static class AddCapturedOutputParameter extends JavaIsoVisitor<ExecutionContext> {
+        private static final JavaType.Class CAPTURED_OUTPUT_TYPE = JavaType.Class.build("org.springframework.boot.test.system.CapturedOutput");
         private final String variableName;
 
         private AddCapturedOutputParameter(String variableName) {
@@ -174,23 +169,22 @@ public class OutputCaptureExtension extends Recipe {
                 // FIXME need addParameter coordinate here...
 //                m = m.withTemplate(parameter.build(), m.getCoordinates().replaceParameters());
 
-                JavaType.Class capturedOutputType = JavaType.Class.build("org.springframework.boot.test.system.CapturedOutput");
                 J.VariableDeclarations param = new J.VariableDeclarations(Tree.randomId(),
                         Space.EMPTY,
                         Markers.EMPTY,
                         emptyList(),
                         emptyList(),
-                        J.Identifier.build(Tree.randomId(), Space.EMPTY, Markers.EMPTY, "CapturedOutput", capturedOutputType),
+                        J.Identifier.build(Tree.randomId(), Space.EMPTY, Markers.EMPTY, "CapturedOutput", CAPTURED_OUTPUT_TYPE),
                         null,
                         emptyList(),
                         singletonList(new JRightPadded<>(
                                 new J.VariableDeclarations.NamedVariable(Tree.randomId(),
                                         Space.format(" "),
                                         Markers.EMPTY,
-                                        J.Identifier.build(Tree.randomId(), Space.EMPTY, Markers.EMPTY, variableName, capturedOutputType),
+                                        J.Identifier.build(Tree.randomId(), Space.EMPTY, Markers.EMPTY, variableName, CAPTURED_OUTPUT_TYPE),
                                         emptyList(),
                                         null,
-                                        capturedOutputType),
+                                        CAPTURED_OUTPUT_TYPE),
                                 Space.EMPTY,
                                 Markers.EMPTY
                         ))
