@@ -35,6 +35,10 @@ public class UnnecessarySpringExtension extends Recipe {
             Markers.EMPTY, new JRightPadded<>(false, Space.EMPTY, Markers.EMPTY),
             Collections.emptyList(), Space.EMPTY);
 
+    private static final String SPRING_BOOT_TEST_ANNOTATION_PATTERN = "@org.springframework.boot.test.context.SpringBootTest";
+    private static final String SPRING_EXTENSION_FQN = "org.springframework.test.context.junit.jupiter.SpringExtension";
+    private static final String EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN = "@org.junit.jupiter.api.extension.ExtendWith(" + SPRING_EXTENSION_FQN + ".class)";
+
     @Override
     public String getDisplayName() {
         return "Remove `@SpringExtension` if `@SpringBootTest` is present";
@@ -51,17 +55,13 @@ public class UnnecessarySpringExtension extends Recipe {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = classDecl;
-
-                if (!FindAnnotations.find(c.withBody(EMPTY_BLOCK),
-                        "@org.springframework.boot.test.context.SpringBootTest").isEmpty()) {
-                    c = (J.ClassDeclaration) new RemoveAnnotation(
-                            "@org.junit.jupiter.api.extension.ExtendWith(" +
-                                    "org.springframework.test.context.junit.jupiter.SpringExtension.class)")
+                if (!FindAnnotations.find(c.withBody(EMPTY_BLOCK), SPRING_BOOT_TEST_ANNOTATION_PATTERN).isEmpty()) {
+                    c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
                             .getVisitor()
                             .visit(c.withBody(EMPTY_BLOCK), ctx, getCursor().getParentOrThrow());
                     assert c != null;
                     c = c.withBody(classDecl.getBody());
-                    maybeRemoveImport("org.springframework.test.context.junit.jupiter.SpringExtension");
+                    maybeRemoveImport(SPRING_EXTENSION_FQN);
                 }
 
                 return super.visitClassDeclaration(c, ctx);
