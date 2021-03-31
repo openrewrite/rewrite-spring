@@ -3,7 +3,7 @@
 
 [![ci](https://github.com/openrewrite/rewrite-spring/actions/workflows/ci.yml/badge.svg)](https://github.com/openrewrite/rewrite-spring/actions/workflows/ci.yml)
 [![Apache 2.0](https://img.shields.io/github/license/openrewrite/rewrite-spring.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Maven Central](https://img.shields.io/maven-central/v/org.openrewrite.plan/rewrite-spring.svg)](https://mvnrepository.com/artifact/org.openrewrite.plan/rewrite-spring)
+[![Maven Central](https://img.shields.io/maven-central/v/org.openrewrite.recipe/rewrite-spring.svg)](https://mvnrepository.com/artifact/org.openrewrite.recipe/rewrite-spring)
 
 ## What is this?
 
@@ -11,4 +11,4 @@ This project contains a series of Rewrite recipes and visitors to automatically 
 
 ## How to use?
 
-See the full documentation at [docs.openrewrite.org](https://docs.openrewrite.org/java/spring).
+See the full documentation at [docs.openrewrite.org](https://docs.openrewrite.org/).
