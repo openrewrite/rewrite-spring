@@ -41,16 +41,16 @@ public class NoAutowired extends Recipe {
         return new NoAutowiredAnnotationsVisitor();
     }
 
-    private class NoAutowiredAnnotationsVisitor extends JavaIsoVisitor<ExecutionContext> {
+    private static class NoAutowiredAnnotationsVisitor extends JavaIsoVisitor<ExecutionContext> {
         private static final String AUTOWIRED_CLASS = "org.springframework.beans.factory.annotation.Autowired";
-        private final AnnotationMatcher annotationMatcher = new AnnotationMatcher("@" + AUTOWIRED_CLASS);
+        private static final AnnotationMatcher AUTOWIRED_ANNOTATION_MATCHER = new AnnotationMatcher("@" + AUTOWIRED_CLASS);
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
             AtomicBoolean foundChange = new AtomicBoolean(false);
             m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), a -> {
-                        if (annotationMatcher.matches(a)) {
+                        if (AUTOWIRED_ANNOTATION_MATCHER.matches(a)) {
                             foundChange.getAndSet(true);
                             return null;
                         }
