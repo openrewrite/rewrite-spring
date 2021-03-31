@@ -47,7 +47,7 @@ public class NoRequestMappingAnnotation extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Replace method declaration @RequestMapping annotations with the associated variant as defined by the request method type (GET, POST, PUT, PATCH, DELETE)";
+        return "Replace method declaration @RequestMapping annotations with the associated variant as defined by the request method type (GET, POST, PUT, PATCH, DELETE).";
     }
 
     @Override

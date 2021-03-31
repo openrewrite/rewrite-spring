@@ -48,7 +48,7 @@ public class ImplicitWebAnnotationNames extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Removes Implicit Web Annotation names and renames associated parameter";
+        return "Removes Implicit Web Annotation names and renames associated parameters.";
     }
 
     @Override
@@ -57,7 +57,6 @@ public class ImplicitWebAnnotationNames extends Recipe {
     }
 
     private static class ImplicitWebAnnotationNamesVisitor extends JavaIsoVisitor<ExecutionContext> {
-
         private static final Set<String> PARAM_ANNOTATIONS = Stream.of(
                 "PathVariable",
                 "RequestParam",

@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
-
     private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
             JavaParser.fromJavaVersion()
                     .dependsOn(Collections.singletonList(Parser.Input.fromResource("/TestPropertyValues.java")))

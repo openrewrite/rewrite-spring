@@ -42,7 +42,7 @@ public class UnnecessarySpringExtension extends Recipe {
 
     @Override
     public String getDescription() {
-        return "`@SpringBootTest` already applies `@SpringExtension` as of Spring Boot 2.1.0";
+        return "`@SpringBootTest` already applies `@SpringExtension` as of Spring Boot 2.1.0.";
     }
 
     @Override
