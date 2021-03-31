@@ -27,7 +27,6 @@ import org.openrewrite.java.tree.J;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class BeanMethodsNotPublic extends Recipe {
     @Override
     public String getDisplayName() {
@@ -50,24 +49,25 @@ public class BeanMethodsNotPublic extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
-            if (m.getAllAnnotations().stream().noneMatch(BEAN_ANNOTATION_MATCHER::matches)) {
-                return m;
-            }
-            // remove public modifier and copy any associated comments to the method
-            final List<Comment> modifierComments = new ArrayList<>();
-            List<J.Modifier> modifiers = ListUtils.map(m.getModifiers(), mod -> {
-                if (mod.getType() == J.Modifier.Type.Public) {
-                    modifierComments.addAll(mod.getComments());
-                    return null;
+
+            if (m.getAllAnnotations().stream().anyMatch(BEAN_ANNOTATION_MATCHER::matches)) {
+                // remove public modifier and copy any associated comments to the method
+                final List<Comment> modifierComments = new ArrayList<>();
+                List<J.Modifier> modifiers = ListUtils.map(m.getModifiers(), mod -> {
+                    if (mod.getType() == J.Modifier.Type.Public) {
+                        modifierComments.addAll(mod.getComments());
+                        return null;
+                    }
+                    return mod;
+                });
+                if (!modifierComments.isEmpty()) {
+                    m = m.withComments(ListUtils.concatAll(m.getComments(), modifierComments));
                 }
-                return mod;
-            });
-            if (!modifierComments.isEmpty()) {
-                m = m.withComments(ListUtils.concatAll(m.getComments(), modifierComments));
+                if (m.getModifiers() != modifiers) {
+                    m = maybeAutoFormat(m, m.withModifiers(modifiers), executionContext, getCursor().dropParentUntil(J.class::isInstance));
+                }
             }
-            if (m.getModifiers() != modifiers) {
-                m = maybeAutoFormat(m, m.withModifiers(modifiers), executionContext, getCursor().dropParentUntil(it -> it instanceof J));
-            }
+
             return m;
         }
     }
