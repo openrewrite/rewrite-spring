@@ -52,7 +52,7 @@ public class MaybeAddJavaxValidationDependencies extends Recipe {
         return new MaybeAddSpringValidationVisitor();
     }
 
-    private class MaybeAddSpringValidationVisitor extends MavenVisitor {
+    private static class MaybeAddSpringValidationVisitor extends MavenVisitor {
         @Override
         public Maven visitMaven(Maven maven, ExecutionContext ctx) {
             if (Boolean.TRUE.equals(ctx.pollMessage(JAVAX_VALIDATION_EXISTS))) {
