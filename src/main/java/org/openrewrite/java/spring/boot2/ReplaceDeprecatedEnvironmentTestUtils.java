@@ -45,11 +45,11 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     public static final String ENV_UTILS_ADD_ENV_FQN = "org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment";
     public static final String TEST_PROPERTY_VALUES_FQN = "org.springframework.boot.test.util.TestPropertyValues";
     public static final MethodMatcher APP_CONTEXT_MATCHER =
-        new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.context.ConfigurableApplicationContext, String...)");
+            new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.context.ConfigurableApplicationContext, String...)");
     public static final MethodMatcher ENVIRONMENT_MATCHER =
-        new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.core.env.ConfigurableEnvironment, String...)");
+            new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.core.env.ConfigurableEnvironment, String...)");
     public static final MethodMatcher NAMED_ENVIRONMENT_MATCHER =
-        new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(String, org.springframework.core.env.ConfigurableEnvironment, String...)");
+            new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(String, org.springframework.core.env.ConfigurableEnvironment, String...)");
 
     @Override
     public String getDisplayName() {
@@ -83,7 +83,6 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     }
 
     private static class FindEnvironmentTestUtilsVisitor extends JavaIsoVisitor<ExecutionContext> {
-
         public static final int MINIMUM_ARGUMENT_COUNT = 2;
         private static final int MINIMUM_ARGUMENT_COUNT_WITH_NAME = 3;
 
@@ -150,9 +149,9 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             Expression collectedEnvironmentName = getEnvironmentNameArgument(collectedMethod);
 
             return SemanticallyEqual.areEqual(contextOrEnvironmentToCheck, collectedContextOrEnvironment)
-                && (environmentNameToCheck == null && collectedEnvironmentName == null)
-                || (environmentNameToCheck != null && collectedEnvironmentName != null
-                && SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
+                    && (environmentNameToCheck == null && collectedEnvironmentName == null)
+                    || (environmentNameToCheck != null && collectedEnvironmentName != null
+                    && SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
         }
 
         private Expression getEnvironmentNameArgument(J.MethodInvocation methodInvocation) {
@@ -251,12 +250,12 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             if (maybeMarker.isPresent()) {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = m.withTemplate(
-                    template(marker.templateString)
-                        .javaParser(JAVA_PARSER.get())
-                        .imports(TEST_PROPERTY_VALUES_FQN)
-                        .build(),
-                    m.getCoordinates().replace(),
-                    marker.parameters.toArray()
+                        template(marker.templateString)
+                                .javaParser(JAVA_PARSER.get())
+                                .imports(TEST_PROPERTY_VALUES_FQN)
+                                .build(),
+                        m.getCoordinates().replace(),
+                        marker.parameters.toArray()
                 );
 
                 maybeRemoveImport(ENV_UTILS_ADD_ENV_FQN);
