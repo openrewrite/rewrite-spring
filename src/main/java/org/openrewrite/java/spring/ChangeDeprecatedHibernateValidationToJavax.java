@@ -27,13 +27,12 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Changes Depricated Hibernate validation constraints to their associated Javax validation variant.
+ * Changes Deprecated Hibernate validation constraints to their associated Javax validation variant.
  *
  * Then sets the 'javax-validation-exists' ExecutionContext value to True which allows the {@link MaybeAddJavaxValidationDependencies}
  * to add the associated dependencies
  */
 public class ChangeDeprecatedHibernateValidationToJavax extends Recipe {
-
     private static List<String> HIBERNATE_TO_JAVAX_VALIDATION_CONSTRAINTS = Arrays.asList("NotEmpty", "NotBlank");
 
     @Override
@@ -43,10 +42,10 @@ public class ChangeDeprecatedHibernateValidationToJavax extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new ChangeDepricatedHibernateValidationToJavaxVisitor();
+        return new ChangeDeprecatedHibernateValidationToJavaxVisitor();
     }
 
-    private class ChangeDepricatedHibernateValidationToJavaxVisitor extends JavaIsoVisitor<ExecutionContext> {
+    private class ChangeDeprecatedHibernateValidationToJavaxVisitor extends JavaIsoVisitor<ExecutionContext> {
         @Override
         public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
             HIBERNATE_TO_JAVAX_VALIDATION_CONSTRAINTS.stream().forEach(t -> {
