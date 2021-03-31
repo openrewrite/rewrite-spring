@@ -28,12 +28,12 @@ import java.util.List;
 
 /**
  * Changes Deprecated Hibernate validation constraints to their associated Javax validation variant.
- *
+ * <p>
  * Then sets the 'javax-validation-exists' ExecutionContext value to True which allows the {@link MaybeAddJavaxValidationDependencies}
- * to add the associated dependencies
+ * to add the associated dependencies.
  */
 public class ChangeDeprecatedHibernateValidationToJavax extends Recipe {
-    private static List<String> HIBERNATE_TO_JAVAX_VALIDATION_CONSTRAINTS = Arrays.asList("NotEmpty", "NotBlank");
+    private static final List<String> HIBERNATE_TO_JAVAX_VALIDATION_CONSTRAINTS = Arrays.asList("NotEmpty", "NotBlank");
 
     @Override
     public String getDisplayName() {
@@ -41,15 +41,20 @@ public class ChangeDeprecatedHibernateValidationToJavax extends Recipe {
     }
 
     @Override
+    public String getDescription() {
+        return "Migrate `hibernate.validation.constraints.*` to `javax.validation.constraints.*` equivalents.";
+    }
+
+    @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new ChangeDeprecatedHibernateValidationToJavaxVisitor();
     }
 
-    private class ChangeDeprecatedHibernateValidationToJavaxVisitor extends JavaIsoVisitor<ExecutionContext> {
+    private static class ChangeDeprecatedHibernateValidationToJavaxVisitor extends JavaIsoVisitor<ExecutionContext> {
         @Override
         public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-            HIBERNATE_TO_JAVAX_VALIDATION_CONSTRAINTS.stream().forEach(t -> {
-                if (!FindTypes.find(cu,"org.hibernate.validator.constraints." + t).isEmpty()) {
+            HIBERNATE_TO_JAVAX_VALIDATION_CONSTRAINTS.forEach(t -> {
+                if (!FindTypes.find(cu, "org.hibernate.validator.constraints." + t).isEmpty()) {
                     doAfterVisit(new ChangeType("org.hibernate.validator.constraints." + t, "javax.validation.constraints." + t));
                     executionContext.putMessage(MaybeAddJavaxValidationDependencies.JAVAX_VALIDATION_EXISTS, Boolean.TRUE);
                 }
