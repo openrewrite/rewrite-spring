@@ -33,7 +33,7 @@ public class NoAutowired extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Removes Autowired Annotation from MethodDeclarations";
+        return "Removes Autowired Annotation from MethodDeclarations.";
     }
 
     @Override

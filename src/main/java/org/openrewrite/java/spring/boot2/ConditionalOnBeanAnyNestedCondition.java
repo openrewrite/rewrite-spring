@@ -43,7 +43,6 @@ import java.util.stream.Stream;
  * class ConditionAaOrBb extends AnyNestedCondition {...}
  */
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
-
     private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
             JavaParser.fromJavaVersion()
                     .dependsOn(
@@ -62,7 +61,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Convert multi condition ConditionalOnBean Annotations to AnyNestedCondition";
+        return "Convert multi condition ConditionalOnBean Annotations to AnyNestedCondition.";
     }
 
     @Override

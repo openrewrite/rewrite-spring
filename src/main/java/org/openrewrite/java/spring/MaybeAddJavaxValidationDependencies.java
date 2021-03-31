@@ -27,7 +27,7 @@ import org.openrewrite.maven.tree.Maven;
 /**
  * Adds Javax validation-api and Spring Boot starter-validation if a prior recipe
  * set the javax-validation-exists value to True in the ExecutionContext
- *
+ * <p>
  * e.g {@link ChangeDeprecatedHibernateValidationToJavax}
  */
 @Value
