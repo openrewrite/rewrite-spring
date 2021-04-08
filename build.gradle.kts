@@ -33,7 +33,7 @@ plugins {
     id("nebula.maven-apache-license") version "17.3.2"
 
     id("nebula.integtest") version "7.0.9" apply false
-    id("org.openrewrite.rewrite") version "3.1.0"
+    id("org.openrewrite.rewrite") version "4.0.0"
 }
 
 apply(plugin = "nebula.integtest-standalone")
