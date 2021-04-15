@@ -93,12 +93,28 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.HttpMessageConverters
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.http.HttpMessageConverters
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedName: org.springframework.boot.autoconfigure.web.ErrorController
-      newFullyQualifiedName: org.springframework.boot.web.servlet.error.ErrorController
-  - org.openrewrite.java.spring.ChangeDeprecatedHibernateValidationToJavax
-  - org.openrewrite.java.spring.MaybeAddJavaxValidationDependencies:
-      springBootVersion: 2.x
-      javaxValidationApiVersion: 2.x
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.ErrorController
+      newFullyQualifiedTypeName: org.springframework.boot.web.servlet.error.ErrorController
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
+      newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotBlank
+      newFullyQualifiedTypeName: javax.validation.constraints.NotBlank
+  - org.openrewrite.maven.AddDependency:
+      groupId: javax.validation
+      artifactId: validation-api
+      version: 2.x
+      onlyIfUsing:
+        - javax.validation.constraints.NotBlank
+        - javax.validation.constraints.NotEmpty
+  - org.openrewrite.maven.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-validation
+      version: 2.x
+      onlyIfUsing:
+        - javax.validation.constraints.NotBlank
+        - javax.validation.constraints.NotEmpty
   - org.openrewrite.java.spring.NoAutowired
   - org.openrewrite.java.spring.boot2.SpringRunnerToSpringExtension
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
