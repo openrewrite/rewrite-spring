@@ -25,6 +25,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
 
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
+            .classpath("spring-beans", "spring-core", "spring-context", "spring-boot-test", "spring-web")
             .logCompilationWarningsAndErrors(true)
             .build()
 
