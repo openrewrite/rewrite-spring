@@ -101,7 +101,7 @@ class RunOnMavenProjectOnDisk {
         for (result in results) {
             println(result.before!!.sourcePath)
             println("-----------------------------------------")
-            println(result.diff(SearchResult.PRINTER))
+            println(result.diff(SearchResult.printer("~~>", "~~(%s)~~>")))
         }
     }
 }

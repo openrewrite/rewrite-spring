@@ -54,7 +54,7 @@ object GeneratePropertiesMigratorConfiguration {
             if (versionDir.mkdirs()) {
                 println("Downloading version $version")
                 springBootReleases.download(version).forEach { download ->
-                    download.body.use { it.byteStream().transferTo(File(versionDir, "${download.moduleName}-${version}.jar").outputStream()) }
+                    download.body.use { it.byteStream().copyTo(File(versionDir, "${download.moduleName}-${version}.jar").outputStream()) }
                 }
             } else {
                 println("Using existing download of version $version")

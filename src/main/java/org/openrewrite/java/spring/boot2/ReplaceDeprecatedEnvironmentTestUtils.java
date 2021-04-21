@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Parser;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -30,10 +27,9 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.marker.SearchResult;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import static org.openrewrite.Tree.randomId;
 
 public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
@@ -62,6 +58,8 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                 " with org.springframework.boot.test.util.TestPropertyValues and the appropriate functionality.";
     }
 
+    private UUID id = randomId();
+
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new FindEnvironmentTestUtilsVisitor();
@@ -70,6 +68,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     private static class ReplaceEnvironmentUtilsMarker implements SearchResult {
         private final String templateString;
         private final List<Expression> parameters;
+        private final UUID id = randomId();
 
         private ReplaceEnvironmentUtilsMarker(String templateString, List<Expression> parameters) {
             this.templateString = templateString;
@@ -79,6 +78,11 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         @Override
         public @Nullable String getDescription() {
             return templateString;
+        }
+
+        @Override
+        public UUID getId() {
+            return id;
         }
     }
 
@@ -194,7 +198,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             String currentTemplateString = generateTemplateString(collectedMethods);
             List<Expression> parameters = generateParameters(collectedMethods);
 
-            return toReplace.withMarker(new ReplaceEnvironmentUtilsMarker(currentTemplateString, parameters));
+            return toReplace.withMarkers(toReplace.getMarkers().addOrUpdate(new ReplaceEnvironmentUtilsMarker(currentTemplateString, parameters)));
         }
 
         private List<Expression> generateParameters(List<J.MethodInvocation> collectedMethods) {
