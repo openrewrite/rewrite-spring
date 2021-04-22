@@ -111,7 +111,7 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
         """
     )
 
-    @Issue("#50")
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/50")
     @Test
     fun onlyCaptureOutputCaptureRules() = assertUnchanged(
         before = """

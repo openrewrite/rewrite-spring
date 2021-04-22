@@ -115,7 +115,10 @@ public class OutputCaptureExtension extends Recipe {
                             ))
                     );
 
-                    maybeAddImport("org.springframework.boot.test.system.OutputCaptureExtension");
+                    // We got a bug report that this import wasn't being added
+                    // Couldn't reproduce why, assumed that type attribution failed for reasons that aren't obvious.
+                    // Setting onlyIfReferenced to "false" just to be sure.
+                    doAfterVisit(new AddImport<>("org.springframework.boot.test.system.OutputCaptureExtension", null, false));
                     maybeAddImport("org.junit.jupiter.api.extension.ExtendWith");
                 }
 
