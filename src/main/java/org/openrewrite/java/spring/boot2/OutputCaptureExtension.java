@@ -40,8 +40,9 @@ public class OutputCaptureExtension extends Recipe {
                             Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
                                     "public interface CapturedOutput {\n" +
                                     "  String getAll();\n" +
-                                    "}"),
-                            Parser.Input.fromString("package org.junit.jupiter.api.extension.ExtendWith;\n" +
+                                    "}"
+                            ),
+                            Parser.Input.fromString("package org.junit.jupiter.api.extension;\n" +
                                     "public @interface ExtendWith {\n" +
                                     "  Class[] value();\n" +
                                     "}")
@@ -115,10 +116,7 @@ public class OutputCaptureExtension extends Recipe {
                             ))
                     );
 
-                    // We got a bug report that this import wasn't being added
-                    // Couldn't reproduce why, assumed that type attribution failed for reasons that aren't obvious.
-                    // Setting onlyIfReferenced to "false" just to be sure.
-                    doAfterVisit(new AddImport<>("org.springframework.boot.test.system.OutputCaptureExtension", null, false));
+                    maybeAddImport("org.springframework.boot.test.system.OutputCaptureExtension");
                     maybeAddImport("org.junit.jupiter.api.extension.ExtendWith");
                 }
 
