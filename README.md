@@ -1,4 +1,4 @@
-![Logo](https://github.com/openrewrite/rewrite/raw/master/doc/logo-oss.png)
+![Logo](https://github.com/openrewrite/rewrite/raw/main/doc/logo-oss.png)
 ### Eliminate legacy Spring patterns. Automatically.
 
 [![ci](https://github.com/openrewrite/rewrite-spring/actions/workflows/ci.yml/badge.svg)](https://github.com/openrewrite/rewrite-spring/actions/workflows/ci.yml)
