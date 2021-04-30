@@ -198,7 +198,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             String currentTemplateString = generateTemplateString(collectedMethods);
             List<Expression> parameters = generateParameters(collectedMethods);
 
-            return toReplace.withMarkers(toReplace.getMarkers().addOrUpdate(new ReplaceEnvironmentUtilsMarker(currentTemplateString, parameters)));
+            return toReplace.withMarkers(toReplace.getMarkers().addIfAbsent(new ReplaceEnvironmentUtilsMarker(currentTemplateString, parameters)));
         }
 
         private List<Expression> generateParameters(List<J.MethodInvocation> collectedMethods) {
