@@ -32,11 +32,9 @@ plugins {
     id("nebula.source-jar") version "17.3.2"
     id("nebula.maven-apache-license") version "17.3.2"
 
-    id("nebula.integtest") version "7.0.9" apply false
     id("org.openrewrite.rewrite") version "4.0.0"
 }
 
-apply(plugin = "nebula.integtest-standalone")
 apply(plugin = "nebula.publish-verification")
 
 configure<org.openrewrite.gradle.RewriteExtension> {
@@ -128,11 +126,6 @@ dependencies {
     testRuntimeOnly("org.springframework:spring-webmvc:4.+")
     testRuntimeOnly("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
     testRuntimeOnly("org.springframework.boot:spring-boot-test:1.5.+")
-
-    "integTestImplementation"("org.mapdb:mapdb:latest.release")
-    "integTestImplementation"("org.openrewrite:rewrite-java-11:${rewriteVersion}")
-    "integTestImplementation"("org.openrewrite:rewrite-java-8:${rewriteVersion}")
-
 }
 
 tasks.named<Test>("test") {
