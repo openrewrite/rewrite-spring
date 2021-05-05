@@ -56,12 +56,14 @@ public class UnnecessarySpringExtension extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = classDecl;
                 if (!FindAnnotations.find(c.withBody(EMPTY_BLOCK), SPRING_BOOT_TEST_ANNOTATION_PATTERN).isEmpty()) {
-                    c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
-                            .getVisitor()
-                            .visit(c.withBody(EMPTY_BLOCK), ctx, getCursor().getParentOrThrow());
-                    assert c != null;
-                    c = c.withBody(classDecl.getBody());
-                    maybeRemoveImport(SPRING_EXTENSION_FQN);
+                    if (!FindAnnotations.find(c.withBody(EMPTY_BLOCK), EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN).isEmpty()) {
+                        c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
+                                .getVisitor()
+                                .visit(c.withBody(EMPTY_BLOCK), ctx, getCursor().getParentOrThrow());
+                        assert c != null;
+                        c = c.withBody(classDecl.getBody());
+                        maybeRemoveImport(SPRING_EXTENSION_FQN);
+                    }
                 }
 
                 return super.visitClassDeclaration(c, ctx);
