@@ -49,16 +49,14 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Replace EnvironmentUtils with TestPropertyValues";
+        return "Replace `EnvironmentUtils` with `TestPropertyValues`";
     }
 
     @Override
     public String getDescription() {
-        return "Replaces any references to the deprecated org.springframework.boot.test.util.EnvironmentTestUtils" +
-                " with org.springframework.boot.test.util.TestPropertyValues and the appropriate functionality.";
+        return "Replaces any references to the deprecated `EnvironmentTestUtils`" +
+                " with `TestPropertyValues` and the appropriate functionality.";
     }
-
-    private UUID id = randomId();
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {

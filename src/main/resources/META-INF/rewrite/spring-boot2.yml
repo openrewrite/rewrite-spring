@@ -16,8 +16,8 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
-displayName: JUnit Jupiter migration from JUnit 4.x for Spring Boot 2.x projects
-description: Migrates Spring Boot 2.x projects having JUnit 4.x tests to JUnit Jupiter
+displayName: JUnit Jupiter for Spring Boot 2.x projects
+description: Migrates Spring Boot 2.x projects having JUnit 4.x tests to JUnit Jupiter.
 tags:
   - testing
   - junit

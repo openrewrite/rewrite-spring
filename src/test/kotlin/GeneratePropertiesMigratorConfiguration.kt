@@ -86,6 +86,8 @@ object GeneratePropertiesMigratorConfiguration {
                                 ---
                                 type: specs.openrewrite.org/v1beta/recipe
                                 name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties_$majorMinor
+                                displayName: Migrate Spring Boot properties to $version
+                                description: Migrate properties found in `application.properties`.
                                 recipeList:
                             """.trimIndent())
 
@@ -104,6 +106,8 @@ object GeneratePropertiesMigratorConfiguration {
                                 ---
                                 type: specs.openrewrite.org/v1beta/recipe
                                 name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.$majorMinor
+                                displayName: Migrate Spring Boot properties to $version
+                                description: Migrate properties found in `application.yml`.
                                 recipeList:
                             """.trimIndent())
 

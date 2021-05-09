@@ -56,12 +56,12 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Convert multi condition ConditionalOnBean Annotations to AnyNestedCondition";
+        return "Migrate multi-condition `@ConditionalOnBean` annotations";
     }
 
     @Override
     public String getDescription() {
-        return "Convert multi condition ConditionalOnBean Annotations to AnyNestedCondition.";
+        return "Migrate multi-condition `@ConditionalOnBean` annotations to `AnyNestedCondition`.";
     }
 
     @Override

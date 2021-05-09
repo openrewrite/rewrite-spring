@@ -30,12 +30,12 @@ import java.util.List;
 public class BeanMethodsNotPublic extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Bean Methods Not Public";
+        return "Remove `public` from `@Bean` methods";
     }
 
     @Override
     public String getDescription() {
-        return "Remove public modifier from Bean methods.";
+        return "Remove public modifier from `@Bean` methods. They no longer have to be public visibility to be usable by Spring.";
     }
 
     @Override

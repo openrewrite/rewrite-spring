@@ -43,12 +43,12 @@ import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 public class ImplicitWebAnnotationNames extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Remove Implicit Web Annotation Names";
+        return "Remove implicit web annotation names";
     }
 
     @Override
     public String getDescription() {
-        return "Removes Implicit Web Annotation names and renames associated parameters.";
+        return "Removes implicit web annotation names and rename associated parameters.";
     }
 
     @Override

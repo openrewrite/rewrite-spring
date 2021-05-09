@@ -41,7 +41,7 @@ public class UnnecessarySpringExtension extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Remove `@SpringExtension` if `@SpringBootTest` is present";
+        return "Remove `@SpringExtension`";
     }
 
     @Override

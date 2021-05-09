@@ -28,12 +28,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class NoAutowired extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Remove Autowired Annotation from MethodDeclarations";
+        return "Remove `@Autowired`";
     }
 
     @Override
     public String getDescription() {
-        return "Removes Autowired Annotation from MethodDeclarations.";
+        return "Removes autowired annotation from method declarations.";
     }
 
     @Override

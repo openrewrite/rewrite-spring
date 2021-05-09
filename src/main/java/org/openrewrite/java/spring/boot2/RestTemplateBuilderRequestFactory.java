@@ -38,12 +38,12 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "RestTemplateBuilderRequestFactory";
+        return "Migrate `RestTemplateBuilder`";
     }
 
     @Override
     public String getDescription() {
-        return "Migrate RestTemplateBuilder requestFactory invocations to accept a supplier.";
+        return "Migrate `RestTemplateBuilder#requestFactory` calls to accept a supplier.";
     }
 
     @Override

@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class NoRequestMappingAnnotation extends Recipe {
     @Override
     public String getDisplayName() {
-        return "No `@RequestMapping` annotations";
+        return "Remove `@RequestMapping` annotations";
     }
 
     @Override

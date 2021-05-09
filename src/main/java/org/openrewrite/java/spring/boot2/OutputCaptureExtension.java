@@ -52,7 +52,7 @@ public class OutputCaptureExtension extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "`@OutputCaptureRule` to `@ExtendWith(OutputCaptureExtension.class)`";
+        return "Migrate `@OutputCaptureRule` to `@ExtendWith(OutputCaptureExtension.class)`";
     }
 
     @Override
