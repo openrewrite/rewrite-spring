@@ -15,7 +15,7 @@
 # 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties_2_0
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_0
 displayName: Migrate Spring Boot properties to 2.0.9.RELEASE
 description: Migrate properties found in `application.properties`.
 recipeList:
@@ -526,7 +526,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_0
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_0
 displayName: Migrate Spring Boot properties to 2.0.9.RELEASE
 description: Migrate properties found in `application.yml`.
 recipeList:
@@ -1037,7 +1037,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties_2_1
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_1
 displayName: Migrate Spring Boot properties to 2.1.18.RELEASE
 description: Migrate properties found in `application.properties`.
 recipeList:
@@ -1116,7 +1116,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_1
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_1
 displayName: Migrate Spring Boot properties to 2.1.18.RELEASE
 description: Migrate properties found in `application.yml`.
 recipeList:
@@ -1195,7 +1195,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties_2_2
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_2
 displayName: Migrate Spring Boot properties to 2.2.13.RELEASE
 description: Migrate properties found in `application.properties`.
 recipeList:
@@ -1247,7 +1247,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_2
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_2
 displayName: Migrate Spring Boot properties to 2.2.13.RELEASE
 description: Migrate properties found in `application.yml`.
 recipeList:
@@ -1299,7 +1299,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationProperties_2_3
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_3
 displayName: Migrate Spring Boot properties to 2.3.10.RELEASE
 description: Migrate properties found in `application.properties`.
 recipeList:
@@ -1369,7 +1369,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.spring.boot.config.SpringBootConfigurationYaml.2_3
+name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_3
 displayName: Migrate Spring Boot properties to 2.3.10.RELEASE
 description: Migrate properties found in `application.yml`.
 recipeList:
