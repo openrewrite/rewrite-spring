@@ -74,6 +74,7 @@ recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       newVersion: 2.x
+      trustParent: true
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
@@ -81,6 +82,7 @@ recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.mockito
       toVersion: 3.x
+      trustParent: true
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
   - org.openrewrite.maven.RemoveDependency:
@@ -119,12 +121,8 @@ recipeList:
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
   - org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_0
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_0
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_1
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_1
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_2
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_2
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_2_3
-  - org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_2_3
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_1
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_3
   - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices

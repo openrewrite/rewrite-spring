@@ -82,12 +82,11 @@ object GeneratePropertiesMigratorConfiguration {
                             val majorMinor = version.split(".").subList(0, 2).joinToString("_")
 
                             config.appendText("""
-
                                 ---
                                 type: specs.openrewrite.org/v1beta/recipe
-                                name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationProperties_$majorMinor
-                                displayName: Migrate Spring Boot properties to $version
-                                description: Migrate properties found in `application.properties`.
+                                name: org.openrewrite.java.spring.boot2.SpringBootProperties_$majorMinor
+                                displayName: Migrate Spring Boot properties to ${version.split(".").subList(0, 2).joinToString(".")}
+                                description: Migrate properties found in `application.properties` and `application.yml`.
                                 recipeList:
                             """.trimIndent())
 
@@ -97,26 +96,9 @@ object GeneratePropertiesMigratorConfiguration {
                                         - org.openrewrite.properties.ChangePropertyKey:
                                             oldPropertyKey: ${prop.name}
                                             newPropertyKey: ${prop.deprecation!!.replacement}
-                                        """.trimIndent().prependIndent("  ")
-                                    }
-                            )
-
-                            config.appendText("""
-                                
-                                ---
-                                type: specs.openrewrite.org/v1beta/recipe
-                                name: org.openrewrite.java.spring.boot2.config.SpringBootConfigurationYaml_$majorMinor
-                                displayName: Migrate Spring Boot properties to $version
-                                description: Migrate properties found in `application.yml`.
-                                recipeList:
-                            """.trimIndent())
-
-                            config.appendText(
-                                    replacements.joinToString("\n", prefix = "\n", postfix = "\n") { prop ->
-                                        """
                                         - org.openrewrite.yaml.ChangePropertyKey:
                                             oldPropertyKey: ${prop.name}
-                                            newPropertyKey: ${prop.deprecation!!.replacement}
+                                            newPropertyKey: ${prop.deprecation.replacement}
                                         """.trimIndent().prependIndent("  ")
                                     }
                             )
