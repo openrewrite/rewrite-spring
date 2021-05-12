@@ -21,7 +21,7 @@ plugins {
     id("nebula.release") version "15.3.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
 
-    id("com.github.hierynomus.license") version "0.15.0"
+    id("com.github.hierynomus.license") version "0.16.1"
     id("com.github.jk1.dependency-license-report") version "1.16"
 
     id("nebula.maven-publish") version "17.3.2"
