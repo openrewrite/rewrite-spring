@@ -22,6 +22,7 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 
@@ -40,6 +41,10 @@ import java.util.stream.Collectors;
  * </ul>
  */
 public class NoRequestMappingAnnotation extends Recipe {
+
+    private static final ThreadLocal<JavaParser> JAVA_PARSER_THREAD_LOCAL = ThreadLocal.withInitial(() ->
+            JavaParser.fromJavaVersion().build());
+
     @Override
     public String getDisplayName() {
         return "Remove `@RequestMapping` annotations";
@@ -80,11 +85,12 @@ public class NoRequestMappingAnnotation extends Recipe {
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport(resolvedRequestMappingAnnotationClassName);
                     if (a.getArguments() == null || a.getArguments().isEmpty()) {
-                        a = a.withTemplate(template("@" + associatedRequestMapping(requestType.get())).build(), a.getCoordinates().replace());
+                        a = a.withTemplate(template("@" + associatedRequestMapping(requestType.get()))
+                                .javaParser(JAVA_PARSER_THREAD_LOCAL.get()).build(), a.getCoordinates().replace());
                     } else {
                         String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
                                 "(" + a.getArguments().stream().map(J::print).collect(Collectors.joining(",")) + ")";
-                        JavaTemplate tb = template(annotationTemplateString).build();
+                        JavaTemplate tb = template(annotationTemplateString).javaParser(JAVA_PARSER_THREAD_LOCAL.get()).build();
                         a = a.withTemplate(tb, a.getCoordinates().replace());
                     }
                 }
