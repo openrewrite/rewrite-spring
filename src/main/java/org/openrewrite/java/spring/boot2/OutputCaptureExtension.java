@@ -79,7 +79,7 @@ public class OutputCaptureExtension extends Recipe {
                     }
 
                     J.VariableDeclarations field = (J.VariableDeclarations) s;
-                    JavaType.Class fieldType = field.getTypeAsClass();
+                    JavaType.FullyQualified fieldType = field.getTypeAsFullyQualified();
                     if (TypeUtils.isOfClassType(fieldType, "org.springframework.boot.test.system.OutputCaptureRule") ||
                             TypeUtils.isOfClassType(fieldType, "org.springframework.boot.test.rule.OutputCapture")) {
 
