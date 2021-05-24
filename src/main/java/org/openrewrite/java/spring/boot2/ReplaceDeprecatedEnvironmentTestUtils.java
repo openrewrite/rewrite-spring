@@ -21,6 +21,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.SemanticallyEqual;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -38,18 +39,13 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                     .build()
     );
 
-    public static final String ENV_UTILS_ADD_ENV_FQN = "org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment";
-    public static final String TEST_PROPERTY_VALUES_FQN = "org.springframework.boot.test.util.TestPropertyValues";
-    public static final MethodMatcher APP_CONTEXT_MATCHER =
-            new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.context.ConfigurableApplicationContext, String...)");
-    public static final MethodMatcher ENVIRONMENT_MATCHER =
-            new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.core.env.ConfigurableEnvironment, String...)");
-    public static final MethodMatcher NAMED_ENVIRONMENT_MATCHER =
-            new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(String, org.springframework.core.env.ConfigurableEnvironment, String...)");
+    private static final MethodMatcher APP_CONTEXT = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.context.ConfigurableApplicationContext, String...)");
+    private static final MethodMatcher ENVIRONMENT = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.core.env.ConfigurableEnvironment, String...)");
+    private static final MethodMatcher NAMED_ENVIRONMENT = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(String, org.springframework.core.env.ConfigurableEnvironment, String...)");
 
     @Override
     public String getDisplayName() {
-        return "Replace `EnvironmentUtils` with `TestPropertyValues`";
+        return "Replace `EnvironmentTestUtils` with `TestPropertyValues`";
     }
 
     @Override
@@ -61,6 +57,12 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new FindEnvironmentTestUtilsVisitor();
+    }
+
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.boot.test.util.EnvironmentTestUtils");
     }
 
     private static class ReplaceEnvironmentUtilsMarker implements SearchResult {
@@ -219,27 +221,26 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         private String generateTemplateString(List<J.MethodInvocation> collectedMethods) {
             StringBuilder template = new StringBuilder("TestPropertyValues");
             boolean appendOf = true;
-            for (int i = 0; i < collectedMethods.size(); i++) {
-                J.MethodInvocation methodInvocation = collectedMethods.get(i);
+            for (J.MethodInvocation methodInvocation : collectedMethods) {
                 for (int j = isNamedEnvironmentMethod(methodInvocation) ? 2 : 1; j < methodInvocation.getArguments().size(); j++) {
-                    template.append(".").append(appendOf ? "of" : "and").append("(#{})");
+                    template.append(".").append(appendOf ? "of" : "and").append("(#{any()})");
                     appendOf = false;
                 }
             }
             if (isNamedEnvironmentMethod(collectedMethods.get(0))) {
-                template.append(".applyTo(#{}, TestPropertyValues.Type.MAP, #{})");
+                template.append(".applyTo(#{any()}, TestPropertyValues.Type.MAP, #{any()})");
             } else {
-                template.append(".applyTo(#{})");
+                template.append(".applyTo(#{any()})");
             }
             return template.toString();
         }
 
         private boolean isAddEnvironmentMethod(J.MethodInvocation method) {
-            return APP_CONTEXT_MATCHER.matches(method) || ENVIRONMENT_MATCHER.matches(method) || isNamedEnvironmentMethod(method);
+            return APP_CONTEXT.matches(method) || ENVIRONMENT.matches(method) || isNamedEnvironmentMethod(method);
         }
 
         private boolean isNamedEnvironmentMethod(J.MethodInvocation method) {
-            return NAMED_ENVIRONMENT_MATCHER.matches(method);
+            return NAMED_ENVIRONMENT.matches(method);
         }
     }
 
@@ -253,15 +254,15 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = m.withTemplate(
                         template(marker.templateString)
-                                .javaParser(JAVA_PARSER.get())
-                                .imports(TEST_PROPERTY_VALUES_FQN)
+                                .javaParser(JAVA_PARSER::get)
+                                .imports("org.springframework.boot.test.util.TestPropertyValues")
                                 .build(),
                         m.getCoordinates().replace(),
                         marker.parameters.toArray()
                 );
 
-                maybeRemoveImport(ENV_UTILS_ADD_ENV_FQN);
-                maybeAddImport(TEST_PROPERTY_VALUES_FQN);
+                maybeRemoveImport("org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment");
+                maybeAddImport("org.springframework.boot.test.util.TestPropertyValues");
             }
             return m;
         }

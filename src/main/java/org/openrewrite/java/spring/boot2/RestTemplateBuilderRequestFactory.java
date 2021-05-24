@@ -19,21 +19,21 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Parser;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
-
-import java.util.Collections;
 
 /**
  * https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder
  */
 public class RestTemplateBuilderRequestFactory extends Recipe {
-    private static final MethodMatcher REQUEST_FACTORY_METHOD_MATCHER = new MethodMatcher(
+    private static final MethodMatcher REQUEST_FACTORY = new MethodMatcher(
             "org.springframework.boot.web.client.RestTemplateBuilder requestFactory(org.springframework.http.client.ClientHttpRequestFactory)");
 
     @Override
@@ -43,7 +43,13 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Migrate `RestTemplateBuilder#requestFactory` calls to accept a supplier.";
+        return "Migrate `RestTemplateBuilder#requestFactory` calls to use a `Supplier`.";
+    }
+
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.boot.web.client.RestTemplateBuilder");
     }
 
     @Override
@@ -62,12 +68,12 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
                     TypeUtils.isAssignableTo(JavaType.Class.build("org.springframework.http.client.ClientHttpRequestFactory"),
                             method.getArguments().get(0).getType());
 
-            if (REQUEST_FACTORY_METHOD_MATCHER.matches(method) && isArgumentClientHttpRequestFactory) {
-                JavaTemplate.Builder tb = template("(() -> #{})")
-                        .javaParser(JavaParser.fromJavaVersion()
+            if (REQUEST_FACTORY.matches(method) && isArgumentClientHttpRequestFactory) {
+                JavaTemplate.Builder t = template("() -> #{any(org.springframework.http.client.ClientHttpRequestFactory)}")
+                        .javaParser(() -> JavaParser.fromJavaVersion()
                                 .dependsOn(Parser.Input.fromResource("/RestTemplateBuilder.java", "---"))
                                 .build());
-                m = m.withTemplate(tb.build(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
+                m = m.withTemplate(t.build(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
             }
             return m;
         }

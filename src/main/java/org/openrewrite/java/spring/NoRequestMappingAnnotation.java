@@ -24,6 +24,7 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
 import java.util.Optional;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
  */
 public class NoRequestMappingAnnotation extends Recipe {
 
-    private static final ThreadLocal<JavaParser> JAVA_PARSER_THREAD_LOCAL = ThreadLocal.withInitial(() ->
+    private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
             JavaParser.fromJavaVersion().build());
 
     @Override
@@ -53,6 +54,12 @@ public class NoRequestMappingAnnotation extends Recipe {
     @Override
     public String getDescription() {
         return "Replace method declaration `@RequestMapping` annotations with `@GetMapping`, `@PostMapping`, etc. when possible.";
+    }
+
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.web.bind.annotation.RequestMapping");
     }
 
     @Override
@@ -86,11 +93,11 @@ public class NoRequestMappingAnnotation extends Recipe {
                     maybeAddImport(resolvedRequestMappingAnnotationClassName);
                     if (a.getArguments() == null || a.getArguments().isEmpty()) {
                         a = a.withTemplate(template("@" + associatedRequestMapping(requestType.get()))
-                                .javaParser(JAVA_PARSER_THREAD_LOCAL.get()).build(), a.getCoordinates().replace());
+                                .javaParser(JAVA_PARSER::get).build(), a.getCoordinates().replace());
                     } else {
                         String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
                                 "(" + a.getArguments().stream().map(J::print).collect(Collectors.joining(",")) + ")";
-                        JavaTemplate tb = template(annotationTemplateString).javaParser(JAVA_PARSER_THREAD_LOCAL.get()).build();
+                        JavaTemplate tb = template(annotationTemplateString).javaParser(JAVA_PARSER::get).build();
                         a = a.withTemplate(tb, a.getCoordinates().replace());
                     }
                 }

@@ -16,32 +16,23 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.*;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Statement;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#conditionalonbean-semantic-change"><b>ConditionalOnBean semantic change</b></a>
- * <p>
- * <b>As of SpringBoot 2.0 ConditionalOnBean uses a logical AND rather than an OR for candidate beans.</b>
- * <p>
- * {@code @ConditionalOnBean({Aa.class, Bb.class})}
- * SomeThing someThingBean(){...}
- * <p>
- * is converted to:
- * {@code @ConditionalOnBean(ConditionAaOrBb.class)}
- * SomeThing someThingBean(){...}
- * <p>
- * class ConditionAaOrBb extends AnyNestedCondition {...}
- */
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
     private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
             JavaParser.fromJavaVersion()
@@ -64,41 +55,70 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         return "Migrate multi-condition `@ConditionalOnBean` annotations to `AnyNestedCondition`.";
     }
 
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
+    }
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new ConditionalOnBeanAnyNestedConditionVisitor();
     }
 
     private static class ConditionalOnBeanAnyNestedConditionVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final String CONDITIONAL_CLASS = "org.springframework.context.annotation.Conditional";
-        private static final String ANY_NESTED_CONDITION_CLASS = "org.springframework.boot.autoconfigure.condition.AnyNestedCondition";
         private static final String ANY_CONDITION_TEMPLATES = "any_condition_templates";
-        private static final AnnotationMatcher CONDITIONAL_BEAN_MATCHER = new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
+        private static final AnnotationMatcher CONDITIONAL_BEAN = new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
+
+        private final JavaTemplate conditionalTemplate = template("@Conditional(#{}.class)")
+                .imports("org.springframework.context.annotation.Conditional")
+                .javaParser(JAVA_PARSER::get)
+                .build();
 
         @Override
-        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
-            J.Annotation a = super.visitAnnotation(annotation, executionContext);
+        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+            J.Annotation a = super.visitAnnotation(annotation, ctx);
 
-            if (CONDITIONAL_BEAN_MATCHER.matches(a) && a.getArguments() != null) {
+            if (CONDITIONAL_BEAN.matches(a) && a.getArguments() != null) {
                 // First check for an array of Class arguments
-                List<String> conditionalOnBeanCandidates = a.getArguments().stream()
-                        .filter(p -> p instanceof J.NewArray && ((J.NewArray) p).getInitializer().size() > 1)
-                        .flatMap(p -> ((J.NewArray) p).getInitializer().stream().map(J.FieldAccess.class::cast)
-                                .map(J.FieldAccess::getTarget)
-                                .filter(J.Identifier.class::isInstance)
-                                .map(J.Identifier.class::cast))
-                        .map(J.Identifier::getSimpleName).collect(Collectors.toList());
+                List<String> conditionalOnBeanCandidates = new ArrayList<>();
+                for (Expression p : a.getArguments()) {
+                    if (p instanceof J.NewArray) {
+                        J.NewArray na = (J.NewArray) p;
+                        if (na.getInitializer() != null && na.getInitializer().size() > 1) {
+                            for (Expression expression : na.getInitializer()) {
+                                J.FieldAccess fieldAccess = (J.FieldAccess) expression;
+                                Expression target = fieldAccess.getTarget();
+                                if (target instanceof J.Identifier) {
+                                    J.Identifier identifier = (J.Identifier) target;
+                                    String simpleName = identifier.getSimpleName();
+                                    conditionalOnBeanCandidates.add(simpleName);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 String nestedConditionParameterFormat = "%s.class";
 
                 // If class arguments are not found then search for an array of type arguments
                 if (conditionalOnBeanCandidates.isEmpty()) {
-                    conditionalOnBeanCandidates = a.getArguments().stream()
-                            .filter(arg -> arg instanceof J.Assignment
-                                    && ((J.Assignment) arg).getAssignment() instanceof J.NewArray
-                                    && ((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName().equals("type"))
-                            .flatMap(assign -> ((J.NewArray) ((J.Assignment) assign).getAssignment()).getInitializer().stream()
-                                    .map(l -> ((J.Literal) l).getValue().toString()))
-                            .collect(Collectors.toList());
+                    for (Expression arg : a.getArguments()) {
+                        if (arg instanceof J.Assignment
+                                && ((J.Assignment) arg).getAssignment() instanceof J.NewArray
+                                && ((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName().equals("type")) {
+                            J.NewArray na = (J.NewArray) ((J.Assignment) arg).getAssignment();
+                            if (na.getInitializer() != null) {
+                                for (Expression l : na.getInitializer()) {
+                                    J.Literal lit = (J.Literal) l;
+                                    if (lit.getValue() != null) {
+                                        conditionalOnBeanCandidates.add(lit.getValue().toString());
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     nestedConditionParameterFormat = "type = \"%s\"";
                 }
 
@@ -107,17 +127,20 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
 
                     // Replacing the annotation will be performed by the JavaTemplate.
                     // The associated conditional class must exist for the JavaTemplate to generate a type attributed AST
-                    boolean anyConditionClassExists = getCursor().firstEnclosing(J.ClassDeclaration.class).getBody().getStatements().stream()
-                            .filter(J.ClassDeclaration.class::isInstance).map(J.ClassDeclaration.class::cast)
-                            .anyMatch(c -> c.getSimpleName().equals(conditionalClassName));
+                    boolean anyConditionClassExists = false;
+                    for (Statement statement : getCursor().firstEnclosingOrThrow(J.ClassDeclaration.class).getBody().getStatements()) {
+                        if (statement instanceof J.ClassDeclaration) {
+                            J.ClassDeclaration c = (J.ClassDeclaration) statement;
+                            if (c.getSimpleName().equals(conditionalClassName)) {
+                                anyConditionClassExists = true;
+                                break;
+                            }
+                        }
+                    }
 
                     if (anyConditionClassExists) {
-                        JavaTemplate t = template("@Conditional(" + conditionalClassName + ".class)")
-                                .imports(CONDITIONAL_CLASS)
-                                .javaParser(JAVA_PARSER.get())
-                                .build();
-                        a = maybeAutoFormat(a, a.withTemplate(t, a.getCoordinates().replace()), executionContext, getCursor().getParentOrThrow());
-                        maybeAddImport(CONDITIONAL_CLASS);
+                        a = a.withTemplate(conditionalTemplate, a.getCoordinates().replace(), conditionalClassName);
+                        maybeAddImport("org.springframework.context.annotation.Conditional");
                     } else {
                         // add the new conditional class template string to the parent ClassDeclaration Cursor
                         Cursor classDeclarationCursor = getCursor().dropParentUntil(J.ClassDeclaration.class::isInstance);
@@ -140,16 +163,17 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
             if (conditionalTemplates != null && !conditionalTemplates.isEmpty()) {
                 for (String s : conditionalTemplates) {
                     JavaTemplate t = template(s)
-                            .imports(ANY_NESTED_CONDITION_CLASS)
-                            .javaParser(JavaParser.fromJavaVersion()
+                            .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
+                            .javaParser(() -> JavaParser.fromJavaVersion()
                                     .dependsOn(Parser.Input.fromResource("/AnyNestedCondition.java", "---"))
                                     .build())
                             .build();
                     c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), executionContext);
                 }
+
                 // Schedule another visit to modify the associated annotations now that the new conditional classes have been added to the AST
                 doAfterVisit(new ConditionalOnBeanAnyNestedConditionVisitor());
-                maybeAddImport(ANY_NESTED_CONDITION_CLASS);
+                maybeAddImport("org.springframework.boot.autoconfigure.condition.AnyNestedCondition");
             }
             return c;
         }

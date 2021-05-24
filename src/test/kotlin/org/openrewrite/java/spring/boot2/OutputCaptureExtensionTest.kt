@@ -88,6 +88,7 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
                     System.out.println("I am here");
                     this.capture.expect(CoreMatchers.containsString("here"));
                 }
+            
                 void doesntUse() {
                 }
             }
@@ -105,6 +106,7 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
                     System.out.println("I am here");
                     CoreMatchers.containsString("here").matches(capture.getAll());
                 }
+            
                 void doesntUse() {
                 }
             }

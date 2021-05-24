@@ -19,8 +19,10 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.J;
 
@@ -36,6 +38,12 @@ public class BeanMethodsNotPublic extends Recipe {
     @Override
     public String getDescription() {
         return "Remove public modifier from `@Bean` methods. They no longer have to be public visibility to be usable by Spring.";
+    }
+
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.context.annotation.Bean");
     }
 
     @Override

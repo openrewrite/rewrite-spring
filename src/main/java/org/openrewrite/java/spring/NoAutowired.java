@@ -19,8 +19,10 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,7 +35,13 @@ public class NoAutowired extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Removes autowired annotation from method declarations.";
+        return "Removes `@Autowired` annotation from method declarations.";
+    }
+
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.beans.factory.annotation.Autowired");
     }
 
     @Override

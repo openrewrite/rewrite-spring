@@ -20,8 +20,10 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RenameVariable;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
 import java.util.Set;
@@ -30,16 +32,6 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
-/**
- * Remove implicit web-annotation argument names and rename the associated variable.
- * <br>
- * Note. kebab and snake case annotation argument names are excluded
- *
- * <ul>
- * <li> @PathVariable(value = "p3") Long anotherName changes to @PathVariable Long p3
- * <li> @PathVariable("id") Long id changes to @PathVariable Long id
- * </ul>
- */
 public class ImplicitWebAnnotationNames extends Recipe {
     @Override
     public String getDisplayName() {
@@ -49,6 +41,24 @@ public class ImplicitWebAnnotationNames extends Recipe {
     @Override
     public String getDescription() {
         return "Removes implicit web annotation names and rename associated parameters.";
+    }
+
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.PathVariable"));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestParam"));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestHeader"));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestAttribute"));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.CookieValue"));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.ModelAttribute"));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.SessionAttribute"));
+                return cu;
+            }
+        };
     }
 
     @Override

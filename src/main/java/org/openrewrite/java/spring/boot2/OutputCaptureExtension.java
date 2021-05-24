@@ -18,8 +18,10 @@ package org.openrewrite.java.spring.boot2;
 import lombok.SneakyThrows;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.FindMethods;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
@@ -60,13 +62,27 @@ public class OutputCaptureExtension extends Recipe {
         return "Use the JUnit Jupiter extension instead of JUnit 4 rule.";
     }
 
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+                doAfterVisit(new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule"));
+                doAfterVisit(new UsesType<>("org.springframework.boot.test.rule.OutputCapture"));
+                return cu;
+            }
+        };
+    }
+
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-            private final JavaTemplate.Builder addOutputCaptureExtension = template("@ExtendWith(OutputCaptureExtension.class)")
-                    .javaParser(JAVA_PARSER.get())
+            private final JavaTemplate addOutputCaptureExtension = template("@ExtendWith(OutputCaptureExtension.class)")
+                    .javaParser(JAVA_PARSER::get)
                     .imports("org.junit.jupiter.api.extension.ExtendWith",
-                            "org.springframework.boot.test.system.OutputCaptureExtension");
+                            "org.springframework.boot.test.system.OutputCaptureExtension")
+                    .build();
 
             @SneakyThrows
             @Override
@@ -109,7 +125,7 @@ public class OutputCaptureExtension extends Recipe {
                 })));
 
                 if (classDecl.getBody().getStatements().size() != c.getBody().getStatements().size()) {
-                    c = c.withTemplate(addOutputCaptureExtension.build(), c.getCoordinates()
+                    c = c.withTemplate(addOutputCaptureExtension, c.getCoordinates()
                             .addAnnotation(Comparator.comparing(
                                     J.Annotation::getSimpleName,
                                     new RuleBasedCollator("< ExtendWith")
@@ -133,8 +149,9 @@ public class OutputCaptureExtension extends Recipe {
     );
 
     private static class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
-        private final JavaTemplate matchesTemplate = template("#{}.matches(#{}.getAll())")
-                .javaParser(JAVA_PARSER.get()).build();
+        private final JavaTemplate matchesTemplate = template("#{any()}.matches(#{}.getAll())")
+                .javaParser(JAVA_PARSER::get)
+                .build();
 
         private final String variableName;
 

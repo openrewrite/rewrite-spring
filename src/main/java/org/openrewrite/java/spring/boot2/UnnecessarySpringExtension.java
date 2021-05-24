@@ -18,26 +18,16 @@ package org.openrewrite.java.spring.boot2;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.search.FindAnnotations;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JRightPadded;
-import org.openrewrite.java.tree.Space;
-import org.openrewrite.marker.Markers;
-
-import java.util.Collections;
-
-import static org.openrewrite.Tree.randomId;
 
 public class UnnecessarySpringExtension extends Recipe {
-    private static final J.Block EMPTY_BLOCK = new J.Block(randomId(), Space.EMPTY,
-            Markers.EMPTY, new JRightPadded<>(false, Space.EMPTY, Markers.EMPTY),
-            Collections.emptyList(), Space.EMPTY);
-
     private static final String SPRING_BOOT_TEST_ANNOTATION_PATTERN = "@org.springframework.boot.test.context.SpringBootTest";
-    private static final String SPRING_EXTENSION_FQN = "org.springframework.test.context.junit.jupiter.SpringExtension";
-    private static final String EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN = "@org.junit.jupiter.api.extension.ExtendWith(" + SPRING_EXTENSION_FQN + ".class)";
+    private static final String EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN = "@org.junit.jupiter.api.extension.ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)";
 
     @Override
     public String getDisplayName() {
@@ -49,20 +39,29 @@ public class UnnecessarySpringExtension extends Recipe {
         return "`@SpringBootTest` already applies `@SpringExtension` as of Spring Boot 2.1.0.";
     }
 
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.test.context.junit.jupiter.SpringExtension");
+    }
+
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = classDecl;
-                if (!FindAnnotations.find(c.withBody(EMPTY_BLOCK), SPRING_BOOT_TEST_ANNOTATION_PATTERN).isEmpty()) {
-                    if (!FindAnnotations.find(c.withBody(EMPTY_BLOCK), EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN).isEmpty()) {
+                //noinspection ConstantConditions
+                if (!FindAnnotations.find(c.withBody(null), SPRING_BOOT_TEST_ANNOTATION_PATTERN).isEmpty()) {
+                    //noinspection ConstantConditions
+                    if (!FindAnnotations.find(c.withBody(null), EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN).isEmpty()) {
+                        //noinspection ConstantConditions
                         c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
                                 .getVisitor()
-                                .visit(c.withBody(EMPTY_BLOCK), ctx, getCursor().getParentOrThrow());
+                                .visit(c.withBody(null), ctx, getCursor().getParentOrThrow());
                         assert c != null;
                         c = c.withBody(classDecl.getBody());
-                        maybeRemoveImport(SPRING_EXTENSION_FQN);
+                        maybeRemoveImport("org.springframework.test.context.junit.jupiter.SpringExtension");
                     }
                 }
 
