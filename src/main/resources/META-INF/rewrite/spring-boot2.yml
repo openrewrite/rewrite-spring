@@ -56,7 +56,6 @@ tags:
 recipeList:
   - org.openrewrite.java.spring.NoRequestMappingAnnotation
   - org.openrewrite.java.spring.ImplicitWebAnnotationNames
-  - org.openrewrite.java.spring.BeanMethodsNotPublic
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBoot1To2Migration
