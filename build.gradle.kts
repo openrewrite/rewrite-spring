@@ -79,8 +79,8 @@ configurations.all {
     }
 }
 
-val rewriteVersion = "latest.integration"
-val testingFrameworksVersion = "latest.integration"
+val rewriteVersion = "latest.release"
+val testingFrameworksVersion = "latest.release"
 dependencies {
     compileOnly("org.projectlombok:lombok:latest.release")
     annotationProcessor("org.projectlombok:lombok:latest.release")
