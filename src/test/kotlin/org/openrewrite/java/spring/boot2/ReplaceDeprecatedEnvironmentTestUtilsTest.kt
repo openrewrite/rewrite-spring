@@ -50,6 +50,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
             after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 
@@ -80,6 +81,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
             after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 
@@ -97,6 +99,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
         assertChanged(
             before = """
                 package com.mycompany;
+                
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -108,6 +111,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
             after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 
@@ -139,6 +143,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
         after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 
@@ -158,6 +163,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
         assertChanged(
             before = """
                 package com.mycompany;
+                
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -178,6 +184,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
             after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 
@@ -202,6 +209,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
         assertChanged(
             before = """
                 package com.mycompany;
+                
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -215,6 +223,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
             after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 
@@ -234,6 +243,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
         assertChanged(
             before = """
                 package com.mycompany;
+                
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -251,6 +261,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
             after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 
@@ -272,6 +283,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
     fun givenChainedCallsThatReferToTheSameObjectUnfortunatelyDoesntChainThem() = assertChanged(
         before = """
                 package com.mycompany;
+                
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -293,6 +305,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
         after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 
@@ -316,6 +329,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
     fun givenEnvironmentAddEnvironmentChainsThemCorrectly() = assertChanged(
         before = """
                 package com.mycompany;
+                
                 import org.springframework.web.context.support.StandardServletEnvironment;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -336,6 +350,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
         after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.web.context.support.StandardServletEnvironment;
                 
@@ -359,6 +374,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
     fun givenNamedEnvironmentAddEnvironmentChainsThemCorrectly() = assertChanged(
         before = """
                 package com.mycompany;
+                
                 import org.springframework.web.context.support.StandardServletEnvironment;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -378,6 +394,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
         after = """
                 package com.mycompany;
+                
                 import org.springframework.boot.test.util.TestPropertyValues;
                 import org.springframework.web.context.support.StandardServletEnvironment;
                 
@@ -399,6 +416,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
     fun givenVarargsAddEnvironmentChainsThemCorrectly() = assertChanged(
         before = """
                 package com.mycompany;
+                
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -420,6 +438,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
             """,
         after = """
             package com.mycompany;
+            
             import org.springframework.boot.test.util.TestPropertyValues;
             import org.springframework.context.annotation.AnnotationConfigApplicationContext;
             

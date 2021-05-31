@@ -86,7 +86,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
                 public ResponseEntity<String> getUser(@PathVariable("id") Long id) {
                     return null;
                 }
-                
+            
                 @GetMapping
                 public ResponseEntity<List<String>> getUsersNoRequestMethod() {
                     return null;
