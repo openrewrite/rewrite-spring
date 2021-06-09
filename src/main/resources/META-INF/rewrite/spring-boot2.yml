@@ -80,7 +80,7 @@ recipeList:
       newVersion: 2.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.mockito
-      toVersion: 3.x
+      newVersion: 3.x
       trustParent: true
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
