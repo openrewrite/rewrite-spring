@@ -23,7 +23,7 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
 class OutputCaptureExtensionTest : JavaRecipeTest {
-    override val parser: Parser<*>?
+    override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-boot-test", "hamcrest-core", "junit")
             .logCompilationWarningsAndErrors(true)
