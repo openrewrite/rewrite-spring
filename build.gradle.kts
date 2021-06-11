@@ -16,7 +16,7 @@ plugins {
     `maven-publish`
     signing
 
-    id("org.jetbrains.kotlin.jvm") version "1.5.0"
+    id("org.jetbrains.kotlin.jvm") version "latest.release"
     id("nebula.maven-resolved-dependencies") version "17.3.2"
     id("nebula.release") version "15.3.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
@@ -32,7 +32,7 @@ plugins {
     id("nebula.source-jar") version "17.3.2"
     id("nebula.maven-apache-license") version "17.3.2"
 
-    id("org.openrewrite.rewrite") version "5.0.0"
+    id("org.openrewrite.rewrite") version "latest.release"
 }
 
 apply(plugin = "nebula.publish-verification")
@@ -49,9 +49,11 @@ group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
 repositories {
-    mavenLocal()
-    maven {
-        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+    if(!project.hasProperty("releasing")) {
+        mavenLocal()
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
     }
     mavenCentral()
 }
@@ -79,8 +81,11 @@ configurations.all {
     }
 }
 
-val rewriteVersion = "latest.integration"
-val testingFrameworksVersion = "latest.integration"
+var rewriteVersion = if(project.hasProperty("releasing")) {
+    "latest.release"
+} else {
+    "latest.integration"
+}
 dependencies {
     compileOnly("org.projectlombok:lombok:latest.release")
     annotationProcessor("org.projectlombok:lombok:latest.release")
@@ -98,7 +103,7 @@ dependencies {
     // see https://github.com/gradle/kotlin-dsl-samples/issues/1301 for why (okhttp is leaking parts of kotlin stdlib)
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:${testingFrameworksVersion}")
+    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
 
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
