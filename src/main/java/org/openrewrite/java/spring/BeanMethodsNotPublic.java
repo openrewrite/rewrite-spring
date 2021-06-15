@@ -20,8 +20,7 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.AnnotationMatcher;
-import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.J;
@@ -60,20 +59,7 @@ public class BeanMethodsNotPublic extends Recipe {
 
             if (m.getAllAnnotations().stream().anyMatch(BEAN_ANNOTATION_MATCHER::matches)) {
                 // remove public modifier and copy any associated comments to the method
-                final List<Comment> modifierComments = new ArrayList<>();
-                List<J.Modifier> modifiers = ListUtils.map(m.getModifiers(), mod -> {
-                    if (mod.getType() == J.Modifier.Type.Public) {
-                        modifierComments.addAll(mod.getComments());
-                        return null;
-                    }
-                    return mod;
-                });
-                if (!modifierComments.isEmpty()) {
-                    m = m.withComments(ListUtils.concatAll(m.getComments(), modifierComments));
-                }
-                if (m.getModifiers() != modifiers) {
-                    m = maybeAutoFormat(m, m.withModifiers(modifiers), executionContext, getCursor().dropParentUntil(J.class::isInstance));
-                }
+                doAfterVisit(new ChangeMethodAccessLevelVisitor<>(new MethodMatcher(method), null));
             }
 
             return m;

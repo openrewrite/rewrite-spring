@@ -71,14 +71,12 @@ class BeanMethodsNotPublicTest : JavaRecipeTest {
                     return new DataSource();
                 }
             
-                // comments
-                @Bean
+                @Bean // comments
                 final DataSource dataSource2() {
                     return new DataSource();
                 }
             
-                // comments
-                @Bean
+                @Bean // comments
                 static DataSource dataSource3() {
                     return new DataSource();
                 }
