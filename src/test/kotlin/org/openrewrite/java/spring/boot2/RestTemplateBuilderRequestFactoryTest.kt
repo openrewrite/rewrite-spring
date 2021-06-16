@@ -54,6 +54,7 @@ class RestTemplateBuilderRequestFactoryTest : JavaRecipeTest {
                             .requestFactory(() -> new SimpleClientHttpRequestFactory());
                 }
             }
-        """
+        """,
+        skipEnhancedTypeValidation = true // fixme
     )
 }

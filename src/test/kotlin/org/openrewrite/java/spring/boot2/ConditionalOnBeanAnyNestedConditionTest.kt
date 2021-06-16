@@ -128,7 +128,8 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                     }
                 }
             }
-        """
+        """,
+        skipEnhancedTypeValidation = true // fixme
     )
 
     @Test
@@ -191,7 +192,8 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                     }
                 }
             }
-        """
+        """,
+        skipEnhancedTypeValidation = true // fixme
     )
 
     @Test
@@ -237,6 +239,7 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                     }
                 }
             }
-        """
+        """,
+        skipEnhancedTypeValidation = true // fixme
     )
 }
