@@ -56,8 +56,8 @@ class ImplicitWebAnnotationNamesTest : JavaRecipeTest {
                 @GetMapping("/{id}")
                 public ResponseEntity<String> getUser(@PathVariable Long id,
                                                       @PathVariable(required = false) Long p2,
-                                                      @PathVariable Long p3) {
-                    System.out.println(p3);
+                                                      @PathVariable(value = "p3") Long anotherName) {
+                    System.out.println(anotherName);
                 }
             }
         """
@@ -95,7 +95,7 @@ class ImplicitWebAnnotationNamesTest : JavaRecipeTest {
     )
 
     @Test
-    fun dontRemoveModelAttributeOnMethods() = assertUnchanged(
+    fun doNotRemoveModelAttributeOnMethods() = assertUnchanged(
         before = """
             import org.springframework.web.bind.annotation.*;
             import java.util.*;
@@ -110,21 +110,12 @@ class ImplicitWebAnnotationNamesTest : JavaRecipeTest {
     )
 
     @Test
-    fun onlyDropCamelCasedNames() = assertChanged(
+    fun doesNotRenamePathVariable() = assertUnchanged(
         before = """
             import org.springframework.web.bind.annotation.*;
             
             public class UsersController {
-                public ResponseEntity<String> getUser(@PathVariable("id") Long id,
-                                                      @PathVariable(value = "another_name") Long anotherName) {
-                }
-            }
-        """,
-        after = """
-            import org.springframework.web.bind.annotation.*;
-        
-            public class UsersController {
-                public ResponseEntity<String> getUser(@PathVariable Long id,
+                public ResponseEntity<String> getUser(@PathVariable("uid") Long id,
                                                       @PathVariable(value = "another_name") Long anotherName) {
                 }
             }

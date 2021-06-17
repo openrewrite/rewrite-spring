@@ -22,7 +22,6 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.RenameVariable;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
@@ -113,15 +112,7 @@ public class ImplicitWebAnnotationNames extends Recipe {
         private boolean maybeRemoveArg(J.VariableDeclarations.NamedVariable namedVariable, J.Literal assignValue) {
             Object value = assignValue.getValue();
             assert value != null;
-            if (namedVariable.getSimpleName().equals(value)) {
-                return true;
-            }
-            // kebab and snake case argument names are not renamed
-            else if (value.toString().matches("[a-z][A-Za-z0-9]*")) {
-                doAfterVisit(new RenameVariable<>(namedVariable, value.toString()));
-                return true;
-            }
-            return false;
+            return namedVariable.getSimpleName().equals(value);
         }
     }
 }
