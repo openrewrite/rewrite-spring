@@ -17,6 +17,7 @@ package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
+import org.openrewrite.config.Environment
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
@@ -27,7 +28,10 @@ class NoAutowiredTest : JavaRecipeTest {
             .build()
 
     override val recipe: Recipe
-        get() = NoAutowired()
+        get() = Environment.builder()
+            .scanRuntimeClasspath()
+            .build()
+            .activateRecipes("org.openrewrite.java.spring.NoAutowired")
 
     @Test
     fun removeAutowiredAnnotations() = assertChanged(
@@ -35,7 +39,7 @@ class NoAutowiredTest : JavaRecipeTest {
             import javax.sql.DataSource;
             import org.springframework.beans.factory.annotation.Autowired;
             
-            public class DatabaseConfiguration { 
+            public class DatabaseConfiguration {
                 private final DataSource dataSource;
                 
                 @Autowired
@@ -49,8 +53,22 @@ class NoAutowiredTest : JavaRecipeTest {
             public class DatabaseConfiguration {
                 private final DataSource dataSource;
             
-            
                 public DatabaseConfiguration(DataSource dataSource) {
+                }
+            }
+        """
+    )
+
+    @Test
+    fun optionalAutowiredAnnotations() = assertUnchanged(
+        before = """
+            import org.springframework.beans.factory.annotation.Autowired;
+            import javax.sql.DataSource;
+            
+            public class DatabaseConfiguration {
+                private final DataSource dataSource;
+
+                public DatabaseConfiguration(@Autowired(required = false) DataSource dataSource) {
                 }
             }
         """
@@ -61,7 +79,7 @@ class NoAutowiredTest : JavaRecipeTest {
         before = """
             import javax.sql.DataSource;
             
-            public class DatabaseConfiguration { 
+            public class DatabaseConfiguration {
                 private final DataSource dataSource;
 
                 @Primary
@@ -70,5 +88,4 @@ class NoAutowiredTest : JavaRecipeTest {
             }
         """
     )
-
 }
