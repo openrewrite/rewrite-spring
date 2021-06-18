@@ -21,12 +21,39 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotation;
+import org.openrewrite.java.marker.JavaSearchResult;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UnnecessarySpringExtension extends Recipe {
-    private static final String SPRING_BOOT_TEST_ANNOTATION_PATTERN = "@org.springframework.boot.test.context.SpringBootTest";
+
+    //All of the following annotations apply the @SpringExtension
+    private static final List<String> SPRING_BOOT_TEST_ANNOTATIONS = Arrays.asList(
+            "org.springframework.boot.test.context.SpringBootTest",
+            "org.springframework.boot.test.autoconfigure.jdbc.JdbcTest",
+            "org.springframework.boot.test.autoconfigure.web.client.RestClientTest",
+            "org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest",
+            "org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest",
+            "org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest",
+            "org.springframework.boot.test.autoconfigure.webservices.client.WebServiceClientTest",
+            "org.springframework.boot.test.autoconfigure.jooq.JooqTest",
+            "org.springframework.boot.test.autoconfigure.json.JsonTest",
+            "org.springframework.boot.test.autoconfigure.data.cassandra.DataCassandraTest",
+            "org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest",
+            "org.springframework.boot.test.autoconfigure.data.ldap.DataLdapTest",
+            "org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest",
+            "org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest",
+            "org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest",
+            "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest"
+    );
     private static final String EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN = "@org.junit.jupiter.api.extension.ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)";
 
     @Override
@@ -36,7 +63,7 @@ public class UnnecessarySpringExtension extends Recipe {
 
     @Override
     public String getDescription() {
-        return "`@SpringBootTest` already applies `@SpringExtension` as of Spring Boot 2.1.0.";
+        return "`@SpringBootTest` and all test slice annotations already applies `@SpringExtension` as of Spring Boot 2.1.0.";
     }
 
     @Nullable
@@ -50,23 +77,43 @@ public class UnnecessarySpringExtension extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                J.ClassDeclaration c = classDecl;
+
+                //Clear the class body to make annotation search and replace faster
                 //noinspection ConstantConditions
-                if (!FindAnnotations.find(c.withBody(null), SPRING_BOOT_TEST_ANNOTATION_PATTERN).isEmpty()) {
-                    //noinspection ConstantConditions
-                    if (!FindAnnotations.find(c.withBody(null), EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN).isEmpty()) {
-                        //noinspection ConstantConditions
+                J.ClassDeclaration c = classDecl.withBody(null);
+
+                AtomicBoolean annotationFound = new AtomicBoolean(false);
+                new FindBootTestAnnotation().visit(c, annotationFound);
+
+                if (annotationFound.get()) {
+                    if (!FindAnnotations.find(c, EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN).isEmpty()) {
                         c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
-                                .getVisitor()
-                                .visit(c.withBody(null), ctx, getCursor().getParentOrThrow());
+                                .getVisitor().visit(c, ctx, getCursor().getParentOrThrow());
                         assert c != null;
-                        c = c.withBody(classDecl.getBody());
                         maybeRemoveImport("org.springframework.test.context.junit.jupiter.SpringExtension");
+                        maybeRemoveImport("org.junit.jupiter.api.extension.ExtendWith");
+                        return super.visitClassDeclaration(c.withBody(classDecl.getBody()), ctx);
                     }
                 }
-
-                return super.visitClassDeclaration(c, ctx);
+                return super.visitClassDeclaration(classDecl, ctx);
             }
         };
     }
+
+    //Using this visitor vs making 15 calls to findAnnotations.
+    private static class FindBootTestAnnotation extends JavaIsoVisitor<AtomicBoolean> {
+
+        @Override
+        public J.Annotation visitAnnotation(J.Annotation annotation, AtomicBoolean found) {
+            J.Annotation a = super.visitAnnotation(annotation, found);
+            if (!found.get()) {
+                JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(a.getType());
+                if (fullyQualified != null && SPRING_BOOT_TEST_ANNOTATIONS.contains(fullyQualified.getFullyQualifiedName())) {
+                    found.set(true);
+                }
+            }
+            return a;
+        }
+    }
+
 }
