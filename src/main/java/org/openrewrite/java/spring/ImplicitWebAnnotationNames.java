@@ -39,7 +39,7 @@ public class ImplicitWebAnnotationNames extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Removes implicit web annotation names and rename associated parameters.";
+        return "Removes implicit web annotation names.";
     }
 
     @Nullable
