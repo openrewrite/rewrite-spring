@@ -15,7 +15,9 @@
  */
 package org.openrewrite.java.spring
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.openrewrite.Issue
 import org.openrewrite.Recipe
 import org.openrewrite.config.Environment
 import org.openrewrite.java.JavaParser
@@ -54,6 +56,33 @@ class NoAutowiredTest : JavaRecipeTest {
                 private final DataSource dataSource;
             
                 public DatabaseConfiguration(DataSource dataSource) {
+                }
+            }
+        """
+    )
+
+    @Disabled
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
+    @Test
+    fun keepAutowiredAnnotationsWhenMultipleConstructorsExist() = assertUnchanged(
+        before = """
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.core.io.Resource;
+            import java.io.PrintStream;
+            
+            public class MyAppResourceService {
+                private final Resource someResource;
+                private final PrintStream printStream;
+            
+                public MyAppResourceService(Resource someResource) {
+                    this.someResource = someResource;
+                    this.printStream = System.out;
+                }
+            
+                @Autowired
+                public MyAppResourceService(Resource someResource, PrintStream printStream) {
+                    this.someResource = someResource;
+                    this.printStream = printStream;
                 }
             }
         """
