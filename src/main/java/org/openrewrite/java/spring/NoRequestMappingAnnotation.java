@@ -86,6 +86,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                 String resolvedRequestMappingAnnotationClassName = requestType.map(this::associatedRequestMapping).orElse(null);
 
                 maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
+                maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
                 requestType.ifPresent(requestMethod -> maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod." + requestMethod));
 
                 // Remove the argument
