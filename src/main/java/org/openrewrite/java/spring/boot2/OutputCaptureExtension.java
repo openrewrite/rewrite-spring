@@ -184,7 +184,7 @@ public class OutputCaptureExtension extends Recipe {
             if (!FindMethods.find(m, "org.springframework.boot.test.rule.OutputCapture *(..)").isEmpty() ||
                     !FindMethods.find(m, "org.springframework.boot.test.system.OutputCaptureRule *(..)").isEmpty()) {
                 // FIXME need addParameter coordinate here...
-//                m = m.withTemplate(parameter.build(), m.getCoordinates().replaceParameters());
+                // m = m.withTemplate(parameter.build(), m.getCoordinates().replaceParameters());
 
                 J.VariableDeclarations param = new J.VariableDeclarations(Tree.randomId(),
                         Space.EMPTY,
