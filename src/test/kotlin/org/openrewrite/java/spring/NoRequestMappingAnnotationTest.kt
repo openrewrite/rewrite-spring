@@ -129,6 +129,40 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
     )
 
     @Test
+    fun removeUnnecessaryAnnotation() = assertChanged(
+        before = """
+            import java.util.*;
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.RequestMapping;
+            import org.springframework.web.bind.annotation.RestController;
+            import static org.springframework.web.bind.annotation.RequestMethod.POST;
+            
+            @RestController
+            public class UsersController {
+                @RequestMapping(value = "/users", method = POST)
+                public ResponseEntity<List<String>> getUsersPost() {
+                    return null;
+                }
+            }
+        """,
+        after = """
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.annotation.PostMapping;
+            import org.springframework.web.bind.annotation.RestController;
+            
+            import java.util.*;
+            
+            @RestController
+            public class UsersController {
+                @PostMapping("/users")
+                public ResponseEntity<List<String>> getUsersPost() {
+                    return null;
+                }
+            }
+        """
+    )
+
+    @Test
     fun hasValueParameter() = assertChanged(
         before = """
             import java.util.*;

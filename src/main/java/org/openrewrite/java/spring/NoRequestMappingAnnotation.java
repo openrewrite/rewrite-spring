@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Parser;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
@@ -27,8 +28,10 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Replace method declaration @RequestMapping annotations with the associated variant
@@ -44,7 +47,10 @@ import java.util.stream.Collectors;
 public class NoRequestMappingAnnotation extends Recipe {
 
     private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
-            JavaParser.fromJavaVersion().build());
+            JavaParser.fromJavaVersion()
+                    .dependsOn(Parser.Input.fromResource("/RequestMapping.java", "---"))
+                    .build()
+    );
 
     @Override
     public String getDisplayName() {
@@ -79,6 +85,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                 Optional<String> requestType = requestMethodArg.isPresent() ? requestMethodArg.flatMap(this::requestMethodType) : Optional.of("GET");
                 String resolvedRequestMappingAnnotationClassName = requestType.map(this::associatedRequestMapping).orElse(null);
 
+                maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
                 requestType.ifPresent(requestMethod -> maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod." + requestMethod));
 
                 // Remove the argument
@@ -90,14 +97,17 @@ public class NoRequestMappingAnnotation extends Recipe {
 
                 // Change the Annotation Type
                 if (resolvedRequestMappingAnnotationClassName != null) {
-                    maybeAddImport(resolvedRequestMappingAnnotationClassName);
+                    maybeAddImport("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName);
                     if (a.getArguments() == null || a.getArguments().isEmpty()) {
                         a = a.withTemplate(template("@" + associatedRequestMapping(requestType.get()))
+                                .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
                                 .javaParser(JAVA_PARSER::get).build(), a.getCoordinates().replace());
                     } else {
                         String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
                                 "(" + a.getArguments().stream().map(J::print).collect(Collectors.joining(",")) + ")";
-                        JavaTemplate tb = template(annotationTemplateString).javaParser(JAVA_PARSER::get).build();
+                        JavaTemplate tb = template(annotationTemplateString)
+                                .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
+                                .javaParser(JAVA_PARSER::get).build();
                         a = a.withTemplate(tb, a.getCoordinates().replace());
                     }
                 }
@@ -171,5 +181,4 @@ public class NoRequestMappingAnnotation extends Recipe {
             return methodName;
         }
     }
-
 }
