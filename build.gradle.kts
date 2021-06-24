@@ -105,6 +105,7 @@ dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
+    runtimeOnly("org.openrewrite:rewrite-java-11:$rewriteVersion")
 
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
