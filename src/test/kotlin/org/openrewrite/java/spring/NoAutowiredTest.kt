@@ -54,7 +54,7 @@ class NoAutowiredTest : JavaRecipeTest {
             
             public class DatabaseConfiguration {
                 private final DataSource dataSource;
-            
+                
                 public DatabaseConfiguration(DataSource dataSource) {
                 }
             }

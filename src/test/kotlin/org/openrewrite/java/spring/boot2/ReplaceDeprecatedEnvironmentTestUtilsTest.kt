@@ -37,6 +37,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
         assertChanged(
             before = """
                 package com.mycompany;
+                
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -70,6 +71,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
         assertChanged(
             before = """
                 package com.mycompany;
+                
                 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
                 import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
                 
@@ -130,6 +132,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
     fun givenChainedCallsReplacesThemWithAFluentSetOfCalls() = assertChanged(
         before = """
             package com.mycompany;
+            
             import org.springframework.context.annotation.AnnotationConfigApplicationContext;
             import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
             
