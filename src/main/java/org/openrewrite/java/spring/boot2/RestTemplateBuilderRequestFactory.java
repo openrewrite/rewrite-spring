@@ -69,7 +69,7 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
                             method.getArguments().get(0).getType());
 
             if (REQUEST_FACTORY.matches(method) && isArgumentClientHttpRequestFactory) {
-                JavaTemplate.Builder t = template("() -> #{any(org.springframework.http.client.ClientHttpRequestFactory)}")
+                JavaTemplate.Builder t = JavaTemplate.builder(this::getCursor, "() -> #{any(org.springframework.http.client.ClientHttpRequestFactory)}")
                         .javaParser(() -> JavaParser.fromJavaVersion()
                                 .dependsOn(Parser.Input.fromResource("/RestTemplateBuilder.java", "---"))
                                 .build());

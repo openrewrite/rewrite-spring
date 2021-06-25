@@ -78,7 +78,7 @@ public class OutputCaptureExtension extends Recipe {
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-            private final JavaTemplate addOutputCaptureExtension = template("@ExtendWith(OutputCaptureExtension.class)")
+            private final JavaTemplate addOutputCaptureExtension = JavaTemplate.builder(this::getCursor, "@ExtendWith(OutputCaptureExtension.class)")
                     .javaParser(JAVA_PARSER::get)
                     .imports("org.junit.jupiter.api.extension.ExtendWith",
                             "org.springframework.boot.test.system.OutputCaptureExtension")
@@ -149,7 +149,7 @@ public class OutputCaptureExtension extends Recipe {
     );
 
     private static class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
-        private final JavaTemplate matchesTemplate = template("#{any()}.matches(#{}.getAll())")
+        private final JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
                 .javaParser(JAVA_PARSER::get)
                 .build();
 

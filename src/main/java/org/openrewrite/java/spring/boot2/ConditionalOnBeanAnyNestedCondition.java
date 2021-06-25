@@ -70,7 +70,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         private static final String ANY_CONDITION_TEMPLATES = "any_condition_templates";
         private static final AnnotationMatcher CONDITIONAL_BEAN = new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
 
-        private final JavaTemplate conditionalTemplate = template("@Conditional(#{}.class)")
+        private final JavaTemplate conditionalTemplate = JavaTemplate.builder(this::getCursor, "@Conditional(#{}.class)")
                 .imports("org.springframework.context.annotation.Conditional")
                 .javaParser(JAVA_PARSER::get)
                 .build();
@@ -162,7 +162,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
             Set<String> conditionalTemplates = getCursor().pollMessage(ANY_CONDITION_TEMPLATES);
             if (conditionalTemplates != null && !conditionalTemplates.isEmpty()) {
                 for (String s : conditionalTemplates) {
-                    JavaTemplate t = template(s)
+                    JavaTemplate t = JavaTemplate.builder(this::getCursor, s)
                             .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
                             .javaParser(() -> JavaParser.fromJavaVersion()
                                     .dependsOn(Parser.Input.fromResource("/AnyNestedCondition.java", "---"))

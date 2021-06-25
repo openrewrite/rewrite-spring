@@ -19,6 +19,7 @@ import org.openrewrite.*;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.SemanticallyEqual;
 import org.openrewrite.java.search.UsesType;
@@ -253,7 +254,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             if (maybeMarker.isPresent()) {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = m.withTemplate(
-                        template(marker.templateString)
+                        JavaTemplate.builder(this::getCursor, marker.templateString)
                                 .javaParser(JAVA_PARSER::get)
                                 .imports("org.springframework.boot.test.util.TestPropertyValues")
                                 .build(),

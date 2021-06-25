@@ -28,10 +28,8 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Replace method declaration @RequestMapping annotations with the associated variant
@@ -100,13 +98,13 @@ public class NoRequestMappingAnnotation extends Recipe {
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName);
                     if (a.getArguments() == null || a.getArguments().isEmpty()) {
-                        a = a.withTemplate(template("@" + associatedRequestMapping(requestType.get()))
+                        a = a.withTemplate(JavaTemplate.builder(this::getCursor, "@" + associatedRequestMapping(requestType.get()))
                                 .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
                                 .javaParser(JAVA_PARSER::get).build(), a.getCoordinates().replace());
                     } else {
                         String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
                                 "(" + a.getArguments().stream().map(J::print).collect(Collectors.joining(",")) + ")";
-                        JavaTemplate tb = template(annotationTemplateString)
+                        JavaTemplate tb = JavaTemplate.builder(this::getCursor, annotationTemplateString)
                                 .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
                                 .javaParser(JAVA_PARSER::get).build();
                         a = a.withTemplate(tb, a.getCoordinates().replace());
