@@ -41,21 +41,21 @@ class NoAutowiredTest : JavaRecipeTest {
             @Component
             public class TestSourceA {
             }
-        """.trimIndent(),
+        """,
         """
             package org.B;
             import org.springframework.stereotype.Component;
             @Component
             public class TestSourceB {
             }
-        """.trimIndent(),
+        """,
         """
             package org.C;
             import org.springframework.stereotype.Component;
             @Component
             public class TestSourceC {
             }
-        """.trimIndent()),
+        """),
         before = """
             import org.A.TestSourceA;
             import org.B.TestSourceB;
@@ -79,7 +79,7 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceB = testSourceB;
                 }
             }
-        """.trimIndent(),
+        """,
         after = """
             import org.A.TestSourceA;
             import org.B.TestSourceB;
@@ -102,7 +102,7 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceB = testSourceB;
                 }
             }
-        """.trimIndent()
+        """
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -115,21 +115,21 @@ class NoAutowiredTest : JavaRecipeTest {
             @Component
             public class TestSourceA {
             }
-        """.trimIndent(),
+        """,
             """
             package org.B;
             import org.springframework.stereotype.Component;
             @Component
             public class TestSourceB {
             }
-        """.trimIndent(),
+        """,
             """
             package org.C;
             import org.springframework.stereotype.Component;
             @Component
             public class TestSourceC {
             }
-        """.trimIndent()),
+        """),
         before = """
             import org.A.TestSourceA;
             import org.B.TestSourceB;
@@ -153,7 +153,7 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceB = testSourceB;
                 }
             }
-        """.trimIndent(),
+        """,
         after = """
             import org.A.TestSourceA;
             import org.B.TestSourceB;
@@ -176,7 +176,7 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceB = testSourceB;
                 }
             }
-        """.trimIndent()
+        """
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -189,7 +189,7 @@ class NoAutowiredTest : JavaRecipeTest {
             @Component
             public class TestSourceA {
             }
-        """.trimIndent()),
+        """),
         before = """
             import org.A.TestSourceA;
             import org.springframework.beans.factory.annotation.Autowired;
@@ -228,7 +228,7 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceA = testSourceA;
                 }
             }
-        """.trimIndent(),
+        """,
         after = """
             import org.A.TestSourceA;
             import org.springframework.beans.factory.annotation.Qualifier;
@@ -263,7 +263,7 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceA = testSourceA;
                 }
             }
-        """.trimIndent()
+        """
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -276,7 +276,7 @@ class NoAutowiredTest : JavaRecipeTest {
             @Component
             public class TestSourceA {
             }
-        """.trimIndent()),
+        """),
         before = """
             import org.A.TestSourceA;
             import org.springframework.beans.factory.annotation.Autowired;
@@ -309,7 +309,7 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceA = testSourceA;
                 }
             }
-        """.trimIndent(),
+        """,
         after = """
             import org.A.TestSourceA;
             import org.springframework.beans.factory.annotation.Qualifier;
@@ -341,7 +341,7 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceA = testSourceA;
                 }
             }
-        """.trimIndent()
+        """
     )
     @Disabled
     @Issue("https://github.com/openrewrite/rewrite/issues/726")
@@ -357,7 +357,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 public @Autowired DatabaseConfiguration(DataSource dataSource) {
                 }
             }
-        """.trimIndent(),
+        """,
         after = """
             import javax.sql.DataSource;
             
@@ -367,7 +367,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 public DatabaseConfiguration(DataSource dataSource) {
                 }
             }
-        """.trimIndent()
+        """
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
