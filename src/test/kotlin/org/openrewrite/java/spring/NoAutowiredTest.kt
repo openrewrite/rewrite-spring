@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.openrewrite.Issue
 import org.openrewrite.Recipe
-import org.openrewrite.config.Environment
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
@@ -30,13 +29,324 @@ class NoAutowiredTest : JavaRecipeTest {
             .build()
 
     override val recipe: Recipe
-        get() = Environment.builder()
-            .scanRuntimeClasspath()
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.NoAutowired")
+        get() = NoAutowiredOnConstructor()
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
     @Test
-    fun removeAutowiredAnnotations() = assertChanged(
+    fun removeLeadingAutowiredAnnotation() = assertChanged(
+        dependsOn = arrayOf(
+            """
+            package org.C;
+            import org.springframework.stereotype.Component;
+            @Component
+            public class TestSourceA {
+            }
+        """,
+        """
+            package org.B;
+            import org.springframework.stereotype.Component;
+            @Component
+            public class TestSourceB {
+            }
+        """,
+        """
+            package org.C;
+            import org.springframework.stereotype.Component;
+            @Component
+            public class TestSourceC {
+            }
+        """),
+        before = """
+            import org.A.TestSourceA;
+            import org.B.TestSourceB;
+            import org.C.TestSourceC;
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class TestConfiguration {
+                private final TestSourceA testSourceA;
+                private TestSourceB testSourceB;
+            
+                @Autowired
+                private TestSourceC testSourceC;
+            
+                @Autowired
+                public TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            
+                @Autowired
+                public void setTestSourceB(TestSourceB testSourceB) {
+                    this.testSourceB = testSourceB;
+                }
+            }
+        """,
+        after = """
+            import org.A.TestSourceA;
+            import org.B.TestSourceB;
+            import org.C.TestSourceC;
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class TestConfiguration {
+                private final TestSourceA testSourceA;
+                private TestSourceB testSourceB;
+            
+                @Autowired
+                private TestSourceC testSourceC;
+            
+                public TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            
+                @Autowired
+                public void setTestSourceB(TestSourceB testSourceB) {
+                    this.testSourceB = testSourceB;
+                }
+            }
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
+    @Test
+    fun removeLeadingAutowiredAnnotationNoModifiers() = assertChanged(
+        dependsOn = arrayOf(
+            """
+            package org.C;
+            import org.springframework.stereotype.Component;
+            @Component
+            public class TestSourceA {
+            }
+        """,
+            """
+            package org.B;
+            import org.springframework.stereotype.Component;
+            @Component
+            public class TestSourceB {
+            }
+        """,
+            """
+            package org.C;
+            import org.springframework.stereotype.Component;
+            @Component
+            public class TestSourceC {
+            }
+        """),
+        before = """
+            import org.A.TestSourceA;
+            import org.B.TestSourceB;
+            import org.C.TestSourceC;
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class TestConfiguration {
+                private final TestSourceA testSourceA;
+                private TestSourceB testSourceB;
+            
+                @Autowired
+                private TestSourceC testSourceC;
+            
+                @Autowired
+                TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            
+                @Autowired
+                public void setTestSourceB(TestSourceB testSourceB) {
+                    this.testSourceB = testSourceB;
+                }
+            }
+        """,
+        after = """
+            import org.A.TestSourceA;
+            import org.B.TestSourceB;
+            import org.C.TestSourceC;
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class TestConfiguration {
+                private final TestSourceA testSourceA;
+                private TestSourceB testSourceB;
+            
+                @Autowired
+                private TestSourceC testSourceC;
+            
+                TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            
+                @Autowired
+                public void setTestSourceB(TestSourceB testSourceB) {
+                    this.testSourceB = testSourceB;
+                }
+            }
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
+    @Test
+    fun removeAutowiredWithMultipleAnnotation() = assertChanged(
+        dependsOn = arrayOf(
+            """
+            package org.C;
+            import org.springframework.stereotype.Component;
+            @Component
+            public class TestSourceA {
+            }
+        """),
+        before = """
+            import org.A.TestSourceA;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.beans.factory.annotation.Qualifier;
+            import org.springframework.beans.factory.annotation.Required;
+            
+            public class AnnotationPos1 {
+                private final TestSourceA testSourceA;
+            
+                @Autowired
+                @Required
+                @Qualifier
+                public TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+            
+            public class AnnotationPos2 {
+                private final TestSourceA testSourceA;
+            
+                @Required
+                @Autowired
+                @Qualifier
+                public TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+            
+            public class AnnotationPos3 {
+                private final TestSourceA testSourceA;
+            
+                @Required
+                @Qualifier
+                @Autowired
+                public TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+        """,
+        after = """
+            import org.A.TestSourceA;
+            import org.springframework.beans.factory.annotation.Qualifier;
+            import org.springframework.beans.factory.annotation.Required;
+            
+            public class AnnotationPos1 {
+                private final TestSourceA testSourceA;
+            
+                @Required
+                @Qualifier
+                publicAnnotationPos1 TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+            
+            public class AnnotationPos2 {
+                private final TestSourceA testSourceA;
+            
+                @Required
+                @Qualifier
+                publicAnnotationPos2 TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+            
+            public class AnnotationPos3 {
+                private final TestSourceA testSourceA;
+            
+                @Required
+                @Qualifier
+                publicAnnotationPos3 TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
+    @Test
+    fun removeAutowiredWithMultipleInLineAnnotation() = assertChanged(
+        dependsOn = arrayOf(
+            """
+            package org.C;
+            import org.springframework.stereotype.Component;
+            @Component
+            public class TestSourceA {
+            }
+        """),
+        before = """
+            import org.A.TestSourceA;
+            import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.beans.factory.annotation.Qualifier;
+            import org.springframework.beans.factory.annotation.Required;
+            
+            public class AnnotationPos1 {
+                private final TestSourceA testSourceA;
+            
+                @Autowired @Required @Qualifier
+                public TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+            
+            public class AnnotationPos2 {
+                private final TestSourceA testSourceA;
+            
+                @Required @Autowired @Qualifier
+                public TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+            
+            public class AnnotationPos3 {
+                private final TestSourceA testSourceA;
+            
+                @Required @Qualifier @Autowired
+                public TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+        """,
+        after = """
+            import org.A.TestSourceA;
+            import org.springframework.beans.factory.annotation.Qualifier;
+            import org.springframework.beans.factory.annotation.Required;
+            
+            public class AnnotationPos1 {
+                private final TestSourceA testSourceA;
+            
+                @Required @Qualifier
+                publicAnnotationPos1 TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+            
+            public class AnnotationPos2 {
+                private final TestSourceA testSourceA;
+            
+                @Required @Qualifier
+                publicAnnotationPos2 TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+            
+            public class AnnotationPos3 {
+                private final TestSourceA testSourceA;
+            
+                @Required @Qualifier
+                publicAnnotationPos3 TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            }
+        """
+    )
+    @Disabled
+    @Issue("https://github.com/openrewrite/rewrite/issues/726")
+    @Test
+    fun removeNamePrefixAutowiredAnnotation() = assertChanged(
         before = """
             import javax.sql.DataSource;
             import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +354,7 @@ class NoAutowiredTest : JavaRecipeTest {
             public class DatabaseConfiguration {
                 private final DataSource dataSource;
                 
-                @Autowired
-                public DatabaseConfiguration(DataSource dataSource) {
+                public @Autowired DatabaseConfiguration(DataSource dataSource) {
                 }
             }
         """,
@@ -61,7 +370,6 @@ class NoAutowiredTest : JavaRecipeTest {
         """
     )
 
-    @Disabled
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
     @Test
     fun keepAutowiredAnnotationsWhenMultipleConstructorsExist() = assertUnchanged(
