@@ -202,7 +202,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 @Autowired
                 @Required
                 @Qualifier
-                public TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos1(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -213,7 +213,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 @Required
                 @Autowired
                 @Qualifier
-                public TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos2(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -224,7 +224,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 @Required
                 @Qualifier
                 @Autowired
-                public TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos3(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -239,7 +239,7 @@ class NoAutowiredTest : JavaRecipeTest {
             
                 @Required
                 @Qualifier
-                publicAnnotationPos1 TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos1(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -249,7 +249,7 @@ class NoAutowiredTest : JavaRecipeTest {
             
                 @Required
                 @Qualifier
-                publicAnnotationPos2 TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos2(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -259,7 +259,7 @@ class NoAutowiredTest : JavaRecipeTest {
             
                 @Required
                 @Qualifier
-                publicAnnotationPos3 TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos3(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -287,7 +287,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 private final TestSourceA testSourceA;
             
                 @Autowired @Required @Qualifier
-                public TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos1(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -296,7 +296,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 private final TestSourceA testSourceA;
             
                 @Required @Autowired @Qualifier
-                public TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos2(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -305,7 +305,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 private final TestSourceA testSourceA;
             
                 @Required @Qualifier @Autowired
-                public TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos3(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -319,7 +319,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 private final TestSourceA testSourceA;
             
                 @Required @Qualifier
-                publicAnnotationPos1 TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos1(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -328,7 +328,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 private final TestSourceA testSourceA;
             
                 @Required @Qualifier
-                publicAnnotationPos2 TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos2(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
@@ -337,7 +337,7 @@ class NoAutowiredTest : JavaRecipeTest {
                 private final TestSourceA testSourceA;
             
                 @Required @Qualifier
-                publicAnnotationPos3 TestConfiguration(TestSourceA testSourceA) {
+                public AnnotationPos3(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
             }
