@@ -82,9 +82,29 @@ public class NoAutowiredOnConstructor extends Recipe {
         }
 
         @Override
+        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+            J.Annotation a = super.visitAnnotation(annotation, ctx);
+
+            Cursor cursor = getCursorToParentScope(getCursor());
+            if (cursor.getValue() instanceof J.MethodDeclaration) {
+                Cursor classDeclarationCursor = cursor.dropParentUntil(J.ClassDeclaration.class::isInstance);
+                J.MethodDeclaration m = classDeclarationCursor.getMessage("METHOD_DECLARATION_KEY");
+                if (cursor.getValue().equals(m)) {
+                    if (REQUIRED_AUTOWIRED_ANNOTATION_MATCHER.matches(a)) {
+                        cursor.putMessage("ANNOTATION_REMOVED_KEY", a);
+                        maybeRemoveImport(TypeUtils.asFullyQualified(a.getType()));
+                        //noinspection ConstantConditions
+                        return null;
+                    }
+                }
+            }
+            return a;
+        }
+
+        @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-            J.Annotation annotationRemoved = getCursor().pollMessage("annotationRemoved");
+            J.Annotation annotationRemoved = getCursor().pollMessage("ANNOTATION_REMOVED_KEY");
 
             List<J.Annotation> leadingAnnotations = method.getLeadingAnnotations();
             if (annotationRemoved != null && !leadingAnnotations.isEmpty()) {
@@ -110,26 +130,6 @@ public class NoAutowiredOnConstructor extends Recipe {
                 }
             }
             return m;
-        }
-
-        @Override
-        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-            J.Annotation a = super.visitAnnotation(annotation, ctx);
-
-            Cursor cursor = getCursorToParentScope(getCursor());
-            if (cursor.getValue() instanceof J.MethodDeclaration) {
-                Cursor classDeclarationCursor = cursor.dropParentUntil(J.ClassDeclaration.class::isInstance);
-                J.MethodDeclaration m = classDeclarationCursor.getMessage("METHOD_DECLARATION_KEY");
-                if (cursor.getValue().equals(m)) {
-                    if (REQUIRED_AUTOWIRED_ANNOTATION_MATCHER.matches(annotation)) {
-                        cursor.putMessage("annotationRemoved", annotation);
-                        maybeRemoveImport(TypeUtils.asFullyQualified(annotation.getType()));
-                        //noinspection ConstantConditions
-                        return null;
-                    }
-                }
-            }
-            return a;
         }
 
         /**
