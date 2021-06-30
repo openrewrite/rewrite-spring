@@ -38,6 +38,7 @@ recipeList:
         # There is a third variant of this class in spring-cloud-commons and there is not yet a suitable migration
         # path. Once one exists, this can likely be added for removal as well.
         #- org.springframework.cloud.test.ModifiedClassPathRunner
+  - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
   - org.openrewrite.maven.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-tools
@@ -56,6 +57,7 @@ tags:
 recipeList:
   - org.openrewrite.java.spring.NoRequestMappingAnnotation
   - org.openrewrite.java.spring.ImplicitWebAnnotationNames
+  - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBoot1To2Migration
