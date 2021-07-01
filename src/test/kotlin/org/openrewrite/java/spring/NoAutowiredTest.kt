@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring
 
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.openrewrite.Issue
 import org.openrewrite.Recipe
@@ -34,33 +33,43 @@ class NoAutowiredTest : JavaRecipeTest {
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
     @Test
     fun removeLeadingAutowiredAnnotation() = assertChanged(
-        dependsOn = arrayOf(
-            """
-            package org.C;
+        before = """
+            import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.stereotype.Component;
+            
+            public class TestConfiguration {
+                private final TestSourceA testSourceA;
+                private TestSourceB testSourceB;
+            
+                @Autowired
+                private TestSourceC testSourceC;
+            
+                @Autowired
+                public TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            
+                @Autowired
+                public void setTestSourceB(TestSourceB testSourceB) {
+                    this.testSourceB = testSourceB;
+                }
+            }
+            
             @Component
             public class TestSourceA {
             }
-        """,
-        """
-            package org.B;
-            import org.springframework.stereotype.Component;
+            
             @Component
             public class TestSourceB {
             }
-        """,
-        """
-            package org.C;
-            import org.springframework.stereotype.Component;
+            
             @Component
             public class TestSourceC {
             }
-        """),
-        before = """
-            import org.A.TestSourceA;
-            import org.B.TestSourceB;
-            import org.C.TestSourceC;
+        """,
+        after = """
             import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
             
             public class TestConfiguration {
                 private final TestSourceA testSourceA;
@@ -69,7 +78,6 @@ class NoAutowiredTest : JavaRecipeTest {
                 @Autowired
                 private TestSourceC testSourceC;
             
-                @Autowired
                 public TestConfiguration(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
@@ -79,28 +87,17 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceB = testSourceB;
                 }
             }
-        """,
-        after = """
-            import org.A.TestSourceA;
-            import org.B.TestSourceB;
-            import org.C.TestSourceC;
-            import org.springframework.beans.factory.annotation.Autowired;
             
-            public class TestConfiguration {
-                private final TestSourceA testSourceA;
-                private TestSourceB testSourceB;
+            @Component
+            public class TestSourceA {
+            }
             
-                @Autowired
-                private TestSourceC testSourceC;
+            @Component
+            public class TestSourceB {
+            }
             
-                public TestConfiguration(TestSourceA testSourceA) {
-                    this.testSourceA = testSourceA;
-                }
-            
-                @Autowired
-                public void setTestSourceB(TestSourceB testSourceB) {
-                    this.testSourceB = testSourceB;
-                }
+            @Component
+            public class TestSourceC {
             }
         """
     )
@@ -108,33 +105,43 @@ class NoAutowiredTest : JavaRecipeTest {
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
     @Test
     fun removeLeadingAutowiredAnnotationNoModifiers() = assertChanged(
-        dependsOn = arrayOf(
-            """
-            package org.C;
+        before = """
+            import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.stereotype.Component;
+            
+            public class TestConfiguration {
+                private final TestSourceA testSourceA;
+                private TestSourceB testSourceB;
+            
+                @Autowired
+                private TestSourceC testSourceC;
+            
+                @Autowired
+                TestConfiguration(TestSourceA testSourceA) {
+                    this.testSourceA = testSourceA;
+                }
+            
+                @Autowired
+                public void setTestSourceB(TestSourceB testSourceB) {
+                    this.testSourceB = testSourceB;
+                }
+            }
+            
             @Component
             public class TestSourceA {
             }
-        """,
-            """
-            package org.B;
-            import org.springframework.stereotype.Component;
+            
             @Component
             public class TestSourceB {
             }
-        """,
-            """
-            package org.C;
-            import org.springframework.stereotype.Component;
+            
             @Component
             public class TestSourceC {
             }
-        """),
-        before = """
-            import org.A.TestSourceA;
-            import org.B.TestSourceB;
-            import org.C.TestSourceC;
+        """,
+        after = """
             import org.springframework.beans.factory.annotation.Autowired;
+            import org.springframework.stereotype.Component;
             
             public class TestConfiguration {
                 private final TestSourceA testSourceA;
@@ -143,7 +150,6 @@ class NoAutowiredTest : JavaRecipeTest {
                 @Autowired
                 private TestSourceC testSourceC;
             
-                @Autowired
                 TestConfiguration(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
@@ -153,28 +159,17 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceB = testSourceB;
                 }
             }
-        """,
-        after = """
-            import org.A.TestSourceA;
-            import org.B.TestSourceB;
-            import org.C.TestSourceC;
-            import org.springframework.beans.factory.annotation.Autowired;
             
-            public class TestConfiguration {
-                private final TestSourceA testSourceA;
-                private TestSourceB testSourceB;
+            @Component
+            public class TestSourceA {
+            }
             
-                @Autowired
-                private TestSourceC testSourceC;
+            @Component
+            public class TestSourceB {
+            }
             
-                TestConfiguration(TestSourceA testSourceA) {
-                    this.testSourceA = testSourceA;
-                }
-            
-                @Autowired
-                public void setTestSourceB(TestSourceB testSourceB) {
-                    this.testSourceB = testSourceB;
-                }
+            @Component
+            public class TestSourceC {
             }
         """
     )
@@ -182,19 +177,11 @@ class NoAutowiredTest : JavaRecipeTest {
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
     @Test
     fun removeAutowiredWithMultipleAnnotation() = assertChanged(
-        dependsOn = arrayOf(
-            """
-            package org.C;
-            import org.springframework.stereotype.Component;
-            @Component
-            public class TestSourceA {
-            }
-        """),
         before = """
-            import org.A.TestSourceA;
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.beans.factory.annotation.Qualifier;
             import org.springframework.beans.factory.annotation.Required;
+            import org.springframework.stereotype.Component;
             
             public class AnnotationPos1 {
                 private final TestSourceA testSourceA;
@@ -227,12 +214,16 @@ class NoAutowiredTest : JavaRecipeTest {
                 public AnnotationPos3(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
+            }
+            
+            @Component
+            public class TestSourceA {
             }
         """,
         after = """
-            import org.A.TestSourceA;
             import org.springframework.beans.factory.annotation.Qualifier;
             import org.springframework.beans.factory.annotation.Required;
+            import org.springframework.stereotype.Component;
             
             public class AnnotationPos1 {
                 private final TestSourceA testSourceA;
@@ -262,6 +253,10 @@ class NoAutowiredTest : JavaRecipeTest {
                 public AnnotationPos3(TestSourceA testSourceA) {
                     this.testSourceA = testSourceA;
                 }
+            }
+            
+            @Component
+            public class TestSourceA {
             }
         """
     )
@@ -269,19 +264,11 @@ class NoAutowiredTest : JavaRecipeTest {
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
     @Test
     fun removeAutowiredWithMultipleInLineAnnotation() = assertChanged(
-        dependsOn = arrayOf(
-            """
-            package org.C;
-            import org.springframework.stereotype.Component;
-            @Component
-            public class TestSourceA {
-            }
-        """),
         before = """
-            import org.A.TestSourceA;
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.beans.factory.annotation.Qualifier;
             import org.springframework.beans.factory.annotation.Required;
+            import org.springframework.stereotype.Component;
             
             public class AnnotationPos1 {
                 private final TestSourceA testSourceA;
@@ -309,11 +296,15 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceA = testSourceA;
                 }
             }
+            
+            @Component
+            public class TestSourceA {
+            }
         """,
         after = """
-            import org.A.TestSourceA;
             import org.springframework.beans.factory.annotation.Qualifier;
             import org.springframework.beans.factory.annotation.Required;
+            import org.springframework.stereotype.Component;
             
             public class AnnotationPos1 {
                 private final TestSourceA testSourceA;
@@ -341,12 +332,16 @@ class NoAutowiredTest : JavaRecipeTest {
                     this.testSourceA = testSourceA;
                 }
             }
+            
+            @Component
+            public class TestSourceA {
+            }
         """
     )
-    @Disabled
-    @Issue("https://github.com/openrewrite/rewrite/issues/726")
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
     @Test
-    fun removeNamePrefixAutowiredAnnotation() = assertChanged(
+    fun oneNamePrefixAnnotation() = assertChanged(
         before = """
             import javax.sql.DataSource;
             import org.springframework.beans.factory.annotation.Autowired;
@@ -365,6 +360,84 @@ class NoAutowiredTest : JavaRecipeTest {
                 private final DataSource dataSource;
                 
                 public DatabaseConfiguration(DataSource dataSource) {
+                }
+            }
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
+    @Test
+    fun multipleNamePrefixAnnotationsPos1() = assertChanged(
+        before = """
+            import javax.sql.DataSource;
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class DatabaseConfiguration {
+                private final DataSource dataSource;
+                
+                public @Autowired @Deprecated DatabaseConfiguration(DataSource dataSource) {
+                }
+            }
+        """,
+        after = """
+            import javax.sql.DataSource;
+            
+            public class DatabaseConfiguration {
+                private final DataSource dataSource;
+                
+                public @Deprecated DatabaseConfiguration(DataSource dataSource) {
+                }
+            }
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
+    @Test
+    fun multipleNamePrefixAnnotationsPos2() = assertChanged(
+        before = """
+            import javax.sql.DataSource;
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class DatabaseConfiguration {
+                private final DataSource dataSource;
+                
+                public @SuppressWarnings("") @Autowired @Deprecated DatabaseConfiguration(DataSource dataSource) {
+                }
+            }
+        """,
+        after = """
+            import javax.sql.DataSource;
+            
+            public class DatabaseConfiguration {
+                private final DataSource dataSource;
+                
+                public @SuppressWarnings("") @Deprecated DatabaseConfiguration(DataSource dataSource) {
+                }
+            }
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
+    @Test
+    fun multipleNamePrefixAnnotationsPos3() = assertChanged(
+        before = """
+            import javax.sql.DataSource;
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class DatabaseConfiguration {
+                private final DataSource dataSource;
+                
+                public @SuppressWarnings("") @Deprecated @Autowired DatabaseConfiguration(DataSource dataSource) {
+                }
+            }
+        """,
+        after = """
+            import javax.sql.DataSource;
+            
+            public class DatabaseConfiguration {
+                private final DataSource dataSource;
+                
+                public @SuppressWarnings("") @Deprecated DatabaseConfiguration(DataSource dataSource) {
                 }
             }
         """

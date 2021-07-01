@@ -104,32 +104,43 @@ public class NoAutowiredOnConstructor extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-            J.Annotation annotationRemoved = getCursor().pollMessage("ANNOTATION_REMOVED_KEY");
+            J.Annotation removedAnnotation = getCursor().pollMessage("ANNOTATION_REMOVED_KEY");
 
             List<J.Annotation> leadingAnnotations = method.getLeadingAnnotations();
-            if (annotationRemoved != null && !leadingAnnotations.isEmpty()) {
-                if (leadingAnnotations.size() == 1 && leadingAnnotations.get(0) == annotationRemoved) {
+            if (removedAnnotation != null && !leadingAnnotations.isEmpty()) {
+                if (leadingAnnotations.size() == 1 && leadingAnnotations.get(0) == removedAnnotation) {
                     if (!m.getModifiers().isEmpty()) {
                         m = m.withModifiers(Space.formatFirstPrefix(m.getModifiers(), Space.firstPrefix(m.getModifiers()).withWhitespace("")));
                     } else {
                         m = m.withName(m.getName().withPrefix(m.getName().getPrefix().withWhitespace("")));
                     }
                 } else {
-                    int index = leadingAnnotations.indexOf(annotationRemoved);
-                    if (index == 0) {
-                        List<J.Annotation> newLeadingAnnotations = new ArrayList<>();
-                        J.Annotation nextAnnotation = leadingAnnotations.get(1);
-                        if (!nextAnnotation.getPrefix().equals(annotationRemoved.getPrefix())) {
-                            newLeadingAnnotations.add(nextAnnotation.withPrefix(annotationRemoved.getPrefix()));
-                            for (int i = 2; i < leadingAnnotations.size(); ++i) {
-                                newLeadingAnnotations.add(leadingAnnotations.get(i));
-                            }
-                            m = m.withLeadingAnnotations(newLeadingAnnotations);
-                        }
+                    List<J.Annotation> newLeadingAnnotations = removeAnnotationOrEmpty(leadingAnnotations, removedAnnotation);
+                    if (!newLeadingAnnotations.isEmpty()) {
+                        m = m.withLeadingAnnotations(newLeadingAnnotations);
                     }
                 }
             }
+
             return m;
+        }
+
+        /* Returns a list of leading annotations with the target removed or an empty list if no changes are necessary.
+         * A prefix only needs to change if the index == 0 and the prefixes of the target annotation and next annotation are not equal.
+         */
+        private List<J.Annotation> removeAnnotationOrEmpty(List<J.Annotation> leadingAnnotations, J.Annotation targetAnnotation) {
+            int index = leadingAnnotations.indexOf(targetAnnotation);
+            List<J.Annotation> newLeadingAnnotations = new ArrayList<>();
+            if (index == 0) {
+                J.Annotation nextAnnotation = leadingAnnotations.get(1);
+                if (!nextAnnotation.getPrefix().equals(targetAnnotation.getPrefix())) {
+                    newLeadingAnnotations.add(nextAnnotation.withPrefix(targetAnnotation.getPrefix()));
+                    for (int i = 2; i < leadingAnnotations.size(); ++i) {
+                        newLeadingAnnotations.add(leadingAnnotations.get(i));
+                    }
+                }
+            }
+            return newLeadingAnnotations;
         }
 
         /**
