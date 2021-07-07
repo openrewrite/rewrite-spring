@@ -152,16 +152,10 @@ public class NoAutowiredOnConstructor extends Recipe {
          */
         private static Cursor getCursorToParentScope(Cursor cursor) {
             return cursor.dropParentUntil(is ->
-                    is instanceof J.Block ||
-                            is instanceof J.MethodDeclaration ||
-                            is instanceof J.ForLoop ||
-                            is instanceof J.ForEachLoop ||
-                            is instanceof J.ForLoop.Control ||
-                            is instanceof J.Case ||
-                            is instanceof J.Try ||
-                            is instanceof J.Try.Catch ||
-                            is instanceof J.MultiCatch ||
-                            is instanceof J.Lambda
+                    is instanceof J.CompilationUnit ||
+                            is instanceof J.ClassDeclaration ||
+                            is instanceof J.Block ||
+                            is instanceof J.MethodDeclaration
             );
         }
     }

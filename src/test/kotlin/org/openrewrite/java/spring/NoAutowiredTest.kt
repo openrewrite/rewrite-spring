@@ -37,6 +37,7 @@ class NoAutowiredTest : JavaRecipeTest {
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.stereotype.Component;
             
+            @Autowired
             public class TestConfiguration {
                 private final TestSourceA testSourceA;
                 private TestSourceB testSourceB;
@@ -71,6 +72,7 @@ class NoAutowiredTest : JavaRecipeTest {
             import org.springframework.beans.factory.annotation.Autowired;
             import org.springframework.stereotype.Component;
             
+            @Autowired
             public class TestConfiguration {
                 private final TestSourceA testSourceA;
                 private TestSourceB testSourceB;
