@@ -46,6 +46,7 @@ public class NoRequestMappingAnnotation extends Recipe {
 
     private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
             JavaParser.fromJavaVersion()
+                    .logCompilationWarningsAndErrors(true)
                     .dependsOn(Parser.Input.fromResource("/RequestMapping.java", "---"))
                     .build()
     );
@@ -105,6 +106,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                         String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
                                 "(" + a.getArguments().stream().map(J::print).collect(Collectors.joining(",")) + ")";
                         JavaTemplate tb = JavaTemplate.builder(this::getCursor, annotationTemplateString)
+                                .doBeforeParseTemplate(System.out::println)
                                 .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
                                 .javaParser(JAVA_PARSER::get).build();
                         a = a.withTemplate(tb, a.getCoordinates().replace());

@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring
 
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.openrewrite.Issue
 import org.openrewrite.Recipe
@@ -259,11 +258,10 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
         before = """
             import org.springframework.web.bind.annotation.RequestMapping;
             
-            public class PrincipalNameKeyResolverIntegrationTests {
-                protected static class TestConfig {
-                    @RequestMapping("/myapi/{id}")
-                    public String myapi() {
-                        return "";
+            class Test {
+                class Inner {
+                    @RequestMapping("/api")
+                    void test() {
                     }
                 }
             }
@@ -271,11 +269,10 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
         after = """
             import org.springframework.web.bind.annotation.GetMapping;
             
-            public class PrincipalNameKeyResolverIntegrationTests {
-                protected static class TestConfig {
-                    @GetMapping("/myapi/{id}")
-                    public String myapi() {
-                        return "";
+            class Test {
+                class Inner {
+                    @GetMapping("/api")
+                    void test() {
                     }
                 }
             }
