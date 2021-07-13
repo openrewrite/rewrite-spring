@@ -15,7 +15,9 @@
  */
 package org.openrewrite.java.spring
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.openrewrite.Issue
 import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
@@ -35,7 +37,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
         before = """
             import java.util.*;
             import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
+            import org.springframework.web.bind.annotation.RequestMapping;
             import static org.springframework.web.bind.annotation.RequestMethod.GET;
             import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
             
@@ -66,7 +68,8 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
         after = """
             import java.util.*;
             import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
+            import org.springframework.web.bind.annotation.GetMapping;
+            import org.springframework.web.bind.annotation.RequestMapping;
             import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
             
             @RestController
@@ -100,8 +103,8 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
         before = """
             import java.util.*;
             import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
-            import static org.springframework.web.bind.annotation.RequestMethod.POST;
+            import org.springframework.web.bind.annotation.RequestMapping;
+            import org.springframework.web.bind.annotation.RestController;
             
             @RestController
             @RequestMapping("/users")
@@ -115,7 +118,9 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
         after = """
             import java.util.*;
             import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
+            import org.springframework.web.bind.annotation.PostMapping;
+            import org.springframework.web.bind.annotation.RequestMapping;
+            import org.springframework.web.bind.annotation.RestController;
             
             @RestController
             @RequestMapping("/users")
@@ -131,11 +136,10 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
     @Test
     fun removeUnnecessaryAnnotation() = assertChanged(
         before = """
-            import java.util.*;
+            import java.util.List;
             import org.springframework.http.ResponseEntity;
             import org.springframework.web.bind.annotation.RequestMapping;
             import org.springframework.web.bind.annotation.RestController;
-            import static org.springframework.web.bind.annotation.RequestMethod.POST;
             
             @RestController
             public class UsersController {
@@ -146,11 +150,10 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
             }
         """,
         after = """
+            import java.util.List;
             import org.springframework.http.ResponseEntity;
             import org.springframework.web.bind.annotation.PostMapping;
             import org.springframework.web.bind.annotation.RestController;
-            
-            import java.util.*;
             
             @RestController
             public class UsersController {
@@ -167,7 +170,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
         before = """
             import java.util.*;
             import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
+            import org.springframework.web.bind.annotation.RequestMapping;
             
             @RestController
             @RequestMapping("/users")
@@ -181,7 +184,8 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
         after = """
             import java.util.*;
             import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
+            import org.springframework.web.bind.annotation.PostMapping;
+            import org.springframework.web.bind.annotation.RequestMapping;
             
             @RestController
             @RequestMapping("/users")
@@ -199,7 +203,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
         before = """
                 import java.util.*;
                 import org.springframework.http.ResponseEntity;
-                import org.springframework.web.bind.annotation.*;
+                import org.springframework.web.bind.annotation.RequestMapping;
                 import static org.springframework.web.bind.annotation.RequestMethod.GET;
                 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
                 
@@ -217,13 +221,14 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
     @Test
     fun multipleParameters() = assertChanged(
         before = """
-            import java.util.*;
+            import java.util.List;
             import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
+            import org.springframework.web.bind.annotation.RequestMapping;
+            import org.springframework.web.bind.annotation.RestController;
+            import org.springframework.web.bind.annotation.RequestMethod;
             import org.springframework.http.MediaType;
             
             @RestController
-            @RequestMapping("/users")
             public class UsersController {
                 @RequestMapping(value = "/user/{userId}/edit", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE })
                 public ResponseEntity<List<String>> getUsersPost(String userId) {
@@ -232,17 +237,56 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
             }
         """,
         after = """
-            import java.util.*;
+            import java.util.List;
             import org.springframework.http.ResponseEntity;
-            import org.springframework.web.bind.annotation.*;
+            import org.springframework.web.bind.annotation.PostMapping;
+            import org.springframework.web.bind.annotation.RestController;
             import org.springframework.http.MediaType;
             
             @RestController
-            @RequestMapping("/users")
             public class UsersController {
                 @PostMapping(value = "/user/{userId}/edit", produces = {MediaType.APPLICATION_JSON_VALUE})
                 public ResponseEntity<List<String>> getUsersPost(String userId) {
                     return null;
+                }
+            }
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/85")
+    @Disabled()
+    @Test
+    fun getMappingWithinNestedClass() = assertChanged(
+        before = """
+            import org.springframework.web.bind.annotation.PathVariable;
+            import org.springframework.web.bind.annotation.RequestMapping;
+            import org.springframework.web.bind.annotation.RestController;
+            
+            public class PrincipalNameKeyResolverIntegrationTests {
+                @RestController
+                @RequestMapping("/downstream")
+                protected static class TestConfig {
+                    @RequestMapping("/myapi/{id}")
+                    public String myapi(@PathVariable String id) {
+                        return id;
+                    }
+                }
+            }
+        """,
+        after = """
+            import org.springframework.web.bind.annotation.GetMapping;
+            import org.springframework.web.bind.annotation.PathVariable;
+            import org.springframework.web.bind.annotation.RequestMapping;
+            import org.springframework.web.bind.annotation.RestController;
+            
+            public class PrincipalNameKeyResolverIntegrationTests {
+                @RestController
+                @RequestMapping("/downstream")
+                protected static class TestConfig {
+                    @GetMapping("/myapi/{id}")
+                    public String myapi(@PathVariable String id) {
+                        return id;
+                    }
                 }
             }
         """
