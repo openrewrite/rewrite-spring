@@ -254,38 +254,28 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/85")
-    @Disabled()
     @Test
     fun getMappingWithinNestedClass() = assertChanged(
         before = """
-            import org.springframework.web.bind.annotation.PathVariable;
             import org.springframework.web.bind.annotation.RequestMapping;
-            import org.springframework.web.bind.annotation.RestController;
             
             public class PrincipalNameKeyResolverIntegrationTests {
-                @RestController
-                @RequestMapping("/downstream")
                 protected static class TestConfig {
                     @RequestMapping("/myapi/{id}")
-                    public String myapi(@PathVariable String id) {
-                        return id;
+                    public String myapi() {
+                        return "";
                     }
                 }
             }
         """,
         after = """
             import org.springframework.web.bind.annotation.GetMapping;
-            import org.springframework.web.bind.annotation.PathVariable;
-            import org.springframework.web.bind.annotation.RequestMapping;
-            import org.springframework.web.bind.annotation.RestController;
             
             public class PrincipalNameKeyResolverIntegrationTests {
-                @RestController
-                @RequestMapping("/downstream")
                 protected static class TestConfig {
                     @GetMapping("/myapi/{id}")
-                    public String myapi(@PathVariable String id) {
-                        return id;
+                    public String myapi() {
+                        return "";
                     }
                 }
             }
