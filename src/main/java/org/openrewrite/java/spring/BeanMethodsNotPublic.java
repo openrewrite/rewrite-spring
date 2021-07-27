@@ -18,14 +18,11 @@ package org.openrewrite.java.spring;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.J;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class BeanMethodsNotPublic extends Recipe {
@@ -66,4 +63,3 @@ public class BeanMethodsNotPublic extends Recipe {
         }
     }
 }
-
