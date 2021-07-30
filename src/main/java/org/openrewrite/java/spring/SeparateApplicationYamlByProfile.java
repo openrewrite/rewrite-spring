@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SeparateApplicationYamlByProfile extends Recipe {
@@ -60,7 +61,7 @@ public class SeparateApplicationYamlByProfile extends Recipe {
                                     .map(profile -> ((Yaml.Scalar) profile).getValue())
                                     .orElse(null);
 
-                            if (profileName != null) {
+                            if (profileName != null && profileName.matches("[A-z0-9-]+")) {
                                 profiles.put((Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", true, null)
                                         .getVisitor().visit(doc, ctx, new Cursor(null, yaml)), profileName);
                                 return null;

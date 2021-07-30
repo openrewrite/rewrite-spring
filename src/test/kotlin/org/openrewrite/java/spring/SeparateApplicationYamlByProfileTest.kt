@@ -58,6 +58,17 @@ class SeparateApplicationYamlByProfileTest : YamlRecipeTest {
         assertThat(results["application-test.yml"]).isEqualTo("name: test")
     }
 
+    @Test
+    fun leaveProfileExpressionsAlone() {
+        recipe.run(YamlParser().parse("""
+            spring:
+                config:
+                    activate:
+                        on-profile: !test
+            name: test
+        """.trimIndent())).isEmpty()
+    }
+
     private fun List<Result>.groupByProfile() = associate { r ->
         (r.after ?: r.before).sourcePath.toFile().name to r.after?.printTrimmed()?.trim()
     }
