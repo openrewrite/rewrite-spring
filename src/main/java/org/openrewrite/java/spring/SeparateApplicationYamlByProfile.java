@@ -21,7 +21,6 @@ import org.openrewrite.Recipe;
 import org.openrewrite.SourceFile;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.yaml.DeleteProperty;
-import org.openrewrite.yaml.JsonPathMatcher;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
@@ -45,8 +44,6 @@ public class SeparateApplicationYamlByProfile extends Recipe {
 
     @Override
     protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-        JsonPathMatcher springProfile = new JsonPathMatcher("$.spring.config.activate.on-profile");
-
         return ListUtils.flatMap(before, s -> {
             if (s.getSourcePath().getFileSystem().getPathMatcher("glob:application.yml")
                     .matches(s.getSourcePath().getFileName())) {
