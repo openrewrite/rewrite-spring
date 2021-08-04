@@ -63,7 +63,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                     }
                 }
             """,
-            skipEnhancedTypeValidation = true // fixme
+            typeValidation = { methodInvocations = false }
         )
 
     @Test
@@ -95,7 +95,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                     }
                 }
             """,
-            skipEnhancedTypeValidation = true // fixme
+            typeValidation = { methodInvocations = false }
         )
 
     @Test
@@ -125,7 +125,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                     }
                 }
             """,
-            skipEnhancedTypeValidation = true // fixme
+            typeValidation = { methodInvocations = false }
         )
 
     @Test
@@ -162,7 +162,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = { methodInvocations = false }
     )
 
     @Test
@@ -208,7 +208,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                     }
                 }
             """,
-            skipEnhancedTypeValidation = true // fixme
+            typeValidation = { methodInvocations = false }
         )
     }
 
@@ -243,7 +243,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                     }
                 }
             """,
-            skipEnhancedTypeValidation = true // fixme
+            typeValidation = { methodInvocations = false }
         )
     }
 
@@ -285,7 +285,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                     }
                 }
             """,
-            skipEnhancedTypeValidation = true // fixme
+            typeValidation = { methodInvocations = false }
         )
     }
 
@@ -333,7 +333,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = { methodInvocations = false }
     )
 
     @Test
@@ -379,7 +379,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = { methodInvocations = false }
     )
 
     @Test
@@ -422,7 +422,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = { methodInvocations = false }
     )
 
     @Test
@@ -469,6 +469,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = { methodInvocations = false }
     )
 }

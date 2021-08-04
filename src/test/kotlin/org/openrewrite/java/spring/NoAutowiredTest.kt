@@ -101,7 +101,8 @@ class NoAutowiredTest : JavaRecipeTest {
             @Component
             public class TestSourceC {
             }
-        """
+        """,
+        typeValidation = { identifiers = false }
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -173,7 +174,8 @@ class NoAutowiredTest : JavaRecipeTest {
             @Component
             public class TestSourceC {
             }
-        """
+        """,
+        typeValidation = { identifiers = false }
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -260,7 +262,8 @@ class NoAutowiredTest : JavaRecipeTest {
             @Component
             public class TestSourceA {
             }
-        """
+        """,
+        typeValidation = { identifiers = false }
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -338,7 +341,8 @@ class NoAutowiredTest : JavaRecipeTest {
             @Component
             public class TestSourceA {
             }
-        """
+        """,
+        typeValidation = { identifiers = false }
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")

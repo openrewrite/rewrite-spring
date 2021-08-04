@@ -129,7 +129,7 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = { identifiers = false; methodInvocations = false }
     )
 
     @Test
@@ -193,7 +193,7 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = { identifiers = false; methodInvocations = false }
     )
 
     @Test
@@ -240,6 +240,6 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = { identifiers = false; methodInvocations = false }
     )
 }

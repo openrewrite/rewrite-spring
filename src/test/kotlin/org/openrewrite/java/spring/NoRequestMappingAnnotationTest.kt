@@ -94,7 +94,8 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
                     return null;
                 }
             }
-        """
+        """,
+        typeValidation = { identifiers = false }
     )
 
     @Test
@@ -194,7 +195,8 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
                     return null;
                 }
             }
-        """
+        """,
+        typeValidation = { identifiers = false }
     )
 
     @Test

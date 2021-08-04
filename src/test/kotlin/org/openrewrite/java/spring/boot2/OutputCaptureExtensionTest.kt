@@ -109,7 +109,7 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = { identifiers = false; methodInvocations = false }
     )
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/50")

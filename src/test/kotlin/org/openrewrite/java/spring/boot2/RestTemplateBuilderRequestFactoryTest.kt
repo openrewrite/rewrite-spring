@@ -55,6 +55,6 @@ class RestTemplateBuilderRequestFactoryTest : JavaRecipeTest {
                 }
             }
         """,
-        skipEnhancedTypeValidation = true // fixme
+        typeValidation = {}
     )
 }
