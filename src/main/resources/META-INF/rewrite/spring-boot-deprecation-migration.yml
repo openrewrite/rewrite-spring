@@ -17,7 +17,7 @@
 # SpringBoot 2_2
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_2
-displayName: Migrate deprecates SpringBoot 2.2 APIs.
+displayName: Migrate deprecated SpringBoot 2.2 APIs.
 description: 'Certain APIs have become deprecated in SpringBoot 2.2, necessitating usage changes.'
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
@@ -48,7 +48,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_3
-displayName: Migrate deprecates SpringBoot 2.3 APIs.
+displayName: Migrate deprecated SpringBoot 2.3 APIs.
 description: 'Certain APIs have become deprecated in SpringBoot 2.3, necessitating usage changes.'
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
@@ -63,3 +63,22 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer
+
+# SpringBoot 2_5
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_5
+displayName: Migrate deprecated SpringBoot 2.5 APIs.
+description: 'Certain APIs have become deprecated in SpringBoot 2.5, necessitating usage changes.'
+recipeList:
+  - org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
+displayName: Use `EntityManagerFactoryDependsOnPostProcessor`
+description: '`org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor` has been deprecated.'
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor
+      newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.orm.jpa.EntityManagerFactoryDependsOnPostProcessor
