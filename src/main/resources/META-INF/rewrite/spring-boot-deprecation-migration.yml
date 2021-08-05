@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 ---
+# SpringBoot 2_2
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_2
 displayName: Migrate deprecates SpringBoot 2.2 APIs.
@@ -22,6 +23,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
   - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
@@ -31,6 +33,7 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.actuate.health.AbstractHealthIndicator
       newFullyQualifiedTypeName: org.springframework.boot.actuate.health.PingHealthIndicator
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
@@ -40,3 +43,23 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientBuilderCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.test.web.reactive.server.WebTestClientBuilderCustomizer
+
+# SpringBoot 2_3
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_3
+displayName: Migrate deprecates SpringBoot 2.3 APIs.
+description: 'Certain APIs have become deprecated in SpringBoot 2.3, necessitating usage changes.'
+recipeList:
+  - org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_3
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
+displayName: Use `RestClientBuilderCustomizer`
+description: '`org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer` has been deprecated.'
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer
