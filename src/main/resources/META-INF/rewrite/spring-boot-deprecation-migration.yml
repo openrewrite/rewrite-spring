@@ -12,13 +12,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ---
+#
+---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_2
+displayName: Migrate deprecates SpringBoot 2.2 APIs.
+description: 'Certain APIs have become deprecated in SpringBoot 2.2, necessitating usage changes.'
+recipeList:
+  - org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
+  - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
 displayName: Use `PingHealthIndicator`
-description: '`org.springframework.boot.actuate.health.AbstractHealthIndicator.` has been deprecated'
+description: '`org.springframework.boot.actuate.health.AbstractHealthIndicator` has been deprecated.'
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.actuate.health.AbstractHealthIndicator
       newFullyQualifiedTypeName: org.springframework.boot.actuate.health.PingHealthIndicator
-  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
+displayName: Use `WebTestClientBuilderCustomizer`
+description: '`org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientBuilderCustomizer` has been deprecated.'
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientBuilderCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.test.web.reactive.server.WebTestClientBuilderCustomizer
