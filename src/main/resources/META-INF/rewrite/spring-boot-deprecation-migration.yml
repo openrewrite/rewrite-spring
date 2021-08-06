@@ -28,7 +28,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
 displayName: Use `PingHealthIndicator`
-description: '`org.springframework.boot.actuate.health.AbstractHealthIndicator` has been deprecated.'
+description: '`org.springframework.boot.actuate.health.AbstractHealthIndicator` was deprecated in 2.2.'
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.actuate.health.AbstractHealthIndicator
@@ -38,7 +38,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
 displayName: Use `WebTestClientBuilderCustomizer`
-description: '`org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientBuilderCustomizer` has been deprecated.'
+description: '`org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientBuilderCustomizer` was deprecated in 2.2.'
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientBuilderCustomizer
@@ -58,11 +58,41 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
 displayName: Use `RestClientBuilderCustomizer`
-description: '`org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer` has been deprecated.'
+description: '`org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer` was deprecated in 2.3.'
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer
+
+# SpringBoot 2_4
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_4
+displayName: Migrate deprecated SpringBoot 2.4 APIs.
+description: 'Certain APIs have become deprecated in SpringBoot 2.4 and are removed in 2.6, necessitating usage changes.'
+recipeList:
+  - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
+  - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
+displayName: Use `isEagerFilterInit()`
+description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#isEagerInitFilters` was deprecated in 2.4 and are removed in 2.6'
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory isEagerInitFilters()
+      newMethodName: isEagerFilterInit
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
+displayName: Use `setEagerFilterInit(boolean)`
+description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#setEagerInitFilters` was deprecated in 2.4 and are removed in 2.6'
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory setEagerInitFilters(boolean)
+      newMethodName: setEagerFilterInit
 
 # SpringBoot 2_5
 ---
@@ -77,7 +107,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
 displayName: Use `EntityManagerFactoryDependsOnPostProcessor`
-description: '`org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor` has been deprecated.'
+description: '`org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor` was deprecated in 2.5.'
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor
