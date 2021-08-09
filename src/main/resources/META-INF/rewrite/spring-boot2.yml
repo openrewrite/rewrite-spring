@@ -80,6 +80,7 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.x
+  # Updates to 2.0.x from 1.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.mockito
       newVersion: 3.x
@@ -89,6 +90,8 @@ recipeList:
   - org.openrewrite.maven.RemoveDependency:
       groupId: org.webjars
       artifactId: webjars-locator
+
+  # TODO: find which version these were deprecated.
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.support.SpringBootServletInitializer
       newFullyQualifiedTypeName: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
@@ -104,6 +107,7 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotBlank
       newFullyQualifiedTypeName: javax.validation.constraints.NotBlank
+
   - org.openrewrite.maven.AddDependency:
       groupId: javax.validation
       artifactId: validation-api
@@ -111,6 +115,7 @@ recipeList:
       onlyIfUsing:
         - javax.validation.constraints.NotBlank
         - javax.validation.constraints.NotEmpty
+
   - org.openrewrite.maven.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-validation
@@ -118,6 +123,7 @@ recipeList:
       onlyIfUsing:
         - javax.validation.constraints.NotBlank
         - javax.validation.constraints.NotEmpty
+
   - org.openrewrite.java.spring.NoAutowiredOnConstructor
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
