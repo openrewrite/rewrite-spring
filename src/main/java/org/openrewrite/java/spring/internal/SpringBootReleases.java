@@ -111,10 +111,13 @@ public class SpringBootReleases {
 
                 ResponseBody responseBody = response.body();
                 if (responseBody != null) {
-                    Matcher releaseMatcher = Pattern.compile("href=\"([^\"]+.RELEASE)/\"")
+                    Matcher releaseMatcher = Pattern.compile("href=\"([^\"]+[.RELEASE]*)/\"")
                             .matcher(responseBody.string());
 
                     while (releaseMatcher.find()) {
+                        if (releaseMatcher.group(1).equals("..")) {
+                            continue;
+                        }
                         releases.add(releaseMatcher.group(1));
                     }
 
