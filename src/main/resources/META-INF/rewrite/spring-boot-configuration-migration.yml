@@ -1279,6 +1279,30 @@ displayName: Migrate Spring Boot properties to 2.3
 description: Migrate properties found in `application.properties` and `application.yml`.
 recipeList:
   - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: management.health.probes.enabled
+      newPropertyKey: management.endpoint.health.probes.enabled
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: management.health.probes.enabled
+      newPropertyKey: management.endpoint.health.probes.enabled
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: management.metrics.web.client.requests-metric-name
+      newPropertyKey: management.metrics.web.client.request.metric-name
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: management.metrics.web.client.requests-metric-name
+      newPropertyKey: management.metrics.web.client.request.metric-name
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: management.metrics.web.server.auto-time-requests
+      newPropertyKey: management.metrics.web.server.request.autotime.enabled
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: management.metrics.web.server.auto-time-requests
+      newPropertyKey: management.metrics.web.server.request.autotime.enabled
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: management.metrics.web.server.requests-metric-name
+      newPropertyKey: management.metrics.web.server.request.metric-name
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: management.metrics.web.server.requests-metric-name
+      newPropertyKey: management.metrics.web.server.request.metric-name
+  - org.openrewrite.properties.ChangePropertyKey:
       oldPropertyKey: server.jetty.max-http-post-size
       newPropertyKey: server.jetty.max-http-form-post-size
   - org.openrewrite.yaml.ChangePropertyKey:
@@ -1380,27 +1404,81 @@ recipeList:
   - org.openrewrite.yaml.ChangePropertyKey:
       oldPropertyKey: spring.http.log-request-details
       newPropertyKey: spring.mvc.log-request-details
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
+displayName: Migrate Spring Boot properties to 2.4
+description: Migrate properties found in `application.properties` and `application.yml`.
+recipeList:
   - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.health.probes.enabled
-      newPropertyKey: management.endpoint.health.probes.enabled
+      oldPropertyKey: logging.pattern.rolling-file-name
+      newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
   - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.health.probes.enabled
-      newPropertyKey: management.endpoint.health.probes.enabled
+      oldPropertyKey: logging.pattern.rolling-file-name
+      newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
   - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.client.requests-metric-name
-      newPropertyKey: management.metrics.web.client.request.metric-name
+      oldPropertyKey: logging.file.clean-history-on-start
+      newPropertyKey: logging.logback.rollingpolicy.clean-history-on-start
   - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.client.requests-metric-name
-      newPropertyKey: management.metrics.web.client.request.metric-name
+      oldPropertyKey: logging.file.clean-history-on-start
+      newPropertyKey: logging.logback.rollingpolicy.clean-history-on-start
   - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.server.auto-time-requests
-      newPropertyKey: management.metrics.web.server.request.autotime.enabled
+      oldPropertyKey: logging.file.max-size
+      newPropertyKey: logging.logback.rollingpolicy.max-file-size
   - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.server.auto-time-requests
-      newPropertyKey: management.metrics.web.server.request.autotime.enabled
+      oldPropertyKey: logging.file.max-size
+      newPropertyKey: logging.logback.rollingpolicy.max-file-size
   - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.server.requests-metric-name
-      newPropertyKey: management.metrics.web.server.request.metric-name
+      oldPropertyKey: logging.file.total-size-cap
+      newPropertyKey: logging.logback.rollingpolicy.total-size-cap
   - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.server.requests-metric-name
-      newPropertyKey: management.metrics.web.server.request.metric-name
+      oldPropertyKey: logging.file.total-size-cap
+      newPropertyKey: logging.logback.rollingpolicy.total-size-cap
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: logging.file.max-history
+      newPropertyKey: logging.logback.rollingpolicy.max-history
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: logging.file.max-history
+      newPropertyKey: logging.logback.rollingpolicy.max-history
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.profiles
+      newPropertyKey: spring.config.activate.on-profile
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.profiles
+      newPropertyKey: spring.config.activate.on-profile
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.password
+      newPropertyKey: spring.neo4j.authentication.password
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.password
+      newPropertyKey: spring.neo4j.authentication.password
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.repositories.enabled
+      newPropertyKey: spring.data.neo4j.repositories.type
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.repositories.enabled
+      newPropertyKey: spring.data.neo4j.repositories.type
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.uri
+      newPropertyKey: spring.neo4j.uri
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.uri
+      newPropertyKey: spring.neo4j.uri
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.username
+      newPropertyKey: spring.neo4j.authentication.password
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.username
+      newPropertyKey: spring.neo4j.authentication.password
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
+displayName: Migrate Spring Boot properties to 2.5
+description: Migrate properties found in `application.properties` and `application.yml`.
+recipeList:
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.sql.init.enabled
+      newPropertyKey: spring.sql.init.mode
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.sql.init.enabled
+      newPropertyKey: spring.sql.init.mode
