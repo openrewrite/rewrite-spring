@@ -14,24 +14,26 @@
 # limitations under the License.
 #
 ---
+########################################################################################################################
 # SpringBoot 2_1
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_1
-displayName: Migrate deprecated SpringBoot 2.1 APIs.
-description: 'Certain APIs have become deprecated in SpringBoot 2.1, necessitating usage changes.'
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_1
+displayName: Upgrade to Spring Boot 2.1
+description: 'Upgrade to Spring Boot 2.1 from any prior 2.x version.'
 recipeList:
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_1
 
 ---
+########################################################################################################################
 # SpringBoot 2_2
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_2
-displayName: Migrate deprecated SpringBoot 2.2 APIs.
-description: 'Certain APIs have become deprecated in SpringBoot 2.2, necessitating usage changes.'
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_2
+displayName: Upgrade to Spring Boot 2.2
+description: 'Upgrade to Spring Boot 2.2 from any prior 2.x version.'
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
   - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
-  - org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_1
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_1
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
 
 ---
@@ -54,15 +56,16 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientBuilderCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.test.web.reactive.server.WebTestClientBuilderCustomizer
 
-# SpringBoot 2_3
 ---
+########################################################################################################################
+# SpringBoot 2_3
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_3
-displayName: Migrate deprecated SpringBoot 2.3 APIs.
-description: 'Certain APIs have become deprecated in SpringBoot 2.3, necessitating usage changes.'
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
+displayName: Upgrade to Spring Boot 2.3
+description: 'Upgrade to Spring Boot 2.3 from any prior 2.x version.'
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
-  - org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_2
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_2
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_3
 
 ---
@@ -75,16 +78,17 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer
 
+########################################################################################################################
 # SpringBoot 2_4
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_4
-displayName: Migrate deprecated SpringBoot 2.4 APIs.
-description: 'Certain APIs have become deprecated in SpringBoot 2.4 and are removed in 2.6, necessitating usage changes.'
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
+displayName: Upgrade to Spring Boot 2.4
+description: 'Upgrade to Spring Boot 2.4 from any prior 2.x version.'
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
-  - org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_3
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
 
 ---
@@ -107,15 +111,16 @@ recipeList:
       methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory setEagerInitFilters(boolean)
       newMethodName: setEagerFilterInit
 
+########################################################################################################################
 # SpringBoot 2_5
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_5
-displayName: Migrate deprecated SpringBoot 2.5 APIs.
-description: 'Certain APIs have become deprecated in SpringBoot 2.5, necessitating usage changes.'
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
+displayName: Upgrade to Spring Boot 2.5
+description: 'Upgrade to Spring Boot 2.5 from any prior 2.x version.'
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
-  - org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_4
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
 
 ---
