@@ -73,6 +73,7 @@ description: 'Certain APIs have become deprecated in SpringBoot 2.4 and are remo
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -102,6 +103,7 @@ displayName: Migrate deprecated SpringBoot 2.5 APIs.
 description: 'Certain APIs have become deprecated in SpringBoot 2.5, necessitating usage changes.'
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
