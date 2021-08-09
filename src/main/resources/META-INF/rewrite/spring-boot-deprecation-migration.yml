@@ -14,6 +14,15 @@
 # limitations under the License.
 #
 ---
+# SpringBoot 2_1
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_1
+displayName: Migrate deprecated SpringBoot 2.1 APIs.
+description: 'Certain APIs have become deprecated in SpringBoot 2.1, necessitating usage changes.'
+recipeList:
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_1
+
+---
 # SpringBoot 2_2
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_2
@@ -22,6 +31,7 @@ description: 'Certain APIs have become deprecated in SpringBoot 2.2, necessitati
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
   - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
+  - org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_1
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
 
 ---
@@ -52,6 +62,7 @@ displayName: Migrate deprecated SpringBoot 2.3 APIs.
 description: 'Certain APIs have become deprecated in SpringBoot 2.3, necessitating usage changes.'
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
+  - org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_2
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_3
 
 ---
@@ -73,6 +84,7 @@ description: 'Certain APIs have become deprecated in SpringBoot 2.4 and are remo
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
+  - org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_3
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
 
 ---
@@ -103,6 +115,7 @@ displayName: Migrate deprecated SpringBoot 2.5 APIs.
 description: 'Certain APIs have become deprecated in SpringBoot 2.5, necessitating usage changes.'
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
+  - org.openrewrite.java.spring.boot2.SpringBootDeprecationMigrations_2_4
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
 
 ---
