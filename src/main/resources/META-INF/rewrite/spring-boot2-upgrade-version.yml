@@ -105,7 +105,7 @@ recipeList:
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
 
-  # Update properties.
+  # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_3
 
 ---
@@ -144,14 +144,14 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
   - org.openrewrite.java.spring.boot2.MigrateLoggingSystemPropertyConstants
 
-  # Update properties.
+  # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
 displayName: Use `isEagerFilterInit()`
-description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#isEagerInitFilters` was deprecated in 2.4 and are removed in 2.6'
+description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#isEagerInitFilters` was deprecated in 2.4 and are removed in 2.6.'
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory isEagerInitFilters()
@@ -161,7 +161,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
 displayName: Use `setEagerFilterInit(boolean)`
-description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#setEagerInitFilters` was deprecated in 2.4 and are removed in 2.6'
+description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#setEagerInitFilters` was deprecated in 2.4 and are removed in 2.6.'
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory setEagerInitFilters(boolean)
@@ -191,7 +191,7 @@ recipeList:
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
 
-  # Update properties.
+  # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
 
 ---
