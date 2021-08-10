@@ -56,7 +56,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {
         private static final JavaType.FullyQualified ORIGINAL_FQN =
                 JavaType.Class.build("org.springframework.boot.logging.logback.LoggingSystemProperties");
-        private static final JavaType.FullyQualified NEW_NAME =
+        private static final JavaType.FullyQualified NEW_FQN =
                 JavaType.Class.build("org.springframework.boot.logging.logback.LogbackLoggingSystemProperties");
 
         private final Map<String, String> updateDeprecatedFields = new HashMap<>();
@@ -74,9 +74,9 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
             J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
             if (!classDecl.getSimpleName().equals(ORIGINAL_FQN.getClassName()) &&
-                    !classDecl.getSimpleName().equals(NEW_NAME.getClassName())) {
+                    !classDecl.getSimpleName().equals(NEW_FQN.getClassName())) {
                 maybeRemoveImport(ORIGINAL_FQN);
-                maybeAddImport(NEW_NAME);
+                maybeAddImport(NEW_FQN);
             }
 
             return cd;
@@ -94,8 +94,8 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                         Tree.randomId(),
                         fa.getTarget().getPrefix(),
                         fa.getTarget().getMarkers(),
-                        NEW_NAME.getClassName(),
-                        NEW_NAME));
+                        NEW_FQN.getClassName(),
+                        NEW_FQN));
             }
             return fa;
         }
@@ -113,10 +113,10 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                         id.getType(),
                         JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
-                                NEW_NAME,
+                                NEW_FQN,
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
 
-                doAfterVisit(new AddImport<>(NEW_NAME.getFullyQualifiedName(), id.getSimpleName(), false));
+                doAfterVisit(new AddImport<>(NEW_FQN.getFullyQualifiedName(), id.getSimpleName(), false));
             }
             return id;
         }
@@ -127,7 +127,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                           is instanceof J.ClassDeclaration);
             return (parentCursor.getValue() instanceof J.ClassDeclaration &&
                     !((J.ClassDeclaration) parentCursor.getValue()).getName().getSimpleName().equals(ORIGINAL_FQN.getClassName()) &&
-                    !((J.ClassDeclaration) parentCursor.getValue()).getName().getSimpleName().equals(NEW_NAME.getClassName()));
+                    !((J.ClassDeclaration) parentCursor.getValue()).getName().getSimpleName().equals(NEW_FQN.getClassName()));
         }
 
         private boolean isTargetFieldType(J.Identifier identifier) {
