@@ -29,7 +29,6 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UnnecessarySpringExtension extends Recipe {

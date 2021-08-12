@@ -23,8 +23,6 @@ import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
-import java.util.List;
-
 public class BeanMethodsNotPublic extends Recipe {
     @Override
     public String getDisplayName() {

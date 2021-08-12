@@ -16,15 +16,11 @@
 package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import org.openrewrite.Issue
-import org.openrewrite.Parser
 import org.openrewrite.Recipe
 import org.openrewrite.config.Environment
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
-import org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
 
 class SpringBootMigrationTest : JavaRecipeTest {
 

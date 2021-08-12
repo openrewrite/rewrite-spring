@@ -49,6 +49,27 @@ configure<nebula.plugin.release.git.base.ReleasePluginExtension> {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
+sourceSets {
+    create("testSpring_1_5") {
+        java {
+            compileClasspath += sourceSets.getByName("main").output
+            runtimeClasspath += sourceSets.getByName("main").output
+        }
+    }
+    create("testSpring_2_3") {
+        java {
+            compileClasspath += sourceSets.getByName("main").output
+            runtimeClasspath += sourceSets.getByName("main").output
+        }
+    }
+    create("testSpring_2_4") {
+        java {
+            compileClasspath += sourceSets.getByName("main").output
+            runtimeClasspath += sourceSets.getByName("main").output
+        }
+    }
+}
+
 repositories {
     if(!project.hasProperty("releasing")) {
         mavenLocal()
@@ -80,6 +101,15 @@ configurations.all {
         cacheChangingModulesFor(0, TimeUnit.SECONDS)
         cacheDynamicVersionsFor(0, TimeUnit.SECONDS)
     }
+
+    configurations["testSpring_1_5RuntimeOnly"].extendsFrom(configurations.getByName("testRuntimeOnly"))
+    configurations["testSpring_1_5Implementation"].extendsFrom(configurations.getByName("testImplementation"))
+
+    configurations["testSpring_2_3RuntimeOnly"].extendsFrom(configurations.getByName("testRuntimeOnly"))
+    configurations["testSpring_2_3Implementation"].extendsFrom(configurations.getByName("testImplementation"))
+
+    configurations["testSpring_2_4RuntimeOnly"].extendsFrom(configurations.getByName("testRuntimeOnly"))
+    configurations["testSpring_2_4Implementation"].extendsFrom(configurations.getByName("testImplementation"))
 }
 
 var rewriteVersion = if(project.hasProperty("releasing")) {
@@ -87,6 +117,7 @@ var rewriteVersion = if(project.hasProperty("releasing")) {
 } else {
     "latest.integration"
 }
+
 dependencies {
     compileOnly("org.projectlombok:lombok:latest.release")
     annotationProcessor("org.projectlombok:lombok:latest.release")
@@ -128,11 +159,12 @@ dependencies {
     testRuntimeOnly("org.openrewrite:rewrite-java-8:${rewriteVersion}")
 
     testRuntimeOnly("junit:junit:latest.release")
-    testRuntimeOnly("org.springframework:spring-test:4.+")
-    testRuntimeOnly("org.springframework:spring-beans:4.+")
-    testRuntimeOnly("org.springframework:spring-webmvc:4.+")
-    testRuntimeOnly("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
-    testRuntimeOnly("org.springframework.boot:spring-boot-test:1.5.+")
+
+    "testSpring_1_5RuntimeOnly"("org.springframework:spring-test:4.+")
+    "testSpring_1_5RuntimeOnly"("org.springframework:spring-beans:4.+")
+    "testSpring_1_5RuntimeOnly"("org.springframework:spring-webmvc:4.+")
+    "testSpring_1_5RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
+    "testSpring_1_5RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
 }
 
 tasks.named<Test>("test") {
