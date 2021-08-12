@@ -1,0 +1,491 @@
+:root-docs: https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE
+:docs: {root-docs}/reference/html
+:gradle-docs: {root-docs}/gradle-plugin/reference/html
+:maven-docs: {root-docs}/maven-plugin/reference/html
+
+= Spring Boot 2.3 Release Notes
+
+
+
+== Upgrading from Spring Boot 2.2
+
+
+
+=== Changes to minimum requirements
+Spring Boot now requires:
+
+* Gradle 6.3+ (if you are building with Gradle).
+5.6.x is also supported but in a deprecated form.
+* Jetty 9.4.22+ (if you are using Jetty as the embedded container)
+
+
+
+=== Validation Starter no longer included in web starters
+As of https://github.com/spring-projects/spring-boot/issues/19550[#19550], Web and WebFlux starters do not depend on the validation starter by default anymore.
+If your application is using validation features, for example you find that `javax.validation.*` imports are not being resolved, you'll need to add the starter yourself.
+
+For Maven builds, you can do that with the following:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-validation</artifactId>
+</dependency>
+----
+
+For Gradle, you will need to add something like this:
+
+[source,gradle]
+----
+dependencies {
+  ...
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+}
+----
+
+
+
+=== Unique DataSource Name By Default
+By default, a unique name is generated on startup for the auto-configured `DataSource`.
+This impacts the use of the H2 console as the database URL no longer refers to `testdb`.
+
+You can disable this behavior by setting `spring.datasource.generate-unique-name` to `false`.
+
+
+
+=== Spring Data `Neumann`
+Spring Boot 2.3 ships with a major release of Spring Data.
+Some extra care is required if you are using Cassandra, Couchbase, Elasticsearch, MongoDB, or JDBC.
+
+==== Cassandra
+This release switches to Cassandra v4 that brings a number of backward incompatible changes.
+If you were relying on `ClusterBuilderCustomizer` to customize the `Cluster`, this concept no longer exists in v4 and has been replaced by two more specific customizers:
+
+* `DriverConfigLoaderBuilderCustomizer` customizes the properties of the driver. Please use this for any property that is not exposed yet.
+* `CqlSessionBuilderCustomizer` customizes the `CqlSession` (former `Session`).
+
+The Cassandra v4 driver no longer has automatic local DC inference from contact points.
+As a result, the "local-datacenter" property must be set with the default load balancing policy and the contact points must be of that data center.
+A new `spring.data.cassandra.local-datacenter` property has been added to easily set the local datacenter.
+
+
+
+==== Couchbase
+This release switches to Couchbase SDK v3 that brings a number of backward incompatible changes.
+
+* To connect to a cluster, you should now use `spring.couchbase.connection-string` instead of the former `spring.couchbase.bootstrap-hosts`.
+* Role-based access controls have now been generalized.
+* Spring Boot no longer auto-configures a `Bucket` but you can easily do so using the `Cluster` API.
+* Endpoints IO configuration has been harmonized in `spring.couchbase.env.io`.
+* If you were extending `CouchbaseConfiguration` to customize the environment, please use `ClusterEnvironmentBuilderCustomizer` to do so in a more idiomatic fashion.
+
+A bucket name needs to be provided if you're using Couchbase with Spring Data.
+
+
+
+
+==== Elasticsearch
+The deprecated Native Elasticsearch transport has been removed as both Elasticsearch and Spring Data themselves won't support it in their next releases.
+Support for the Jest library has also been removed in this release.
+
+Spring Boot is now using Elasticsearch 7.5+ by default.
+
+
+
+==== MongoDB
+This release switches to MongoDB 4 and harmonizes the reactive and imperative drivers.
+This should be pretty transparent to you if you're using the starter.
+One notable change is that `MongoClientSettingsBuilderCustomizer` beans are now applied when using the imperative driver.
+Previously they were only applied in the reactive case.
+
+With this harmonization, the non reactive infrastructure is no longer provided if you use `spring-boot-starter-data-mongodb-reactive`.
+If you need to use the imperative infrastructure on startup (e.g. `MongoOperations`), consider adding `spring-boot-starter-data-mongodb`.
+
+
+==== Neo4j
+The open session in view interceptor for Neo4j is now disabled by default.
+If you need to enable it again, use the standard `spring.data.neo4j.open-in-view` property.
+
+The details of the Neo4j health indicator now contains the `version` and `edition` of the server, as shown in the following example:
+
+[source,xml]
+----
+neo4j: {
+  status: "UP",
+  details: {
+    edition: "community",
+    version: "4.0.0"
+  }
+}
+----
+
+
+
+==== JDBC
+Among its https://docs.spring.io/spring-data/jdbc/docs/2.0.0.RELEASE/reference/html/#new-features.2-0-0[new features], Spring Data JDBC 2.0 now quotes identifiers by default. This behaviour can be disabled by calling `setForceQuote(false)` on the `RelationalMappingContext`.
+
+
+=== Micrometer
+This release upgrades to Micrometer 1.5 which brings a number of deprecations:
+
+* Service Level Agreements have been renamed to Service Level Objectives and the boundary is expressed as a `double` rather than a `long`.
+* Wavefront metrics are now exported via `WavefrontSender`.
+As a result the read and connection timeout properties are no longer honoured.
+
+
+
+=== Jackson
+This release upgrades to Jackson 2.11 which includes a change to the default formatting of `java.util.Date` and `java.util.Calendar`. Please see https://github.com/FasterXML/jackson-databind/issues/2643[FasterXML/jackson-databind#2643] for details.
+
+
+
+=== Spring Cloud Connectors starter has been removed
+The Spring Cloud Connectors starter was https://github.com/spring-projects/spring-boot/issues/17877[deprecated in 2.2 in favor of Java CFEnv].
+This starter has been removed, and Spring Cloud Connectors dependencies are no longer included in Spring Boot's managed dependencies.
+
+
+
+=== Embedded Servlet web server threading configuration
+The configuration properties for configuring the threads used by embedded Servlet web servers (Jetty, Tomcat, and Undertow) have moved to dedicated `threads` groups.
+The properties can now be found in `server.jetty.threads`, `server.tomcat.threads`, and `server.undertow.threads`.
+The old properties remain in a deprecated form to ease migration.
+
+
+
+=== Changes to the Default Error Page's Content
+The error message and any binding errors are no longer included in the default error page by default.
+This reduces the risk of leaking information to a client.
+`server.error.include-message` and `server.error.include-binding-errors` can be used to control the inclusion of the message and binding errors respectively.
+Supported values are `always`, `on-param`, and `never`.
+
+
+
+=== Disk space health indicator
+The auto-configured disk space health indicator no longer requires the path that is monitored to exist when the application starts.
+A non-existent path will be detected as having zero usable space resulting in a down response from the indicator.
+
+
+
+=== Automatic creation of `developmentOnly` Gradle configuration
+The `developmentOnly` configuration, primarily intended for use when declaring a dependency on Spring Boot's DevTools, is now created automatically by Spring Boot's Gradle plugin.
+Any manual configuration of `developmentOnly` should be removed from your Gradle build scripts as its presence will result in a build failure with the message `cannot add a configuration with name 'developmentOnly' as a configuration with that name already exists`.
+
+
+
+=== Removal of Maven Site Plugin management
+Spring Boot's build no longer makes use of site plugin (`maven-site-plugin`) and plugin management for it has been removed. If you were relying on Spring Boot's managed versions, you should add your own plugin management.
+
+
+
+=== Removal of Maven Exec Plugin custom configuration
+If you inherit from `spring-boot-starter-parent`, it no longer configures Maven's exec plugin (`exec-maven-plugin`) to set the main class using `start-class`. If you were relying on that, you can restore that behaviour as follows:
+
+[source,xml]
+----
+<plugin>
+   <groupId>org.codehaus.mojo</groupId>
+   <artifactId>exec-maven-plugin</artifactId>
+   <configuration>
+       <mainClass>${start-class}</mainClass>
+   </configuration>
+</plugin>
+---- 
+
+
+
+=== ApplicationContextRunner disables bean overriding by default
+For consistency with `SpringApplication`, `ApplicationContextRunner` now disables bean overriding by default.
+If you need to use bean overriding for a test, `withAllowBeanDefinitionOverriding` can be used to enable it.
+
+
+
+=== Activating multiple profiles with `@ActiveProfiles`
+Profile names that contain commas are now supported with the `@ActiveProfiles` annotation.
+This means that an annotation like `@ActiveProfiles("p1,p2")` will treat the provided value `p1,p2` as a single profile name.
+To activate multiple profiles, provide each profile name as a separate value as in `@ActiveProfiles({"p1","p2"})`.
+
+
+=== WebServerInitializedEvent and ContextRefreshedEvent
+As part of introducing support for <<graceful-shutdown, graceful shutdown>>, web server initialisation is now performed at the end of application context refresh processed rather than immediately after refresh processing has completed. As a result, the `WebServerInitializedEvent` is now published before the `ContextRefreshedEvent`.
+
+
+=== Deprecations from Spring Boot 2.2
+Most classes, methods and properties that were deprecated in Spring Boot 2.2 have been removed in this release.
+Please ensure that you aren't calling deprecated methods before upgrading.
+
+
+==== Configuration properties
+A number of properties have been renamed or deprecated.
+You can use the `spring-boot-properties-migrator` module to identify those properties.
+Once added as a dependency to your project, this will not only analyze your application's environment and print diagnostics on startup, but also temporarily migrate properties at runtime for you.
+
+[source,xml]
+----
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-properties-migrator</artifactId>
+	<scope>runtime</scope>
+</dependency>
+----
+
+[source]
+----
+runtime("org.springframework.boot:spring-boot-properties-migrator")
+----
+
+NOTE: Once you're done with the migration, please make sure to remove this module from your project's dependencies.
+
+
+
+== New and Noteworthy
+TIP: Check link:Spring-Boot-2.3.0-Configuration-Changelog[the configuration changelog] for a complete overview of the changes in configuration.
+
+
+
+=== Java 14 support
+Spring Boot 2.3 adds support for Java 14. Java 8 and 11 are also supported.
+
+
+
+=== Build OCI images with Cloud Native Buildpacks
+Support for {docs}/spring-boot-features.html#building-docker-images[building Docker images] using https://buildpacks.io[Cloud Native Buildpacks] and has been added to the Maven and Gradle plugins via the {maven-docs}/#build-image[`spring-boot:build-image` goal] and the {maven-docs}/#build-image[`bootBuildImage` task].
+The https://paketo.io/[Paketo] Java buildpack is used by default to create images.
+
+
+
+=== Build layered jars for inclusion in a Docker image
+Support for building jar files with contents separated into layers has been added to the {maven-docs}/#repackage-layers[Maven] and {gradle-docs}/#packaging-layered-jars[Gradle] plugins.
+The layering separates the jar's contents based on how frequently they will change.
+This separation allows more efficient Docker images to be built.
+Existing layers that have not changed can be reused with the layers that have changed being placed on top.
+
+Depending on your application, you may want to tune how layers are created and add new ones.
+This can be done using configuration that describes how the jar can be separated into layers, and the order of those layers.
+
+When you create a layered jar, the `spring-boot-jarmode-layertools` jar will be added as a dependency to your jar by default (this can be disabled with build configuration).
+With this jar on the classpath, you can launch your application in a special mode which allows the bootstrap code to run something entirely different from your application, for example, something that extracts the layers.
+To see the options available, launch a fat jar with `-Djarmode=layertools` as shown in the following example:
+
+```
+$ java -Djarmode=layertools -jar my-app.jar
+Usage:
+  java -Djarmode=layertools -jar my-app.jar
+
+Available commands:
+  list     List layers from the jar that can be extracted
+  extract  Extracts layers from the jar for image creation
+  help     Help about any command
+```
+
+
+
+=== Predictable Classpath Ordering When Exploding Fat Jars
+Fat jars built with Maven and Gradle now include an index file.
+When the jar is exploded, this index file is used to ensure that the ordering of the classpath is the same as when executing the jar directly.
+
+
+
+=== Support of wildcard locations for configuration files
+Spring Boot now supports wildcard locations when loading configuration files.
+By default, a wildcard location of `config/*/` outside of your jar is supported.
+This is useful in an environment such as Kubernetes when there are multiple sources of config properties.
+For instance, if you have separate mysql and redis configurations, they can be picked automatically if you place them in `/config`, i.e. `/config/mysql/application.properties` and `/config/redis/application.properties`.
+
+
+
+=== Graceful shutdown
+Graceful shutdown is supported with all four embedded web servers (Jetty, Reactor Netty, Tomcat, and Undertow) and with both reactive and Servlet-based web applications.
+When enabled using `server.shutdown=graceful`, upon shutdown, the web server will no longer permit new requests and will wait for a grace period for active requests to complete. The grace period can be configured using `spring.lifecycle.timeout-per-shutdown-phase`. Please see the {docs}/spring-boot-features.html#boot-features-graceful-shutdown[reference documentation] for further details.
+
+
+
+=== Liveness and Readiness probes
+Spring Boot now has built-in knowledge of the availability of your application, tracking whether it is alive and whether it is ready to handle traffic.
+The health endpoint can be configured to expose the liveness (`/actuator/health/liveness`) and readiness (`/actuator/health/readiness`) of you application with the `management.health.probes.enabled=true` configuration property.
+When running on Kubernetes this is done automatically.
+
+To learn more about this feature, please check out https://spring.io/blog/2020/03/25/liveness-and-readiness-probes-with-spring-boot[this blog post] and the reference documentation to which it links.
+
+
+
+=== Spring Data Neumann
+Spring Boot 2.3 ships with a major Spring Data release.
+Please see the https://spring.io/blog/2020/05/12/spring-data-neumann-goes-ga[Spring Data Neumann goes GA] to learn more.
+
+
+
+==== R2DBC support
+When r2dbc is on the classpath, a `ConnectionFactory` is auto-configured with a similar arrangement than a jdbc `DataSource`.
+If Spring Data is on the classpath, repositories are auto-configured as well, as usual.
+
+R2DBC support also adds an health indicator for the connection factory, metrics for `ConnectionPool` and a test slice, `@DataR2dbcTest`.
+
+
+
+
+=== Configurable base path for WebFlux applications
+The base path of all web handlers a WebFlux application can now be configured. Use the `spring.webflux.base-path` property to do so.
+
+
+
+=== Date-Time conversion in web applications
+The conversion of time and date-time values in web applications is now configurable via application properties.
+This complements that existing support for formatting date values.
+For MVC, the properties are `spring.mvc.format.time` and `spring.mvc.format.date-time` respectively.
+For WebFlux, the properties are `spring.webflux.format.time` and `spring.webflux.format.date-time` respectively.
+
+
+In addition to taking a typical formatting pattern, the properties for configuring the formatting of dates, times, and date-times now support a value of `iso`.
+When set, the corresponding ISO-8601 formatting will be applied.
+
+The `iso` values is supported by the following properties:
+
+- `spring.mvc.format.date`
+- `spring.mvc.format.date-time`
+- `spring.mvc.format.time`
+- `spring.webflux.format.date`
+- `spring.webflux.format.date-time`
+- `spring.webflux.format.time`
+
+
+
+=== Actuator Improvements
+
+
+
+==== End-to-end Traceability for Configuration Properties
+As of https://github.com/spring-projects/spring-boot/issues/17886[#17886], the `/actuator/configprops` endpoint provides end-to-end information about configuration properties, aligning its behavior with the environment endpoint.
+For example, after adding `server.server-header=Spring Boot` in your `application.properties`, the endpoint will show you the following:
+
+```
+"serverHeader": {
+  "origin": "class path resource [application.properties]:2:22",
+  "value": "Spring Boot"
+},
+```
+
+
+
+==== Names in metrics endpoint are ordered alphabetically
+Metrics names available at `/actuator/metrics/` are now ordered alphabetically which makes it easier to find what you are looking for.
+
+
+
+==== Query-less datasource health indicator
+In the absence of a validation query, the datasource `HealthIndicator` now operates in query-less mode, using `java.sql.Connection#isValid` to validate the connection.
+
+
+
+==== Contributing additional tags to Web MVC and WebFlux metrics
+Tags that are used in addition to those provided by default for MVC and WebFlux can now be contributed.
+Contributions can be made using a `WebMvcTagsContributor` `@Bean` for MVC and a `WebFluxTagsContributor` `@Bean` for WebFlux.
+
+
+
+==== Auto-configuration of Wavefront's Sender
+The auto-configuration for Wavefront has been updated to define a `WavefrontSender` bean.
+This allows publishing of both metrics and traces to Wavefront over a single connection.
+
+
+
+==== Native Kafka metrics
+Kafka metrics are published natively for the consumers and producers created by the auto-configured `ConsumerFactory` and `ProducerFactory`.
+To produce metrics for components created by a custom factory, you should add a listener as shown in the following example:
+
+```java
+factory.addListener(new MicrometerConsumerListener<>(meterRegistry));
+```
+
+NOTE: If you were enabling JMX support for the sole purpose of collecting Kafka metrics this is no longer necessary.
+
+
+=== RSocket support for Spring Integration
+Spring Boot now provides auto-configuration for Spring Integration's RSocket support.
+
+If `spring-integration-rsocket` is available, developers can configure an RSocket server using `"spring.rsocket.server.*"` properties and let it use `IntegrationRSocketEndpoint` or `RSocketOutboundGateway` components to handle incoming RSocket messages.
+
+
+
+=== Binding to `Period`
+If a property needs to express a period of time, you can do so using a `java.time.Period` property.
+Similar to the Duration support, an easy format is supported (i.e. 10w for 10 weeks) as well as metadata support.
+
+
+
+=== Slice test for Web Services
+A new `@WebServiceClientTest` annotation has been added to support “slice” testing of Web Services.
+
+
+
+=== Dependency Upgrades
+Spring Boot 2.3 moves to new versions of several Spring projects:
+
+- Spring Data Neumann
+- Spring HATEOAS 1.1
+- Spring Integration 5.3
+- Spring Kafka 2.5
+- Spring Security 5.3
+- Spring Session Dragonfruit
+
+Please note that Spring Boot 2.3 builds against the same Spring Framework and Reactor generation as Spring Boot 2.2.
+
+Numerous third-party dependencies have also been updated, some of the more noteworthy of which are the following:
+
+- Artemis 2.12
+- AssertJ 3.16
+- Cassandra Driver 4.6
+- Couchbase Client 3.0
+- Elasticsearch 7.6
+- Flyway 6.4
+- Hibernate Validator 6.1
+- Infinispan 10.1
+- Jackson 2.11
+- JUnit Jupiter 5.6
+- Kafka 2.5
+- Kotlin 1.3.72
+- Lettuce 5.3
+- Micrometer 1.5
+- Mockito 3.3
+- MongoDB 4.0
+- QueryDSL 4.3
+
+
+
+=== Miscellaneous
+Apart from the changes listed above, there have also been lots of minor tweaks and improvements including:
+
+- Configuration defaults were updated in our JPA support to improve the testing experience, see https://github.com/spring-projects/spring-boot/issues/16230[#16230] and https://github.com/spring-projects/spring-boot/issues/16747[#16747].
+- The output from `spring-boot-autoconfigure-processor` is now repeatable, making it work better with Gradle's build cache.
+- The Couchbase's type key can be configured via `spring.data.couchbase.type-key`.
+- OAuth2 parameter binding is now available with `@WebMvcTest`.
+- Jetty's backing queue can be configured using `server.jetty.max-queue-capacity`.
+- Liquibase's tag support can be configured using `spring.liquibase.tag`.
+Clearing all checksums in the current changelog is now available via the `spring.liquibase.clear-checksums` property.
+- Gradle metadata is now published.
+- `DataSourceBuilder` can be used to configure a `SimpleDriverDataSource`.
+- `DataSource` metrics have now a description.
+- Auto-detection of the cloud platform can be overridden using `spring.main.cloud-platform`.
+- Caching of responses from Actuator's HTTP endpoints is now supported when the request has a principal.
+- Maven support for creating a fat jar now honors the `project.build.outputTimestamp` property, allowing its output to be https://maven.apache.org/guides/mini/guide-reproducible-builds.html[reproducible].
+- The Javadoc of the Maven plugin is {root-docs}/maven-plugin/api/[now published].
+- A customizer interface, `RSocketMessageHandlerCustomizer`, is provided for customizing the auto-configured `RSocketMessageHandler`,
+- A customizer interface, `DefaultCookieSerializerCustomizer`, is provided for customizing the auto-configured `DefaultCookieSerializer`.
+- Auto-configuration of the default servlet can now be disabled by setting `server.servlet.register-default-servlet` to `false`.
+- A new condition, `@ConditionalOnWarDeployment` has been added.
+It can be used to detect when an application has been deployed as a war to a Servlet container or application server.
+- The properties migrator handles all deprecated properties, not only those with error levels.
+- JDBC drivers are deregistered when destroying the war's ServletContext.
+- Redis's sentinel password can be configured using `spring.redis.sentinel.password`.
+
+
+== Deprecations in Spring Boot 2.3
+
+- [big Lime]*[ ✓ ]* The `spring.http.*` properties have been moved to `server.servlet.encoding.*`, `spring.mvc.*` and `spring.codec.*`, see https://github.com/spring-projects/spring-boot/issues/18827[#18827].
+- [big red]*[ x ]* `SpringApplication#refresh(ApplicationContext)` has been deprecated in favour of `SpringApplication#refresh(ConfigurableApplicationContext)`.
+- [big Lime]*[ ✓ ]* The `ON_TRACE_PARAM` used with the `server.error.include-stacktrace` property has been renamed to `ON_PARAM`.
+- [big Lime]*[ ✓ ]* `org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer` has been deprecated in favor of `org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer`
+
+== Legend
+- [big Lime]*[ ✓ ]* = Migrated.
+- [big red]*[ x ]* = Not currently supported.

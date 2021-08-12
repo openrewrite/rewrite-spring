@@ -1,0 +1,555 @@
+:docs: https://docs.spring.io/spring-boot/docs/2.2.0.RELEASE/reference/html/
+:maven-docs: https://docs.spring.io/spring-boot/docs/current/maven-plugin/
+
+= Spring Boot 2.2 Release Notes
+
+
+
+== Upgrading from Spring Boot 2.1
+
+
+
+=== Deprecations from Spring Boot 2.1
+Classes, methods and properties that were deprecated in Spring Boot 2.1 have been removed in this release.
+Please ensure that you aren't calling deprecated methods before upgrading.
+
+
+
+=== Spring Framework 5.2
+This release upgrades to Spring Framework 5.2.
+Please refer to https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-5.x#upgrading-to-version-52[Spring Framework's upgrade documentation] for further details.
+
+
+
+=== JMX now disabled by default
+As of https://github.com/spring-projects/spring-boot/issues/16090[#16090], JMX is not enabled by default anymore. This feature can be enabled with the configuration property `spring.jmx.enabled=true`.
+If you're using IDE features to administer your applications, you may want to enable that flag there as well.
+
+
+=== Fork enabled by default in Maven Plugin
+Spring Boot applications that are ran by the Maven plugin are now forked by default. If you were customizing properties using `-D`, these are no longer passed to the Spring Boot application. Such properties can be specified using `-Dspring-boot.run.jvmArguments` and dedicated options exist, such as for enabling a profile. Refer to {maven-docs}[the reference documentation] for more details.
+
+
+=== Jakarta EE dependencies
+Where possible, we have moved from Java EE dependencies with a `javax.*` group ID to the equivalent Jakarta EE dependencies with a `jakarta.*` group ID in Spring Boot's starters.
+Dependency management for the Jakarta EE API dependencies has been added alongside the existing dependency management for the Java EE API dependencies.
+The dependency management for the Java EE API dependencies will be removed in the future and all users are encouraged to move to the Jakarta EE API dependencies.
+
+As part of the Java EE to Jakarta EE migration, two dependencies have changed artifact ID in their latest maintenance releases.
+`com.sun.mail:javax.mail` is now `com.sun.mail:jakarta.mail` and `org.glassfish:javax.el` is now `org.glassfish:jakarta.el`.
+In the unlikely event that you were using either of these dependencies directly, please update your `pom.xml` or `build.gradle` accordingly.
+
+
+
+=== JUnit 5
+`spring-boot-starter-test` now provides JUnit 5 by default.
+JUnit 5's vintage engine is included by default to support existing JUnit 4-based test classes so that you can migrate to JUnit 5 when you are ready to do so.
+It is also possible to use a mixture of JUnit 4- and JUnit 5-based test classes in the same module.
+This allows you to migrate to JUnit 5 gradually if you wish.
+
+Note that the Maven Surefire plugin for JUnit 4 does not support the `listener` property.
+If you have a Maven configuration similar to the following:
+
+[source, xml]
+----
+<configuration>
+	<properties>
+		<property>
+			<name>listener</name>
+			<value>com.example.CustomRunListener</value>
+		</property>
+	</properties>
+</configuration>
+----
+
+You can't use the `junit-vintage-engine` and you'll need to explicitly roll back to JUnit 4:
+
+[source, xml]
+----
+<dependencies>
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-test</artifactId>
+		<scope>test</scope>
+		<exclusions>
+			<exclusion>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>org.junit.vintage</groupId>
+				<artifactId>junit-vintage-engine</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-junit-jupiter</artifactId>
+			</exclusion>
+		</exclusions>
+	</dependency>
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<version>4.12</version>
+	</dependency>
+</dependencies>
+----
+
+
+
+=== AssertJ 3.12
+This release upgrades to AssertJ 3.12 that contains a breaking API change for assertions related to `Iterator`.
+Please see the https://assertj.github.io/doc/#assertj-core-3-12-0-release-notes[AssertJ release notes] for details.
+
+
+
+=== Devtools configuration no longer considered in integration tests
+Devtools configuration specified in your home directory is no longer considered in integration tests.
+
+
+
+=== Spring HATEOAS 1.0
+This release upgrades to Spring HATEOAS 1.0 which contains some breaking API changes. Please see the https://spring.io/blog/2019/03/05/spring-hateoas-1-0-m1-released#overhaul[blog post that announced the M1 release] for details and a script that can be used to ease the migration.
+
+
+
+=== DataSize migration for logging.file size-based properties
+`logging.file.max-size` and `logging.file.total-size-cap` are now using the standard `DataSize` type in replacement of the proprietary `FileSize` type.
+If you are using any of those properties, make sure to {docs}/spring-boot-features.html#boot-features-external-config-conversion-datasize[align to the standard format].
+
+
+
+=== DataSource health
+The `DataSource` health indicator contains an extra `validationQuery` attribute with the validation query that was used against the `DataSource`.
+Also, the result of the query that used to be provided by the `hello` attribute has been renamed to `result`.
+
+
+
+=== Elasticsearch
+This release upgrades to Elasticsearch 6.7 which contains some breaking API changes.
+Please see the https://www.elastic.co/guide/en/elasticsearch/reference/6.7/breaking-changes-6.5.html[6.5], https://www.elastic.co/guide/en/elasticsearch/reference/6.7/breaking-changes-6.6.html[6.6] and https://www.elastic.co/guide/en/elasticsearch/reference/6.7/breaking-changes-6.7.html[6.7] breaking changes pages for details.
+
+Both the Elasticsearch transport and Jest clients have been deprecated in favor of other options, such as `RestHighLevelClient`.
+The {docs}/spring-boot-features.html#boot-features-elasticsearch[reference docs on Elasticsearch support] have been updated.
+
+
+
+=== Hibernate Dialect
+Spring Boot now lets Hibernate chose the dialect to use rather than applying a default dialect based on the detected database. If you are interested by this feature, please make sure you don't specify the database platform explicitly (i.e. via `spring.jpa.database` or `spring.jpa.database-platform`).
+
+If you had a dialect configured previously, you may want to remove your customization.
+
+
+
+=== Actuator HTTP Trace and Auditing are disabled by default
+The Actuator HTTP Trace and Auditing features are not enabled by default anymore, since the default repositories implementations are in-memory and may consume too many resources and are not cluster friendly
+For robust, production-grade HTTP tracing we recommend the use of https://spring.io/projects/spring-cloud-sleuth[Spring Cloud Sleuth] or similar.
+
+To enable HTTP tracing, contribute a bean implementing `HttpTraceRepository` or `AuditEventRepository` to turn those features back on.
+Configuration properties are available to turn those features off even in the presence of those beans (see `management.auditevents.enabled` and `management.trace.http.enabled`)
+
+
+
+=== Gradle requirements
+The minimum requirements for Gradle have changed - Spring Boot now requires Gradle 4.10+.
+Please upgrade accordingly.
+
+
+
+=== Jetty logging configuration
+`server.jetty.accesslog.*` configuration properties related to log formatting are no longer available (the ones related to log files are still there).
+
+If your application is making use of those properties, two new keys have been introduced, `format` and `custom-format`; `format` allows you to choose amongst existing formats, `custom-format` allows you to use your own format:
+
+[source, properties]
+----
+server.jetty.accesslog.format=NCSA # enum with predefined formats: NCSA, EXTENDED_NCSA
+server.jetty.accesslog.custom-format= # String, custom format overriding the former if defined
+----
+
+Unsupported options now translate to defining a custom log format and using options as defined in Jetty's https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/jetty-server/src/main/java/org/eclipse/jetty/server/CustomRequestLog.java[CustomRequestLog].
+
+
+
+=== Hamcrest 2.1
+This release upgrades to Hamcrest 2.1. This should be a drop-in replacement for most users.
+If you have a direct dependency on `org.hamcrest:hamcrest-core` or `org.hamcrest:hamcrest-library`, please use the new combined module, `org.hamcrest:hamcrest`, instead.
+If you depend on Hamcrest via `spring-boot-starter-test` no action is required.
+
+
+
+=== Freemarker templates configuration
+This release changes the default template file extension for Freemarker templates.
+This aligns Spring Boot with safe configuration defaults for web applications.
+Please rename existing templates from `+*.ftl+` to `*.ftlh` when upgrading.
+
+
+
+=== Tomcat's MBean Registry
+Tomcat's MBean Registry is now disabled by default, saving approximately 2MB of heap.
+If you want to use Tomcat's MBeans, for example so that they can be used to expose metrics via Micrometer, set the `server.tomcat.mbeanregistry.enabled` to `true`.
+
+
+
+=== Logback max history
+The `<rollingPolicy>` in the default Logback configuration has been updated to use a `<maxHistory>` of 7 days.
+It can be tuned using the `logging.file.max-history` configuration property.
+
+
+
+=== `HttpHiddenMethodFilter` disabled by default
+The filter that handles the `_method` request parameter is now disabled by default as it causes early consumption of a request body if the body may contain parameters.
+This can be restored by setting either `spring.webflux.hiddenmethod.filter.enabled` or `spring.mvc.hiddenmethod.filter.enabled` to `true`.
+
+
+
+=== Health Indicator
+A number of classes have been deprecated to implement the new health indicator groups feature.
+If you are configuring a custom `HealthIndicator` via `CompositeHealthIndicatorConfiguration`, you'll need to update it to use `CompositeHealthContributorConfiguration` instead.
+
+
+
+=== Micrometer 'New Relic' eventType
+Micrometer 1.3 has https://github.com/micrometer-metrics/micrometer/pull/1588[changed the eventType] that gets published with each metric to be a fixed value.
+This aligns with New Relic https://docs.newrelic.com/docs/insights/insights-data-sources/default-data/insights-default-data-other-new-relic-products[best practices].
+
+Spring Boot 2.2 will use the value of `management.metrics.export.newrelic.event-type` as the `eventType` and add "metricName" and "metricType" attributes for context.
+If you don't explicitly set an event type property then `SpringBootSample` is used.
+
+If you prefer to use the previous behavor where the meter name was used as the `eventType`, you can set the `management.metrics.export.newrelic.meter-name-event-type-enabled` property to `true`.
+
+
+
+=== Health Endpoint JSON
+The `/actuator/health` endpoint has changed the resulting JSON format by renaming `details` to `components` for the first-level elements.
+This helps to differentiate the actual details returned by a `HealthIndicator` from the component indicators that make up composite health.
+
+As a result of the change, the actuator media type has been bumped from `application/vnd.spring-boot.actuator.v2+json` to `application/vnd.spring-boot.actuator.v3+json`.
+If you have tools that need to consume the older format, you can use an HTTP `Accept:` header with the V2 media type, `application/vnd.spring-boot.actuator.v2+json`.
+
+
+
+=== DevTools config directory
+The preferred location for global DevTools settings is now `~/.config/spring-boot`.
+Any of the following files can be used:
+
+- `spring-boot-devtools.properties`
+- `spring-boot-devtools.yaml`
+- `spring-boot-devtools.yml`
+
+Please see the {docs}/using-spring-boot.html#using-boot-devtools-globalsettings[relevant section] of the reference documentation for further details.
+
+
+
+=== InMemoryUserDetailsManager
+
+In order to prevent generation and logging of a default password for a Resource Server application, a bean of type `InMemoryUserDetailsManager` is no longer created in the presence of a `JwtDecoder` bean or a `OpaqueTokenIntrospector` bean. If you wish to customize your security configuration such that it requires an `InMemoryUserDetailsManager`, you would need to create the bean yourself.
+
+
+
+=== Sample projects renamed and relocated
+The sample projects have been renamed to smoke tests to better reflect their intended purpose.
+They have also been relocated in the source repository and can now be found https://github.com/spring-projects/spring-boot/tree/master/spring-boot-tests/spring-boot-smoke-tests[here].
+
+
+
+== New and Noteworthy
+TIP: Check link:Spring-Boot-2.2.0-Configuration-Changelog[the configuration changelog] for a complete overview of the changes in configuration.
+
+
+
+=== Java 13 support
+Spring Boot 2.2 adds support for Java 13. Java 8 and 11 are also supported.
+
+
+
+=== Performance improvements
+Startup time and memory usage have been reduced by making use of `proxyBeanMethods=false` in Spring Boot's `@Configuration` classes.
+`proxyBeanMethods` is a new attribute on `@Configuration` introduced in Spring Framework 5.2 M1.
+`proxyBeanMethods` is also available as an attribute on `@SpringBootApplication` and `@SpringBootConfiguration`.
+
+When launching an application at development time with `bootRun` in Gradle or `spring-boot:run` in Maven, the JVM will be configured with flags (`-Xverify:none` and `-XX:TieredStopAtLevel=1`) to optimise it for reduced launch time.
+When running on JDK 13 `-Xverify:none` is not specified as it has been deprecated.
+
+Several other performance improvements have also been made in this release:
+
+* Time taken to bind large numbers of configuration properties has been significantly reduced
+* As Spring Boot fully prepares a `PersistenceUnit` by scanning JPA entities, Hibernate's own entity scanning has been disabled as it is redundant
+* Injection points in auto-configurations have been refined to only apply when a bean has to be created
+* Beans related to Actuator endpoints are now only created if the endpoint is both enabled and exposed (via JMX or HTTP)
+* Conditions on codec auto-configuration have been improved so that the codecs are no longer configured when they won't be used
+* Tomcat's MBean Registry has been disabled by default, reducing Tomcat's memory footprint by approximately 2MB
+
+
+
+=== Lazy initialization
+It is now possible to enable global lazy initialization to reduce startup time via the `spring.main.lazy-initialization` property.
+Please note that using that feature comes at a cost:
+
+* Handling of HTTP requests may take longer while any deferred initialisation occurs
+* Failures that would normally occur at startup will now not occur until later
+
+Individual beans can opt out of lazy initialization by annotating their definition with `@Lazy(false)`.
+Where it is not possible to use `@Lazy(false)` to opt out of lazy initialization, a `LazyInitializationExcludeFilter` bean can be used instead.
+For example, to never set `IntegrationFlow` beans to lazy, you can use the following code:
+
+[source,java]
+----
+@Bean
+static LazyInitializationExcludeFilter integrationLazyInitExcludeFilter() {
+    return LazyInitializationExcludeFilter.forBeanTypes(IntegrationFlow.class);
+}
+----
+
+
+
+=== Spring Data Moore
+Spring Boot 2.2 ships with Spring Data Moore.
+Please see the https://spring.io/blog/2019/10/08/what-s-new-in-spring-data-moore[What's new in Spring Data Moore blog post] to learn more.
+
+
+
+=== Shutdown configuration of task execution and scheduling
+The behaviour on shutdown for both the auto-configured `TaskExecutor` and `TaskScheduler` is now configurable, see the `spring.task.execution.shutdown` and `spring.task.scheduling.shutdown` namespaces for more details.
+
+
+
+=== Kubernetes detection
+`ConditionalOnCloudPlatform` now detects if the application is running on Kubernetes.
+
+
+
+=== Test Application Arguments in integration tests
+`SpringBootTest` allows to specify application arguments that will trigger the creation of an `ApplicationArguments` bean.
+
+
+
+=== `@ConfigurationProperties` scanning
+Classes annotated with `@ConfigurationProperties` can now be found via classpath scanning as an alternative to using `@EnableConfigurationProperties` or `@Component`. Add `@ConfigurationPropertiesScan` to your application to enable scanning.
+
+NOTE: Configuration properties scanning was enabled by default in Spring Boot 2.2.0 but as of Spring Boot 2.2.1 you must opt-in using `@ConfigurationPropertiesScan`.
+
+
+=== Immutable `@ConfigurationProperties` binding
+Configuration properties now support constructor-based binding, which allows a `@ConfigurationProperties`-annotated class to be immutable.
+Constructor-based binding can be enabled by annotating a `@ConfigurationProperties` class or one of its constructors with `@ConstructorBinding`.
+Annotations such as `@DefaultValue` and `@DateTimeFormat` can now be used on constructor parameters that are provided by configuration property binding.
+Please see {docs}spring-boot-features.html#boot-features-external-config-constructor-binding[the relevant section] of the reference documentation for further details.
+
+
+
+=== RSocket  Support
+A new Spring Boot starter has been added in this release, `spring-boot-starter-rsocket`.
+This starter brings the required dependencies for building an application that uses RSocket support.
+RSocket strategies are auto-configured to provide the required infrastructure for encoding and decoding RSocket payloads using CBOR and JSON.
+An `RSocketRequester.Builder` is auto-configured to allow you to create an `RSocketRequester` to send requests to remote RSocket services.
+For more on that, check out the {docs}/spring-boot-features.html#boot-features-rsocket[relevant section] if the reference documentation.
+
+Auto-configuration for Spring Security's RSocket integration is now available when its `spring-security-rsocket` module is on the classpath.
+The auto-configuration will enable RSocket security and configure the server RSocket factory with Spring Security's interceptor.
+
+When testing an RSocket server application, the `local.rsocket.server.port` property is set to the port that the RSocket server is listening on.
+It can be injected into test classes using `@LocalRSocketServerPort`.
+
+
+
+=== ApplicationContextRunner simple bean registration
+The `ApplicationContextRunner` test utility now allows to register bean inline, see `withBean` for more details.
+
+
+
+=== `RestTemplateBuilder` request customisation
+Methods have been added to `RestTemplateBuilder` to add default headers to all requests and to enable general request customization.
+
+
+
+=== Reactive Elasticsearch Auto-configuration
+Auto-configuration has been added for the reactive Elasticsearch components introduced in Spring Data Moore.
+A `ReactiveElasticSearchTemplate` is auto-configured with the `spring.data.elasticsearch.client.reactive.*` properties.
+Auto-configured support for reactive Elasticsearch repositories is also provided.
+
+
+
+=== Plain text support for Thread dump endpoint
+The `threaddump` actuator endpoint can now return a thread dump in plain text that is compatible with both https://github.com/irockel/tda[Thread Dump Analyzer] and https://fastthread.io.
+
+
+
+=== Configurable converters for Actuator endpoint input parameters
+Input parameters of an Actuator `@Endpoint` can be managed using custom `@EndpointConverter`-annotated converters.
+
+
+=== Callback for Redis cache configuration
+The `RedisCacheManager` configuration has been improved recently and a `RedisCacheManagerBuilderCustomizer` bean allows you to get a handle to the builder before it is used to configure an immutable `RedisCacheManager`.
+
+
+
+=== Qualifier for Spring Batch datasource
+In an environment with multiple data sources, a `DataSource` bean can be qualified with `@BatchDataSource` to indicate it is the one to be used by Spring Batch.
+
+
+
+=== Build info repeatable output
+The build info goal has an extra `time` property that allows to configure how `build.time` is handled.
+It can be disabled completely or set to a fixed time to make the output of `build.properties` repeatable.
+
+
+=== Health indicator for Hazelcast
+A `HealthIndicator` is now provided for Hazelcast.
+
+
+=== Idle JDBC connections metrics
+It is now possible to track the total size of a connection pool by tracking the `size` and `idle` metrics.
+If you have a custom `DataSourcePoolMetadata` implementation, consider implementing the `getIdle` method.
+
+
+
+=== Health indicator groups
+It is now possible to organize health indicators into groups.
+A typical example if you deploy your application to Kubernetes, you may want one different sets of health indicators for your “liveness” and “readiness” probes.
+
+Groups can be configured via configuration properties.
+The following creates a `custom` group with only the `DataSource` indicator:
+
+[source,properties]
+----
+management.endpoint.health.group.custom.include=db
+----
+
+The `custom` group can be invoked by hitting `localhost:8080/actuator/health/custom`.
+Check the {docs}/production-ready-features.html#health-groups[updated reference documentation] for more details.
+
+
+
+=== Health Endpoint component details
+Component details returned from `/actuator/health` can now be configured to be shown independently of the details.
+The `management.endpoint.health.show-components` property works in a similar way to `show-details` and can be set to `never`, `when-authorized` or `always`.
+
+For example, if you want to always show the individal health indicators composed to create the system health, but you don't want to show their details you can use:
+
+[source,properties]
+----
+management.endpoint.health.show-components=always
+management.endpoint.health.show-details=never
+----
+
+The same property can also be set on a health indicator group.
+
+
+
+=== Auto-configuration for Flyway JavaMigrations
+Flyway will be auto-configured to use any `JavaMigration` beans that are found in the application context.
+
+
+
+=== Sanitization of URI Properties in Actuator Endpoints
+The sanitization performed by the `configprops` and `env` endpoints has been improved to include URI properties.
+Any password found in the URI's user information will now be sanitized.
+
+
+
+=== Banners
+ASCII banner files can now make use of ANSI 256 color escape codes by using `{AnsiColor.NNN}` (where NNN is the https://en.wikipedia.org/wiki/ANSI_escape_code[color code]).
+You can also use them with image banners by setting the `spring.banner.image.bitdepth` property to `8`.
+We've also added a `spring.banner.image.pixelmode` property that you can set to `block` to use ASCII block chars.
+
+The result looks like this:
+
+image::images/animated-ascii-art-256.gif[]
+
+
+
+=== SAML Auto-configuration
+Auto-configuration for Spring Security's SAML 2.0 Relying Party is now available when its `spring-security-saml2-service-provider` module is on the classpath.
+Relying parties can be registered using the `spring.security.saml2.relyingparty.registration.*` properties.
+
+
+
+=== Dependency Upgrades
+Spring Boot 2.2 moves to new versions of several Spring projects:
+
+- Reactor Dysprosium
+- Spring AMQP 2.2
+- Spring Batch 4.2
+- Spring Data Moore
+- Spring Framework 5.2
+- Spring HATEOAS 1.0
+- Spring Integration 5.2
+- Spring Kafka 2.3
+- Spring Security 5.2
+- Spring Session Corn
+
+Numerous third-party dependencies have also been updated, some of the more noteworthy of which are the following:
+
+- Artemis 2.9
+- Elasticsearch 6.7
+- Flyway 6.0
+- Git Commit ID Plugin 3.0
+- Hazelcast 3.12
+- HSQLDB 2.5
+- Jackson 2.10
+- Jedis 3.1
+- Jersey 2.29
+- Kafka 2.3
+- Lettuce 5.2
+- Micrometer 1.3
+- Mockito 3.1
+- Solr 8.0
+
+
+
+=== Miscellaneous
+Apart from the changes listed above, there have also been lots of minor tweaks and improvements including:
+
+- `loadOnStartup` can be configured if you're wrapping a `Servlet` as an actuator endpoint.
+- Flyway bootstrap failures are covered by a dedicated `FailureAnalyzer`
+- The `MessageConverter` for Kafka batch listeners is properly auto-configured.
+- Add support for Jaybird 4 (`jdbc:firebird` prefix).
+- Add opt-in support for Neo4j-OGM native types.
+- Client-side HTTP-metrics have an `outcome` tag.
+- Numerous upgrades of third-party dependencies
+- Prometheus push gateway can now be configured using `https`
+- `Printer` and `Parser` beans are automatically registered with the application conversion service.
+- When using the H2 console auto-configuration, JDBC connection URL is now logged at startup for ease of connection.
+- Couchbase role-based access is now supported via `spring.couchbase.username` and `spring.couchbase.password`.
+- Support for OAuth2 resource server opaque token authentication has been added and can be configured using the `spring.security.oauth2.resourceserver.opaquetoken` configuration properties.
+- The application will fail fast if `spring.config.location` specifies a file with an extension that no `PropertySourceLoader` can read.
+- The layout to use to repackage the application can be set on the command line with Maven using the `spring-boot.repackage.layout` property.
+- `RestTemplateBuilder#defaultHeader` accepts more than one value.
+- Custom resource handlers can serve a `favicon`.
+- Kafka's `RecordInterceptor` is detected and associated to the auto-configured listener container.
+- YAML configuration can now use `on` or `off` for boolean types.
+- Actuator discovery page is now available on `/` when using a separate management port.
+- `@WebMvcTest` now scans `HandlerInterceptor` beans.
+- `@WebFluxTest` scans `WebFilter` beans.
+- Configurable timeout for JMS listener container's receive.
+- Support for Spring Session's flush mode.
+- Support for Spring AMQP's `confirm-type`.
+- Application properties for configuring Jetty's thread pool.
+- Support for parallel test execution when using @AutoConfigureMockMvc with JUnit 5.
+- Zip64 files are now supported inside "Fat Jars".
+- The `ROLLING_FILE_LOG_PATTERN` is now exposed for use in logback configurations.
+- You can now inject and use a customized `WebTestClient` in any `@SpringBootTest`.
+- Dependency management for Oracle's JDBC driver has been added.
+- Dependency management for Awaitility has been added.
+
+
+
+== Deprecations in Spring Boot 2.2
+
+- [big Lime]*[ ✓ ]* The `logging.file` property has been renamed to `logging.file.name`.
+- [big Lime]*[ ✓ ]* The `logging.path` property has been renamed to `logging.file.path`.
+- [big Lime]*[ ✓ ]* The `server.connection-timeout` property has been deprecated in favor of server-specific properties since their behaviors are not strictly the same.
+- [big Lime]*[ ✓ ]* The `server.use-forward-headers` property has been deprecated in favor of `server.forward-headers-strategy`; previously `server.use-forward-headers=true` would use the web server native support. You can now achieve the same with `server.forward-headers-strategy=native`. Because each server has a specific behavior, we now offer an alternative which relies on Spring's `ForwardedHeaderFilter`: `server.forward-headers-strategy=framework`. Developers should use the option that fits best their use case.
+- [big red]*[ x ]* `ReactiveWebServerApplicationContext#getWebServerFactory`.
+- [big Lime]*[ ✓ ]* The `agent` property of the Maven plugin has been renamed to `agents`.
+- [big red]*[ x ]* Joda time support is deprecated in favour of `java.time`.
+- [big Lime]*[ ✓ ]* `ApplicationHealthIndicator` in favour of `PingHealthIndicator` that is always contributed.
+- [big red]*[ x ]* `ConfigurationBeanFactoryMetadata` in favour of `ConfigurationPropertiesBean`.
+- [big red]*[ x ]* `ConfigurationPropertiesBindingPostProcessor` constructors in favor of `@EnableConfigurationProperties` or the `register` method.
+- [big red]*[ x ]* `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` has moved to `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`.
+- [big red]*[ x ]* `ConfigurationPropertiesBindingPostProcessorRegistrar` in favor of `@EnableConfigurationProperties`.
+- [big Lime]*[ ✓ ]* `WebTestClientBuilderCustomizer` has been relocated to `org.springframework.boot.test.web.reactive.server`.
+
+== Legend
+- [big Lime]*[ ✓ ]* = Migrated.
+- [big red]*[ x ]* = Not currently supported.

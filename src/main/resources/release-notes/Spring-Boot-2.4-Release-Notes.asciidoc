@@ -1,0 +1,624 @@
+:root-docs: https://docs.spring.io/spring-boot/docs/2.4.0
+:docs: {root-docs}/reference/html/
+:actuator-api-docs: {root-docs}/actuator-api/htmlsingle
+:api-docs: {root-docs}/api/org/springframework/boot
+:gradle-docs: {root-docs}/gradle-plugin/reference/htmlsingle
+:maven-docs: {root-docs}/maven-plugin/reference/htmlsingle
+
+= Spring Boot 2.4 Release Notes
+
+
+
+== Upgrading from Spring Boot 2.3
+
+=== Versioning scheme change
+
+As of 2.4, Spring Boot is adopting the https://spring.io/blog/2020/04/30/updates-to-spring-versions[the new Spring versioning scheme] - this means you should update the Spring Boot version in your `build.gradle`/`pom.xml` files from `2.3.5.RELEASE` to `2.4.0`.
+
+=== JUnit 5's Vintage Engine Removed from `spring-boot-starter-test`
+If you upgrade to Spring Boot 2.4 and see test compilation errors for JUnit classes such as `org.junit.Test`, this may be because JUnit 5's vintage engine has been removed from `spring-boot-starter-test`. The vintage engine allows tests written with JUnit 4 to be run by JUnit 5.
+If you do not want to migrate your tests to JUnit 5 and wish to continue using JUnit 4, add a dependency on the Vintage Engine, as shown in the following example for Maven:
+
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<dependency>
+    <groupId>org.junit.vintage</groupId>
+    <artifactId>junit-vintage-engine</artifactId>
+    <scope>test</scope>
+    <exclusions>
+        <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+----
+
+If you are using Gradle, the equivalent configuration is shown in the following example:
+
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+testImplementation("org.junit.vintage:junit-vintage-engine") {
+    exclude group: "org.hamcrest", module: "hamcrest-core"
+}
+----
+
+
+=== Config File Processing (application properties and YAML files)
+Spring Boot 2.4 has changed the way that `application.properties` and `application.yml` files are processed.
+If you only have a simple `application.properties` or `application.yml` file, your upgrade should be seamless.
+If, however, you've have a more complex setup (with profile specific properties, or profile activation properties) you may need to make link:Spring-Boot-Config-Data-Migration-Guide[some changes] if you want to use the new features.
+
+If you just want Spring Boot 2.3 compatible logic, you can set a `spring.config.use-legacy-processing` property to `true` in your `application.properties` or `application.yml` file.
+
+
+
+=== Config Data Imports
+Config locations specified via `spring.config.location` and `spring.config.import` (introduced in this release) will no longer fail silently if the file or folder does not exist.
+If you want to import a location, but you don't mind skipping it if it cannot be found, you should now prefix it with `optional:`.
+
+For example, `spring.config.location=optional:/etc/config/application.properties` will import an `application.properties` file from `/etc/config/` if it exists, and skip it if it does not.
+
+If you want to treat all locations as optional you can set `spring.config.on-not-found=ignore` in `SpringApplication.setDefaultProperties(...)` or with a system/environment variable.
+
+
+
+=== Embedded database detection
+The embedded database logic has been refined to consider a database as embedded only if it is in-memory.
+This change has two consequences if you're using file-based persistence or server mode with H2, HSQL and Derby:
+
+* The `sa` username is no longer set. If you were relying on that behaviour, you'd need to set `spring.datasource.username=sa` in your configuration.
+* Such database won't be initialised on startup anymore as they are no longer considered as embedded. You can tune this as usual using `spring.datasource.initialization-mode`.
+
+
+=== User-defined MonogoClientSettings no longer customized
+If you are providing your own `MongoClientSettings` bean, it is no longer customized by the auto-configuration.
+If you were relying on that behaviour, in particular in combination with Embedded Mongo, consider applying the customizer to your own bean as shown in the following example:
+
+[source,java]
+----
+@Bean
+public MongoClientSettings userDefinedMonogoClientSettings(MongoProperties properties, Environment environment) {
+   MongoClientSettings.Builder builder = MongoClientSettings.builder();
+   //...
+   new MongoPropertiesClientSettingsBuilderCustomizer(properties, environment).customize(builder);
+   return builder.build();
+}
+----
+
+
+
+=== Logback Configuration Properties
+Logging properties that are specific to Logback have been renamed to reflect the fact that they are Logback-specific. The previous names have been deprecated.
+
+The following Spring Boot properties have been changed:
+
+* `logging.pattern.rolling-file-name` ->
+`logging.logback.rollingpolicy.file-name-pattern`
+
+* `logging.file.clean-history-on-start` ->
+`logging.logback.rollingpolicy.clean-history-on-start`
+
+* `logging.file.max-size` ->
+`logging.logback.rollingpolicy.max-file-size`
+
+* `logging.file.total-size-cap` ->
+`logging.logback.rollingpolicy.total-size-cap`
+
+* `logging.file.max-history` ->
+`logging.logback.rollingpolicy.max-history`
+
+As have the system environment properties that they map to:
+
+* `ROLLING_FILE_NAME_PATTERN` ->
+`LOGBACK_ROLLINGPOLICY_FILE_NAME_PATTERN`
+
+* `LOG_FILE_CLEAN_HISTORY_ON_START` ->
+`LOGBACK_ROLLINGPOLICY_CLEAN_HISTORY_ON_START`
+
+* `LOG_FILE_MAX_SIZE` ->
+`LOGBACK_ROLLINGPOLICY_MAX_FILE_SIZE`
+
+* `LOG_FILE_TOTAL_SIZE_CAP` ->
+`LOGBACK_ROLLINGPOLICY_TOTAL_SIZE_CAP`
+
+* `LOG_FILE_MAX_HISTORY` ->
+`LOGBACK_ROLLINGPOLICY_MAX_HISTORY`
+
+
+
+=== Default Servlet Registration
+Spring Boot 2.4 will no longer register the `DefaultServlet` provided by your servlet container.
+In most applications, it isn't used since the Spring MVC's `DispatcherServlet` is the only servlet that's required.
+
+You can set `server.servlet.register-default-servlet` to `true` if you find you still need the default servlet.
+
+
+
+=== HTTP traces no longer include cookie headers by default
+`Cookie` request headers and `Set-Cookie` response headers are no longer included in HTTP traces by default.
+To restore Spring Boot 2.3's behaviour, set `management.trace.http.include` to `cookies, errors, request-headers, response-headers`.
+
+
+
+=== Undertow Path on Forward
+By default, Undertow preserves the original request URL when a request is forwarded.
+This release overrides the Undertow default to comply with the Servlet spec.
+The previous Undertow default behavior can be restored by setting a property `server.undertow.preserve-path-on-forward` to `true`.
+
+
+
+=== Neo4j
+This release brings a significant overhaul of the Neo4j support.
+A number of properties in `spring.data.neo4j.*` have been removed and the support of Neo4j OGM has been removed as well.
+
+Configuration of the Neo4j driver is done via the `spring.neo4j.*` namespace although URI and basic authentication from the `data` namespace are still supported in a deprecated fashion.
+
+For more details about this change and what Spring Data Neo4j 6 brings, https://docs.spring.io/spring-data/neo4j/docs/6.0.x/reference/html/[check the documentation].
+
+
+
+=== Hazelcast 4
+This release upgrades to Hazelcast 4 whilst keeping compatibility with Hazelcast `3.2.x`. If you're not ready to switch to Hazelcast 4, you can downgrade using the `hazelcast.version` property in your build.
+
+
+
+=== Elasticsearch RestClient
+The low-level Elasticsearch `RestClient` bean will no longer be auto-configured by Spring Boot.
+A `RestHighLevelClient` bean is still auto-configured.
+
+Most users should not need to use the low-level client and should not be affected by this change.
+
+
+
+=== R2DBC
+The core infrastructure of R2DBC has moved to Spring Framework with a new `spring-r2dbc` module.
+If you are using this infrastructure, make sure to migrate deprecated access to the new core support.
+
+
+
+=== Flyway
+The upgrade to Flyway 7 includes https://github.com/flyway/flyway/issues/2785[some changes] to callback ordering.
+This will be a breaking change for anyone relying on registration order which we support via `@Order` and `Ordered`.
+
+If you are using Flyway 5, make sure to upgrade to Flyway 6 before upgrading to Spring Boot 2.4 as Flyway only keeps schema upgrades for one feature release.
+
+
+
+=== Removal of Plugin Management for Flatten Maven Plugin
+Spring Boot's build no longer makes use of the Flatten Maven Plugin (`flatten-maven-plugin`) and plugin management for it has been removed. If you were relying on Spring Boot's managed version, you should add your own plugin management.
+
+
+
+=== Version management for `exec-maven-plugin`
+The version management for the `exec-maven-plugin` has been removed.
+If you are using this plugin, make sure to specify a version in your own `pluginManagement`.
+
+
+
+=== Spring Boot Gradle Plugin
+The DSL for the Spring Boot Gradle Plugin `bootJar` task has been updated so that the `mainClass` can be configured using a `Property<String>`.
+If you currently use `mainClassName`, for example:
+
+[source,gradle]
+----
+bootJar {
+	mainClassName 'com.example.ExampleApplication'
+}
+----
+
+You should change it to `mainClass`:
+
+[source,gradle]
+----
+bootJar {
+	mainClass 'com.example.ExampleApplication'
+}
+----
+
+
+
+=== Metrics export in integration tests
+`@SpringBootTest` no longer configures available monitoring systems and only provide the in-memory `MeterRegistry`.
+If you were exporting metrics as part of an integration test, you can add `@AutoConfigureMetrics` to your test to restore the previous behaviour.
+
+
+
+=== Deprecations from Spring Boot 2.2 and 2.3
+Reflecting the Spring Boot https://github.com/spring-projects/spring-boot/wiki/Supported-Versions#release-compatibility[release compatibility policy], code deprecated in Spring Boot 2.2 was removed in Spring Boot 2.4. Code deprecated in Spring Boot 2.3 remains in place, and is scheduled for removal in Spring Boot 2.5.
+
+
+
+== New and Noteworthy
+TIP: Check link:Spring-Boot-2.4.0-Configuration-Changelog[the configuration changelog] for a complete overview of the changes in configuration.
+
+
+
+=== Spring Framework 5.3
+Spring Boot 2.4 uses Spring Framework 5.3.
+The Spring Framework wiki has a https://github.com/spring-projects/spring-framework/wiki/What%27s-New-in-Spring-Framework-5.x[what's new section] with details of the new release.
+
+
+
+
+=== Spring Data 2020.0
+Spring Boot 2.4 includes version 2020.0 (code-named Ockham) of the Spring Data release train.
+See the https://github.com/spring-projects/spring-data-commons/wiki/Release-Train-Ockham-%282020.0.0%29[Spring Data wiki] for release details.
+
+
+
+==== Neo4j
+This release brings support of reactive repositories and rely on a separate auto-configuration for the Neo4j driver.
+As a result, it is now possible to use Neo4j with or without Spring Data.
+
+Health checks for Neo4j use the Driver and are available as long as the Neo4j driver is configured.
+
+If you want to use `@Transactional` with reactive access, you'd need to configure the `Neo4jReactiveTransactionManager` bean yourself for now.
+
+[source,java,indent=0]
+----
+@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
+public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+      ReactiveDatabaseSelectionProvider databaseNameProvider) {
+    return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider);
+}
+----
+
+
+
+==== R2DBC
+A `R2dbcEntityTemplate` is available to simplify the use of Reactive R2DBC usage through entities
+
+
+
+=== Java 15 Support
+Spring Boot 2.4 now fully supports (and is tested against) Java 15.
+The minimum supported version remains Java 8.
+
+
+
+=== Custom property name support
+When using constructor binding the name of the property is derived from the parameter name.
+This can be a problem if you want to use a java reserved keyword.
+For such situations, you can now use the `@Name` annotation, something like:
+
+[source,java,indent=0]
+----
+@ConfigurationProperties(prefix = "sample")
+@ConstructorBinding
+public class SampleConfigurationProperties {
+
+  private final String importValue;
+
+  public SampleConfigurationProperties(@Name("import") String importValue) {
+    this.importValue = importValue;
+  }
+
+}
+----
+
+The sample above exposes a `sample.import` property.
+
+
+
+
+=== Layered jar enabled by default
+This release enables layered jars and include the layertools by default.
+This should improve the efficiency of generated image using the build pack out-of-the-box and lets you benefit of that feature when {docs}spring-boot-features.html#layering-docker-images[crafting custom `Dockerfile`].
+
+
+
+=== Importing Additional Application Config
+As long as you haven't set `spring.config.use-legacy-processing` to `true`, you can now import additional properties and yaml files directly from your main `application.properties` or `application.yml`.
+
+You can use the `spring.config.import` property to specify one or more additional config files that should be imported into the Spring `Environment`.
+See {docs}spring-boot-features.html#boot-features-external-config-files-importing[this section] of the reference guide for more details.
+
+We've published https://spring.io/blog/2020/08/14/config-file-processing-in-spring-boot-2-4[a short blog] explaining why we've made these changes.
+
+
+
+=== Volume Mounted Config Directory Trees
+The `spring.config.import` property can also be used to import configuration trees that are commonly used with Kubernetes.
+A configuration tree is an alternative way of providing key/value pairs.
+Each pair is declared in its own file, with the filename forming the property key, and the file contents providing the value.
+
+For a complete example, see the {docs}spring-boot-features.html#boot-features-external-config-files-configtree[updated reference documentation].
+
+Properties loaded from config trees have trailing newline characters trimmed by default.
+
+
+
+
+=== Importing Config Files That Have no File Extension
+Some Cloud platforms only allow you to volume mount files without a file extension.
+If you have such a constraint, It's now possible to import these files by providing a hint to Spring Boot about the content type.
+For example, `spring.config.import=/etc/myconfig[.yaml]` will load `/etc/myconfig` as YAML.
+
+
+
+=== Origin Chains
+The `Origin` interface has been updated with a new `getParent()` method.
+This allows us to provide a full origin chain that can show exactly where an item originated from.
+
+For example, you might use `spring.config.import` in your `application.properties` to import a second file.
+The `Origin` of properties loaded from this second file will have a parent that points back to the orginal import declaration.
+
+You can try this yourself by looking at the output of the `actuator/env` or `actuator/configprops` actuator endpoints.
+
+
+
+=== Startup Endpoint
+A new `startup` actuator endpoint is now available that shows information about your applications startup.
+The endpoint can help you identify beans that are taking longer than expected to start.
+
+This work builds on the application startup tracking feature that was recently added to Spring Framwork 5.3.
+You can read more about the feature https://docs.spring.io/spring-framework/docs/5.3.x/reference/html/core.html#context-functionality-startup[in the Spring Framework reference documentation].
+
+The new actuator API is {actuator-api-docs}/#startup[documented here].
+
+
+
+=== Docker/Buildpack Support
+
+
+
+==== Publishing Images
+The Maven plugin `spring-boot:build-image` goal and Gradle plugin `bootBuildImage` task now have the ability to publish the generated image to a Docker registry.
+See the {maven-docs}/#build-image-example-publish[Maven] and {gradle-docs}/#build-image-example-publish[Gradle] plugin documentation for more details on configuring the plugins for publishing images.
+
+
+
+==== Authentication
+When using Spring Boot's buildpack support, you can now use a private authenticated Docker registry for your builder or run image.
+Both username/password and token based authentication are supported.
+
+The {maven-docs}/#build-image-docker-registry[Maven] and {maven-docs}/#build-image-docker-registry[Gradle] documentation have been updated to show the new configuration.
+
+
+
+==== Paketo Buildpack Defaults
+The image builder used by the Maven plugin `spring-boot:build-image` goal and Gradle plugin `bootBuildImage` task by default has been upgraded to the latest Paketo images.
+The Paketo image registry has been changed from Google Container Registry to Docker Hub for improved accessibility.
+
+
+
+=== Maven Buildpack Support
+The `spring-boot:build-image` Maven goal now puts all project modules dependencies in the "application" layer.
+This means that if you have multiple project modules in your build, they will now all end up in the same layer.
+
+The XML schema has also been updated to allow the layer to be customized using new `<includeModuleDependencies/>` and `<excludeModuleDependencies/>` elements.
+
+See the {maven-docs}/#repackage-layers-configuration[updated Maven documentation] for details.
+
+
+
+==== Gradle Buildpack Support
+The `bootBuildImage` Gradle task now puts _all_ project modules dependencies in the "application" layer.
+This means that if you have multiple project modules in your build, they will now all end up in the same layer.
+
+You can also use `includeProjectDependencies()` and `excludeProjectDependencies()` in the DSL when customizing layers.
+
+See the {gradle-docs}#packaging-layered-jars[updated Gradle documentation] for details.
+
+
+
+=== Redis Cache Metrics
+If you're using Redis caching you can now expose cache statistics via Micrometer.
+Metrics logged include the number puts, gets and deletes as well as hits/misses.
+The number of pending requests and the lock wait duration are also recorded.
+
+To enable the feature, set `spring.cache.redis.enable-statistics` to `true`.
+
+
+
+=== Web Configuration Properties
+Properties have been added to support configuration of the web locale and resource locations with either Spring MVC or Spring WebFlux.
+The new properties are:
+
+* `spring.web.locale`
+* `spring.web.locale-resolver`
+* `spring.web.resources.*`
+
+A new property has been added to support configuration of the actuators management endpoint with either the servlet or reactive web stack:
+
+* `management.server.base-path`
+
+These Spring MVC and servlet specific properties have been deprecated in favor of the new properties that support either web stack:
+
+* `spring.mvc.locale`
+* `spring.mvc.locale-resolver`
+* `spring.resources.*`
+* `management.server.servlet.context-path`
+
+
+
+=== Register @WebListeners in a way that allows them to register servlets and filters
+Servlet `@WebListener` classes are now registered in such a way that they may themselves register servlets and filters.
+
+Earlier versions of Spring Boot registered them using a call to `javax.servlet.Registration.Dynamic`.
+This meant that the following section of Servlet specification (4.4) applied:
+
+> If the ServletContext passed to the ServletContextListener’s contextInitialized method where the ServletContextListener was neither declared in web.xml or web-fragment.xml nor annotated with @WebListener then an UnsupportedOperationException MUST be thrown for all the methods defined in ServletContext for programmatic configuration of servlets, filters and listeners.
+
+As of Spring Boot 2.4, we no longer use dynamic registration and so it's safe to call `event.getServletContext().addServlet(...)` and `event.getServletContext.addFilter(...)` from a `ServletContextListener.contextInitialized` method.
+
+
+
+=== Slice Test for Cassandra
+An additional test slice can be used to test components that rely on Cassandra using `@DataCassandraTest`.
+As usual, only Cassandra Repositories and the required infrastructure is configured by default.
+
+Here is an example using Testcontainers and `@DynamicPropertSource`:
+
+[source,java,indent=0]
+----
+@DataCassandraTest(properties = "spring.data.cassandra.local-datacenter=datacenter1")
+@Testcontainers(disabledWithoutDocker = true)
+class SampleDataCassandraTestIntegrationTests {
+
+	@Container
+	static final CassandraContainer<?> cassandra = new CassandraContainer<>().withStartupAttempts(5)
+			.withStartupTimeout(Duration.ofMinutes(2));
+
+	@DynamicPropertySource
+	static void cassandraProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.data.cassandra.contact-points",
+				() -> cassandra.getHost() + ":" + cassandra.getFirstMappedPort());
+	}
+
+	...
+
+}
+----
+
+
+
+=== Flyway 7
+This release upgrades to Flyway 7 which brings some additional properties.
+For the open source edition we've add the following `spring.flyway` properties:
+
+- `url`
+- `user`
+- `password`
+
+If you're using the "teams" edition you can also make use of:
+
+- `cherry-pick`
+- `jdbc-properties`
+- `oracle-kerberos-cache-file`
+- `oracle-kerberos-config-file`
+- `skip-executing-migrations`
+
+
+
+=== Configuration property for H2 Console's web admin password
+A new configuration property, `spring.h2.console.settings.web-admin-password`, for configuring H2 Console's web admin password has been introduced.
+The password controls access to the console's preferences and tools.
+
+
+
+=== CqlSession-Based Health Indicators for Apache Cassandra
+New `CqlSession` based health indicators, `CassandraDriverHealthIndicator` and `CassandraDriverReactiveHealthIndicator`, have been introduced.
+One of these indicators will be auto-configured when Cassandra's Java Driver is on the classpath.
+The existing Spring Data Cassandra-based health indicators have been deprecated.
+
+
+
+=== Filtered Scraping with Prometheus
+The Actuator's Prometheus endpoint, `/actuator/prometheus`, now supports an `includedNames` query parameter that can be used to filter the samples that are included in the response.
+See the {actuator-api-docs}#prometheus-retrieving-names[Actuator API documentation] for further details.
+
+
+
+=== Spring Security SAML Configuration Properties
+Properties have been added to allow configuration of a SAML2 relying party registration's decryption credentials and Assertion Consumer Service (ACS).
+The properties are under the following headings:
+
+* {api-docs}/autoconfigure/security/saml2/Saml2RelyingPartyProperties.Decryption.html[`spring.security.saml2.relyingparty.registration.decryption.*`]
+* {api-docs}/autoconfigure/security/saml2/Saml2RelyingPartyProperties.Registration.Acs.html[`spring.security.saml2.relyingparty.registration.acs.*`]
+
+
+
+=== Failure Analyzers
+FailureAnalizers will now be considered even if a `ApplicationContext` was not created.
+This allows them to also analyze any exceptions thrown during `Environment` processing.
+
+Note that any analyzer that implements `BeanFactoryAware` or `EnvironmentAware` will not be used unless the `ApplicationContext` was created.
+
+
+
+=== Jar Optimizations
+When generating runnable Spring Boot jars, empty starter dependencies will now be automatically removed.
+Since most starters only provide transitive dependencies, there is little point in packaging them in the final jar.
+
+Spring Boot annotation processors are also removed as well as they are only useful during the build.
+These are `spring-boot-autoconfigure-processor` and `spring-boot-configuration-processor`.
+
+If you have your own starter POMs that contain no code, you can add a `Spring-Boot-Jar-Type` entry to its MANIFEST.MF with the value "dependencies-starter".
+If you want to filter out an annotation processor, you can add the same property with the value "annotation-processor".
+
+
+
+=== Miscellaneous
+Apart from the changes listed above, there have also been lots of minor tweaks and improvements including:
+
+- Version of the JVM on which the application is running is now logged on startup.
+- Trailing whitespace is automatically trimmed from the value of `logging.config`.
+- R2DBC pool support exposes additional configuration properties.
+- Exception handling in `LdapTemplate` can be configured to ignore certain exceptions.
+- ISO offset date time format is support for MVC and Webflux.
+- Add a configuration property to opt-in for the new `PathPatternParser` in lieu of `AntPathMatcher` to parse and match request mapping path patterns.
+- `@DurationUnit`, `@DataSizeUnit`, and `@PeriodUnit` can annotate a constructor parameter using `@ConstructorBinding`.
+- The auto-configured `RabbitConnectionFactory` checks for the presence of `CredentialsProvider` and `CredentialsRefreshService`.
+- A health group can be defined with only exclusions.
+- `AbstractRoutingDataSource` can be ignored in health checks using `management.health.db.ignore-routing-data-sources`.
+- The localEntityIdTemplate of A SAML Relying party can be configured.
+- HTTP traces are measures with nanosecond precision.
+- A dedicated `FailureAnalyzer` provides a meaningful message when a Liquibase changelog is missing.
+- Netty's request decoder can be customized using `server.netty.*` properties.
+- Plugin management for the Liquibase Maven Plugin that is consistent with the Liquibase version a Spring Boot version manages.
+- Basic authentication support for Prometheus PushGateway.
+- Allow selecting Jedis when both Jedis and Lettuce are available using `spring.redis.client-type`.
+- Allow disabling Redis Cluster dynamic sources refresh using `spring.redis.lettuce.cluster.refresh.dynamic-sources`.
+- The reference documentation now includes both `Properties` and `YAML` for all configuration examples.
+- RSocketServer's fragment size can now be customized using the `spring.rsocket.fragment-size` property.
+- The charsets used to by Logback and Log4j logging can now be configured using the properties `logging.charset.console` and `logging.charset.file`.
+- Gradle’s https://docs.gradle.org/current/userguide/configuration_cache.html[configuration cache] is supported when using Gradle 6.7 or later to build a Spring Boot application.
+
+
+
+=== Dependency Upgrades
+Spring Boot 2.4 moves to new versions of several Spring projects:
+
+
+- Spring AMQP 2.3 (https://docs.spring.io/spring-amqp/reference/html/#whats-new[what's new])
+- Spring Batch 4.3 (https://docs.spring.io/spring-batch/docs/current/reference/html/whatsnew.html#whatsNew[what's new])
+- Spring Data 2020.0 (https://github.com/spring-projects/spring-data-commons/wiki/Release-Train-Ockham-%282020.0.0%29[changelog])
+- Spring Framework 5.3 (https://github.com/spring-projects/spring-framework/wiki/What%27s-New-in-Spring-Framework-5.x[what's new] | https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-5.x#upgrading-to-version-53[upgrading])
+- Spring Integration 5.4 (https://docs.spring.io/spring-integration/docs/current/reference/html/whats-new.html#whats-new[what's new])
+- Spring HATEOAS 1.2 (https://docs.spring.io/spring-hateoas/docs/1.2.0/reference/html/#migrate-to-1.0[migration guide])
+- Spring Kafka 2.6 (https://docs.spring.io/spring-kafka/reference/html/#spring-kafka-intro-new[what's new])
+- Spring Retry 1.3
+- Spring Security 5.4 (https://docs.spring.io/spring-security/site/docs/5.4.0/reference/html5/#new[what's new])
+- Spring Session 2020.0
+
+
+
+Numerous third-party dependencies have also been updated, some of the more noteworthy of which are the following:
+
+- Artemis 2.13
+- AssertJ 3.18
+- https://docs.datastax.com/en/developer/java-driver/4.9/[Cassandra Driver 4.7]
+- Elasticsearch 7.9
+- Flyway 7
+- Jersey 2.31
+- JUnit 5.7
+- Liquibase 3.10
+- Lettuce 6.0 (https://github.com/lettuce-io/lettuce-core/releases/tag/6.0.0.RELEASE[release notes])
+- Micrometer 1.6 (https://github.com/micrometer-metrics/micrometer/releases/tag/v1.6.0[release notes])
+- Mockito 3.4
+- MongoDB 4.1
+- Oracle Database 19.7
+- Reactor 2020.0 (https://github.com/reactor/reactor/releases/tag/2020.0.0[release notes])
+- RSocket 1.1
+- Undertow 2.2
+
+
+
+== Deprecations in Spring Boot 2.4
+
+* [big red]*[ x ]* `ConfigFileApplicationListener` has been deprecated in favor of `ConfigDataEnvironmentPostProcessor`.
+* [big red]*[ x ]* `SpringApplicationBuilder` and `SpringApplication` methods relating to the `contextClass` have been deprecated in favor of alternatives that use a `contextFactory`.
+* [big red]*[ x ]* Some methods of `CloudFoundryVcapEnvironmentPostProcessor` have been deprecated to work with `EnvironmentPostProcessor` updates (these should affect most users).
+* [big red]*[ x ]* The `BuildLog` build pack support class has deprecated a few methods and replaced them with alternatives that provide more details.
+* [big Lime]*[ ✓ ]* Logback constants in `LoggingSystemProperties` have been deprecated in favor of `LogbackLoggingSystemProperties`.
+* [big Lime]*[ ✓ ]* The `isEagerInitFilters`/`setEagerInitFilters` methods in `UndertowServletWebServerFactory` have been replaced by `isEagerFilterInit`/`setEagerFilterInit`.
+* [big red]*[ x ]* A few methods from `ApplicationEnvironmentPreparedEvent`, `ApplicationStartingEvent` and `SpringApplicationRunListener` have been deprecated to support `BootstrapContext`.
+* [big red]*[ x ]* The `BuildLog` for buildpack support has been updated to support more data (most users will not directly use this class).
+* [big Lime]*[ ✓ ]* Some Spring MVC and servlet specific properties have been deprecated (see the Web Configuration Properties section above).
+* [big red]*[ x ]* Health indicators using Spring Data Cassandra have been deprecated in favour of the ones that are using the raw driver.
+
+== Legend
+- [big Lime]*[ ✓ ]* = Migrated.
+- [big red]*[ x ]* = Not currently supported.
