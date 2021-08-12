@@ -51,7 +51,7 @@ class MigrateLoggingSystemPropertyConstantsTest : JavaRecipeTest {
                 public static final String ROLLINGPOLICY_MAX_FILE_SIZE = "";
                 public static final String ROLLINGPOLICY_TOTAL_SIZE_CAP = "";
                 public static final String ROLLINGPOLICY_FILE_NAME_PATTERN = "";
-             
+            }
         """
     }
 
