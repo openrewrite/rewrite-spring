@@ -76,7 +76,7 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
             
             class Test {
                 void methodA() {
-                    ErrorProperties.IncludeStacktrace doNotUpdate = ErrorProperties.IncludeStacktrace.ON_TRACE_PARAM;
+                    ErrorProperties.IncludeStacktrace value = ErrorProperties.IncludeStacktrace.ON_TRACE_PARAM;
                 }
             }
         """,
@@ -87,7 +87,7 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
             
             class Test {
                 void methodA() {
-                    ErrorProperties.IncludeStacktrace doNotUpdate = ErrorProperties.IncludeStacktrace.ON_PARAM;
+                    ErrorProperties.IncludeStacktrace value = ErrorProperties.IncludeStacktrace.ON_PARAM;
                 }
             }
         """
@@ -103,7 +103,7 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
             
             class Test {
                 void methodA() {
-                    ErrorProperties.IncludeStacktrace doNotUpdate = IncludeStacktrace.ON_TRACE_PARAM;
+                    IncludeStacktrace value = IncludeStacktrace.ON_TRACE_PARAM;
                 }
             }
         """,
@@ -114,7 +114,7 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
             
             class Test {
                 void methodA() {
-                    ErrorProperties.IncludeStacktrace doNotUpdate = IncludeStacktrace.ON_PARAM;
+                    IncludeStacktrace value = IncludeStacktrace.ON_PARAM;
                 }
             }
         """
@@ -126,22 +126,26 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
         before = """
             package org.test;
 
+            import org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace;
+
             import static org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace.ON_TRACE_PARAM;
             
             class Test {
                 void methodA() {
-                    ErrorProperties.IncludeStacktrace doNotUpdate = ON_TRACE_PARAM;
+                    IncludeStacktrace value = ON_TRACE_PARAM;
                 }
             }
         """,
         after = """
             package org.test;
 
+            import org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace;
+
             import static org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace.ON_PARAM;
             
             class Test {
                 void methodA() {
-                    ErrorProperties.IncludeStacktrace doNotUpdate = ON_PARAM;
+                    IncludeStacktrace value = ON_PARAM;
                 }
             }
         """
