@@ -538,7 +538,7 @@ Apart from the changes listed above, there have also been lots of minor tweaks a
 
 - ✅ The `logging.file` property has been renamed to `logging.file.name`.
 - ✅ The `logging.path` property has been renamed to `logging.file.path`.
-- ✅The `server.connection-timeout` property has been deprecated in favor of server-specific properties since their behaviors are not strictly the same.
+- ✅ The `server.connection-timeout` property has been deprecated in favor of server-specific properties since their behaviors are not strictly the same.
 - ✅ The `server.use-forward-headers` property has been deprecated in favor of `server.forward-headers-strategy`; previously `server.use-forward-headers=true` would use the web server native support. You can now achieve the same with `server.forward-headers-strategy=native`. Because each server has a specific behavior, we now offer an alternative which relies on Spring's `ForwardedHeaderFilter`: `server.forward-headers-strategy=framework`. Developers should use the option that fits best their use case.
 - 🔴 `ReactiveWebServerApplicationContext#getWebServerFactory`.
 - ✅ The `agent` property of the Maven plugin has been renamed to `agents`.
@@ -549,3 +549,8 @@ Apart from the changes listed above, there have also been lots of minor tweaks a
 - 🔴 `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` has moved to `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`.
 - 🔴 `ConfigurationPropertiesBindingPostProcessorRegistrar` in favor of `@EnableConfigurationProperties`.
 - ✅ `WebTestClientBuilderCustomizer` has been relocated to `org.springframework.boot.test.web.reactive.server`.
+
+== Legend
+- ✅ = Migrated.
+- 🟨 = Partial support.
+- 🔴 = Not currently supported

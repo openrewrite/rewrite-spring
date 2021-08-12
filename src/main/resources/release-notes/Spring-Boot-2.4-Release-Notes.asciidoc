@@ -608,17 +608,18 @@ Numerous third-party dependencies have also been updated, some of the more notew
 
 == Deprecations in Spring Boot 2.4
 
-* [big red]*[ x ]* `ConfigFileApplicationListener` has been deprecated in favor of `ConfigDataEnvironmentPostProcessor`.
-* [big red]*[ x ]* `SpringApplicationBuilder` and `SpringApplication` methods relating to the `contextClass` have been deprecated in favor of alternatives that use a `contextFactory`.
-* [big red]*[ x ]* Some methods of `CloudFoundryVcapEnvironmentPostProcessor` have been deprecated to work with `EnvironmentPostProcessor` updates (these should affect most users).
-* [big red]*[ x ]* The `BuildLog` build pack support class has deprecated a few methods and replaced them with alternatives that provide more details.
-* [big Lime]*[ ✓ ]* Logback constants in `LoggingSystemProperties` have been deprecated in favor of `LogbackLoggingSystemProperties`.
-* [big Lime]*[ ✓ ]* The `isEagerInitFilters`/`setEagerInitFilters` methods in `UndertowServletWebServerFactory` have been replaced by `isEagerFilterInit`/`setEagerFilterInit`.
-* [big red]*[ x ]* A few methods from `ApplicationEnvironmentPreparedEvent`, `ApplicationStartingEvent` and `SpringApplicationRunListener` have been deprecated to support `BootstrapContext`.
-* [big red]*[ x ]* The `BuildLog` for buildpack support has been updated to support more data (most users will not directly use this class).
-* [big Lime]*[ ✓ ]* Some Spring MVC and servlet specific properties have been deprecated (see the Web Configuration Properties section above).
-* [big red]*[ x ]* Health indicators using Spring Data Cassandra have been deprecated in favour of the ones that are using the raw driver.
+- 🔴  `ConfigFileApplicationListener` has been deprecated in favor of `ConfigDataEnvironmentPostProcessor`.
+- 🔴  `SpringApplicationBuilder` and `SpringApplication` methods relating to the `contextClass` have been deprecated in favor of alternatives that use a `contextFactory`.
+- 🔴  Some methods of `CloudFoundryVcapEnvironmentPostProcessor` have been deprecated to work with `EnvironmentPostProcessor` updates (these should affect most users).
+- 🟨  The `BuildLog` build pack support class has deprecated a few methods and replaced them with alternatives that provide more details.
+* ✅ Logback constants in `LoggingSystemProperties` have been deprecated in favor of `LogbackLoggingSystemProperties`.
+* ✅ The `isEagerInitFilters`/`setEagerInitFilters` methods in `UndertowServletWebServerFactory` have been replaced by `isEagerFilterInit`/`setEagerFilterInit`.
+- 🔴  A few methods from `ApplicationEnvironmentPreparedEvent`, `ApplicationStartingEvent` and `SpringApplicationRunListener` have been deprecated to support `BootstrapContext`.
+- 🔴  The `BuildLog` for buildpack support has been updated to support more data (most users will not directly use this class).
+* ✅ Some Spring MVC and servlet specific properties have been deprecated (see the Web Configuration Properties section above).
+- 🔴  Health indicators using Spring Data Cassandra have been deprecated in favour of the ones that are using the raw driver.
 
 == Legend
-- [big Lime]*[ ✓ ]* = Migrated.
-- [big red]*[ x ]* = Not currently supported.
+- ✅ = Migrated.
+- 🟨 = Partial support.
+- 🔴 = Not currently supported

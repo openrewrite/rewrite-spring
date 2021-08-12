@@ -358,11 +358,12 @@ Numerous third-party dependencies have also been updated, some of the more notew
 == Notable Deprecations in Spring Boot 2.5
 The following notable deprecations have been made in Spring Boot 2.5
 
-- [big red]*[ x ]* `ActuatorMediaType` and `ApiVersion` in `org.springframework.boot.actuate.endpoint.http` in favor of equivalents in `org.springframework.boot.actuate.endpoint`
-- [big red]*[ x ]* Support for beans that implement jOOQ's `*Provider` callback interfaces or `Settings` has been deprecated.
+- 🔴 `ActuatorMediaType` and `ApiVersion` in `org.springframework.boot.actuate.endpoint.http` in favor of equivalents in `org.springframework.boot.actuate.endpoint`
+- 🔴 Support for beans that implement jOOQ's `*Provider` callback interfaces or `Settings` has been deprecated.
 A `DefaultConfigurationCustomizer` should be used instead.
-- [big Lime]*[ ✓ ]* `EntityManagerFactoryDependsOnPostProcessor` in `org.springframework.boot.autoconfigure.data.jpa` has been relocated to `org.springframework.boot.autoconfigure.orm.jpa`
+- ✅ `EntityManagerFactoryDependsOnPostProcessor` in `org.springframework.boot.autoconfigure.data.jpa` has been relocated to `org.springframework.boot.autoconfigure.orm.jpa`
 
 == Legend
-- [big Lime]*[ ✓ ]* = Migrated.
-- [big red]*[ x ]* = Not currently supported.
+- ✅ = Migrated.
+- 🟨 = Partial support.
+- 🔴 = Not currently supported.

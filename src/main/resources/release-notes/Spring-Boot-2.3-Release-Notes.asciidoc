@@ -481,11 +481,12 @@ It can be used to detect when an application has been deployed as a war to a Ser
 
 == Deprecations in Spring Boot 2.3
 
-- [big Lime]*[ ✓ ]* The `spring.http.*` properties have been moved to `server.servlet.encoding.*`, `spring.mvc.*` and `spring.codec.*`, see https://github.com/spring-projects/spring-boot/issues/18827[#18827].
-- [big red]*[ x ]* `SpringApplication#refresh(ApplicationContext)` has been deprecated in favour of `SpringApplication#refresh(ConfigurableApplicationContext)`.
-- [big Lime]*[ ✓ ]* The `ON_TRACE_PARAM` used with the `server.error.include-stacktrace` property has been renamed to `ON_PARAM`.
-- [big Lime]*[ ✓ ]* `org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer` has been deprecated in favor of `org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer`
+- ✅  The `spring.http.*` properties have been moved to `server.servlet.encoding.*`, `spring.mvc.*` and `spring.codec.*`, see https://github.com/spring-projects/spring-boot/issues/18827[#18827].
+- 🔴 `SpringApplication#refresh(ApplicationContext)` has been deprecated in favour of `SpringApplication#refresh(ConfigurableApplicationContext)`.
+- ✅  The `ON_TRACE_PARAM` used with the `server.error.include-stacktrace` property has been renamed to `ON_PARAM`.
+- ✅  `org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientBuilderCustomizer` has been deprecated in favor of `org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer`
 
 == Legend
-- [big Lime]*[ ✓ ]* = Migrated.
-- [big red]*[ x ]* = Not currently supported.
+- ✅ = Migrated.
+- 🟨 = Partial support.
+- 🔴 = Not currently supported
