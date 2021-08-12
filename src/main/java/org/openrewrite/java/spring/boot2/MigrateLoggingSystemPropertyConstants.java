@@ -111,10 +111,10 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                         id.getMarkers(),
                         updateDeprecatedFields.get(id.getSimpleName()),
                         id.getType(),
-                        fieldType == null ? null : JavaType.Variable.build(
+                        JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 NEW_FQN,
-                                Flag.flagsToBitMap(fieldType.getFlags())));
+                                fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
 
                 doAfterVisit(new AddImport<>(NEW_FQN.getFullyQualifiedName(), id.getSimpleName(), false));
             }
