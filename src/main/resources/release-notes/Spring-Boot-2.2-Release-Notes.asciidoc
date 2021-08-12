@@ -536,20 +536,16 @@ Apart from the changes listed above, there have also been lots of minor tweaks a
 
 == Deprecations in Spring Boot 2.2
 
-- [big Lime]*[ ✓ ]* The `logging.file` property has been renamed to `logging.file.name`.
-- [big Lime]*[ ✓ ]* The `logging.path` property has been renamed to `logging.file.path`.
-- [big Lime]*[ ✓ ]* The `server.connection-timeout` property has been deprecated in favor of server-specific properties since their behaviors are not strictly the same.
-- [big Lime]*[ ✓ ]* The `server.use-forward-headers` property has been deprecated in favor of `server.forward-headers-strategy`; previously `server.use-forward-headers=true` would use the web server native support. You can now achieve the same with `server.forward-headers-strategy=native`. Because each server has a specific behavior, we now offer an alternative which relies on Spring's `ForwardedHeaderFilter`: `server.forward-headers-strategy=framework`. Developers should use the option that fits best their use case.
-- [big red]*[ x ]* `ReactiveWebServerApplicationContext#getWebServerFactory`.
-- [big Lime]*[ ✓ ]* The `agent` property of the Maven plugin has been renamed to `agents`.
-- [big red]*[ x ]* Joda time support is deprecated in favour of `java.time`.
-- [big Lime]*[ ✓ ]* `ApplicationHealthIndicator` in favour of `PingHealthIndicator` that is always contributed.
-- [big red]*[ x ]* `ConfigurationBeanFactoryMetadata` in favour of `ConfigurationPropertiesBean`.
-- [big red]*[ x ]* `ConfigurationPropertiesBindingPostProcessor` constructors in favor of `@EnableConfigurationProperties` or the `register` method.
-- [big red]*[ x ]* `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` has moved to `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`.
-- [big red]*[ x ]* `ConfigurationPropertiesBindingPostProcessorRegistrar` in favor of `@EnableConfigurationProperties`.
-- [big Lime]*[ ✓ ]* `WebTestClientBuilderCustomizer` has been relocated to `org.springframework.boot.test.web.reactive.server`.
-
-== Legend
-- [big Lime]*[ ✓ ]* = Migrated.
-- [big red]*[ x ]* = Not currently supported.
+- ✅ The `logging.file` property has been renamed to `logging.file.name`.
+- ✅ The `logging.path` property has been renamed to `logging.file.path`.
+- ✅The `server.connection-timeout` property has been deprecated in favor of server-specific properties since their behaviors are not strictly the same.
+- ✅ The `server.use-forward-headers` property has been deprecated in favor of `server.forward-headers-strategy`; previously `server.use-forward-headers=true` would use the web server native support. You can now achieve the same with `server.forward-headers-strategy=native`. Because each server has a specific behavior, we now offer an alternative which relies on Spring's `ForwardedHeaderFilter`: `server.forward-headers-strategy=framework`. Developers should use the option that fits best their use case.
+- 🔴 `ReactiveWebServerApplicationContext#getWebServerFactory`.
+- ✅ The `agent` property of the Maven plugin has been renamed to `agents`.
+- 🔴 Joda time support is deprecated in favour of `java.time`.
+- ✅ `ApplicationHealthIndicator` in favour of `PingHealthIndicator` that is always contributed.
+- 🔴 `ConfigurationBeanFactoryMetadata` in favour of `ConfigurationPropertiesBean`.
+- 🔴 `ConfigurationPropertiesBindingPostProcessor` constructors in favor of `@EnableConfigurationProperties` or the `register` method.
+- 🔴 `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` has moved to `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`.
+- 🔴 `ConfigurationPropertiesBindingPostProcessorRegistrar` in favor of `@EnableConfigurationProperties`.
+- ✅ `WebTestClientBuilderCustomizer` has been relocated to `org.springframework.boot.test.web.reactive.server`.
