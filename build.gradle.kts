@@ -51,7 +51,7 @@ description = "Eliminate legacy Spring patterns and migrate between major Spring
 
 sourceSets {
     listOf("1_5", "2_3", "2_4").forEach { version ->
-        create("testSpringBoot_${version}") {
+        create("testWithSpringBoot_${version}") {
             java {
                 compileClasspath += sourceSets.getByName("main").output
                 runtimeClasspath += sourceSets.getByName("main").output
@@ -88,11 +88,11 @@ signing {
 
 configurations {
     listOf("1_5", "2_3", "2_4").forEach { version ->
-        getByName("testSpringBoot_${version}RuntimeOnly") {
+        getByName("testWithSpringBoot_${version}RuntimeOnly") {
             isCanBeResolved = true
             extendsFrom(getByName("testImplementation"))
         }
-        getByName("testSpringBoot_${version}Implementation") {
+        getByName("testWithSpringBoot_${version}Implementation") {
             isCanBeResolved = true
             extendsFrom(getByName("testImplementation"))
         }
@@ -159,18 +159,18 @@ dependencies {
     testRuntimeOnly("org.springframework.boot:spring-boot-test:latest.release")
     testRuntimeOnly("org.springframework.boot:spring-boot-test-autoconfigure:latest.release")
 
-    "testSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
-    "testSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
-    "testSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
-    "testSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
+    "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
+    "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
+    "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
+    "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
 
-    "testSpringBoot_2_3RuntimeOnly"("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
-    "testSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:4.+")
-    "testSpringBoot_2_3RuntimeOnly"("junit:junit:latest.release")
-    "testSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
-    "testSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
+    "testWithSpringBoot_2_3RuntimeOnly"("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
+    "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:4.+")
+    "testWithSpringBoot_2_3RuntimeOnly"("junit:junit:latest.release")
+    "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
+    "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
 
-    "testSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
 }
 
 tasks.named<Test>("test") {
