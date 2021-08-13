@@ -45,7 +45,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.logging.logback.LoggingSystemProperties");
+        return new UsesType<>("org.springframework.boot.logging.LoggingSystemProperties");
     }
 
     @Override
@@ -55,7 +55,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
 
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {
         private static final JavaType.FullyQualified ORIGINAL_FQN =
-                JavaType.Class.build("org.springframework.boot.logging.logback.LoggingSystemProperties");
+                JavaType.Class.build("org.springframework.boot.logging.LoggingSystemProperties");
         private static final JavaType.FullyQualified NEW_FQN =
                 JavaType.Class.build("org.springframework.boot.logging.logback.LogbackLoggingSystemProperties");
 

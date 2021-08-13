@@ -113,5 +113,4 @@ public class UnnecessarySpringExtension extends Recipe {
             return a;
         }
     }
-
 }

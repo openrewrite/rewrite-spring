@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2
+package org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
@@ -22,7 +22,6 @@ import org.openrewrite.java.JavaRecipeTest
 import org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
 
 class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
-
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-beans", "spring-core", "spring-context", "spring-boot-test", "spring-web")

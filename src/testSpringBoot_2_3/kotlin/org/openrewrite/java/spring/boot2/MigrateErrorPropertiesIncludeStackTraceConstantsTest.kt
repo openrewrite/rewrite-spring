@@ -21,31 +21,13 @@ import org.openrewrite.java.JavaRecipeTest
 
 class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
     override val parser: JavaParser
-        get() = JavaParser.fromJavaVersion().classpath("java").build()
+        get() = JavaParser.fromJavaVersion().classpath("spring-boot-autoconfigure").build()
 
     override val recipe =
         MigrateErrorPropertiesIncludeStackTraceConstants()
 
-    companion object {
-        const val source = """
-            package org.springframework.boot.autoconfigure.web;
-
-            public class ErrorProperties {
-                public enum IncludeStacktrace {
-                    NEVER, ALWAYS, ON_PARAM, ON_TRACE_PARAM
-                }
-            }
-        """
-    }
-
-    @Test
-    fun doNotUpdateFieldsInTargetClass() = assertUnchanged(
-        before = source
-    )
-
     @Test
     fun doNotUpdateCurrentAPIs() = assertUnchanged(
-        dependsOn = arrayOf(source),
         before = """
             package org.test;
 
@@ -66,7 +48,6 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
 
     @Test
     fun updateFieldAccessToRecommendedReplacements() = assertChanged(
-        dependsOn = arrayOf(source),
         before = """
             package org.test;
 
@@ -93,7 +74,6 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
 
     @Test
     fun updateEnumAccessToRecommendedReplacements() = assertChanged(
-        dependsOn = arrayOf(source),
         before = """
             package org.test;
 
@@ -120,7 +100,6 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
 
     @Test
     fun updateStaticAccessToRecommendedReplacements() = assertChanged(
-        dependsOn = arrayOf(source),
         before = """
             package org.test;
 

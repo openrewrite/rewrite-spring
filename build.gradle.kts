@@ -50,22 +50,12 @@ group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
 sourceSets {
-    create("testSpring_1_5") {
-        java {
-            compileClasspath += sourceSets.getByName("main").output
-            runtimeClasspath += sourceSets.getByName("main").output
-        }
-    }
-    create("testSpring_2_3") {
-        java {
-            compileClasspath += sourceSets.getByName("main").output
-            runtimeClasspath += sourceSets.getByName("main").output
-        }
-    }
-    create("testSpring_2_4") {
-        java {
-            compileClasspath += sourceSets.getByName("main").output
-            runtimeClasspath += sourceSets.getByName("main").output
+    listOf("1_5", "2_3", "2_4").forEach { version ->
+        create("testSpringBoot_${version}") {
+            java {
+                compileClasspath += sourceSets.getByName("main").output
+                runtimeClasspath += sourceSets.getByName("main").output
+            }
         }
     }
 }
@@ -96,20 +86,24 @@ signing {
     sign(publishing.publications["nebula"])
 }
 
-configurations.all {
-    resolutionStrategy {
-        cacheChangingModulesFor(0, TimeUnit.SECONDS)
-        cacheDynamicVersionsFor(0, TimeUnit.SECONDS)
+configurations {
+    listOf("1_5", "2_3", "2_4").forEach { version ->
+        getByName("testSpringBoot_${version}RuntimeOnly") {
+            isCanBeResolved = true
+            extendsFrom(getByName("testImplementation"))
+        }
+        getByName("testSpringBoot_${version}Implementation") {
+            isCanBeResolved = true
+            extendsFrom(getByName("testImplementation"))
+        }
     }
 
-    configurations["testSpring_1_5RuntimeOnly"].extendsFrom(configurations.getByName("testRuntimeOnly"))
-    configurations["testSpring_1_5Implementation"].extendsFrom(configurations.getByName("testImplementation"))
-
-    configurations["testSpring_2_3RuntimeOnly"].extendsFrom(configurations.getByName("testRuntimeOnly"))
-    configurations["testSpring_2_3Implementation"].extendsFrom(configurations.getByName("testImplementation"))
-
-    configurations["testSpring_2_4RuntimeOnly"].extendsFrom(configurations.getByName("testRuntimeOnly"))
-    configurations["testSpring_2_4Implementation"].extendsFrom(configurations.getByName("testImplementation"))
+    all {
+        resolutionStrategy {
+            cacheChangingModulesFor(0, TimeUnit.SECONDS)
+            cacheDynamicVersionsFor(0, TimeUnit.SECONDS)
+        }
+    }
 }
 
 var rewriteVersion = if(project.hasProperty("releasing")) {
@@ -143,7 +137,7 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:latest.release")
 
     testImplementation("org.openrewrite:rewrite-test:${rewriteVersion}")
 
@@ -155,16 +149,28 @@ dependencies {
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+")
     testImplementation("io.github.classgraph:classgraph:latest.release")
 
-    testRuntimeOnly("org.openrewrite:rewrite-java-11:${rewriteVersion}")
-    testRuntimeOnly("org.openrewrite:rewrite-java-8:${rewriteVersion}")
+    testImplementation("org.openrewrite:rewrite-java-11:${rewriteVersion}")
+    testImplementation("org.openrewrite:rewrite-java-8:${rewriteVersion}")
 
-    testRuntimeOnly("junit:junit:latest.release")
+    testRuntimeOnly("org.springframework:spring-beans:latest.release")
+    testRuntimeOnly("org.springframework:spring-context:latest.release")
+    testRuntimeOnly("org.springframework:spring-web:latest.release")
+    testRuntimeOnly("org.springframework:spring-test:latest.release")
+    testRuntimeOnly("org.springframework.boot:spring-boot-test:latest.release")
+    testRuntimeOnly("org.springframework.boot:spring-boot-test-autoconfigure:latest.release")
 
-    "testSpring_1_5RuntimeOnly"("org.springframework:spring-test:4.+")
-    "testSpring_1_5RuntimeOnly"("org.springframework:spring-beans:4.+")
-    "testSpring_1_5RuntimeOnly"("org.springframework:spring-webmvc:4.+")
-    "testSpring_1_5RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
-    "testSpring_1_5RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
+    "testSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
+    "testSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
+    "testSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
+    "testSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
+
+    "testSpringBoot_2_3RuntimeOnly"("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
+    "testSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:4.+")
+    "testSpringBoot_2_3RuntimeOnly"("junit:junit:latest.release")
+    "testSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
+    "testSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
+
+    "testSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
 }
 
 tasks.named<Test>("test") {

@@ -21,51 +21,15 @@ import org.openrewrite.java.JavaRecipeTest
 
 class MigrateLoggingSystemPropertyConstantsTest : JavaRecipeTest {
     override val parser: JavaParser
-        get() = JavaParser.fromJavaVersion().classpath("java").build()
+        get() = JavaParser.fromJavaVersion()
+            .classpath("spring-boot")
+            .logCompilationWarningsAndErrors(true)
+            .build()
 
     override val recipe = MigrateLoggingSystemPropertyConstants()
 
-    companion object {
-        const val source = """
-            package org.springframework.boot.logging.logback;
-
-            public class LoggingSystemProperties {
-                public static final String CONSOLE_LOG_CHARSET = "";
-                public static final String CONSOLE_LOG_PATTERN = "";
-                public static final String FILE_CLEAN_HISTORY_ON_START = "";
-                public static final String FILE_MAX_HISTORY = "";
-                public static final String FILE_MAX_SIZE = "";
-                public static final String FILE_TOTAL_SIZE_CAP = "";
-                public static final String ROLLING_FILE_NAME_PATTERN = "";
-            }
-        """
-
-        const val target = """
-            package org.springframework.boot.logging.logback;
-
-            public class LogbackLoggingSystemProperties {
-                public static final String ROLLINGPOLICY_CLEAN_HISTORY_ON_START = "";
-                public static final String ROLLINGPOLICY_MAX_HISTORY = "";
-                public static final String ROLLINGPOLICY_MAX_FILE_SIZE = "";
-                public static final String ROLLINGPOLICY_TOTAL_SIZE_CAP = "";
-                public static final String ROLLINGPOLICY_FILE_NAME_PATTERN = "";
-            }
-        """
-    }
-
-    @Test
-    fun doNotUpdateFieldsInTargetClass() = assertUnchanged(
-        before = source
-    )
-
-    @Test
-    fun doNotUpdateFieldsInNewClass() = assertUnchanged(
-        before = target
-    )
-
     @Test
     fun doNotUpdateCurrentAPIs() = assertUnchanged(
-        dependsOn = arrayOf(source),
         before = """
             package org.test;
 
@@ -86,15 +50,14 @@ class MigrateLoggingSystemPropertyConstantsTest : JavaRecipeTest {
 
     @Test
     fun updateToRecommendedReplacements() = assertChanged(
-        dependsOn = arrayOf(source, target),
         before = """
             package org.test;
 
-            import org.springframework.boot.logging.logback.LoggingSystemProperties;
+            import org.springframework.boot.logging.LoggingSystemProperties;
 
-            import static org.springframework.boot.logging.logback.LoggingSystemProperties.FILE_MAX_SIZE;
-            import static org.springframework.boot.logging.logback.LoggingSystemProperties.FILE_TOTAL_SIZE_CAP;
-            import static org.springframework.boot.logging.logback.LoggingSystemProperties.ROLLING_FILE_NAME_PATTERN;
+            import static org.springframework.boot.logging.LoggingSystemProperties.FILE_MAX_SIZE;
+            import static org.springframework.boot.logging.LoggingSystemProperties.FILE_TOTAL_SIZE_CAP;
+            import static org.springframework.boot.logging.LoggingSystemProperties.ROLLING_FILE_NAME_PATTERN;
             
             class Test {
                 void methodA() {

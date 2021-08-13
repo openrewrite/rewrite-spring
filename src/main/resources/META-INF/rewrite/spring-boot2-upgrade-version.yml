@@ -15,7 +15,7 @@
 #
 ---
 ########################################################################################################################
-# SpringBoot 2_1
+# SpringBoot 2.1
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_1
 displayName: Upgrade to Spring Boot 2.1
@@ -35,7 +35,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_1
 ---
 ########################################################################################################################
-# SpringBoot 2_2
+# SpringBoot 2.2
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_2
 displayName: Upgrade to Spring Boot 2.2
@@ -83,7 +83,7 @@ recipeList:
 
 ---
 ########################################################################################################################
-# SpringBoot 2_3
+# SpringBoot 2.3
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
 displayName: Upgrade to Spring Boot 2.3
@@ -120,13 +120,17 @@ recipeList:
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer
 
 ########################################################################################################################
-# SpringBoot 2_4
+# SpringBoot 2.4
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
 displayName: Upgrade to Spring Boot 2.4
 description: 'Upgrade to Spring Boot 2.4 from any prior 2.x version.'
 recipeList:
+  # JUnit Jupiter's vintage engine was removed in Spring Boot 2.4
+  - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
+  - org.openrewrite.java.testing.junit5.JUnit5BestPractices
+  
   # Upgrade to 2.3.x from 2.2.x
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
 
@@ -169,7 +173,7 @@ recipeList:
       newMethodName: setEagerFilterInit
 
 ########################################################################################################################
-# SpringBoot 2_5
+# SpringBoot 2.5
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
