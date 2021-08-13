@@ -20,10 +20,7 @@ import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Flag;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -89,13 +86,18 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                     TypeUtils.isOfType(ORIGINAL_FQN, fa.getTarget().getType()) &&
                     updateDeprecatedFields.containsKey(fa.getName().getSimpleName())) {
 
-                fa = fa.withName(fa.getName().withName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
-                fa = fa.withTarget(J.Identifier.build(
-                        Tree.randomId(),
-                        fa.getTarget().getPrefix(),
-                        fa.getTarget().getMarkers(),
-                        NEW_FQN.getClassName(),
-                        NEW_FQN));
+                if (fa.getTarget() instanceof J.FieldAccess) {
+                    fa = TypeTree.build(NEW_FQN.getFullyQualifiedName() + "." + updateDeprecatedFields.get(fieldAccess.getName().getSimpleName()))
+                            .withPrefix(fa.getPrefix());
+                } else {
+                    fa = fa.withName(fa.getName().withName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
+                    fa = fa.withTarget(J.Identifier.build(
+                            Tree.randomId(),
+                            fa.getTarget().getPrefix(),
+                            fa.getTarget().getMarkers(),
+                            NEW_FQN.getClassName(),
+                            NEW_FQN));
+                }
             }
             return fa;
         }
@@ -138,5 +140,4 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
             return false;
         }
     }
-
 }
