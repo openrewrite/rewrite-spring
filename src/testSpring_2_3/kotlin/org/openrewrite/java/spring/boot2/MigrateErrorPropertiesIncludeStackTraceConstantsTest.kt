@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2
+package org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
-import org.openrewrite.java.spring.boot2.MigrateErrorPropertiesIncludeStackTraceConstants
 
 class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
     override val parser: JavaParser
@@ -27,7 +26,6 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
     override val recipe =
         MigrateErrorPropertiesIncludeStackTraceConstants()
 
-    // Explicit pseudo files, since the files exist in spring 2.3.x and 1.4.x is loaded on the classpath.
     companion object {
         const val source = """
             package org.springframework.boot.autoconfigure.web;
