@@ -1,0 +1,153 @@
+#
+# Copyright 2020 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.minorversion3.MarkDeprecatedSpringBoot2MinorVersion3APIs
+displayName: "Mark Spring Boot 2 APIs deprecated in 2.3 for removal in 2.5"
+description: "Mark uses of APIs deprecated in 2.3 to upgrade to the next version of Spring Boot."
+recipeList:
+  # methods
+  - org.openrewrite.java.spring.boot2.LauncherCreateClassLoader
+  - org.openrewrite.java.spring.boot2.ArchiveForEach
+  - org.openrewrite.java.spring.boot2.LauncherGetClassPathArchives
+  - org.openrewrite.java.spring.boot2.AbstractErrorWebExceptionHandlerGetErrorAttributes
+  - org.openrewrite.java.spring.boot2.ArchiveGetNestedArchives
+  - org.openrewrite.java.spring.boot2.ArchiveIterator
+  - org.openrewrite.java.spring.boot2.ArchiveSpliterator
+  # class constructors
+  - org.openrewrite.java.spring.boot2.Packager
+  - org.openrewrite.java.spring.boot2.Repackager
+
+########################################################################################################################
+# Deprecated methods
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.LauncherCreateClassLoader
+displayName: "Mark `org.springframework.boot.loader.Launcher.createClassLoader(List<Archive>)` as deprecated"
+description: "`Launcher.createClassLoader(List<Archive>)` is deprecated in 2.3.0 for removal in 2.5."
+recipeList:
+  - org.openrewrite.java.spring.boot2.MarkDeprecatedAPIs:
+      sourceOfDeprecation: Spring Boot 2
+      deprecatedType: classMethod
+      searchPattern: org.springframework.boot.builder.Launcher createClassLoader(java.util.List)
+      deprecationComment: Deprecated since 2.3.0 for removal in 2.5.0 in favor of Launcher.createClassLoader(Iterator).
+      deprecatedLink: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/loader/Launcher.html#createClassLoader-java.util.List-
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ArchiveForEach
+displayName: "Mark `org.springframework.boot.loader.archive.Archive.forEach(Consumer<? super Archive.Entry>)` as deprecated"
+description: "`Archive.forEach(Consumer<? super Archive.Entry>)` is deprecated in 2.3.0 for removal in 2.5."
+recipeList:
+  - org.openrewrite.java.spring.boot2.MarkDeprecatedAPIs:
+      sourceOfDeprecation: Spring Boot 2
+      deprecatedType: interfaceMethod
+      searchPattern: org.springframework.boot.loader.archive.Archive forEach(..)
+      deprecationComment: Deprecated since 2.3.0 for removal in 2.5.0 in favor of using JarFile to access entries and Archive.getNestedArchives(EntryFilter, EntryFilter) for accessing nested archives.
+      deprecatedLink: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/loader/archive/Archive.html#forEach-java.util.function.Consumer-
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.LauncherGetClassPathArchives
+displayName: "Mark `org.springframework.boot.loader.Launcher.getClassPathArchives()` as deprecated"
+description: "`Launcher.getClassPathArchives()` is deprecated in 2.3.0 for removal in 2.5."
+recipeList:
+  - org.openrewrite.java.spring.boot2.MarkDeprecatedAPIs:
+      sourceOfDeprecation: Spring Boot 2
+      deprecatedType: classMethod
+      searchPattern: org.springframework.boot.loader.Launcher getClassPathArchives()
+      deprecationComment: Deprecated since 2.3.0 for removal in 2.5.0 in favor of implementing Launcher.getClassPathArchivesIterator().
+      deprecatedLink: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/loader/Launcher.html#getClassPathArchives--
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.AbstractErrorWebExceptionHandlerGetErrorAttributes
+displayName: "Mark `org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler.getErrorAttributes(ServerRequest, boolean)` as deprecated"
+description: "`AbstractErrorWebExceptionHandler.getErrorAttributes(ServerRequest, boolean)` is deprecated in 2.3.0 for removal in 2.5."
+recipeList:
+  - org.openrewrite.java.spring.boot2.MarkDeprecatedAPIs:
+      sourceOfDeprecation: Spring Boot 2
+      deprecatedType: classMethod
+      searchPattern: org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler getErrorAttributes(org.springframework.web.reactive.function.server.ServerRequest, boolean)
+      deprecationComment: Deprecated since 2.3.0 for removal in 2.5.0 in favor of AbstractErrorWebExceptionHandler.getErrorAttributes(ServerRequest, ErrorAttributeOptions).
+      deprecatedLink: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/autoconfigure/web/reactive/error/AbstractErrorWebExceptionHandler.html#getErrorAttributes-org.springframework.web.reactive.function.server.ServerRequest-boolean-
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ArchiveGetNestedArchives
+displayName: "Mark `org.springframework.boot.loader.archive.Archive.getNestedArchives(Archive.EntryFilter)` as deprecated"
+description: "`Archive.getNestedArchives(Archive.EntryFilter)` is deprecated in 2.3.0 for removal in 2.5."
+recipeList:
+  - org.openrewrite.java.spring.boot2.MarkDeprecatedAPIs:
+      sourceOfDeprecation: Spring Boot 2
+      deprecatedType: interfaceMethod
+      searchPattern: org.springframework.boot.loader.archive.Archive getNestedArchives(Archive.EntryFilter)
+      deprecationComment: Deprecated since 2.3.0 for removal in 2.5.0 in favor of Archive.getNestedArchives(EntryFilter, EntryFilter).
+      deprecatedLink: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/loader/archive/Archive.html#getNestedArchives-org.springframework.boot.loader.archive.Archive.EntryFilter-
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ArchiveIterator
+displayName: "Mark `org.springframework.boot.loader.archive.Archive.iterator()` as deprecated"
+description: "`Archive.iterator()` is deprecated in 2.3.0 for removal in 2.5."
+recipeList:
+  - org.openrewrite.java.spring.boot2.MarkDeprecatedAPIs:
+      sourceOfDeprecation: Spring Boot 2
+      deprecatedType: interfaceMethod
+      searchPattern: org.springframework.boot.loader.archive.Archive iterator()
+      deprecationComment: Deprecated since 2.3.0 for removal in 2.5.0 in favor of using JarFile to access entries and Archive.getNestedArchives(EntryFilter, EntryFilter) for accessing nested archives.
+      deprecatedLink: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/loader/archive/Archive.html#iterator--
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ArchiveSpliterator
+displayName: "Mark `org.springframework.boot.loader.archive.Archive.spliterator()` as deprecated"
+description: "`Archive.spliterator()` is deprecated in 2.3.0 for removal in 2.5."
+recipeList:
+  - org.openrewrite.java.spring.boot2.MarkDeprecatedAPIs:
+      sourceOfDeprecation: Spring Boot 2
+      deprecatedType: interfaceMethod
+      searchPattern: org.springframework.boot.loader.archive.Archive spliterator()
+      deprecationComment: Deprecated since 2.3.0 for removal in 2.5.0 in favor of using JarFile to access entries and Archive.getNestedArchives(EntryFilter, EntryFilter) for accessing nested archives.
+      deprecatedLink: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/loader/archive/Archive.html#spliterator--
+
+########################################################################################################################
+# Deprecated constructors
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.Packager
+displayName: "Mark `org.springframework.boot.loader.tools.Packager(File, LayoutFactory)` as deprecated"
+description: "`Packager(File, LayoutFactory)` is deprecated in 2.3.1 for removal in 2.5."
+recipeList:
+  - org.openrewrite.java.spring.boot2.MarkDeprecatedAPIs:
+      sourceOfDeprecation: Spring Boot 2
+      deprecatedType: constructor
+      searchPattern: org.springframework.boot.loader.tools.Packager Packager(java.io.File, org.springframework.boot.loader.tools.LayoutFactory)
+      deprecationComment: Deprecated since 2.3.1 for removal in 2.5 in favor of Packager(File) and Packager.setLayoutFactory(LayoutFactory).
+      deprecatedLink: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/loader/tools/Packager.html#Packager-java.io.File-org.springframework.boot.loader.tools.LayoutFactory-
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.Repackager
+displayName: "Mark `org.springframework.boot.loader.tools.Repackager(File, LayoutFactory)` as deprecated"
+description: "`Repackager(File, LayoutFactory)` is deprecated in 2.3.1 for removal in 2.5."
+recipeList:
+  - org.openrewrite.java.spring.boot2.MarkDeprecatedAPIs:
+      sourceOfDeprecation: Spring Boot 2
+      deprecatedType: constructor
+      searchPattern: org.springframework.boot.loader.tools.Repackager Repackager(java.io.File, org.springframework.boot.loader.tools.LayoutFactory)
+      deprecationComment: Deprecated since 2.3.1 for removal in 2.5 in favor of Repackager(File) and Packager.setLayoutFactory(LayoutFactory).
+      deprecatedLink: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/loader/tools/Packager.html#Packager-java.io.File-org.springframework.boot.loader.tools.LayoutFactory-
