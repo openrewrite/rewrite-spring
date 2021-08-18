@@ -27,43 +27,40 @@ import java.util.Map;
 import java.util.Objects;
 
 
-public class MigrateLoggingSystemPropertyConstants extends Recipe {
+public class MigrateActuatorMediaTypeConstants extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Migrate to recommended constants in `LogbackLoggingSystemProperties` from deprecated values in `LoggingSystemProperties`";
+        return "Migrate to recommended equivalents in `ApiVersion` from deprecated values in `ActuatorMediaType`";
     }
 
     @Override
     public String getDescription() {
-        return "Replaces field and static access of deprecated fields in `LoggingSystemProperties` with the recommendations from `LogbackLoggingSystemProperties`. Deprecated in 2.4.x and removed in 2.6.0";
+        return "Replaces field and static access of deprecated fields in `ActuatorMediaType` with the equivalents in `ApiVersion`. Deprecated in 2.5.x and removed in 2.7.0";
     }
 
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.logging.LoggingSystemProperties");
+        return new UsesType<>("org.springframework.boot.actuate.endpoint.http.ActuatorMediaType");
     }
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new MigrateLoggingSystemPropertyConstants.UpdateDeprecatedConstantFieldNames();
+        return new MigrateActuatorMediaTypeConstants.UpdateDeprecatedConstantFieldNames();
     }
 
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {
         private static final JavaType.FullyQualified ORIGINAL_FQN =
-                JavaType.Class.build("org.springframework.boot.logging.LoggingSystemProperties");
+                JavaType.Class.build("org.springframework.boot.actuate.endpoint.http.ActuatorMediaType");
         private static final JavaType.FullyQualified NEW_FQN =
-                JavaType.Class.build("org.springframework.boot.logging.logback.LogbackLoggingSystemProperties");
+                JavaType.Class.build("org.springframework.boot.actuate.endpoint.ApiVersion");
 
         private final Map<String, String> updateDeprecatedFields = new HashMap<>();
 
         UpdateDeprecatedConstantFieldNames() {
-            updateDeprecatedFields.put("FILE_CLEAN_HISTORY_ON_START", "ROLLINGPOLICY_CLEAN_HISTORY_ON_START");
-            updateDeprecatedFields.put("FILE_MAX_HISTORY",            "ROLLINGPOLICY_MAX_HISTORY");
-            updateDeprecatedFields.put("FILE_MAX_SIZE",               "ROLLINGPOLICY_MAX_FILE_SIZE");
-            updateDeprecatedFields.put("FILE_TOTAL_SIZE_CAP",         "ROLLINGPOLICY_TOTAL_SIZE_CAP");
-            updateDeprecatedFields.put("ROLLING_FILE_NAME_PATTERN",   "ROLLINGPOLICY_FILE_NAME_PATTERN");
+            updateDeprecatedFields.put("V2_JSON", "V2");
+            updateDeprecatedFields.put("V3_JSON", "V3");
         }
 
         @Override
@@ -126,7 +123,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
         private boolean isTargetClass() {
             Cursor parentCursor = getCursor().dropParentUntil(
                     is -> is instanceof J.CompilationUnit ||
-                          is instanceof J.ClassDeclaration);
+                            is instanceof J.ClassDeclaration);
             return (parentCursor.getValue() instanceof J.ClassDeclaration &&
                     !((J.ClassDeclaration) parentCursor.getValue()).getName().getSimpleName().equals(ORIGINAL_FQN.getClassName()) &&
                     !((J.ClassDeclaration) parentCursor.getValue()).getName().getSimpleName().equals(NEW_FQN.getClassName()));
@@ -140,4 +137,5 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
             return false;
         }
     }
+
 }

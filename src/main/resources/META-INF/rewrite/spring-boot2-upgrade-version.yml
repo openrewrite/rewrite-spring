@@ -195,6 +195,7 @@ recipeList:
 
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
+  - org.openrewrite.java.spring.boot2.MigrateActuatorMediaTypeConstants
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
@@ -203,7 +204,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
 displayName: Use `EntityManagerFactoryDependsOnPostProcessor`
-description: '`org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor` was deprecated in 2.5.'
+description: '`org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor` was deprecated in 2.5 for removal in 2.7.'
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor
