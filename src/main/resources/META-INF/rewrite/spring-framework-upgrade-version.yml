@@ -26,8 +26,8 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
 displayName: Use `ObjectUtils#isEmpty(Object)`.
-description: '`StringUtils#isEmpty(String)` was deprecated in 5.3.'
+description: '`StringUtils#isEmpty(Object)` was deprecated in 5.3.'
 recipeList:
   - org.openrewrite.java.ChangeMethodTargetToStatic:
-      methodPattern: org.springframework.util.StringUtils isEmpty(java.lang.String)
+      methodPattern: org.springframework.util.StringUtils isEmpty(Object)
       fullyQualifiedTargetTypeName: org.springframework.util.ObjectUtils
