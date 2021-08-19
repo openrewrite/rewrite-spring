@@ -129,7 +129,7 @@ description: 'Upgrade to Spring Boot 2.4 from any prior 2.x version.'
 recipeList:
   # JUnit Jupiter's vintage engine was removed in Spring Boot 2.4
   - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
-  - org.openrewrite.java.spring.boot2.UpgradeSpringFramework_5_3
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
   - org.openrewrite.java.testing.junit5.JUnit5BestPractices
   
   # Upgrade to 2.3.x from 2.2.x
