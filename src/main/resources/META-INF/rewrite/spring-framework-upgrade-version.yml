@@ -17,7 +17,7 @@
 ########################################################################################################################
 # Spring Framework 5.3
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.UpgradeSpringFramework_5_3
+name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
 displayName: Upgrade to Spring Framework 5.3
 description: 'Upgrade to Spring Framework to 5.3 from any prior version.'
 recipeList:
