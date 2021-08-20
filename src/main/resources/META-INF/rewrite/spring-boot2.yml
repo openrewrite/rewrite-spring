@@ -75,7 +75,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBoot1To2LatestMajorVersion
+name: org.openrewrite.java.spring.boot2.SpringBoot1To2Migration
 displayName: Spring Boot 2.x migration from Spring Boot 1.x
 description: Migrates Spring Boot 1.x to 2.x including best practices.
 tags:
@@ -85,8 +85,8 @@ tags:
   - spring
   - spring-boot
 recipeList:
-  - org.openrewrite.java.spring.boot2.UpgradeToSpringBoot2MajorVersion0
-  - org.openrewrite.java.spring.boot2.UpgradeToSpringBoot2MajorVersion5
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
   - org.openrewrite.java.spring.NoAutowiredOnConstructor
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
@@ -97,7 +97,7 @@ recipeList:
 ########################################################################################################################
 # SpringBoot 2_0
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.UpgradeToSpringBoot2MajorVersion0
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
 displayName: Upgrade to Spring Boot 2.0 from 1.x
 description: 'Upgrade to Spring Boot 2.0 from prior 1.x version.'
 recipeList:
