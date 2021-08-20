@@ -17,9 +17,9 @@
 ########################################################################################################################
 # SpringBoot 2.1
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_1
+name: org.openrewrite.java.spring.boot2.UpgradeToSpringBoot2MajorVersion1
 displayName: Upgrade to Spring Boot 2.1
-description: 'Upgrade to Spring Boot 2.1 from any prior 2.x version.'
+description: 'Updates maven project pom to SpringBoot 2.1.x, and applies the existing migration recipes to upgrade from 2.0 to 2.1.'
 recipeList:
   # Upgrade 2.1.x from 2.0.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
@@ -32,18 +32,27 @@ recipeList:
       newVersion: 2.1.x
 
   # Update properties
+  - org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion1Migrations
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion1Migrations
+displayName: Migrate to Spring Boot 2.1
+description: 'Applies the existing migration recipes and property updates to upgrade from Spring Boot 2.0 to 2.1.'
+
+recipeList:
+  # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_1
+
 ---
 ########################################################################################################################
 # SpringBoot 2.2
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_2
+name: org.openrewrite.java.spring.boot2.UpgradeToSpringBoot2MajorVersion2
 displayName: Upgrade to Spring Boot 2.2
-description: 'Upgrade to Spring Boot 2.2 from any prior 2.x version.'
-recipeList:
-  # Upgrade to 2.1.x from 2.0.x
-  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_1
+description: 'Updates maven project pom to SpringBoot 2.2.x, and applies the existing migration recipes to upgrade from 2.1 to 2.2.'
 
+recipeList:
   # Upgrade to 2.2.x from 2.1.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
@@ -54,10 +63,19 @@ recipeList:
       artifactId: spring-boot-starter-parent
       newVersion: 2.2.x
 
-  # Use recommended replacements for deprecated APIs
+  - org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion2Migrations
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion2Migrations
+displayName: Migrate to Spring Boot 2.2
+description: 'Applies the existing migration recipes and property updates to upgrade from Spring Boot 2.1 to 2.2.'
+recipeList:
+  # Apply previous 2.x migrations
+  - org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion1Migrations
+  # 2.4 Migrations
   - org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
   - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
-
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
 
@@ -85,13 +103,10 @@ recipeList:
 ########################################################################################################################
 # SpringBoot 2.3
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
+name: org.openrewrite.java.spring.boot2.UpgradeToSpringBoot2MajorVersion3
 displayName: Upgrade to Spring Boot 2.3
-description: 'Upgrade to Spring Boot 2.3 from any prior 2.x version.'
+description: 'Updates maven project pom to SpringBoot 2.3.x, and applies the existing migration recipes to upgrade from 2.2 to 2.3.'
 recipeList:
-  # Upgrade to 2.2.x from 2.1.x
-  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_2
-
   # Upgrade to 2.3.x from 2.2.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
@@ -102,10 +117,20 @@ recipeList:
       artifactId: spring-boot-starter-parent
       newVersion: 2.3.x
 
-  # Use recommended replacements for deprecated APIs
+  # Upgrade to 2.2.x from 2.1.x
+  - org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion3Migrations
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion3Migrations
+displayName: Migrate to Spring Boot 2.3
+description: 'Applies the existing migration recipes and property updates to upgrade from Spring Boot 2.2 to 2.3.'
+recipeList:
+  # Apply previous 2.x migrations
+  - org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion2Migrations
+  # 2.4 Migrations
   - org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
   - org.openrewrite.java.spring.boot2.MigrateErrorPropertiesIncludeStackTraceConstants
-
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_3
 
@@ -123,18 +148,10 @@ recipeList:
 # SpringBoot 2.4
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
+name: org.openrewrite.java.spring.boot2.UpgradeToSpringBoot2MajorVersion4
 displayName: Upgrade to Spring Boot 2.4
-description: 'Upgrade to Spring Boot 2.4 from any prior 2.x version.'
+description: 'Updates maven project pom to SpringBoot 2.4.x, and applies the existing migration recipes to upgrade from 2.3 to 2.4.'
 recipeList:
-  # JUnit Jupiter's vintage engine was removed in Spring Boot 2.4
-  - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
-  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
-  - org.openrewrite.java.testing.junit5.JUnit5BestPractices
-  
-  # Upgrade to 2.3.x from 2.2.x
-  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
-
   # Upgrade to 2.4.x from 2.3.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
@@ -146,10 +163,24 @@ recipeList:
       newVersion: 2.4.x
 
   # Use recommended replacements for deprecated APIs
+  - org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion4Migrations
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion4Migrations
+displayName: Migrate to Spring Boot 2.4
+description: 'Applies the existing migration recipes and property updates to upgrade from Spring Boot 2.3 to 2.4.'
+recipeList:
+  # Apply previous 2.x migrations
+  - org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion3Migrations
+  # JUnit Jupiter's vintage engine was removed in Spring Boot 2.4
+  - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
+  - org.openrewrite.java.testing.junit5.JUnit5BestPractices
+  # 2.4 Migrations
+  - org.openrewrite.java.spring.framework.UpgradeToSpringFramework5MajorVersion3
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
   - org.openrewrite.java.spring.boot2.MigrateLoggingSystemPropertyConstants
-
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
 
@@ -177,13 +208,10 @@ recipeList:
 # SpringBoot 2.5
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
+name: org.openrewrite.java.spring.boot2.UpgradeToSpringBoot2MajorVersion5
 displayName: Upgrade to Spring Boot 2.5
-description: 'Upgrade to Spring Boot 2.5 from any prior 2.x version.'
+description: 'Updates maven project pom to SpringBoot 2.5.x, and applies the existing migration recipes to upgrade from 2.4 to 2.5.'
 recipeList:
-  # Upgrade to 2.4.x from 2.3.x
-  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
-
   # Upgrade to 2.5.x from 2.4.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
@@ -194,9 +222,18 @@ recipeList:
       artifactId: spring-boot-starter-parent
       newVersion: 2.5.x
 
-  # Use recommended replacements for deprecated APIs
-  - org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
+  - org.openrewrite.java.spring.boot2.ApplyMajorVersion5Migrations
 
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion5Migrations
+displayName: Migrate to Spring Boot 2.5
+description: 'Applies the existing migration recipes and property updates to upgrade from Spring Boot 2.4 to 2.5.'
+recipeList:
+  # Apply previous 2.x migrations
+  - org.openrewrite.java.spring.boot2.ApplySpringBoot2MajorVersion4Migrations
+  # 2.5 Migrations
+  - org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
 
