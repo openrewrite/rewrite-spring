@@ -33,9 +33,7 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-tools
       version: 2.x
-      scope: test
-      onlyIfUsing:
-        - org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathExtension
+      onlyIfUsing: org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathExtension
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UnnecessarySpringRunWith
@@ -172,10 +170,12 @@ recipeList:
       groupId: javax.validation
       artifactId: validation-api
       version: 2.x
-      onlyIfUsing:
-        - javax.validation.constraints.NotBlank
-        - javax.validation.constraints.NotEmpty
-
+      onlyIfUsing: javax.validation.constraints.NotBlank
+  - org.openrewrite.maven.AddDependency:
+      groupId: javax.validation
+      artifactId: validation-api
+      version: 2.x
+      onlyIfUsing: javax.validation.constraints.NotEmpty
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateNotBlankPackageName
@@ -189,8 +189,9 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-validation
       version: 2.x
-      onlyIfUsing:
-        - javax.validation.constraints.NotBlank
-        - javax.validation.constraints.NotEmpty
-
----
+      onlyIfUsing: javax.validation.constraints.NotBlank
+  - org.openrewrite.maven.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-validation
+      version: 2.x
+      onlyIfUsing: javax.validation.constraints.NotEmpty

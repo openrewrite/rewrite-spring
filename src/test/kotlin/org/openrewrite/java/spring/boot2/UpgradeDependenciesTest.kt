@@ -44,7 +44,19 @@ class UpgradeDependenciesTest : MavenRecipeTest {
                 <dependency>
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot</artifactId>
-                  <version>1.5.1.RELEASE</version>
+                  <version>2.0.1.RELEASE</version>
+                </dependency>
+                <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-test</artifactId>
+                  <version>2.0.1.RELEASE</version>
+                  <scope>test</scope>
+                  <exclusions>
+                    <exclusion>
+                      <groupId>org.junit.vintage</groupId>
+                      <artifactId>junit-vintage-engine</artifactId>
+                    </exclusion>
+                  </exclusions>
                 </dependency>
               </dependencies>
             </project>
@@ -62,6 +74,12 @@ class UpgradeDependenciesTest : MavenRecipeTest {
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot</artifactId>
                   <version>2.4.10</version>
+                </dependency>
+                <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-test</artifactId>
+                  <version>2.4.10</version>
+                  <scope>test</scope>
                 </dependency>
               </dependencies>
             </project>
