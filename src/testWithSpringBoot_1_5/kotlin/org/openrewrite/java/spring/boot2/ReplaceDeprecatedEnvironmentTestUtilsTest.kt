@@ -31,101 +31,98 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
         get() = ReplaceDeprecatedEnvironmentTestUtils()
 
     @Test
-    fun givenHasStringVariableWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() =
-        assertChanged(
-            before = """
-                package com.mycompany;
-                
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-                        String pair = "pair";
-                        addEnvironment(context, pair);
-                    }
+    fun givenHasStringVariableWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() = assertChanged(
+        before = """
+            package com.mycompany;
+            
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
+            
+            public class MyClass {
+                public void myMethod() {
+                    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+                    String pair = "pair";
+                    addEnvironment(context, pair);
                 }
-            """,
-            after = """
-                package com.mycompany;
-                
-                import org.springframework.boot.test.util.TestPropertyValues;
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-                        String pair = "pair";
-                        TestPropertyValues.of(pair).applyTo(context);
-                    }
+            }
+        """,
+        after = """
+            package com.mycompany;
+            
+            import org.springframework.boot.test.util.TestPropertyValues;
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            
+            public class MyClass {
+                public void myMethod() {
+                    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+                    String pair = "pair";
+                    TestPropertyValues.of(pair).applyTo(context);
                 }
-            """,
-            typeValidation = { methodInvocations = false }
-        )
+            }
+        """,
+        typeValidation = { methodInvocations = false }
+    )
 
     @Test
-    fun givenHasSingleStringWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() =
-        assertChanged(
-            before = """
-                package com.mycompany;
-                
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-                        addEnvironment(context, "pair:pair");
-                    }
+    fun givenHasSingleStringWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() = assertChanged(
+        before = """
+            package com.mycompany;
+            
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
+            
+            public class MyClass {
+                public void myMethod() {
+                    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+                    addEnvironment(context, "pair:pair");
                 }
-            """,
-            after = """
-                package com.mycompany;
-                
-                import org.springframework.boot.test.util.TestPropertyValues;
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-                        TestPropertyValues.of("pair:pair").applyTo(context);
-                    }
+            }
+        """,
+        after = """
+            package com.mycompany;
+            
+            import org.springframework.boot.test.util.TestPropertyValues;
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            
+            public class MyClass {
+                public void myMethod() {
+                    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+                    TestPropertyValues.of("pair:pair").applyTo(context);
                 }
-            """,
-            typeValidation = { methodInvocations = false }
-        )
+            }
+        """,
+        typeValidation = { methodInvocations = false }
+    )
 
     @Test
     @Suppress("StringConcatenationMissingWhitespace")
-    fun givenConstructsStringAndContextWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() =
-        assertChanged(
-            before = """
-                package com.mycompany;
-                
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        addEnvironment(new AnnotationConfigApplicationContext(), "pair" + "pair");
-                    }
+    fun givenConstructsStringAndContextWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() = assertChanged(
+        before = """
+            package com.mycompany;
+            
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
+            
+            public class MyClass {
+                public void myMethod() {
+                    addEnvironment(new AnnotationConfigApplicationContext(), "pair" + "pair");
                 }
-            """,
-            after = """
-                package com.mycompany;
-                
-                import org.springframework.boot.test.util.TestPropertyValues;
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        TestPropertyValues.of("pair" + "pair").applyTo(new AnnotationConfigApplicationContext());
-                    }
+            }
+        """,
+        after = """
+            package com.mycompany;
+            
+            import org.springframework.boot.test.util.TestPropertyValues;
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            
+            public class MyClass {
+                public void myMethod() {
+                    TestPropertyValues.of("pair" + "pair").applyTo(new AnnotationConfigApplicationContext());
                 }
-            """,
-            typeValidation = { methodInvocations = false }
-        )
+            }
+        """,
+        typeValidation = { methodInvocations = false }
+    )
 
     @Test
     fun givenChainedCallsReplacesThemWithAFluentSetOfCalls() = assertChanged(
@@ -165,128 +162,122 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
     )
 
     @Test
-    fun givenChainedCallsWithDifferentContextsCoalescesThemCorrectly() {
-        assertChanged(
-            before = """
-                package com.mycompany;
-                
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext();
-                        AnnotationConfigApplicationContext context2 = new AnnotationConfigApplicationContext();
-                        addEnvironment(context2, "key1:value1");
-                        addEnvironment(context1, "key2:value2");
-                        addEnvironment(context1, "key3:value3");
-                        String x = "x";
-                        addEnvironment(context2, "key4:value4");
-                        addEnvironment(context2, "key5:value5");
-                        addEnvironment(context1, "key6:value6");
-                        addEnvironment(context2, "key7:value7");
-                    }
+    fun givenChainedCallsWithDifferentContextsCoalescesThemCorrectly() = assertChanged(
+        before = """
+            package com.mycompany;
+            
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
+            
+            public class MyClass {
+                public void myMethod() {
+                    AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext();
+                    AnnotationConfigApplicationContext context2 = new AnnotationConfigApplicationContext();
+                    addEnvironment(context2, "key1:value1");
+                    addEnvironment(context1, "key2:value2");
+                    addEnvironment(context1, "key3:value3");
+                    String x = "x";
+                    addEnvironment(context2, "key4:value4");
+                    addEnvironment(context2, "key5:value5");
+                    addEnvironment(context1, "key6:value6");
+                    addEnvironment(context2, "key7:value7");
                 }
-            """,
-            after = """
-                package com.mycompany;
-                
-                import org.springframework.boot.test.util.TestPropertyValues;
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext();
-                        AnnotationConfigApplicationContext context2 = new AnnotationConfigApplicationContext();
-                        TestPropertyValues.of("key1:value1").applyTo(context2);
-                        TestPropertyValues.of("key2:value2").and("key3:value3").applyTo(context1);
-                        String x = "x";
-                        TestPropertyValues.of("key4:value4").and("key5:value5").applyTo(context2);
-                        TestPropertyValues.of("key6:value6").applyTo(context1);
-                        TestPropertyValues.of("key7:value7").applyTo(context2);
-                    }
+            }
+        """,
+        after = """
+            package com.mycompany;
+            
+            import org.springframework.boot.test.util.TestPropertyValues;
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            
+            public class MyClass {
+                public void myMethod() {
+                    AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext();
+                    AnnotationConfigApplicationContext context2 = new AnnotationConfigApplicationContext();
+                    TestPropertyValues.of("key1:value1").applyTo(context2);
+                    TestPropertyValues.of("key2:value2").and("key3:value3").applyTo(context1);
+                    String x = "x";
+                    TestPropertyValues.of("key4:value4").and("key5:value5").applyTo(context2);
+                    TestPropertyValues.of("key6:value6").applyTo(context1);
+                    TestPropertyValues.of("key7:value7").applyTo(context2);
                 }
-            """,
-            typeValidation = { methodInvocations = false }
-        )
-    }
+            }
+        """,
+        typeValidation = { methodInvocations = false }
+    )
 
     @Test
-    fun givenChainedCallsWithGeneratedContextsCoalescesThemCorrectly() {
-        assertChanged(
-            before = """
-                package com.mycompany;
-                
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        addEnvironment(new AnnotationConfigApplicationContext(), "key1:value1");
-                        addEnvironment(new AnnotationConfigApplicationContext(), "key2:value2");
-                        addEnvironment(new AnnotationConfigApplicationContext(), "key3:value3");
-                    }
+    fun givenChainedCallsWithGeneratedContextsCoalescesThemCorrectly() = assertChanged(
+        before = """
+            package com.mycompany;
+            
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
+            
+            public class MyClass {
+                public void myMethod() {
+                    addEnvironment(new AnnotationConfigApplicationContext(), "key1:value1");
+                    addEnvironment(new AnnotationConfigApplicationContext(), "key2:value2");
+                    addEnvironment(new AnnotationConfigApplicationContext(), "key3:value3");
                 }
-            """,
-            after = """
-                package com.mycompany;
-                
-                import org.springframework.boot.test.util.TestPropertyValues;
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        TestPropertyValues.of("key1:value1").applyTo(new AnnotationConfigApplicationContext());
-                        TestPropertyValues.of("key2:value2").applyTo(new AnnotationConfigApplicationContext());
-                        TestPropertyValues.of("key3:value3").applyTo(new AnnotationConfigApplicationContext());
-                    }
+            }
+        """,
+        after = """
+            package com.mycompany;
+            
+            import org.springframework.boot.test.util.TestPropertyValues;
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            
+            public class MyClass {
+                public void myMethod() {
+                    TestPropertyValues.of("key1:value1").applyTo(new AnnotationConfigApplicationContext());
+                    TestPropertyValues.of("key2:value2").applyTo(new AnnotationConfigApplicationContext());
+                    TestPropertyValues.of("key3:value3").applyTo(new AnnotationConfigApplicationContext());
                 }
-            """,
-            typeValidation = { methodInvocations = false }
-        )
-    }
+            }
+        """,
+        typeValidation = { methodInvocations = false }
+    )
 
     @Test
-    fun givenChainedCallsWithMixOfContextsCoalescesThemCorrectly() {
-        assertChanged(
-            before = """
-                package com.mycompany;
-                
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        addEnvironment(new AnnotationConfigApplicationContext(), "key1:value1");
-                        addEnvironment(new AnnotationConfigApplicationContext(), "key2:value2");
-                        AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext();
-                        addEnvironment(context1, "key3:value3");
-                        addEnvironment(context1, "key4:value4");
-                        addEnvironment(new AnnotationConfigApplicationContext(), "key5:value5");
-                        addEnvironment(context1, "key5:value5");
-                    }
+    fun givenChainedCallsWithMixOfContextsCoalescesThemCorrectly() = assertChanged(
+        before = """
+            package com.mycompany;
+            
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
+            
+            public class MyClass {
+                public void myMethod() {
+                    addEnvironment(new AnnotationConfigApplicationContext(), "key1:value1");
+                    addEnvironment(new AnnotationConfigApplicationContext(), "key2:value2");
+                    AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext();
+                    addEnvironment(context1, "key3:value3");
+                    addEnvironment(context1, "key4:value4");
+                    addEnvironment(new AnnotationConfigApplicationContext(), "key5:value5");
+                    addEnvironment(context1, "key5:value5");
                 }
-            """,
-            after = """
-                package com.mycompany;
-                
-                import org.springframework.boot.test.util.TestPropertyValues;
-                import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-                
-                public class MyClass {
-                    public void myMethod() {
-                        TestPropertyValues.of("key1:value1").applyTo(new AnnotationConfigApplicationContext());
-                        TestPropertyValues.of("key2:value2").applyTo(new AnnotationConfigApplicationContext());
-                        AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext();
-                        TestPropertyValues.of("key3:value3").and("key4:value4").applyTo(context1);
-                        TestPropertyValues.of("key5:value5").applyTo(new AnnotationConfigApplicationContext());
-                        TestPropertyValues.of("key5:value5").applyTo(context1);
-                    }
+            }
+        """,
+        after = """
+            package com.mycompany;
+            
+            import org.springframework.boot.test.util.TestPropertyValues;
+            import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+            
+            public class MyClass {
+                public void myMethod() {
+                    TestPropertyValues.of("key1:value1").applyTo(new AnnotationConfigApplicationContext());
+                    TestPropertyValues.of("key2:value2").applyTo(new AnnotationConfigApplicationContext());
+                    AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext();
+                    TestPropertyValues.of("key3:value3").and("key4:value4").applyTo(context1);
+                    TestPropertyValues.of("key5:value5").applyTo(new AnnotationConfigApplicationContext());
+                    TestPropertyValues.of("key5:value5").applyTo(context1);
                 }
-            """,
-            typeValidation = { methodInvocations = false }
-        )
-    }
+            }
+        """,
+        typeValidation = { methodInvocations = false }
+    )
 
     @Test
     fun givenChainedCallsThatReferToTheSameObjectUnfortunatelyDoesntChainThem() = assertChanged(
