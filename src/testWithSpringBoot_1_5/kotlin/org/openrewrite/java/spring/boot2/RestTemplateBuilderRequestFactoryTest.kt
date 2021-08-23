@@ -54,7 +54,6 @@ class RestTemplateBuilderRequestFactoryTest : JavaRecipeTest {
                             .requestFactory(() -> new SimpleClientHttpRequestFactory());
                 }
             }
-        """,
-        typeValidation = {}
+        """
     )
 }

@@ -72,7 +72,7 @@ class UnnecessarySpringExtensionTest : JavaRecipeTest {
         "org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest",
         "org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest",
         "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest"])
-    fun removeSpringExtensionForTestSliceAnnotations(annotationName: String) =  assertChanged(
+    fun removeSpringExtensionForTestSliceAnnotations(annotationName: String) = assertChanged(
         before = """
             import org.junit.jupiter.api.extension.ExtendWith;
             import ${annotationName};
@@ -83,7 +83,7 @@ class UnnecessarySpringExtensionTest : JavaRecipeTest {
             class Test {
             }
         """,
-            after = """
+        after = """
             import ${annotationName};
             
             @${annotationName.substring(annotationName.lastIndexOf('.') + 1)}

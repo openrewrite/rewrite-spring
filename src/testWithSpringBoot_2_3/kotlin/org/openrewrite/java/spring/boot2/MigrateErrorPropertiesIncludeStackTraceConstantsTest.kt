@@ -21,10 +21,11 @@ import org.openrewrite.java.JavaRecipeTest
 
 class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
     override val parser: JavaParser
-        get() = JavaParser.fromJavaVersion().classpath("spring-boot-autoconfigure").build()
+        get() = JavaParser.fromJavaVersion()
+            .classpath("spring-boot-autoconfigure")
+            .build()
 
-    override val recipe =
-        MigrateErrorPropertiesIncludeStackTraceConstants()
+    override val recipe = MigrateErrorPropertiesIncludeStackTraceConstants()
 
     @Test
     fun doNotUpdateCurrentAPIs() = assertUnchanged(
