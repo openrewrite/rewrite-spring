@@ -103,7 +103,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
         public J.Identifier visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {
             J.Identifier id = super.visitIdentifier(identifier, ctx);
             if (isTargetClass() && isTargetFieldType(id) && updateDeprecatedFields.containsKey(id.getSimpleName())) {
-                JavaType.Variable fieldType = ((JavaType.Variable)id.getFieldType());
+                JavaType.Variable fieldType = ((JavaType.Variable) id.getFieldType());
                 id = J.Identifier.build(
                         Tree.randomId(),
                         id.getPrefix(),
@@ -123,14 +123,14 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
         private boolean isTargetClass() {
             Cursor parentCursor = getCursor().dropParentUntil(
                     is -> is instanceof J.CompilationUnit ||
-                          is instanceof J.ClassDeclaration);
+                            is instanceof J.ClassDeclaration);
             return (parentCursor.getValue() instanceof J.ClassDeclaration &&
                     !((J.ClassDeclaration) parentCursor.getValue()).getName().getSimpleName().equals(ORIGINAL_FQN.getClassName()));
         }
 
         private boolean isTargetFieldType(J.Identifier identifier) {
             if (identifier.getFieldType() != null && identifier.getFieldType() instanceof JavaType.Variable) {
-                JavaType.Variable fieldType = ((JavaType.Variable)identifier.getFieldType());
+                JavaType.Variable fieldType = ((JavaType.Variable) identifier.getFieldType());
                 return Objects.equals(ORIGINAL_FQN, fieldType.getType());
             }
             return false;

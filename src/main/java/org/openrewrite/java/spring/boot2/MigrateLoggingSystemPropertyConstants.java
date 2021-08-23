@@ -62,10 +62,10 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
 
         UpdateDeprecatedConstantFieldNames() {
             updateDeprecatedFields.put("FILE_CLEAN_HISTORY_ON_START", "ROLLINGPOLICY_CLEAN_HISTORY_ON_START");
-            updateDeprecatedFields.put("FILE_MAX_HISTORY",            "ROLLINGPOLICY_MAX_HISTORY");
-            updateDeprecatedFields.put("FILE_MAX_SIZE",               "ROLLINGPOLICY_MAX_FILE_SIZE");
-            updateDeprecatedFields.put("FILE_TOTAL_SIZE_CAP",         "ROLLINGPOLICY_TOTAL_SIZE_CAP");
-            updateDeprecatedFields.put("ROLLING_FILE_NAME_PATTERN",   "ROLLINGPOLICY_FILE_NAME_PATTERN");
+            updateDeprecatedFields.put("FILE_MAX_HISTORY", "ROLLINGPOLICY_MAX_HISTORY");
+            updateDeprecatedFields.put("FILE_MAX_SIZE", "ROLLINGPOLICY_MAX_FILE_SIZE");
+            updateDeprecatedFields.put("FILE_TOTAL_SIZE_CAP", "ROLLINGPOLICY_TOTAL_SIZE_CAP");
+            updateDeprecatedFields.put("ROLLING_FILE_NAME_PATTERN", "ROLLINGPOLICY_FILE_NAME_PATTERN");
         }
 
         @Override
@@ -96,7 +96,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
         public J.Identifier visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {
             J.Identifier id = super.visitIdentifier(identifier, ctx);
             if (isTargetFieldType(id) && updateDeprecatedFields.containsKey(id.getSimpleName())) {
-                JavaType.Variable fieldType = ((JavaType.Variable)id.getFieldType());
+                JavaType.Variable fieldType = ((JavaType.Variable) id.getFieldType());
                 id = J.Identifier.build(
                         Tree.randomId(),
                         id.getPrefix(),
@@ -116,7 +116,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
 
         private boolean isTargetFieldType(J.Identifier identifier) {
             if (identifier.getFieldType() != null && identifier.getFieldType() instanceof JavaType.Variable) {
-                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(((JavaType.Variable)identifier.getFieldType()).getType());
+                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(((JavaType.Variable) identifier.getFieldType()).getType());
                 return fqn != null && ORIGINAL_FQN.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
             }
             return false;
