@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
+import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
@@ -25,7 +26,8 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest : JavaRecipeTest {
             .classpath("spring-boot-autoconfigure")
             .build()
 
-    override val recipe = MigrateErrorPropertiesIncludeStackTraceConstants()
+    override val recipe: Recipe
+        get() = MigrateErrorPropertiesIncludeStackTraceConstants()
 
     @Test
     fun doNotUpdateCurrentAPIs() = assertUnchanged(

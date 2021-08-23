@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.Issue
+import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
@@ -27,7 +28,8 @@ class MigrateLoggingSystemPropertyConstantsTest : JavaRecipeTest {
             .classpath("spring-boot")
             .build()
 
-    override val recipe = MigrateLoggingSystemPropertyConstants()
+    override val recipe: Recipe
+        get() = MigrateLoggingSystemPropertyConstants()
 
     @Test
     fun doNotUpdateCurrentAPIs() = assertUnchanged(

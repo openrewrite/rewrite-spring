@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
+import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
@@ -26,7 +27,8 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
             .classpath("spring-boot-autoconfigure", "spring-context")
             .build()
 
-    override val recipe = ConditionalOnBeanAnyNestedCondition()
+    override val recipe: Recipe
+        get() = ConditionalOnBeanAnyNestedCondition()
 
     @Test
     fun conditionalAnnotationSingleClassCandidateNoChange() = assertUnchanged(
