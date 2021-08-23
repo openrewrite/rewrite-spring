@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
-import org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
 
 class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
     override val parser: JavaParser
