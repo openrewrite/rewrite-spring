@@ -97,6 +97,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest : JavaRecipeTest {
         )
 
     @Test
+    @Suppress("StringConcatenationMissingWhitespace")
     fun givenConstructsStringAndContextWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() =
         assertChanged(
             before = """
