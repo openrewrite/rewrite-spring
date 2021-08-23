@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
+@Suppress("MethodMayBeStatic")
 class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()

@@ -20,6 +20,7 @@ import org.openrewrite.Issue
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
+@Suppress("MethodMayBeStatic")
 class MigrateLoggingSystemPropertyConstantsTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
