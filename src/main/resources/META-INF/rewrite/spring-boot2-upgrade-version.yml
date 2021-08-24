@@ -131,7 +131,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
   - org.openrewrite.java.testing.junit5.JUnit5BestPractices
-  
+
   # Upgrade to 2.3.x from 2.2.x
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
 
@@ -209,6 +209,7 @@ recipeList:
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
+  - org.openrewrite.java.spring.boot2.SpringBootPropertiesManual_2_5
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
