@@ -18,7 +18,7 @@
 # See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Configuration-Changelog#deprecated-in-250
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootPropertiesManual_2_5
-displayName: Migrate (additional!) Spring Boot properties to 2.5
+displayName: Migrate additional Spring Boot properties to 2.5
 description: Migrate properties found in `application.properties` and `application.yml` which are not generated automatically from Spring Boot's `additional-spring-configuration-metadata.json` file.
 recipeList:
   - org.openrewrite.properties.ChangePropertyKey:

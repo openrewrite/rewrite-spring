@@ -26,7 +26,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UseJpaRepositoryGetById
-displayName: Use `JpaRepository#getById(ID id)`.
+displayName: Use `JpaRepository#getById(ID id)`
 description: '`JpaRepository#getOne(ID)` was deprecated in 2.5.'
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
@@ -36,7 +36,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UseJpaRepositoryDeleteAllInBatch
-displayName: Use `JpaRepository#deleteAllInBatch(Iterable<T> entities)`.
+displayName: Use `JpaRepository#deleteAllInBatch(Iterable<T> entities)`
 description: '`JpaRepository#deleteInBatch(Iterable)` was deprecated in 2.5.'
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
