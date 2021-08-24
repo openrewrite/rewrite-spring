@@ -155,6 +155,9 @@ recipeList:
       artifactId: spring-boot-starter-test
       exclusionGroupId: junit
       exclusionArtifactId: junit
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQL
+      newFullyQualifiedTypeName: org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQLDB
 
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
