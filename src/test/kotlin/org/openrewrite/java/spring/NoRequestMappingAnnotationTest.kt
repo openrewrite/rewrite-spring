@@ -40,7 +40,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
             import org.springframework.web.bind.annotation.RequestMapping;
             import static org.springframework.web.bind.annotation.RequestMethod.GET;
             import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
-            
+
             @RestController
             @RequestMapping("/users")
             public class UsersController {
@@ -48,7 +48,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
                 public ResponseEntity<List<String>> getUsersHead() {
                     return null;
                 }
-            
+
                 @RequestMapping(method = GET)
                 public ResponseEntity<List<String>> getUsers() {
                     return null;
@@ -58,7 +58,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
                 public ResponseEntity<String> getUser(@PathVariable("id") Long id) {
                     return null;
                 }
-                
+
                 @RequestMapping
                 public ResponseEntity<List<String>> getUsersNoRequestMethod() {
                     return null;
@@ -71,7 +71,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
             import org.springframework.web.bind.annotation.GetMapping;
             import org.springframework.web.bind.annotation.RequestMapping;
             import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
-            
+
             @RestController
             @RequestMapping("/users")
             public class UsersController {
@@ -79,7 +79,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
                 public ResponseEntity<List<String>> getUsersHead() {
                     return null;
                 }
-            
+
                 @GetMapping
                 public ResponseEntity<List<String>> getUsers() {
                     return null;
@@ -89,7 +89,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
                 public ResponseEntity<String> getUser(@PathVariable("id") Long id) {
                     return null;
                 }
-                
+
                 @GetMapping
                 public ResponseEntity<List<String>> getUsersNoRequestMethod() {
                     return null;
