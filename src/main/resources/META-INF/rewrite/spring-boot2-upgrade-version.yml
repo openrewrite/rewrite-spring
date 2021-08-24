@@ -57,6 +57,7 @@ recipeList:
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
   - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
+  - org.openrewrite.java.spring.framework.MigrateUTF8MediaTypes
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2

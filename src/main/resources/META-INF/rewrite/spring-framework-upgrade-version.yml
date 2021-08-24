@@ -31,3 +31,21 @@ recipeList:
   - org.openrewrite.java.ChangeMethodTargetToStatic:
       methodPattern: org.springframework.util.StringUtils isEmpty(Object)
       fullyQualifiedTargetTypeName: org.springframework.util.ObjectUtils
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.MigrateUTF8MediaTypes
+displayName: Use `MediaType.APPLICATION_JSON`.
+description: 'UTF8 `MediaType.APPLICATION` types were deprecated in 5.2.'
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_JSON_UTF8
+      newFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_JSON
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE
+      newFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_UTF8
+      newFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_UTF8_VALUE
+      newFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE
