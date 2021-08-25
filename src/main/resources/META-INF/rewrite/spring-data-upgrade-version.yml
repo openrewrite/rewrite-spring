@@ -15,6 +15,15 @@
 #
 ---
 ########################################################################################################################
+# Spring Data 2.3
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
+displayName: Upgrade to Spring Data 2.3
+description: 'Upgrade to Spring Data to 2.3 from any prior version.'
+recipeList:
+  - org.openrewrite.java.spring.data.MigrateJpaSort
+---
+########################################################################################################################
 # Spring Data 2.5
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_5
