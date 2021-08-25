@@ -203,6 +203,39 @@ tasks.named<Test>("test") {
     jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
 }
 
+springBoot2Versions.forEach { version ->
+    val sourceSetName = "testWithSpringBoot_${version}"
+    val sourceSetReference = project.sourceSets.getByName(sourceSetName)
+    val testTask = tasks.register<Test>(sourceSetName) {
+        description = "Runs the unit tests for ${sourceSetName}."
+        group = "verification"
+        useJUnitPlatform()
+        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
+        testClassesDirs = sourceSetReference.output.classesDirs
+        classpath = sourceSetReference.runtimeClasspath
+        shouldRunAfter(tasks.test)
+    }
+    tasks.test {
+        dependsOn(testTask)
+    }
+}
+springDataVersions.forEach { version ->
+    val sourceSetName = "testWithSpringData_${version}"
+    val sourceSetReference = project.sourceSets.getByName(sourceSetName)
+    val testTask = tasks.register<Test>(sourceSetName) {
+        description = "Runs the unit tests for ${sourceSetName}."
+        group = "verification"
+        useJUnitPlatform()
+        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
+        testClassesDirs = sourceSetReference.output.classesDirs
+        classpath = sourceSetReference.runtimeClasspath
+        shouldRunAfter(tasks.test)
+    }
+    tasks.test {
+        dependsOn(testTask)
+    }
+}
+
 tasks.named<JavaCompile>("compileJava") {
     sourceCompatibility = JavaVersion.VERSION_1_8.toString()
     targetCompatibility = JavaVersion.VERSION_1_8.toString()
