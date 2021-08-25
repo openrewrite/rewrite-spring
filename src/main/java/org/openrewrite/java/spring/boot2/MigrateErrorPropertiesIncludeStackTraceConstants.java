@@ -130,8 +130,8 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
 
         private boolean isTargetFieldType(J.Identifier identifier) {
             if (identifier.getFieldType() != null && identifier.getFieldType() instanceof JavaType.Variable) {
-                JavaType.Variable fieldType = ((JavaType.Variable) identifier.getFieldType());
-                return Objects.equals(ORIGINAL_FQN, fieldType.getType());
+                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(((JavaType.Variable) identifier.getFieldType()).getType());
+                return fqn != null && ORIGINAL_FQN.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
             }
             return false;
         }
