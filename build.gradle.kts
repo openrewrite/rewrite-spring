@@ -214,6 +214,9 @@ dependencies {
 
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
 
+    "testWithSpringData_2_1RuntimeOnly"("org.springframework.data:spring-data-jpa:2.1.0.RELEASE")
+    "testWithSpringData_2_1RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
+
     "testWithSpringData_2_3RuntimeOnly"("org.springframework.data:spring-data-jpa:2.3.0.RELEASE")
     "testWithSpringData_2_3RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
 
