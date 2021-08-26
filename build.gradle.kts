@@ -211,6 +211,7 @@ dependencies {
     "testWithSpringBoot_2_3RuntimeOnly"("junit:junit:latest.release")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
+    "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-web:5.2.+")
 
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
 
