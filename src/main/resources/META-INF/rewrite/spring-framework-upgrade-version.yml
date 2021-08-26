@@ -22,7 +22,8 @@ displayName: Upgrade to Spring Framework 5.3
 description: 'Upgrade to Spring Framework to 5.3 from any prior version.'
 recipeList:
   - org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
-  - org.openrewrite.java.spring.boot2.MigrateInstantiationAwareBeanPostProcessorAdapter
+  - org.openrewrite.java.spring.framework.MigrateUTF8MediaTypes
+  - org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty

@@ -49,8 +49,9 @@ configure<nebula.plugin.release.git.base.ReleasePluginExtension> {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBoot2Versions = listOf("1_5", "2_3", "2_4")
-val springDataVersions = listOf("2_3")
+val springBoot2Versions: List<String> = listOf("1_5", "2_3", "2_4")
+val springDataVersions: List<String> = listOf("2_1", "2_3")
+val springFrameworkVersions: List<String> = listOf("5_3")
 
 sourceSets {
     springBoot2Versions.forEach { version ->
@@ -63,6 +64,14 @@ sourceSets {
     }
     springDataVersions.forEach { version ->
         create("testWithSpringData_${version}") {
+            java {
+                compileClasspath += sourceSets.getByName("main").output
+                runtimeClasspath += sourceSets.getByName("main").output
+            }
+        }
+    }
+    springFrameworkVersions.forEach { version ->
+        create("testWithSpringFramework_${version}") {
             java {
                 compileClasspath += sourceSets.getByName("main").output
                 runtimeClasspath += sourceSets.getByName("main").output
@@ -115,6 +124,17 @@ configurations {
             extendsFrom(getByName("testImplementation"))
         }
         getByName("testWithSpringData_${version}Implementation") {
+            isCanBeResolved = true
+            extendsFrom(getByName("testImplementation"))
+        }
+    }
+
+    springFrameworkVersions.forEach { version ->
+        getByName("testWithSpringFramework_${version}RuntimeOnly") {
+            isCanBeResolved = true
+            extendsFrom(getByName("testImplementation"))
+        }
+        getByName("testWithSpringFramework_${version}Implementation") {
             isCanBeResolved = true
             extendsFrom(getByName("testImplementation"))
         }
@@ -193,10 +213,11 @@ dependencies {
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
 
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
-    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-beans:5.3.+")
 
     "testWithSpringData_2_3RuntimeOnly"("org.springframework.data:spring-data-jpa:2.3.0.RELEASE")
     "testWithSpringData_2_3RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
+
+    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-beans:5.3.+")
 }
 
 tasks.named<Test>("test") {
@@ -222,6 +243,22 @@ springBoot2Versions.forEach { version ->
 }
 springDataVersions.forEach { version ->
     val sourceSetName = "testWithSpringData_${version}"
+    val sourceSetReference = project.sourceSets.getByName(sourceSetName)
+    val testTask = tasks.register<Test>(sourceSetName) {
+        description = "Runs the unit tests for ${sourceSetName}."
+        group = "verification"
+        useJUnitPlatform()
+        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
+        testClassesDirs = sourceSetReference.output.classesDirs
+        classpath = sourceSetReference.runtimeClasspath
+        shouldRunAfter(tasks.test)
+    }
+    tasks.test {
+        dependsOn(testTask)
+    }
+}
+springFrameworkVersions.forEach { version ->
+    val sourceSetName = "testWithSpringFramework_${version}"
     val sourceSetReference = project.sourceSets.getByName(sourceSetName)
     val testTask = tasks.register<Test>(sourceSetName) {
         description = "Runs the unit tests for ${sourceSetName}."

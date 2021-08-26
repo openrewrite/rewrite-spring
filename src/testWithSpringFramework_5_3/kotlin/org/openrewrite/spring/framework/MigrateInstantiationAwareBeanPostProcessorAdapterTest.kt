@@ -19,12 +19,14 @@ import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
+import org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
 
 class MigrateInstantiationAwareBeanPostProcessorAdapterTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-beans")
             .build()
+
     override val recipe: Recipe
         get() = MigrateInstantiationAwareBeanPostProcessorAdapter()
 
