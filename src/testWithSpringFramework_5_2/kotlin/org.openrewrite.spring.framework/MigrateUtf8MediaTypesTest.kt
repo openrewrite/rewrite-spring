@@ -23,7 +23,7 @@ import org.openrewrite.java.JavaRecipeTest
 @Suppress("MethodMayBeStatic")
 class MigrateUtf8MediaTypesTest : JavaRecipeTest {
     override val parser: JavaParser
-        get() = JavaParser.fromJavaVersion().logCompilationWarningsAndErrors(true)
+        get() = JavaParser.fromJavaVersion()
             .classpath("spring-core", "spring-web")
             .build()
 
