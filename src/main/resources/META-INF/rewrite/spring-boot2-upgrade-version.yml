@@ -31,8 +31,22 @@ recipeList:
       artifactId: spring-boot-starter-parent
       newVersion: 2.1.x
 
+  # Use recommended replacements for deprecated APIs
+  - org.openrewrite.java.spring.boot2.MigrateRestTemplateBuilderBasicAuthorization
+
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_1
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateRestTemplateBuilderBasicAuthorization
+displayName: Use `RestTemplateBuilder#basicAuthentication`
+description: '`RestTemplateBuilder#basicAuthorization` was deprecated in 2.1.'
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.boot.web.client.RestTemplateBuilder basicAuthorization(String, String)
+      newMethodName: basicAuthentication
+
 ---
 ########################################################################################################################
 # SpringBoot 2.2
