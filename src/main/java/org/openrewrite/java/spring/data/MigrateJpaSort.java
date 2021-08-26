@@ -69,6 +69,9 @@ public class MigrateJpaSort extends Recipe {
                                     .javaParser(() -> JavaParser.fromJavaVersion()
                                             .dependsOn(
                                                     "package org.springframework.data.jpa.domain;" +
+                                                    "import org.springframework.data.domain.Sort;" +
+                                                    "import org.springframework.data.domain.Sort.Direction;" +
+                                                    "import javax.persistence.metamodel.Attribute;" +
                                                     "public class JpaSort extends Sort {" +
                                                         "public static JpaSort of(Attribute<?, ?>... attributes) { return null; }" +
                                                         "public static JpaSort of(JpaSort.Path<?, ?>... paths) { return null; }" +
@@ -78,10 +81,9 @@ public class MigrateJpaSort extends Recipe {
                                                     "}",
                                                     "package javax.persistence.metamodel; public interface Attribute<X, Y> {}",
                                                     "package org.springframework.data.domain;" +
-                                                    "@RequiredArgsConstructor(access = AccessLevel.PROTECTED)\n" +
                                                     "public class Sort implements Streamable<org.springframework.data.domain.Sort.Order>, Serializable {" +
                                                         "public static enum Direction { ASC, DESC; }" +
-                                                    "}") // stub for JpaSort
+                                                    "}")
                                             .build())
                                     .build(),
                             newClass.getCoordinates().replace(),
