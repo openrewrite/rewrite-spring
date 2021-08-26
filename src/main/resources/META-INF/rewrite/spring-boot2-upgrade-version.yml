@@ -43,6 +43,7 @@ description: 'Upgrade to Spring Boot 2.2 from any prior 2.x version.'
 recipeList:
   # Upgrade to 2.1.x from 2.0.x
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_1
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_2
 
   # Upgrade to 2.2.x from 2.1.x
   - org.openrewrite.maven.UpgradeDependencyVersion:

@@ -15,6 +15,15 @@
 #
 ---
 ########################################################################################################################
+# Spring Framework 5.2
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_2
+displayName: Upgrade to Spring Framework 5.2
+description: 'Upgrade to Spring Framework to 5.2 from any prior version.'
+recipeList:
+  - org.openrewrite.java.spring.framework.MigrateUtf8MediaTypes
+---
+########################################################################################################################
 # Spring Framework 5.3
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
@@ -22,7 +31,6 @@ displayName: Upgrade to Spring Framework 5.3
 description: 'Upgrade to Spring Framework to 5.3 from any prior version.'
 recipeList:
   - org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
-  - org.openrewrite.java.spring.framework.MigrateUTF8MediaTypes
   - org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -33,21 +41,3 @@ recipeList:
   - org.openrewrite.java.ChangeMethodTargetToStatic:
       methodPattern: org.springframework.util.StringUtils isEmpty(Object)
       fullyQualifiedTargetTypeName: org.springframework.util.ObjectUtils
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.framework.MigrateUTF8MediaTypes
-displayName: Use `MediaType.APPLICATION_JSON`
-description: 'UTF8 `MediaType.APPLICATION` types were deprecated in 5.2.'
-recipeList:
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_JSON_UTF8
-      newFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_JSON
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE
-      newFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_UTF8
-      newFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_UTF8_VALUE
-      newFullyQualifiedTypeName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE
