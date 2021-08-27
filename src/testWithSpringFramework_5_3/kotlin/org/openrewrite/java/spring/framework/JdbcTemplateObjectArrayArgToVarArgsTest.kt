@@ -25,7 +25,6 @@ class JdbcTemplateObjectArrayArgToVarArgsTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-jdbc", "spring-tx", "spring-beans", "spring-core")
-            .logCompilationWarningsAndErrors(true)
             .build()
 
     override val recipe: Recipe
