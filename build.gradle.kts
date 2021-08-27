@@ -224,7 +224,10 @@ dependencies {
     "testWithSpringFramework_5_2RuntimeOnly"("org.springframework:spring-web:5.2.+")
     "testWithSpringFramework_5_2RuntimeOnly"("org.springframework:spring-core:5.2.+")
 
+    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-core:5.3.+")
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-beans:5.3.+")
+    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-tx:5.3.+")
+    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-jdbc:5.3.+")
 }
 
 tasks.named<Test>("test") {
