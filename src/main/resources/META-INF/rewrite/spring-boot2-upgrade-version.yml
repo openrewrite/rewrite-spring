@@ -122,6 +122,7 @@ recipeList:
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
   - org.openrewrite.java.spring.boot2.MigrateErrorPropertiesIncludeStackTraceConstants
+  - org.openrewrite.java.spring.boot2.GetErrorAttributes
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_3
