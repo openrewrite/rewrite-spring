@@ -32,6 +32,7 @@ description: 'Upgrade to Spring Framework to 5.3 from any prior version.'
 recipeList:
   - org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
   - org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
+  - org.openrewrite.java.spring.framework.JdbcTemplateObjectArrayArgToVarArgs
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
