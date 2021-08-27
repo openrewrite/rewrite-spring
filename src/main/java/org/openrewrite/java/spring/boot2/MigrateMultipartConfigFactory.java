@@ -74,7 +74,7 @@ public class MigrateMultipartConfigFactory extends Recipe {
                 if (setMaxFileSizeByLong.matches(m) || setMaxRequestSizeByLong.matches(m) || setFileSizeThresholdByInt.matches(m)) {
                     m = m.withTemplate(
                             JavaTemplate
-                                    .builder(this::getCursor,"DataSize.ofBytes(#{})")
+                                    .builder(this::getCursor,"DataSize.ofBytes(#{any()})")
                                     .imports("org.springframework.util.unit.DataSize")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
                                             .dependsOn(dataSize, multipartConfigFactory)
