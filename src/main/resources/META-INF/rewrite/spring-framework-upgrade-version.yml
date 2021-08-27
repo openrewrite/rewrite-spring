@@ -15,6 +15,15 @@
 #
 ---
 ########################################################################################################################
+# Spring Framework 5.1
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_1
+displayName: Upgrade to Spring Framework 5.1
+description: 'Upgrade to Spring Framework to 5.1 from any prior version.'
+recipeList:
+  - org.openrewrite.java.spring.framework.EnvironmentAcceptsProfiles
+---
+########################################################################################################################
 # Spring Framework 5.2
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_2

@@ -51,7 +51,7 @@ description = "Eliminate legacy Spring patterns and migrate between major Spring
 
 val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_3", "2_4")
 val springDataVersions: List<String> = listOf("2_1", "2_3")
-val springFrameworkVersions: List<String> = listOf("5_2", "5_3")
+val springFrameworkVersions: List<String> = listOf("5_1", "5_2", "5_3")
 
 sourceSets {
     springBoot2Versions.forEach { version ->
@@ -223,6 +223,8 @@ dependencies {
 
     "testWithSpringData_2_3RuntimeOnly"("org.springframework.data:spring-data-jpa:2.3.0.RELEASE")
     "testWithSpringData_2_3RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
+
+    "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-core:5.1.+")
 
     "testWithSpringFramework_5_2RuntimeOnly"("org.springframework:spring-web:5.2.+")
     "testWithSpringFramework_5_2RuntimeOnly"("org.springframework:spring-core:5.2.+")
