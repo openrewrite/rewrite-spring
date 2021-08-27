@@ -38,7 +38,7 @@ public class EnvironmentAcceptsProfiles extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Environment#acceptsProfiles(String...)` was deprecated in Spring Framework 5.1.";
+        return "`Environment#acceptsProfiles(String...)` was deprecated in Spring Framework 5.1.";
     }
 
     @Override
