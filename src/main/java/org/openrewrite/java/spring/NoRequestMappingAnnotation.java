@@ -46,7 +46,6 @@ public class NoRequestMappingAnnotation extends Recipe {
 
     private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
             JavaParser.fromJavaVersion()
-                    .logCompilationWarningsAndErrors(true)
                     .dependsOn(Parser.Input.fromResource("/RequestMapping.java", "---"))
                     .build()
     );

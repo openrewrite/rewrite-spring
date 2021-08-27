@@ -26,7 +26,6 @@ class SpringBoot2JUnit4to5MigrationTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-boot-test", "junit", "spring-test")
-            .logCompilationWarningsAndErrors(true)
             .build()
 
     override val recipe: Recipe

@@ -26,7 +26,6 @@ class OutputCaptureExtensionTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-boot-test", "hamcrest-core", "junit")
-            .logCompilationWarningsAndErrors(true)
             .build()
 
     override val recipe: Recipe

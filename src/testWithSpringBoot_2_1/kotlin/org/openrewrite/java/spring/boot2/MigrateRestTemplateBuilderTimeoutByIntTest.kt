@@ -24,7 +24,6 @@ class MigrateRestTemplateBuilderTimeoutByIntTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-boot", "spring-web")
-            .logCompilationWarningsAndErrors(true)
             .build()
 
     override val recipe: Recipe
@@ -46,8 +45,9 @@ class MigrateRestTemplateBuilderTimeoutByIntTest : JavaRecipeTest {
     @Test
     fun changeDeprecatedMethods() = assertChanged(
         before = """
-            import org.springframework.web.client.RestTemplate;
             import org.springframework.boot.web.client.RestTemplateBuilder;
+            import org.springframework.web.client.RestTemplate;
+
             class Test {
                 RestTemplate template = new RestTemplateBuilder()
                     .setConnectTimeout(1)
@@ -56,11 +56,10 @@ class MigrateRestTemplateBuilderTimeoutByIntTest : JavaRecipeTest {
             }
         """,
         after = """
+            import org.springframework.boot.web.client.RestTemplateBuilder;
             import org.springframework.web.client.RestTemplate;
             
             import java.time.Duration;
-            
-            import org.springframework.boot.web.client.RestTemplateBuilder;
             
             class Test {
                 RestTemplate template = new RestTemplateBuilder()

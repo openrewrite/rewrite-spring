@@ -25,7 +25,6 @@ import org.openrewrite.java.JavaRecipeTest
 class NoRequestMappingAnnotationTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
             .classpath("spring-web")
             .build()
 

@@ -23,7 +23,6 @@ import org.openrewrite.java.JavaRecipeTest
 class GetErrorAttributesTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
             .classpath("spring-boot", "spring-web")
             .build()
 
