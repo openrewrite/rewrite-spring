@@ -34,6 +34,7 @@ recipeList:
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateRestTemplateBuilderBasicAuthorization
   - org.openrewrite.java.spring.boot2.MigrateRestTemplateBuilderTimeoutByInt
+  - org.openrewrite.java.spring.boot2.MigrateMultipartConfigFactory
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_1
