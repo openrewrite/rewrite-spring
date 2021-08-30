@@ -208,6 +208,7 @@ dependencies {
 
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework:spring-web:5.1.+")
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot:2.1.+")
+    "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.1.0.RELEASE")
 
     "testWithSpringBoot_2_3RuntimeOnly"("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:4.+")

@@ -33,7 +33,6 @@ class MigrateMultipartConfigFactoryTest : JavaRecipeTest {
     fun doNotChangeCurrentApi() = assertUnchanged(
         before = """
             import org.springframework.boot.web.servlet.MultipartConfigFactory;
-            import org.springframework.util.unit.DataSize;
             
             class Test {
                 void method() {
@@ -48,7 +47,6 @@ class MigrateMultipartConfigFactoryTest : JavaRecipeTest {
     fun changeDeprecatedMethods() = assertChanged(
         before = """
             import org.springframework.boot.web.servlet.MultipartConfigFactory;
-            import org.springframework.util.unit.DataSize;
             
             class Test {
                 void method() {
