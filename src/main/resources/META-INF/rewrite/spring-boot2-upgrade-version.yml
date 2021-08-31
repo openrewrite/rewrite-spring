@@ -76,6 +76,8 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
   - org.openrewrite.java.spring.boot2.MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
 
+  - org.openrewrite.java.spring.boot2.SpringBootMavenPluginMigrateAgentToAgents
+
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
 
