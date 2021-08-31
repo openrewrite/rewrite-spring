@@ -49,7 +49,7 @@ configure<nebula.plugin.release.git.base.ReleasePluginExtension> {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_3", "2_4")
+val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4")
 val springDataVersions: List<String> = listOf("2_1", "2_3")
 val springFrameworkVersions: List<String> = listOf("5_1", "5_2", "5_3")
 
@@ -209,6 +209,8 @@ dependencies {
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework:spring-web:5.1.+")
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot:2.1.+")
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.1.0.RELEASE")
+
+    "testWithSpringBoot_2_2RuntimeOnly"("org.springframework.boot:spring-boot:2.2.+")
 
     "testWithSpringBoot_2_3RuntimeOnly"("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:4.+")
