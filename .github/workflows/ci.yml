@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch: {}
 
 env:
   GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
