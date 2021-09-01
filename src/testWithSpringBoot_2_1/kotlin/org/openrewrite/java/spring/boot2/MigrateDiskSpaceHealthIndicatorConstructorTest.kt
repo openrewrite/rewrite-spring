@@ -57,7 +57,7 @@ class MigrateDiskSpaceHealthIndicatorConstructorTest : JavaRecipeTest {
                     DiskSpaceHealthIndicator variable = new DiskSpaceHealthIndicator(null, arg);
                 }
                 long value() {
-                    return 10L; 
+                    return 10L;
                 }
             }
         """,
