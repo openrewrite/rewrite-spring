@@ -25,6 +25,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -103,9 +104,9 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                         id.getType(),
                         JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
-                                fieldType.getOwner(),
                                 NEW_FQN,
-                                fieldType.getAnnotations(),
+                                null,
+                                Collections.emptyList(),
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
 
                 maybeRemoveImport(ORIGINAL_FQN);
