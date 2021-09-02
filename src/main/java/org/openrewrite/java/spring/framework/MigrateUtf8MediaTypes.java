@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MigrateUtf8MediaTypes extends Recipe {
-
     @Override
     public String getDisplayName() {
         return "Migrate deprecated Spring-Web UTF8 MediaTypes";
@@ -97,7 +96,9 @@ public class MigrateUtf8MediaTypes extends Recipe {
                         id.getType(),
                         JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
+                                fieldType.getOwner(),
                                 MEDIA_TYPE_FQN,
+                                fieldType.getAnnotations(),
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
             }
             return id;

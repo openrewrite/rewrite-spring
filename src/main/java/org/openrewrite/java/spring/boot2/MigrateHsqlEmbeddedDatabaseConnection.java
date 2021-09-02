@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
-
     @Override
     public String getDisplayName() {
         return "Migrate deprecated Spring-Boot EmbeddedDatabaseConnection.HSQL";
@@ -94,7 +93,9 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
                         id.getType(),
                         JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
+                                fieldType.getOwner(),
                                 EMBEDDED_DATABASE_CONNECTION_FNQ,
+                                fieldType.getAnnotations(),
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
             }
             return id;

@@ -28,9 +28,7 @@ import org.openrewrite.java.tree.*;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class MigrateLoggingSystemPropertyConstants extends Recipe {
-
     @Override
     public String getDisplayName() {
         return "Migrate to recommended constants in `LogbackLoggingSystemProperties` from deprecated values in `LoggingSystemProperties`";
@@ -105,7 +103,9 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                         id.getType(),
                         JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
+                                fieldType.getOwner(),
                                 NEW_FQN,
+                                fieldType.getAnnotations(),
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
 
                 maybeRemoveImport(ORIGINAL_FQN);

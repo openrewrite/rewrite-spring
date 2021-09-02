@@ -29,9 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-
 public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
-
     @Override
     public String getDisplayName() {
         return "Use `ErrorProperties#IncludeStacktrace.ON_PARAM`";
@@ -112,7 +110,9 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
                         id.getType(),
                         fieldType == null ? null : JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
+                                fieldType.getOwner(),
                                 ORIGINAL_FQN,
+                                fieldType.getAnnotations(),
                                 Flag.flagsToBitMap(fieldType.getFlags())));
 
                 doAfterVisit(new AddImport<>(ORIGINAL_FQN.getFullyQualifiedName(), id.getSimpleName(), false));

@@ -25,6 +25,7 @@ import org.openrewrite.java.JavaRecipeTest
 class MigrateLoggingSystemPropertyConstantsTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
+            .logCompilationWarningsAndErrors(true)
             .classpath("spring-boot")
             .build()
 
