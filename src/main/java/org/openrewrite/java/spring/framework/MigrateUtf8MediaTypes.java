@@ -106,7 +106,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
 
         private boolean isTargetFieldType(J.Identifier identifier) {
             if (identifier.getFieldType() != null && identifier.getFieldType() instanceof JavaType.Variable) {
-                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(((JavaType.Variable) identifier.getFieldType()).getType());
+                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(((JavaType.Variable) identifier.getFieldType()).getOwner());
                 return fqn != null && MEDIA_TYPE_FQN.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
             }
             return false;
