@@ -36,7 +36,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Replaces field and static access of deprecated fields in `LoggingSystemProperties` with the recommendations from `LogbackLoggingSystemProperties`. Deprecated in 2.4.x and removed in 2.6.0";
+        return "Replaces field and static access of deprecated fields in `LoggingSystemProperties` with the recommendations from `LogbackLoggingSystemProperties`. Deprecated in 2.4.x and removed in 2.6.0.";
     }
 
     @Nullable

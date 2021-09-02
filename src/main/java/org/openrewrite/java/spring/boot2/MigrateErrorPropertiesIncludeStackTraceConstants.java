@@ -37,7 +37,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
 
     @Override
     public String getDescription() {
-        return "`ErrorProperties#IncludeStacktrace.ON_TRACE_PARAM` was deprecated in 2.3.x and removed in 2.5.0";
+        return "`ErrorProperties#IncludeStacktrace.ON_TRACE_PARAM` was deprecated in 2.3.x and removed in 2.5.0.";
     }
 
     @Nullable
