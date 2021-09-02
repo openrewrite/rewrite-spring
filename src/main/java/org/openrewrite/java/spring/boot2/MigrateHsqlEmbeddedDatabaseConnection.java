@@ -24,6 +24,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -93,9 +94,9 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
                         id.getType(),
                         JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
-                                fieldType.getOwner(),
                                 EMBEDDED_DATABASE_CONNECTION_FNQ,
-                                fieldType.getAnnotations(),
+                                null,
+                                Collections.emptyList(),
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
             }
             return id;

@@ -25,6 +25,7 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -110,9 +111,9 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
                         id.getType(),
                         fieldType == null ? null : JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
-                                fieldType.getOwner(),
                                 ORIGINAL_FQN,
-                                fieldType.getAnnotations(),
+                                fieldType.getType(),
+                                Collections.emptyList(),
                                 Flag.flagsToBitMap(fieldType.getFlags())));
 
                 doAfterVisit(new AddImport<>(ORIGINAL_FQN.getFullyQualifiedName(), id.getSimpleName(), false));
