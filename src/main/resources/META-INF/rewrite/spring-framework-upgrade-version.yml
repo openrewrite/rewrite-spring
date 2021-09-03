@@ -42,6 +42,11 @@ recipeList:
   - org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
   - org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
   - org.openrewrite.java.spring.framework.JdbcTemplateObjectArrayArgToVarArgs
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+        groupId: org.hibernate
+        artifactId: hibernate-search-orm
+        newVersion: 5.11.x
+        trustParent: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
