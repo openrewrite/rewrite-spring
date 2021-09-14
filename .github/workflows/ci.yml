@@ -11,6 +11,8 @@ on:
     branches:
       - main
   workflow_dispatch: {}
+  schedule:
+    - cron: "0 18 * * *"
 
 env:
   GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
@@ -54,7 +56,7 @@ jobs:
   publish-snapshots:
     needs: [build]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.repository_owner == 'openrewrite'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.repository_owner == 'openrewrite'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -74,7 +76,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: publish-snapshots
-        if: github.event_name == 'push'
         timeout-minutes: 30
         run: ./gradlew ${GRADLE_SWITCHES} snapshot publish -PforceSigning -x test
         env:
