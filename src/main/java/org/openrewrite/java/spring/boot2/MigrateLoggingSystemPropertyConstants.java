@@ -68,16 +68,28 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
         }
 
         @Override
+        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+            J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
+
+            if (!classDecl.getSimpleName().equals(ORIGINAL_FQN.getClassName())) {
+                maybeRemoveImport(ORIGINAL_FQN);
+                maybeAddImport(NEW_FQN);
+            }
+
+            return cd;
+        }
+
+        @Override
         public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
             J.FieldAccess fa = super.visitFieldAccess(fieldAccess, ctx);
             if (TypeUtils.isOfType(ORIGINAL_FQN, fa.getTarget().getType()) &&
-                    updateDeprecatedFields.containsKey(fa.getName().getSimpleName())) {
+                    updateDeprecatedFields.containsValue(fa.getName().getSimpleName())) {
 
                 if (fa.getTarget() instanceof J.FieldAccess) {
-                    fa = TypeTree.build(NEW_FQN.getFullyQualifiedName() + "." + updateDeprecatedFields.get(fieldAccess.getName().getSimpleName()))
+                    fa = TypeTree.build(NEW_FQN.getFullyQualifiedName() + "." + fa.getName().getSimpleName())
                             .withPrefix(fa.getPrefix());
                 } else {
-                    fa = fa.withName(fa.getName().withName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
+                    fa = fa.withName(fa.getName().withName(fa.getName().getSimpleName()));
                     fa = fa.withTarget(J.Identifier.build(
                             Tree.randomId(),
                             fa.getTarget().getPrefix(),
@@ -85,8 +97,6 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                             NEW_FQN.getClassName(),
                             NEW_FQN));
                 }
-                maybeRemoveImport(ORIGINAL_FQN);
-                maybeAddImport(NEW_FQN);
             }
             return fa;
         }
@@ -105,12 +115,20 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                         JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 NEW_FQN,
-                                null,
+                                id.getType(),
                                 Collections.emptyList(),
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
 
-                maybeRemoveImport(ORIGINAL_FQN);
-                doAfterVisit(new AddImport<>(NEW_FQN.getFullyQualifiedName(), id.getSimpleName(), false));
+                J.CompilationUnit cu = getCursor().firstEnclosing(J.CompilationUnit.class);
+                if (cu != null) {
+                    for (J.Import anImport : cu.getImports()) {
+                        if (anImport.isStatic() && TypeUtils.isOfType(anImport.getQualid().getTarget().getType(), ORIGINAL_FQN) &&
+                                (updateDeprecatedFields.containsKey(anImport.getQualid().getName().getSimpleName()) ||
+                                        anImport.getQualid().getName().getSimpleName().equals("*"))) {
+                            doAfterVisit(new AddImport<>(NEW_FQN.getFullyQualifiedName(), id.getSimpleName(), false));
+                        }
+                    }
+                }
             }
             return id;
         }
