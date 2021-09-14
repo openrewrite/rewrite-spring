@@ -106,12 +106,21 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
                         JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 NEW_FQN,
-                                null,
+                                id.getType(),
                                 Collections.emptyList(),
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
 
                 maybeRemoveImport(ORIGINAL_FQN);
-                doAfterVisit(new AddImport<>(NEW_FQN.getFullyQualifiedName(), id.getSimpleName(), false));
+                J.CompilationUnit cu = getCursor().firstEnclosing(J.CompilationUnit.class);
+                if (cu != null) {
+                    for (J.Import anImport : cu.getImports()) {
+                        if (anImport.isStatic() && TypeUtils.isOfType(anImport.getQualid().getTarget().getType(), ORIGINAL_FQN) &&
+                                (updateDeprecatedFields.containsKey(anImport.getQualid().getName().getSimpleName()) ||
+                                        anImport.getQualid().getName().getSimpleName().equals("*"))) {
+                            doAfterVisit(new AddImport<>(NEW_FQN.getFullyQualifiedName(), id.getSimpleName(), false));
+                        }
+                    }
+                }
             }
             return id;
         }
