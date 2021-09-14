@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Flag;
@@ -28,7 +27,6 @@ import org.openrewrite.java.tree.TypeUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
     @Override
@@ -74,6 +72,16 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
         }
 
         @Override
+        public J.Import visitImport(J.Import anImport, ExecutionContext executionContext) {
+            J.Identifier name = anImport.getQualid().getName();
+            if (anImport.isStatic() && updateDeprecatedFields.containsKey(name.getSimpleName()) &&
+                    TypeUtils.isOfClassType(anImport.getQualid().getTarget().getType(), ORIGINAL_FQN.getFullyQualifiedName())) {
+                return anImport.withQualid(anImport.getQualid().withName(name.withName(updateDeprecatedFields.get(name.getSimpleName()))));
+            }
+            return super.visitImport(anImport, executionContext);
+        }
+
+        @Override
         public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
             J.FieldAccess fa = super.visitFieldAccess(fieldAccess, ctx);
             if (isTargetClass() &&
@@ -112,11 +120,9 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
                         fieldType == null ? null : JavaType.Variable.build(
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 ORIGINAL_FQN,
-                                fieldType.getType(),
+                                ORIGINAL_FQN,
                                 Collections.emptyList(),
                                 Flag.flagsToBitMap(fieldType.getFlags())));
-
-                doAfterVisit(new AddImport<>(ORIGINAL_FQN.getFullyQualifiedName(), id.getSimpleName(), false));
             }
             return id;
         }
