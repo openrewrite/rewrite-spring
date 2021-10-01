@@ -30,7 +30,7 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
-import org.openrewrite.marker.SearchResult;
+import org.openrewrite.marker.Marker;
 
 import java.util.*;
 
@@ -69,7 +69,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         return new UsesType<>("org.springframework.boot.test.util.EnvironmentTestUtils");
     }
 
-    private static class ReplaceEnvironmentUtilsMarker implements SearchResult {
+    private static class ReplaceEnvironmentUtilsMarker implements Marker {
         private final String templateString;
         private final List<Expression> parameters;
         private final UUID id = randomId();
@@ -79,8 +79,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             this.parameters = parameters;
         }
 
-        @Override
-        public @Nullable String getDescription() {
+        public String getDescription() {
             return templateString;
         }
 

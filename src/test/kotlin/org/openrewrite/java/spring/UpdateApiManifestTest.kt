@@ -52,6 +52,6 @@ class UpdateApiManifestTest : JavaRecipeTest {
 
         assertThat(results.size).isEqualTo(1)
         assertThat(results[0].after!!.sourcePath).isEqualTo(Paths.get("META-INF/api-manifest.txt"))
-        assertThat(results[0].after!!.printTrimmed()).isEqualTo("POST /users/post")
+        assertThat(results[0].after!!.printAll()).isEqualTo("POST /users/post")
     }
 }

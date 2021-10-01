@@ -59,7 +59,7 @@ class MergeBootstrapYamlWithApplicationYamlTest : YamlRecipeTest {
 
         assertThat(results).hasSize(2)
         assertThat(results[1].after).isNull()
-        assertThat(results[0].after!!.printTrimmed()).isEqualTo(
+        assertThat(results[0].after!!.printAll()).isEqualTo(
             """
                 spring.application.name: main
                 ---

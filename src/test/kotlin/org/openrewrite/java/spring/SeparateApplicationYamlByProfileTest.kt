@@ -70,6 +70,6 @@ class SeparateApplicationYamlByProfileTest : YamlRecipeTest {
     }
 
     private fun List<Result>.groupByProfile() = associate { r ->
-        (r.after ?: r.before).sourcePath.toFile().name to r.after?.printTrimmed()?.trim()
+        (r.after ?: r.before).sourcePath.toFile().name to r.after?.printAll()?.trim()
     }
 }
