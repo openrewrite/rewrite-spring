@@ -21,7 +21,7 @@ import org.openrewrite.Recipe
 import org.openrewrite.config.Environment
 import org.openrewrite.maven.MavenRecipeTest
 
-class UpgradeDependenciesTest : MavenRecipeTest {
+class UpgradeSpringBoot_2_4 : MavenRecipeTest {
 
     override val recipe: Recipe
         get() = Environment.builder()
@@ -73,12 +73,12 @@ class UpgradeDependenciesTest : MavenRecipeTest {
                 <dependency>
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot</artifactId>
-                  <version>2.4.10</version>
+                  <version>2.4.11</version>
                 </dependency>
                 <dependency>
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-starter-test</artifactId>
-                  <version>2.4.10</version>
+                  <version>2.4.11</version>
                   <scope>test</scope>
                 </dependency>
               </dependencies>
