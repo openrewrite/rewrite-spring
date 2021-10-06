@@ -25,7 +25,8 @@ import org.openrewrite.java.JavaRecipeTest
 class OutputCaptureExtensionTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
-            .classpath("spring-boot-test", "hamcrest-core", "junit")
+            .logCompilationWarningsAndErrors(true)
+            .classpath("spring-boot-test", "hamcrest", "junit")
             .build()
 
     override val recipe: Recipe
