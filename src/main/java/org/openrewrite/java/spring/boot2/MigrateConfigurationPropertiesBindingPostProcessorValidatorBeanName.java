@@ -96,7 +96,7 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
         public J.Identifier visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {
             J.Identifier id = super.visitIdentifier(identifier, ctx);
             if (isTargetFieldType(id) && updateDeprecatedFields.containsKey(id.getSimpleName())) {
-                JavaType.Variable fieldType = ((JavaType.Variable) id.getFieldType());
+                JavaType.Variable fieldType = (JavaType.Variable) id.getFieldType();
                 id = J.Identifier.build(
                         Tree.randomId(),
                         id.getPrefix(),

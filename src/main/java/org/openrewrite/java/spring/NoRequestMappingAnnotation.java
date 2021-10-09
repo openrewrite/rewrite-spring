@@ -170,7 +170,7 @@ public class NoRequestMappingAnnotation extends Recipe {
             } else if (assignment.getAssignment() instanceof J.FieldAccess) {
                 method = ((J.FieldAccess) assignment.getAssignment()).getSimpleName();
             } else if (methodArgumentHasSingleType(assignment)) {
-                J.NewArray newArray = ((J.NewArray) assignment.getAssignment());
+                J.NewArray newArray = (J.NewArray) assignment.getAssignment();
                 assert newArray.getInitializer() != null;
                 method = ((J.FieldAccess) newArray.getInitializer().get(0)).getSimpleName();
             } else {
