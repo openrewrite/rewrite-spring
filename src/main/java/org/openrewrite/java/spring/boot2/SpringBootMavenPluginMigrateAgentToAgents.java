@@ -17,20 +17,13 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
-import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.search.FindPlugin;
 import org.openrewrite.maven.tree.Maven;
 import org.openrewrite.xml.XmlVisitor;
 import org.openrewrite.xml.search.FindTags;
 import org.openrewrite.xml.tree.Xml;
-
-import java.util.UUID;
-
-import static org.openrewrite.Tree.randomId;
 
 public class SpringBootMavenPluginMigrateAgentToAgents extends Recipe {
     @Override

@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.data;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaParser;
@@ -26,12 +25,8 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
-import org.openrewrite.marker.Markers;
 
 import java.util.List;
-import java.util.Stack;
-
-import static org.openrewrite.Tree.randomId;
 
 
 public class MigrateQuerydslJpaRepository extends Recipe {
