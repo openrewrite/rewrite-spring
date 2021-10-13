@@ -33,24 +33,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 public class OutputCaptureExtension extends Recipe {
-    private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
-            JavaParser.fromJavaVersion()
-                    .dependsOn(Arrays.asList(
-                            Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
-                                    "public class OutputCaptureExtension {\n" +
-                                    "}"),
-                            Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
-                                    "public interface CapturedOutput {\n" +
-                                    "  String getAll();\n" +
-                                    "}"
-                            ),
-                            Parser.Input.fromString("package org.junit.jupiter.api.extension;\n" +
-                                    "public @interface ExtendWith {\n" +
-                                    "  Class[] value();\n" +
-                                    "}")
-                    ))
-                    .build()
-    );
 
     @Override
     public String getDisplayName() {
@@ -79,7 +61,22 @@ public class OutputCaptureExtension extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             private final JavaTemplate addOutputCaptureExtension = JavaTemplate.builder(this::getCursor, "@ExtendWith(OutputCaptureExtension.class)")
-                    .javaParser(JAVA_PARSER::get)
+                    .javaParser(() ->  JavaParser.fromJavaVersion()
+                            .dependsOn(Arrays.asList(
+                                    Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
+                                            "public class OutputCaptureExtension {\n" +
+                                            "}"),
+                                    Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
+                                            "public interface CapturedOutput {\n" +
+                                            "  String getAll();\n" +
+                                            "}"
+                                    ),
+                                    Parser.Input.fromString("package org.junit.jupiter.api.extension;\n" +
+                                            "public @interface ExtendWith {\n" +
+                                            "  Class[] value();\n" +
+                                            "}")
+                            ))
+                            .build())
                     .imports("org.junit.jupiter.api.extension.ExtendWith",
                             "org.springframework.boot.test.system.OutputCaptureExtension")
                     .build();

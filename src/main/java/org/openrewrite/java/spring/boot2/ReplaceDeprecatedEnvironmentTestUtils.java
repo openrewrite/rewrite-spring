@@ -37,11 +37,6 @@ import java.util.*;
 import static org.openrewrite.Tree.randomId;
 
 public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
-    private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
-            JavaParser.fromJavaVersion()
-                    .dependsOn(Collections.singletonList(Parser.Input.fromResource("/TestPropertyValues.java")))
-                    .build()
-    );
 
     private static final MethodMatcher APP_CONTEXT = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.context.ConfigurableApplicationContext, String...)");
     private static final MethodMatcher ENVIRONMENT = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.core.env.ConfigurableEnvironment, String...)");
@@ -257,7 +252,9 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = m.withTemplate(
                         JavaTemplate.builder(this::getCursor, marker.templateString)
-                                .javaParser(JAVA_PARSER::get)
+                                .javaParser(() -> JavaParser.fromJavaVersion()
+                                        .dependsOn(Collections.singletonList(Parser.Input.fromResource("/TestPropertyValues.java")))
+                                        .build())
                                 .imports("org.springframework.boot.test.util.TestPropertyValues")
                                 .build(),
                         m.getCoordinates().replace(),
