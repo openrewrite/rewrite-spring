@@ -30,20 +30,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
-    private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
-            JavaParser.fromJavaVersion()
-                    .dependsOn(
-                            Stream.concat(
-                                    Stream.of(Parser.Input.fromResource("/Conditional.java")),
-                                    Parser.Input.fromResource("/AnyNestedCondition.java", "---").stream()
-                            ).collect(Collectors.toList())
-                    )
-                    .build()
-    );
 
     @Override
     public String getDisplayName() {
@@ -70,10 +61,6 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         private static final String ANY_CONDITION_TEMPLATES = "any_condition_templates";
         private static final AnnotationMatcher CONDITIONAL_BEAN = new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
 
-        private final JavaTemplate conditionalTemplate = JavaTemplate.builder(this::getCursor, "@Conditional(#{}.class)")
-                .imports("org.springframework.context.annotation.Conditional")
-                .javaParser(JAVA_PARSER::get)
-                .build();
 
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
@@ -139,7 +126,18 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     }
 
                     if (anyConditionClassExists) {
-                        a = a.withTemplate(conditionalTemplate, a.getCoordinates().replace(), conditionalClassName);
+                        a = a.withTemplate(JavaTemplate.builder(this::getCursor, "@Conditional(#{}.class)")
+                                .imports("org.springframework.context.annotation.Conditional")
+                                .javaParser(() ->
+                                        JavaParser.fromJavaVersion()
+                                                .dependsOn(
+                                                        Stream.concat(
+                                                                Stream.of(Parser.Input.fromResource("/Conditional.java")),
+                                                                Parser.Input.fromResource("/AnyNestedCondition.java", "---").stream()
+                                                        ).collect(Collectors.toList())
+                                                )
+                                                .build())
+                                .build(), a.getCoordinates().replace(), conditionalClassName);
                         maybeAddImport("org.springframework.context.annotation.Conditional");
                     } else {
                         // add the new conditional class template string to the parent ClassDeclaration Cursor

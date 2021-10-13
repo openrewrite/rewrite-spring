@@ -28,12 +28,13 @@ import org.openrewrite.marker.Markers;
 import java.text.RuleBasedCollator;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 public class OutputCaptureExtension extends Recipe {
-    private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
+    private static final Supplier<JavaParser> JAVA_PARSER = () ->
             JavaParser.fromJavaVersion()
                     .dependsOn(Arrays.asList(
                             Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
@@ -49,8 +50,7 @@ public class OutputCaptureExtension extends Recipe {
                                     "  Class[] value();\n" +
                                     "}")
                     ))
-                    .build()
-    );
+                    .build();
 
     @Override
     public String getDisplayName() {
@@ -79,7 +79,7 @@ public class OutputCaptureExtension extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             private final JavaTemplate addOutputCaptureExtension = JavaTemplate.builder(this::getCursor, "@ExtendWith(OutputCaptureExtension.class)")
-                    .javaParser(JAVA_PARSER::get)
+                    .javaParser(JAVA_PARSER)
                     .imports("org.junit.jupiter.api.extension.ExtendWith",
                             "org.springframework.boot.test.system.OutputCaptureExtension")
                     .build();
@@ -150,7 +150,7 @@ public class OutputCaptureExtension extends Recipe {
 
     private static class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
         private final JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
-                .javaParser(JAVA_PARSER::get)
+                .javaParser(JAVA_PARSER)
                 .build();
 
         private final String variableName;

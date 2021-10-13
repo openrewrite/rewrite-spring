@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -46,12 +47,6 @@ import java.util.stream.Collectors;
  * </ul>
  */
 public class NoRequestMappingAnnotation extends Recipe {
-
-    private static final ThreadLocal<JavaParser> JAVA_PARSER = ThreadLocal.withInitial(() ->
-            JavaParser.fromJavaVersion()
-                    .dependsOn(Parser.Input.fromResource("/RequestMapping.java", "---"))
-                    .build()
-    );
 
     @Override
     public String getDisplayName() {
@@ -110,17 +105,20 @@ public class NoRequestMappingAnnotation extends Recipe {
                 // Change the Annotation Type
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName);
+                    Supplier<JavaParser> parser = () -> JavaParser.fromJavaVersion()
+                            .dependsOn(Parser.Input.fromResource("/RequestMapping.java", "---"))
+                            .build();
                     if (a.getArguments() == null || a.getArguments().isEmpty()) {
                         a = a.withTemplate(JavaTemplate.builder(this::getCursor, "@" + associatedRequestMapping(requestType.get()))
                                 .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
-                                .javaParser(JAVA_PARSER::get).build(), a.getCoordinates().replace());
+                                .javaParser(parser).build(), a.getCoordinates().replace());
                     } else {
                         String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
                                 "(" + a.getArguments().stream().map(J::print).collect(Collectors.joining(",")) + ")";
                         JavaTemplate tb = JavaTemplate.builder(this::getCursor, annotationTemplateString)
                                 .doBeforeParseTemplate(System.out::println)
                                 .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
-                                .javaParser(JAVA_PARSER::get).build();
+                                .javaParser(parser).build();
                         a = a.withTemplate(tb, a.getCoordinates().replace());
                     }
                 }
