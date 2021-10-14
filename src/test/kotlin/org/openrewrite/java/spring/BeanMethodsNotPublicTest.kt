@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
+import org.openrewrite.Issue
 import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
@@ -81,6 +82,38 @@ class BeanMethodsNotPublicTest : JavaRecipeTest {
                 static DataSource dataSource3() {
                     return new DataSource();
                 }
+            }
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/70")
+    @Test
+    fun leaveOverridesUnchanged() = assertUnchanged(
+        dependsOn = arrayOf("""
+            package com.yourorg;
+            
+            interface A {
+                void a();
+            }
+        """,
+        """
+            package com.yourorg;
+            
+            class B {
+                public void b() {}
+            }
+        """),
+        before = """
+            package com.yourorg;
+            
+            import org.springframework.context.annotation.Bean;
+            
+            public class PublicBeans extends B implements A {
+                @Bean
+                public void a() {}
+
+                @Bean
+                public void b() {}
             }
         """
     )

@@ -22,6 +22,10 @@ import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.List;
 
 public class BeanMethodsNotPublic extends Recipe {
     @Override
@@ -52,12 +56,64 @@ public class BeanMethodsNotPublic extends Recipe {
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
 
-            if (m.getAllAnnotations().stream().anyMatch(BEAN_ANNOTATION_MATCHER::matches)) {
+            if (m.getAllAnnotations().stream().anyMatch(BEAN_ANNOTATION_MATCHER::matches) && !methodIsAnOverride(method)) {
                 // remove public modifier and copy any associated comments to the method
                 doAfterVisit(new ChangeMethodAccessLevelVisitor<>(new MethodMatcher(method), null));
             }
 
             return m;
+        }
+
+        private boolean methodIsAnOverride(J.MethodDeclaration m) {
+            if(m.getType() == null || m.getType().getGenericSignature() == null) {
+                // When missing type information, be conservative and make no changes
+                return true;
+            }
+            JavaType.FullyQualified dt = m.getType().getDeclaringType();
+            List<JavaType> argTypes = m.getType().getGenericSignature().getParamTypes();
+            return declaresMethod(dt.getSupertype(), m.getSimpleName(), argTypes)
+                    || dt.getInterfaces().stream().anyMatch(i -> declaresMethod(i, m.getSimpleName(), argTypes));
+        }
+
+        private boolean methodHasSignature(JavaType.Method m, String name, List<JavaType> argTypes) {
+            if(!name.equals(m.getName())) {
+                return false;
+            }
+            if(m.getGenericSignature() == null) {
+                return false;
+            }
+            List<JavaType> mArgs = m.getGenericSignature().getParamTypes();
+            if(mArgs.size() != argTypes.size()) {
+                return false;
+            }
+            for(int i = 0; i < mArgs.size(); i++) {
+                if(!TypeUtils.isOfType(mArgs.get(i), argTypes.get(i))) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private boolean declaresMethod(@Nullable JavaType.FullyQualified clazz, String name, List<JavaType> argTypes) {
+            if(clazz == null) {
+                return false;
+            }
+            if(clazz.getMethods().stream().anyMatch(m -> methodHasSignature(m, name, argTypes))) {
+                return true;
+            }
+            JavaType.FullyQualified supertype = clazz.getSupertype();
+            if(declaresMethod(supertype, name, argTypes)) {
+                return true;
+            }
+
+            for(JavaType.FullyQualified i : clazz.getInterfaces()) {
+                if(declaresMethod(i, name, argTypes)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
