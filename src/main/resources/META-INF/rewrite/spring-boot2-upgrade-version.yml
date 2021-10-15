@@ -24,6 +24,7 @@ recipeList:
   # Upgrade 2.1.x from 2.0.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
+      artifactId: "*"
       newVersion: 2.1.x
       trustParent: true
   - org.openrewrite.maven.UpgradeParentVersion:
@@ -64,6 +65,7 @@ recipeList:
   # Upgrade to 2.2.x from 2.1.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
+      artifactId: "*"
       newVersion: 2.2.x
       trustParent: true
   - org.openrewrite.maven.UpgradeParentVersion:
@@ -115,6 +117,7 @@ recipeList:
   # Upgrade to 2.3.x from 2.2.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
+      artifactId: "*"
       newVersion: 2.3.x
       trustParent: true
   - org.openrewrite.maven.UpgradeParentVersion:
@@ -159,6 +162,7 @@ recipeList:
   # Upgrade to 2.4.x from 2.3.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
+      artifactId: "*"
       newVersion: 2.4.x
       trustParent: true
   - org.openrewrite.maven.UpgradeParentVersion:
@@ -219,6 +223,7 @@ recipeList:
   # Upgrade to 2.5.x from 2.4.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
+      artifactId: "*"
       newVersion: 2.5.x
       trustParent: true
   - org.openrewrite.maven.UpgradeParentVersion:
