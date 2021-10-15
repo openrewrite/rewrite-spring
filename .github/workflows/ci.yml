@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: styfle/cancel-workflow-action@0.9.1
         with:
-          access_token: ${{secrets.WORKFLOWS_ACCESS_TOKEN}}
+          access_token: ${{ github.token }}
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
