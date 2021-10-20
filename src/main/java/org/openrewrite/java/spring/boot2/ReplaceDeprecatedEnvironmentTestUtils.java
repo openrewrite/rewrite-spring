@@ -97,7 +97,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
 
-            if (m.getBody() == null || m.getBody().getStatements().size() == 0) {
+            if (m.getBody() == null || m.getBody().getStatements().isEmpty()) {
                 return m;
             }
 
@@ -138,9 +138,9 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         }
 
         private boolean isCollectedContextOrEnvironment(List<J.MethodInvocation> collectedMethods, J.MethodInvocation methodInvocation) {
-            if (methodInvocation.getArguments().size() == 0
-                    || collectedMethods.size() == 0
-                    || collectedMethods.get(0).getArguments().size() == 0) {
+            if (methodInvocation.getArguments().isEmpty()
+                    || collectedMethods.isEmpty()
+                    || collectedMethods.get(0).getArguments().isEmpty()) {
                 return false;
             }
             J.MethodInvocation collectedMethod = collectedMethods.get(0);
@@ -188,7 +188,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         }
 
         private J.MethodInvocation coalesceToFluentMethod(List<J.MethodInvocation> collectedMethods) {
-            if (collectedMethods.size() == 0) {
+            if (collectedMethods.isEmpty()) {
                 throw new IllegalArgumentException("collectedMethods must have at least one element");
             }
             J.MethodInvocation toReplace = collectedMethods.get(0);
@@ -200,7 +200,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         }
 
         private List<Expression> generateParameters(List<J.MethodInvocation> collectedMethods) {
-            if (collectedMethods.size() == 0) {
+            if (collectedMethods.isEmpty()) {
                 throw new IllegalArgumentException("collectedMethods must have at least one element");
             }
             List<Expression> parameters = new ArrayList<>();
