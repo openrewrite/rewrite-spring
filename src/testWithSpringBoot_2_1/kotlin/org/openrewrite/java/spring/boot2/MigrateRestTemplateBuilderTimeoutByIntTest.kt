@@ -63,8 +63,8 @@ class MigrateRestTemplateBuilderTimeoutByIntTest : JavaRecipeTest {
             
             class Test {
                 RestTemplate template = new RestTemplateBuilder()
-                        .setConnectTimeout(Duration.ofMillis(1))
-                        .setReadTimeout(Duration.ofMillis(1))
+                    .setConnectTimeout(Duration.ofMillis(1))
+                    .setReadTimeout(Duration.ofMillis(1))
                     .build();
             }
         """

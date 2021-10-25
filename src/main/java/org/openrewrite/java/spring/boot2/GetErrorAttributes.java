@@ -28,7 +28,7 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
 public class GetErrorAttributes extends Recipe {
-    private static final MethodMatcher MATCHER = new MethodMatcher("org.springframework.boot.web.servlet.error.ErrorAttributes getErrorAttributes(.., boolean)");
+    private static final MethodMatcher MATCHER = new MethodMatcher("org.springframework.boot.web.servlet.error.ErrorAttributes getErrorAttributes(org.springframework.web.context.request.WebRequest, boolean)");
 
     @Override
     public String getDisplayName() {
@@ -52,20 +52,6 @@ public class GetErrorAttributes extends Recipe {
     }
 
     private static class GetErrorAttributesVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final String errorAttributeOptionsStub = "" +
-                "package org.springframework.boot.web.error;" +
-                "import java.io.*;" +
-                "public class ErrorAttributeOptions {" +
-                "   public boolean isIncluded(ErrorAttributeOptions.Include p0) { return (boolean) (Object) null; }" +
-                "   public java.util.Set getIncludes() { return (java.util.Set) (Object) null; }" +
-                "   public ErrorAttributeOptions including(ErrorAttributeOptions.Include... p0) { return (ErrorAttributeOptions) (Object) null; }" +
-                "   public ErrorAttributeOptions excluding(ErrorAttributeOptions.Include... p0) { return (ErrorAttributeOptions) (Object) null; }" +
-                "   public static ErrorAttributeOptions defaults() { return (ErrorAttributeOptions) (Object) null; }" +
-                "   public static ErrorAttributeOptions of(ErrorAttributeOptions.Include... p0) { return (ErrorAttributeOptions) (Object) null; }" +
-                "   public static ErrorAttributeOptions of(java.util.Collection p0) { return (ErrorAttributeOptions) (Object) null; }" +
-                "   public enum Include { EXCEPTION, MESSAGE, STACK_TRACE, BINDING_ERRORS; } " +
-                "}" +
-                "";
 
         private static boolean isLiteralTrue(@Nullable Expression expression) {
             return expression instanceof J.Literal && ((J.Literal) expression).getValue() == Boolean.valueOf(true);
@@ -77,46 +63,49 @@ public class GetErrorAttributes extends Recipe {
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-            if (MATCHER.matches(method)) {
-                assert method.getArguments().size() == 2;
-                Expression includeStackTraceArgument = method.getArguments().get(1);
+            J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+            if (MATCHER.matches(mi)) {
+                assert mi.getArguments().size() == 2;
+                Expression includeStackTraceArgument = mi.getArguments().get(1);
                 if (isLiteralTrue(includeStackTraceArgument)) {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE)";
-                    method = method.withTemplate(JavaTemplate.builder(this::getCursor, template)
+                    mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, template)
                                     .imports("org.springframework.boot.web.error.ErrorAttributeOptions")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn(errorAttributeOptionsStub)
+                                            .classpath("spring-boot", "spring-web")
+                                            .logCompilationWarningsAndErrors(true)
                                             .build())
+                                    .doBeforeParseTemplate(System.out::println)
                                     .build(),
-                            method.getCoordinates().replaceArguments(),
-                            method.getArguments().get(0)
+                            mi.getCoordinates().replaceArguments(),
+                            mi.getArguments().get(0)
                     );
                 } else if (isLiteralFalse(includeStackTraceArgument)) {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, ErrorAttributeOptions.defaults()";
-                    method = method.withTemplate(JavaTemplate.builder(this::getCursor, template)
+                    mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, template)
                                     .imports("org.springframework.boot.web.error.ErrorAttributeOptions")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn(errorAttributeOptionsStub)
+                                            .classpath("spring-boot", "spring-web")
                                             .build())
                                     .build(),
-                            method.getCoordinates().replaceArguments(),
-                            method.getArguments().get(0)
+                            mi.getCoordinates().replaceArguments(),
+                            mi.getArguments().get(0)
                     );
                 } else {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, #{any(boolean)} ? ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE) : ErrorAttributeOptions.defaults()";
-                    method = method.withTemplate(JavaTemplate.builder(this::getCursor, template)
+                    mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, template)
                                     .imports("org.springframework.boot.web.error.ErrorAttributeOptions")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn(errorAttributeOptionsStub)
+                                            .classpath("spring-boot", "spring-web")
                                             .build())
                                     .build(),
-                            method.getCoordinates().replaceArguments(),
-                            method.getArguments().toArray()
+                            mi.getCoordinates().replaceArguments(),
+                            mi.getArguments().toArray()
                     );
                 }
                 maybeAddImport("org.springframework.boot.web.error.ErrorAttributeOptions");
             }
-            return super.visitMethodInvocation(method, ctx);
+            return mi;
         }
     }
 }
