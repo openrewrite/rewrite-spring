@@ -50,9 +50,9 @@ class MigrateRestTemplateBuilderTimeoutByIntTest : JavaRecipeTest {
 
             class Test {
                 RestTemplate template = new RestTemplateBuilder()
-                    .setConnectTimeout(1)
-                    .setReadTimeout(1)
-                    .build();
+                        .setConnectTimeout(1)
+                        .setReadTimeout(1)
+                        .build();
             }
         """,
         after = """
@@ -63,9 +63,9 @@ class MigrateRestTemplateBuilderTimeoutByIntTest : JavaRecipeTest {
             
             class Test {
                 RestTemplate template = new RestTemplateBuilder()
-                    .setConnectTimeout(Duration.ofMillis(1))
-                    .setReadTimeout(Duration.ofMillis(1))
-                    .build();
+                        .setConnectTimeout(Duration.ofMillis(1))
+                        .setReadTimeout(Duration.ofMillis(1))
+                        .build();
             }
         """
     )
