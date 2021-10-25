@@ -73,7 +73,6 @@ public class GetErrorAttributes extends Recipe {
                                     .imports("org.springframework.boot.web.error.ErrorAttributeOptions")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
                                             .classpath("spring-boot", "spring-web")
-                                            .logCompilationWarningsAndErrors(true)
                                             .build())
                                     .doBeforeParseTemplate(System.out::println)
                                     .build(),
