@@ -55,19 +55,6 @@ public class MigrateMultipartConfigFactory extends Recipe {
             final MethodMatcher setMaxRequestSizeByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(java.lang.String)");
             final MethodMatcher setFileSizeThresholdByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(java.lang.String)");
 
-            final String dataSize = "package org.springframework.util.unit;" +
-                    "import java.io.Serializable;" +
-                    "public final class DataSize implements Comparable<DataSize>, Serializable {" +
-                    "public static DataSize ofBytes(long bytes) { return null; }" +
-                    "public static DataSize parse(CharSequence text) { return null; }" +
-                    "}";
-            final String multipartConfigFactory = "package org.springframework.boot.web.servlet;" +
-                    "public class MultipartConfigFactory {" +
-                    "public void setMaxFileSize(DataSize maxFileSize) {}" +
-                    "public void setMaxRequestSize(DataSize maxRequestSize) {}" +
-                    "public void setFileSizeThreshold(DataSize fileSizeThreshold) {}" +
-                    "}";
-
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext context) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, context);
@@ -77,7 +64,6 @@ public class MigrateMultipartConfigFactory extends Recipe {
                                     .builder(this::getCursor,"DataSize.ofBytes(#{any()})")
                                     .imports("org.springframework.util.unit.DataSize")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn(dataSize, multipartConfigFactory)
                                             .classpath("spring-boot", "spring-core")
                                             .build())
                                     .build(),
@@ -89,7 +75,6 @@ public class MigrateMultipartConfigFactory extends Recipe {
                                     .builder(this::getCursor,"DataSize.parse(#{any(java.lang.String)})")
                                     .imports("org.springframework.util.unit.DataSize")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn(dataSize, multipartConfigFactory)
                                             .classpath("spring-boot", "spring-core")
                                             .build())
                                     .build(),
