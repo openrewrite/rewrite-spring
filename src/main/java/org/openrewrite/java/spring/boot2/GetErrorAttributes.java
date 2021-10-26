@@ -74,7 +74,6 @@ public class GetErrorAttributes extends Recipe {
                                     .javaParser(() -> JavaParser.fromJavaVersion()
                                             .classpath("spring-boot", "spring-web")
                                             .build())
-                                    .doBeforeParseTemplate(System.out::println)
                                     .build(),
                             mi.getCoordinates().replaceArguments(),
                             mi.getArguments().get(0)
