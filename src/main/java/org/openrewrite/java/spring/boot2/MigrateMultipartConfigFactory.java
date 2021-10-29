@@ -58,14 +58,15 @@ public class MigrateMultipartConfigFactory extends Recipe {
             final String dataSize = "package org.springframework.util.unit;" +
                     "import java.io.Serializable;" +
                     "public final class DataSize implements Comparable<DataSize>, Serializable {" +
-                    "public static DataSize ofBytes(long bytes) { return null; }" +
-                    "public static DataSize parse(CharSequence text) { return null; }" +
+                    "  public static DataSize ofBytes(long bytes) { return null; }" +
+                    "  public static DataSize parse(CharSequence text) { return null; }" +
                     "}";
             final String multipartConfigFactory = "package org.springframework.boot.web.servlet;" +
+                    "import org.springframework.util.unit.DataSize;" +
                     "public class MultipartConfigFactory {" +
-                    "public void setMaxFileSize(DataSize maxFileSize) {}" +
-                    "public void setMaxRequestSize(DataSize maxRequestSize) {}" +
-                    "public void setFileSizeThreshold(DataSize fileSizeThreshold) {}" +
+                    "  public void setMaxFileSize(DataSize maxFileSize) {}" +
+                    "  public void setMaxRequestSize(DataSize maxRequestSize) {}" +
+                    "  public void setFileSizeThreshold(DataSize fileSizeThreshold) {}" +
                     "}";
 
             @Override
@@ -78,6 +79,7 @@ public class MigrateMultipartConfigFactory extends Recipe {
                                     .imports("org.springframework.util.unit.DataSize")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
                                             .dependsOn(dataSize, multipartConfigFactory)
+                                            .logCompilationWarningsAndErrors(true)
                                             .build())
                                     .build(),
                             m.getCoordinates().replaceArguments(),
@@ -89,6 +91,7 @@ public class MigrateMultipartConfigFactory extends Recipe {
                                     .imports("org.springframework.util.unit.DataSize")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
                                             .dependsOn(dataSize, multipartConfigFactory)
+                                            .logCompilationWarningsAndErrors(true)
                                             .build())
                                     .build(),
                             m.getCoordinates().replaceArguments(),
