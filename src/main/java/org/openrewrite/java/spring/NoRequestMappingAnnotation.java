@@ -109,16 +109,16 @@ public class NoRequestMappingAnnotation extends Recipe {
                             .dependsOn(Parser.Input.fromResource("/RequestMapping.java", "---"))
                             .build();
                     if (a.getArguments() == null || a.getArguments().isEmpty()) {
-                        a = a.withTemplate(JavaTemplate.builder(this::getCursor, "@" + associatedRequestMapping(requestType.get()))
+                        a = maybeAutoFormat(a,a.withTemplate(JavaTemplate.builder(this::getCursor, "@" + associatedRequestMapping(requestType.get()))
                                 .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
-                                .javaParser(parser).build(), a.getCoordinates().replace());
+                                .javaParser(parser).build(), a.getCoordinates().replace()), ctx);
                     } else {
                         String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
-                                "(" + a.getArguments().stream().map(J::print).collect(Collectors.joining(",")) + ")";
+                                "(" + a.getArguments().stream().map(j -> "#{any()}").collect(Collectors.joining(", ")) + ")";
                         JavaTemplate tb = JavaTemplate.builder(this::getCursor, annotationTemplateString)
                                 .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
                                 .javaParser(parser).build();
-                        a = a.withTemplate(tb, a.getCoordinates().replace());
+                        a = maybeAutoFormat(a, a.withTemplate(tb, a.getCoordinates().replace(), a.getArguments().toArray()), ctx);
                     }
                 }
 
