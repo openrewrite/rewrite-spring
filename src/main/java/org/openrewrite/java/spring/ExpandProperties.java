@@ -64,6 +64,7 @@ public class ExpandProperties extends Recipe {
                                                     "",
                                                     Markers.EMPTY,
                                                     Yaml.Scalar.Style.PLAIN,
+                                                    null,
                                                     key.substring(key.indexOf('.') + 1)),
                                             "",
                                             e.getValue()
