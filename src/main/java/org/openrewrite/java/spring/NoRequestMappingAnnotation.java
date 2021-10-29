@@ -16,15 +16,11 @@
 package org.openrewrite.java.spring;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Parser;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.AnnotationMatcher;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
@@ -32,8 +28,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Replace method declaration @RequestMapping annotations with the associated variant
@@ -105,25 +99,13 @@ public class NoRequestMappingAnnotation extends Recipe {
                 // Change the Annotation Type
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName);
-                    Supplier<JavaParser> parser = () -> JavaParser.fromJavaVersion()
-                            .dependsOn(Parser.Input.fromResource("/RequestMapping.java", "---"))
-                            .build();
-                    if (a.getArguments() == null || a.getArguments().isEmpty()) {
-                        a = maybeAutoFormat(a,a.withTemplate(JavaTemplate.builder(this::getCursor, "@" + associatedRequestMapping(requestType.get()))
-                                .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
-                                .javaParser(parser).build(), a.getCoordinates().replace()), ctx);
-                    } else {
-                        String annotationTemplateString = "@" + associatedRequestMapping(requestType.get()) +
-                                "(" + a.getArguments().stream().map(j -> "#{any()}").collect(Collectors.joining(", ")) + ")";
-                        JavaTemplate tb = JavaTemplate.builder(this::getCursor, annotationTemplateString)
-                                .imports("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
-                                .javaParser(parser).build();
-                        a = maybeAutoFormat(a, a.withTemplate(tb, a.getCoordinates().replace(), a.getArguments().toArray()), ctx);
-                    }
+                    a = (J.Annotation) new ChangeType("org.springframework.web.bind.annotation.RequestMapping",
+                            "org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
+                            .getVisitor().visit(a, ctx, getCursor());
                 }
 
                 // if there is only one remaining argument now, and it is "path" or "value", then we can drop the key name
-                if (a.getArguments() != null && a.getArguments().size() == 1) {
+                if (a != null && a.getArguments() != null && a.getArguments().size() == 1) {
                     a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                         if (arg instanceof J.Assignment && ((J.Assignment) arg).getVariable() instanceof J.Identifier) {
                             J.Identifier ident = (J.Identifier) ((J.Assignment) arg).getVariable();
@@ -135,7 +117,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                     })), ctx);
                 }
             }
-            return a;
+            return a != null ? a : annotation;
         }
 
         private Optional<J.Assignment> requestMethodArgument(J.Annotation annotation) {

@@ -231,7 +231,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
             
             @RestController
             public class UsersController {
-                @RequestMapping(value = "/user/{userId}/edit",method = RequestMethod.POST,produces = { MediaType.APPLICATION_JSON_VALUE })
+                @RequestMapping(value = "/user/{userId}/edit", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE })
                 public ResponseEntity<List<String>> getUsersPost(String userId) {
                     return null;
                 }
@@ -246,7 +246,7 @@ class NoRequestMappingAnnotationTest : JavaRecipeTest {
             
             @RestController
             public class UsersController {
-                @PostMapping(value = "/user/{userId}/edit",produces = {MediaType.APPLICATION_JSON_VALUE})
+                @PostMapping(value = "/user/{userId}/edit", produces = {MediaType.APPLICATION_JSON_VALUE})
                 public ResponseEntity<List<String>> getUsersPost(String userId) {
                     return null;
                 }
