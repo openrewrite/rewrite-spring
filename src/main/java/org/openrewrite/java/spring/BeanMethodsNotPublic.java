@@ -57,7 +57,7 @@ public class BeanMethodsNotPublic extends Recipe {
             J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
 
             if (m.getAllAnnotations().stream().anyMatch(BEAN_ANNOTATION_MATCHER::matches)
-                    && Boolean.FALSE.equals(TypeUtils.isOverride(method.getType()))) {
+                    && Boolean.FALSE.equals(TypeUtils.isOverride(method.getMethodType()))) {
                 // remove public modifier and copy any associated comments to the method
                 doAfterVisit(new ChangeMethodAccessLevelVisitor<>(new MethodMatcher(method), null));
             }

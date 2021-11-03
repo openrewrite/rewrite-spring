@@ -105,19 +105,19 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
         public J.Identifier visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {
             J.Identifier id = super.visitIdentifier(identifier, ctx);
             if (isTargetFieldType(id) && updateDeprecatedFields.containsKey(id.getSimpleName())) {
-                JavaType.Variable fieldType = (JavaType.Variable) id.getFieldType();
+                JavaType.Variable fieldType = id.getFieldType();
                 id = J.Identifier.build(
                         Tree.randomId(),
                         id.getPrefix(),
                         id.getMarkers(),
                         updateDeprecatedFields.get(id.getSimpleName()),
                         id.getType(),
-                        JavaType.Variable.build(
-                                updateDeprecatedFields.get(id.getSimpleName()),
+                        new JavaType.Variable(
+                                fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags()),
                                 NEW_FQN,
+                                updateDeprecatedFields.get(id.getSimpleName()),
                                 id.getType(),
-                                Collections.emptyList(),
-                                fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags())));
+                                Collections.emptyList()));
 
                 J.CompilationUnit cu = getCursor().firstEnclosing(J.CompilationUnit.class);
                 if (cu != null) {
@@ -134,8 +134,8 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
         }
 
         private boolean isTargetFieldType(J.Identifier identifier) {
-            if (identifier.getFieldType() != null && identifier.getFieldType() instanceof JavaType.Variable) {
-                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(((JavaType.Variable) identifier.getFieldType()).getOwner());
+            if (identifier.getFieldType() != null) {
+                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified((identifier.getFieldType()).getOwner());
                 return fqn != null && ORIGINAL_FQN.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
             }
             return false;
