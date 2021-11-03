@@ -220,7 +220,6 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
             import org.springframework.context.annotation.Conditional;
             
             class ThingOneTwo {}
-            
             class ConfigClass {
                 @Bean
                 @Conditional(ConditionAaOrBb.class)
