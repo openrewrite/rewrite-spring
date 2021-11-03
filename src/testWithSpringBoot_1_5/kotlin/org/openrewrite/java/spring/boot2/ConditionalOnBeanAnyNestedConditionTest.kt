@@ -204,7 +204,10 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
         before = """
             import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
             import org.springframework.context.annotation.Bean;
-            class ThingOneTwo {}
+
+            class ThingOneTwo {
+            }
+
             class ConfigClass {
                 @Bean
                 @ConditionalOnBean(type = {"com.foo.Aa.class", "com.foo.Bb.class"})
@@ -218,24 +221,26 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
             import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
             import org.springframework.context.annotation.Bean;
             import org.springframework.context.annotation.Conditional;
-            
-            class ThingOneTwo {}
+
+            class ThingOneTwo {
+            }
+
             class ConfigClass {
                 @Bean
                 @Conditional(ConditionAaOrBb.class)
                 public ThingOneTwo thingOneTwo() {
                     return new ThingOneTwo();
                 }
-            
+
                 private static class ConditionAaOrBb extends AnyNestedCondition {
                     ConditionAaOrBb() {
                         super(ConfigurationPhase.REGISTER_BEAN);
                     }
-            
+
                     @ConditionalOnBean(type = "com.foo.Aa.class")
                     class AaCondition {
                     }
-            
+
                     @ConditionalOnBean(type = "com.foo.Bb.class")
                     class BbCondition {
                     }
