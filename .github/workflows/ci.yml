@@ -12,64 +12,38 @@ on:
       - main
   workflow_dispatch: {}
   schedule:
-    - cron: "0 18 * * *"
+    - cron: 0 18 * * *
 
 env:
-  GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
-  GRADLE_SWITCHES: "--console=plain --info --stacktrace --no-daemon"
+  GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        java: ["11"]
-        os: ["ubuntu-latest"]
-    runs-on: ${{ matrix.os }}
-    if: github.repository_owner == 'openrewrite'
-    steps:
-      - uses: styfle/cancel-workflow-action@0.9.1
-        with:
-          access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: set-up-jdk
-        uses: actions/setup-java@v2
-        with:
-          distribution: "temurin"
-          java-version: ${{ matrix.java }}
-          cache: "gradle"
-      - name: build
-        run: ./gradlew ${GRADLE_SWITCHES} build test
-        env:
-          GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-      - name: publish-tests
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-        with:
-          files: "**/build/test-results/test/TEST-*.xml"
-
-  publish-snapshots:
-    needs: [build]
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && github.repository_owner == 'openrewrite'
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: set-up-jdk
-        uses: actions/setup-java@v2
+      - uses: gradle/wrapper-validation-action@v1
+      - uses: actions/setup-java@v2
         with:
-          distribution: "temurin"
-          java-version: "11"
-          cache: "gradle"
+          distribution: temurin
+          java-version: 11
+      - name: build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
       - name: publish-snapshots
-        timeout-minutes: 30
-        run: ./gradlew ${GRADLE_SWITCHES} snapshot publish -PforceSigning -x test
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: snapshot publish -PforceSigning -x test
         env:
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_TOKEN }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.OSSRH_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.OSSRH_SIGNING_PASSWORD }}
-          GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
