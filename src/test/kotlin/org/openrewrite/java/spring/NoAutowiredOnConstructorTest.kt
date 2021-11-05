@@ -22,7 +22,7 @@ import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
 
 @Suppress("deprecation", "MissortedModifiers")
-class NoAutowiredTest : JavaRecipeTest {
+class NoAutowiredOnConstructorTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("spring-beans")
