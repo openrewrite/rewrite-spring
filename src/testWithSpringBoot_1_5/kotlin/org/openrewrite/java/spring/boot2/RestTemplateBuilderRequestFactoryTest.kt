@@ -23,7 +23,7 @@ import org.openrewrite.java.JavaRecipeTest
 class RestTemplateBuilderRequestFactoryTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
-            .classpath("spring-boot", "spring-web")
+            .classpath("spring-boot", "spring-web", "spring-core")
             .build()
 
     override val recipe: Recipe
