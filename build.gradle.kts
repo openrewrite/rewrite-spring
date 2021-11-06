@@ -96,14 +96,17 @@ nexusPublishing {
     }
 }
 
-signing {
-    setRequired({
-        !project.version.toString().endsWith("SNAPSHOT") || project.hasProperty("forceSigning")
-    })
-    val signingKey: String? by project
-    val signingPassword: String? by project
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign(publishing.publications["nebula"])
+val signingKey: String? by project
+val signingPassword: String? by project
+val requireSigning = project.hasProperty("forceSigning") || project.hasProperty("releasing")
+if(signingKey != null && signingPassword != null) {
+    signing {
+        isRequired = requireSigning
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications["nebula"])
+    }
+} else if(requireSigning) {
+    throw RuntimeException("Artifact signing is required, but signingKey and/or signingPassword are null")
 }
 
 configurations {
