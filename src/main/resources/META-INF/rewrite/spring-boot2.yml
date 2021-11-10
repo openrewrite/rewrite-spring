@@ -130,6 +130,7 @@ recipeList:
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
+  - org.openrewrite.java.spring.boot2.SpringBootPropertiesManual_2_0
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
