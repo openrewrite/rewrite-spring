@@ -68,7 +68,7 @@ class SpringBoot2JUnit4to5MigrationTest : JavaRecipeTest {
             public class ProductionConfigurationTests {
             
                 @Test
-                public void testFindAll() {
+                void testFindAll() {
                 }
             }
         """
