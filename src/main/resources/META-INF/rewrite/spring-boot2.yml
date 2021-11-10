@@ -126,6 +126,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
   - org.openrewrite.java.spring.boot2.MigrateNotEmptyPackageName
   - org.openrewrite.java.spring.boot2.MigrateNotBlankPackageName
+  - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
