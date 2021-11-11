@@ -55,13 +55,13 @@ public class SeparateApplicationYamlByProfile extends Recipe {
                 Yaml.Documents mainYaml = yaml.withDocuments(ListUtils.map(
                         (List<Yaml.Document>) yaml.getDocuments(),
                         doc -> {
-                            String profileName = FindProperty.find(doc, "spring.config.activate.on-profile").stream()
+                            String profileName = FindProperty.find(doc, "spring.config.activate.on-profile", true).stream()
                                     .findAny()
                                     .map(profile -> ((Yaml.Scalar) profile).getValue())
                                     .orElse(null);
 
                             if (profileName != null && profileName.matches("[A-z0-9-]+")) {
-                                profiles.put((Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", true, null)
+                                profiles.put((Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", true, true, null)
                                         .getVisitor().visit(doc, ctx, new Cursor(null, yaml)), profileName);
                                 return null;
                             }

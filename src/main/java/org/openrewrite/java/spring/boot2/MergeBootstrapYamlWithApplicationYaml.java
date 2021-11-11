@@ -73,7 +73,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends Recipe {
 
                 //noinspection unchecked
                 return (SourceFile) new CoalescePropertiesVisitor<Integer>().visit(a.withDocuments(ListUtils.map((List<Yaml.Document>) a.getDocuments(), doc -> {
-                    if (merged.compareAndSet(false, true) && FindProperty.find(doc, "spring.config.activate.on-profile").isEmpty()) {
+                    if (merged.compareAndSet(false, true) && FindProperty.find(doc, "spring.config.activate.on-profile", true).isEmpty()) {
                         return (Yaml.Document) new MergeYamlVisitor<Integer>(doc.getBlock(), b.getDocuments()
                                 .get(0).getBlock(), true).visit(doc, 0, new Cursor(new Cursor(null, a), doc));
                     }
