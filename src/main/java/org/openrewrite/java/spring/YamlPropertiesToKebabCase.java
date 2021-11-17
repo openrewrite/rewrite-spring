@@ -15,17 +15,15 @@
  */
 package org.openrewrite.java.spring;
 
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.HasSourcePath;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.NameCaseConvention;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.YamlVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
-@Value
-@EqualsAndHashCode(callSuper = true)
 public class YamlPropertiesToKebabCase extends Recipe {
     @Override
     public String getDisplayName() {
@@ -42,19 +40,9 @@ public class YamlPropertiesToKebabCase extends Recipe {
                 "[The Spring reference documentation recommends using `kebab-case` for properties where possible.](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding)";
     }
 
-    @Option(displayName = "Optional file matcher",
-            description = "Matching files will be modified. This is a glob expression.",
-            required = false,
-            example = "**/application-*.yml")
-    @Nullable
-    String fileMatcher;
-
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        if (fileMatcher != null) {
-            return new HasSourcePath<>(fileMatcher);
-        }
-        return null;
+        return new HasSourcePath<>("**/application*.{yml,yaml}");
     }
 
     @Override
