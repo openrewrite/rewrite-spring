@@ -105,8 +105,8 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
                         id.getType(),
                         new JavaType.Variable(
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags()),
-                                NEW_FQN,
                                 updateDeprecatedFields.get(id.getSimpleName()),
+                                NEW_FQN,
                                 id.getType(),
                                 Collections.emptyList()));
 

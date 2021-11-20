@@ -97,8 +97,8 @@ public class MigrateUtf8MediaTypes extends Recipe {
                         id.getType(),
                         new JavaType.Variable(
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags()),
-                                MEDIA_TYPE_FQN,
                                 updateDeprecatedFields.get(id.getSimpleName()),
+                                MEDIA_TYPE_FQN,
                                 null,
                                 Collections.emptyList()));
             }

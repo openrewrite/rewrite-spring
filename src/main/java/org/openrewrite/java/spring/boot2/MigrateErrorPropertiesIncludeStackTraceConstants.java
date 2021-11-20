@@ -119,8 +119,8 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
                         id.getType(),
                         fieldType == null ? null : new JavaType.Variable(
                                 Flag.flagsToBitMap(fieldType.getFlags()),
-                                ORIGINAL_FQN,
                                 updateDeprecatedFields.get(id.getSimpleName()),
+                                ORIGINAL_FQN,
                                 ORIGINAL_FQN,
                                 Collections.emptyList()));
             }

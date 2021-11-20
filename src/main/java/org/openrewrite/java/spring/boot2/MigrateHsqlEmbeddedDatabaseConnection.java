@@ -94,8 +94,8 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
                         id.getType(),
                         new JavaType.Variable(
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags()),
-                                EMBEDDED_DATABASE_CONNECTION_FNQ,
                                 updateDeprecatedFields.get(id.getSimpleName()),
+                                EMBEDDED_DATABASE_CONNECTION_FNQ,
                                 fieldType == null ? null : fieldType.getType(),
                                 Collections.emptyList()));
             }

@@ -73,12 +73,12 @@ class UpgradeSpringBoot_2_4 : MavenRecipeTest {
                 <dependency>
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot</artifactId>
-                  <version>2.4.12</version>
+                  <version>2.4.13</version>
                 </dependency>
                 <dependency>
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-starter-test</artifactId>
-                  <version>2.4.12</version>
+                  <version>2.4.13</version>
                   <scope>test</scope>
                 </dependency>
               </dependencies>
