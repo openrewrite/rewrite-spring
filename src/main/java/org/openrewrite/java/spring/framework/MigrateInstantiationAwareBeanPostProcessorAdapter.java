@@ -29,6 +29,7 @@ import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 
+import java.util.Collections;
 import java.util.UUID;
 
 public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
@@ -59,10 +60,10 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
                 if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), fromExtendingFqn)) {
                     cd = cd.withExtends(null);
-                    J.Identifier ident = J.Identifier.build(UUID.randomUUID(), Space.format(" "), Markers.EMPTY,
-                            "SmartInstantiationAwareBeanPostProcessor", JavaType.buildType(toImplementsFqn));
+                    J.Identifier ident = new J.Identifier(UUID.randomUUID(), Space.format(" "), Markers.EMPTY,
+                            "SmartInstantiationAwareBeanPostProcessor", JavaType.buildType(toImplementsFqn), null);
                     J.Block body = cd.getBody();
-                    cd = maybeAutoFormat(cd, cd.withBody(null).withImplements(ListUtils.concat(cd.getImplements(), ident)), executionContext, getCursor());
+                    cd = maybeAutoFormat(cd, cd.withBody(cd.getBody().withStatements(Collections.emptyList())).withImplements(ListUtils.concat(cd.getImplements(), ident)), executionContext, getCursor());
                     cd = cd.withBody(body);
                 }
                 return cd;

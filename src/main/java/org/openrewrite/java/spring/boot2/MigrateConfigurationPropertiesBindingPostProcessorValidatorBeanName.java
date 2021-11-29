@@ -78,13 +78,14 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
                 if (fa.getTarget() instanceof J.FieldAccess) {
                     fa = TypeTree.build(NEW_FQN.getFullyQualifiedName() + "." + updateDeprecatedFields.get(fieldAccess.getName().getSimpleName())).withPrefix(fa.getPrefix());
                 } else {
-                    fa = fa.withName(fa.getName().withName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
-                    fa = fa.withTarget(J.Identifier.build(
+                    fa = fa.withName(fa.getName().withSimpleName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
+                    fa = fa.withTarget(new J.Identifier(
                             Tree.randomId(),
                             fa.getTarget().getPrefix(),
                             fa.getTarget().getMarkers(),
                             NEW_FQN.getClassName(),
-                            NEW_FQN));
+                            NEW_FQN,
+                            null));
                 }
                 maybeRemoveImport(ORIGINAL_FQN);
                 maybeAddImport(NEW_FQN);
@@ -97,7 +98,7 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
             J.Identifier id = super.visitIdentifier(identifier, ctx);
             if (isTargetFieldType(id) && updateDeprecatedFields.containsKey(id.getSimpleName())) {
                 JavaType.Variable fieldType = id.getFieldType();
-                id = J.Identifier.build(
+                id = new J.Identifier(
                         Tree.randomId(),
                         id.getPrefix(),
                         id.getMarkers(),

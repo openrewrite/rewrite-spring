@@ -72,13 +72,14 @@ public class MigrateUtf8MediaTypes extends Recipe {
                     fa = TypeTree.build(MEDIA_TYPE_FQN.getFullyQualifiedName() + "." + updateDeprecatedFields.get(fieldAccess.getName().getSimpleName()))
                             .withPrefix(fa.getPrefix());
                 } else {
-                    fa = fa.withName(fa.getName().withName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
-                    fa = fa.withTarget(J.Identifier.build(
+                    fa = fa.withName(fa.getName().withSimpleName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
+                    fa = fa.withTarget(new J.Identifier(
                             Tree.randomId(),
                             fa.getTarget().getPrefix(),
                             fa.getTarget().getMarkers(),
                             MEDIA_TYPE_FQN.getClassName(),
-                            MEDIA_TYPE_FQN));
+                            MEDIA_TYPE_FQN,
+                            null));
                 }
             }
             return fa;
@@ -89,7 +90,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
             J.Identifier id = super.visitIdentifier(identifier, ctx);
             if (isTargetFieldType(id) && updateDeprecatedFields.containsKey(id.getSimpleName())) {
                 JavaType.Variable fieldType = id.getFieldType();
-                id = J.Identifier.build(
+                id = new J.Identifier(
                         Tree.randomId(),
                         id.getPrefix(),
                         id.getMarkers(),

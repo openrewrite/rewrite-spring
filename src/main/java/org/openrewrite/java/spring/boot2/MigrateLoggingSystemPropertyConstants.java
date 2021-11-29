@@ -89,13 +89,14 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                     fa = TypeTree.build(NEW_FQN.getFullyQualifiedName() + "." + fa.getName().getSimpleName())
                             .withPrefix(fa.getPrefix());
                 } else {
-                    fa = fa.withName(fa.getName().withName(fa.getName().getSimpleName()));
-                    fa = fa.withTarget(J.Identifier.build(
+                    fa = fa.withName(fa.getName().withSimpleName(fa.getName().getSimpleName()));
+                    fa = fa.withTarget(new J.Identifier(
                             Tree.randomId(),
                             fa.getTarget().getPrefix(),
                             fa.getTarget().getMarkers(),
                             NEW_FQN.getClassName(),
-                            NEW_FQN));
+                            NEW_FQN,
+                            null));
                 }
             }
             return fa;
@@ -106,7 +107,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
             J.Identifier id = super.visitIdentifier(identifier, ctx);
             if (isTargetFieldType(id) && updateDeprecatedFields.containsKey(id.getSimpleName())) {
                 JavaType.Variable fieldType = id.getFieldType();
-                id = J.Identifier.build(
+                id = new J.Identifier(
                         Tree.randomId(),
                         id.getPrefix(),
                         id.getMarkers(),
