@@ -49,7 +49,7 @@ configure<nebula.plugin.release.git.base.ReleasePluginExtension> {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4")
+val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5")
 val springDataVersions: List<String> = listOf("2_1", "2_3")
 val springFrameworkVersions: List<String> = listOf("5_1", "5_2", "5_3")
 
@@ -223,13 +223,18 @@ dependencies {
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-web:5.2.+")
 
-    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
-
     "testWithSpringData_2_1RuntimeOnly"("org.springframework.data:spring-data-jpa:2.1.0.RELEASE")
     "testWithSpringData_2_1RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
 
     "testWithSpringData_2_3RuntimeOnly"("org.springframework.data:spring-data-jpa:2.3.0.RELEASE")
     "testWithSpringData_2_3RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
+
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
+
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot:2.5.+")
+    "testWithSpringBoot_2_5RuntimeOnly"("mysql:mysql-connector-java:8.0.27")
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-context:2.5.+")
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.data:spring-data-jpa:2.5.+")
 
     "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-core:5.1.+")
 
