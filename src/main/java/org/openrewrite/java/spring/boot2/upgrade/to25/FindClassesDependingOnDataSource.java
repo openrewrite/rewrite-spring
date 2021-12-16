@@ -10,9 +10,11 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Incubating;
 import org.openrewrite.Recipe;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.FindTypes;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.NameTree;
 import org.openrewrite.marker.SearchResult;
 
 import java.util.*;
@@ -24,22 +26,14 @@ public class FindClassesDependingOnDataSource extends Recipe {
     private static final String JAVAX_DATA_SOURCE = "javax.sql.DataSource";
     public static final String CLASSES_USING_DATA_SOURCE = "CLASSES_USING_DATA_SOURCE";
 
-    public static boolean isMatch(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-        return executionContext.getMessage(CLASSES_USING_DATA_SOURCE) != null &&
-                Matches.class.isAssignableFrom(executionContext.getMessage(CLASSES_USING_DATA_SOURCE).getClass()) &&
-                ((Matches) executionContext.getMessage(CLASSES_USING_DATA_SOURCE) ).contains(classDecl.getType().getFullyQualifiedName());
-    }
-
-    public static List<String> getMatches(ExecutionContext executionContext) {
-        if(executionContext.getMessage(CLASSES_USING_DATA_SOURCE) == null) {
-            executionContext.putMessage(CLASSES_USING_DATA_SOURCE, new Matches());
-        }
-        return ((Matches)executionContext.getMessage(CLASSES_USING_DATA_SOURCE)).getAll();
-    }
-
     @Override
     public String getDisplayName() {
         return "Searches for classes depending on javax.sql.DataSource.";
+    }
+
+    @Override
+    public String getDescription() {
+        return "As of Spring Boot 2.5 beans depending on javax.sql.DataSource must be annotated with @DependsOnDatabaseInitialization to be initialized after DataSource.";
     }
 
     public static class Matches {
@@ -58,6 +52,20 @@ public class FindClassesDependingOnDataSource extends Recipe {
             return Collections.unmodifiableList(classDeclartions);
         }
     }
+
+    public static boolean isMatch(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
+        return executionContext.getMessage(CLASSES_USING_DATA_SOURCE) != null &&
+                Matches.class.isAssignableFrom(executionContext.getMessage(CLASSES_USING_DATA_SOURCE).getClass()) &&
+                ((Matches) executionContext.getMessage(CLASSES_USING_DATA_SOURCE) ).contains(classDecl.getType().getFullyQualifiedName());
+    }
+
+    public static List<String> getMatches(ExecutionContext executionContext) {
+        if(executionContext.getMessage(CLASSES_USING_DATA_SOURCE) == null) {
+            executionContext.putMessage(CLASSES_USING_DATA_SOURCE, new Matches());
+        }
+        return ((Matches)executionContext.getMessage(CLASSES_USING_DATA_SOURCE)).getAll();
+    }
+
 
     @Override
     protected JavaIsoVisitor<ExecutionContext> getVisitor() {
@@ -101,15 +109,17 @@ public class FindClassesDependingOnDataSource extends Recipe {
 
             private boolean typesDependingOnDataSource(J.ClassDeclaration classDeclaration, ExecutionContext executionContext, J.CompilationUnit cu) {
                 // FIXME: does not recognize dependency on DataSource
-                J.ClassDeclaration classDeclaration1 = (J.ClassDeclaration) new UsesType<>(JAVAX_DATA_SOURCE).visitClassDeclaration(classDeclaration, executionContext);
-                J result = new UsesType<>(JAVAX_DATA_SOURCE).visit(cu, executionContext);
-                return result.getMarkers().findFirst(SearchResult.class).isPresent();
+                Set<NameTree> assignable = FindTypes.findAssignable(classDeclaration, JAVAX_DATA_SOURCE);
+//                J.ClassDeclaration classDeclaration1 = (J.ClassDeclaration) new UsesType<>(JAVAX_DATA_SOURCE).visitClassDeclaration(classDeclaration, executionContext);
+//                J result = new UsesType<>(JAVAX_DATA_SOURCE).visit(cu, executionContext);
+                return ! assignable.isEmpty();//result.getMarkers().findFirst(SearchResult.class).isPresent();
             }
 
             private boolean hasImportsOfTypeDataSource(J.CompilationUnit cu) {
                 return cu.getTypesInUse().getTypesInUse().stream()
                         .anyMatch(type -> JavaType.FullyQualified.class.isAssignableFrom(type.getClass()) && ((JavaType.FullyQualified)type).isAssignableTo(JAVAX_DATA_SOURCE));
             }
+
         };
     }
 

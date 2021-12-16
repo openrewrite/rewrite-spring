@@ -347,7 +347,6 @@ class InitilizationOrderingTest : JavaRecipeTest {
             }
             
             @Component
-            @DependsOnDatabaseInitialization
             class AnotherComponent {
                 public void method() {
                 }
