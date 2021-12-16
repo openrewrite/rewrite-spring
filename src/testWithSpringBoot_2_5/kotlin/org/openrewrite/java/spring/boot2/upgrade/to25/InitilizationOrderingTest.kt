@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
-import org.openrewrite.java.spring.boot2.upgrade.to25.FindSpringBeansDependingOnDataSource
 import org.openrewrite.java.spring.boot2.upgrade.to25.InitializationOrdering
 
 class InitilizationOrderingTest : JavaRecipeTest {
@@ -51,7 +50,7 @@ class InitilizationOrderingTest : JavaRecipeTest {
             import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
             import org.springframework.context.annotation.Bean;
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@Configuration
+            @Configuration
             public class BeanConfig {
                 @Bean
                 @DependsOnDatabaseInitialization
@@ -89,7 +88,7 @@ class InitilizationOrderingTest : JavaRecipeTest {
             import org.springframework.context.annotation.Configuration;
             import org.springframework.context.annotation.Bean;
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@Configuration
+            @Configuration
             public class BeanConfig {
                 @Bean
                 @DependsOnDatabaseInitialization
@@ -127,7 +126,7 @@ class InitilizationOrderingTest : JavaRecipeTest {
             import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
             import org.springframework.context.annotation.Bean;
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@SpringBootConfiguration
+            @SpringBootConfiguration
             public class BeanConfig {
                 @Bean
                 @DependsOnDatabaseInitialization
@@ -174,7 +173,7 @@ class InitilizationOrderingTest : JavaRecipeTest {
             import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
             import org.springframework.context.annotation.Bean;
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@SpringBootConfiguration
+            @SpringBootConfiguration
             public class BeanConfig {
                 @Bean
                 @DependsOnDatabaseInitialization
@@ -206,7 +205,7 @@ class InitilizationOrderingTest : JavaRecipeTest {
             import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
             import org.springframework.stereotype.Component;
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@Component
+            @Component
             @DependsOnDatabaseInitialization
             public class BeanConfig {
                 public void method(DataSource ds) {
@@ -240,7 +239,7 @@ class InitilizationOrderingTest : JavaRecipeTest {
             import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
             import org.springframework.stereotype.Component;
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@Component
+            @Component
             @DependsOnDatabaseInitialization
             public class BeanConfig {
                 public void method(DataSource ds) {
@@ -268,14 +267,14 @@ class InitilizationOrderingTest : JavaRecipeTest {
             import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
             import org.springframework.stereotype.Component;
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@Component
+            @Component
             @DependsOnDatabaseInitialization
             public class BeanConfig {
                 public void method(DataSource ds) {
                 }
             }
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/class Foo {}
+            class Foo {}
         """
     )
 
@@ -306,14 +305,14 @@ class InitilizationOrderingTest : JavaRecipeTest {
             import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
             import org.springframework.stereotype.Component;
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@Component
+            @Component
             @DependsOnDatabaseInitialization
             public class BeanConfig {
                 public void method(DataSource ds) {
                 }
             }
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/class Foo {}
+            class Foo {}
         """
     )
 
@@ -340,14 +339,14 @@ class InitilizationOrderingTest : JavaRecipeTest {
             import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
             import org.springframework.stereotype.Component;
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@Component
+            @Component
             @DependsOnDatabaseInitialization
             public class BeanConfig {
                 public void method(DataSource ds) {
                 }
             }
             
-            /*~~(${FindSpringBeansDependingOnDataSource.MARKER_DESCRIPTION})~~>*/@Component
+            @Component
             @DependsOnDatabaseInitialization
             class AnotherComponent {
                 public void method() {

@@ -6,10 +6,13 @@
  */
 package org.openrewrite.java.spring.boot2.upgrade.to25;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.tree.J;
 
@@ -17,10 +20,27 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.java.spring.boot2.upgrade.to25.FindClassesDependingOnDataSource.CLASSES_USING_DATA_SOURCE;
 
 class FindSpringBeansDependingOnDataSourceTest {
 
-    private FindSpringBeansDependingOnDataSource sut = new FindSpringBeansDependingOnDataSource();
+    private FindClassesDependingOnDataSource sut = new FindClassesDependingOnDataSource();
+
+    @Test
+    void shouldAddResultToExecutionContext() {
+        String given =
+                "import javax.sql.DataSource;\n " +
+                        "public class MyClass<T extends DataSource>{}";
+        ExecutionContext ctx = new InMemoryExecutionContext();
+        List<J.CompilationUnit> compilationUnits = parse(given);
+
+        sut.run(compilationUnits, ctx);
+        FindClassesDependingOnDataSource.Matches matches = ctx.getMessage(CLASSES_USING_DATA_SOURCE);
+
+        assertThat(matches).isNotNull();
+        assertThat(matches.getAll()).hasSize(1);
+        assertThat(matches.getAll().get(0)).isEqualTo("MyClass");
+    }
 
     @Nested
     public class GivenSpringComponentExists {
@@ -43,7 +63,7 @@ class FindSpringBeansDependingOnDataSourceTest {
                         theImport + "\n" +
                         "@" + beanType + "\n" +
                         "public class SomeComponent {\n" +
-                        "    public method("+theParameter+") {}\n" +
+                        "    public void method("+theParameter+") {}\n" +
                         "}";
             assertMatches(1, given);
         }
@@ -60,7 +80,7 @@ class FindSpringBeansDependingOnDataSourceTest {
                     "import " + beanImport+";\n" +
                     "@" + beanType + "\n" +
                     "public class SomeComponent {\n" +
-                    "    public method() {}\n" +
+                    "    public void method() {}\n" +
                     "}";
             assertMatches(0, given);
         }
@@ -73,7 +93,7 @@ class FindSpringBeansDependingOnDataSourceTest {
                             "import javax.sql.DataSource;\n" +
                             "@Component\n" +
                             "public class SomeComponent {\n" +
-                            "    public method() {}\n" +
+                            "    public void method() {}\n" +
                             "}";
             assertMatches(0, given);
         }
@@ -81,24 +101,27 @@ class FindSpringBeansDependingOnDataSourceTest {
     }
 
     private void assertMatches(int numMatches, String given) {
-        List<J.CompilationUnit> rewriteSourceFileHolders = getRewriteSourceFileHolders(given);
-        assertThat(rewriteSourceFileHolders).hasSize(numMatches);
+        List<String> result = compileGivenAndApplyRecipe(given);
+        assertThat(result).hasSize(numMatches);
     }
 
 
-    private List<J.CompilationUnit> getRewriteSourceFileHolders(String... given) {
+    private List<String> compileGivenAndApplyRecipe(String... given) {
+        List<J.CompilationUnit> compilationUnits = parse(given);
+
+        ExecutionContext executionContext = new InMemoryExecutionContext();
+        sut.run(compilationUnits, executionContext);
+        return ((FindClassesDependingOnDataSource.Matches)executionContext.getMessage(CLASSES_USING_DATA_SOURCE)).getAll()
+                .stream().map(r -> (String)r).collect(Collectors.toList());
+    }
+
+    @NotNull
+    private List<J.CompilationUnit> parse(String... sources) {
         List<J.CompilationUnit> compilationUnits = JavaParser.fromJavaVersion()
+                .logCompilationWarningsAndErrors(true)
                 .classpath("mysql-connector-java")
                 .build()
-                .parse(given);
-
-        return sut.run(compilationUnits).stream().map(r -> (J.CompilationUnit)r.getAfter()).collect(Collectors.toList());
-//
-//        ProjectContext context = TestProjectContext.buildProjectContext()
-//                .withJavaSources(given)
-//                .withBuildFileHavingDependencies("org.springframework.boot:spring-boot:2.5.6", "mysql:mysql-connector-java:8.0.27", "org.springframework.boot:spring-boot-test:2.5.6")
-//                .build();
-//
-//        return context.getProjectJavaSources().find(sut);
+                .parse(sources);
+        return compilationUnits;
     }
 }

@@ -6,19 +6,14 @@
  */
 package org.openrewrite.java.spring.boot2.upgrade.to25;
 
-import org.openrewrite.Incubating;
-import org.openrewrite.Recipe;
-import org.openrewrite.java.JavaParser;
-
-import java.util.function.Supplier;
+import org.openrewrite.*;
 
 @Incubating(since = "4.15.0")
 public class InitializationOrdering extends Recipe {
 
     public InitializationOrdering() {
-        doNext(new FindSpringBeansDependingOnDataSource());
-        doNext(new AnnotateSpringComponentsDependingOnDataSource());
-        doNext(new AnnotateBeanDefinitionsForSpringBeansDependingOnDataSource());
+        doNext(new FindClassesDependingOnDataSource());
+        doNext(new AnnotateClassesDependingOnDataSource());
     }
 
     @Override
