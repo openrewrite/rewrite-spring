@@ -34,6 +34,11 @@ public class AnnotateClassesDependingOnDataSource extends Recipe {
     }
 
     @Override
+    public String getDescription() {
+        return "As of Spring Boot 2.5 beans depending on javax.sql.DataSource must be annotated with @DependsOnDatabaseInitialization to be initialized after DataSource. This recipe adds this annotation to Spring components depending on javax.sql.DataSource.";
+    }
+
+    @Override
     protected JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
 

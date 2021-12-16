@@ -33,7 +33,7 @@ public class FindClassesDependingOnDataSource extends Recipe {
 
     @Override
     public String getDescription() {
-        return "As of Spring Boot 2.5 beans depending on javax.sql.DataSource must be annotated with @DependsOnDatabaseInitialization to be initialized after DataSource.";
+        return "As of Spring Boot 2.5 beans depending on javax.sql.DataSource must be annotated with @DependsOnDatabaseInitialization to be initialized after DataSource. This recipe finds these classes and stores them in the ExecutionContext.";
     }
 
     public static class Matches {
