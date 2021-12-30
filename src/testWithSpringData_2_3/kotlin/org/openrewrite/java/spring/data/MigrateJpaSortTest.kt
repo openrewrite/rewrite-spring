@@ -24,7 +24,6 @@ class MigrateJpaSortTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .classpath("javax.persistence", "spring-data-jpa", "spring-data-commons")
-            .logCompilationWarningsAndErrors(true)
             .build()
 
     override val recipe: Recipe

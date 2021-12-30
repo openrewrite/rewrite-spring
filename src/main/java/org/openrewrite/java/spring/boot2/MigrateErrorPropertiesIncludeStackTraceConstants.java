@@ -42,7 +42,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace");
+        return new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace");
     }
 
     @Override
@@ -52,7 +52,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
 
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {
         private static final JavaType.FullyQualified ORIGINAL_FQN =
-                JavaType.Class.build("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace");
+                JavaType.ShallowClass.build("org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace");
 
         private final Map<String, String> updateDeprecatedFields = new HashMap<>();
 
@@ -89,6 +89,20 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
                     updateDeprecatedFields.containsKey(fa.getName().getSimpleName())) {
 
                 fa = fa.withName(fa.getName().withSimpleName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
+                String className;
+                if (fa.getTarget() instanceof J.Identifier) {
+                    className = ORIGINAL_FQN.getClassName().substring(ORIGINAL_FQN.getClassName().lastIndexOf(".") + 1);
+                } else {
+                    className = ORIGINAL_FQN.getClassName();
+                }
+
+                fa = fa.withTarget(new J.Identifier(
+                        Tree.randomId(),
+                        fa.getTarget().getPrefix(),
+                        fa.getTarget().getMarkers(),
+                        className,
+                        ORIGINAL_FQN,
+                        null));
             }
             return fa;
         }
