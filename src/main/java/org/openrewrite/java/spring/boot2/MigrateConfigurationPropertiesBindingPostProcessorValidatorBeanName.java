@@ -20,7 +20,6 @@ import org.openrewrite.Recipe;
 import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
@@ -52,8 +51,8 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
     }
 
     private static class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final JavaType.FullyQualified ORIGINAL_FQN = JavaType.Class.build("org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor");
-        private static final JavaType.FullyQualified NEW_FQN = JavaType.Class.build("org.springframework.boot.context.properties.EnableConfigurationProperties");
+        private static final JavaType.FullyQualified ORIGINAL_FQN = JavaType.ShallowClass.build("org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor");
+        private static final JavaType.FullyQualified NEW_FQN = JavaType.ShallowClass.build("org.springframework.boot.context.properties.EnableConfigurationProperties");
 
         private final Map<String, String> updateDeprecatedFields = new HashMap<>();
 
@@ -105,6 +104,7 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
                         updateDeprecatedFields.get(id.getSimpleName()),
                         id.getType(),
                         new JavaType.Variable(
+                                null,
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags()),
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 NEW_FQN,

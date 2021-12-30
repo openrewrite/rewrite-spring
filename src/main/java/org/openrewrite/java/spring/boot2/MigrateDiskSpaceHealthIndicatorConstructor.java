@@ -53,9 +53,9 @@ public class MigrateDiskSpaceHealthIndicatorConstructor extends Recipe {
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 if (TypeUtils.isOfClassType(newClass.getType(), diskSpaceHealthIndicatorFqn) &&
-                        newClass.getConstructorType() != null && newClass.getConstructorType().getResolvedSignature() != null &&
-                        TypeUtils.isOfType(newClass.getConstructorType().getResolvedSignature().getParamTypes().get(0), JavaType.buildType("java.io.File")) &&
-                        TypeUtils.isOfType(newClass.getConstructorType().getResolvedSignature().getParamTypes().get(1), JavaType.Primitive.Long) &&
+                        newClass.getConstructorType() != null &&
+                        TypeUtils.isOfType(newClass.getConstructorType().getParameterTypes().get(0), JavaType.buildType("java.io.File")) &&
+                        TypeUtils.isOfType(newClass.getConstructorType().getParameterTypes().get(1), JavaType.Primitive.Long) &&
                         newClass.getArguments() != null) {
                     maybeAddImport("org.springframework.util.unit.DataSize");
                     return newClass.withTemplate(

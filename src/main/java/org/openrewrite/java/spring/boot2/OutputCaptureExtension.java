@@ -171,7 +171,7 @@ public class OutputCaptureExtension extends Recipe {
     }
 
     private static class AddCapturedOutputParameter extends JavaIsoVisitor<ExecutionContext> {
-        private static final JavaType.Class CAPTURED_OUTPUT_TYPE = JavaType.Class.build("org.springframework.boot.test.system.CapturedOutput");
+        private static final JavaType.Class CAPTURED_OUTPUT_TYPE = JavaType.ShallowClass.build("org.springframework.boot.test.system.CapturedOutput");
         private final String variableName;
 
         private AddCapturedOutputParameter(String variableName) {
@@ -201,7 +201,7 @@ public class OutputCaptureExtension extends Recipe {
                                         new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, variableName, CAPTURED_OUTPUT_TYPE, null),
                                         emptyList(),
                                         null,
-                                        CAPTURED_OUTPUT_TYPE),
+                                        null),
                                 Space.EMPTY,
                                 Markers.EMPTY
                         ))

@@ -52,7 +52,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
 
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {
         private static final JavaType.FullyQualified MEDIA_TYPE_FQN =
-                JavaType.Class.build("org.springframework.http.MediaType");
+                JavaType.ShallowClass.build("org.springframework.http.MediaType");
         private final Map<String, String> updateDeprecatedFields = new HashMap<>();
 
         UpdateDeprecatedConstantFieldNames() {
@@ -97,6 +97,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
                         updateDeprecatedFields.get(id.getSimpleName()),
                         id.getType(),
                         new JavaType.Variable(
+                                null,
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags()),
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 MEDIA_TYPE_FQN,

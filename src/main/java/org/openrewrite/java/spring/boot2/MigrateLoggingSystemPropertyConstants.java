@@ -53,9 +53,9 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
 
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {
         private static final JavaType.FullyQualified ORIGINAL_FQN =
-                JavaType.Class.build("org.springframework.boot.logging.LoggingSystemProperties");
+                JavaType.ShallowClass.build("org.springframework.boot.logging.LoggingSystemProperties");
         private static final JavaType.FullyQualified NEW_FQN =
-                JavaType.Class.build("org.springframework.boot.logging.logback.LogbackLoggingSystemProperties");
+                JavaType.ShallowClass.build("org.springframework.boot.logging.logback.LogbackLoggingSystemProperties");
 
         private final Map<String, String> updateDeprecatedFields = new HashMap<>();
 
@@ -114,6 +114,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                         updateDeprecatedFields.get(id.getSimpleName()),
                         id.getType(),
                         new JavaType.Variable(
+                                null,
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags()),
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 NEW_FQN,
