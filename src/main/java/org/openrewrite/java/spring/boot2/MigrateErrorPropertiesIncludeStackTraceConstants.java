@@ -42,7 +42,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace");
+        return new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace");
     }
 
     @Override
@@ -52,7 +52,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
 
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {
         private static final JavaType.FullyQualified ORIGINAL_FQN =
-                JavaType.ShallowClass.build("org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace");
+                JavaType.ShallowClass.build("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace");
 
         private final Map<String, String> updateDeprecatedFields = new HashMap<>();
 
