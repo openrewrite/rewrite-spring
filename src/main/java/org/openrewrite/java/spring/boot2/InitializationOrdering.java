@@ -4,7 +4,7 @@
  *
  * @author: fkrueger
  */
-package org.openrewrite.java.spring.boot2.upgrade.to25;
+package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.*;
 

@@ -4,18 +4,16 @@
  *
  * @author: fkrueger
  */
-package org.openrewrite.java.spring.boot2.upgrade.to25;
+package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Incubating;
 import org.openrewrite.Recipe;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.FindTypes;
-import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.NameTree;
-import org.openrewrite.marker.SearchResult;
 
 import java.util.*;
 import java.util.stream.Collectors;

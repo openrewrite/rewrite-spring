@@ -4,7 +4,7 @@
  *
  * @author: fkrueger
  */
-package org.openrewrite.java.spring.boot2.upgrade.to25;
+package org.openrewrite.java.spring.boot2;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.openrewrite.java.spring.boot2.upgrade.to25.FindClassesDependingOnDataSource.CLASSES_USING_DATA_SOURCE;
 
 class FindSpringBeansDependingOnDataSourceTest {
 
@@ -35,7 +34,7 @@ class FindSpringBeansDependingOnDataSourceTest {
         List<J.CompilationUnit> compilationUnits = parse(given);
 
         sut.run(compilationUnits, ctx);
-        FindClassesDependingOnDataSource.Matches matches = ctx.getMessage(CLASSES_USING_DATA_SOURCE);
+        FindClassesDependingOnDataSource.Matches matches = ctx.getMessage(FindClassesDependingOnDataSource.CLASSES_USING_DATA_SOURCE);
 
         assertThat(matches).isNotNull();
         assertThat(matches.getAll()).hasSize(1);
@@ -111,7 +110,7 @@ class FindSpringBeansDependingOnDataSourceTest {
 
         ExecutionContext executionContext = new InMemoryExecutionContext();
         sut.run(compilationUnits, executionContext);
-        return ((FindClassesDependingOnDataSource.Matches)executionContext.getMessage(CLASSES_USING_DATA_SOURCE)).getAll()
+        return ((FindClassesDependingOnDataSource.Matches)executionContext.getMessage(FindClassesDependingOnDataSource.CLASSES_USING_DATA_SOURCE)).getAll()
                 .stream().map(r -> (String)r).collect(Collectors.toList());
     }
 

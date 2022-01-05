@@ -246,8 +246,8 @@ tags:
   - spring
   - spring-boot
 recipeList:
-  - org.openrewrite.java.spring.boot2.upgrade.to25.FindClassesDependingOnDataSource
-  - org.openrewrite.java.spring.boot2.upgrade.to25.AnnotateClassesDependingOnDataSource
+  - org.openrewrite.java.spring.boot2.FindClassesDependingOnDataSource
+  - org.openrewrite.java.spring.boot2.AnnotateClassesDependingOnDataSource
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
