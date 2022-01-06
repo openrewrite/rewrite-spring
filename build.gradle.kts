@@ -235,6 +235,7 @@ dependencies {
     "testWithSpringBoot_2_5RuntimeOnly"("mysql:mysql-connector-java:8.0.27")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-context:2.5.+")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.data:spring-data-jpa:2.5.+")
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.data:spring-jdbc:2.5.+")
 
     "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-core:5.1.+")
 
