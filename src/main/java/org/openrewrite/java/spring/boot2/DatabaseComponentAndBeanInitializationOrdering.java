@@ -35,14 +35,13 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "...";
+        return "Adds @DependsOnDatabaseInitialization to Spring Beans and Components depending on javax.sql.DataSource.";
     }
 
     @Override
     public String getDescription() {
-        return super.getDescription();
+        return "Beans of certain well-known types, such as JdbcTemplate, will be ordered so that they are initialized after the database has been initialized. If you have a bean that works with the DataSource directly, annotate its class or @Bean method with @DependsOnDatabaseInitialization to ensure that it too is initialized after the database has been initialized.";
     }
-
     @Override
     protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
         // look for spring.jpa.defer-datasource-initialization=true
