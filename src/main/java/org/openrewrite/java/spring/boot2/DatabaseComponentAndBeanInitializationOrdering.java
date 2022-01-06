@@ -26,6 +26,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
@@ -44,6 +45,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
     public String getDescription() {
         return "Beans of certain well-known types, such as JdbcTemplate, will be ordered so that they are initialized after the database has been initialized. If you have a bean that works with the DataSource directly, annotate its class or @Bean method with @DependsOnDatabaseInitialization to ensure that it too is initialized after the database has been initialized.";
     }
+
     @Override
     protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
         // look for spring.jpa.defer-datasource-initialization=true
@@ -54,14 +56,14 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-                J.CompilationUnit c = super.visitCompilationUnit(cu, executionContext);
-                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Repository").visitNonNull(c, executionContext);
-                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Component").visitNonNull(c, executionContext);
-                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Service").visitNonNull(c, executionContext);
-                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.boot.test.context.TestComponent").visitNonNull(c, executionContext);
-                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.context.annotation.Bean").visitNonNull(c, executionContext);
-                return c;
+            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext executionContext) {
+                JavaSourceFile jsf = super.visitJavaSourceFile(cu, executionContext);
+                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Repository").visitNonNull(jsf, executionContext);
+                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Component").visitNonNull(jsf, executionContext);
+                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Service").visitNonNull(jsf, executionContext);
+                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.boot.test.context.TestComponent").visitNonNull(jsf, executionContext);
+                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.context.annotation.Bean").visitNonNull(jsf, executionContext);
+                return jsf;
             }
         };
     }
