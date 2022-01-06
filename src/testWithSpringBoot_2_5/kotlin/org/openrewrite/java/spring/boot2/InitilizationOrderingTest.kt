@@ -4,13 +4,12 @@
  *
  * @author: fkrueger
  */
-package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2.upgrade.to25.org.openrewrite.java.spring.boot2.upgrade.to25
+package org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.JavaRecipeTest
-import org.openrewrite.java.spring.boot2.upgrade.to25.InitializationOrdering
 
 class InitilizationOrderingTest : JavaRecipeTest {
     override val parser: JavaParser
