@@ -18,11 +18,13 @@ package org.openrewrite.java.spring.boot2;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.SourceFile;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
@@ -49,6 +51,22 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
     }
 
     @Override
+    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+                J.CompilationUnit c = super.visitCompilationUnit(cu, executionContext);
+                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Repository").visitNonNull(c, executionContext);
+                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Component").visitNonNull(c, executionContext);
+                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Service").visitNonNull(c, executionContext);
+                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.boot.test.context.TestComponent").visitNonNull(c, executionContext);
+                c = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.context.annotation.Bean").visitNonNull(c, executionContext);
+                return c;
+            }
+        };
+    }
+
+    @Override
     protected JavaIsoVisitor<ExecutionContext> getVisitor() {
 
         final String javaxDataSourceFqn = "javax.sql.DataSource";
@@ -65,12 +83,14 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
         final List<String> wellKnownTypesConditional = Arrays.asList("org.springframework.orm.jpa.AbstractEntityManagerFactoryBean", "javax.persistence.EntityManagerFactory");
 
+
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, executionContext);
                 if (method.getMethodType() != null) {
-                    if (isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md) && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
+                    if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md)
+                            && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
                         JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                                 .javaParser(() -> JavaParser.fromJavaVersion()
@@ -87,7 +107,8 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
-                if (isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd) && requiresInitializationAnnotation(cd.getType())) {
+                if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd)
+                        && requiresInitializationAnnotation(cd.getType())) {
                     JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                             .javaParser(() -> JavaParser.fromJavaVersion()
@@ -120,8 +141,9 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 return false;
             }
 
+            @SuppressWarnings("BooleanMethodIsAlwaysInverted")
             private boolean isInitializationAnnoPresent(@Nullable List<J.Annotation> annotations) {
-                return annotations == null || annotations.stream().noneMatch(dataSourceAnnotationMatcher::matches);
+                return annotations != null && annotations.stream().anyMatch(dataSourceAnnotationMatcher::matches);
             }
 
             private boolean requiresInitializationAnnotation(@Nullable JavaType type) {
