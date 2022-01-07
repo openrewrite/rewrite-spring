@@ -47,12 +47,6 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-        // look for spring.jpa.defer-datasource-initialization=true
-        return super.visit(before, ctx);
-    }
-
-    @Override
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
@@ -80,11 +74,14 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 new AnnotationMatcher("@org.springframework.stereotype.Service"),
                 new AnnotationMatcher("@org.springframework.boot.test.context.TestComponent"));
 
-        final List<String> wellKnowDataSourceTypes = Arrays.asList("org.springframework.jdbc.core.JdbcTemplate",
-            "org.jooq.DSLContext", "org.springframework.jdbc.core.JdbcOperations", "org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations");
-
-        final List<String> wellKnownTypesConditional = Arrays.asList("org.springframework.orm.jpa.AbstractEntityManagerFactoryBean", "javax.persistence.EntityManagerFactory");
-
+        final List<String> wellKnowDataSourceTypes = Arrays.asList(
+                "org.springframework.jdbc.core.JdbcTemplate",
+                "org.jooq.DSLContext",
+                "org.springframework.jdbc.core.JdbcOperations",
+                "org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations",
+                "org.springframework.orm.jpa.AbstractEntityManagerFactoryBean",
+                "javax.persistence.EntityManagerFactory"
+        );
 
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
@@ -185,11 +182,6 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             private boolean isWellKnownDataSourceInitializationType(@Nullable JavaType type) {
                 if (type != null) {
                     for (String wellKnowDataSourceType : wellKnowDataSourceTypes) {
-                        if (TypeUtils.isAssignableTo(wellKnowDataSourceType, type)) {
-                            return true;
-                        }
-                    }
-                    for (String wellKnowDataSourceType : wellKnownTypesConditional) {
                         if (TypeUtils.isAssignableTo(wellKnowDataSourceType, type)) {
                             return true;
                         }
