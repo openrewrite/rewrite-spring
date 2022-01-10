@@ -49,7 +49,7 @@ configure<nebula.plugin.release.git.base.ReleasePluginExtension> {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5")
+val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4")
 val springDataVersions: List<String> = listOf("2_1", "2_3")
 val springFrameworkVersions: List<String> = listOf("5_1", "5_2", "5_3")
 
