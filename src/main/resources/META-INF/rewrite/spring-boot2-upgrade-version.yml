@@ -238,6 +238,8 @@ recipeList:
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
   - org.openrewrite.java.spring.boot2.SpringBootPropertiesManual_2_5
 
+  # Initialization ordering
+  - org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
