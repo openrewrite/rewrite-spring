@@ -34,6 +34,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Migration for Spring Boot 2.4 to 2.5
+ * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering">Initialization ordering</a>
+ */
 public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
     @Override
@@ -93,7 +97,19 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                         JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                                 .javaParser(() -> JavaParser.fromJavaVersion()
-                                        .classpath("spring-boot")
+                                        .dependsOn(
+                                                "package org.springframework.boot.sql.init.dependency;\n" +
+                                                "import java.lang.annotation.Documented;\n" +
+                                                "import java.lang.annotation.ElementType;\n" +
+                                                "import java.lang.annotation.Retention;\n" +
+                                                "import java.lang.annotation.RetentionPolicy;\n" +
+                                                "import java.lang.annotation.Target;\n" +
+                                                "import org.springframework.context.annotation.Bean;\n" +
+                                                "@Target({ ElementType.TYPE, ElementType.METHOD })\n" +
+                                                "@Retention(RetentionPolicy.RUNTIME)\n" +
+                                                "@Documented\n" +
+                                                "public @interface DependsOnDatabaseInitialization {}"
+                                        )
                                         .build())
                                 .build();
                         md = md.withTemplate(template, md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
