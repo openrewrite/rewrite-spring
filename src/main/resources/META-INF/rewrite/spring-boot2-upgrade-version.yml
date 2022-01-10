@@ -239,15 +239,14 @@ recipeList:
   - org.openrewrite.java.spring.boot2.SpringBootPropertiesManual_2_5
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.InitializationOrdering
+name: org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering
 displayName: Adds @DependsOnDatabaseInitialization to Spring Beans depending on javax.sql.DataSource
 description: As of Spring-Boot 2.5 Beans of certain well-known types, such as JdbcTemplate, will be ordered so that they are initialized after the database has been initialized. If you have a bean that works with the DataSource directly, annotate its class or @Bean method with @DependsOnDatabaseInitialization to ensure that it too is initialized after the database has been initialized.
 tags:
   - spring
   - spring-boot
 recipeList:
-  - org.openrewrite.java.spring.boot2.FindClassesDependingOnDataSource
-  - org.openrewrite.java.spring.boot2.AnnotateClassesDependingOnDataSource
+  - org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering
 
 ---
 type: specs.openrewrite.org/v1beta/recipe

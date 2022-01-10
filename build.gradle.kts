@@ -233,7 +233,10 @@ dependencies {
 
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot:2.5.+")
     "testWithSpringBoot_2_5RuntimeOnly"("mysql:mysql-connector-java:8.0.27")
+    "testWithSpringBoot_2_5RuntimeOnly"("org.jooq:jooq:3.14.15")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-context:2.5.+")
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-orm:5.3.14")
+    "testWithSpringBoot_2_5RuntimeOnly"("jakarta.persistence:jakarta.persistence-api:2.2.3")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.data:spring-data-jpa:2.5.+")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.data:spring-jdbc:2.5.+")
 

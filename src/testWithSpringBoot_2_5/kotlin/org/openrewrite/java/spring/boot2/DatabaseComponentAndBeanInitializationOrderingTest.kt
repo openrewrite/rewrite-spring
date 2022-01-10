@@ -24,28 +24,141 @@ class DatabaseComponentAndBeanInitializationOrderingTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpath("spring-beans", "spring-context", "spring-boot", "mysql-connector-java", "spring-jdbc")
+            .classpath("spring-beans", "spring-context", "spring-boot", "mysql-connector-java", "spring-jdbc", "spring-orm", "jooq", "persistence-api")
             .build()
 
     override val recipe: Recipe
         get() = DatabaseComponentAndBeanInitializationOrdering()
 
     @Test
-    fun jdbcTemplateBeanShouldNotBeAnnotated() = assertUnchanged(
+    fun jdbcOperationsBeanShouldNotBeAnnotated() = assertUnchanged(
         before = """
             import javax.sql.DataSource;
+            import org.springframework.jdbc.core.JdbcOperations;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.jdbc.core.JdbcTemplate;
             import org.springframework.context.annotation.Bean;
             
             @Configuration
-            class MyRepository {
+            class PersistenceConfiguration {
             
                 @Bean
-                JdbcTemplate template (DataSource dataSource) {
+                JdbcOperations template(DataSource dataSource) {
                     return new JdbcTemplate(dataSource);
                 }
             }
+        """
+    )
+
+    @Test
+    fun namedParameterJdbcOperationsBeanShouldNotBeAnnotated() = assertUnchanged(
+        before = """
+            import javax.sql.DataSource;
+            import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+            import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.context.annotation.Bean;
+            
+            @Configuration
+            class PersistenceConfiguration {
+            
+                @Bean
+                NamedParameterJdbcOperations template(DataSource dataSource) {
+                    return new NamedParameterJdbcTemplate(dataSource);
+                }
+            }
+        """
+    )
+
+    @Test
+    fun abstractEntityManagerFactoryBeanShouldNotBeAnnotated() = assertUnchanged(
+        before = """
+            import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
+            import org.springframework.orm.jpa.LocalEntityManagerFactoryBean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.context.annotation.Bean;
+            
+            @Configuration
+            class PersistenceConfiguration {
+            
+                @Bean
+                AbstractEntityManagerFactoryBean entityManagerFactoryBean() {
+                    return new LocalEntityManagerFactoryBean();
+                }
+            }
+        """
+    )
+
+    @Test
+    fun entityManagerFactoryBeanShouldNotBeAnnotated() = assertUnchanged(
+        before = """
+            import javax.persistence.Persistence;
+            import javax.persistence.EntityManagerFactory;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.context.annotation.Bean;
+            
+            @Configuration
+            class PersistenceConfiguration {
+            
+                @Bean
+                EntityManagerFactory entityManagerFactory() {
+                    return Persistence.createEntityManagerFactory("PERSISTENCE_UNIT_NAME");
+                }
+            }
+        """
+    )
+
+    @Test
+    fun dslContextBeanShouldNotBeAnnotated() = assertChanged(
+        before = """
+            import org.jooq.impl.DSL;
+            import org.jooq.DSLContext;
+            import org.jooq.SQLDialect;
+            import javax.sql.DataSource;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.context.annotation.Bean;
+            
+            @Configuration
+            class PersistenceConfiguration {
+            
+                public static class A { private DataSource ds;}
+            
+                @Bean
+                DSLContext dslContext(DataSource ds) {
+                    return DSL.using(ds, SQLDialect.SQLITE);
+                }
+                
+                @Bean
+                A a() {
+                    return new A();
+                }
+            }
+        """,
+        after = """
+          import org.jooq.impl.DSL;
+          import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
+          import org.jooq.DSLContext;
+          import org.jooq.SQLDialect;
+          import javax.sql.DataSource;
+          import org.springframework.context.annotation.Configuration;
+          import org.springframework.context.annotation.Bean;
+          
+          @Configuration
+          class PersistenceConfiguration {
+          
+              public static class A { private DataSource ds;}
+          
+              @Bean
+              DSLContext dslContext(DataSource ds) {
+                  return DSL.using(ds, SQLDialect.SQLITE);
+              }
+          
+              @Bean
+              @DependsOnDatabaseInitialization
+              A a() {
+                  return new A();
+              }
+          }
         """
     )
 
