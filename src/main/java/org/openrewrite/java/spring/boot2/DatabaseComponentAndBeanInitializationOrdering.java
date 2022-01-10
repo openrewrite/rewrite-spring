@@ -87,6 +87,19 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 "javax.persistence.EntityManagerFactory"
         );
 
+        final String dataSourceInitializationTemplate =
+                "package org.springframework.boot.sql.init.dependency;\n" +
+                "import java.lang.annotation.Documented;\n" +
+                "import java.lang.annotation.ElementType;\n" +
+                "import java.lang.annotation.Retention;\n" +
+                "import java.lang.annotation.RetentionPolicy;\n" +
+                "import java.lang.annotation.Target;\n" +
+                "import org.springframework.context.annotation.Bean;\n" +
+                "@Target({ ElementType.TYPE, ElementType.METHOD })\n" +
+                "@Retention(RetentionPolicy.RUNTIME)\n" +
+                "@Documented\n" +
+                "public @interface DependsOnDatabaseInitialization {}";
+
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
@@ -97,19 +110,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                         JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                                 .javaParser(() -> JavaParser.fromJavaVersion()
-                                        .dependsOn(
-                                                "package org.springframework.boot.sql.init.dependency;\n" +
-                                                "import java.lang.annotation.Documented;\n" +
-                                                "import java.lang.annotation.ElementType;\n" +
-                                                "import java.lang.annotation.Retention;\n" +
-                                                "import java.lang.annotation.RetentionPolicy;\n" +
-                                                "import java.lang.annotation.Target;\n" +
-                                                "import org.springframework.context.annotation.Bean;\n" +
-                                                "@Target({ ElementType.TYPE, ElementType.METHOD })\n" +
-                                                "@Retention(RetentionPolicy.RUNTIME)\n" +
-                                                "@Documented\n" +
-                                                "public @interface DependsOnDatabaseInitialization {}"
-                                        )
+                                        .dependsOn(dataSourceInitializationTemplate)
                                         .build())
                                 .build();
                         md = md.withTemplate(template, md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
@@ -127,7 +128,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                     JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                             .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .classpath("spring-boot")
+                                    .dependsOn(dataSourceInitializationTemplate)
                                     .build())
                             .build();
                     cd = cd.withTemplate(template, cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));

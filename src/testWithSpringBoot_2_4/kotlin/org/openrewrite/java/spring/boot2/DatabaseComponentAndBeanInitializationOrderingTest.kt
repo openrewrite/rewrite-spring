@@ -24,7 +24,7 @@ class DatabaseComponentAndBeanInitializationOrderingTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpath("spring-beans", "spring-context", "spring-boot", "mysql-connector-java", "spring-jdbc", "spring-orm", "jooq", "persistence-api")
+            .classpath("spring-beans", "spring-context", "spring-boot", "spring-jdbc", "spring-orm", "jooq", "persistence-api")
             .build()
 
     override val recipe: Recipe

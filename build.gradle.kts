@@ -230,14 +230,12 @@ dependencies {
     "testWithSpringData_2_3RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
 
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
-    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.5.+")
-    "testWithSpringBoot_2_4RuntimeOnly"("mysql:mysql-connector-java:8.0.27")
     "testWithSpringBoot_2_4RuntimeOnly"("org.jooq:jooq:3.14.15")
-    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-context:2.5.+")
-    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-orm:5.3.14")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-context:5.3.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-orm:5.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("jakarta.persistence:jakarta.persistence-api:2.2.3")
-    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.data:spring-data-jpa:2.5.+")
-    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.data:spring-jdbc:2.5.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.data:spring-data-jpa:2.4.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.data:spring-jdbc:2.4.+")
 
     "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-core:5.1.+")
 
