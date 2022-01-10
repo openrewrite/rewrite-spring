@@ -235,7 +235,7 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-orm:5.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("jakarta.persistence:jakarta.persistence-api:2.2.3")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.data:spring-data-jpa:2.4.+")
-    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.data:spring-jdbc:2.4.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.data:spring-data-jdbc:2.1.+")
 
     "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-core:5.1.+")
 
