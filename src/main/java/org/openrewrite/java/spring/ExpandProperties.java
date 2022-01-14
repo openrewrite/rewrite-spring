@@ -15,13 +15,16 @@
  */
 package org.openrewrite.java.spring;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.HasSourcePath;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.yaml.YamlVisitor;
 import org.openrewrite.yaml.tree.Yaml;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.singletonList;
 import static org.openrewrite.Tree.randomId;
@@ -43,38 +46,89 @@ public class ExpandProperties extends Recipe {
     }
 
     @Override
-    public YamlVisitor<ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new YamlVisitor<ExecutionContext>() {
             @Override
-            public Yaml visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
-                Yaml.Mapping.Entry e = entry;
-                String key = e.getKey().getValue();
-                if (key.contains(".")) {
-                    e = e.withKey(e.getKey().withValue(key.substring(0, key.indexOf('.'))));
-                    e = e.withValue(new Yaml.Mapping(
-                            randomId(),
-                            Markers.EMPTY,
-                            singletonList(
-                                    new Yaml.Mapping.Entry(
-                                            randomId(),
-                                            "",
-                                            Markers.EMPTY,
-                                            new Yaml.Scalar(
-                                                    randomId(),
-                                                    "",
-                                                    Markers.EMPTY,
-                                                    Yaml.Scalar.Style.PLAIN,
-                                                    null,
-                                                    key.substring(key.indexOf('.') + 1)),
-                                            "",
-                                            e.getValue()
-                                    )
-                            )
-                    ));
-                    e = autoFormat(e, ctx, getCursor().getParentOrThrow());
+            public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext executionContext) {
+                Yaml docs = super.visitDocuments(documents, executionContext);
+                Yaml docsExpanded = new ExpandEntriesVisitor().visitNonNull(docs, executionContext);
+                if (docsExpanded != docs) {
+                    docs = new CoalesceEntriesVisitor().visitNonNull(docsExpanded, executionContext);
                 }
-                return super.visitMappingEntry(e, ctx);
+                return docs;
             }
         };
     }
+
+    private static class ExpandEntriesVisitor extends YamlVisitor<ExecutionContext> {
+        @Override
+        public Yaml visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
+            Yaml.Mapping.Entry e = entry;
+            String key = e.getKey().getValue();
+            if (key.contains(".")) {
+                e = e.withKey(e.getKey().withValue(key.substring(0, key.indexOf('.'))));
+                e = e.withValue(new Yaml.Mapping(
+                        randomId(),
+                        Markers.EMPTY,
+                        singletonList(
+                                new Yaml.Mapping.Entry(
+                                        randomId(),
+                                        "",
+                                        Markers.EMPTY,
+                                        new Yaml.Scalar(
+                                                randomId(),
+                                                "",
+                                                Markers.EMPTY,
+                                                Yaml.Scalar.Style.PLAIN,
+                                                null,
+                                                key.substring(key.indexOf('.') + 1)),
+                                        "",
+                                        e.getValue()
+                                )
+                        )
+                ));
+                e = autoFormat(e, ctx, getCursor().getParentOrThrow());
+            }
+            return super.visitMappingEntry(e, ctx);
+        }
+    }
+
+    private static class CoalesceEntriesVisitor extends YamlVisitor<ExecutionContext> {
+        @Override
+        public Yaml visitMapping(Yaml.Mapping mapping, ExecutionContext ctx) {
+            Yaml.Mapping m = mapping;
+            Map<String, List<Yaml.Mapping.Entry>> entriesByKey = new HashMap<>();
+            for (Yaml.Mapping.Entry entry : m.getEntries()) {
+                if (entry.getValue() instanceof Yaml.Mapping) {
+                    entriesByKey.computeIfAbsent(entry.getKey().getValue(), v -> new ArrayList<>()).addAll(((Yaml.Mapping)entry.getValue()).getEntries());
+                }
+            }
+            for (Map.Entry<String, List<Yaml.Mapping.Entry>> entries : entriesByKey.entrySet()) {
+                if (entries.getValue().size() > 1) {
+                    Yaml.Mapping newMapping = new Yaml.Mapping(
+                            randomId(),
+                            Markers.EMPTY,
+                            entries.getValue()
+                    );
+                    Yaml.Mapping.Entry newEntry = new Yaml.Mapping.Entry(randomId(),
+                            "",
+                            Markers.EMPTY,
+                            new Yaml.Scalar(randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, entries.getKey()),
+                            "",
+                            newMapping);
+
+                    m = m.withEntries(ListUtils.map(mapping.getEntries(), (i, ent) -> {
+                        if (ent.getKey().getValue().equals(entries.getKey())) {
+                            return null;
+                        }
+                        return ent;
+                    }));
+                    m = m.withEntries(ListUtils.concat(m.getEntries(), newEntry));
+                    m = autoFormat(m, ctx);
+                }
+            }
+            return super.visitMapping(m, ctx);
+        }
+    }
 }
+

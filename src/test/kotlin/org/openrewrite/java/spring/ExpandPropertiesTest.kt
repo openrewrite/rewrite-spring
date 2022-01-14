@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.org.openrewrite.java.spring
+package org.openrewrite.java.spring
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.openrewrite.Issue
 import org.openrewrite.Recipe
-import org.openrewrite.java.spring.ExpandProperties
 import org.openrewrite.yaml.YamlRecipeTest
 import java.nio.file.Path
 
@@ -42,6 +42,33 @@ class ExpandPropertiesTest : YamlRecipeTest {
               application:
                 name: main
                 description: a description
+        """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/135")
+    @Test
+    fun mapTypePropertiesNotNestedCorrectly(@TempDir tempDir: Path) = assertChanged(
+        before = tempDir.resolve("application.yml").toFile().apply {
+            writeText("""
+                management: test
+                spring:
+                  mail:
+                    protocol: smtp
+                    properties.mail.smtp.connection-timeout: 1000
+                    properties.mail.smtp.timeout: 2000
+                    properties.mail.smtp.write-timeout: 3000
+            """.trimIndent())},
+        after = """
+            management: test
+            spring:
+              mail:
+                protocol: smtp
+                properties:
+                  mail:
+                    smtp:
+                      connection-timeout: 1000
+                      timeout: 2000
+                      write-timeout: 3000
         """
     )
 }
