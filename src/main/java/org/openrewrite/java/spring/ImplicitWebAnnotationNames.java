@@ -90,7 +90,7 @@ public class ImplicitWebAnnotationNames extends Recipe {
                         J.Assignment assignment = (J.Assignment) arg;
                         if (assignment.getVariable() instanceof J.Identifier && assignment.getAssignment() instanceof J.Literal) {
                             J.Identifier assignName = (J.Identifier) assignment.getVariable();
-                            if (assignName.getSimpleName().equals("value") || assignName.getSimpleName().equals("name")) {
+                            if ("value".equals(assignName.getSimpleName()) || "name".equals(assignName.getSimpleName())) {
                                 if (maybeRemoveArg(namedVariable, (J.Literal) assignment.getAssignment())) {
                                     return null;
                                 }

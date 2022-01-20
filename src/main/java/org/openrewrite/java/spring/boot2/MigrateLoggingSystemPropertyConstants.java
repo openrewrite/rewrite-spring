@@ -126,7 +126,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                     for (J.Import anImport : cu.getImports()) {
                         if (anImport.isStatic() && TypeUtils.isOfType(anImport.getQualid().getTarget().getType(), ORIGINAL_FQN) &&
                                 (updateDeprecatedFields.containsKey(anImport.getQualid().getName().getSimpleName()) ||
-                                        anImport.getQualid().getName().getSimpleName().equals("*"))) {
+                                        "*".equals(anImport.getQualid().getName().getSimpleName()))) {
                             maybeRemoveImport(ORIGINAL_FQN);
                             doAfterVisit(new AddImport<>(NEW_FQN.getFullyQualifiedName(), id.getSimpleName(), false));
                         }

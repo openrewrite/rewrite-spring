@@ -148,7 +148,7 @@ public class OutputCaptureExtension extends Recipe {
             "org.springframework.boot.test.system.OutputCaptureRule expect(..)"
     );
 
-    private static class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
+    private static final class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
         private final JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
                 .javaParser(JAVA_PARSER)
                 .build();
@@ -170,7 +170,7 @@ public class OutputCaptureExtension extends Recipe {
         }
     }
 
-    private static class AddCapturedOutputParameter extends JavaIsoVisitor<ExecutionContext> {
+    private static final class AddCapturedOutputParameter extends JavaIsoVisitor<ExecutionContext> {
         private static final JavaType.Class CAPTURED_OUTPUT_TYPE = JavaType.ShallowClass.build("org.springframework.boot.test.system.CapturedOutput");
         private final String variableName;
 

@@ -115,7 +115,7 @@ public class SpringBootReleases {
                             .matcher(responseBody.string());
 
                     while (releaseMatcher.find()) {
-                        if (releaseMatcher.group(1).equals("..")) {
+                        if ("..".equals(releaseMatcher.group(1))) {
                             continue;
                         }
                         releases.add(releaseMatcher.group(1));

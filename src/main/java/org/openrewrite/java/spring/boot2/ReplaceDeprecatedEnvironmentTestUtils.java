@@ -64,7 +64,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         return new UsesType<>("org.springframework.boot.test.util.EnvironmentTestUtils");
     }
 
-    private static class ReplaceEnvironmentUtilsMarker implements Marker {
+    private static final class ReplaceEnvironmentUtilsMarker implements Marker {
         private final String templateString;
         private final List<Expression> parameters;
         private final UUID id = randomId();

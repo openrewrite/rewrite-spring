@@ -109,7 +109,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                     a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                         if (arg instanceof J.Assignment && ((J.Assignment) arg).getVariable() instanceof J.Identifier) {
                             J.Identifier ident = (J.Identifier) ((J.Assignment) arg).getVariable();
-                            if (ident.getSimpleName().equals("path") || ident.getSimpleName().equals("value")) {
+                            if ("path".equals(ident.getSimpleName()) || "value".equals(ident.getSimpleName())) {
                                 return ((J.Assignment) arg).getAssignment();
                             }
                         }
@@ -127,7 +127,7 @@ public class NoRequestMappingAnnotation extends Recipe {
             return annotation.getArguments().stream()
                     .filter(arg -> arg instanceof J.Assignment
                             && ((J.Assignment) arg).getVariable() instanceof J.Identifier
-                            && ((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName().equals("method"))
+                            && "method".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName()))
                     .map(J.Assignment.class::cast)
                     .findFirst();
         }

@@ -93,7 +93,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     for (Expression arg : a.getArguments()) {
                         if (arg instanceof J.Assignment
                                 && ((J.Assignment) arg).getAssignment() instanceof J.NewArray
-                                && ((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName().equals("type")) {
+                                && "type".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName())) {
                             J.NewArray na = (J.NewArray) ((J.Assignment) arg).getAssignment();
                             if (na.getInitializer() != null) {
                                 for (Expression l : na.getInitializer()) {
