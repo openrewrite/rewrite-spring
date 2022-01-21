@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Incubating;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.maven.MavenVisitor;
@@ -24,6 +25,7 @@ import org.openrewrite.maven.MavenVisitor;
  * Migration for Spring Boot 2.4 to 2.5
  * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#secure-info-endpoint">Secure Info Endpoint</a>
  */
+@Incubating(since = "4.16.0")
 public class SecureInfoEndpoint extends Recipe {
 
     private final boolean foundActuator = false;
