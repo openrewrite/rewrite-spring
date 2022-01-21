@@ -27,6 +27,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Migration for Spring Boot 2.4 to 2.5
+ * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#customizing-jooqs-defaultconfiguration">Customizing jOOQ’s DefaultConfiguration</a>
+ */
 @Incubating(since = "4.16.0")
 public class CustomizingJooqDefaultConfiguration extends Recipe {
 
