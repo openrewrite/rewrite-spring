@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.boot2;
+package org.openrewrite.java.spring.boot2.search;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.marker.SearchResult;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Migration for Spring Boot 2.4 to 2.5
@@ -33,6 +33,16 @@ import java.util.stream.Stream;
  */
 @Incubating(since = "4.16.0")
 public class CustomizingJooqDefaultConfiguration extends Recipe {
+    private final List<String> jooqTypes = Arrays.asList("org.jooq.conf.Settings",
+            "org.jooq.ConnectionProvider",
+            "org.jooq.ExecutorProvider",
+            "org.jooq.TransactionProvider",
+            "org.jooq.RecordMapperProvider",
+            "org.jooq.RecordUnmapperProvider",
+            "org.jooq.RecordListenerProvider",
+            "org.jooq.ExecuteListenerProvider",
+            "org.jooq.VisitListenerProvider",
+            "org.jooq.TransactionListenerProvider");
 
     @Override
     public String getDisplayName() {
@@ -46,6 +56,23 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
                 "This customizer callback should be used in favour of defining one or more `*Provider` beans, " +
                 "the support for which has now been deprecated. " +
                 "See [Spring Boot 2.5 jOOQ customization](https://docs.spring.io/spring-boot/docs/2.5.x/reference/htmlsingle/#features.sql.jooq.customizing).";
+    }
+
+    @Override
+    protected JavaIsoVisitor<ExecutionContext> getSingleSourceApplicableTest() {
+
+        List<UsesType<ExecutionContext>> jooqUsesTypes = jooqTypes.stream().map(t -> new UsesType<ExecutionContext>(t)).collect(Collectors.toList());
+
+        return new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext executionContext) {
+                JavaSourceFile sf = super.visitJavaSourceFile(cu, executionContext);
+                for (UsesType<ExecutionContext> usesJooqType : jooqUsesTypes) {
+                    sf = (JavaSourceFile) usesJooqType.visitNonNull(sf, executionContext);
+                }
+                return sf;
+            }
+        };
     }
 
     @Override
@@ -74,7 +101,7 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
             }
 
             private J.MethodDeclaration markAsMatch(J.MethodDeclaration md) {
-                return md.withMarkers(md.getMarkers().add(new SearchResult(UUID.randomUUID(), "JOOQ")));
+                return md.withMarkers(md.getMarkers().searchResult("JOOQ"));
             }
 
             private boolean isJooqCustomizationBean(J.MethodDeclaration md) {
@@ -82,18 +109,6 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
             }
 
             private boolean returnsJooqCustomizationType(J.MethodDeclaration md) {
-                Set<String> jooqTypes = Stream.of(
-                        "org.jooq.conf.Settings",
-                        "org.jooq.ConnectionProvider",
-                        "org.jooq.ExecutorProvider",
-                        "org.jooq.TransactionProvider",
-                        "org.jooq.RecordMapperProvider",
-                        "org.jooq.RecordUnmapperProvider",
-                        "org.jooq.RecordListenerProvider",
-                        "org.jooq.ExecuteListenerProvider",
-                        "org.jooq.VisitListenerProvider",
-                        "org.jooq.TransactionListenerProvider"
-                ).collect(Collectors.toSet());
 
                 if((null != md.getReturnTypeExpression()) && (md.getReturnTypeExpression().getType() instanceof JavaType.Class)) {
                     JavaType.Class returnType = (JavaType.Class) md.getReturnTypeExpression().getType();
