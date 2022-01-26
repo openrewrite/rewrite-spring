@@ -15,21 +15,36 @@
  */
 package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2.search
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
+import org.openrewrite.java.JavaParser
 import org.openrewrite.java.spring.boot2.search.LoggingShutdownHooks
+import org.openrewrite.maven.MavenParser
 import org.openrewrite.maven.MavenRecipeTest
 
 /**
  * @author Alex Boyko
  */
 class LoggingShutdownHooksTest : MavenRecipeTest {
-
     override val recipe: Recipe
         get() = LoggingShutdownHooks()
 
+    companion object {
+        private val application = JavaParser.fromJavaVersion()
+            .logCompilationWarningsAndErrors(true)
+            .classpath("spring-boot").build().parse(
+                """
+                    import org.springframework.boot.autoconfigure.SpringBootApplication;
+                    
+                    @SpringBootApplication
+                    class Application {}
+                """
+            )
+    }
+
     @Test
-    fun noExplicitPackagingType() = assertChanged(
+    fun noExplicitPackagingType() = assertLoggingShutdownHook(true,
         before = """
             <project>
                 <parent>
@@ -48,34 +63,13 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                     </dependency>
                 </dependencies>
             </project>
-        """,
-        after = """
-            <!--~~>--><project>
-                <parent>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
-                    <relativePath/> <!-- lookup parent from repository -->
-                </parent>
-                <groupId>com.example</groupId>
-                <artifactId>acme</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter</artifactId>
-                    </dependency>
-                </dependencies>
-            </project><!--~~>-->
         """
     )
 
     @Test
-    fun explicitJarPackagingType() = assertChanged(
+    fun explicitJarPackagingType() = assertLoggingShutdownHook(true,
         before = """
-            <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-                <modelVersion>4.0.0</modelVersion>
+            <project>
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
@@ -86,9 +80,6 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                 <artifactId>acme</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
                 <packaging>jar</packaging>
-                <properties>
-                    <java.version>11</java.version>
-                </properties>
                 <dependencies>
                     <dependency>
                         <groupId>org.springframework.boot</groupId>
@@ -96,40 +87,13 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                     </dependency>
                 </dependencies>
             </project>
-        """,
-        after = """
-            <!--~~>--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-                <modelVersion>4.0.0</modelVersion>
-                <parent>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
-                    <relativePath/> <!-- lookup parent from repository -->
-                </parent>
-                <groupId>com.example</groupId>
-                <artifactId>acme</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-                <packaging>jar</packaging>
-                <properties>
-                    <java.version>11</java.version>
-                </properties>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter</artifactId>
-                    </dependency>
-                </dependencies>
-            </project><!--~~>-->
         """
     )
 
     @Test
-    fun explicitWarPackagingType() = assertUnchanged(
+    fun explicitWarPackagingType() = assertLoggingShutdownHook(false,
         before = """
-            <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-                <modelVersion>4.0.0</modelVersion>
+            <project>
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
@@ -140,9 +104,6 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                 <artifactId>acme</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
                 <packaging>war</packaging>
-                <properties>
-                    <java.version>11</java.version>
-                </properties>
                 <dependencies>
                     <dependency>
                         <groupId>org.springframework.boot</groupId>
@@ -154,7 +115,7 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
     )
 
     @Test
-    fun lowerBootProject() = assertUnchanged(
+    fun lowerBootProject() = assertLoggingShutdownHook(false,
         before = """
             <project>
                 <parent>
@@ -178,7 +139,7 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
     )
 
     @Test
-    fun higherBootProject() = assertUnchanged(
+    fun higherBootProject() = assertLoggingShutdownHook(false,
         before = """
             <project>
                 <parent>
@@ -200,4 +161,9 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
             </project>
         """
     )
+    
+    private fun assertLoggingShutdownHook(isOn: Boolean, before: String) {
+        val sourceFiles = MavenParser.builder().build().parse(before).plus(application)
+        assertThat(LoggingShutdownHooks().run(sourceFiles)).hasSize(if(isOn) 1 else 0)
+    }
 }

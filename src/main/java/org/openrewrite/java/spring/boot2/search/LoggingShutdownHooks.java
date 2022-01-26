@@ -17,7 +17,11 @@ package org.openrewrite.java.spring.boot2.search;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.SourceFile;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.tree.Maven;
 import org.openrewrite.maven.tree.Pom;
@@ -26,7 +30,10 @@ import org.openrewrite.semver.DependencyMatcher;
 import org.openrewrite.xml.XPathMatcher;
 import org.openrewrite.xml.tree.Xml;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Mark POM's of projects where logging shutdown hook may need to be disabled
@@ -54,10 +61,14 @@ public class LoggingShutdownHooks extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
         return new MavenVisitor() {
             @Override
             public Maven visitMaven(Maven maven, ExecutionContext ctx) {
+                if(!maven.getModel().getPackaging().equals("jar")) {
+                    return maven;
+                }
+
                 DependencyMatcher matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.5.X").getValue();
                 assert matcher != null;
                 for (Pom.Dependency d : maven.getModel().getDependencies(Scope.Compile)) {
@@ -72,24 +83,17 @@ public class LoggingShutdownHooks extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new MavenVisitor() {
-            @Override
-            public Maven visitMaven(Maven maven, ExecutionContext ctx) {
-                Maven m = super.visitMaven(maven, ctx);
-                if (getCursor().pollMessage(NEEDS_SEARCH_MARKER) != null) {
-                    m = m.withMarkers(maven.getMarkers().searchResult());
-                }
-                return m;
-            }
+        FindAnnotations findAnnotations = new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication");
+        try {
+            // FIXME make this method public on FindAnnotations
 
-            @Override
-            public Xml visitTag(Xml.Tag tag, ExecutionContext context) {
-                if (PROJECT_MATCHER.matches(getCursor())
-                        && tag.getChildValue("packaging").orElse("jar").equalsIgnoreCase("jar")) {
-                    getCursor().dropParentUntil(Maven.class::isInstance).putMessage(NEEDS_SEARCH_MARKER, true);
-                }
-                return tag;
-            }
-        };
+            Method getVisitor = Recipe.class.getDeclaredMethod("getVisitor");
+            getVisitor.setAccessible(true);
+
+            //noinspection unchecked
+            return (TreeVisitor<?, ExecutionContext>) getVisitor.invoke(findAnnotations);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
