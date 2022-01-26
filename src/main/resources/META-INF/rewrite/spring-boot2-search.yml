@@ -15,11 +15,10 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.search.CommonMigrationPatterns
-displayName: Spring Boot 2.5 upgrade requirements
+name: org.openrewrite.java.spring.boot2.search.UpgradeRequirementsSpringBoot_2_5
+displayName: Spring Boot 2.5 upgrades plus any possible manual changes that need to be reviewed.
 description: |
-  Identify key Spring Boot 2.5 behavioral changes that may require modifications to application code as you update
-  to Spring Boot 2.5.
+  Identify changes needed to upgrade to Spring Boot 2.5.
 tags:
   - spring
   - spring-boot
@@ -27,6 +26,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.search.MessagesInTheDefaultErrorView
   - org.openrewrite.java.spring.boot2.search.CustomizingJooqDefaultConfiguration
   - org.openrewrite.java.spring.boot2.search.LoggingShutdownHooks
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.search.MessagesInTheDefaultErrorView
