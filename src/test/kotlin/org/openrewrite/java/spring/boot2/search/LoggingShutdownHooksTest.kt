@@ -17,24 +17,21 @@ package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2.search
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
+import org.openrewrite.java.spring.boot2.search.LoggingShutdownHooks
 import org.openrewrite.maven.MavenRecipeTest
-import org.openrewrite.java.spring.boot2.search.LoggingShutdownHooksRecipe
 
 /**
  * @author Alex Boyko
  */
-class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
+class LoggingShutdownHooksTest : MavenRecipeTest {
 
     override val recipe: Recipe
-        get() = LoggingShutdownHooksRecipe()
+        get() = LoggingShutdownHooks()
 
     @Test
-    fun `no explicit packaing type`() = assertChanged(
-        before =
-        """<?xml version="1.0" encoding="UTF-8"?>
-            <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-                <modelVersion>4.0.0</modelVersion>
+    fun noExplicitPackagingType() = assertChanged(
+        before = """
+            <project>
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
@@ -44,9 +41,6 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                 <groupId>com.example</groupId>
                 <artifactId>acme</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
-                <properties>
-                    <java.version>11</java.version>
-                </properties>
                 <dependencies>
                     <dependency>
                         <groupId>org.springframework.boot</groupId>
@@ -54,11 +48,9 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                     </dependency>
                 </dependencies>
             </project>
-            """,
-        after = """<!--~~(LoggingShutDownHook)~~>--><?xml version="1.0" encoding="UTF-8"?>
-            <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-                <modelVersion>4.0.0</modelVersion>
+        """,
+        after = """
+            <!--~~>--><project>
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
@@ -68,23 +60,19 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                 <groupId>com.example</groupId>
                 <artifactId>acme</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
-                <properties>
-                    <java.version>11</java.version>
-                </properties>
                 <dependencies>
                     <dependency>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter</artifactId>
                     </dependency>
                 </dependencies>
-            </project><!--~~(LoggingShutDownHook)~~>-->
+            </project><!--~~>-->
         """
     )
 
     @Test
-    fun `explicit jar packaing type`() = assertChanged(
-        before =
-        """<?xml version="1.0" encoding="UTF-8"?>
+    fun explicitJarPackagingType() = assertChanged(
+        before = """
             <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                 <modelVersion>4.0.0</modelVersion>
@@ -108,9 +96,9 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                     </dependency>
                 </dependencies>
             </project>
-            """,
-        after = """<!--~~(LoggingShutDownHook)~~>--><?xml version="1.0" encoding="UTF-8"?>
-            <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        """,
+        after = """
+            <!--~~>--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                 <modelVersion>4.0.0</modelVersion>
                 <parent>
@@ -132,14 +120,13 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                         <artifactId>spring-boot-starter</artifactId>
                     </dependency>
                 </dependencies>
-            </project><!--~~(LoggingShutDownHook)~~>-->
+            </project><!--~~>-->
         """
     )
 
     @Test
-    fun `explicit war packaing type`() = assertUnchanged(
-        before =
-        """<?xml version="1.0" encoding="UTF-8"?>
+    fun explicitWarPackagingType() = assertUnchanged(
+        before = """
             <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                 <modelVersion>4.0.0</modelVersion>
@@ -163,16 +150,13 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                     </dependency>
                 </dependencies>
             </project>
-            """
+        """
     )
 
     @Test
-    fun `lower boot project`() = assertUnchanged(
-        before =
-        """<?xml version="1.0" encoding="UTF-8"?>
-            <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-                <modelVersion>4.0.0</modelVersion>
+    fun lowerBootProject() = assertUnchanged(
+        before = """
+            <project>
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
@@ -183,9 +167,6 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                 <artifactId>acme</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
                 <packaging>war</packaging>
-                <properties>
-                    <java.version>11</java.version>
-                </properties>
                 <dependencies>
                     <dependency>
                         <groupId>org.springframework.boot</groupId>
@@ -193,16 +174,13 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                     </dependency>
                 </dependencies>
             </project>
-            """
+        """
     )
 
     @Test
-    fun `higher boot project`() = assertUnchanged(
-        before =
-        """<?xml version="1.0" encoding="UTF-8"?>
-            <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-                <modelVersion>4.0.0</modelVersion>
+    fun higherBootProject() = assertUnchanged(
+        before = """
+            <project>
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
@@ -213,9 +191,6 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                 <artifactId>acme</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
                 <packaging>war</packaging>
-                <properties>
-                    <java.version>11</java.version>
-                </properties>
                 <dependencies>
                     <dependency>
                         <groupId>org.springframework.boot</groupId>
@@ -223,6 +198,6 @@ class LoggingShutdownHooksRecipeTest : MavenRecipeTest {
                     </dependency>
                 </dependencies>
             </project>
-            """
+        """
     )
 }

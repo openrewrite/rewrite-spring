@@ -24,7 +24,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpath("spring-beans", "spring-context", "spring-boot", "spring-jdbc", "spring-orm", "jooq")
+            .classpath("spring-beans", "spring-context", "spring-boot", "spring-jdbc", "spring-orm", "jooq", "bind-api")
             .build()
 
     override val recipe: Recipe
@@ -54,7 +54,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class PersistenceConfiguration {
             
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 Settings settings() {
                     return null;
                 }
@@ -90,7 +90,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class PersistenceConfiguration {
 
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 ConnectionProvider connectionProvider(DataSource dataSource) {
                     return new DataSourceConnectionProvider(dataSource);
                 }
@@ -122,7 +122,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class BeanConfiguration {
             
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 ExecutorProvider executorProvider() {
                     return null;
                 }
@@ -154,7 +154,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class BeanConfiguration {
             
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 TransactionProvider transactionProvider() {
                     return null;
                 }
@@ -186,7 +186,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class BeanConfiguration {
             
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 RecordMapperProvider recordMapperProvider() {
                     return null;
                 }
@@ -218,7 +218,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class BeanConfiguration {
             
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 RecordUnmapperProvider recordUnmapperProvider() {
                     return null;
                 }
@@ -250,7 +250,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class BeanConfiguration {
             
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 RecordListenerProvider recordListenerProvider() {
                     return null;
                 }
@@ -282,7 +282,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class BeanConfiguration {
             
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 ExecuteListenerProvider executeListenerProvider() {
                     return null;
                 }
@@ -314,7 +314,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class BeanConfiguration {
             
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 VisitListenerProvider visitListenerProvider() {
                     return null;
                 }
@@ -346,7 +346,7 @@ class CustomizingJooqDefaultConfigurationTest : JavaRecipeTest {
             @Configuration
             class BeanConfiguration {
             
-                /*~~(JOOQ)~~>*/@Bean
+                /*~~>*/@Bean
                 TransactionListenerProvider transactionListenerProvider() {
                     return null;
                 }

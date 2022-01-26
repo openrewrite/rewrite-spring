@@ -18,64 +18,55 @@ package org.openrewrite.java.spring.boot2.search;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.tree.Maven;
 import org.openrewrite.maven.tree.Pom;
 import org.openrewrite.maven.tree.Scope;
+import org.openrewrite.semver.DependencyMatcher;
 import org.openrewrite.xml.XPathMatcher;
 import org.openrewrite.xml.tree.Xml;
 
 import java.util.Collection;
 
 /**
- * Mark Pom's of projects where logging shutdown hook may need to be disabled
+ * Mark POM's of projects where logging shutdown hook may need to be disabled
  *
  * @author Alex Boyko
  */
-public class LoggingShutdownHooksRecipe extends Recipe {
-
+public class LoggingShutdownHooks extends Recipe {
     private static final String NEEDS_SEARCH_MARKER = "NEEDS_SEARCH_MARKER";
-
     private static final XPathMatcher PROJECT_MATCHER = new XPathMatcher("/project");
-
-    private static final String SEARCH_MARKER_DESCRIPTION = "LoggingShutDownHook";
 
     @Override
     public String getDisplayName() {
-        return "Logging Shutdown Hooks";
+        return "Applications using logging shutdown hooks";
     }
 
     @Override
     public String getDescription() {
-        return "We now register a logging shutdown hook by default for jar based applications to ensure that " +
-                "logging resources are released when the JVM exits. If your application is deployed as a war then " +
-                "the shutdown hook is not registered since the servlet container usually handles logging concerns" +
+        return "Spring Boot registers a logging shutdown hook by default for JAR-based applications to ensure that " +
+                "logging resources are released when the JVM exits. If your application is deployed as a WAR then " +
+                "the shutdown hook is not registered since the servlet container usually handles logging concerns." +
                 "\n\n" +
-                "Most applications will want the shutdown hook. However, if your application has complex context" +
-                " hierarchies, then you may need to disable it. You can use the logging.register-shutdown-hook" +
-                " property to do that.";
+                "Most applications will want the shutdown hook. However, if your application has complex context " +
+                "hierarchies, then you may need to disable it. You can use the `logging.register-shutdown-hook` " +
+                "property to do that.";
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return new MavenVisitor() {
-
             @Override
             public Maven visitMaven(Maven maven, ExecutionContext ctx) {
-                Collection<Pom.Dependency> deps = maven.getModel().getDependencies(Scope.Compile);
-                if (deps.stream()
-                        .filter(d -> d.getArtifactId().equals("spring-boot")
-                                && d.getVersion().startsWith("2.5.")
-                                && d.getGroupId().equals("org.springframework.boot"))
-                        .findFirst()
-                        .isPresent()
-                ) {
-                    return maven.withMarkers(maven.getMarkers().searchResult());
+                DependencyMatcher matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.5.X").getValue();
+                assert matcher != null;
+                for (Pom.Dependency d : maven.getModel().getDependencies(Scope.Compile)) {
+                    if (matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())) {
+                        return maven.withMarkers(maven.getMarkers().searchResult());
+                    }
                 }
                 return maven;
             }
-
         };
     }
 
@@ -86,7 +77,7 @@ public class LoggingShutdownHooksRecipe extends Recipe {
             public Maven visitMaven(Maven maven, ExecutionContext ctx) {
                 Maven m = super.visitMaven(maven, ctx);
                 if (getCursor().pollMessage(NEEDS_SEARCH_MARKER) != null) {
-                    m = m.withMarkers(maven.getMarkers().searchResult(SEARCH_MARKER_DESCRIPTION));
+                    m = m.withMarkers(maven.getMarkers().searchResult());
                 }
                 return m;
             }
@@ -101,5 +92,4 @@ public class LoggingShutdownHooksRecipe extends Recipe {
             }
         };
     }
-
 }

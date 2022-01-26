@@ -15,17 +15,20 @@
  */
 package org.openrewrite.java.spring.boot2.search;
 
-import org.openrewrite.*;
-import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Incubating;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.marker.SearchResult;
+import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Migration for Spring Boot 2.4 to 2.5
@@ -33,7 +36,8 @@ import java.util.stream.Collectors;
  */
 @Incubating(since = "4.16.0")
 public class CustomizingJooqDefaultConfiguration extends Recipe {
-    private final List<String> jooqTypes = Arrays.asList("org.jooq.conf.Settings",
+    private final List<String> jooqTypes = Arrays.asList(
+            "org.jooq.conf.Settings",
             "org.jooq.ConnectionProvider",
             "org.jooq.ExecutorProvider",
             "org.jooq.TransactionProvider",
@@ -42,7 +46,8 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
             "org.jooq.RecordListenerProvider",
             "org.jooq.ExecuteListenerProvider",
             "org.jooq.VisitListenerProvider",
-            "org.jooq.TransactionListenerProvider");
+            "org.jooq.TransactionListenerProvider"
+    );
 
     @Override
     public String getDisplayName() {
@@ -60,72 +65,48 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
 
     @Override
     protected JavaIsoVisitor<ExecutionContext> getSingleSourceApplicableTest() {
-
-        List<UsesType<ExecutionContext>> jooqUsesTypes = jooqTypes.stream().map(t -> new UsesType<ExecutionContext>(t)).collect(Collectors.toList());
-
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext executionContext) {
-                JavaSourceFile sf = super.visitJavaSourceFile(cu, executionContext);
-                for (UsesType<ExecutionContext> usesJooqType : jooqUsesTypes) {
-                    sf = (JavaSourceFile) usesJooqType.visitNonNull(sf, executionContext);
+            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext ctx) {
+                for (String jooqType : jooqTypes) {
+                    doAfterVisit(new UsesType<>(jooqType));
                 }
-                return sf;
+                return cu;
             }
         };
     }
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
-
         return new JavaIsoVisitor<ExecutionContext>() {
-
-            private static final String SPRING_BEAN_ANNOTATION = "org.springframework.context.annotation.Bean";
-
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext o) {
-                J.MethodDeclaration md = super.visitMethodDeclaration(method, o);
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
 
-                if(isNotMarkedAsSearchResult(md) && isJooqCustomizationBean(md)) {
+                if (isJooqCustomizationBean(md)) {
                     md = markAsMatch(md);
                 }
 
                 return md;
             }
 
-            private boolean isNotMarkedAsSearchResult(J.MethodDeclaration md) {
-                return md.getMarkers().getMarkers().stream()
-                        .filter(m -> m instanceof SearchResult)
-                        .map(SearchResult.class::cast)
-                        .noneMatch(sr -> "JOOQ".equals(sr.getDescription()));
-            }
-
             private J.MethodDeclaration markAsMatch(J.MethodDeclaration md) {
-                return md.withMarkers(md.getMarkers().searchResult("JOOQ"));
+                return md.withMarkers(md.getMarkers().searchResult());
             }
 
             private boolean isJooqCustomizationBean(J.MethodDeclaration md) {
-                return isSpringBeanDefinition(md) && returnsJooqCustomizationType(md);
+                return !FindAnnotations.find(md, "@org.springframework.context.annotation.Bean").isEmpty() &&
+                        returnsJooqCustomizationType(md);
             }
 
             private boolean returnsJooqCustomizationType(J.MethodDeclaration md) {
-
-                if((null != md.getReturnTypeExpression()) && (md.getReturnTypeExpression().getType() instanceof JavaType.Class)) {
-                    JavaType.Class returnType = (JavaType.Class) md.getReturnTypeExpression().getType();
-                    return jooqTypes.contains(returnType.getFullyQualifiedName());
-                }
-                return false;
-            }
-
-            private boolean isSpringBeanDefinition(J.MethodDeclaration md) {
-                return md.getLeadingAnnotations().stream().anyMatch(this::isBeanAnnotation);
-            }
-
-            @Nullable
-            private boolean isBeanAnnotation(J.Annotation a) {
-                if(a.getType() instanceof JavaType.Class) {
-                    JavaType.Class annotationType = (JavaType.Class) a.getType();
-                    return SPRING_BEAN_ANNOTATION.equals(annotationType.getFullyQualifiedName());
+                JavaType.Method methodType = md.getMethodType();
+                if (methodType != null) {
+                    for (String jooqType : jooqTypes) {
+                        if (TypeUtils.isOfClassType(methodType.getReturnType(), jooqType)) {
+                            return true;
+                        }
+                    }
                 }
                 return false;
             }
