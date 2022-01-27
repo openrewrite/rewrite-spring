@@ -47,7 +47,7 @@ class ExpandPropertiesTest : YamlRecipeTest {
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/135")
     @Test
-    fun mapTypePropertiesNotNestedCorrectly(@TempDir tempDir: Path) = assertChanged(
+    fun `Duplicate properties should be coalesced`(@TempDir tempDir: Path) = assertChanged(
         before = tempDir.resolve("application.yml").toFile().apply {
             writeText("""
                 management: test
@@ -70,5 +70,25 @@ class ExpandPropertiesTest : YamlRecipeTest {
                       timeout: 2000
                       write-timeout: 3000
         """
+    )
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/161")
+    @Test
+    fun `Duplicate property has dot syntax`(@TempDir tempDir: Path) = assertChanged(
+        before = tempDir.resolve("application.yml").toFile().apply {
+            writeText("""
+                server.context-path: /context
+                server:
+                  port: 8888
+                customize:
+                  group1: value1
+            """.trimIndent())},
+            after = """
+                server:
+                  context-path: /context
+                  port: 8888
+                customize:
+                  group1: value1
+            """
     )
 }
