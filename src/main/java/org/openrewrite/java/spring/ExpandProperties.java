@@ -21,10 +21,9 @@ import org.openrewrite.marker.Markers;
 import org.openrewrite.yaml.YamlVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.openrewrite.Tree.randomId;
@@ -96,38 +95,43 @@ public class ExpandProperties extends Recipe {
     private static class CoalesceEntriesVisitor extends YamlVisitor<ExecutionContext> {
         @Override
         public Yaml visitMapping(Yaml.Mapping mapping, ExecutionContext ctx) {
-            Yaml.Mapping m = mapping;
-            Map<String, List<Yaml.Mapping.Entry>> entriesByKey = new HashMap<>();
-            for (Yaml.Mapping.Entry entry : m.getEntries()) {
+            Map<String, List<Yaml.Mapping>> mappingsByKey = new HashMap<>();
+            for (Yaml.Mapping.Entry entry : mapping.getEntries()) {
                 if (entry.getValue() instanceof Yaml.Mapping) {
-                    entriesByKey.computeIfAbsent(entry.getKey().getValue(), v -> new ArrayList<>()).addAll(((Yaml.Mapping)entry.getValue()).getEntries());
+                    mappingsByKey.computeIfAbsent(entry.getKey().getValue(), v -> new ArrayList<>()).add((Yaml.Mapping)entry.getValue());
                 }
             }
-            for (Map.Entry<String, List<Yaml.Mapping.Entry>> entries : entriesByKey.entrySet()) {
-                if (entries.getValue().size() > 1) {
+
+            for (Map.Entry<String, List<Yaml.Mapping>> keyMappings : mappingsByKey.entrySet()) {
+                if (keyMappings.getValue().size() > 1) {
                     Yaml.Mapping newMapping = new Yaml.Mapping(
                             randomId(),
                             Markers.EMPTY,
-                            entries.getValue()
+                            keyMappings.getValue().stream().flatMap(duplicateMapping -> duplicateMapping.getEntries().stream())
+                                    .collect(Collectors.toList())
                     );
                     Yaml.Mapping.Entry newEntry = new Yaml.Mapping.Entry(randomId(),
                             "",
                             Markers.EMPTY,
-                            new Yaml.Scalar(randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, entries.getKey()),
-                            "",
-                            newMapping);
+                            new Yaml.Scalar(randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, keyMappings.getKey()),
+                            "", newMapping);
 
-                    m = m.withEntries(ListUtils.map(mapping.getEntries(), (i, ent) -> {
-                        if (ent.getKey().getValue().equals(entries.getKey())) {
+                    AtomicInteger insertIndex = new AtomicInteger(-1);
+                    mapping = mapping.withEntries(ListUtils.map(mapping.getEntries(), (i, ent) -> {
+                        if (ent.getKey().getValue().equals(keyMappings.getKey())) {
+                            if (insertIndex.get() < 0) {
+                                insertIndex.set(i);
+                            }
                             return null;
                         }
                         return ent;
                     }));
-                    m = m.withEntries(ListUtils.concat(m.getEntries(), newEntry));
-                    m = autoFormat(m, ctx);
+                    //noinspection ConstantConditions
+                    mapping = maybeAutoFormat(mapping, mapping.withEntries(ListUtils.insertAll(mapping.getEntries(), insertIndex.get(), Collections.singletonList(newEntry))),
+                            ctx, getCursor().getParent().getValue() instanceof Yaml.Document ? getCursor().getParent() : getCursor());
                 }
             }
-            return super.visitMapping(m, ctx);
+            return super.visitMapping(mapping, ctx);
         }
     }
 }
