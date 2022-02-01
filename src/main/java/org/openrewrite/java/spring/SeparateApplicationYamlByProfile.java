@@ -71,8 +71,8 @@ public class SeparateApplicationYamlByProfile extends Recipe {
 
                 List<Yaml.Documents> profileYamls = profiles.entrySet().stream()
                         .map(profile -> yaml
-                                .withDocuments(Collections.singletonList(profile.getKey().withExplicit(false)))
-                                .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profile.getValue() + ".yml"))
+                                        .withDocuments(Collections.singletonList(profile.getKey().withExplicit(false)))
+                                        .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profile.getValue() + ".yml"))
                         )
                         .collect(Collectors.toList());
 

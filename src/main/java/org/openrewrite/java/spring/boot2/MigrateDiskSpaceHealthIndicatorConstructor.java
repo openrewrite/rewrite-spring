@@ -65,7 +65,7 @@ public class MigrateDiskSpaceHealthIndicatorConstructor extends Recipe {
                                             .dependsOn(
                                                     "package org.springframework.boot.actuate.health;" +
                                                             "public interface HealthContributor {}" +
-                                                    "package org.springframework.boot.actuate.health;" +
+                                                            "package org.springframework.boot.actuate.health;" +
                                                             "public interface HealthIndicator extends HealthContributor {}",
                                                     "package org.springframework.boot.actuate.health;" +
                                                             "public abstract class AbstractHealthIndicator implements HealthIndicator {}",

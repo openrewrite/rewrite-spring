@@ -63,10 +63,10 @@ public class NoAutowiredOnConstructor extends Recipe {
                 J.ClassDeclaration cd =  super.visitClassDeclaration(classDecl, context);
 
                 int constructorCount = 0;
-                for(Statement s : cd.getBody().getStatements()) {
-                    if(isConstructor(s)) {
+                for (Statement s : cd.getBody().getStatements()) {
+                    if (isConstructor(s)) {
                         constructorCount++;
-                        if(constructorCount > 1) {
+                        if (constructorCount > 1) {
                             return cd;
                         }
                     }
@@ -74,7 +74,7 @@ public class NoAutowiredOnConstructor extends Recipe {
 
                 return cd.withBody(cd.getBody().withStatements(
                         ListUtils.map(cd.getBody().getStatements(), s -> {
-                            if(!isConstructor(s)) {
+                            if (!isConstructor(s)) {
                                 return s;
                             }
                             maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
@@ -86,6 +86,6 @@ public class NoAutowiredOnConstructor extends Recipe {
     }
 
     private static boolean isConstructor(Statement s) {
-        return s instanceof J.MethodDeclaration && ((J.MethodDeclaration)s).isConstructor();
+        return s instanceof J.MethodDeclaration && ((J.MethodDeclaration) s).isConstructor();
     }
 }
