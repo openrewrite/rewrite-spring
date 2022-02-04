@@ -65,7 +65,7 @@ public class LoggingShutdownHooks extends Recipe {
         return new MavenVisitor() {
             @Override
             public Maven visitMaven(Maven maven, ExecutionContext ctx) {
-                if(!maven.getModel().getPackaging().equals("jar")) {
+                if (!maven.getModel().getPackaging().equals("jar")) {
                     return maven;
                 }
 

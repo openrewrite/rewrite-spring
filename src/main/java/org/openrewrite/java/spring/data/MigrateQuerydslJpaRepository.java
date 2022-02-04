@@ -55,7 +55,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
 
             @Override
             public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                J.CompilationUnit c = (J.CompilationUnit)super.visitCompilationUnit(cu, ctx);
+                J.CompilationUnit c = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
                 doAfterVisit(new ChangeType(originalFqn, targetFqn));
                 return c;
             }
@@ -110,10 +110,10 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                                                             "import org.springframework.data.querydsl.QuerydslPredicateExecutor;" +
                                                             "public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {" +
                                                             "public QuerydslJpaPredicateExecutor(" +
-                                                                "JpaEntityInformation<T, ?> entityInformation," +
-                                                                "EntityManager entityManager," +
-                                                                "EntityPathResolver resolver," +
-                                                                "@Nullable CrudMethodMetadata metadata) {}" +
+                                                            "JpaEntityInformation<T, ?> entityInformation," +
+                                                            "EntityManager entityManager," +
+                                                            "EntityPathResolver resolver," +
+                                                            "@Nullable CrudMethodMetadata metadata) {}" +
                                                             "}",
                                                     "package org.springframework.data.querydsl;" +
                                                             "public class SimpleEntityPathResolver implements EntityPathResolver {" +

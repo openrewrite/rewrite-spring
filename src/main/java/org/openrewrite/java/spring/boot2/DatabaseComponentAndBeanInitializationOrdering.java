@@ -89,16 +89,16 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
         final String dataSourceInitializationTemplate =
                 "package org.springframework.boot.sql.init.dependency;\n" +
-                "import java.lang.annotation.Documented;\n" +
-                "import java.lang.annotation.ElementType;\n" +
-                "import java.lang.annotation.Retention;\n" +
-                "import java.lang.annotation.RetentionPolicy;\n" +
-                "import java.lang.annotation.Target;\n" +
-                "import org.springframework.context.annotation.Bean;\n" +
-                "@Target({ ElementType.TYPE, ElementType.METHOD })\n" +
-                "@Retention(RetentionPolicy.RUNTIME)\n" +
-                "@Documented\n" +
-                "public @interface DependsOnDatabaseInitialization {}";
+                        "import java.lang.annotation.Documented;\n" +
+                        "import java.lang.annotation.ElementType;\n" +
+                        "import java.lang.annotation.Retention;\n" +
+                        "import java.lang.annotation.RetentionPolicy;\n" +
+                        "import java.lang.annotation.Target;\n" +
+                        "import org.springframework.context.annotation.Bean;\n" +
+                        "@Target({ ElementType.TYPE, ElementType.METHOD })\n" +
+                        "@Retention(RetentionPolicy.RUNTIME)\n" +
+                        "@Documented\n" +
+                        "public @interface DependsOnDatabaseInitialization {}";
 
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
@@ -170,7 +170,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                     return false;
                 }
                 if (type instanceof JavaType.FullyQualified) {
-                    JavaType.FullyQualified fq = (JavaType.FullyQualified)type;
+                    JavaType.FullyQualified fq = (JavaType.FullyQualified) type;
                     // type fields
                     for (JavaType.Variable var : fq.getMembers()) {
                         if (isDataSourceType(var.getType())) {

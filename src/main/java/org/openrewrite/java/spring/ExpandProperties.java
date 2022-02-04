@@ -98,7 +98,7 @@ public class ExpandProperties extends Recipe {
             Map<String, List<Yaml.Mapping>> mappingsByKey = new HashMap<>();
             for (Yaml.Mapping.Entry entry : mapping.getEntries()) {
                 if (entry.getValue() instanceof Yaml.Mapping) {
-                    mappingsByKey.computeIfAbsent(entry.getKey().getValue(), v -> new ArrayList<>()).add((Yaml.Mapping)entry.getValue());
+                    mappingsByKey.computeIfAbsent(entry.getKey().getValue(), v -> new ArrayList<>()).add((Yaml.Mapping) entry.getValue());
                 }
             }
 

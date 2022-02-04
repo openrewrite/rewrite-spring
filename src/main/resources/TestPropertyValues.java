@@ -24,33 +24,56 @@ import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 public final class TestPropertyValues {
-    public TestPropertyValues and(String... pairs) { return this; }
+    public TestPropertyValues and(String... pairs) {
+        return this;
+    }
 
-    private TestPropertyValues and(Stream<Pair> pairs) { return this; }
+    private TestPropertyValues and(Stream<Pair> pairs) {
+        return this;
+    }
 
-    public void applyTo(ConfigurableApplicationContext context) {}
+    public void applyTo(ConfigurableApplicationContext context) {
+    }
 
-    public void applyTo(ConfigurableEnvironment environment) {}
+    public void applyTo(ConfigurableEnvironment environment) {
+    }
 
-    public void applyTo(ConfigurableEnvironment environment, TestPropertyValues.Type type) {}
+    public void applyTo(ConfigurableEnvironment environment, TestPropertyValues.Type type) {
+    }
 
-    public void applyTo(ConfigurableEnvironment environment, TestPropertyValues.Type type, String name) {}
+    public void applyTo(ConfigurableEnvironment environment, TestPropertyValues.Type type, String name) {
+    }
 
-    public <T> T applyToSystemProperties(Callable<T> call) { return null; }
+    public <T> T applyToSystemProperties(Callable<T> call) {
+        return null;
+    }
 
-    private <E extends Throwable> void rethrow(Throwable e) throws E {}
+    private <E extends Throwable> void rethrow(Throwable e) throws E {
+    }
 
-    private void addToSources(MutablePropertySources sources, TestPropertyValues.Type type, String name) {}
+    private void addToSources(MutablePropertySources sources, TestPropertyValues.Type type, String name) {
+    }
 
-    public static TestPropertyValues of(String... pairs) { return null; }
+    public static TestPropertyValues of(String... pairs) {
+        return null;
+    }
 
-    public static TestPropertyValues of(Iterable<String> pairs) { return null; }
+    public static TestPropertyValues of(Iterable<String> pairs) {
+        return null;
+    }
 
-    public static TestPropertyValues of(Stream<String> pairs) { return null; }
+    public static TestPropertyValues of(Stream<String> pairs) {
+        return null;
+    }
 
-    public static TestPropertyValues empty() { return null; }
+    public static TestPropertyValues empty() {
+        return null;
+    }
 
-    public static class Pair {}
+    public static class Pair {
+    }
 
-    public static enum Type {SYSTEM_ENVIRONMENT, MAP}
+    public static enum Type {
+        SYSTEM_ENVIRONMENT, MAP
+    }
 }

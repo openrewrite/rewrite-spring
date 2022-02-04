@@ -23,8 +23,8 @@ public class RestTemplateBuilder {
         return null;
     }
 }
----
-package org.springframework.http.client;
+
+
 
 public interface ClientHttpRequestFactory {
 }

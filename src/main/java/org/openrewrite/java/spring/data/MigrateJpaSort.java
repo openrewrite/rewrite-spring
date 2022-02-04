@@ -69,21 +69,21 @@ public class MigrateJpaSort extends Recipe {
                                     .javaParser(() -> JavaParser.fromJavaVersion()
                                             .dependsOn(
                                                     "package org.springframework.data.jpa.domain;" +
-                                                    "import org.springframework.data.domain.Sort;" +
-                                                    "import org.springframework.data.domain.Sort.Direction;" +
-                                                    "import javax.persistence.metamodel.Attribute;" +
-                                                    "public class JpaSort extends Sort {" +
-                                                        "public static JpaSort of(Attribute<?, ?>... attributes) { return null; }" +
-                                                        "public static JpaSort of(JpaSort.Path<?, ?>... paths) { return null; }" +
-                                                        "public static JpaSort of(Direction direction, Attribute<?, ?>... attributes) { return null; }" +
-                                                        "public static JpaSort of(Direction direction, Path<?, ?>... paths) { return null; }" +
-                                                        "public static class Path<T, S> {}" +
-                                                    "}",
+                                                            "import org.springframework.data.domain.Sort;" +
+                                                            "import org.springframework.data.domain.Sort.Direction;" +
+                                                            "import javax.persistence.metamodel.Attribute;" +
+                                                            "public class JpaSort extends Sort {" +
+                                                            "public static JpaSort of(Attribute<?, ?>... attributes) { return null; }" +
+                                                            "public static JpaSort of(JpaSort.Path<?, ?>... paths) { return null; }" +
+                                                            "public static JpaSort of(Direction direction, Attribute<?, ?>... attributes) { return null; }" +
+                                                            "public static JpaSort of(Direction direction, Path<?, ?>... paths) { return null; }" +
+                                                            "public static class Path<T, S> {}" +
+                                                            "}",
                                                     "package javax.persistence.metamodel; public interface Attribute<X, Y> {}",
                                                     "package org.springframework.data.domain;" +
-                                                    "public class Sort implements Streamable<org.springframework.data.domain.Sort.Order>, Serializable {" +
-                                                        "public static enum Direction { ASC, DESC; }" +
-                                                    "}")
+                                                            "public class Sort implements Streamable<org.springframework.data.domain.Sort.Order>, Serializable {" +
+                                                            "public static enum Direction { ASC, DESC; }" +
+                                                            "}")
                                             .build())
                                     .build(),
                             newClass.getCoordinates().replace(),

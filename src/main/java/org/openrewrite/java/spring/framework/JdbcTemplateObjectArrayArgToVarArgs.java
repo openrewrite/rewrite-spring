@@ -73,7 +73,7 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
 
         private boolean shouldSwapArgs(@Nullable JavaType arg1, @Nullable JavaType arg2) {
             return arg1 instanceof JavaType.Array && (
-                    (arg2 instanceof JavaType.Parameterized && ((JavaType.Parameterized)arg2).getTypeParameters().get(0) instanceof JavaType.Class)
+                    (arg2 instanceof JavaType.Parameterized && ((JavaType.Parameterized) arg2).getTypeParameters().get(0) instanceof JavaType.Class)
                             || TypeUtils.isOfClassType(arg2, "org.springframework.jdbc.core.RowMapper")
                             || TypeUtils.isOfClassType(arg2, "org.springframework.jdbc.core.ResultSetExtractor")
                             || TypeUtils.isOfClassType(arg2, "org.springframework.jdbc.core.RowCallbackHandler")
