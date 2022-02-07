@@ -50,7 +50,7 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
+                    <version>2.4.13</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -73,7 +73,7 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
+                    <version>2.4.13</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -97,7 +97,7 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
+                    <version>2.4.13</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -121,7 +121,7 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.4.9</version>
+                    <version>2.3.12</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -145,7 +145,7 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.6.3</version>
+                    <version>2.5.7</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -161,7 +161,7 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
             </project>
         """
     )
-    
+
     private fun assertLoggingShutdownHook(isOn: Boolean, before: String) {
         val sourceFiles = MavenParser.builder().build().parse(before).plus(application)
         assertThat(LoggingShutdownHooks().run(sourceFiles)).hasSize(if(isOn) 1 else 0)

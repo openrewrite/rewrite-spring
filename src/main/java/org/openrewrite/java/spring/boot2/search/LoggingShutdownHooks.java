@@ -69,7 +69,7 @@ public class LoggingShutdownHooks extends Recipe {
                     return maven;
                 }
 
-                DependencyMatcher matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.5.X").getValue();
+                DependencyMatcher matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue();
                 assert matcher != null;
                 for (Pom.Dependency d : maven.getModel().getDependencies(Scope.Compile)) {
                     if (matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())) {

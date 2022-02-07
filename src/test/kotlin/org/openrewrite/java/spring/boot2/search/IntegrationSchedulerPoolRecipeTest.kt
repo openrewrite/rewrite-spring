@@ -92,7 +92,7 @@ class IntegrationSchedulerPoolRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.4.13</version>
+                    <version>2.5.7</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -133,7 +133,7 @@ class IntegrationSchedulerPoolRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
+                    <version>2.4.13</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -175,7 +175,7 @@ class IntegrationSchedulerPoolRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
+                    <version>2.4.13</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -213,6 +213,7 @@ class IntegrationSchedulerPoolRecipeTest {
             
             import org.springframework.boot.SpringApplication;
             import org.springframework.boot.autoconfigure.SpringBootApplication;
+            import org.springframework.context.annotation.Bean;
             
             @SpringBootApplication
             public class ExampleApplication {
@@ -221,6 +222,11 @@ class IntegrationSchedulerPoolRecipeTest {
                     SpringApplication.run(ExampleApplication.class, args);
                 }
             
+            	@Bean
+                public String hello() {
+                    return "hello";
+                }
+
             }
           """.trimIndent()
         );
@@ -237,6 +243,7 @@ class IntegrationSchedulerPoolRecipeTest {
             
             import org.springframework.boot.SpringApplication;
             import org.springframework.boot.autoconfigure.SpringBootApplication;
+            import org.springframework.context.annotation.Bean;
             
             // TODO: Scheduler thread pool size for Spring Integration either in properties or config server
             @SpringBootApplication
@@ -246,6 +253,11 @@ class IntegrationSchedulerPoolRecipeTest {
                     SpringApplication.run(ExampleApplication.class, args);
                 }
             
+            	@Bean
+                public String hello() {
+                    return "hello";
+                }
+
             }
           """.trimIndent()
         );
@@ -264,7 +276,7 @@ class IntegrationSchedulerPoolRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
+                    <version>2.4.13</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -345,7 +357,7 @@ class IntegrationSchedulerPoolRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
+                    <version>2.4.13</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
@@ -442,7 +454,7 @@ class IntegrationSchedulerPoolRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.5.7</version>
+                    <version>2.4.13</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>
