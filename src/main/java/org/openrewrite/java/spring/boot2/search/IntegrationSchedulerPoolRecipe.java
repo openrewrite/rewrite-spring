@@ -132,9 +132,7 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
                                 int idx = file.getContent().indexOf(entry);
                                 if (idx >= 0) {
                                     Properties.Comment comment = new Properties.Comment(Tree.randomId(), "\n", Markers.EMPTY, PROPS_MIGRATION_MESSAGE);
-                                    List<Properties.Content> contents = new ArrayList<>();
-                                    contents.add(idx, comment);
-                                    return file.withContent(contents);
+                                    return file.withContent(ListUtils.insertAll(file.getContent(), idx, Collections.singletonList(comment)));
                                 } else {
                                     throw new RuntimeException("Entry must be present in the properties file!");
                                 }
