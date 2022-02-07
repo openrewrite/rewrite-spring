@@ -173,7 +173,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
 
     // for locating list of released Spring Boot versions
-    implementation("com.squareup.okhttp3:okhttp:4+")
+    implementation("com.squareup.okhttp3:okhttp:4.+")
 
     // eliminates "unknown enum constant DeprecationLevel.WARNING" warnings from the build log
     // see https://github.com/gradle/kotlin-dsl-samples/issues/1301 for why (okhttp is leaking parts of kotlin stdlib)
