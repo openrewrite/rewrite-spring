@@ -70,7 +70,7 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
     }
 
     private boolean isApplicableMavenProject(Maven maven) {
-        DependencyMatcher boot25Matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.5.X").getValue();
+        DependencyMatcher boot25Matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue();
         DependencyMatcher integrationMatcher = DependencyMatcher.build("org.springframework.integration:spring-integration-core").getValue();
         Collection<Pom.Dependency> deps = maven.getModel().getDependencies(Scope.Compile);
         boolean boot25 = false;
@@ -132,9 +132,7 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
                                 int idx = file.getContent().indexOf(entry);
                                 if (idx >= 0) {
                                     Properties.Comment comment = new Properties.Comment(Tree.randomId(), "\n", Markers.EMPTY, PROPS_MIGRATION_MESSAGE);
-                                    List<Properties.Content> contents = new ArrayList<>(file.getContent());
-                                    contents.add(idx, comment);
-                                    return file.withContent(contents);
+                                    return file.withContent(ListUtils.insertAll(file.getContent(), idx, Collections.singletonList(comment)));
                                 } else {
                                     throw new RuntimeException("Entry must be present in the properties file!");
                                 }
@@ -169,9 +167,12 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
                 return (SourceFile) new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext context) {
-                        List<Comment> comments = new ArrayList<>(annotation.getComments());
-                        comments.add(new TextComment(false, GENERAL_MIGRATION_MESSAGE, "", Markers.EMPTY));
-                        return annotation.withComments(comments);
+                        J.Annotation a = super.visitAnnotation(annotation, context);
+                        if (annotationMatcher.matches(a)) {
+                            TextComment comment = new TextComment(false, GENERAL_MIGRATION_MESSAGE, "", Markers.EMPTY);
+                            a = a.withComments(ListUtils.concat(a.getComments(), comment));
+                        }
+                        return a;
                     }
                 }.visitNonNull(source, ctx);
             }
