@@ -23,18 +23,20 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.marker.JavaProject;
-import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TextComment;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.maven.MavenVisitor;
-import org.openrewrite.maven.tree.Maven;
+import org.openrewrite.maven.internal.MavenParsingException;
+import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Pom;
+import org.openrewrite.maven.tree.ResolvedDependency;
 import org.openrewrite.maven.tree.Scope;
 import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.semver.DependencyMatcher;
+import org.openrewrite.xml.tree.Xml;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
@@ -48,8 +50,8 @@ import java.util.stream.Collectors;
  */
 public class IntegrationSchedulerPoolRecipe extends Recipe {
 
-    private static Pattern APP_PROPS_FILE_REGEX = Pattern.compile("^application.*\\.properties$");
-    private static Pattern APP_YAML_FILE_REGEX = Pattern.compile("^application.*\\.ya?ml$");
+    private static final Pattern APP_PROPS_FILE_REGEX = Pattern.compile("^application.*\\.properties$");
+    private static final Pattern APP_YAML_FILE_REGEX = Pattern.compile("^application.*\\.ya?ml$");
 
     private static final String PROPERTY_KEY = "spring.task.scheduling.pool.size";
 
@@ -69,17 +71,24 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
                 " default of 10 threads, use the spring.task.scheduling.pool.size property.";
     }
 
-    private boolean isApplicableMavenProject(Maven maven) {
+    private boolean isApplicableMavenProject(Xml.Document maven) {
         DependencyMatcher boot25Matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue();
         DependencyMatcher integrationMatcher = DependencyMatcher.build("org.springframework.integration:spring-integration-core").getValue();
-        Collection<Pom.Dependency> deps = maven.getModel().getDependencies(Scope.Compile);
+
+        List<ResolvedDependency> deps = maven.getMarkers().findFirst(MavenResolutionResult.class)
+                .orElseThrow(() -> new IllegalStateException("Maven visitors should not be visiting XML documents without a Maven marker"))
+                .getDependencies().getOrDefault(Scope.Compile, Collections.emptyList());
+
         boolean boot25 = false;
         boolean si = false;
-        for (Pom.Dependency d : deps) {
+
+        for (ResolvedDependency d : deps) {
             if (!boot25) {
+                assert boot25Matcher != null;
                 boot25 = boot25Matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion());
             }
             if (!si) {
+                assert integrationMatcher != null;
                 si = integrationMatcher.matches(d.getGroupId(), d.getArtifactId());
             }
             if (boot25 && si) {
@@ -90,14 +99,16 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
     }
 
     @Override
-    protected MavenVisitor getApplicableTest() {
-        return new MavenVisitor() {
+    protected MavenVisitor<ExecutionContext> getApplicableTest() {
+        return new MavenVisitor<ExecutionContext>() {
+
             @Override
-            public Maven visitMaven(Maven maven, ExecutionContext ctx) {
-                if (isApplicableMavenProject(maven)) {
-                  return maven.withMarkers(maven.getMarkers().searchResult());
+            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
+
+                if (isApplicableMavenProject(document)) {
+                    return document.withMarkers(document.getMarkers().searchResult());
                 }
-                return maven;
+                return document;
             }
         };
     }
@@ -105,8 +116,8 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
     @Override
     protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
         Set<JavaProject> javaProjects = before.stream()
-                .filter(Maven.class::isInstance)
-                .map(Maven.class::cast)
+                .filter(s -> s.getMarkers().findFirst(MavenResolutionResult.class).isPresent())
+                .map(Xml.Document.class::cast)
                 .filter(this::isApplicableMavenProject)
                 .map(m -> m.getMarkers().findFirst(JavaProject.class))
                 .filter(Optional::isPresent)

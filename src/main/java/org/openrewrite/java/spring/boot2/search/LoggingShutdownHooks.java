@@ -17,14 +17,11 @@ package org.openrewrite.java.spring.boot2.search;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.maven.MavenVisitor;
-import org.openrewrite.maven.tree.Maven;
-import org.openrewrite.maven.tree.Pom;
+import org.openrewrite.maven.tree.MavenResolutionResult;
+import org.openrewrite.maven.tree.ResolvedDependency;
 import org.openrewrite.maven.tree.Scope;
 import org.openrewrite.semver.DependencyMatcher;
 import org.openrewrite.xml.XPathMatcher;
@@ -32,8 +29,7 @@ import org.openrewrite.xml.tree.Xml;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 
 /**
  * Mark POM's of projects where logging shutdown hook may need to be disabled
@@ -62,21 +58,23 @@ public class LoggingShutdownHooks extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new MavenVisitor() {
-            @Override
-            public Maven visitMaven(Maven maven, ExecutionContext ctx) {
-                if(!maven.getModel().getPackaging().equals("jar")) {
-                    return maven;
-                }
+        return new MavenVisitor<ExecutionContext>() {
 
+            @Override
+            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
+                MavenResolutionResult model = getResolutionResult();
+                //Default packaging, if not specified is "jar"
+                if (model.getPom().getPackaging() != null && !"jar".equals(model.getPom().getPackaging())) {
+                    return document;
+                }
                 DependencyMatcher matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue();
                 assert matcher != null;
-                for (Pom.Dependency d : maven.getModel().getDependencies(Scope.Compile)) {
+                for (ResolvedDependency d : getResolutionResult().getDependencies().getOrDefault(Scope.Compile, Collections.emptyList())) {
                     if (matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())) {
-                        return maven.withMarkers(maven.getMarkers().searchResult());
+                        return document.withMarkers(document.getMarkers().searchResult());
                     }
                 }
-                return maven;
+                return document;
             }
         };
     }

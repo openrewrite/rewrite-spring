@@ -121,7 +121,7 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
                 <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
-                    <version>2.3.12</version>
+                    <version>2.3.12.RELEASE</version>
                     <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <groupId>com.example</groupId>

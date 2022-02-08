@@ -20,7 +20,6 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.search.FindPlugin;
-import org.openrewrite.maven.tree.Maven;
 import org.openrewrite.xml.XmlVisitor;
 import org.openrewrite.xml.search.FindTags;
 import org.openrewrite.xml.tree.Xml;
@@ -38,32 +37,31 @@ public class SpringBootMavenPluginMigrateAgentToAgents extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new MavenVisitor() {
+        return new MavenVisitor<ExecutionContext>() {
+
             @Override
-            public Maven visitMaven(Maven maven, ExecutionContext ctx) {
-                if (FindPlugin.find(maven, "org.springframework.boot", "spring-boot-maven-plugin").stream().noneMatch(plugin -> FindTags.find(plugin, "//configuration/agent").isEmpty())) {
-                    maven = maven.withMarkers(maven.getMarkers().searchResult());
+            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
+                if (FindPlugin.find(document, "org.springframework.boot", "spring-boot-maven-plugin").stream().noneMatch(plugin -> FindTags.find(plugin, "//configuration/agent").isEmpty())) {
+                    document = document.withMarkers(document.getMarkers().searchResult());
                 }
-                return super.visitMaven(maven, ctx);
+                return document;
             }
         };
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new SpringBootMavenPluginMigrateAgentToAgentsVisitor();
-    }
-
-    private static class SpringBootMavenPluginMigrateAgentToAgentsVisitor extends MavenVisitor {
-        @Override
-        public Maven visitMaven(Maven maven, ExecutionContext ctx) {
-            FindPlugin.find(maven, "org.springframework.boot", "spring-boot-maven-plugin").forEach(plugin ->
-                    FindTags.find(plugin, "//configuration/agent").forEach(agentTag ->
-                            doAfterVisit(new ChangeTagKeyVisitor<>(agentTag, "agents"))
-                    )
-            );
-            return super.visitMaven(maven, ctx);
-        }
+        return new MavenVisitor<ExecutionContext>() {
+            @Override
+            public Xml visitDocument(Xml.Document document, ExecutionContext executionContext) {
+                FindPlugin.find(document, "org.springframework.boot", "spring-boot-maven-plugin").forEach(plugin ->
+                        FindTags.find(plugin, "//configuration/agent").forEach(agentTag ->
+                                doAfterVisit(new ChangeTagKeyVisitor<>(agentTag, "agents"))
+                        )
+                );
+                return super.visitDocument(document, executionContext);
+            }
+        };
     }
 
     private static class ChangeTagKeyVisitor<P> extends XmlVisitor<P> {
