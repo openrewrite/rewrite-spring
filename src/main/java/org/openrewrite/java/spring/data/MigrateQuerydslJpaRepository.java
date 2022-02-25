@@ -56,7 +56,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
             @Override
             public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 J.CompilationUnit c = (J.CompilationUnit)super.visitCompilationUnit(cu, ctx);
-                doAfterVisit(new ChangeType(originalFqn, targetFqn));
+                doAfterVisit(new ChangeType(originalFqn, targetFqn, false));
                 return c;
             }
 
@@ -64,7 +64,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
             public J visitParameterizedType(J.ParameterizedType type, ExecutionContext context) {
                 J.ParameterizedType t = (J.ParameterizedType) super.visitParameterizedType(type, context);
                 if (t.getClazz() instanceof J.Identifier && TypeUtils.isOfType(TypeUtils.asFullyQualified(t.getClazz().getType()),
-                        TypeUtils.asFullyQualified(JavaType.Class.build(originalFqn))) &&
+                        TypeUtils.asFullyQualified(JavaType.ShallowClass.build(originalFqn))) &&
                         t.getTypeParameters() != null && t.getTypeParameters().size() == 2) {
                     t = t.withTypeParameters(t.getTypeParameters().subList(0, 1));
                 }

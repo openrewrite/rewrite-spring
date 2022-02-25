@@ -100,7 +100,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                 if (resolvedRequestMappingAnnotationClassName != null) {
                     maybeAddImport("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName);
                     a = (J.Annotation) new ChangeType("org.springframework.web.bind.annotation.RequestMapping",
-                            "org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName)
+                            "org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName, false)
                             .getVisitor().visit(a, ctx, getCursor());
                 }
 
