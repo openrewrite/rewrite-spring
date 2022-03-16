@@ -52,5 +52,5 @@ public final class TestPropertyValues {
 
     public static class Pair {}
 
-    public static enum Type {SYSTEM_ENVIRONMENT, MAP}
+    public enum Type {SYSTEM_ENVIRONMENT, MAP}
 }
