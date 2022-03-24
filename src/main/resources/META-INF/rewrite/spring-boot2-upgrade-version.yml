@@ -233,7 +233,6 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentials
 
   # Use recommended replacements for deprecated APIs
-  - org.openrewrite.java.spring.boot2.MigrateEntityManagerFactoryDependsOnPostProcessorCustomizerPackageName
   - org.openrewrite.java.spring.boot2.MigrateActuatorMediaTypeToApiVersion
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor
