@@ -205,6 +205,7 @@ dependencies {
     testRuntimeOnly("org.springframework:spring-beans:latest.release")
     testRuntimeOnly("org.springframework:spring-context:latest.release")
     testRuntimeOnly("org.springframework:spring-web:latest.release")
+    testRuntimeOnly("org.springframework:spring-webmvc:latest.release")
     testRuntimeOnly("org.springframework:spring-test:latest.release")
     testRuntimeOnly("org.springframework.boot:spring-boot-test:latest.release")
     testRuntimeOnly("org.springframework.boot:spring-boot-test-autoconfigure:latest.release")
