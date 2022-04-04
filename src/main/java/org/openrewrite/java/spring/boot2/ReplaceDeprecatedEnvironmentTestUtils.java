@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Parser;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -67,11 +64,12 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     private static final class ReplaceEnvironmentUtilsMarker implements Marker {
         private final String templateString;
         private final List<Expression> parameters;
-        private final UUID id = randomId();
+        private final UUID id;
 
-        private ReplaceEnvironmentUtilsMarker(String templateString, List<Expression> parameters) {
+        private ReplaceEnvironmentUtilsMarker(String templateString, List<Expression> parameters, UUID id) {
             this.templateString = templateString;
             this.parameters = parameters;
+            this.id = UUID.randomUUID();
         }
 
         public String getDescription() {
@@ -81,6 +79,11 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         @Override
         public UUID getId() {
             return id;
+        }
+
+        @Override
+        public <T extends Tree> T withId(UUID id) {
+            return (T) new ReplaceEnvironmentUtilsMarker(templateString, parameters, id);
         }
     }
 
@@ -196,7 +199,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             String currentTemplateString = generateTemplateString(collectedMethods);
             List<Expression> parameters = generateParameters(collectedMethods);
 
-            return toReplace.withMarkers(toReplace.getMarkers().addIfAbsent(new ReplaceEnvironmentUtilsMarker(currentTemplateString, parameters)));
+            return toReplace.withMarkers(toReplace.getMarkers().addIfAbsent(new ReplaceEnvironmentUtilsMarker(currentTemplateString, parameters, UUID.randomUUID())));
         }
 
         private List<Expression> generateParameters(List<J.MethodInvocation> collectedMethods) {
