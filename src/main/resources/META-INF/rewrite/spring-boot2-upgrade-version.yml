@@ -244,3 +244,26 @@ recipeList:
 
   # Initialization ordering
   - org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering
+
+########################################################################################################################
+# SpringBoot 2.6
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
+displayName: Upgrade to Spring Boot 2.6
+description: 'Upgrade to Spring Boot 2.6 from any prior 2.x version.'
+recipeList:
+  # Upgrade to 2.6.x from 2.5.x
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
+  # Upgrade to 2.6.x from 2.5.x
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.boot
+      artifactId: "*"
+      newVersion: 2.6.x
+      trustParent: true
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-parent
+      newVersion: 2.6.x
+  # Update properties
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
