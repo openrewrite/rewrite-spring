@@ -54,7 +54,7 @@ dependencyCheck {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4")
+val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5")
 val springDataVersions: List<String> = listOf("2_1", "2_3")
 val springFrameworkVersions: List<String> = listOf("5_1", "5_2", "5_3")
 
@@ -254,6 +254,9 @@ dependencies {
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-beans:5.3.+")
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-tx:5.3.+")
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-jdbc:5.3.+")
+
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot:2.5.+")
+
 }
 
 tasks.named<Test>("test") {
