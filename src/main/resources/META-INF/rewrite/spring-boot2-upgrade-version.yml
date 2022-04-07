@@ -237,6 +237,9 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.orm.jpa.EntityManagerFactoryDependsOnPostProcessor
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.ResourceProperties
+      newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.WebProperties$Resources
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
