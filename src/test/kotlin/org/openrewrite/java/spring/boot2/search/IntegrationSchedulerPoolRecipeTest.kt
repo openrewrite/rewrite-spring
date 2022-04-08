@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2.search
 import org.junit.jupiter.api.Test
 import org.openrewrite.java.JavaParser
 import org.openrewrite.java.spring.boot2.search.IntegrationSchedulerPoolRecipe
+import org.openrewrite.test.RecipeSpec
 import org.openrewrite.test.RewriteTest
 import java.nio.file.Paths
 
@@ -27,11 +28,17 @@ import java.nio.file.Paths
 @Suppress("UnusedProperty")
 class IntegrationSchedulerPoolRecipeTest : RewriteTest {
 
+    override fun defaults(spec: RecipeSpec) {
+        spec.recipe(IntegrationSchedulerPoolRecipe())
+        spec.parser(
+            JavaParser.fromJavaVersion()
+                .classpath("spring-boot", "spring-boot-autoconfigure")
+                .build()
+        )
+    }
+
     @Test
     fun wrongBootVersion() = rewriteRun(
-        { spec ->
-            spec.recipe(IntegrationSchedulerPoolRecipe())
-        },
         mavenProject("sample",
             pomXml(
                 """
@@ -67,9 +74,6 @@ class IntegrationSchedulerPoolRecipeTest : RewriteTest {
 
     @Test
     fun noIntegrationDependency() = rewriteRun(
-        { spec ->
-            spec.recipe(IntegrationSchedulerPoolRecipe())
-        },
         mavenProject("sample",
             pomXml(
                 """
@@ -105,9 +109,6 @@ class IntegrationSchedulerPoolRecipeTest : RewriteTest {
 
     @Test
     fun noSchedulerProperty() = rewriteRun(
-        { spec -> spec.recipe(IntegrationSchedulerPoolRecipe())
-            .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-boot-autoconfigure").build())
-        },
         mavenProject("sample",
             pomXml(
                 """
@@ -184,13 +185,6 @@ class IntegrationSchedulerPoolRecipeTest : RewriteTest {
 
     @Test
     fun schedulerPropertyPresent() = rewriteRun(
-        { spec -> spec
-            .recipe(IntegrationSchedulerPoolRecipe())
-            .parser(JavaParser.fromJavaVersion()
-                .classpath("spring-boot", "spring-boot-autoconfigure")
-                .build()
-            )
-        },
         mavenProject("sample",
             pomXml(
                 """
@@ -260,13 +254,6 @@ class IntegrationSchedulerPoolRecipeTest : RewriteTest {
 
     @Test
     fun noSchedulerPropertyYaml() = rewriteRun(
-        { spec -> spec
-            .recipe(IntegrationSchedulerPoolRecipe())
-            .parser(JavaParser.fromJavaVersion()
-                .classpath("spring-boot", "spring-boot-autoconfigure")
-                .build()
-            )
-        },
         mavenProject("sample",
             pomXml(
                 """
@@ -339,13 +326,6 @@ class IntegrationSchedulerPoolRecipeTest : RewriteTest {
 
     @Test
     fun schedulerPropertyPresentYaml() = rewriteRun(
-        { spec -> spec
-            .recipe(IntegrationSchedulerPoolRecipe())
-            .parser(JavaParser.fromJavaVersion()
-                .classpath("spring-boot", "spring-boot-autoconfigure")
-                .build()
-            )
-        },
         mavenProject("sample",
             pomXml(
                 """
