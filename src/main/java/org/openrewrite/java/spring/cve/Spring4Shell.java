@@ -64,7 +64,8 @@ public class Spring4Shell extends Recipe {
     protected JavaVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             final Supplier<JavaParser> javaParser = () -> JavaParser.fromJavaVersion()
-                    .classpath("spring-boot-autoconfigure", "spring-beans", "spring-web", "spring-webmvc")
+                    .classpath("spring-boot-autoconfigure", "spring-web", "spring-webmvc")
+                    .dependsOn("package org.springframework.context.annotation; public @interface Bean {}")
                     .build();
 
             final JavaTemplate mvcRegistration = JavaTemplate
@@ -81,7 +82,8 @@ public class Spring4Shell extends Recipe {
                     .javaParser(javaParser)
                     .imports(
                             "org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations",
-                            "org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter")
+                            "org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter",
+                            "org.springframework.context.annotation.Bean")
                     .build();
 
             @Override
