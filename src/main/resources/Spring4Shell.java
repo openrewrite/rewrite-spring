@@ -41,7 +41,7 @@ private static class ExtendedRequestMappingHandlerAdapter extends RequestMapping
             return new ServletRequestDataBinderFactory(methods, getWebBindingInitializer()) {
                 @Override
                 protected ServletRequestDataBinder createBinderInstance(
-                        Object target, String name, NativeWebRequest request) throws Exception {
+                        Object target, String name, NativeWebRequest request) {
 
                     ServletRequestDataBinder binder = super.createBinderInstance(target, name, request);
                     String[] fields = binder.getDisallowedFields();

@@ -15,7 +15,7 @@
  */
 package org.springframework.context.annotation;
 public interface ConfigurationCondition {
-    public enum ConfigurationPhase {PARSE_CONFIGURATION, REGISTER_BEAN;}
+    public enum ConfigurationPhase {PARSE_CONFIGURATION, REGISTER_BEAN}
 }
 ---
 package org.springframework.boot.autoconfigure.condition;
