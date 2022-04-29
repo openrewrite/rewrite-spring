@@ -93,8 +93,8 @@ public class Spring4Shell extends Recipe {
                 if (!springBootApps.isEmpty() && FindTypes.find(c, "org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations").isEmpty()) {
                     // add @Bean method
                     c = c.withTemplate(mvcRegistration, c.getBody().getCoordinates().addMethodDeclaration((m1, m2) -> {
-                        if (m1.getSimpleName().equals("mvcRegistrations")) return 1;
-                        if (m2.getSimpleName().equals("mvcRegistrations")) return -1;
+                        if ("mvcRegistrations".equals(m1.getSimpleName())) return 1;
+                        if ("mvcRegistrations".equals(m2.getSimpleName())) return -1;
                         return m1.getSimpleName().compareTo(m2.getSimpleName());
                     }));
 
