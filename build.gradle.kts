@@ -16,7 +16,7 @@ plugins {
     `maven-publish`
     signing
 
-    id("org.jetbrains.kotlin.jvm") version "latest.release"
+    id("org.jetbrains.kotlin.jvm") version "1.6.21"
     id("nebula.maven-resolved-dependencies") version "17.3.2"
     id("nebula.release") version "15.3.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
@@ -326,6 +326,10 @@ tasks.named<JavaCompile>("compileJava") {
 tasks.withType(KotlinCompile::class.java).configureEach {
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+
+    doFirst {
+        destinationDir.mkdirs()
     }
 }
 
