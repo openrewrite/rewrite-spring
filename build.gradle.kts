@@ -23,7 +23,7 @@ plugins {
 
     id("com.github.hierynomus.license") version "0.16.1"
     id("com.github.jk1.dependency-license-report") version "1.16"
-    id("org.owasp.dependencycheck") version "6.5.3"
+    id("org.owasp.dependencycheck") version "7.0.4.1"
 
     id("nebula.maven-publish") version "17.3.2"
     id("nebula.contacts") version "5.1.0"
