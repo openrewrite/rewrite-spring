@@ -327,10 +327,6 @@ tasks.withType(KotlinCompile::class.java).configureEach {
     kotlinOptions {
         jvmTarget = "1.8"
     }
-
-    doFirst {
-        destinationDir.mkdirs()
-    }
 }
 
 configure<ContactsExtension> {
