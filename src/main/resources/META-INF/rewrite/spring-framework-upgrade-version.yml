@@ -21,6 +21,8 @@ name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_1
 displayName: Upgrade to Spring Framework 5.1
 description: 'Upgrade to Spring Framework to 5.1 from any prior version.'
 recipeList:
+  - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
+      newVersion: 5.1.x
   - org.openrewrite.java.spring.framework.EnvironmentAcceptsProfiles
 ---
 ########################################################################################################################
@@ -30,6 +32,8 @@ name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_2
 displayName: Upgrade to Spring Framework 5.2
 description: 'Upgrade to Spring Framework to 5.2 from any prior version.'
 recipeList:
+  - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
+      newVersion: 5.2.x
   - org.openrewrite.java.spring.framework.MigrateUtf8MediaTypes
 ---
 ########################################################################################################################
@@ -39,6 +43,8 @@ name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
 displayName: Upgrade to Spring Framework 5.3
 description: 'Upgrade to Spring Framework to 5.3 from any prior version.'
 recipeList:
+  - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
+      newVersion: 5.3.x
   - org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
   - org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
   - org.openrewrite.java.spring.framework.JdbcTemplateObjectArrayArgToVarArgs
