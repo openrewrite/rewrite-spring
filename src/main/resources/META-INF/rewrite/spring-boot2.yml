@@ -105,7 +105,7 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.0.x
-      trustParent: true
+      overrideManagedVersion: true
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
@@ -114,7 +114,7 @@ recipeList:
       groupId: org.mockito
       artifactId: "*"
       newVersion: 3.x
-      trustParent: true
+      overrideManagedVersion: true
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
   - org.openrewrite.maven.RemoveDependency:

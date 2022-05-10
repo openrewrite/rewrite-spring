@@ -46,7 +46,7 @@ recipeList:
         groupId: org.hibernate
         artifactId: hibernate-search-orm
         newVersion: 5.11.x
-        trustParent: true
+        overrideManagedVersion: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
