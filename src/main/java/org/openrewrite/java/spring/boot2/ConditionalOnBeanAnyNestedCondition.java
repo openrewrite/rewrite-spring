@@ -162,7 +162,6 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                             .javaParser(() -> JavaParser.fromJavaVersion()
                                     .dependsOn(Parser.Input.fromResource("/AnyNestedCondition.java", "---"))
                                     .build())
-                            .typeValidation(new TypeValidation().identifiers(false).methodInvocations(false))
                             .build();
                     c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), executionContext);
                 }

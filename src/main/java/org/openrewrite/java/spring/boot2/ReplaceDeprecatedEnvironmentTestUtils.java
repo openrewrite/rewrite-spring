@@ -256,7 +256,6 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                                         .dependsOn(Collections.singletonList(Parser.Input.fromResource("/TestPropertyValues.java")))
                                         .build())
                                 .imports("org.springframework.boot.test.util.TestPropertyValues")
-                                .typeValidation(new TypeValidation().methodInvocations(false))
                                 .build(),
                         m.getCoordinates().replace(),
                         marker.parameters.toArray()

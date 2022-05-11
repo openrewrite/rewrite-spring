@@ -151,7 +151,6 @@ public class OutputCaptureExtension extends Recipe {
     private static final class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
         private final JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
                 .javaParser(JAVA_PARSER)
-                .typeValidation(new TypeValidation().methodInvocations(false))
                 .build();
 
         private final String variableName;
