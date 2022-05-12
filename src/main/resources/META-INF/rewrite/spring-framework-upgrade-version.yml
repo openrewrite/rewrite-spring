@@ -53,6 +53,18 @@ recipeList:
         artifactId: hibernate-search-orm
         newVersion: 5.11.x
         overrideManagedVersion: true
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.aspectj
+      artifactId: aspectjrt
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.aspectj
+      artifactId: aspectjweaver
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: aopalliance
+      artifactId: aopalliance
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: cglib
+      artifactId: cglib
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
