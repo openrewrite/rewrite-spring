@@ -3,20 +3,20 @@
     <suppress>
         <notes><![CDATA[
            file name: kotlin-stdlib-1.4.10.jar
-           False positive. okhttp3 and okio have a transitive kotlin-stdlib 1.4 dependency which is managed by conflict resolution to 1.6.21.
+           False positive. okhttp3 and okio have a transitive kotlin-stdlib 1.4.10 dependency which is managed by conflict resolution to 1.6.21.
            ]]>
         </notes>
-        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-stdlib@.*$</packageUrl>
+        <gav>org.jetbrains.kotlin:kotlin-stdlib:1.4.10</gav>
         <cve>CVE-2020-29582</cve>
         <cve>CVE-2022-24329</cve>
     </suppress>
     <suppress>
         <notes><![CDATA[
-           file name: kotlin-stdlib-1.4.10.jar
-           False positive. okhttp3 and okio have a transitive kotlin-stdlib-common 1.4 dependency which is managed by conflict resolution to 1.6.21.
+           file name: kotlin-stdlib-common:1.4.10.jar
+           False positive. okhttp3 and okio have a transitive kotlin-stdlib-common 1.4.10 dependency which is managed by conflict resolution to 1.6.21.
            ]]>
         </notes>
-        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-stdlib\-common@.*$</packageUrl>
+        <gav>org.jetbrains.kotlin:kotlin-stdlib-common:1.4.10</gav>
         <cve>CVE-2020-29582</cve>
         <cve>CVE-2022-24329</cve>
     </suppress>
