@@ -47,8 +47,12 @@ configure<nebula.plugin.release.git.base.ReleasePluginExtension> {
 }
 
 dependencyCheck {
+    analyzers.nodeAuditEnabled = false
+    analyzers.nodeEnabled = false
     analyzers.assemblyEnabled = false
     failBuildOnCVSS = 9.0F
+    suppressionFile = "suppressions.xml"
+    format = org.owasp.dependencycheck.reporting.ReportGenerator.Format.valueOf(project.properties["dependencyCheckFormat"] as String? ?: "HTML")
 }
 
 group = "org.openrewrite.recipe"
@@ -173,7 +177,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
 
     // for locating list of released Spring Boot versions
-    implementation("com.squareup.okhttp3:okhttp:4.+")
+    implementation("com.squareup.okhttp3:okhttp:4.9.+")
 
     // eliminates "unknown enum constant DeprecationLevel.WARNING" warnings from the build log
     // see https://github.com/gradle/kotlin-dsl-samples/issues/1301 for why (okhttp is leaking parts of kotlin stdlib)
