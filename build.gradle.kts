@@ -23,7 +23,7 @@ plugins {
 
     id("com.github.hierynomus.license") version "0.16.1"
     id("com.github.jk1.dependency-license-report") version "1.16"
-    id("org.owasp.dependencycheck") version "7.0.4.1"
+    id("org.owasp.dependencycheck") version "7.1.0.1"
 
     id("nebula.maven-publish") version "17.3.2"
     id("nebula.contacts") version "5.1.0"
@@ -178,6 +178,8 @@ dependencies {
 
     // for locating list of released Spring Boot versions
     implementation("com.squareup.okhttp3:okhttp:4.9.+")
+
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.21"))
 
     // eliminates "unknown enum constant DeprecationLevel.WARNING" warnings from the build log
     // see https://github.com/gradle/kotlin-dsl-samples/issues/1301 for why (okhttp is leaking parts of kotlin stdlib)
