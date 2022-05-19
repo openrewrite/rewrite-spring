@@ -256,7 +256,7 @@ name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
 displayName: Upgrade to Spring Boot 2.6
 description: 'Upgrade to Spring Boot 2.6 from any prior 2.x version.'
 recipeList:
-  # Upgrade to 2.6.x from 2.5.x
+  # Upgrade to 2.5.x from 2.4.x
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
   # Upgrade to 2.6.x from 2.5.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
@@ -271,3 +271,10 @@ recipeList:
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
   - org.openrewrite.java.spring.boot2.SpringBootPropertiesManual_2_6
+  
+  # Upgrade spring-cloud-dependencies release train
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: "spring-cloud-dependencies"
+      newVersion: 2021.0.2
+      overrideManagedVersion: true
