@@ -271,6 +271,13 @@ recipeList:
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
   - org.openrewrite.java.spring.boot2.SpringBootPropertiesManual_2_6
+  
+  # Upgrade spring-cloud-dependencies release train
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: "spring-cloud-dependencies"
+      newVersion: 2021.0.X
+      overrideManagedVersion: true
 
 ########################################################################################################################
 # SpringBoot 2.7
