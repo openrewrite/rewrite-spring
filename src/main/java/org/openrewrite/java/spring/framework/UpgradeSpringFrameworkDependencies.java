@@ -75,10 +75,10 @@ public class UpgradeSpringFrameworkDependencies extends Recipe {
                 "spring-websocket"};
 
         for (String artifact : artifacts_5_1) {
-            doNext(new UpgradeDependencyVersion("org.springframework", artifact, newVersion, null, true));
+            doNext(new UpgradeDependencyVersion("org.springframework", artifact, newVersion, null, false));
         }
         if (newVersion.startsWith("5.3")) {
-            doNext(new UpgradeDependencyVersion("org.springframework", "spring-r2dbc", newVersion, null, true));
+            doNext(new UpgradeDependencyVersion("org.springframework", "spring-r2dbc", newVersion, null, false));
         }
 
         return super.visit(before, ctx);
