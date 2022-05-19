@@ -3,3 +3,7 @@ build/
 .idea/
 .boot-releases
 out/
+bin/
+.project
+.classpath
+.settings/
