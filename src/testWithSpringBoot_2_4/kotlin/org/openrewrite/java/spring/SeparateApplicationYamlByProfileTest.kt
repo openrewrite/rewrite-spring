@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.org.openrewrite.java.spring
+package org.openrewrite.java.spring
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
 import org.openrewrite.Result
-import org.openrewrite.java.spring.SeparateApplicationYamlByProfile
 import org.openrewrite.yaml.YamlParser
 import org.openrewrite.yaml.YamlRecipeTest
 import java.nio.file.Paths

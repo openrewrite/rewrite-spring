@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.org.openrewrite.java.spring.boot2.search
+package org.openrewrite.java.spring.boot2.search
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
-import org.openrewrite.java.spring.boot2.search.LoggingShutdownHooks
 import org.openrewrite.maven.MavenParser
 import org.openrewrite.maven.MavenRecipeTest
 

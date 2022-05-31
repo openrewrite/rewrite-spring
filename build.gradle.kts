@@ -207,18 +207,12 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-java-11:${rewriteVersion}")
     testImplementation("org.openrewrite:rewrite-java-8:${rewriteVersion}")
 
-    testRuntimeOnly("org.springframework:spring-beans:latest.release")
-    testRuntimeOnly("org.springframework:spring-context:latest.release")
-    testRuntimeOnly("org.springframework:spring-web:latest.release")
-    testRuntimeOnly("org.springframework:spring-webmvc:latest.release")
-    testRuntimeOnly("org.springframework:spring-test:latest.release")
-    testRuntimeOnly("org.springframework.boot:spring-boot-test:latest.release")
-    testRuntimeOnly("org.springframework.boot:spring-boot-test-autoconfigure:latest.release")
-
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
+    "testWithSpringBoot_1_5RuntimeOnly"("org.hamcrest:hamcrest:2.2")
+    "testWithSpringBoot_1_5RuntimeOnly"("junit:junit:latest.release")
 
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework:spring-web:5.1.+")
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot:2.1.+")
@@ -227,7 +221,7 @@ dependencies {
     "testWithSpringBoot_2_2RuntimeOnly"("org.springframework.boot:spring-boot:2.2.+")
 
     "testWithSpringBoot_2_3RuntimeOnly"("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
-    "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:4.+")
+    "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:5.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("junit:junit:latest.release")
     "testWithSpringBoot_2_3RuntimeOnly"("org.hamcrest:hamcrest:2.2")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
@@ -246,9 +240,13 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-orm:5.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-web:5.3.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("jakarta.persistence:jakarta.persistence-api:2.2.3")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.data:spring-data-jpa:2.4.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.data:spring-data-jdbc:2.1.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-test:5.3.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot-test:2.4.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot-test-autoconfigure:2.4.+")
 
     "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-core:5.1.+")
 
@@ -259,6 +257,7 @@ dependencies {
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-beans:5.3.+")
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-tx:5.3.+")
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-jdbc:5.3.+")
+    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-web:5.3.+")
 
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot:2.5.+")
 

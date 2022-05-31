@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.org.openrewrite.java.spring.cve
+package org.openrewrite.java.spring.cve
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.Recipe
@@ -25,7 +25,7 @@ class Spring4ShellTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpath("spring-beans", "spring-boot", "spring-context")
+            .classpath("spring-beans", "spring-boot", "spring-context","spring-web", "spring-webmvc","spring-boot-autoconfigure")
             .build()
 
     override val recipe: Recipe
