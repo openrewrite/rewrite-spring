@@ -28,8 +28,6 @@ import org.openrewrite.marker.Marker;
 
 import java.util.*;
 
-import static org.openrewrite.Tree.randomId;
-
 public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
 
     private static final MethodMatcher APP_CONTEXT = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.context.ConfigurableApplicationContext, String...)");
@@ -66,11 +64,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         private ReplaceEnvironmentUtilsMarker(String templateString, List<Expression> parameters, UUID id) {
             this.templateString = templateString;
             this.parameters = parameters;
-            this.id = UUID.randomUUID();
-        }
-
-        public String getDescription() {
-            return templateString;
+            this.id = id;
         }
 
         @Override
@@ -78,9 +72,10 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             return id;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public <T extends Tree> T withId(UUID id) {
-            return (T) new ReplaceEnvironmentUtilsMarker(templateString, parameters, id);
+        public ReplaceEnvironmentUtilsMarker withId(UUID id) {
+            return new ReplaceEnvironmentUtilsMarker(templateString, parameters, id);
         }
     }
 
@@ -150,19 +145,21 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             Expression environmentNameToCheck = getEnvironmentNameArgument(methodInvocation);
             Expression collectedEnvironmentName = getEnvironmentNameArgument(collectedMethod);
 
-            return SemanticallyEqual.areEqual(contextOrEnvironmentToCheck, collectedContextOrEnvironment)
+            return !(contextOrEnvironmentToCheck instanceof J.NewClass) &&
+                    SemanticallyEqual.areEqual(contextOrEnvironmentToCheck, collectedContextOrEnvironment)
                     && (environmentNameToCheck == null && collectedEnvironmentName == null)
                     || (environmentNameToCheck != null && collectedEnvironmentName != null
                     && SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
         }
 
+        @Nullable
         private Expression getEnvironmentNameArgument(J.MethodInvocation methodInvocation) {
             if (methodInvocation.getArguments().size() < MINIMUM_ARGUMENT_COUNT_WITH_NAME) {
                 return null;
             }
             Expression firstArgument = methodInvocation.getArguments().get(0);
 
-            if (firstArgument.getType().equals(JavaType.Primitive.String)) {
+            if (firstArgument.getType() != null && firstArgument.getType().equals(JavaType.Primitive.String)) {
                 return firstArgument;
             }
             return null;
