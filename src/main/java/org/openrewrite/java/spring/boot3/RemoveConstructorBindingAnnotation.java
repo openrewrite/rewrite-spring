@@ -20,7 +20,6 @@ import org.openrewrite.Recipe;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
 /**
@@ -46,15 +45,8 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
-                boolean isConfigPropsAnnotationPresent = classDecl.getLeadingAnnotations().stream().filter(a -> {
-                    JavaType.FullyQualified fqType = TypeUtils.asFullyQualified(a.getType());
-                    if (fqType != null && ANNOTATION_CONFIG_PROPERTIES.equals(fqType.getFullyQualifiedName())) {
-                        return true;
-                    }
-                    return false;
-                }).findFirst().isPresent();
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, context);
-                if (isConfigPropsAnnotationPresent) {
+                if (classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONFIG_PROPERTIES))) {
                     c = c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(), anno -> {
                         if (TypeUtils.isOfClassType(anno.getType(), ANNOTATION_CONSTRUCTOR_BINDING)) {
                             maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
