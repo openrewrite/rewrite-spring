@@ -15,7 +15,9 @@
  */
 package org.openrewrite.java.spring.internal;
 
-import okhttp3.*;
+
+import org.openrewrite.ipc.http.HttpSender;
+import org.openrewrite.ipc.http.HttpUrlConnectionSender;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -30,31 +32,26 @@ import static java.util.stream.Stream.empty;
 public class SpringBootReleases {
     private static volatile Set<String> availableReleases;
 
-    private final OkHttpClient httpClient = new OkHttpClient.Builder()
-            .connectionSpecs(Arrays.asList(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS))
-            .build();
-
     private final String repositoryUrl = "https://repo1.maven.org/maven2";
 
     public Stream<ModuleDownload> download(String version) {
         List<String> denyList = Arrays.asList("sample", "gradle", "experimental", "legacy",
                 "maven", "tests", "spring-boot-versions");
-
-        Request request = new Request.Builder()
-                .url(repositoryUrl + "/org/springframework/boot")
+        HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
+        HttpSender.Request request = HttpSender.Request.build(repositoryUrl + "/org/springframework/boot", httpSender)
+                .withMethod(HttpSender.Method.GET)
                 .build();
 
-        try (Response response = httpClient.newCall(request).execute()) {
+        try (HttpSender.Response response = httpSender.send(request)) {
             if (!response.isSuccessful()) {
                 throw new IOException("Unexpected code " + response);
             }
 
             Set<String> modules = new HashSet<>();
 
-            ResponseBody responseBody = response.body();
-            if (responseBody != null) {
+            if (response.isSuccessful()) {
                 Matcher moduleMatcher = Pattern.compile("href=\"([^\"]+)/\"")
-                        .matcher(responseBody.string());
+                        .matcher(new String(response.getBodyAsBytes()));
 
                 while (moduleMatcher.find()) {
                     String module = moduleMatcher.group(1);
@@ -65,24 +62,24 @@ public class SpringBootReleases {
 
                 return modules.stream()
                         .map(module -> {
-                            Request moduleRequest = new Request.Builder()
-                                    .url(repositoryUrl + "/org/springframework/boot/" + module + "/" + version +
-                                            "/" + module + "-" + version + ".jar")
+                            HttpSender.Request moduleRequest = HttpSender.Request
+                                    .build(repositoryUrl + "/org/springframework/boot/" + module + "/" + version +
+                                            "/" + module + "-" + version + ".jar", httpSender)
+                                    .withMethod(HttpSender.Method.GET)
                                     .build();
 
-                            try {
-                                Response moduleResponse = httpClient.newCall(moduleRequest).execute();
+                            try(HttpSender.Response moduleResponse = httpSender.send(moduleRequest)) {
                                 if (!moduleResponse.isSuccessful()) {
-                                    if (moduleResponse.code() == 404) {
+                                    if (moduleResponse.getCode() == 404) {
                                         return null;
                                     }
                                     throw new IOException("Unexpected code " + moduleResponse);
                                 }
-
-                                ResponseBody moduleResponseBody = moduleResponse.body();
-                                return moduleResponseBody == null ?
-                                        null :
-                                        new ModuleDownload(module, moduleResponseBody);
+                                byte[] body = moduleResponse.getBodyAsBytes();
+                                if(body.length == 0) {
+                                    return null;
+                                }
+                                return new ModuleDownload(module, body);
                             } catch (IOException e) {
                                 throw new UncheckedIOException(e);
                             }
@@ -98,21 +95,23 @@ public class SpringBootReleases {
 
     public Set<String> allReleases() {
         if (availableReleases == null) {
-            Request request = new Request.Builder()
-                    .url(repositoryUrl + "/org/springframework/boot/spring-boot-starter-parent")
+            HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
+            HttpSender.Request request = HttpSender.Request
+                    .build(repositoryUrl + "/org/springframework/boot/spring-boot-starter-parent", httpSender)
+                    .withMethod(HttpSender.Method.GET)
                     .build();
 
-            try (Response response = httpClient.newCall(request).execute()) {
+            try (HttpSender.Response response = httpSender.send(request)) {
                 if (!response.isSuccessful()) {
                     throw new IOException("Unexpected code " + response);
                 }
 
                 Set<String> releases = new HashSet<>();
 
-                ResponseBody responseBody = response.body();
-                if (responseBody != null) {
+                byte[] responseBody = response.getBodyAsBytes();
+                if (responseBody.length > 0) {
                     Matcher releaseMatcher = Pattern.compile("href=\"([^\"]+[.RELEASE]*)/\"")
-                            .matcher(responseBody.string());
+                            .matcher(new String(responseBody));
 
                     while (releaseMatcher.find()) {
                         if ("..".equals(releaseMatcher.group(1))) {
@@ -203,9 +202,9 @@ public class SpringBootReleases {
 
     public static class ModuleDownload {
         private final String moduleName;
-        private final ResponseBody body;
+        private final byte[] body;
 
-        public ModuleDownload(String moduleName, ResponseBody body) {
+        public ModuleDownload(String moduleName, byte[] body) {
             this.moduleName = moduleName;
             this.body = body;
         }
@@ -214,7 +213,7 @@ public class SpringBootReleases {
             return moduleName;
         }
 
-        public ResponseBody getBody() {
+        public byte[] getBody() {
             return body;
         }
     }

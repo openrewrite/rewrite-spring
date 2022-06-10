@@ -175,21 +175,12 @@ dependencies {
     implementation("org.openrewrite:rewrite-yaml:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
 
-    // for locating list of released Spring Boot versions
-    implementation("com.squareup.okhttp3:okhttp:4.9.+")
-
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.6.21"))
-
-    // eliminates "unknown enum constant DeprecationLevel.WARNING" warnings from the build log
-    // see https://github.com/gradle/kotlin-dsl-samples/issues/1301 for why (okhttp is leaking parts of kotlin stdlib)
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
     runtimeOnly("org.openrewrite:rewrite-java-11:$rewriteVersion")
 
-    testImplementation("org.jetbrains.kotlin:kotlin-reflect")
-    testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-
+    testImplementation(platform(kotlin("bom", "1.6.21")))
+    testImplementation(kotlin("reflect"))
+    testImplementation(kotlin("stdlib"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:latest.release")
