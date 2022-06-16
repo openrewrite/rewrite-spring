@@ -55,13 +55,13 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext executionContext) {
-                JavaSourceFile jsf = super.visitJavaSourceFile(cu, executionContext);
-                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Repository").visitNonNull(jsf, executionContext);
-                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Component").visitNonNull(jsf, executionContext);
-                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.stereotype.Service").visitNonNull(jsf, executionContext);
-                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.boot.test.context.TestComponent").visitNonNull(jsf, executionContext);
-                jsf = (J.CompilationUnit) new UsesType<ExecutionContext>("org.springframework.context.annotation.Bean").visitNonNull(jsf, executionContext);
-                return jsf;
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository"));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository"));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Component"));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Service"));
+                doAfterVisit(new UsesType<>("org.springframework.boot.test.context.TestComponent"));
+                doAfterVisit(new UsesType<>("org.springframework.context.annotation.Bean"));
+                return cu;
             }
         };
     }
