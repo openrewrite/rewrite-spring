@@ -27,16 +27,12 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.RemoveAnnotationVisitor;
-import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.Block;
 import org.openrewrite.java.tree.J.ClassDeclaration;
-import org.openrewrite.java.tree.J.Empty;
 import org.openrewrite.java.tree.J.MethodDeclaration;
 import org.openrewrite.java.tree.J.VariableDeclarations;
 import org.openrewrite.java.tree.JavaType.FullyQualified;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeTree;
-import org.openrewrite.java.tree.TypeUtils;
 
 
 public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<ExecutionContext> {
@@ -58,7 +54,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             List<MethodDeclaration> constructors = classDecl.getBody().getStatements().stream()
                     .filter(J.MethodDeclaration.class::isInstance)
                     .map(J.MethodDeclaration.class::cast)
-                    .filter(m -> m.isConstructor())
+                    .filter(MethodDeclaration::isConstructor)
                     .collect(Collectors.toList());
             boolean applicable = false;
             if (constructors.isEmpty()) {
@@ -70,10 +66,8 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 List<MethodDeclaration> autowiredConstructors = constructors.stream().filter(constr -> constr.getLeadingAnnotations().stream()
                                 .map(a -> TypeUtils.asFullyQualified(a.getType()))
                                 .filter(Objects::nonNull)
-                                .map(fq -> fq.getFullyQualifiedName())
-                                .filter(fqn -> AUTOWIRED.equals(fqn))
-                                .findFirst()
-                                .isPresent()
+                                .map(FullyQualified::getFullyQualifiedName)
+                                .anyMatch(AUTOWIRED::equals)
                         )
                         .limit(2)
                         .collect(Collectors.toList());
@@ -94,14 +88,14 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
     public J visitVariableDeclarations(VariableDeclarations multiVariable, ExecutionContext p) {
         Cursor blockCursor = getCursor().dropParentUntil(Block.class::isInstance);
         VariableDeclarations mv = multiVariable;
-        if (blockCursor != null && blockCursor.getParent().getValue() instanceof ClassDeclaration
+        if (blockCursor.getParent() != null && blockCursor.getParent().getValue() instanceof ClassDeclaration
                 && multiVariable.getVariables().size() == 1
-                && fieldName.equals(multiVariable.getVariables().get(0).getName().printTrimmed())) {
+                && fieldName.equals(multiVariable.getVariables().get(0).getName().getSimpleName())) {
 
-            mv = (VariableDeclarations) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + AUTOWIRED)).visit(multiVariable, p);
-            if (mv != multiVariable) {
+            mv = (VariableDeclarations) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + AUTOWIRED)).visitNonNull(multiVariable, p);
+            if (mv != multiVariable && multiVariable.getTypeExpression() != null) {
                 maybeRemoveImport(AUTOWIRED);
-                MethodDeclaration constructor = blockCursor.getParent().getMessage("applicableConstructor", null);
+                MethodDeclaration constructor = blockCursor.getParent().getMessage("applicableConstructor");
                 ClassDeclaration c = blockCursor.getParent().getValue();
                 if (constructor == null) {
                     doAfterVisit(new AddConstructorVisitor(c.getSimpleName(), fieldName, multiVariable.getTypeExpression()));
@@ -115,9 +109,9 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
 
 
     private static class AddConstructorVisitor extends JavaVisitor<ExecutionContext> {
-        private String className;
-        private String fieldName;
-        private TypeTree type;
+        private final String className;
+        private final String fieldName;
+        private final TypeTree type;
 
         public AddConstructorVisitor(String className, String fieldName, TypeTree type) {
             this.className = className;
@@ -131,9 +125,10 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 Object n = getCursor().getParent().getValue();
                 if (n instanceof ClassDeclaration) {
                     ClassDeclaration classDecl = (ClassDeclaration) n;
-                    if (classDecl.getKind() == ClassDeclaration.Kind.Type.Class && className.equals(classDecl.getSimpleName())) {
-                        JavaTemplate.Builder template = JavaTemplate.builder(() -> getCursor(), ""
-                                + classDecl.getSimpleName() + "(" + type.printTrimmed() + " " + fieldName + ") {\n"
+                    JavaType.FullyQualified typeFqn = TypeUtils.asFullyQualified(type.getType());
+                    if (typeFqn != null && classDecl.getKind() == ClassDeclaration.Kind.Type.Class && className.equals(classDecl.getSimpleName())) {
+                        JavaTemplate.Builder template = JavaTemplate.builder(this::getCursor, ""
+                                + classDecl.getSimpleName() + "(" + typeFqn.getClassName() + " " + fieldName + ") {\n"
                                 + "this." + fieldName + " = " + fieldName + ";\n"
                                 + "}\n"
                         );
@@ -157,27 +152,37 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
 
     private static class AddConstructorParameterAndAssignment extends JavaIsoVisitor<ExecutionContext> {
 
-        private MethodDeclaration constructor;
-        private String fieldName;
-        private TypeTree type;
+        private final MethodDeclaration constructor;
+        private final String fieldName;
+        private final String methodType;
 
         public AddConstructorParameterAndAssignment(MethodDeclaration constructor, String fieldName, TypeTree type) {
             this.constructor = constructor;
             this.fieldName = fieldName;
-            this.type = type;
+            JavaType.FullyQualified fq = TypeUtils.asFullyQualified(type.getType());
+            if (fq != null) {
+                methodType = fq.getClassName();
+            } else {
+                throw new IllegalArgumentException("Unable to determine parameter type");
+            }
         }
 
         @Override
         public MethodDeclaration visitMethodDeclaration(MethodDeclaration method, ExecutionContext p) {
-            if (method == this.constructor) {
-                String paramsStr = Stream.concat(method.getParameters().stream().filter(s -> !Empty.class.isInstance(s)).map(s -> s.printTrimmed()), Stream.of(type.printTrimmed() + " " + fieldName)).collect(Collectors.joining(", "));
-                JavaTemplate.Builder paramsTemplate = JavaTemplate.builder(() -> getCursor(), paramsStr);
-                JavaTemplate.Builder statementTemplate = JavaTemplate.builder(() -> getCursor(), "this." + fieldName + " = " + fieldName + ";");
-                method = method
-                        .withTemplate(paramsTemplate.build(), method.getCoordinates().replaceParameters())
-                        .withTemplate(statementTemplate.build(), method.getBody().getCoordinates().lastStatement());
+            J.MethodDeclaration md = super.visitMethodDeclaration(method, p);
+            if (md == this.constructor && md.getBody() != null) {
+                List<J> params = md.getParameters().stream().filter(s -> !(s instanceof J.Empty)).collect(Collectors.toList());
+                String paramsStr = Stream.concat(params.stream()
+                        .map(s -> "#{}"), Stream.of(methodType + " " + fieldName)).collect(Collectors.joining(", "));
+
+                JavaTemplate.Builder paramsTemplate = JavaTemplate.builder(this::getCursor, paramsStr);
+                md = md.withTemplate(paramsTemplate.build(), md.getCoordinates().replaceParameters(), params.toArray());
+
+                JavaTemplate.Builder statementTemplate = JavaTemplate.builder(this::getCursor, "this." + fieldName + " = " + fieldName + ";");
+                //noinspection ConstantConditions
+                md = md.withTemplate(statementTemplate.build(), md.getBody().getCoordinates().lastStatement());
             }
-            return method;
+            return md;
         }
     }
 
