@@ -213,4 +213,40 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
             }
         """
     )
+
+    @Test
+    fun classAnnotationWithMultipleConstructors() = assertChanged(
+        before = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            @ConfigurationProperties
+            @ConstructorBinding
+            class A {
+                A() {
+                }
+                A(int n) {
+                }
+            }
+        """,
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            @ConfigurationProperties
+            /*
+             * TODO:
+             * You need to remove ConstructorBinding on class level and move it to appropriate
+             * constructor.
+             * */
+            @ConstructorBinding
+            class A {
+                A() {
+                }
+                A(int n) {
+                }
+            }
+        """
+    )
+
 }
