@@ -20,7 +20,10 @@ import org.openrewrite.Recipe;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.List;
 
 /**
  * @author Alex Boyko
@@ -43,8 +46,11 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
     @Override
     public JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
+            private J.MethodDeclaration constructorToUpdate = null;
+
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
+                constructorToUpdate = checkConstructors(classDecl);
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, context);
                 if (classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONFIG_PROPERTIES))) {
                     c = c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(), anno -> {
@@ -57,7 +63,44 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                 }
                 return c;
             }
+
+            private J.MethodDeclaration checkConstructors(J.ClassDeclaration c) {
+                int constructorsCount = 0;
+                J.MethodDeclaration annotatedConstructor = null;
+                for (Statement s : c.getBody().getStatements()) {
+                    if (!(s instanceof J.MethodDeclaration)) {
+                        continue;
+                    }
+                    J.MethodDeclaration method = (J.MethodDeclaration) s;
+                    if (method.isConstructor()) {
+                        constructorsCount++;
+                    }
+                    if (method.getAllAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONSTRUCTOR_BINDING))) {
+                        annotatedConstructor = method;
+                    }
+                }
+                if ((constructorsCount == 1) && (annotatedConstructor != null)) {
+                    return annotatedConstructor;
+                } else {
+                    return null;
+                }
+            }
+
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+                J.MethodDeclaration methodDeclaration = super.visitMethodDeclaration(method, executionContext);
+                if (method == constructorToUpdate) {
+                    List<J.Annotation> annotations = ListUtils.map(method.getLeadingAnnotations(), anno -> {
+                        if (TypeUtils.isOfClassType(anno.getType(), ANNOTATION_CONSTRUCTOR_BINDING)) {
+                            maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
+                            return null;
+                        }
+                        return anno;
+                    });
+                    methodDeclaration = methodDeclaration.withLeadingAnnotations(annotations);
+                }
+                return methodDeclaration;
+            }
         };
     }
-
 }

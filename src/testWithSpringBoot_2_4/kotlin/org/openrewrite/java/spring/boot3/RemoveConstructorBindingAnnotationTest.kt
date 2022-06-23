@@ -77,6 +77,7 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
             
             @ConfigurationProperties
             class A {
+                
                 A() {
                 }
             }
@@ -178,7 +179,6 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
         """,
         after = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
-            import org.springframework.boot.context.properties.ConstructorBinding;
             
             @ConfigurationProperties
             class A {
@@ -187,7 +187,7 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
                 
                 @ConfigurationProperties
                 static class B {
-                    @ConstructorBinding
+                    
                     B() {
                     }
                 }
@@ -213,5 +213,42 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
             }
         """
     )
+
+    @Test
+    fun constructorAnnotationInMultipleClasses() = assertChanged(
+        before = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            @ConfigurationProperties
+            class A {
+                @ConstructorBinding
+                A() {
+                }
+            }
+        """,
+        dependsOn = arrayOf("""
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            @ConfigurationProperties
+            class B {
+                @ConstructorBinding
+                B() {
+                }
+            }
+        """),
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            
+            @ConfigurationProperties
+            class A {
+                
+                A() {
+                }
+            }
+        """
+    )
+
 
 }
