@@ -60,7 +60,7 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
     )
 
     @Test
-    fun constructorAnnotation() = assertUnchanged(
+    fun constructorAnnotation() = assertChanged(
         before = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
             import org.springframework.boot.context.properties.ConstructorBinding;
@@ -68,6 +68,15 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
             @ConfigurationProperties
             class A {
                 @ConstructorBinding
+                A() {
+                }
+            }
+        """,
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            
+            @ConfigurationProperties
+            class A {
                 A() {
                 }
             }
