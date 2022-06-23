@@ -19,10 +19,10 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,15 +46,27 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
     @Override
     public JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-            private J.MethodDeclaration constructorToUpdate = null;
-
+            private J.MethodDeclaration constructorToUpdate;
+            private J.Annotation annotationToComment;
+            private int numberOfConstructors = 0;
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
                 constructorToUpdate = checkConstructors(classDecl);
+                for (J.Annotation annotation : classDecl.getLeadingAnnotations()) {
+                    if (TypeUtils.isOfClassType(annotation.getType(), ANNOTATION_CONSTRUCTOR_BINDING)) {
+                        annotationToComment = annotation;
+                    }
+                }
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, context);
                 if (classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONFIG_PROPERTIES))) {
                     c = c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(), anno -> {
                         if (TypeUtils.isOfClassType(anno.getType(), ANNOTATION_CONSTRUCTOR_BINDING)) {
+                            annotationToComment = anno;
+                        }
+                        if (
+                                TypeUtils.isOfClassType(anno.getType(), ANNOTATION_CONSTRUCTOR_BINDING)
+                                && numberOfConstructors <= 1
+                        ) {
                             maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
                             return null;
                         }
@@ -62,6 +74,22 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                     }));
                 }
                 return c;
+            }
+
+            @Override
+            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
+                J.Annotation annotation1 = super.visitAnnotation(annotation, executionContext);
+
+                if(numberOfConstructors > 1 && annotation == annotationToComment) {
+                    List<Comment> list  = new ArrayList<>();
+                    list.add(new TextComment(true, "TODO:\n" +
+                            "You need to remove ConstructorBinding on class level and move it to appropriate\n" +
+                            "constructor", "\n", Markers.EMPTY));
+
+                    return annotation1.withComments(list);
+                }
+
+                return annotation1;
             }
 
             private J.MethodDeclaration checkConstructors(J.ClassDeclaration c) {
@@ -78,6 +106,8 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                     if (method.getAllAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONSTRUCTOR_BINDING))) {
                         annotatedConstructor = method;
                     }
+
+                    this.numberOfConstructors = constructorsCount;
                 }
                 if ((constructorsCount == 1) && (annotatedConstructor != null)) {
                     return annotatedConstructor;

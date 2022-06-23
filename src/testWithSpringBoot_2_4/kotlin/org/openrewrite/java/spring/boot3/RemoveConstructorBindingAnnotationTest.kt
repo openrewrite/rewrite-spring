@@ -249,4 +249,6 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
         """
     )
 
+    // TODO: what will happen to number int numberOfConstructors = 0;
+    // when a class has subclass which has constructors
 }
