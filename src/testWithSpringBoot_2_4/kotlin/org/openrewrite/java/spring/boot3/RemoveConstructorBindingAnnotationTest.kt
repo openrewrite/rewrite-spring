@@ -60,6 +60,30 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
     )
 
     @Test
+    fun topLevelClassAnnotationWithConstructor() = assertChanged(
+        before = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            @ConfigurationProperties
+            @ConstructorBinding
+            class A {
+                A() {
+                }
+            }
+        """,
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            
+            @ConfigurationProperties
+            class A {
+                A() {
+                }
+            }
+        """
+    )
+
+    @Test
     fun constructorAnnotation() = assertChanged(
         before = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -215,7 +239,7 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
     )
 
     @Test
-    fun classAnnotationWithMultipleConstructors() = assertChanged(
+    fun topLevelTypeAnnotationWithMultipleConstructors() = assertChanged(
         before = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
             import org.springframework.boot.context.properties.ConstructorBinding;
@@ -234,7 +258,7 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
             import org.springframework.boot.context.properties.ConstructorBinding;
             
             @ConfigurationProperties
-            /*
+            /**
              * TODO:
              * You need to remove ConstructorBinding on class level and move it to appropriate
              * constructor.
@@ -246,7 +270,8 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
                 A(int n) {
                 }
             }
-        """
+        """,
+        expectedCyclesThatMakeChanges = 2
     )
 
     // TODO: what will happen to number int numberOfConstructors = 0;
