@@ -10,6 +10,8 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class SAMLRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
+//    private static Pattern IDENTITY_PROVIDER_PATTERN = Pattern.compile("spring\\.security\\.saml2\\.relyingparty\\.registration\\..*\\.(identityprovider).*");
+
     @Override
     public String getDisplayName() {
         return "Move SAML relying party identity provider property to asserting party";
@@ -25,7 +27,6 @@ public class SAMLRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
 
         return new PropertiesVisitor<ExecutionContext>() {
-
 
             @Override
             public Properties visitEntry(Properties.Entry entry, ExecutionContext executionContext) {

@@ -30,6 +30,18 @@ class SAMLRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
             """.trimIndent())
     }
 
+    @Test
+    fun shouldNotMovePropertyInWrongHierarchy() {
+        val result = runRecipe(
+            """
+            spring.security.saml2.relyingparty.identityprovider.registration.idpone.entity-id=https://idpone.com
+            spring.identityprovider.security.saml2.relyingparty.registration.idpone.sso-url=https://idpone.com
+            spring.security.identityprovider.saml2.relyingparty.registration.idpone.verification.credentials.certificate-location=classpath:saml/idpone.crt
+            """.trimIndent()
+        )
+        assertThat(result).hasSize(0)
+    }
+
     private fun runRecipe(inputProperties: String): MutableList<Result> {
         val applicationProperties = PropertiesParser().parse(inputProperties)
             .map { it.withSourcePath(Paths.get("src/main/resources/application.properties")) }
