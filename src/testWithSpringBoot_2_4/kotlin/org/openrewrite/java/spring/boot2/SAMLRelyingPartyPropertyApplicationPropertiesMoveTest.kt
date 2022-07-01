@@ -87,6 +87,20 @@ class SAMLRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
         assertThat(result).hasSize(0)
     }
 
+    @Test
+    fun shouldNotMovePropertiesOnFileWhichAreNotAppPropFile() {
+
+        val applicationProperties = PropertiesParser().parse("""
+            spring.security.saml2.relyingparty.registration.idpone.identityprovider.entity-id=https://idpone.com
+            spring.security.saml2.relyingparty.registration.idpone.identityprovider.sso-url=https://idpone.com
+            spring.security.saml2.relyingparty.registration.idpone.identityprovider.verification.credentials.certificate-location=classpath:saml/idpone.crt
+            """.trimIndent())
+            .map { it.withSourcePath(Paths.get("src/main/resources/random.properties")) }
+
+        val result = recipe.run(applicationProperties)
+        assertThat(result).hasSize(0)
+    }
+
     private fun runRecipe(inputProperties: String): MutableList<Result> {
         val applicationProperties = PropertiesParser().parse(inputProperties)
             .map { it.withSourcePath(Paths.get("src/main/resources/application.properties")) }
