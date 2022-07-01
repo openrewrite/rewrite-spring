@@ -23,12 +23,10 @@ import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.tree.Properties;
 
 import java.util.UUID;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SAMLRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
     private final static String REGEX_PATTERN = "(spring\\.security\\.saml2\\.relyingparty\\.registration\\..*)(\\.identityprovider)(.*)";
-    private final static Pattern IDENTITY_PROVIDER_PATTERN = Pattern.compile(REGEX_PATTERN);
 
     @Override
     public String getDisplayName() {
@@ -50,8 +48,7 @@ public class SAMLRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
             public Properties visitEntry(Properties.Entry entry, ExecutionContext executionContext) {
 
                 Properties.Entry updatedEntry = entry;
-                Matcher matcher = IDENTITY_PROVIDER_PATTERN.matcher(entry.getKey());
-                if (matcher.matches()) {
+                if (entry.getKey().matches(REGEX_PATTERN)) {
                     updatedEntry = updateEntry(entry);
                 }
 
