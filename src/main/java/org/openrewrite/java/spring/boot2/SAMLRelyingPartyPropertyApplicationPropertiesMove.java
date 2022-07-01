@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.HasSourcePath;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.properties.PropertiesVisitor;
