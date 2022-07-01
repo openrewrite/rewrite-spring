@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -22,10 +23,12 @@ import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.tree.Properties;
 
 import java.util.UUID;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SAMLRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
-//    private static Pattern IDENTITY_PROVIDER_PATTERN = Pattern.compile("spring\\.security\\.saml2\\.relyingparty\\.registration\\..*\\.(identityprovider).*");
+    private final static String REGEX_PATTERN = "(spring\\.security\\.saml2\\.relyingparty\\.registration\\..*)(\\.identityprovider)(.*)";
+    private final static Pattern IDENTITY_PROVIDER_PATTERN = Pattern.compile(REGEX_PATTERN);
 
     @Override
     public String getDisplayName() {
@@ -45,12 +48,28 @@ public class SAMLRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
 
             @Override
             public Properties visitEntry(Properties.Entry entry, ExecutionContext executionContext) {
-                String updatedKey = entry.getKey().replaceAll("identityprovider", "assertingparty");
-                Properties.Entry updatedEntry = new Properties.Entry(UUID.randomUUID(), entry.getPrefix(), entry.getMarkers(), updatedKey, entry.getBeforeEquals(), entry.getValue());
+
+                Properties.Entry updatedEntry = entry;
+                Matcher matcher = IDENTITY_PROVIDER_PATTERN.matcher(entry.getKey());
+                if (matcher.matches()) {
+                    updatedEntry = updateEntry(entry);
+                }
+
                 return super.visitEntry(updatedEntry, executionContext);
+            }
+
+            @NotNull
+            private Properties.Entry updateEntry(Properties.Entry entry) {
+                String updatedKey =
+                        entry.getKey().replaceAll(REGEX_PATTERN, "$1.assertingparty$3");
+                return new Properties.Entry(UUID.randomUUID(),
+                        entry.getPrefix(),
+                        entry.getMarkers(),
+                        updatedKey,
+                        entry.getBeforeEquals(),
+                        entry.getValue()
+                );
             }
         };
     }
-
-
 }

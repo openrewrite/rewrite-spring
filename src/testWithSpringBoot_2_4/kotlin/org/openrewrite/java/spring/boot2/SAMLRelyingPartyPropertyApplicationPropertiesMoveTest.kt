@@ -59,6 +59,9 @@ class SAMLRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
         assertThat(result).hasSize(0)
     }
 
+
+    // TODO:
+    // what if there is another properties file which has same hierarchy
     private fun runRecipe(inputProperties: String): MutableList<Result> {
         val applicationProperties = PropertiesParser().parse(inputProperties)
             .map { it.withSourcePath(Paths.get("src/main/resources/application.properties")) }
