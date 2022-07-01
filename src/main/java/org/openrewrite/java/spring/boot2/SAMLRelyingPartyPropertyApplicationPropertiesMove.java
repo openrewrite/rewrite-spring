@@ -47,25 +47,16 @@ public class SAMLRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
             @Override
             public Properties visitEntry(Properties.Entry entry, ExecutionContext executionContext) {
 
-                Properties.Entry updatedEntry = entry;
                 if (entry.getKey().matches(REGEX_PATTERN)) {
-                    updatedEntry = updateEntry(entry);
+                    return super.visitEntry(updateEntry(entry), executionContext);
                 }
 
-                return super.visitEntry(updatedEntry, executionContext);
+                return super.visitEntry(entry, executionContext);
             }
 
             @NotNull
             private Properties.Entry updateEntry(Properties.Entry entry) {
-                String updatedKey =
-                        entry.getKey().replaceAll(REGEX_PATTERN, "$1.assertingparty$3");
-                return new Properties.Entry(UUID.randomUUID(),
-                        entry.getPrefix(),
-                        entry.getMarkers(),
-                        updatedKey,
-                        entry.getBeforeEquals(),
-                        entry.getValue()
-                );
+                return entry.withKey(entry.getKey().replaceAll(REGEX_PATTERN, "$1.assertingparty$3"));
             }
         };
     }

@@ -47,6 +47,35 @@ class SAMLRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
         )
     }
 
+
+    @Test
+    fun movePropertyTestMultiple() {
+        val result = runRecipe(
+            """
+            spring.security.saml2.relyingparty.registration.idpone.identityprovider.entity-id=https://idpone.com
+            spring.security.saml2.relyingparty.registration.idpone.identityprovider.sso-url=https://idpone.com
+            spring.security.saml2.relyingparty.registration.idpone.identityprovider.verification.credentials.certificate-location=classpath:saml/idpone.crt
+            
+            spring.security.saml2.relyingparty.registration.okta.identityprovider.entity-id=https://idpone.com
+            spring.security.saml2.relyingparty.registration.okta.identityprovider.sso-url=https://idpone.com
+            spring.security.saml2.relyingparty.registration.okta.identityprovider.verification.credentials.certificate-location=classpath:saml/idpone.crt
+            """.trimIndent()
+        )
+        assertThat(result).hasSize(0)
+        assertThat(result).hasSize(1)
+        assertThat(result[0].after!!.printAll()).isEqualTo(
+            """
+            spring.security.saml2.relyingparty.registration.idpone.assertingparty.entity-id=https://idpone.com
+            spring.security.saml2.relyingparty.registration.idpone.assertingparty.sso-url=https://idpone.com
+            spring.security.saml2.relyingparty.registration.idpone.assertingparty.verification.credentials.certificate-location=classpath:saml/idpone.crt
+            
+            spring.security.saml2.relyingparty.registration.okta.assertingparty.entity-id=https://idpone.com
+            spring.security.saml2.relyingparty.registration.okta.assertingparty.sso-url=https://idpone.com
+            spring.security.saml2.relyingparty.registration.okta.assertingparty.verification.credentials.certificate-location=classpath:saml/idpone.crt
+            """.trimIndent()
+        )
+    }
+
     @Test
     fun shouldNotMovePropertyInWrongHierarchy() {
         val result = runRecipe(
@@ -59,9 +88,6 @@ class SAMLRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
         assertThat(result).hasSize(0)
     }
 
-
-    // TODO:
-    // what if there is another properties file which has same hierarchy
     private fun runRecipe(inputProperties: String): MutableList<Result> {
         val applicationProperties = PropertiesParser().parse(inputProperties)
             .map { it.withSourcePath(Paths.get("src/main/resources/application.properties")) }
