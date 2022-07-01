@@ -61,7 +61,6 @@ class SAMLRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
             spring.security.saml2.relyingparty.registration.okta.identityprovider.verification.credentials.certificate-location=classpath:saml/idpone.crt
             """.trimIndent()
         )
-        assertThat(result).hasSize(0)
         assertThat(result).hasSize(1)
         assertThat(result[0].after!!.printAll()).isEqualTo(
             """
