@@ -56,9 +56,6 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, context);
                 if (classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONFIG_PROPERTIES))) {
                     c = c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(), anno -> {
-                        if (TypeUtils.isOfClassType(anno.getType(), ANNOTATION_CONSTRUCTOR_BINDING)) {
-                            annotationToComment = anno;
-                        }
                         if (
                                 TypeUtils.isOfClassType(anno.getType(), ANNOTATION_CONSTRUCTOR_BINDING)
                                 && numberOfConstructors <= 1
