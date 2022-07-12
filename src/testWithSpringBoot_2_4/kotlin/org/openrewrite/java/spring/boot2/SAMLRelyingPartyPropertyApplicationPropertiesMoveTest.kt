@@ -26,7 +26,7 @@ import java.nio.file.Paths
 class SAMLRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
 
     override val recipe: Recipe
-        get() = SAMLRelyingPartyPropertyApplicationPropertiesMove()
+        get() = SamlRelyingPartyPropertyApplicationPropertiesMove()
 
     @Test
     fun movePropertyTestSingle() {
