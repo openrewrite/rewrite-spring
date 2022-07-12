@@ -34,7 +34,7 @@ public class SamlRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
     @Override
     public String getDescription() {
         return "Renames spring.security.saml2.relyingparty.registration.(any).identityprovider to " +
-                "spring.security.saml2.relyingparty.registration.(any).assertingparty";
+                "spring.security.saml2.relyingparty.registration.(any).assertingparty.";
     }
 
     @Override
