@@ -23,7 +23,7 @@ import org.openrewrite.java.JavaRecipeTest
 import org.openrewrite.properties.PropertiesParser
 import java.nio.file.Paths
 
-class SAMLRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
+class SamlRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
 
     override val recipe: Recipe
         get() = SamlRelyingPartyPropertyApplicationPropertiesMove()
