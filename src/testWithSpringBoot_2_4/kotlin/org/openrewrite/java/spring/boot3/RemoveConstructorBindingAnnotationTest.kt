@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("DanglingJavadoc")
+
 package org.openrewrite.java.spring.boot3
 
 import org.junit.jupiter.api.Test
@@ -60,7 +62,66 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
     )
 
     @Test
-    fun constructorAnnotation() = assertUnchanged(
+    fun topLevelClassAnnotationWithConstructor() = assertChanged(
+        before = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            @ConfigurationProperties
+            @ConstructorBinding
+            class A {
+                A() {
+                }
+            }
+        """,
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            
+            @ConfigurationProperties
+            class A {
+                A() {
+                }
+            }
+        """
+    )
+
+    @Test
+    fun topLevelTypeAnnotationWithMultipleConstructors() = assertChanged(
+        before = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            @ConfigurationProperties
+            @ConstructorBinding
+            class A {
+                A() {
+                }
+                A(int n) {
+                }
+            }
+        """,
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            @ConfigurationProperties
+            /**
+             * TODO:
+             * You need to remove ConstructorBinding on class level and move it to appropriate
+             * constructor.
+             */
+            @ConstructorBinding
+            class A {
+                A() {
+                }
+                A(int n) {
+                }
+            }
+        """
+    )
+
+    @Test
+    fun constructorAnnotation() = assertChanged(
         before = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
             import org.springframework.boot.context.properties.ConstructorBinding;
@@ -68,6 +129,16 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
             @ConfigurationProperties
             class A {
                 @ConstructorBinding
+                A() {
+                }
+            }
+        """,
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            
+            @ConfigurationProperties
+            class A {
+                
                 A() {
                 }
             }
@@ -169,7 +240,6 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
         """,
         after = """
             import org.springframework.boot.context.properties.ConfigurationProperties;
-            import org.springframework.boot.context.properties.ConstructorBinding;
             
             @ConfigurationProperties
             class A {
@@ -178,7 +248,7 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
                 
                 @ConfigurationProperties
                 static class B {
-                    @ConstructorBinding
+                    
                     B() {
                     }
                 }
@@ -205,4 +275,32 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
         """
     )
 
+    @Test
+    fun removeConstructorBindingFromInnerClass() = assertChanged(
+        before = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            class A {
+                @ConfigurationProperties
+                static class B {
+                    @ConstructorBinding
+                    B(int n) {
+                    }
+                }
+            }
+        """,
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            
+            class A {
+                @ConfigurationProperties
+                static class B {
+                    
+                    B(int n) {
+                    }
+                }
+            }
+        """
+    )
 }
