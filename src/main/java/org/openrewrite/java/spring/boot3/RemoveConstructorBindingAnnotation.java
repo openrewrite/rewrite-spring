@@ -17,16 +17,17 @@ package org.openrewrite.java.spring.boot3;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.tree.Comment;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Javadoc;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.openrewrite.Tree.randomId;
@@ -49,24 +50,54 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
         return "As of Boot 3.0 @ConstructorBinding is no longer needed at the type level on @ConfigurationProperties classes and should be removed.";
     }
 
+    @Nullable
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+                doAfterVisit(new UsesType<>("org.springframework.boot.context.properties.ConstructorBinding"));
+                doAfterVisit(new UsesType<>("org.springframework.boot.context.properties.ConfigurationProperties"));
+                return cu;
+            }
+        };
+    }
+
     @Override
     public JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-                List<J.MethodDeclaration> constructors = classDecl.getBody().getStatements().stream()
+                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, executionContext);
+
+                // Collect the class constructors.
+                List<J.MethodDeclaration> constructors = c.getBody().getStatements().stream()
                         .filter(o -> o instanceof J.MethodDeclaration)
                         .map(o -> (J.MethodDeclaration) o)
                         .filter(J.MethodDeclaration::isConstructor)
                         .collect(Collectors.toList());
 
-                if (constructors.size() == 1 &&
-                        constructors.get(0).getLeadingAnnotations().stream()
-                                .anyMatch(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONSTRUCTOR_BINDING))) {
-                    getCursor().putMessage("CONSTRUCTOR_TO_UPDATE", constructors.get(0));
+                if (constructors.size() == 1) {
+                    Optional<J.Annotation> bindingAnnotation = constructors.get(0).getLeadingAnnotations().stream()
+                            .filter(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONSTRUCTOR_BINDING))
+                            .findAny();
+
+                    // A single class constructor with a ConstructorBinding annotation is present.
+                    if (bindingAnnotation.isPresent()) {
+                        c = c.withBody(c.getBody().withStatements(
+                                ListUtils.map(c.getBody().getStatements(), s -> {
+                                    if (s == constructors.get(0)) {
+                                        J.MethodDeclaration m = (J.MethodDeclaration) s;
+                                        // Only visit the `J.MethodDeclaration` subtree and remove the target annotation.
+                                        maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
+                                        return new RemoveTargetAnnotation(bindingAnnotation.get()).visitMethodDeclaration(m, executionContext);
+                                    }
+                                    return s;
+                                }))
+                        );
+                    }
                 }
 
-                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, executionContext);
                 if (c.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONFIG_PROPERTIES))) {
                     c = c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(), anno -> {
                         if (TypeUtils.isOfClassType(anno.getType(), ANNOTATION_CONSTRUCTOR_BINDING)) {
@@ -74,8 +105,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                                 maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
                                 return null;
                             }
-
-                            return anno.withComments(maybeAddComment(anno.getComments()));
+                            return anno.withComments(maybeAddJavaDoc(anno.getComments()));
                         }
                         return anno;
                     }));
@@ -83,7 +113,12 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                 return c;
             }
 
-            private List<Comment> maybeAddComment(List<Comment> comments) {
+            /**
+             * Adds the target Javadoc if it does not exist in the list of comments.
+             * Generates a properly structured Javadoc to enable autoformatting features
+             * like {@link org.openrewrite.xml.format.NormalizeLineBreaks}.
+             */
+            private List<Comment> maybeAddJavaDoc(List<Comment> comments) {
                 String message = "You need to remove ConstructorBinding on class level and move it to appropriate";
                 if (comments.isEmpty() || comments.stream()
                         .filter(o -> o instanceof Javadoc.DocComment)
@@ -107,22 +142,29 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                 return comments;
             }
 
-            @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-                J.MethodDeclaration methodDeclaration = super.visitMethodDeclaration(method, executionContext);
+            /**
+             * Removes a target annotation from a `Tree`.
+             *
+             * Note:
+             * This may be useful in other Spring recipes to remove specific annotations
+             * based on a set of criteria.
+             *
+             * Move the visitor into a new class if it's reused.
+             */
+            class RemoveTargetAnnotation extends JavaIsoVisitor<ExecutionContext> {
+                private final J.Annotation targetToRemove;
 
-                J.MethodDeclaration constructorToUpdate = getCursor().getNearestMessage("CONSTRUCTOR_TO_UPDATE");
-                if (method == constructorToUpdate) {
-                    methodDeclaration = methodDeclaration.withLeadingAnnotations(ListUtils.map(method.getLeadingAnnotations(), anno -> {
-                        if (TypeUtils.isOfClassType(anno.getType(), ANNOTATION_CONSTRUCTOR_BINDING)) {
-                            maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
-                            return null;
-                        }
-                        return anno;
-                    }));
-                    getCursor().pollNearestMessage("CONSTRUCTOR_TO_UPDATE");
+                public RemoveTargetAnnotation(J.Annotation targetToRemove) {
+                    this.targetToRemove = targetToRemove;
                 }
-                return methodDeclaration;
+
+                @Override
+                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
+                    if (targetToRemove == annotation) {
+                        return null;
+                    }
+                    return super.visitAnnotation(annotation, executionContext);
+                }
             }
         };
     }
