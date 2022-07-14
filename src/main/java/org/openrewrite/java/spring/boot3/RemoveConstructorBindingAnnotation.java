@@ -57,7 +57,6 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
                 doAfterVisit(new UsesType<>("org.springframework.boot.context.properties.ConstructorBinding"));
-                doAfterVisit(new UsesType<>("org.springframework.boot.context.properties.ConfigurationProperties"));
                 return cu;
             }
         };
