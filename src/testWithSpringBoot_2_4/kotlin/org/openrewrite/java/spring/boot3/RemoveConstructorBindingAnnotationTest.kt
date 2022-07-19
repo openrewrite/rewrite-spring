@@ -303,4 +303,43 @@ class RemoveConstructorBindingAnnotationTest : JavaRecipeTest {
             }
         """
     )
+
+    @Test
+    fun addCommentToInnerClass() = assertChanged(
+        before = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            class A {
+                @ConfigurationProperties
+                @ConstructorBinding
+                static class B {
+                    B() {
+                    }
+                    B(int n) {
+                    }
+                }
+            }
+        """,
+        after = """
+            import org.springframework.boot.context.properties.ConfigurationProperties;
+            import org.springframework.boot.context.properties.ConstructorBinding;
+            
+            class A {
+                @ConfigurationProperties
+                /**
+                 * TODO:
+                 * You need to remove ConstructorBinding on class level and move it to appropriate
+                 * constructor.
+                 */
+                @ConstructorBinding
+                static class B {
+                    B() {
+                    }
+                    B(int n) {
+                    }
+                }
+            }
+        """
+    )
 }
