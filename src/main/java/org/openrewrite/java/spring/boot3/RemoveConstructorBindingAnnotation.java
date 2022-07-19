@@ -104,7 +104,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                                 maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
                                 return null;
                             }
-                            return anno.withComments(maybeAddJavaDoc(anno.getComments()));
+                            return anno.withComments(maybeAddJavaDoc(anno.getComments(), anno.getPrefix().getIndent()));
                         }
                         return anno;
                     }));
@@ -117,7 +117,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
              * Generates a properly structured Javadoc to enable autoformatting features
              * like {@link org.openrewrite.xml.format.NormalizeLineBreaks}.
              */
-            private List<Comment> maybeAddJavaDoc(List<Comment> comments) {
+            private List<Comment> maybeAddJavaDoc(List<Comment> comments, String indent) {
                 String message = "You need to remove ConstructorBinding on class level and move it to appropriate";
                 if (comments.isEmpty() || comments.stream()
                         .filter(o -> o instanceof Javadoc.DocComment)
@@ -126,16 +126,16 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                         .noneMatch(o -> o.print(getCursor()).equals(message))) {
 
                     List<Javadoc> javadoc = new ArrayList<>();
-                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n * ", Markers.EMPTY));
+                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n" + indent + " * ", Markers.EMPTY));
                     javadoc.add(new Javadoc.Text(randomId(), Markers.EMPTY, "TODO:"));
-                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n * ", Markers.EMPTY));
+                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n" + indent + " * ", Markers.EMPTY));
                     javadoc.add(new Javadoc.Text(randomId(), Markers.EMPTY, message));
-                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n * ", Markers.EMPTY));
+                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n" + indent + " * ", Markers.EMPTY));
                     javadoc.add(new Javadoc.Text(randomId(), Markers.EMPTY, "constructor."));
-                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n ", Markers.EMPTY));
+                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n" + indent + " ", Markers.EMPTY));
 
                     List<Comment> newComments = new ArrayList<>(comments);
-                    newComments.add(new Javadoc.DocComment(randomId(), Markers.EMPTY, javadoc, "\n"));
+                    newComments.add(new Javadoc.DocComment(randomId(), Markers.EMPTY, javadoc, "\n" + indent));
                     return newComments;
                 }
                 return comments;
