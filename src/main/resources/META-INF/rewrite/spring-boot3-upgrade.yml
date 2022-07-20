@@ -33,6 +33,7 @@ name: org.openrewrite.java.spring.boot3.MavenPomUpgrade
 displayName: Upgrade Maven Pom to Spring Boot 3.0 from 2.x
 description: 'Upgrade Maven Pom to Spring Boot 3.0 from prior 2.x version.'
 recipeList:
+  - org.openrewrite.java.migrate.JavaVersion17
   - org.openrewrite.maven.ChangeDependencyClassifier:
       groupId: org.ehcache
       artifactId: ehcache
@@ -46,10 +47,3 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 3.0.0-SNAPSHOT
-  #TODO Replace with rewrite-migrate-java JavaVersion17 recipe
-  - org.openrewrite.maven.ChangePropertyValue:
-      key: 'java.version'
-      newValue: 17
-      addIfMissing: true
----
-
