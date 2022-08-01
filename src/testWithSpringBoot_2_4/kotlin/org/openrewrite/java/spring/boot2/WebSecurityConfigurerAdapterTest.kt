@@ -23,7 +23,8 @@ import org.openrewrite.java.JavaRecipeTest
 /**
  * @author Alex Boyko
  */
-class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
+@Suppress("RedundantThrows")
+class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
 
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
@@ -32,11 +33,13 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
             .build()
 
     override val recipe: Recipe
-        get() = WebSecurityConfigurerAdapterRecipe()
+        get() = WebSecurityConfigurerAdapter()
 
     @Test
     fun configureHttpSecurityMethod() = assertChanged(
         before = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -57,6 +60,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
             }
         """,
         after = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
 
             import org.springframework.context.annotation.Bean;
@@ -84,6 +89,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
     @Test
     fun noConfigurationAnnotation() = assertUnchanged(
         before = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -106,6 +113,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
     @Test
     fun configureWebSecurityMethod() = assertChanged(
         before = """
+            package com.example.websecuritydemo;
+            
             import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
             import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -121,6 +130,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
             }
         """,
         after = """
+            package com.example.websecuritydemo;
+            
             import org.springframework.context.annotation.Bean;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -143,7 +154,9 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
     @Test
     fun configurAuthManagerMethod() = assertUnchanged(
         before = """
-            import org.springframework.context.annotation.Configuration;
+        package com.example.websecuritydemo;
+        
+        import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
             import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
             import org.springframework.security.ldap.userdetails.PersonContextMapper;
@@ -168,12 +181,14 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
     @Test
     fun overideUnapplicableMethod() = assertUnchanged(
         before = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
             import org.springframework.security.authentication.AuthenticationManager;
-;
+
             @Configuration
             public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             
@@ -198,6 +213,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
     @Test
     fun unapplicableMethodInvocation() = assertUnchanged(
         before = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -223,6 +240,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
     @Test
     fun configureHttpSecurityMethodInnerClass() = assertChanged(
         before = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -255,6 +274,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
             }
         """,
         after = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
 
             import org.springframework.context.annotation.Bean;
@@ -295,6 +316,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
     @Test
     fun configureHttpSecurityMethodInnerClassWithNotApplicableMethod() = assertChanged(
         before = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -327,6 +350,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
             }
         """,
         after = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
 
             import org.springframework.context.annotation.Bean;
@@ -367,6 +392,8 @@ class WebSecurityConfigurerAdapterRecipeTest : JavaRecipeTest {
     @Test
     fun configureHttpSecurityMethodWithNotApplicableMethodInNonStaticInnerClass() = assertUnchanged(
         before = """
+            package com.example.websecuritydemo;
+            
             import static org.springframework.security.config.Customizer.withDefaults;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;

@@ -25,12 +25,11 @@ import org.openrewrite.marker.Markers;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 /**
  * @author Alex Boyko
  */
-public class WebSecurityConfigurerAdapterRecipe extends Recipe {
+public class WebSecurityConfigurerAdapter extends Recipe {
 
     private static final Collection<J.Modifier.Type> EXPLICIT_ACCESS_LEVELS = Arrays.asList(J.Modifier.Type.Public,
             J.Modifier.Type.Private, J.Modifier.Type.Protected);
@@ -46,11 +45,11 @@ public class WebSecurityConfigurerAdapterRecipe extends Recipe {
     private static final String BEAN_ANNOTATION = "@" + BEAN_SIMPLE_NAME;
 
     private static final MethodMatcher CONFIGURE_HTTP_SECURITY_METHOD_MATCHER =
-            new MethodMatcher("* configure(org.springframework.security.config.annotation.web.builders.HttpSecurity)");
+            new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter configure(org.springframework.security.config.annotation.web.builders.HttpSecurity)", true);
     private static final MethodMatcher CONFIGURE_WEB_SECURITY_METHOD_MATCHER =
-            new MethodMatcher("* configure(org.springframework.security.config.annotation.web.builders.WebSecurity)");
+            new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter configure(org.springframework.security.config.annotation.web.builders.WebSecurity)", true);
     private static final MethodMatcher CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER =
-            new MethodMatcher("* configure(org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder)");
+            new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter configure(org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder)", true);
 
     private static final List<MethodMatcher> APPLICABLE_METHODS_MATCHERS = Arrays.asList(
             CONFIGURE_HTTP_SECURITY_METHOD_MATCHER,
@@ -192,9 +191,11 @@ public class WebSecurityConfigurerAdapterRecipe extends Recipe {
                         private void checkNonApplicableMethod(@Nullable JavaType.Method m, AtomicBoolean found) {
                             if (m != null && !found.get()) {
                                 J.ClassDeclaration enclosingClassDecl = getCursor().firstEnclosing(J.ClassDeclaration.class);
-                                if (enclosingClassDecl == classDecl || !enclosingClassDecl.hasModifier(J.Modifier.Type.Static)) {
+                                if (enclosingClassDecl == classDecl ||
+                                        (enclosingClassDecl != null && !enclosingClassDecl.hasModifier(J.Modifier.Type.Static))
+                                ) {
                                     if (TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, m.getDeclaringType())
-                                            && !APPLICABLE_METHODS_MATCHERS.stream().anyMatch(matcher -> matcher.matches(m))) {
+                                            && APPLICABLE_METHODS_MATCHERS.stream().noneMatch(matcher -> matcher.matches(m))) {
                                         found.set(true);
                                     }
                                 }
