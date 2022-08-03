@@ -176,6 +176,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
+    runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
     runtimeOnly("org.openrewrite:rewrite-java-11:$rewriteVersion")
 
     testImplementation(platform(kotlin("bom", "1.6.21")))
