@@ -187,6 +187,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-engine:latest.release")
 
     testImplementation("org.openrewrite:rewrite-test:${rewriteVersion}")
+    testImplementation("org.openrewrite:rewrite-java-tck:${rewriteVersion}")
 
     testImplementation("org.assertj:assertj-core:latest.release")
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
