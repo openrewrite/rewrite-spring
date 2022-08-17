@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.openrewrite.config.Environment
 import org.openrewrite.test.RecipeSpec
 import org.openrewrite.test.RewriteTest
+import org.openrewrite.yaml.Assertions.yaml
 
 
 class SpringProfilesGroupPropertyTest : RewriteTest {

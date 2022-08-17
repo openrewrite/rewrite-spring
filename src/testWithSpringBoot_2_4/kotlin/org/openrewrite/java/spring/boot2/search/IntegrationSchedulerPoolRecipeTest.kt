@@ -16,9 +16,13 @@
 package org.openrewrite.java.spring.boot2.search
 
 import org.junit.jupiter.api.Test
+import org.openrewrite.java.Assertions.*
 import org.openrewrite.java.JavaParser
+import org.openrewrite.maven.Assertions.pomXml
+import org.openrewrite.properties.Assertions.properties
 import org.openrewrite.test.RecipeSpec
 import org.openrewrite.test.RewriteTest
+import org.openrewrite.yaml.Assertions.yaml
 import java.nio.file.Paths
 
 /**

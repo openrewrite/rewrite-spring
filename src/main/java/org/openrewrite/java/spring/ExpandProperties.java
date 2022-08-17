@@ -86,6 +86,7 @@ public class ExpandProperties extends Recipe {
                                         e.getValue()
                                 )
                         ),
+                        null,
                         null
                 ));
                 e = autoFormat(e, ctx, getCursor().getParentOrThrow());
@@ -112,6 +113,7 @@ public class ExpandProperties extends Recipe {
                             null,
                             keyMappings.getValue().stream().flatMap(duplicateMapping -> duplicateMapping.getEntries().stream())
                                     .collect(Collectors.toList()),
+                            null,
                             null
                     );
                     Yaml.Mapping.Entry newEntry = new Yaml.Mapping.Entry(randomId(),
