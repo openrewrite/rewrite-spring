@@ -1189,6 +1189,7 @@ recipeList:
   - org.openrewrite.yaml.ChangePropertyKey:
       oldPropertyKey: logging.file
       newPropertyKey: logging.file.name
+      except: [ path ]
   - org.openrewrite.properties.ChangePropertyKey:
       oldPropertyKey: logging.path
       newPropertyKey: logging.file.path
