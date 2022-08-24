@@ -34,7 +34,7 @@ class UpdateApiManifestTest : JavaRecipeTest {
 
     @Test
     fun requestMappingWithMethod() {
-        val results = recipe.run(parser.parse("""
+        val recipeRun = recipe.run(parser.parse("""
             import java.util.List;
             import org.springframework.http.ResponseEntity;
             import org.springframework.web.bind.annotation.*;
@@ -49,8 +49,8 @@ class UpdateApiManifestTest : JavaRecipeTest {
             }
         """.trimIndent()))
 
-        assertThat(results.size).isEqualTo(1)
-        assertThat(results[0].after!!.sourcePath).isEqualTo(Paths.get("META-INF/api-manifest.txt"))
-        assertThat(results[0].after!!.printAll()).isEqualTo("POST /users/post")
+        assertThat(recipeRun.results.size).isEqualTo(1)
+        assertThat(recipeRun.results[0].after!!.sourcePath).isEqualTo(Paths.get("META-INF/api-manifest.txt"))
+        assertThat(recipeRun.results[0].after!!.printAll()).isEqualTo("POST /users/post")
     }
 }

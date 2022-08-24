@@ -37,7 +37,7 @@ class SeparateApplicationYamlByProfileTest : YamlRecipeTest {
                     activate:
                         on-profile: test
             name: test
-        """.trimIndent()).map { it.withSourcePath(Paths.get("src/main/resources/application.yml")) }).groupByProfile()
+        """.trimIndent()).map { it.withSourcePath(Paths.get("src/main/resources/application.yml")) }).results.groupByProfile()
 
         assertThat(results["application.yml"]).isEqualTo("name: main")
         assertThat(results["application-test.yml"]).isEqualTo("name: test")
@@ -51,7 +51,7 @@ class SeparateApplicationYamlByProfileTest : YamlRecipeTest {
                     activate:
                         on-profile: test
             name: test
-        """.trimIndent()).map { it.withSourcePath(Paths.get("src/main/resources/application.yml")) }).groupByProfile()
+        """.trimIndent()).map { it.withSourcePath(Paths.get("src/main/resources/application.yml")) }).results.groupByProfile()
 
         assertThat(results["application.yml"]).isEqualTo(null)
         assertThat(results["application-test.yml"]).isEqualTo("name: test")
@@ -65,7 +65,7 @@ class SeparateApplicationYamlByProfileTest : YamlRecipeTest {
                     activate:
                         on-profile: !test
             name: test
-        """.trimIndent())).isEmpty()
+        """.trimIndent())).results.isEmpty()
     }
 
     private fun List<Result>.groupByProfile() = associate { r ->

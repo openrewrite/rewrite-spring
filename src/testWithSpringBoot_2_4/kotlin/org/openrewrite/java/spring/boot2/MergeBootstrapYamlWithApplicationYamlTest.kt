@@ -55,7 +55,7 @@ class MergeBootstrapYamlWithApplicationYamlTest : YamlRecipeTest {
         ).map { it.withSourcePath(Paths.get("src/main/resources/bootstrap.yml")) }
 
         val results = recipe.run(bootstrapYaml + applicationYaml)
-            .sortedBy { it.before!!.sourcePath.fileName.toString() }
+            .results.sortedBy { it.before!!.sourcePath.fileName.toString() }
 
         assertThat(results).hasSize(2)
         assertThat(results[1].after).isNull()
