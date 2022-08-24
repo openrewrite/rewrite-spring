@@ -163,6 +163,6 @@ class LoggingShutdownHooksTest : MavenRecipeTest {
 
     private fun assertLoggingShutdownHook(isOn: Boolean, before: String) {
         val sourceFiles = MavenParser.builder().build().parse(before).plus(application)
-        assertThat(LoggingShutdownHooks().run(sourceFiles)).hasSize(if(isOn) 1 else 0)
+        assertThat(LoggingShutdownHooks().run(sourceFiles).results).hasSize(if(isOn) 1 else 0)
     }
 }

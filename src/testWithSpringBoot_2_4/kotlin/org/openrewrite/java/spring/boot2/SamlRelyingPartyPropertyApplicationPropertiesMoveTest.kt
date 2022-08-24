@@ -91,6 +91,6 @@ class SamlRelyingPartyPropertyApplicationPropertiesMoveTest : JavaRecipeTest {
         val applicationProperties = PropertiesParser().parse(inputProperties)
             .map { it.withSourcePath(Paths.get("src/main/resources/application.properties")) }
 
-        return recipe.run(applicationProperties)
+        return recipe.run(applicationProperties).results
     }
 }
