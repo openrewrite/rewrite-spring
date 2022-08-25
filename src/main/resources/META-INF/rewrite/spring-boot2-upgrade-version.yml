@@ -299,6 +299,8 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.7.x
+  # Update properties
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
 
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.ChangeType:
