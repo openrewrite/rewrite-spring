@@ -36,7 +36,6 @@ class IntegrationSchedulerPoolRecipeTest : RewriteTest {
         spec.parser(
             JavaParser.fromJavaVersion()
                 .classpath("spring-boot", "spring-boot-autoconfigure")
-                .build()
         )
     }
 
