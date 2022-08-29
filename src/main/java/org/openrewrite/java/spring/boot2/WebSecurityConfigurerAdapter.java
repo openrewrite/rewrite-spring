@@ -17,14 +17,12 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Alex Boyko
@@ -51,11 +49,10 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     private static final MethodMatcher CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER =
             new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter configure(org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder)", true);
 
-    private static final List<MethodMatcher> APPLICABLE_METHODS_MATCHERS = Arrays.asList(
-            CONFIGURE_HTTP_SECURITY_METHOD_MATCHER,
-            CONFIGURE_WEB_SECURITY_METHOD_MATCHER
-//            CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER
-    );
+    private static final MethodMatcher USER_DETAILS_SERVICE_BEAN_METHOD_MATCHER =
+            new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter  userDetailsServiceBean()", true);
+    private static final MethodMatcher AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER =
+            new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter  authenticationManagerBean()", true);
 
     private static final String MSG_QUALIFIES = "qualifies";
 
@@ -74,7 +71,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
-                if (isApplicableClass(classDecl)) {
+                if (TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
+                        && classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), FQN_CONFIGURATION))) {
                     getCursor().putMessage(MSG_QUALIFIES, true);
                     maybeRemoveImport(FQN_WEB_SECURITY_CONFIGURER_ADAPTER);
                     return super.visitClassDeclaration(classDecl, context).withExtends(null);
@@ -131,7 +129,15 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
                         m = addBeanAnnotation(m, getCursor());
                         maybeAddImport(FQN_WEB_SECURITY_CUSTOMIZER);
-                    } else if (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(m, classCursor.getValue())) {
+                    } else if (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(m, classCursor.getValue())
+                        || AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER.matches(m.getMethodType())
+                        || USER_DETAILS_SERVICE_BEAN_METHOD_MATCHER.matches(m.getMethodType())) {
+                        m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), anno -> {
+                            if (TypeUtils.isOfClassType(anno.getType(), "java.lang.Override")) {
+                                return null;
+                            }
+                            return anno;
+                        }));
                         // TODO: implement this case
                         m = m.withMarkers(m.getMarkers().searchResult("Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter"));
                     }
@@ -178,54 +184,6 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 JavaTemplate template = JavaTemplate.builder(() -> c, BEAN_ANNOTATION).imports(FQN_BEAN).javaParser(() -> JavaParser.fromJavaVersion()
                         .dependsOn("package " + BEAN_PKG + "; public @interface " + BEAN_SIMPLE_NAME + " {}").build()).build();
                 return m.withTemplate(template, m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
-            }
-
-            private boolean isApplicableClass(J.ClassDeclaration classDecl) {
-
-                if (TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
-                        && classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), FQN_CONFIGURATION))) {
-
-                    AtomicBoolean foundNonApplicableMethodUsage = new AtomicBoolean();
-                    new JavaIsoVisitor<AtomicBoolean>() {
-
-                        private void checkNonApplicableMethod(@Nullable JavaType.Method m, AtomicBoolean found) {
-                            if (m != null && !found.get()) {
-                                J.ClassDeclaration enclosingClassDecl = getCursor().firstEnclosing(J.ClassDeclaration.class);
-                                if (enclosingClassDecl == classDecl ||
-                                        (enclosingClassDecl != null && !enclosingClassDecl.hasModifier(J.Modifier.Type.Static))
-                                ) {
-                                    if (TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, m.getDeclaringType())
-                                            && APPLICABLE_METHODS_MATCHERS.stream().noneMatch(matcher -> matcher.matches(m))) {
-                                        found.set(true);
-                                    }
-                                }
-                            }
-                        }
-
-                        @Override
-                        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicBoolean found) {
-                           checkNonApplicableMethod(method.getMethodType(), found);
-                           return found.get() ? method : super.visitMethodInvocation(method, found);
-                        }
-
-                        @Override
-                        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, AtomicBoolean found) {
-                            checkNonApplicableMethod(method.getMethodType(), found);
-                            return found.get() ? method : super.visitMethodDeclaration(method, found);
-                        }
-
-                        @Override
-                        public J.MemberReference visitMemberReference(J.MemberReference memberRef, AtomicBoolean found) {
-                            checkNonApplicableMethod(memberRef.getMethodType(), found);
-                            return found.get() ? memberRef : super.visitMemberReference(memberRef, found);
-                        }
-
-                    }.visit(classDecl, foundNonApplicableMethodUsage);
-
-                    return !foundNonApplicableMethodUsage.get();
-                }
-                return false;
-
             }
 
         };
