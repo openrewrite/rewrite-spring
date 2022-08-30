@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
@@ -54,7 +55,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     private static final MethodMatcher AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER =
             new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter  authenticationManagerBean()", true);
 
-    private static final String MSG_QUALIFIES = "qualifies";
+    private static final String HAS_CONFLICT = "has-conflict";
 
     @Override
     public String getDisplayName() {
@@ -73,35 +74,35 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
                 if (TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
                         && classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), FQN_CONFIGURATION))) {
-                    if (!isConvertable(classDecl)) {
-                        return classDecl.withMarkers(classDecl.getMarkers()
-                                .searchResult("Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter"));
+                    boolean hasConflict = false;
+                    for (JavaType.Method method : classDecl.getType().getMethods()) {
+                        if (isConflictingMethod(method, method.getName())) {
+                            hasConflict = true;
+                        }
                     }
-                    getCursor().putMessage(MSG_QUALIFIES, true);
-                    maybeRemoveImport(FQN_WEB_SECURITY_CONFIGURER_ADAPTER);
-                    return super.visitClassDeclaration(classDecl, context).withExtends(null);
+                    if (!hasConflict) {
+                        getCursor().putMessage(HAS_CONFLICT, false);
+                        maybeRemoveImport(FQN_WEB_SECURITY_CONFIGURER_ADAPTER);
+                        classDecl = classDecl.withExtends(null);
+                    }
                 }
                 return super.visitClassDeclaration(classDecl, context);
             }
 
-            private boolean isConvertable(J.ClassDeclaration classDecl) {
-                if (classDecl.getType() != null) {
-                    for (JavaType.Method method : classDecl.getType().getMethods()) {
-                        if (USER_DETAILS_SERVICE_BEAN_METHOD_MATCHER.matches(method)
-                                || AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER.matches(method)
-                                || CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(method)) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
+            private boolean isConflictingMethod(@Nullable JavaType.Method methodType, String methodName) {
+                return (methodType == null && "authenticationManagerBean".equals(methodName) || "userDetailsServiceBean".equals(methodName)) ||
+                        (USER_DETAILS_SERVICE_BEAN_METHOD_MATCHER.matches(methodType)
+                        || AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER.matches(methodType)
+                        || CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(methodType));
             }
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext context) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, context);
                 Cursor classCursor = getCursor().dropParentUntil(J.ClassDeclaration.class::isInstance);
-                if (classCursor.getMessage(MSG_QUALIFIES, false)) {
+                if (isConflictingMethod(m.getMethodType(), method.getSimpleName())) {
+                    m = m.withMarkers(m.getMarkers().searchResult("Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter"));
+                } else if (!classCursor.getMessage(HAS_CONFLICT, true)) {
                     if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(m, classCursor.getValue())) {
                         JavaType securityChainType = JavaType.buildType(FQN_SECURITY_FILTER_CHAIN);
                         JavaType.Method type = m.getMethodType();
@@ -146,17 +147,6 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
                         m = addBeanAnnotation(m, getCursor());
                         maybeAddImport(FQN_WEB_SECURITY_CUSTOMIZER);
-                    } else if (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(m, classCursor.getValue())
-                        || AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER.matches(m.getMethodType())
-                        || USER_DETAILS_SERVICE_BEAN_METHOD_MATCHER.matches(m.getMethodType())) {
-                        m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), anno -> {
-                            if (TypeUtils.isOfClassType(anno.getType(), "java.lang.Override")) {
-                                return null;
-                            }
-                            return anno;
-                        }));
-                        // TODO: implement this case
-                        m = m.withMarkers(m.getMarkers().searchResult("Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter"));
                     }
                 }
                 return m;
@@ -169,7 +159,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     J.MethodDeclaration parentMethod = getCursor().getParent().getValue();
                     Cursor classDeclCursor = getCursor().dropParentUntil(J.ClassDeclaration.class::isInstance);
                     J.ClassDeclaration classDecl = classDeclCursor.getValue();
-                    if (classDeclCursor.getMessage(MSG_QUALIFIES, false)) {
+                    if (!classDeclCursor.getMessage(HAS_CONFLICT, true)) {
                         if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
                             JavaTemplate template = JavaTemplate.builder(this::getCursor,  "return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
                                     .javaParser(() -> JavaParser.fromJavaVersion()

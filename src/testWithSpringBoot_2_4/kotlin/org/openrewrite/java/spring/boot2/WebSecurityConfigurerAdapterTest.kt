@@ -188,10 +188,10 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
         import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
         import org.springframework.security.ldap.userdetails.PersonContextMapper;
 
-        /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Configuration
+        @Configuration
         public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-            @Override
+            /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
             protected void configure(AuthenticationManagerBuilder auth) {
                 auth
                     .ldapAuthentication()
@@ -253,7 +253,7 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
             import org.springframework.security.authentication.AuthenticationManager;
             import org.springframework.security.core.userdetails.UserDetailsService;
 
-            /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Configuration
+            @Configuration
             public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             
                 @Override
@@ -265,12 +265,12 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
                         .httpBasic(withDefaults());
                 }
                 
-                @Override
+                /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
                 public UserDetailsService userDetailsServiceBean() throws Exception  {
                     return null;
                 }
                 
-                @Override
+                /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
                 public AuthenticationManager authenticationManagerBean() throws Exception {
                     return null;
                 }
