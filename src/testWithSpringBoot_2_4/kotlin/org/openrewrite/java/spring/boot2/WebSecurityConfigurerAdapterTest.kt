@@ -56,6 +56,8 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
                         )
                         .httpBasic(withDefaults());
                 }
+                
+                void someMethod() {}
             
             }
         """,
@@ -81,6 +83,8 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
                         .httpBasic(withDefaults());
                     return http.build();
                 }
+                
+                void someMethod() {}
             
             }
         """
@@ -152,42 +156,67 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
     )
 
     @Test
-    fun configurAuthManagerMethod() = assertUnchanged(
+    fun configurAuthManagerMethod() = assertChanged(
         before = """
         package com.example.websecuritydemo;
         
         import org.springframework.context.annotation.Configuration;
-            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-            import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-            import org.springframework.security.ldap.userdetails.PersonContextMapper;
+        import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+        import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+        import org.springframework.security.ldap.userdetails.PersonContextMapper;
+        
+        @Configuration
+        public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-            @Configuration
-            public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-                @Override
-                protected void configure(AuthenticationManagerBuilder auth) {
-                    auth
-                        .ldapAuthentication()
-                        .userDetailsContextMapper(new PersonContextMapper())
-                        .userDnPatterns("uid={0},ou=people")
-                        .contextSource()
-                        .port(0);
-                }
-    
+            @Override
+            protected void configure(AuthenticationManagerBuilder auth) {
+                auth
+                    .ldapAuthentication()
+                    .userDetailsContextMapper(new PersonContextMapper())
+                    .userDnPatterns("uid={0},ou=people")
+                    .contextSource()
+                    .port(0);
             }
+
+        }
+        """,
+        after = """
+        package com.example.websecuritydemo;
+        
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+        import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+        import org.springframework.security.ldap.userdetails.PersonContextMapper;
+
+        @Configuration
+        public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+            /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
+            protected void configure(AuthenticationManagerBuilder auth) {
+                auth
+                    .ldapAuthentication()
+                    .userDetailsContextMapper(new PersonContextMapper())
+                    .userDnPatterns("uid={0},ou=people")
+                    .contextSource()
+                    .port(0);
+            }
+
+        }
         """
     )
 
     @Test
-    fun overideUnapplicableMethod() = assertUnchanged(
+    fun overideUnapplicableMethod() = assertChanged(
         before = """
             package com.example.websecuritydemo;
             
             import static org.springframework.security.config.Customizer.withDefaults;
+            
             import org.springframework.context.annotation.Configuration;
             import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
             import org.springframework.security.authentication.AuthenticationManager;
+            import org.springframework.security.core.userdetails.UserDetailsService;
 
             @Configuration
             public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -202,8 +231,48 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
                 }
                 
                 @Override
-                protected AuthenticationManager authenticationManager() throws Exception {
-                    throw new Exception("Not Implemented");
+                public UserDetailsService userDetailsServiceBean() throws Exception  {
+                    return null;
+                }
+                
+                @Override
+                public AuthenticationManager authenticationManagerBean() throws Exception {
+                    return null;
+                }
+            
+            }
+        """,
+        after = """
+            package com.example.websecuritydemo;
+            
+            import static org.springframework.security.config.Customizer.withDefaults;
+            
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.authentication.AuthenticationManager;
+            import org.springframework.security.core.userdetails.UserDetailsService;
+
+            @Configuration
+            public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+            
+                @Override
+                protected void configure(HttpSecurity http) throws Exception {
+                    http
+                        .authorizeHttpRequests((authz) -> authz
+                            .anyRequest().authenticated()
+                        )
+                        .httpBasic(withDefaults());
+                }
+                
+                /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
+                public UserDetailsService userDetailsServiceBean() throws Exception  {
+                    return null;
+                }
+                
+                /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
+                public AuthenticationManager authenticationManagerBean() throws Exception {
+                    return null;
                 }
             
             }
@@ -211,7 +280,7 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
     )
 
     @Test
-    fun unapplicableMethodInvocation() = assertUnchanged(
+    fun unapplicableMethodInvocation() = assertChanged(
         before = """
             package com.example.websecuritydemo;
             
@@ -233,88 +302,40 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
                         .httpBasic(withDefaults());
                 }
                 
-            }
-        """
-    )
-
-    @Test
-    fun configureHttpSecurityMethodInnerClass() = assertChanged(
-        before = """
-            package com.example.websecuritydemo;
-            
-            import static org.springframework.security.config.Customizer.withDefaults;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            
-            @Configuration
-            public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-            
-                @Override
-                protected void configure(HttpSecurity http) throws Exception {
-                    System.out.println(getApplicationContext());
-                    http
-                        .authorizeHttpRequests((authz) -> authz
-                            .anyRequest().authenticated()
-                        )
-                        .httpBasic(withDefaults());
-                }
-            
-                @Configuration
-                public static class InnerSecurityConfiguration extends WebSecurityConfigurerAdapter {
-                    @Override
-                    protected void configure(HttpSecurity http) throws Exception {
-                        http
-                            .authorizeHttpRequests((authz) -> authz
-                                .anyRequest().authenticated()
-                            )
-                            .httpBasic(withDefaults());
-                    }
-                }
+                public void someMethod() {}
             }
         """,
         after = """
             package com.example.websecuritydemo;
-            
+      
             import static org.springframework.security.config.Customizer.withDefaults;
-
+            
             import org.springframework.context.annotation.Bean;
             import org.springframework.context.annotation.Configuration;
-            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-            import org.springframework.security.web.SecurityFilterChain;
             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-
-            @Configuration
-            public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+            import org.springframework.security.web.SecurityFilterChain;
             
-                @Override
-                protected void configure(HttpSecurity http) throws Exception {
+            @Configuration
+            public class SecurityConfiguration {
+            
+                @Bean
+                SecurityFilterChain filterChain(HttpSecurity http) {
                     System.out.println(getApplicationContext());
                     http
                         .authorizeHttpRequests((authz) -> authz
                             .anyRequest().authenticated()
                         )
                         .httpBasic(withDefaults());
+                    return http.build();
                 }
-            
-                @Configuration
-                public static class InnerSecurityConfiguration {
-                    @Bean
-                    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                        http
-                            .authorizeHttpRequests((authz) -> authz
-                                .anyRequest().authenticated()
-                            )
-                            .httpBasic(withDefaults());
-                        return http.build();
-                    }
-                }
+                
+                public void someMethod() {}
             }
         """
     )
 
     @Test
-    fun configureHttpSecurityMethodInnerClassWithNotApplicableMethod() = assertChanged(
+    fun configureHttpSecurityMethodWithNotApplicableMethodInNonStaticInnerClass() = assertChanged(
         before = """
             package com.example.websecuritydemo;
             
@@ -336,15 +357,9 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
                 }
             
                 @Configuration
-                public static class InnerSecurityConfiguration extends WebSecurityConfigurerAdapter {
-                    @Override
-                    protected void configure(HttpSecurity http) throws Exception {
+                public class InnerSecurityConfiguration {
+                    protected void configure() throws Exception {
                         System.out.println(getApplicationContext());
-                        http
-                            .authorizeHttpRequests((authz) -> authz
-                                .anyRequest().authenticated()
-                            )
-                            .httpBasic(withDefaults());
                     }
                 }
             }
@@ -353,13 +368,12 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
             package com.example.websecuritydemo;
             
             import static org.springframework.security.config.Customizer.withDefaults;
-
+            
             import org.springframework.context.annotation.Bean;
             import org.springframework.context.annotation.Configuration;
-            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-            import org.springframework.security.web.SecurityFilterChain;
             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-
+            import org.springframework.security.web.SecurityFilterChain;
+            
             @Configuration
             public class SecurityConfiguration {
             
@@ -371,44 +385,6 @@ class WebSecurityConfigurerAdapterTest : JavaRecipeTest {
                         )
                         .httpBasic(withDefaults());
                     return http.build();
-                }
-            
-                @Configuration
-                public static class InnerSecurityConfiguration extends WebSecurityConfigurerAdapter {
-                    @Override
-                    protected void configure(HttpSecurity http) throws Exception {
-                        System.out.println(getApplicationContext());
-                        http
-                            .authorizeHttpRequests((authz) -> authz
-                                .anyRequest().authenticated()
-                            )
-                            .httpBasic(withDefaults());
-                    }
-                }
-            }
-        """
-    )
-
-    @Test
-    fun configureHttpSecurityMethodWithNotApplicableMethodInNonStaticInnerClass() = assertUnchanged(
-        before = """
-            package com.example.websecuritydemo;
-            
-            import static org.springframework.security.config.Customizer.withDefaults;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            
-            @Configuration
-            public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-            
-                @Override
-                protected void configure(HttpSecurity http) throws Exception {
-                    http
-                        .authorizeHttpRequests((authz) -> authz
-                            .anyRequest().authenticated()
-                        )
-                        .httpBasic(withDefaults());
                 }
             
                 @Configuration
