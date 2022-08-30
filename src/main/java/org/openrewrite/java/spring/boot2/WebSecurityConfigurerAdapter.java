@@ -80,8 +80,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                             hasConflict = true;
                         }
                     }
+                    getCursor().putMessage(HAS_CONFLICT, hasConflict);
                     if (!hasConflict) {
-                        getCursor().putMessage(HAS_CONFLICT, false);
                         maybeRemoveImport(FQN_WEB_SECURITY_CONFIGURER_ADAPTER);
                         classDecl = classDecl.withExtends(null);
                     }
