@@ -73,7 +73,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
                 if (TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
                         && classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), FQN_CONFIGURATION))) {
-                    if (isNonConvertable(classDecl)) {
+                    if (!isConvertable(classDecl)) {
                         return classDecl.withMarkers(classDecl.getMarkers()
                                 .searchResult("Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter"));
                     }
@@ -84,17 +84,17 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return super.visitClassDeclaration(classDecl, context);
             }
 
-            private boolean isNonConvertable(J.ClassDeclaration classDecl) {
+            private boolean isConvertable(J.ClassDeclaration classDecl) {
                 if (classDecl.getType() != null) {
                     for (JavaType.Method method : classDecl.getType().getMethods()) {
                         if (USER_DETAILS_SERVICE_BEAN_METHOD_MATCHER.matches(method)
                                 || AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER.matches(method)
                                 || CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(method)) {
-                            return true;
+                            return false;
                         }
                     }
                 }
-                return false;
+                return true;
             }
 
             @Override
