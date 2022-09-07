@@ -1,4 +1,4 @@
-# 
+#
 # Copyright 2021 the original author or authors.
 # <p>
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +12,117 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# 
-# ---
+#
+---
+########################################################################################################################
+# SpringBoot 2.0
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
+displayName: Upgrade to Spring Boot 2.0 from 1.x
+description: 'Upgrade to Spring Boot 2.0 from prior 1.x version.'
+recipeList:
+  # Upgrade 2.0.x from 1.x
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.boot
+      artifactId: "*"
+      newVersion: 2.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-parent
+      newVersion: 2.0.x
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.mockito
+      artifactId: "*"
+      newVersion: 3.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.RemoveProperty:
+      propertyName: thymeleaf.version
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.webjars
+      artifactId: webjars-locator
+
+  - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
+  - org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
+  - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
+  - org.openrewrite.java.spring.boot2.MigrateNotEmptyPackageName
+  - org.openrewrite.java.spring.boot2.MigrateNotBlankPackageName
+  - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
+
+  # Update properties
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
+displayName: Use `SpringBootServletInitializer`
+description: '`org.springframework.boot.web.support.SpringBootServletInitializer` was deprecated in 1.4.x.'
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.support.SpringBootServletInitializer
+      newFullyQualifiedTypeName: org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
+displayName: Use `HttpMessageConverters`
+description: '`org.springframework.boot.autoconfigure.web.HttpMessageConverters` was deprecated in 1.x.'
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.HttpMessageConverters
+      newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.http.HttpMessageConverters
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
+displayName: Use `ErrorController`
+description: '`org.springframework.boot.autoconfigure.web.ErrorController` was deprecated in 1.x.'
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.ErrorController
+      newFullyQualifiedTypeName: org.springframework.boot.web.servlet.error.ErrorController
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateNotEmptyPackageName
+displayName: Use `NotEmpty`
+description: '`org.hibernate.validator.constraints.NotEmpty` was deprecated in 1.x.'
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
+      newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
+  - org.openrewrite.maven.AddDependency:
+      groupId: javax.validation
+      artifactId: validation-api
+      version: 2.x
+      onlyIfUsing: javax.validation.constraints.NotBlank
+  - org.openrewrite.maven.AddDependency:
+      groupId: javax.validation
+      artifactId: validation-api
+      version: 2.x
+      onlyIfUsing: javax.validation.constraints.NotEmpty
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateNotBlankPackageName
+displayName: Use `NotBlank`
+description: '`org.hibernate.validator.constraints.NotBlank` was deprecated in 1.x.'
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotBlank
+      newFullyQualifiedTypeName: javax.validation.constraints.NotBlank
+  - org.openrewrite.maven.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-validation
+      version: 2.x
+      onlyIfUsing: javax.validation.constraints.NotBlank
+  - org.openrewrite.maven.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-validation
+      version: 2.x
+      onlyIfUsing: javax.validation.constraints.NotEmpty
+---
+########################################################################################################################
+# SpringBoot 2.0 Configuration Changes
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
 displayName: Migrate Spring Boot properties to 2.0
@@ -1027,737 +1136,11 @@ recipeList:
   - org.openrewrite.yaml.ChangePropertyKey:
       oldPropertyKey: spring.metrics.export.statsd.port
       newPropertyKey: management.metrics.export.statsd.port
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_1
-displayName: Migrate Spring Boot properties to 2.1
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.metrics.binders.files.enabled
-      newPropertyKey: management.metrics.enable.process.files
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.binders.files.enabled
-      newPropertyKey: management.metrics.enable.process.files
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.metrics.binders.jvm.enabled
-      newPropertyKey: management.metrics.enable.jvm
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.binders.jvm.enabled
-      newPropertyKey: management.metrics.enable.jvm
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.metrics.binders.logback.enabled
-      newPropertyKey: management.metrics.enable.logback
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.binders.logback.enabled
-      newPropertyKey: management.metrics.enable.logback
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.servlet.path
-      newPropertyKey: spring.mvc.servlet.path
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.servlet.path
-      newPropertyKey: spring.mvc.servlet.path
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.activemq.pool.maximum-active-session-per-connection
-      newPropertyKey: spring.activemq.pool.max-sessions-per-connection
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.activemq.pool.maximum-active-session-per-connection
-      newPropertyKey: spring.activemq.pool.max-sessions-per-connection
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.artemis.pool.maximum-active-session-per-connection
-      newPropertyKey: spring.artemis.pool.max-sessions-per-connection
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.artemis.pool.maximum-active-session-per-connection
-      newPropertyKey: spring.artemis.pool.max-sessions-per-connection
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.keystore-location
-      newPropertyKey: spring.kafka.admin.ssl.key-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.keystore-location
-      newPropertyKey: spring.kafka.admin.ssl.key-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.keystore-password
-      newPropertyKey: spring.kafka.admin.ssl.key-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.keystore-password
-      newPropertyKey: spring.kafka.admin.ssl.key-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.truststore-location
-      newPropertyKey: spring.kafka.admin.ssl.trust-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.truststore-location
-      newPropertyKey: spring.kafka.admin.ssl.trust-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.truststore-password
-      newPropertyKey: spring.kafka.admin.ssl.trust-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.truststore-password
-      newPropertyKey: spring.kafka.admin.ssl.trust-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.keystore-location
-      newPropertyKey: spring.kafka.consumer.ssl.key-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.keystore-location
-      newPropertyKey: spring.kafka.consumer.ssl.key-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.keystore-password
-      newPropertyKey: spring.kafka.consumer.ssl.key-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.keystore-password
-      newPropertyKey: spring.kafka.consumer.ssl.key-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.truststore-location
-      newPropertyKey: spring.kafka.consumer.ssl.trust-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.truststore-location
-      newPropertyKey: spring.kafka.consumer.ssl.trust-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.truststore-password
-      newPropertyKey: spring.kafka.consumer.ssl.trust-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.truststore-password
-      newPropertyKey: spring.kafka.consumer.ssl.trust-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.keystore-location
-      newPropertyKey: spring.kafka.producer.ssl.key-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.keystore-location
-      newPropertyKey: spring.kafka.producer.ssl.key-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.keystore-password
-      newPropertyKey: spring.kafka.producer.ssl.key-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.keystore-password
-      newPropertyKey: spring.kafka.producer.ssl.key-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.truststore-location
-      newPropertyKey: spring.kafka.producer.ssl.trust-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.truststore-location
-      newPropertyKey: spring.kafka.producer.ssl.trust-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.truststore-password
-      newPropertyKey: spring.kafka.producer.ssl.trust-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.truststore-password
-      newPropertyKey: spring.kafka.producer.ssl.trust-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.keystore-location
-      newPropertyKey: spring.kafka.ssl.key-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.keystore-location
-      newPropertyKey: spring.kafka.ssl.key-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.keystore-password
-      newPropertyKey: spring.kafka.ssl.key-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.keystore-password
-      newPropertyKey: spring.kafka.ssl.key-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.truststore-location
-      newPropertyKey: spring.kafka.ssl.trust-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.truststore-location
-      newPropertyKey: spring.kafka.ssl.trust-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.truststore-password
-      newPropertyKey: spring.kafka.ssl.trust-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.truststore-password
-      newPropertyKey: spring.kafka.ssl.trust-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.mvc.formcontent.putfilter.enabled
-      newPropertyKey: spring.mvc.formcontent.filter.enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.mvc.formcontent.putfilter.enabled
-      newPropertyKey: spring.mvc.formcontent.filter.enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.gzipped
-      newPropertyKey: spring.resources.chain.compressed
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.gzipped
-      newPropertyKey: spring.resources.chain.compressed
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
-displayName: Migrate Spring Boot properties to 2.2
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: logging.file
-      newPropertyKey: logging.file.name
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: logging.file
-      newPropertyKey: logging.file.name
-      except: [ path ]
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: logging.path
-      newPropertyKey: logging.file.path
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: logging.path
-      newPropertyKey: logging.file.path
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.date-format
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.date-format
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.extended-format
-      newPropertyKey: server.jetty.accesslog.format
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.extended-format
-      newPropertyKey: server.jetty.accesslog.format
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.locale
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.locale
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.log-cookies
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.log-cookies
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.log-latency
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.log-latency
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.log-server
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.log-server
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.time-zone
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.jetty.accesslog.time-zone
-      newPropertyKey: server.jetty.accesslog.custom-format
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.tomcat.max-http-header-size
-      newPropertyKey: server.max-http-header-size
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.tomcat.max-http-header-size
-      newPropertyKey: server.max-http-header-size
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.jmx-enabled
-      newPropertyKey: spring.datasource.tomcat.jmx-enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.jmx-enabled
-      newPropertyKey: spring.datasource.tomcat.jmx-enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.streams.cache-max-bytes-buffering
-      newPropertyKey: spring.kafka.streams.cache-max-size-buffering
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.streams.cache-max-bytes-buffering
-      newPropertyKey: spring.kafka.streams.cache-max-size-buffering
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.rabbitmq.template.queue
-      newPropertyKey: spring.rabbitmq.template.default-receive-queue
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.rabbitmq.template.queue
-      newPropertyKey: spring.rabbitmq.template.default-receive-queue
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.reactor.stacktrace-mode.enabled
-      newPropertyKey: spring.reactor.debug-agent.enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.reactor.stacktrace-mode.enabled
-      newPropertyKey: spring.reactor.debug-agent.enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.endpoints.jmx.unique-names
-      newPropertyKey: spring.jmx.unique-names
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.endpoints.jmx.unique-names
-      newPropertyKey: spring.jmx.unique-names
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_3
-displayName: Migrate Spring Boot properties to 2.3
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.health.probes.enabled
-      newPropertyKey: management.endpoint.health.probes.enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.health.probes.enabled
-      newPropertyKey: management.endpoint.health.probes.enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.client.requests-metric-name
-      newPropertyKey: management.metrics.web.client.request.metric-name
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.client.requests-metric-name
-      newPropertyKey: management.metrics.web.client.request.metric-name
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.server.auto-time-requests
-      newPropertyKey: management.metrics.web.server.request.autotime.enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.server.auto-time-requests
-      newPropertyKey: management.metrics.web.server.request.autotime.enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.server.requests-metric-name
-      newPropertyKey: management.metrics.web.server.request.metric-name
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.web.server.requests-metric-name
-      newPropertyKey: management.metrics.web.server.request.metric-name
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.jetty.max-http-post-size
-      newPropertyKey: server.jetty.max-http-form-post-size
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.jetty.max-http-post-size
-      newPropertyKey: server.jetty.max-http-form-post-size
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.tomcat.max-http-post-size
-      newPropertyKey: server.tomcat.max-http-form-post-size
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.tomcat.max-http-post-size
-      newPropertyKey: server.tomcat.max-http-form-post-size
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: server.use-forward-headers
-      newPropertyKey: server.forward-headers-strategy
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.use-forward-headers
-      newPropertyKey: server.forward-headers-strategy
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.bootstrap-hosts
-      newPropertyKey: spring.couchbase.connection-string
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.bootstrap-hosts
-      newPropertyKey: spring.couchbase.connection-string
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.env.endpoints.queryservice.max-endpoints
-      newPropertyKey: spring.couchbase.env.io.max-endpoints
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.env.endpoints.queryservice.max-endpoints
-      newPropertyKey: spring.couchbase.env.io.max-endpoints
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.env.endpoints.queryservice.min-endpoints
-      newPropertyKey: spring.couchbase.env.io.min-endpoints
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.env.endpoints.queryservice.min-endpoints
-      newPropertyKey: spring.couchbase.env.io.min-endpoints
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.env.endpoints.viewservice.max-endpoints
-      newPropertyKey: spring.couchbase.env.io.max-endpoints
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.env.endpoints.viewservice.max-endpoints
-      newPropertyKey: spring.couchbase.env.io.max-endpoints
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.env.endpoints.viewservice.min-endpoints
-      newPropertyKey: spring.couchbase.env.io.min-endpoints
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.couchbase.env.endpoints.viewservice.min-endpoints
-      newPropertyKey: spring.couchbase.env.io.min-endpoints
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.data.cassandra.pool.max-queue-size
-      newPropertyKey: spring.data.cassandra.request.throttler.max-queue-size
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.data.cassandra.pool.max-queue-size
-      newPropertyKey: spring.data.cassandra.request.throttler.max-queue-size
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.http.converters.preferred-json-mapper
-      newPropertyKey: spring.mvc.converters.preferred-json-mapper
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.http.converters.preferred-json-mapper
-      newPropertyKey: spring.mvc.converters.preferred-json-mapper
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.charset
-      newPropertyKey: server.servlet.encoding.charset
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.charset
-      newPropertyKey: server.servlet.encoding.charset
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.enabled
-      newPropertyKey: server.servlet.encoding.enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.enabled
-      newPropertyKey: server.servlet.encoding.enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.force
-      newPropertyKey: server.servlet.encoding.force
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.force
-      newPropertyKey: server.servlet.encoding.force
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.force-request
-      newPropertyKey: server.servlet.encoding.force-request
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.force-request
-      newPropertyKey: server.servlet.encoding.force-request
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.force-response
-      newPropertyKey: server.servlet.encoding.force-response
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.force-response
-      newPropertyKey: server.servlet.encoding.force-response
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.mapping
-      newPropertyKey: server.servlet.encoding.mapping
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.http.encoding.mapping
-      newPropertyKey: server.servlet.encoding.mapping
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.http.log-request-details
-      newPropertyKey: spring.mvc.log-request-details
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.http.log-request-details
-      newPropertyKey: spring.mvc.log-request-details
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
-displayName: Migrate Spring Boot properties to 2.4
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: logging.pattern.rolling-file-name
-      newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: logging.pattern.rolling-file-name
-      newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: logging.file.clean-history-on-start
-      newPropertyKey: logging.logback.rollingpolicy.clean-history-on-start
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: logging.file.clean-history-on-start
-      newPropertyKey: logging.logback.rollingpolicy.clean-history-on-start
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: logging.file.max-size
-      newPropertyKey: logging.logback.rollingpolicy.max-file-size
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: logging.file.max-size
-      newPropertyKey: logging.logback.rollingpolicy.max-file-size
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: logging.file.total-size-cap
-      newPropertyKey: logging.logback.rollingpolicy.total-size-cap
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: logging.file.total-size-cap
-      newPropertyKey: logging.logback.rollingpolicy.total-size-cap
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: logging.file.max-history
-      newPropertyKey: logging.logback.rollingpolicy.max-history
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: logging.file.max-history
-      newPropertyKey: logging.logback.rollingpolicy.max-history
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.profiles
-      newPropertyKey: spring.config.activate.on-profile
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.profiles
-      newPropertyKey: spring.config.activate.on-profile
-      except: [ active, default, group, include ]
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.data.neo4j.password
-      newPropertyKey: spring.neo4j.authentication.password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.data.neo4j.password
-      newPropertyKey: spring.neo4j.authentication.password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.data.neo4j.repositories.enabled
-      newPropertyKey: spring.data.neo4j.repositories.type
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.data.neo4j.repositories.enabled
-      newPropertyKey: spring.data.neo4j.repositories.type
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.data.neo4j.uri
-      newPropertyKey: spring.neo4j.uri
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.data.neo4j.uri
-      newPropertyKey: spring.neo4j.uri
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.data.neo4j.username
-      newPropertyKey: spring.neo4j.authentication.password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.data.neo4j.username
-      newPropertyKey: spring.neo4j.authentication.password
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
-displayName: Migrate Spring Boot properties to 2.5
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.sql.init.enabled
-      newPropertyKey: spring.sql.init.mode
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.sql.init.enabled
-      newPropertyKey: spring.sql.init.mode
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
-displayName: Migrate Spring Boot properties to 2.6
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.data.mongodb.grid-fs-database
-      newPropertyKey: spring.data.mongodb.gridfs.database
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.data.mongodb.grid-fs-database
-      newPropertyKey: spring.data.mongodb.gridfs.database
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.mvc.locale
-      newPropertyKey: spring.web.locale
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.mvc.locale
-      newPropertyKey: spring.web.locale
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.mvc.locale-resolver
-      newPropertyKey: spring.web.locale-resolver
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.mvc.locale-resolver
-      newPropertyKey: spring.web.locale-resolver
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.add-mappings
-      newPropertyKey: spring.web.resources.add-mappings
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.add-mappings
-      newPropertyKey: spring.web.resources.add-mappings
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.cache-private
-      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-private
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.cache-private
-      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-private
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.cache-public
-      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-public
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.cache-public
-      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-public
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.max-age
-      newPropertyKey: spring.web.resources.cache.cachecontrol.max-age
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.max-age
-      newPropertyKey: spring.web.resources.cache.cachecontrol.max-age
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.must-revalidate
-      newPropertyKey: spring.web.resources.cache.cachecontrol.must-revalidate
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.must-revalidate
-      newPropertyKey: spring.web.resources.cache.cachecontrol.must-revalidate
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.no-cache
-      newPropertyKey: spring.web.resources.cache.cachecontrol.no-cache
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.no-cache
-      newPropertyKey: spring.web.resources.cache.cachecontrol.no-cache
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.no-store
-      newPropertyKey: spring.web.resources.cache.cachecontrol.no-store
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.no-store
-      newPropertyKey: spring.web.resources.cache.cachecontrol.no-store
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.no-transform
-      newPropertyKey: spring.web.resources.cache.cachecontrol.no-transform
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.no-transform
-      newPropertyKey: spring.web.resources.cache.cachecontrol.no-transform
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.proxy-revalidate
-      newPropertyKey: spring.web.resources.cache.cachecontrol.proxy-revalidate
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.proxy-revalidate
-      newPropertyKey: spring.web.resources.cache.cachecontrol.proxy-revalidate
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.s-max-age
-      newPropertyKey: spring.web.resources.cache.cachecontrol.s-max-age
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.s-max-age
-      newPropertyKey: spring.web.resources.cache.cachecontrol.s-max-age
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.stale-if-error
-      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-if-error
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.stale-if-error
-      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-if-error
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.stale-while-revalidate
-      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-while-revalidate
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.cachecontrol.stale-while-revalidate
-      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-while-revalidate
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.period
-      newPropertyKey: spring.web.resources.cache.period
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.period
-      newPropertyKey: spring.web.resources.cache.period
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.use-last-modified
-      newPropertyKey: spring.web.resources.cache.use-last-modified
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.cache.use-last-modified
-      newPropertyKey: spring.web.resources.cache.use-last-modified
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.cache
-      newPropertyKey: spring.web.resources.chain.cache
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.cache
-      newPropertyKey: spring.web.resources.chain.cache
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.compressed
-      newPropertyKey: spring.web.resources.chain.compressed
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.compressed
-      newPropertyKey: spring.web.resources.chain.compressed
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.enabled
-      newPropertyKey: spring.web.resources.chain.enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.enabled
-      newPropertyKey: spring.web.resources.chain.enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.content.enabled
-      newPropertyKey: spring.web.resources.chain.strategy.content.enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.content.enabled
-      newPropertyKey: spring.web.resources.chain.strategy.content.enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.content.paths
-      newPropertyKey: spring.web.resources.chain.strategy.content.paths
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.content.paths
-      newPropertyKey: spring.web.resources.chain.strategy.content.paths
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.fixed.enabled
-      newPropertyKey: spring.web.resources.chain.strategy.fixed.enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.fixed.enabled
-      newPropertyKey: spring.web.resources.chain.strategy.fixed.enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.fixed.paths
-      newPropertyKey: spring.web.resources.chain.strategy.fixed.paths
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.fixed.paths
-      newPropertyKey: spring.web.resources.chain.strategy.fixed.paths
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.fixed.version
-      newPropertyKey: spring.web.resources.chain.strategy.fixed.version
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.strategy.fixed.version
-      newPropertyKey: spring.web.resources.chain.strategy.fixed.version
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.static-locations
-      newPropertyKey: spring.web.resources.static-locations
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.resources.static-locations
-      newPropertyKey: spring.web.resources.static-locations
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: management.server.servlet.context-path
-      newPropertyKey: management.server.base-path
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.server.servlet.context-path
-      newPropertyKey: management.server.base-path
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
-displayName: Migrate Spring Boot properties to 2.7
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.artemis.host
-      newPropertyKey: spring.artemis.broker-url
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.artemis.host
-      newPropertyKey: spring.artemis.broker-url
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.artemis.port
-      newPropertyKey: spring.artemis.broker-url
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.artemis.port
-      newPropertyKey: spring.artemis.broker-url
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.batch.initialize-schema
-      newPropertyKey: spring.batch.jdbc.initialize-schema
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.batch.initialize-schema
-      newPropertyKey: spring.batch.jdbc.initialize-schema
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.batch.schema
-      newPropertyKey: spring.batch.jdbc.schema
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.batch.schema
-      newPropertyKey: spring.batch.jdbc.schema
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.batch.table-prefix
-      newPropertyKey: spring.batch.jdbc.table-prefix
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.batch.table-prefix
-      newPropertyKey: spring.batch.jdbc.table-prefix
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.continue-on-error
-      newPropertyKey: spring.sql.init.continue-on-error
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.continue-on-error
-      newPropertyKey: spring.sql.init.continue-on-error
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.data
-      newPropertyKey: spring.sql.init.data-locations
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.data
-      newPropertyKey: spring.sql.init.data-locations
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.data-password
-      newPropertyKey: spring.sql.init.password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.data-password
-      newPropertyKey: spring.sql.init.password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.data-username
-      newPropertyKey: spring.sql.init.username
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.data-username
-      newPropertyKey: spring.sql.init.username
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.initialization-mode
-      newPropertyKey: spring.sql.init.mode
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.initialization-mode
-      newPropertyKey: spring.sql.init.mode
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.platform
-      newPropertyKey: spring.sql.init.platform
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.platform
-      newPropertyKey: spring.sql.init.platform
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.schema
-      newPropertyKey: spring.sql.init.schema-locations
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.schema
-      newPropertyKey: spring.sql.init.schema-locations
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.schema-password
-      newPropertyKey: spring.sql.init.password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.schema-password
-      newPropertyKey: spring.sql.init.password
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.schema-username
-      newPropertyKey: spring.sql.init.username
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.schema-username
-      newPropertyKey: spring.sql.init.username
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.separator
-      newPropertyKey: spring.sql.init.separator
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.separator
-      newPropertyKey: spring.sql.init.separator
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.sql-script-encoding
-      newPropertyKey: spring.sql.init.encoding
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.datasource.sql-script-encoding
-      newPropertyKey: spring.sql.init.encoding
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.flyway.check-location
-      newPropertyKey: spring.flyway.fail-on-missing-locations
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.flyway.check-location
-      newPropertyKey: spring.flyway.fail-on-missing-locations
+  - org.openrewrite.properties.ChangePropertyValue:
+      propertyKey: spring.main.banner-mode
+      oldValue: true
+      newValue: console
+  - org.openrewrite.properties.ChangePropertyValue:
+      propertyKey: spring.main.banner-mode
+      oldValue: false
+      newValue: "off"

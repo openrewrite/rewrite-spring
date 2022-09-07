@@ -48,3 +48,6 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 3.0.0-SNAPSHOT
+---
+########################################################################################################################
+# SpringBoot 2.1 Configuration Changes

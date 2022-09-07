@@ -1,0 +1,151 @@
+#
+# Copyright 2021 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+########################################################################################################################
+# SpringBoot 2.4
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
+displayName: Upgrade to Spring Boot 2.4
+description: 'Upgrade to Spring Boot 2.4 from any prior 2.x version.'
+recipeList:
+  # JUnit Jupiter's vintage engine was removed in Spring Boot 2.4
+  - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
+  - org.openrewrite.java.testing.junit5.JUnit5BestPractices
+
+  # Upgrade to 2.3.x from 2.2.x
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
+
+  # Upgrade to 2.4.x from 2.3.x
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.boot
+      artifactId: "*"
+      newVersion: 2.4.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-parent
+      newVersion: 2.4.x
+  - org.openrewrite.maven.RemoveExclusion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-test
+      exclusionGroupId: org.junit.vintage
+      exclusionArtifactId: junit-vintage-engine
+  - org.openrewrite.maven.RemoveExclusion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-test
+      exclusionGroupId: junit
+      exclusionArtifactId: junit
+
+  # Use recommended replacements for deprecated APIs
+  - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
+  - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
+  - org.openrewrite.java.spring.boot2.MigrateLoggingSystemPropertyConstants
+  - org.openrewrite.java.spring.boot2.MigrateHsqlEmbeddedDatabaseConnection
+
+  # Update properties
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
+displayName: Use `isEagerFilterInit()`
+description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#isEagerInitFilters` was deprecated in 2.4 and are removed in 2.6.'
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory isEagerInitFilters()
+      newMethodName: isEagerFilterInit
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
+displayName: Use `setEagerFilterInit(boolean)`
+description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#setEagerInitFilters` was deprecated in 2.4 and are removed in 2.6.'
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory setEagerInitFilters(boolean)
+      newMethodName: setEagerFilterInit
+
+---
+########################################################################################################################
+# SpringBoot 2.4 Configuration Changes
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
+displayName: Migrate Spring Boot properties to 2.4
+description: Migrate properties found in `application.properties` and `application.yml`.
+recipeList:
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: logging.pattern.rolling-file-name
+      newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: logging.pattern.rolling-file-name
+      newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: logging.file.clean-history-on-start
+      newPropertyKey: logging.logback.rollingpolicy.clean-history-on-start
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: logging.file.clean-history-on-start
+      newPropertyKey: logging.logback.rollingpolicy.clean-history-on-start
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: logging.file.max-size
+      newPropertyKey: logging.logback.rollingpolicy.max-file-size
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: logging.file.max-size
+      newPropertyKey: logging.logback.rollingpolicy.max-file-size
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: logging.file.total-size-cap
+      newPropertyKey: logging.logback.rollingpolicy.total-size-cap
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: logging.file.total-size-cap
+      newPropertyKey: logging.logback.rollingpolicy.total-size-cap
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: logging.file.max-history
+      newPropertyKey: logging.logback.rollingpolicy.max-history
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: logging.file.max-history
+      newPropertyKey: logging.logback.rollingpolicy.max-history
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.profiles
+      newPropertyKey: spring.config.activate.on-profile
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.profiles
+      newPropertyKey: spring.config.activate.on-profile
+      except: [ active, default, group, include ]
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.password
+      newPropertyKey: spring.neo4j.authentication.password
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.password
+      newPropertyKey: spring.neo4j.authentication.password
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.repositories.enabled
+      newPropertyKey: spring.data.neo4j.repositories.type
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.repositories.enabled
+      newPropertyKey: spring.data.neo4j.repositories.type
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.uri
+      newPropertyKey: spring.neo4j.uri
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.uri
+      newPropertyKey: spring.neo4j.uri
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.username
+      newPropertyKey: spring.neo4j.authentication.password
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.data.neo4j.username
+      newPropertyKey: spring.neo4j.authentication.password

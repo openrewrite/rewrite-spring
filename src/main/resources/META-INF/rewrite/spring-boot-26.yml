@@ -1,0 +1,223 @@
+#
+# Copyright 2021 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+########################################################################################################################
+# SpringBoot 2.6
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
+displayName: Upgrade to Spring Boot 2.6
+description: 'Upgrade to Spring Boot 2.6 from any prior 2.x version.'
+recipeList:
+  # Upgrade to 2.5.x from 2.4.x
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
+  # Upgrade to 2.6.x from 2.5.x
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.boot
+      artifactId: "*"
+      newVersion: 2.6.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-parent
+      newVersion: 2.6.x
+  # Update properties
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
+  - org.openrewrite.java.spring.boot2.SpringBootPropertiesManual_2_6
+
+  # Upgrade spring-cloud-dependencies release train
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: "spring-cloud-dependencies"
+      newVersion: 2021.0.X
+      overrideManagedVersion: true
+---
+########################################################################################################################
+# SpringBoot 2.6 Configuration Changes
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
+displayName: Migrate Spring Boot properties to 2.6
+description: Migrate properties found in `application.properties` and `application.yml`.
+recipeList:
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: prometheus-pushgateway.version
+      newPropertyKey: prometheus-client.version
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: prometheus-pushgateway.version
+      newPropertyKey: prometheus-client.version
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.data.mongodb.grid-fs-database
+      newPropertyKey: spring.data.mongodb.gridfs.database
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.data.mongodb.grid-fs-database
+      newPropertyKey: spring.data.mongodb.gridfs.database
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.mvc.locale
+      newPropertyKey: spring.web.locale
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.mvc.locale
+      newPropertyKey: spring.web.locale
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.mvc.locale-resolver
+      newPropertyKey: spring.web.locale-resolver
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.mvc.locale-resolver
+      newPropertyKey: spring.web.locale-resolver
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.add-mappings
+      newPropertyKey: spring.web.resources.add-mappings
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.add-mappings
+      newPropertyKey: spring.web.resources.add-mappings
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.cache-private
+      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-private
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.cache-private
+      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-private
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.cache-public
+      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-public
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.cache-public
+      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-public
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.max-age
+      newPropertyKey: spring.web.resources.cache.cachecontrol.max-age
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.max-age
+      newPropertyKey: spring.web.resources.cache.cachecontrol.max-age
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.must-revalidate
+      newPropertyKey: spring.web.resources.cache.cachecontrol.must-revalidate
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.must-revalidate
+      newPropertyKey: spring.web.resources.cache.cachecontrol.must-revalidate
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.no-cache
+      newPropertyKey: spring.web.resources.cache.cachecontrol.no-cache
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.no-cache
+      newPropertyKey: spring.web.resources.cache.cachecontrol.no-cache
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.no-store
+      newPropertyKey: spring.web.resources.cache.cachecontrol.no-store
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.no-store
+      newPropertyKey: spring.web.resources.cache.cachecontrol.no-store
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.no-transform
+      newPropertyKey: spring.web.resources.cache.cachecontrol.no-transform
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.no-transform
+      newPropertyKey: spring.web.resources.cache.cachecontrol.no-transform
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.proxy-revalidate
+      newPropertyKey: spring.web.resources.cache.cachecontrol.proxy-revalidate
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.proxy-revalidate
+      newPropertyKey: spring.web.resources.cache.cachecontrol.proxy-revalidate
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.s-max-age
+      newPropertyKey: spring.web.resources.cache.cachecontrol.s-max-age
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.s-max-age
+      newPropertyKey: spring.web.resources.cache.cachecontrol.s-max-age
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.stale-if-error
+      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-if-error
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.stale-if-error
+      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-if-error
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.stale-while-revalidate
+      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-while-revalidate
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.stale-while-revalidate
+      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-while-revalidate
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.period
+      newPropertyKey: spring.web.resources.cache.period
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.period
+      newPropertyKey: spring.web.resources.cache.period
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.use-last-modified
+      newPropertyKey: spring.web.resources.cache.use-last-modified
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.cache.use-last-modified
+      newPropertyKey: spring.web.resources.cache.use-last-modified
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.cache
+      newPropertyKey: spring.web.resources.chain.cache
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.cache
+      newPropertyKey: spring.web.resources.chain.cache
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.compressed
+      newPropertyKey: spring.web.resources.chain.compressed
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.compressed
+      newPropertyKey: spring.web.resources.chain.compressed
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.enabled
+      newPropertyKey: spring.web.resources.chain.enabled
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.enabled
+      newPropertyKey: spring.web.resources.chain.enabled
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.content.enabled
+      newPropertyKey: spring.web.resources.chain.strategy.content.enabled
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.content.enabled
+      newPropertyKey: spring.web.resources.chain.strategy.content.enabled
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.content.paths
+      newPropertyKey: spring.web.resources.chain.strategy.content.paths
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.content.paths
+      newPropertyKey: spring.web.resources.chain.strategy.content.paths
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.fixed.enabled
+      newPropertyKey: spring.web.resources.chain.strategy.fixed.enabled
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.fixed.enabled
+      newPropertyKey: spring.web.resources.chain.strategy.fixed.enabled
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.fixed.paths
+      newPropertyKey: spring.web.resources.chain.strategy.fixed.paths
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.fixed.paths
+      newPropertyKey: spring.web.resources.chain.strategy.fixed.paths
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.fixed.version
+      newPropertyKey: spring.web.resources.chain.strategy.fixed.version
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.fixed.version
+      newPropertyKey: spring.web.resources.chain.strategy.fixed.version
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.resources.static-locations
+      newPropertyKey: spring.web.resources.static-locations
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.resources.static-locations
+      newPropertyKey: spring.web.resources.static-locations
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: management.server.servlet.context-path
+      newPropertyKey: management.server.base-path
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: management.server.servlet.context-path
+      newPropertyKey: management.server.base-path
+

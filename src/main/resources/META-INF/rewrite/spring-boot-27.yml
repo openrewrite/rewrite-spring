@@ -1,0 +1,164 @@
+#
+# Copyright 2021 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+########################################################################################################################
+# SpringBoot 2.7
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
+displayName: Upgrade to Spring Boot 2.7
+description: 'Upgrade to Spring Boot 2.7 from any prior 2.x version.'
+recipeList:
+  # Upgrade to 2.6.x from 2.5.x
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
+  # Upgrade to 2.7.x from 2.6.x
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.boot
+      artifactId: "*"
+      newVersion: 2.7.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-parent
+      newVersion: 2.7.x
+  # Update properties
+  - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
+
+  # Use recommended replacements for deprecated APIs
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.server.LocalServerPort
+      newFullyQualifiedTypeName: org.springframework.boot.test.web.server.LocalServerPort
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.actuate.autoconfigure.web.server.LocalManagementPort
+      newFullyQualifiedTypeName: org.springframework.boot.test.web.server.LocalManagementPort
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.rsocket.context.LocalRSocketServerPort
+      newFullyQualifiedTypeName: org.springframework.boot.test.rsocket.server.LocalRSocketServerPort
+---
+########################################################################################################################
+# SpringBoot 2.7 Configuration Changes
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
+displayName: Migrate Spring Boot properties to 2.7
+description: Migrate properties found in `application.properties` and `application.yml`.
+recipeList:
+  # Change: spring.security.saml2.relyingparty.registration.{id}.identityprovider To: spring.security.saml2.relyingparty.registration.{id}.assertingparty
+  - org.openrewrite.java.spring.boot2.SamlRelyingPartyPropertyApplicationPropertiesMove # Property files.
+  - org.openrewrite.yaml.ChangeKey: # Yaml files
+      oldKeyPath: $.spring.security.saml2.relyingparty.registration.*[?(@.identityprovider)]
+      newKey: assertingparty
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.artemis.host
+      newPropertyKey: spring.artemis.broker-url
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.artemis.host
+      newPropertyKey: spring.artemis.broker-url
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.artemis.port
+      newPropertyKey: spring.artemis.broker-url
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.artemis.port
+      newPropertyKey: spring.artemis.broker-url
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.batch.initialize-schema
+      newPropertyKey: spring.batch.jdbc.initialize-schema
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.batch.initialize-schema
+      newPropertyKey: spring.batch.jdbc.initialize-schema
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.batch.schema
+      newPropertyKey: spring.batch.jdbc.schema
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.batch.schema
+      newPropertyKey: spring.batch.jdbc.schema
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.batch.table-prefix
+      newPropertyKey: spring.batch.jdbc.table-prefix
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.batch.table-prefix
+      newPropertyKey: spring.batch.jdbc.table-prefix
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.continue-on-error
+      newPropertyKey: spring.sql.init.continue-on-error
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.continue-on-error
+      newPropertyKey: spring.sql.init.continue-on-error
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.data
+      newPropertyKey: spring.sql.init.data-locations
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.data
+      newPropertyKey: spring.sql.init.data-locations
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.data-password
+      newPropertyKey: spring.sql.init.password
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.data-password
+      newPropertyKey: spring.sql.init.password
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.data-username
+      newPropertyKey: spring.sql.init.username
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.data-username
+      newPropertyKey: spring.sql.init.username
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.initialization-mode
+      newPropertyKey: spring.sql.init.mode
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.initialization-mode
+      newPropertyKey: spring.sql.init.mode
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.platform
+      newPropertyKey: spring.sql.init.platform
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.platform
+      newPropertyKey: spring.sql.init.platform
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.schema
+      newPropertyKey: spring.sql.init.schema-locations
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.schema
+      newPropertyKey: spring.sql.init.schema-locations
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.schema-password
+      newPropertyKey: spring.sql.init.password
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.schema-password
+      newPropertyKey: spring.sql.init.password
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.schema-username
+      newPropertyKey: spring.sql.init.username
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.schema-username
+      newPropertyKey: spring.sql.init.username
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.separator
+      newPropertyKey: spring.sql.init.separator
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.separator
+      newPropertyKey: spring.sql.init.separator
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.sql-script-encoding
+      newPropertyKey: spring.sql.init.encoding
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.datasource.sql-script-encoding
+      newPropertyKey: spring.sql.init.encoding
+  - org.openrewrite.properties.ChangePropertyKey:
+      oldPropertyKey: spring.flyway.check-location
+      newPropertyKey: spring.flyway.fail-on-missing-locations
+  - org.openrewrite.yaml.ChangePropertyKey:
+      oldPropertyKey: spring.flyway.check-location
+      newPropertyKey: spring.flyway.fail-on-missing-locations
