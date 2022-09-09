@@ -254,5 +254,43 @@ class AutowiredFieldIntoConstructorParameterVisitorTest : JavaRecipeTest {
         """
     )
 
+    @Test
+    fun fieldInitializedInConstructor() = assertUnchanged(
+        before = """
+            package demo;
 
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class A {
+            
+                @Autowired
+                private String a;
+                
+                A() {
+                    this.a = "something";
+                }
+            
+            }
+        """
+    )
+
+    @Test
+    fun fieldInitializedInConstructorWithoutThis() = assertUnchanged(
+        before = """
+            package demo;
+
+            import org.springframework.beans.factory.annotation.Autowired;
+            
+            public class A {
+            
+                @Autowired
+                private String a;
+                
+                A() {
+                    a = "something";
+                }
+            
+            }
+        """
+    )
 }
