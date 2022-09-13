@@ -60,8 +60,9 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             if (constructors.isEmpty()) {
                 applicable = true;
             } else if (constructors.size() == 1) {
-                getCursor().putMessage("applicableConstructor", constructors.get(0));
-                applicable = true;
+                MethodDeclaration c = constructors.get(0);
+                getCursor().putMessage("applicableConstructor", c);
+                applicable = !isConstructorInitializingField(c, fieldName);
             } else {
                 List<MethodDeclaration> autowiredConstructors = constructors.stream().filter(constr -> constr.getLeadingAnnotations().stream()
                                 .map(a -> TypeUtils.asFullyQualified(a.getType()))
@@ -72,8 +73,9 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                         .limit(2)
                         .collect(Collectors.toList());
                 if (autowiredConstructors.size() == 1) {
+                    MethodDeclaration c = autowiredConstructors.get(0);
                     getCursor().putMessage("applicableConstructor", autowiredConstructors.get(0));
-                    applicable = true;
+                    applicable = !isConstructorInitializingField(c, fieldName);
                 }
             }
             if (applicable) {
@@ -82,6 +84,31 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             }
         }
         return classDecl;
+    }
+
+    public static boolean isConstructorInitializingField(MethodDeclaration c, String fieldName) {
+        return c.getBody().getStatements().stream().filter(J.Assignment.class::isInstance).map(J.Assignment.class::cast).anyMatch(a -> {
+            Expression expr = a.getVariable();
+            if (expr instanceof J.FieldAccess) {
+                J.FieldAccess fa = (J.FieldAccess) expr;
+                if (fieldName.equals(fa.getSimpleName()) && fa.getTarget() instanceof J.Identifier) {
+                    J.Identifier target = (J.Identifier) fa.getTarget();
+                    if ("this".equals(target.getSimpleName())) {
+                        return true;
+                    }
+                }
+            }
+            if (expr instanceof J.Identifier) {
+                JavaType.Variable fieldType = c.getMethodType().getDeclaringType().getMembers().stream().filter(v -> fieldName.equals(v.getName())).findFirst().orElse(null);
+                if (fieldType != null) {
+                    J.Identifier identifier = (J.Identifier) expr;
+                    if (fieldType.equals(identifier.getFieldType())) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
     }
 
     @Override
