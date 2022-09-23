@@ -199,6 +199,7 @@ dependencies {
 
     testImplementation("org.openrewrite:rewrite-java-11:${rewriteVersion}")
     testImplementation("org.openrewrite:rewrite-java-8:${rewriteVersion}")
+    testImplementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")

@@ -130,7 +130,8 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                                                 .dependsOn(
                                                         Stream.concat(
                                                                 Stream.of(Parser.Input.fromResource("/Conditional.java")),
-                                                                Parser.Input.fromResource("/AnyNestedCondition.java", "---").stream()
+//                                                                Parser.Input.fromResource("/AnyNestedCondition.java", "---").stream()
+                                                                Parser.Input.fromResource("/AnyNestedCondition.java", "---", null).stream()
                                                         ).collect(Collectors.toList())
                                                 )
                                                 .build())
@@ -160,7 +161,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     JavaTemplate t = JavaTemplate.builder(this::getCursor, s)
                             .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
                             .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .dependsOn(Parser.Input.fromResource("/AnyNestedCondition.java", "---"))
+                                    .dependsOn(Parser.Input.fromResource("/AnyNestedCondition.java", "---", null))
                                     .build())
                             .build();
                     c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), executionContext);
