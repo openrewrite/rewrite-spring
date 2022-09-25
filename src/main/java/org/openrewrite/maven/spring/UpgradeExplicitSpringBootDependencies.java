@@ -139,7 +139,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                 if (getDependenciesMap().containsKey(key)) {
                     String dependencyVersion = getDependenciesMap().get(key);
                     Optional<Xml.Tag> version = tag.getChild("version");
-                    if (version.isEmpty() || !version.get().getValue().isPresent()) {
+                    if (!version.isPresent() || !version.get().getValue().isPresent()) {
                         return;
                     }
                     String versionValue = version.get().getValue().get();
