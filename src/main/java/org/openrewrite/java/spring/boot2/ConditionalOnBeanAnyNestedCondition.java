@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -130,8 +129,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                                                 .dependsOn(
                                                         Stream.concat(
                                                                 Stream.of(Parser.Input.fromResource("/Conditional.java")),
-//                                                                Parser.Input.fromResource("/AnyNestedCondition.java", "---").stream()
-                                                                Parser.Input.fromResource("/AnyNestedCondition.java", "---", null).stream()
+                                                                Parser.Input.fromResource("/AnyNestedCondition.java", "---").stream()
                                                         ).collect(Collectors.toList())
                                                 )
                                                 .build())
@@ -161,7 +159,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     JavaTemplate t = JavaTemplate.builder(this::getCursor, s)
                             .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
                             .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .dependsOn(Parser.Input.fromResource("/AnyNestedCondition.java", "---", null))
+                                    .dependsOn(Parser.Input.fromResource("/AnyNestedCondition.java", "---"))
                                     .build())
                             .build();
                     c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), executionContext);

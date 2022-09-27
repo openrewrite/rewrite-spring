@@ -25,17 +25,22 @@ import org.openrewrite.maven.MavenRecipeTest
 import org.openrewrite.maven.tree.MavenResolutionResult
 import org.openrewrite.maven.tree.ResolvedDependency
 import org.openrewrite.maven.tree.Scope
+import org.openrewrite.test.RewriteTest
 
-class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
+class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest, RewriteTest {
 
     @Test
-    fun shouldUpdateExplicitDependenciesTo30() = assertChanged(
-        recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
-        ),
-        before = """
-                <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    fun shouldUpdateExplicitDepenciesTo30() = rewriteRun(
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3"))
+            .expectedCyclesThatMakeChanges(1)},
+        org.openrewrite.java.Assertions.mavenProject(
+            "project",
+            org.openrewrite.java.Assertions.srcMainJava(
+                org.openrewrite.java.Assertions.java("class A{}")
+            ),
+            org.openrewrite.maven.Assertions.pomXml(
+                """
+                    <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
                     <groupId>com.example</groupId>
@@ -57,6 +62,7 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                             </snapshots>
                         </repository>
                     </repositories>
+                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -76,9 +82,9 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                         </dependency>
                     </dependencies>
                 </project>
-        """,
-        after = """
-                <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                """,
+                """
+                    <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
                     <groupId>com.example</groupId>
@@ -100,6 +106,7 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                             </snapshots>
                         </repository>
                     </repositories>
+                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -120,15 +127,20 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                     </dependencies>
                 </project>
                 """
+            )
+        )
     )
 
     @Test
-    fun shouldNotUpdateIfNoSpringDependencies() = assertUnchanged(
-        recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
-        ),
-        before = """
+    fun shouldNotUpdateIfNoSpringDependencies() = rewriteRun(
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3"))},
+        org.openrewrite.java.Assertions.mavenProject(
+            "project",
+            org.openrewrite.java.Assertions.srcMainJava(
+                org.openrewrite.java.Assertions.java("class A{}")
+            ),
+            org.openrewrite.maven.Assertions.pomXml(
+                """
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -161,17 +173,20 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                         </dependency>
                     </dependencies>
                 </project>
-        """
+            """)
+        )
     )
 
     @Test
-    fun shouldNotUpdateForOldVersion() = assertUnchanged(
-        recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
-        ),
-        before = """
-                <?xml version="1.0" encoding="UTF-8"?>
+    fun shouldNotUpdateForOldVersion() = rewriteRun(
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("3.0.0-M3", "2.7.+"))},
+        org.openrewrite.java.Assertions.mavenProject(
+            "project",
+            org.openrewrite.java.Assertions.srcMainJava(
+                org.openrewrite.java.Assertions.java("class A{}")
+            ),
+            org.openrewrite.maven.Assertions.pomXml(
+                """
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -218,16 +233,19 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                         </plugins>
                     </build>
                 </project>
-        """
+            """)
+        )
     )
 
     @Test
-    fun shouldNotUpdateIfParentAndNoExplicitDeps() = assertUnchanged(
-        recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
-        ),
-        before = """
+    fun shouldNotUpdateIfParentAndNoExplicitDeps() = rewriteRun(
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3"))},
+        org.openrewrite.java.Assertions.mavenProject(
+            "project",
+            org.openrewrite.java.Assertions.srcMainJava(
+                org.openrewrite.java.Assertions.java("class A{}")
+            ),
+            org.openrewrite.maven.Assertions.pomXml("""
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -279,15 +297,20 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                         </plugins>
                     </build>
                 </project>
-        """)
+            """)
+        )
+    )
 
     @Test
-    fun shouldUpdateIfSpringParentAndExplicitDependency() = assertChanged(
-        recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
-        ),
-        before = """
+    fun shouldUpdateIfSpringParentAndExplicitDependency() = rewriteRun(
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3")).expectedCyclesThatMakeChanges(1)},
+        org.openrewrite.java.Assertions.mavenProject(
+            "project",
+            org.openrewrite.java.Assertions.srcMainJava(
+                org.openrewrite.java.Assertions.java("class A{}")
+            ),
+            org.openrewrite.maven.Assertions.pomXml(
+                """
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -332,8 +355,8 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                         </dependency>
                     </dependencies>
                 </project>
-        """,
-        after = """
+                """,
+                """
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -378,17 +401,19 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                         </dependency>
                     </dependencies>
                 </project>
-                """,
-        expectedCyclesThatMakeChanges = 2
+                """)
+        )
     )
 
     @Test
-    fun shouldNotUpdateIfDependencyImportAndNoExplicitDeps() = assertUnchanged(
-        recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
-        ),
-        before = """
+    fun shouldNotUpdateIfDependencyImportAndNoExplicitDeps() = rewriteRun(
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3"))},
+        org.openrewrite.java.Assertions.mavenProject(
+            "project",
+            org.openrewrite.java.Assertions.srcMainJava(
+                org.openrewrite.java.Assertions.java("class A{}")
+            ),
+            org.openrewrite.maven.Assertions.pomXml("""
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -436,14 +461,18 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                     </dependencies>
                 </project>
         """)
+        )
+    )
 
     @Test
-    fun shouldUpdateIfSpringDependencyManagementAndExplicitVersion() = assertChanged(
-        recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
-        ),
-        before = """
+    fun shouldUpdateIfSpringDependencyManagementAndExplicitVersion() = rewriteRun(
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3")).expectedCyclesThatMakeChanges(3)},
+        org.openrewrite.java.Assertions.mavenProject(
+            "project",
+            org.openrewrite.java.Assertions.srcMainJava(
+                org.openrewrite.java.Assertions.java("class A{}")
+            ),
+            org.openrewrite.maven.Assertions.pomXml("""
                     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                              xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                         <modelVersion>4.0.0</modelVersion>
@@ -490,7 +519,7 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                         </dependencies>
                     </project>
         """,
-        after = """
+        """
                     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                              xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                         <modelVersion>4.0.0</modelVersion>
@@ -536,16 +565,19 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                             </dependency>
                         </dependencies>
                     </project>
-                """
+                """)
+        )
     )
 
     @Test
-    fun shouldUpdateWithVersionsAsProperty() = assertChanged(
-        recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
-        ),
-        before = """
+    fun shouldUpdateWithVersionsAsProperty() = rewriteRun(
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3")).expectedCyclesThatMakeChanges(1)},
+        org.openrewrite.java.Assertions.mavenProject(
+            "project",
+            org.openrewrite.java.Assertions.srcMainJava(
+                org.openrewrite.java.Assertions.java("class A{}")
+            ),
+            org.openrewrite.maven.Assertions.pomXml("""
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -592,7 +624,7 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                     </dependencies>
                 </project>
         """,
-        after = """
+        """
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -638,17 +670,19 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                         </dependency>
                     </dependencies>
                 </project>
-                """,
-        expectedCyclesThatMakeChanges = 2
+                """)
+        )
     )
 
     @Test
-    fun shouldNotTouchNewerVersions() = assertChanged(
-        recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
-        ),
-        before = """
+    fun shouldNotTouchNewerVersions() = rewriteRun(
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3")).expectedCyclesThatMakeChanges(1)},
+        org.openrewrite.java.Assertions.mavenProject(
+            "project",
+            org.openrewrite.java.Assertions.srcMainJava(
+                org.openrewrite.java.Assertions.java("class A{}")
+            ),
+            org.openrewrite.maven.Assertions.pomXml("""
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -695,7 +729,7 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                     </dependencies>
                 </project>
         """,
-        after = """
+        """
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -741,15 +775,14 @@ class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest {
                         </dependency>
                     </dependencies>
                 </project>
-                """,
-        expectedCyclesThatMakeChanges = 2
+                """)
+        )
     )
-
     @Test
     fun shouldBuildCorrectPomModelAfterUpdateTo30() {
         val recipe: Recipe = UpgradeExplicitSpringBootDependencies(
-            "3.0.0-M3",
-            "2\\.7\\..*"
+            "2.7.X",
+            "3.0.0-M3"
         )
         val errors: List<Throwable> = ArrayList()
         val ctx = InMemoryExecutionContext { ex: Throwable ->

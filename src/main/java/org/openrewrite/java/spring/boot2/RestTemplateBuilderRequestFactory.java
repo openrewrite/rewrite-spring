@@ -30,7 +30,7 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
 /**
- * https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder
+ * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder">...</a>
  */
 public class RestTemplateBuilderRequestFactory extends Recipe {
     private static final MethodMatcher REQUEST_FACTORY = new MethodMatcher(
@@ -65,13 +65,13 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
 
             // TODO JavaTemplate doesn't replace method type attribution when replacing arguments.
             boolean isArgumentClientHttpRequestFactory = method.getArguments().size() == 1 &&
-                    TypeUtils.isAssignableTo(JavaType.Class.build("org.springframework.http.client.ClientHttpRequestFactory"),
+                    TypeUtils.isAssignableTo(JavaType.ShallowClass.build("org.springframework.http.client.ClientHttpRequestFactory"),
                             method.getArguments().get(0).getType());
 
             if (REQUEST_FACTORY.matches(method) && isArgumentClientHttpRequestFactory) {
                 JavaTemplate.Builder t = JavaTemplate.builder(this::getCursor, "() -> #{any(org.springframework.http.client.ClientHttpRequestFactory)}")
                         .javaParser(() -> JavaParser.fromJavaVersion()
-                                .dependsOn(Parser.Input.fromResource("/RestTemplateBuilder.java", "---", null))
+                                .dependsOn(Parser.Input.fromResource("/RestTemplateBuilder.java", "---"))
                                 .build());
                 m = m.withTemplate(t.build(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
             }
