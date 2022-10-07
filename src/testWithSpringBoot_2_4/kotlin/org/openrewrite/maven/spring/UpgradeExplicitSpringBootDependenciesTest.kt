@@ -465,7 +465,7 @@ class UpgradeExplicitSpringBootDependenciesTest : RewriteTest {
 
     @Test
     fun shouldUpdateIfSpringDependencyManagementAndExplicitVersion() = rewriteRun(
-        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3")).expectedCyclesThatMakeChanges(3)},
+        { spec -> spec.recipe(UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3"))},
         org.openrewrite.java.Assertions.mavenProject(
             "project",
             org.openrewrite.java.Assertions.srcMainJava(
@@ -560,7 +560,6 @@ class UpgradeExplicitSpringBootDependenciesTest : RewriteTest {
                             <dependency>
                                 <groupId>io.dropwizard.metrics</groupId>
                                 <artifactId>metrics-annotation</artifactId>
-                                <version>4.2.9</version>
                             </dependency>
                         </dependencies>
                     </project>
