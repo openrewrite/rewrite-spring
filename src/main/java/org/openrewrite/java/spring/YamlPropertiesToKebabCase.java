@@ -51,10 +51,12 @@ public class YamlPropertiesToKebabCase extends Recipe {
             @Override
             public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                 Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
-                String key = e.getKey().getValue();
-                String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
-                if (!key.equals(asKebabCase)) {
-                    return e.withKey(e.getKey().withValue(asKebabCase));
+                if (e.getKey() instanceof Yaml.Scalar) {
+                    String key = e.getKey().getValue();
+                    String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
+                    if (!key.equals(asKebabCase)) {
+                        return e.withKey(((Yaml.Scalar)e.getKey()).withValue(asKebabCase));
+                    }
                 }
                 return e;
             }

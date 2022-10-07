@@ -64,8 +64,8 @@ public class ExpandProperties extends Recipe {
         public Yaml visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
             Yaml.Mapping.Entry e = entry;
             String key = e.getKey().getValue();
-            if (key.contains(".")) {
-                e = e.withKey(e.getKey().withValue(key.substring(0, key.indexOf('.'))));
+            if (key.contains(".") && e.getKey() instanceof Yaml.Scalar) {
+                e = e.withKey(((Yaml.Scalar)e.getKey()).withValue(key.substring(0, key.indexOf('.'))));
                 e = e.withValue(new Yaml.Mapping(
                         randomId(),
                         Markers.EMPTY,
