@@ -17,17 +17,13 @@ package org.openrewrite.java.spring.boot2.search
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.openrewrite.Recipe
 import org.openrewrite.java.JavaParser
 import org.openrewrite.maven.MavenParser
-import org.openrewrite.maven.MavenRecipeTest
 
 /**
  * @author Alex Boyko
  */
-class LoggingShutdownHooksTest : MavenRecipeTest {
-    override val recipe: Recipe
-        get() = LoggingShutdownHooks()
+class LoggingShutdownHooksTest {
 
     companion object {
         private val application = JavaParser.fromJavaVersion()

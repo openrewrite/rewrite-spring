@@ -58,6 +58,12 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
             import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
             import org.springframework.context.annotation.Bean;
             
+            class ThingOneTwo {}
+            
+            class ThingOneTwoThree {}
+            
+            class ThingFour {}
+            
             class ConfigClass {
                 @Bean
                 @ConditionalOnBean({Aa.class, Bb.class})
@@ -83,6 +89,12 @@ class ConditionalOnBeanAnyNestedConditionTest : JavaRecipeTest {
             import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
             import org.springframework.context.annotation.Bean;
             import org.springframework.context.annotation.Conditional;
+            
+            class ThingOneTwo {}
+            
+            class ThingOneTwoThree {}
+            
+            class ThingFour {}
             
             class ConfigClass {
                 @Bean

@@ -21,13 +21,12 @@ import org.junit.jupiter.api.Test
 import org.openrewrite.InMemoryExecutionContext
 import org.openrewrite.Recipe
 import org.openrewrite.maven.MavenParser
-import org.openrewrite.maven.MavenRecipeTest
 import org.openrewrite.maven.tree.MavenResolutionResult
 import org.openrewrite.maven.tree.ResolvedDependency
 import org.openrewrite.maven.tree.Scope
 import org.openrewrite.test.RewriteTest
 
-class UpgradeExplicitSpringBootDependenciesTest : MavenRecipeTest, RewriteTest {
+class UpgradeExplicitSpringBootDependenciesTest : RewriteTest {
 
     @Test
     fun shouldUpdateExplicitDepenciesTo30() = rewriteRun(

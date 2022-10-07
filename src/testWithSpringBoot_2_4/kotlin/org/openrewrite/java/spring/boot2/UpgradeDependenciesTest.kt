@@ -17,22 +17,24 @@ package org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
 import org.openrewrite.Issue
-import org.openrewrite.Recipe
 import org.openrewrite.config.Environment
-import org.openrewrite.maven.MavenRecipeTest
+import org.openrewrite.maven.Assertions.pomXml
+import org.openrewrite.test.RecipeSpec
+import org.openrewrite.test.RewriteTest
 
-class UpgradeSpringBoot_2_4 : MavenRecipeTest {
+class UpgradeSpringBoot_2_4 : RewriteTest {
 
-    override val recipe: Recipe
-        get() = Environment.builder()
+    override fun defaults(spec: RecipeSpec) {
+        spec.recipe(Environment.builder()
             .scanRuntimeClasspath()
             .build()
-            .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4")
+            .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4"))
+    }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/92")
     @Test
-    fun upgradeVersion() = assertChanged(
-        before = """
+    fun upgradeVersion() = rewriteRun(
+        pomXml("""
             <project>
               <modelVersion>4.0.0</modelVersion>
               
@@ -61,7 +63,7 @@ class UpgradeSpringBoot_2_4 : MavenRecipeTest {
               </dependencies>
             </project>
         """,
-        after = """
+        """
             <project>
               <modelVersion>4.0.0</modelVersion>
               
@@ -83,6 +85,6 @@ class UpgradeSpringBoot_2_4 : MavenRecipeTest {
                 </dependency>
               </dependencies>
             </project>
-        """
+        """)
     )
 }

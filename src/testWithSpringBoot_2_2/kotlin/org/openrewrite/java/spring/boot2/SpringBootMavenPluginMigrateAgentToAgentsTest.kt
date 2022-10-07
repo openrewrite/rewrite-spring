@@ -16,16 +16,19 @@
 package org.openrewrite.java.spring.boot2
 
 import org.junit.jupiter.api.Test
-import org.openrewrite.Recipe
-import org.openrewrite.maven.MavenRecipeTest
+import org.openrewrite.maven.Assertions.pomXml
+import org.openrewrite.test.RecipeSpec
+import org.openrewrite.test.RewriteTest
 
-class SpringBootMavenPluginMigrateAgentToAgentsTest : MavenRecipeTest {
-    override val recipe: Recipe
-        get() = SpringBootMavenPluginMigrateAgentToAgents()
+class SpringBootMavenPluginMigrateAgentToAgentsTest : RewriteTest {
+
+    override fun defaults(spec: RecipeSpec) {
+        spec.recipe(SpringBootMavenPluginMigrateAgentToAgents())
+    }
 
     @Test
-    fun migrateAgentToAgents() = assertChanged(
-        before = """
+    fun migrateAgentToAgents() = rewriteRun(
+        pomXml("""
             <project>
                 <modelVersion>4.0.0</modelVersion>
                 <groupId>org.openrewrite.example</groupId>
@@ -44,7 +47,7 @@ class SpringBootMavenPluginMigrateAgentToAgentsTest : MavenRecipeTest {
                 </build>
             </project>
         """,
-        after = """
+        """
             <project>
                 <modelVersion>4.0.0</modelVersion>
                 <groupId>org.openrewrite.example</groupId>
@@ -62,12 +65,12 @@ class SpringBootMavenPluginMigrateAgentToAgentsTest : MavenRecipeTest {
                     </plugins>
                 </build>
             </project>
-        """
+        """)
     )
 
     @Test
-    fun existingAgentsKey() = assertUnchanged(
-        before = """
+    fun existingAgentsKey() = rewriteRun(
+        pomXml("""
             <project>
                 <modelVersion>4.0.0</modelVersion>
                 <groupId>org.openrewrite.example</groupId>
@@ -85,12 +88,12 @@ class SpringBootMavenPluginMigrateAgentToAgentsTest : MavenRecipeTest {
                     </plugins>
                 </build>
             </project>
-        """
+        """)
     )
 
     @Test
-    fun noConfigurationFound() = assertUnchanged(
-        before = """
+    fun noConfigurationFound() = rewriteRun(
+        pomXml("""
             <project>
                 <modelVersion>4.0.0</modelVersion>
                 <groupId>org.openrewrite.example</groupId>
@@ -105,7 +108,7 @@ class SpringBootMavenPluginMigrateAgentToAgentsTest : MavenRecipeTest {
                     </plugins>
                 </build>
             </project>
-        """
+        """)
     )
 
 }
