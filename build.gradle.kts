@@ -200,6 +200,7 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-java-11:${rewriteVersion}")
     testImplementation("org.openrewrite:rewrite-java-8:${rewriteVersion}")
     testImplementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
+    testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
@@ -214,7 +215,6 @@ dependencies {
 
     "testWithSpringBoot_2_2RuntimeOnly"("org.springframework.boot:spring-boot:2.2.+")
 
-    "testWithSpringBoot_2_3RuntimeOnly"("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:5.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("junit:junit:latest.release")
     "testWithSpringBoot_2_3RuntimeOnly"("org.hamcrest:hamcrest:2.2")
