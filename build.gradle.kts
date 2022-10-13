@@ -51,6 +51,7 @@ dependencyCheck {
     analyzers.nodeEnabled = false
     analyzers.assemblyEnabled = false
     failBuildOnCVSS = 9.0F
+    suppressionFile = "suppressions.xml"
     format = org.owasp.dependencycheck.reporting.ReportGenerator.Format.valueOf(project.properties["dependencyCheckFormat"] as String? ?: "HTML")
 }
 
