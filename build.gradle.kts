@@ -193,8 +193,8 @@ dependencies {
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
     // for generating properties migration configurations
-    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.12.+")
-    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
+    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
     testImplementation("io.github.classgraph:classgraph:latest.release")
 
     testImplementation("org.openrewrite:rewrite-java-11:${rewriteVersion}")
