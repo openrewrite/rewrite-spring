@@ -247,6 +247,7 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot-test:2.4.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot-test-autoconfigure:2.4.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.batch:spring-batch-test:4.3.+")
 
     "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-core:5.1.+")
 

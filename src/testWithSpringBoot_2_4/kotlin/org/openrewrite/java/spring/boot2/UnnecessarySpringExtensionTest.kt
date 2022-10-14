@@ -26,7 +26,7 @@ import org.openrewrite.java.JavaRecipeTest
 class UnnecessarySpringExtensionTest : JavaRecipeTest {
     override val parser: JavaParser
         get() = JavaParser.fromJavaVersion()
-            .classpath("spring-context", "spring-test", "spring-boot-test", "junit-jupiter-api", "spring-boot-test-autoconfigure")
+            .classpath("spring-context", "spring-test", "spring-boot-test", "junit-jupiter-api", "spring-boot-test-autoconfigure", "spring-batch-test")
             .build()
 
     override val recipe: Recipe
@@ -71,7 +71,8 @@ class UnnecessarySpringExtensionTest : JavaRecipeTest {
         "org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest",
         "org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest",
         "org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest",
-        "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest"])
+        "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest",
+        "org.springframework.batch.test.context.SpringBatchTest"])
     fun removeSpringExtensionForTestSliceAnnotations(annotationName: String) = assertChanged(
         before = """
             import org.junit.jupiter.api.extension.ExtendWith;
