@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UnnecessarySpringExtension extends Recipe {
 
-    //All of the following annotations apply the @SpringExtension
+    // All the following annotations apply the @SpringExtension
     private static final List<String> SPRING_BOOT_TEST_ANNOTATIONS = Arrays.asList(
             "org.springframework.boot.test.context.SpringBootTest",
             "org.springframework.boot.test.autoconfigure.jdbc.JdbcTest",
@@ -50,7 +50,8 @@ public class UnnecessarySpringExtension extends Recipe {
             "org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest",
             "org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest",
             "org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest",
-            "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest"
+            "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest",
+            "org.springframework.batch.test.context.SpringBatchTest"
     );
     private static final String EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN = "@org.junit.jupiter.api.extension.ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)";
 
@@ -76,8 +77,8 @@ public class UnnecessarySpringExtension extends Recipe {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
 
-                //Clear the class body to make annotation search and replace faster
-                //noinspection ConstantConditions
+                // Clear the class body to make annotation search and replace faster
+                // noinspection ConstantConditions
                 J.ClassDeclaration c = classDecl.withBody(null);
 
                 AtomicBoolean annotationFound = new AtomicBoolean(false);
@@ -98,7 +99,7 @@ public class UnnecessarySpringExtension extends Recipe {
         };
     }
 
-    //Using this visitor vs making 15 calls to findAnnotations.
+    // Using this visitor vs making 15 calls to findAnnotations.
     private static class FindBootTestAnnotation extends JavaIsoVisitor<AtomicBoolean> {
 
         @Override
