@@ -178,7 +178,7 @@ dependencies {
 
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
-    runtimeOnly("org.openrewrite:rewrite-java-11:$rewriteVersion")
+    runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
 
     testImplementation(platform(kotlin("bom", "1.6.21")))
     testImplementation(kotlin("reflect"))
@@ -198,8 +198,7 @@ dependencies {
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
     testImplementation("io.github.classgraph:classgraph:latest.release")
 
-    testImplementation("org.openrewrite:rewrite-java-11:${rewriteVersion}")
-    testImplementation("org.openrewrite:rewrite-java-8:${rewriteVersion}")
+    testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
     testImplementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
 
