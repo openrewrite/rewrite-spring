@@ -258,6 +258,8 @@ dependencies {
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-tx:5.3.+")
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-jdbc:5.3.+")
     "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-web:5.3.+")
+    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
+    "testWithSpringFramework_5_3RuntimeOnly"("javax.servlet:javax.servlet-api:4.+")
 
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot:2.5.+")
 
