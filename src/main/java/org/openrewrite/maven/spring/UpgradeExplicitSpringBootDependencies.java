@@ -24,6 +24,7 @@ import org.openrewrite.*;
 import org.openrewrite.internal.lang.NonNull;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.marker.SearchResult;
+import org.openrewrite.maven.MavenDownloadingException;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.UpgradeDependencyVersion;
 import org.openrewrite.maven.internal.MavenPomDownloader;
@@ -70,7 +71,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
         return "Upgrades un-managed spring-boot project dependencies according to the specified spring-boot version";
     }
 
-    private synchronized void buildDependencyMap() {
+    private synchronized void buildDependencyMap() throws MavenDownloadingException {
         if (springBootDependenciesMap.isEmpty()) {
             Map<Path, Pom> poms = new HashMap<>();
             MavenPomDownloader downloader = new MavenPomDownloader(poms, new InMemoryExecutionContext());
@@ -130,7 +131,11 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
         return new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext executionContext) {
-                buildDependencyMap();
+                try {
+                    buildDependencyMap();
+                } catch (MavenDownloadingException e) {
+                    return e.warn(document);
+                }
                 return super.visitDocument(document, executionContext);
             }
 

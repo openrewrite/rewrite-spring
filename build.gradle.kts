@@ -2,7 +2,6 @@ import com.github.jk1.license.LicenseReportExtension
 import nebula.plugin.contacts.Contact
 import nebula.plugin.contacts.ContactsExtension
 import nl.javadude.gradle.plugins.license.LicenseExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
 buildscript {
@@ -16,7 +15,6 @@ plugins {
     `maven-publish`
     signing
 
-    id("org.jetbrains.kotlin.jvm") version "1.6.21"
     id("nebula.maven-resolved-dependencies") version "17.3.2"
     id("nebula.release") version "15.3.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
@@ -40,6 +38,12 @@ apply(plugin = "nebula.publish-verification")
 
 rewrite {
     activeRecipe("org.openrewrite.java.format.AutoFormat", "org.openrewrite.java.cleanup.Cleanup")
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 configure<nebula.plugin.release.git.base.ReleasePluginExtension> {
@@ -180,9 +184,6 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
 
-    testImplementation(platform(kotlin("bom", "1.6.21")))
-    testImplementation(kotlin("reflect"))
-    testImplementation(kotlin("stdlib"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:latest.release")
@@ -195,7 +196,6 @@ dependencies {
 
     // for generating properties migration configurations
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
-    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
     testImplementation("io.github.classgraph:classgraph:latest.release")
 
     testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
@@ -325,16 +325,6 @@ tasks.named<JavaCompile>("compileJava") {
     options.compilerArgs.addAll(listOf("--release", "8"))
     options.encoding = "UTF-8"
     options.compilerArgs.add("-parameters")
-}
-
-tasks.withType(KotlinCompile::class.java).configureEach {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
-    doFirst {
-        destinationDir.mkdirs()
-    }
 }
 
 configure<ContactsExtension> {

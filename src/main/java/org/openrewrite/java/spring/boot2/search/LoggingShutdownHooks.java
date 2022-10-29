@@ -19,17 +19,17 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.search.FindAnnotations;
+import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.ResolvedDependency;
 import org.openrewrite.maven.tree.Scope;
 import org.openrewrite.semver.DependencyMatcher;
-import org.openrewrite.xml.XPathMatcher;
 import org.openrewrite.xml.tree.Xml;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Mark POM's of projects where logging shutdown hook may need to be disabled
@@ -37,8 +37,6 @@ import java.util.Collections;
  * @author Alex Boyko
  */
 public class LoggingShutdownHooks extends Recipe {
-    private static final String NEEDS_SEARCH_MARKER = "NEEDS_SEARCH_MARKER";
-    private static final XPathMatcher PROJECT_MATCHER = new XPathMatcher("/project");
 
     @Override
     public String getDisplayName() {
@@ -64,14 +62,13 @@ public class LoggingShutdownHooks extends Recipe {
             public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
                 MavenResolutionResult model = getResolutionResult();
                 //Default packaging, if not specified is "jar"
-                if (model.getPom().getPackaging() != null && !"jar".equals(model.getPom().getPackaging())) {
+                if (!"jar".equals(model.getPom().getPackaging())) {
                     return document;
                 }
-                DependencyMatcher matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue();
-                assert matcher != null;
+                DependencyMatcher matcher = requireNonNull(DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue());
                 for (ResolvedDependency d : getResolutionResult().getDependencies().getOrDefault(Scope.Compile, Collections.emptyList())) {
                     if (matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())) {
-                        return document.withMarkers(document.getMarkers().searchResult());
+                        return SearchResult.found(document);
                     }
                 }
                 return document;
@@ -81,17 +78,7 @@ public class LoggingShutdownHooks extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        FindAnnotations findAnnotations = new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication");
-        try {
-            // FIXME make this method public on FindAnnotations
-
-            Method getVisitor = Recipe.class.getDeclaredMethod("getVisitor");
-            getVisitor.setAccessible(true);
-
-            //noinspection unchecked
-            return (TreeVisitor<?, ExecutionContext>) getVisitor.invoke(findAnnotations);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new IllegalStateException(e);
-        }
+        return new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication")
+                .getVisitor();
     }
 }

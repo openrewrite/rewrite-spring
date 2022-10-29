@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.intellij.lang.annotations.Language;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -35,7 +36,7 @@ public class MigrateMultipartConfigFactory extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Methods to set DataSize with primitive arguments were deprecated in 2.1 and removed in 2.2.";
+        return "Methods to set `DataSize` with primitive arguments were deprecated in 2.1 and removed in 2.2.";
     }
 
     @Nullable
@@ -55,12 +56,15 @@ public class MigrateMultipartConfigFactory extends Recipe {
             final MethodMatcher setMaxRequestSizeByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(java.lang.String)");
             final MethodMatcher setFileSizeThresholdByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(java.lang.String)");
 
+            @Language("java")
             final String dataSize = "package org.springframework.util.unit;" +
                     "import java.io.Serializable;" +
                     "public final class DataSize implements Comparable<DataSize>, Serializable {" +
                     "  public static DataSize ofBytes(long bytes) { return null; }" +
                     "  public static DataSize parse(CharSequence text) { return null; }" +
                     "}";
+
+            @Language("java")
             final String multipartConfigFactory = "package org.springframework.boot.web.servlet;" +
                     "import org.springframework.util.unit.DataSize;" +
                     "public class MultipartConfigFactory {" +

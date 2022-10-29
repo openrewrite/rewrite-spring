@@ -63,13 +63,8 @@ public class MergeBootstrapYamlWithApplicationYaml extends Recipe {
                 Yaml.Documents a = (Yaml.Documents) new ExpandProperties().getVisitor().visit(applicationYaml, ctx);
                 assert a != null;
 
-                System.out.println(a.printAll());
-
                 Yaml.Documents b = (Yaml.Documents) new ExpandProperties().getVisitor().visit(bootstrapYaml, ctx);
                 assert b != null;
-
-                System.out.println("**********");
-                System.out.println(b.printAll());
 
                 //noinspection unchecked
                 return (SourceFile) new CoalescePropertiesVisitor<Integer>().visit(a.withDocuments(ListUtils.map((List<Yaml.Document>) a.getDocuments(), doc -> {

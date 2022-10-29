@@ -31,8 +31,6 @@ import org.openrewrite.yaml.YamlVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.util.Set;
-
 public class MigrateDatabaseCredentials extends Recipe {
 
     @Override

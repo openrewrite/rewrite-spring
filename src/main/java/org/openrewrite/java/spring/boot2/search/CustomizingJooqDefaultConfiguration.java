@@ -29,7 +29,6 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Migration for Spring Boot 2.4 to 2.5
