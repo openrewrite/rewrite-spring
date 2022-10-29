@@ -35,10 +35,6 @@ description: 'Upgrade Maven Pom to Spring Boot 3.0 from prior 2.x version.'
 recipeList:
   - org.openrewrite.java.migrate.JavaVersion17
   - org.openrewrite.java.migrate.JavaxMigrationToJakarta
-  - org.openrewrite.maven.ChangeDependencyClassifier:
-      groupId: org.ehcache
-      artifactId: ehcache
-      newClassifier: jakarta
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
