@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
@@ -59,7 +60,8 @@ public class GeneratePropertiesMigratorConfiguration {
                         Arrays.stream(listing).map(File::getName).collect(toSet())) :
                 springBootReleases.latestPatchReleases();
 
-        var config = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-configuration-migration.yml");
+        Files.createDirectories(Paths.get("build/rewrite/"));
+        var config = Paths.get("build/rewrite/spring-boot-configuration-migration.yml");
         Files.write(config, ("\n" +
                              Files.readString(Paths.get("gradle/licenseHeader.txt")).replace("^", "# ") +
                              "\n").getBytes());
@@ -88,7 +90,7 @@ public class GeneratePropertiesMigratorConfiguration {
             System.out.println("Scanning version " + version);
 
             try (ScanResult scanResult = new ClassGraph()
-                    .overrideClasspath(Arrays.stream(requireNonNull(versionDir.listFiles())).map(File::toURI))
+                    .overrideClasspath(Arrays.stream(requireNonNull(versionDir.listFiles())).map(File::toURI).collect(Collectors.toList()))
                     .acceptPaths("META-INF")
                     .enableMemoryMapping()
                     .scan()) {
@@ -119,17 +121,13 @@ public class GeneratePropertiesMigratorConfiguration {
 
                     Files.write(config, replacements.stream()
                                     .map(r -> """
-                                            - org.openrewrite.properties.ChangePropertyKey:
-                                                oldPropertyKey: %s
-                                                newPropertyKey: %s
-                                            - org.openrewrite.yaml.ChangePropertyKey:
+                                            - org.openrewrite.java.spring.ChangeSpringPropertyKey:
                                                 oldPropertyKey: %s
                                                 newPropertyKey: %s
                                             """.formatted(
-                                            r.name(), requireNonNull(r.deprecation()).replacement(),
                                             r.name(), requireNonNull(r.deprecation()).replacement())
                                     )
-                                    .collect(joining("\n", "\n", "\n"))
+                                    .collect(joining("", "\n", "\n"))
                                     .getBytes(),
                             StandardOpenOption.APPEND);
                 }

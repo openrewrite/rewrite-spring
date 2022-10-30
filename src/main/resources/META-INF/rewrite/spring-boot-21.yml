@@ -57,147 +57,75 @@ name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_1
 displayName: Migrate Spring Boot properties to 2.1
 description: Migrate properties found in `application.properties` and `application.yml`.
 recipeList:
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.binders.files.enabled
       newPropertyKey: management.metrics.enable.process.files
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.binders.files.enabled
-      newPropertyKey: management.metrics.enable.process.files
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.binders.jvm.enabled
       newPropertyKey: management.metrics.enable.jvm
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.binders.jvm.enabled
-      newPropertyKey: management.metrics.enable.jvm
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.binders.logback.enabled
       newPropertyKey: management.metrics.enable.logback
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: management.metrics.binders.logback.enabled
-      newPropertyKey: management.metrics.enable.logback
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.servlet.path
       newPropertyKey: spring.mvc.servlet.path
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: server.servlet.path
-      newPropertyKey: spring.mvc.servlet.path
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.activemq.pool.maximum-active-session-per-connection
       newPropertyKey: spring.activemq.pool.max-sessions-per-connection
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.activemq.pool.maximum-active-session-per-connection
-      newPropertyKey: spring.activemq.pool.max-sessions-per-connection
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.artemis.pool.maximum-active-session-per-connection
       newPropertyKey: spring.artemis.pool.max-sessions-per-connection
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.artemis.pool.maximum-active-session-per-connection
-      newPropertyKey: spring.artemis.pool.max-sessions-per-connection
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.admin.ssl.keystore-location
       newPropertyKey: spring.kafka.admin.ssl.key-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.keystore-location
-      newPropertyKey: spring.kafka.admin.ssl.key-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.admin.ssl.keystore-password
       newPropertyKey: spring.kafka.admin.ssl.key-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.keystore-password
-      newPropertyKey: spring.kafka.admin.ssl.key-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.admin.ssl.truststore-location
       newPropertyKey: spring.kafka.admin.ssl.trust-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.truststore-location
-      newPropertyKey: spring.kafka.admin.ssl.trust-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.admin.ssl.truststore-password
       newPropertyKey: spring.kafka.admin.ssl.trust-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.admin.ssl.truststore-password
-      newPropertyKey: spring.kafka.admin.ssl.trust-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.consumer.ssl.keystore-location
       newPropertyKey: spring.kafka.consumer.ssl.key-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.keystore-location
-      newPropertyKey: spring.kafka.consumer.ssl.key-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.consumer.ssl.keystore-password
       newPropertyKey: spring.kafka.consumer.ssl.key-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.keystore-password
-      newPropertyKey: spring.kafka.consumer.ssl.key-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.consumer.ssl.truststore-location
       newPropertyKey: spring.kafka.consumer.ssl.trust-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.truststore-location
-      newPropertyKey: spring.kafka.consumer.ssl.trust-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.consumer.ssl.truststore-password
       newPropertyKey: spring.kafka.consumer.ssl.trust-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.consumer.ssl.truststore-password
-      newPropertyKey: spring.kafka.consumer.ssl.trust-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.producer.ssl.keystore-location
       newPropertyKey: spring.kafka.producer.ssl.key-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.keystore-location
-      newPropertyKey: spring.kafka.producer.ssl.key-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.producer.ssl.keystore-password
       newPropertyKey: spring.kafka.producer.ssl.key-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.keystore-password
-      newPropertyKey: spring.kafka.producer.ssl.key-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.producer.ssl.truststore-location
       newPropertyKey: spring.kafka.producer.ssl.trust-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.truststore-location
-      newPropertyKey: spring.kafka.producer.ssl.trust-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.producer.ssl.truststore-password
       newPropertyKey: spring.kafka.producer.ssl.trust-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.producer.ssl.truststore-password
-      newPropertyKey: spring.kafka.producer.ssl.trust-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.ssl.keystore-location
       newPropertyKey: spring.kafka.ssl.key-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.keystore-location
-      newPropertyKey: spring.kafka.ssl.key-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.ssl.keystore-password
       newPropertyKey: spring.kafka.ssl.key-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.keystore-password
-      newPropertyKey: spring.kafka.ssl.key-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.ssl.truststore-location
       newPropertyKey: spring.kafka.ssl.trust-store-location
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.truststore-location
-      newPropertyKey: spring.kafka.ssl.trust-store-location
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.ssl.truststore-password
       newPropertyKey: spring.kafka.ssl.trust-store-password
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.kafka.ssl.truststore-password
-      newPropertyKey: spring.kafka.ssl.trust-store-password
-  - org.openrewrite.properties.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.mvc.formcontent.putfilter.enabled
       newPropertyKey: spring.mvc.formcontent.filter.enabled
-  - org.openrewrite.yaml.ChangePropertyKey:
-      oldPropertyKey: spring.mvc.formcontent.putfilter.enabled
-      newPropertyKey: spring.mvc.formcontent.filter.enabled
-  - org.openrewrite.properties.ChangePropertyKey:
-      oldPropertyKey: spring.resources.chain.gzipped
-      newPropertyKey: spring.resources.chain.compressed
-  - org.openrewrite.yaml.ChangePropertyKey:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.resources.chain.gzipped
       newPropertyKey: spring.resources.chain.compressed
