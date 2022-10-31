@@ -23,7 +23,7 @@ class SpringBootReleasesTest {
 
     @Test
     void latestAvailableVersion() {
-        var releases = new SpringBootReleases();
+        var releases = new SpringBootReleases(false);
         assertThat(releases.latestMatchingVersion("2.+"))
             .isGreaterThanOrEqualTo("2.3.0.RELEASE");
         assertThat(releases.latestMatchingVersion("2.1.+"))
@@ -32,7 +32,7 @@ class SpringBootReleasesTest {
 
     @Test
     void latestPatches() {
-        var releases = new SpringBootReleases();
+        var releases = new SpringBootReleases(true);
         assertThat(releases.latestPatchReleases()).isNotEmpty();
     }
 }

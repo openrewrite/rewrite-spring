@@ -34,11 +34,19 @@ public class SpringBootReleases {
 
     private final String repositoryUrl = "https://repo1.maven.org/maven2";
 
+    private final String milestoneRepositoryUrl = "https://repo.spring.io/milestone";
+
+    private final boolean includeReleaseCandidates;
+
+    public SpringBootReleases(boolean includeReleaseCandidates) {
+        this.includeReleaseCandidates = includeReleaseCandidates;
+    }
     public Stream<ModuleDownload> download(String version) {
         List<String> denyList = Arrays.asList("sample", "gradle", "experimental", "legacy",
                 "maven", "tests", "spring-boot-versions");
         HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
-        HttpSender.Request request = HttpSender.Request.build(repositoryUrl + "/org/springframework/boot", httpSender)
+
+        HttpSender.Request request = HttpSender.Request.build((version.contains("-RC") ? milestoneRepositoryUrl :  repositoryUrl) + "/org/springframework/boot", httpSender)
                 .withMethod(HttpSender.Method.GET)
                 .build();
 
@@ -63,7 +71,7 @@ public class SpringBootReleases {
                 return modules.stream()
                         .map(module -> {
                             HttpSender.Request moduleRequest = HttpSender.Request
-                                    .build(repositoryUrl + "/org/springframework/boot/" + module + "/" + version +
+                                    .build((version.contains("-RC") ? milestoneRepositoryUrl :  repositoryUrl) + "/org/springframework/boot/" + module + "/" + version +
                                             "/" + module + "-" + version + ".jar", httpSender)
                                     .withMethod(HttpSender.Method.GET)
                                     .build();
@@ -101,12 +109,12 @@ public class SpringBootReleases {
                     .withMethod(HttpSender.Method.GET)
                     .build();
 
+            Set<String> releases = new HashSet<>();
+
             try (HttpSender.Response response = httpSender.send(request)) {
                 if (!response.isSuccessful()) {
                     throw new IOException("Unexpected code " + response);
                 }
-
-                Set<String> releases = new HashSet<>();
 
                 byte[] responseBody = response.getBodyAsBytes();
                 if (responseBody.length > 0) {
@@ -119,12 +127,43 @@ public class SpringBootReleases {
                         }
                         releases.add(releaseMatcher.group(1));
                     }
-
-                    availableReleases = releases;
                 }
+
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
+
+            if (includeReleaseCandidates) {
+                request = HttpSender.Request
+                        .build(milestoneRepositoryUrl + "/org/springframework/boot/spring-boot-starter-parent", httpSender)
+                        .withMethod(HttpSender.Method.GET)
+                        .build();
+
+                try (HttpSender.Response response = httpSender.send(request)) {
+                    if (!response.isSuccessful()) {
+                        throw new IOException("Unexpected code " + response);
+                    }
+
+                    byte[] responseBody = response.getBodyAsBytes();
+                    if (responseBody.length > 0) {
+                        Matcher releaseMatcher = Pattern.compile("href=\"([^\"]+-RC[0-9]]*)/\"")
+                                .matcher(new String(responseBody));
+
+                        while (releaseMatcher.find()) {
+                            if ("..".equals(releaseMatcher.group(1))) {
+                                continue;
+                            }
+                            releases.add(releaseMatcher.group(1));
+                        }
+                    }
+
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+
+            }
+            availableReleases = releases;
+
         }
 
         return availableReleases;
@@ -142,8 +181,8 @@ public class SpringBootReleases {
                 .values()
                 .stream()
                 .map(patches -> patches.stream().max((r1, r2) -> {
-                            String[] r1Parts = r1.split("\\.");
-                            String[] r2Parts = r2.split("\\.");
+                            String[] r1Parts = r1.split("[\\.-]");
+                            String[] r2Parts = r2.split("[\\.-]");
 
                             int majorVersionComp = r1Parts[0].compareTo(r2Parts[0]);
                             if (majorVersionComp != 0) {

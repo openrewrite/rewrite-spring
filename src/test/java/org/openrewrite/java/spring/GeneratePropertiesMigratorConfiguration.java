@@ -45,7 +45,7 @@ import static java.util.stream.Collectors.toSet;
  */
 public class GeneratePropertiesMigratorConfiguration {
     public static void main(String[] args) throws IOException {
-        var springBootReleases = new SpringBootReleases();
+        var springBootReleases = new SpringBootReleases(true);
 
         var objectMapper = new ObjectMapper()
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -68,7 +68,7 @@ public class GeneratePropertiesMigratorConfiguration {
 
         var alreadyDefined = new HashSet<>();
         for (String version : latestPatchReleases) {
-            if (!version.startsWith("2")) {
+            if (!version.startsWith("2") && !version.startsWith("3")) {
                 continue;
             }
             var versionDir = new File(releasesDir, version);
@@ -121,7 +121,7 @@ public class GeneratePropertiesMigratorConfiguration {
 
                     Files.write(config, replacements.stream()
                                     .map(r -> """
-                                            - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+                                              - org.openrewrite.java.spring.ChangeSpringPropertyKey:
                                                 oldPropertyKey: %s
                                                 newPropertyKey: %s
                                             """.formatted(
