@@ -26,7 +26,7 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
     @Test
     void changeLastKey() {
         rewriteRun(
-                spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null)),
+                spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null, null, null)),
                 properties(
                         """
                             server.servlet-path=/tmp/my-server-path
@@ -52,7 +52,7 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
     @Test
     void changePropertyPath() {
         rewriteRun(
-                spec -> spec.recipe(new ChangeSpringPropertyKey("session.cookie.path", "servlet.session.cookie.path", null)),
+                spec -> spec.recipe(new ChangeSpringPropertyKey("session.cookie.path", "servlet.session.cookie.path", null, null, null)),
                 properties(
                         """
                             session.cookie.path=/cookie-monster
