@@ -57,13 +57,28 @@ public class ChangeSpringPropertyKey extends Recipe {
     @Nullable
     Boolean relaxedBinding;
 
+    @Incubating(since = "7.8.0")
+    @Option(displayName = "Optional file matcher",
+            description = "Matching files will be modified. This is a glob expression.",
+            required = false,
+            example = "**/application-*.yml")
+    @Nullable
+    String fileMatcher;
+
+
+    @Option(displayName = "Except",
+            description = "If any of these property keys exist as direct children of `oldPropertyKey`, then they will not be moved to `newPropertyKey`.",
+            required = false)
+    @Nullable
+    List<String> except;
+
     @Override
     protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
 
         org.openrewrite.yaml.ChangePropertyKey yamlChangePropertyKey =
-                new org.openrewrite.yaml.ChangePropertyKey(oldPropertyKey, newPropertyKey, relaxedBinding, null, null);
+                new org.openrewrite.yaml.ChangePropertyKey(oldPropertyKey, newPropertyKey, relaxedBinding, fileMatcher, except);
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, relaxedBinding, null);
+                new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, relaxedBinding, fileMatcher);
         ExpandProperties expandYaml = new ExpandProperties();
         return ListUtils.map(before, s -> {
             if (s instanceof Yaml.Documents) {
