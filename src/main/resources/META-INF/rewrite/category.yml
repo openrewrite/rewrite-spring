@@ -19,6 +19,10 @@ name: Spring Boot 2.x
 packageName: org.openrewrite.java.spring.boot2
 ---
 type: specs.openrewrite.org/v1beta/category
+name: Spring Boot 3.x
+packageName: org.openrewrite.java.spring.boot3
+---
+type: specs.openrewrite.org/v1beta/category
 name: Spring Data
 packageName: org.openrewrite.java.spring.data
 ---

@@ -29,6 +29,15 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.List;
 
+/**
+ * A recipe to uniformly add a property to Spring configuration file. This recipe supports adding properties to both
+ * ".properties" and ".yml" files. This recipe will only add the property if it does not already exist within the
+ * configuration file.
+ * <P>
+ * NOTE: Because an application may have a large collection of yaml files (some of which may not even be related to
+ *       Spring configuration), this recipe will only make changes to files that match one of the pathExpressions. If
+ *       the recipe is configured without pathExpressions, it will query the execution context for reasonable defaults.
+ */
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class AddSpringProperty extends Recipe {

@@ -16,18 +16,19 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 
-name: org.openrewrite.java.spring.boot2.SpringBoot2To3Migration
+name: org.openrewrite.java.spring.boot3.SpringBoot2To3Migration
 displayName: Spring Boot 3.x migration from Spring Boot 2.x
 description: Migrates Spring Boot 2.x to latest version of 3.x
 tags:
-  - testing
-  - junit
-  - mockito
   - spring
   - spring-boot
+  - java17
+  - jakarta
+  - j2ee
 recipeList:
-  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
+  - org.openrewrite.java.migrate.UpgradeToJava17
+  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.NoAutowiredOnConstructor
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
