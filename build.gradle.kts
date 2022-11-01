@@ -210,6 +210,7 @@ dependencies {
     "testWithSpringBoot_1_5RuntimeOnly"("junit:junit:latest.release")
 
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework:spring-web:5.1.+")
+    "testWithSpringBoot_2_1RuntimeOnly"("org.springframework:spring-webmvc:5.1.+")
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot:2.1.+")
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.1.0.RELEASE")
 
