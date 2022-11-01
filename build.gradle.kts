@@ -249,6 +249,7 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.batch:spring-batch-test:4.3.+")
 
     "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-core:5.1.+")
+    "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-webmvc:5.1.+")
 
     "testWithSpringFramework_5_2RuntimeOnly"("org.springframework:spring-web:5.2.+")
     "testWithSpringFramework_5_2RuntimeOnly"("org.springframework:spring-core:5.2.+")
