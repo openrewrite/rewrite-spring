@@ -73,7 +73,7 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
             }
 
             class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
-                final MethodMatcher wm = new MethodMatcher("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter <constructor>(..)");
+                final MethodMatcher wm = new MethodMatcher("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter *(..)");
                 @Override
                 public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
                     J.MethodInvocation mi = super.visitMethodInvocation(method, executionContext);

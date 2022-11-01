@@ -59,15 +59,4 @@ public class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
             """)
         );
     }
-
-    @Test
-    void transformSimple2() {
-        rewriteRun(
-          //language=java
-          java("""
-            public class CustomMvcConfigurer {
-            }
-            """)
-        );
-    }
 }
