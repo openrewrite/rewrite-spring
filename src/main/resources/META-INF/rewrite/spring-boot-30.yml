@@ -23,7 +23,7 @@ description: 'Upgrade to Spring Boot 3.0 from prior 2.x version.'
 recipeList:
   # Upgrade 3.0.x from 2.7
   - org.openrewrite.java.spring.boot3.MavenPomUpgrade
-  - org.openrewrite.java.migrate.JavaxMigrationToJakarta
+  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.SpringBootProperties_3_0_0
 ---
