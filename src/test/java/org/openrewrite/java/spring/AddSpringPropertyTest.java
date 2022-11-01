@@ -18,7 +18,7 @@ package org.openrewrite.java.spring;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RewriteTest;
 
-import java.util.Arrays;
+import java.util.List;
 
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
@@ -29,7 +29,7 @@ public class AddSpringPropertyTest implements RewriteTest {
     @Test
     void addNestedIntoExisting() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, null)),
+                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("*"))),
                 properties(
                         """
                             server.port=8080
@@ -57,7 +57,7 @@ public class AddSpringPropertyTest implements RewriteTest {
     @Test
     void addPropertyToRoot() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, null)),
+                spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, List.of("*"))),
                 properties(
                         """
                             servlet.session.cookie.path=/cookie-monster
@@ -84,7 +84,7 @@ public class AddSpringPropertyTest implements RewriteTest {
     @Test
     void propertyAlreadyExists() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, null)),
+                spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, List.of("*"))),
                 properties(
                         """
                             servlet.session.cookie.path=/cookie-monster
@@ -104,7 +104,7 @@ public class AddSpringPropertyTest implements RewriteTest {
     @Test
     void addPropertyWithComment() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", "This property was added", null)),
+                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", "This property was added", List.of("*"))),
                 properties(
                         """
                             server.port=8080
@@ -133,7 +133,7 @@ public class AddSpringPropertyTest implements RewriteTest {
     @Test
     void makeChangeToMatchingFiles() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, Arrays.asList("**/application.properties", "**/application.yml"))),
+                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("**/application.properties", "**/application.yml"))),
                 properties(
                         """
                             server.port=8080
@@ -163,7 +163,7 @@ public class AddSpringPropertyTest implements RewriteTest {
     @Test
     void doNotChangeToFilesThatDoNotMatch() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, Arrays.asList("**/application.properties", "**/application.yml"))),
+                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("**/application.properties", "**/application.yml"))),
                 properties(
                         """
                             server.port=8080

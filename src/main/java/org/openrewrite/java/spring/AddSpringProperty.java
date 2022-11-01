@@ -18,7 +18,6 @@ package org.openrewrite.java.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.properties.AddProperty;
 import org.openrewrite.properties.tree.Properties;
@@ -53,9 +52,10 @@ public class AddSpringProperty extends Recipe {
 
     @Option(displayName = "Optional list of file path matcher",
             description = "Each value in this list represents a glob expression that is used to match which files will " +
-                          "be modified",
+                          "be modified. If this value is not present, this recipe will query the execution context for " +
+                          "reasonable defaults. (\"**/application.yml\" and \"**/application.properties\"",
             required = false,
-            example = "**/application-*.properties")
+            example = "**/application.yml")
     @Nullable
     List<String> pathExpressions;
 
@@ -65,25 +65,44 @@ public class AddSpringProperty extends Recipe {
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-
-        MergeYaml mergeYaml = createMergeYamlVisitor();
-        AddProperty addProperty = new AddProperty(property, value, null);
-        return ListUtils.map(before, s -> {
-            if (s instanceof Yaml.Documents && sourcePathMatches(s.getSourcePath())) {
-                s = (Yaml.Documents) mergeYaml.getVisitor().visit(s, ctx);
-            } else if (s instanceof Properties.File && sourcePathMatches(s.getSourcePath())) {
-                s = (Properties.File) addProperty.getVisitor().visit(s, ctx);
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
+                return sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File;
             }
-            return s;
-        });
+
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                //Short circuit visitor navigation for everything except source file
+                if (tree instanceof SourceFile) {
+                    tree = super.visit(tree, ctx);
+                }
+                return tree;
+            }
+
+            @Override
+            public @Nullable Tree preVisit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof Yaml.Documents && sourcePathMatches(((SourceFile)tree).getSourcePath(), ctx)) {
+                    doAfterVisit(createMergeYamlVisitor());
+                } else if (tree instanceof Properties.File && sourcePathMatches(((SourceFile)tree).getSourcePath(), ctx)) {
+                    doAfterVisit(new AddProperty(property, value, null));
+                }
+                return tree;
+            }
+        };
     }
 
-    private boolean sourcePathMatches(Path sourcePath) {
-        if (pathExpressions == null || pathExpressions.isEmpty()) {
+    private boolean sourcePathMatches(Path sourcePath, ExecutionContext ctx) {
+        List<String> expressions = pathExpressions;
+        if (expressions == null || pathExpressions.isEmpty()) {
+            //If not defined, get reasonable defaults from the execution context.
+            expressions = SpringExecutionContextView.view(ctx).getDefaultApplicationConfigurationPaths();
+        }
+        if (expressions.isEmpty()) {
             return true;
         }
-        for (String filePattern : pathExpressions) {
+        for (String filePattern : expressions) {
             if (filePattern.startsWith("**")) {
                 sourcePath = Paths.get(".").resolve(sourcePath.normalize());
             } else {
