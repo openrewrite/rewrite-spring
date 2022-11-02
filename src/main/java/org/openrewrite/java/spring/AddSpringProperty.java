@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * A recipe to uniformly add a property to Spring configuration file. This recipe supports adding properties to
@@ -62,7 +63,7 @@ public class AddSpringProperty extends Recipe {
     @Option(displayName = "Optional list of file path matcher",
             description = "Each value in this list represents a glob expression that is used to match which files will " +
                           "be modified. If this value is not present, this recipe will query the execution context for " +
-                          "reasonable defaults. (\"**/application.yml\", \"**/application.yaml\", and \"**/application.properties\"",
+                          "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\"",
             required = false,
             example = "**/application.yml")
     @Nullable
@@ -146,8 +147,16 @@ public class AddSpringProperty extends Recipe {
             yaml.append(indent).append(part).append(":");
             indent = indent + "  ";
         }
-        yaml.append(" \"").append(value).append("\"");
+        if (quoteValue(value)) {
+            yaml.append(" \"").append(value).append('"');
+        } else {
+            yaml.append(" ").append(value);
+        }
         return new MergeYaml("$", yaml.toString(), true, null, null);
     }
 
+    private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");
+    private boolean quoteValue(String value) {
+        return scalarNeedsAQuote.matcher(value).matches();
+    }
 }
