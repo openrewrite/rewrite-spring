@@ -30,8 +30,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * A recipe to uniformly add a property to Spring configuration file. This recipe supports adding properties to both
- * ".properties" and ".yml" files. This recipe will only add the property if it does not already exist within the
+ * A recipe to uniformly add a property to Spring configuration file. This recipe supports adding properties to
+ * ".properties" and YAML files. This recipe will only add the property if it does not already exist within the
  * configuration file.
  * <P>
  * NOTE: Because an application may have a large collection of yaml files (some of which may not even be related to
@@ -62,7 +62,7 @@ public class AddSpringProperty extends Recipe {
     @Option(displayName = "Optional list of file path matcher",
             description = "Each value in this list represents a glob expression that is used to match which files will " +
                           "be modified. If this value is not present, this recipe will query the execution context for " +
-                          "reasonable defaults. (\"**/application.yml\" and \"**/application.properties\"",
+                          "reasonable defaults. (\"**/application.yml\", \"**/application.yaml\", and \"**/application.properties\"",
             required = false,
             example = "**/application.yml")
     @Nullable
@@ -146,7 +146,7 @@ public class AddSpringProperty extends Recipe {
             yaml.append(indent).append(part).append(":");
             indent = indent + "  ";
         }
-        yaml.append(" ").append(value);
+        yaml.append(" \"").append(value).append("\"");
         return new MergeYaml("$", yaml.toString(), true, null, null);
     }
 

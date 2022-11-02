@@ -39,7 +39,7 @@ public class SpringExecutionContextView extends DelegatingExecutionContext {
 
     /**
      * The path expressions used to find a spring boot application's default configuration file(s). The default masks used to
-     * find the application's root configuration are "**&#47;application.properties" and "**&#47;application.yml"
+     * find the application's root configuration are "**&#47;application.properties", "**&#47;application.yml", and "**&#47;application.yaml"
      *
      * @param pathExpressions A list of expressions that will be used as masks to find an application's default configuration file(s)
      * @return this
@@ -51,11 +51,11 @@ public class SpringExecutionContextView extends DelegatingExecutionContext {
 
     /**
      * The path expressions used to find a spring boot application's default configuration file. The default masks used to
-     * find the application's root configuration are "**&#47;application.properties" and "**&#47;application.yml"
+     * find the application's root configuration are "**&#47;application.properties", "**&#47;application.yml", and "**&#47;application.yaml"
      *
      * @return A list of file paths expression that will be used to find a spring boot application's default configuration file(s)
      */
     public List<String> getDefaultApplicationConfigurationPaths() {
-        return getMessage(DEFAULT_APPLICATION_CONFIGURATION_PATHS, Arrays.asList("**/application.properties", "**/application.yaml"));
+        return getMessage(DEFAULT_APPLICATION_CONFIGURATION_PATHS, Arrays.asList("**/application.yml", "**/application.properties", "**/application.yaml"));
     }
 }
