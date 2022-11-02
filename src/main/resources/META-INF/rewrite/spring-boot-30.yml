@@ -54,6 +54,10 @@ name: org.openrewrite.java.spring.boot2.SpringBootProperties_3_0_0
 displayName: Migrate Spring Boot properties to 3.0.0
 description: Migrate properties found in `application.properties` and `application.yml`.
 recipeList:
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: management.endpoints.jmx.exposure.include
+      value: "*"
+      comment: "In Spring Boot 3.0 only the health endpoint is exposed over JMX. See https://github.com/openrewrite/rewrite-spring/issues/229"
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
     oldPropertyKey: spring.data.cassandra.compression
     newPropertyKey: spring.cassandra.compression

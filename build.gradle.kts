@@ -62,29 +62,11 @@ dependencyCheck {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5")
-val springDataVersions: List<String> = listOf("2_1", "2_3")
-val springFrameworkVersions: List<String> = listOf("5_1", "5_2", "5_3")
+val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0")
 
 sourceSets {
     springBoot2Versions.forEach { version ->
         create("testWithSpringBoot_${version}") {
-            java {
-                compileClasspath += sourceSets.getByName("main").output
-                runtimeClasspath += sourceSets.getByName("main").output
-            }
-        }
-    }
-    springDataVersions.forEach { version ->
-        create("testWithSpringData_${version}") {
-            java {
-                compileClasspath += sourceSets.getByName("main").output
-                runtimeClasspath += sourceSets.getByName("main").output
-            }
-        }
-    }
-    springFrameworkVersions.forEach { version ->
-        create("testWithSpringFramework_${version}") {
             java {
                 compileClasspath += sourceSets.getByName("main").output
                 runtimeClasspath += sourceSets.getByName("main").output
@@ -101,6 +83,9 @@ repositories {
         }
     }
     mavenCentral()
+    maven {
+        url = uri("https://repo.spring.io/milestone")
+    }
 }
 
 nexusPublishing {
@@ -134,28 +119,6 @@ configurations {
         }
     }
 
-    springDataVersions.forEach { version ->
-        getByName("testWithSpringData_${version}RuntimeOnly") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testImplementation"))
-        }
-        getByName("testWithSpringData_${version}Implementation") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testImplementation"))
-        }
-    }
-
-    springFrameworkVersions.forEach { version ->
-        getByName("testWithSpringFramework_${version}RuntimeOnly") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testImplementation"))
-        }
-        getByName("testWithSpringFramework_${version}Implementation") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testImplementation"))
-        }
-    }
-
     all {
         resolutionStrategy {
             cacheChangingModulesFor(0, TimeUnit.SECONDS)
@@ -170,6 +133,7 @@ var rewriteVersion = if(project.hasProperty("releasing")) {
     "latest.integration"
 }
 
+var springBoot3Version = "3.0.0-RC1"
 dependencies {
     compileOnly("org.projectlombok:lombok:latest.release")
     annotationProcessor("org.projectlombok:lombok:latest.release")
@@ -213,6 +177,8 @@ dependencies {
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework:spring-webmvc:5.1.+")
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot:2.1.+")
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.1.0.RELEASE")
+    "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.data:spring-data-jpa:2.1.0.RELEASE")
+    "testWithSpringBoot_2_1RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
 
     "testWithSpringBoot_2_2RuntimeOnly"("org.springframework.boot:spring-boot:2.2.+")
 
@@ -222,12 +188,8 @@ dependencies {
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-web:5.2.+")
-
-    "testWithSpringData_2_1RuntimeOnly"("org.springframework.data:spring-data-jpa:2.1.0.RELEASE")
-    "testWithSpringData_2_1RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
-
-    "testWithSpringData_2_3RuntimeOnly"("org.springframework.data:spring-data-jpa:2.3.0.RELEASE")
-    "testWithSpringData_2_3RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
+    "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.data:spring-data-jpa:2.3.0.RELEASE")
+    "testWithSpringBoot_2_3RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
 
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.4.+")
@@ -248,21 +210,10 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot-test-autoconfigure:2.4.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.batch:spring-batch-test:4.3.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("javax.servlet:javax.servlet-api:4.+")
 
-    "testWithSpringFramework_5_1RuntimeOnly"("org.springframework:spring-core:5.1.+")
-
-    "testWithSpringFramework_5_2RuntimeOnly"("org.springframework:spring-web:5.2.+")
-    "testWithSpringFramework_5_2RuntimeOnly"("org.springframework:spring-core:5.2.+")
-
-    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-core:5.3.+")
-    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-beans:5.3.+")
-    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-tx:5.3.+")
-    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-jdbc:5.3.+")
-    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-web:5.3.+")
-    "testWithSpringFramework_5_3RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
-    "testWithSpringFramework_5_3RuntimeOnly"("javax.servlet:javax.servlet-api:4.+")
-
-    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot:2.5.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:${springBoot3Version}")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:${springBoot3Version}")
 
 }
 
@@ -273,38 +224,6 @@ tasks.named<Test>("test") {
 
 springBoot2Versions.forEach { version ->
     val sourceSetName = "testWithSpringBoot_${version}"
-    val sourceSetReference = project.sourceSets.getByName(sourceSetName)
-    val testTask = tasks.register<Test>(sourceSetName) {
-        description = "Runs the unit tests for ${sourceSetName}."
-        group = "verification"
-        useJUnitPlatform()
-        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
-        testClassesDirs = sourceSetReference.output.classesDirs
-        classpath = sourceSetReference.runtimeClasspath
-        shouldRunAfter(tasks.test)
-    }
-    tasks.test {
-        dependsOn(testTask)
-    }
-}
-springDataVersions.forEach { version ->
-    val sourceSetName = "testWithSpringData_${version}"
-    val sourceSetReference = project.sourceSets.getByName(sourceSetName)
-    val testTask = tasks.register<Test>(sourceSetName) {
-        description = "Runs the unit tests for ${sourceSetName}."
-        group = "verification"
-        useJUnitPlatform()
-        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
-        testClassesDirs = sourceSetReference.output.classesDirs
-        classpath = sourceSetReference.runtimeClasspath
-        shouldRunAfter(tasks.test)
-    }
-    tasks.test {
-        dependsOn(testTask)
-    }
-}
-springFrameworkVersions.forEach { version ->
-    val sourceSetName = "testWithSpringFramework_${version}"
     val sourceSetReference = project.sourceSets.getByName(sourceSetName)
     val testTask = tasks.register<Test>(sourceSetName) {
         description = "Runs the unit tests for ${sourceSetName}."
