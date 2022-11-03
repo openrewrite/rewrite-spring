@@ -58,8 +58,8 @@ recipeList:
       value: "*"
       comment: "In Spring Boot 3.0 only the health endpoint is exposed over JMX. See https://github.com/openrewrite/rewrite-spring/issues/229"
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-        oldPropertyKey: spring.data.cassandra.compression
-        newPropertyKey: spring.cassandra.compression
+      oldPropertyKey: spring.data.cassandra.compression
+      newPropertyKey: spring.cassandra.compression
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.cassandra.config
       newPropertyKey: spring.cassandra.config

@@ -143,9 +143,10 @@ dependencies {
     implementation("org.openrewrite:rewrite-properties:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-yaml:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
-    implementation("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
-    implementation("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
 
+    runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
+    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
+    runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
@@ -161,6 +162,10 @@ dependencies {
     // for generating properties migration configurations
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
     testImplementation("io.github.classgraph:classgraph:latest.release")
+    testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
+    testImplementation("org.openrewrite:rewrite-migrate-java:${rewriteVersion}")
+    testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
+
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
