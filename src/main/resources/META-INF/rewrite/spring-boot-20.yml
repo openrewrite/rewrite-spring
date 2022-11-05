@@ -45,8 +45,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
-  - org.openrewrite.java.spring.boot2.MigrateNotEmptyPackageName
-  - org.openrewrite.java.spring.boot2.MigrateNotBlankPackageName
+  - org.openrewrite.java.spring.boot2.MigrateHibernateContraintsToJavax
   - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
 
   # Update properties
@@ -84,10 +83,13 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.MigrateNotEmptyPackageName
-displayName: Use `NotEmpty`
-description: '`org.hibernate.validator.constraints.NotEmpty` was deprecated in 1.x.'
+name: org.openrewrite.java.spring.boot2.MigrateHibernateContraintsToJavax
+displayName: Migrate hibernate validator constraints to javax.
+description: '`org.hibernate.validator.constraints` were deprecated in 1.x. in favor of their javax counterparts.'
 recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotBlank
+      newFullyQualifiedTypeName: javax.validation.constraints.NotBlank
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
       newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
@@ -95,31 +97,8 @@ recipeList:
       groupId: javax.validation
       artifactId: validation-api
       version: 2.x
-      onlyIfUsing: javax.validation.constraints.NotBlank
-  - org.openrewrite.maven.AddDependency:
-      groupId: javax.validation
-      artifactId: validation-api
-      version: 2.x
-      onlyIfUsing: javax.validation.constraints.NotEmpty
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.MigrateNotBlankPackageName
-displayName: Use `NotBlank`
-description: '`org.hibernate.validator.constraints.NotBlank` was deprecated in 1.x.'
-recipeList:
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotBlank
-      newFullyQualifiedTypeName: javax.validation.constraints.NotBlank
-  - org.openrewrite.maven.AddDependency:
-      groupId: org.springframework.boot
-      artifactId: spring-boot-starter-validation
-      version: 2.x
-      onlyIfUsing: javax.validation.constraints.NotBlank
-  - org.openrewrite.maven.AddDependency:
-      groupId: org.springframework.boot
-      artifactId: spring-boot-starter-validation
-      version: 2.x
-      onlyIfUsing: javax.validation.constraints.NotEmpty
+      onlyIfUsing: javax.validation.constraints.*
+
 ---
 ########################################################################################################################
 # SpringBoot 2.0 Configuration Changes
