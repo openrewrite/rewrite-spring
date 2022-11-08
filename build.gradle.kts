@@ -163,7 +163,7 @@ dependencies {
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
     testImplementation("io.github.classgraph:classgraph:latest.release")
     testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
-    testImplementation("org.openrewrite:rewrite-migrate-java:${rewriteVersion}")
+    testImplementation("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
 
 
