@@ -14,18 +14,23 @@
 # limitations under the License.
 #
 ---
-########################################################################################################################
-# SpringBoot 3_0
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
 displayName: Upgrade to Spring Boot 3.0 from 2.7
 description: 'Upgrade to Spring Boot 3.0 from prior 2.x version.'
+tags:
+  - spring
+  - spring-boot
+  - spring-boot-3-0
 recipeList:
-  # Upgrade 3.0.x from 2.7
+  # Upgrade 3.0.0 from 2.7
   - org.openrewrite.java.spring.boot3.MavenPomUpgrade
   - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
-  - org.openrewrite.java.spring.boot2.SpringBootProperties_3_0_0
+  - org.openrewrite.java.spring.boot3.LegacyJmxExposure
+  - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
+  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
+
 ---
 ########################################################################################################################
 # SpringBoot 3_0 Maven Pom
@@ -33,6 +38,10 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MavenPomUpgrade
 displayName: Upgrade Maven Pom to Spring Boot 3.0 from 2.x
 description: 'Upgrade Maven Pom to Spring Boot 3.0 from prior 2.x version.'
+tags:
+  - spring
+  - spring-boot
+  - spring-boot-3-0
 recipeList:
   - org.openrewrite.java.migrate.UpdateMavenToJava17
   - org.openrewrite.maven.UpgradeDependencyVersion:
@@ -46,17 +55,59 @@ recipeList:
       newVersion: 3.0.0-SNAPSHOT
 
 ---
-########################################################################################################################
-# SpringBoot 3.0 Configuration Changes
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_3_0_0
-displayName: Migrate Spring Boot properties to 3.0.0
-description: Migrate properties found in `application.properties` and `application.yml`.
+name: org.openrewrite.java.spring.boot3.LegacyJmxExposure
+displayName: Maintain parity with Spring Boot 2.x by exposing all actuator endpoints via JMX.
+description: Spring Boot 3.0 only exposes the health endpoint via JMX. This change exposes all actuator endpoints via JMX to maintain parity with Spring Boot 2.x. See See https://github.com/openrewrite/rewrite-spring/issues/229
+tags:
+  - spring
+  - spring-boot
+  - spring-boot-3-0
 recipeList:
   - org.openrewrite.java.spring.AddSpringProperty:
       property: management.endpoints.jmx.exposure.include
       value: "*"
-      comment: "In Spring Boot 3.0 only the health endpoint is exposed over JMX. See https://github.com/openrewrite/rewrite-spring/issues/229"
+      comment: "In Spring Boot 3.0 only the health endpoint is exposed over JMX. This setting was changed to maintain parity with Spring Boot 2.x but should be reviewed."
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
+displayName: "Maintain parity with Spring Boot 2.x by disabling sanitization of `/env`, `/configprops`, and `/quartz` endpoints."
+description: Spring Boot 3.0 removed the key-based sanitization mechanism used in Spring Boot 2.x in favor of a unified approach. This recipe maintains the previous behavior but adds a warning comment that these settings should be reviewed. See https://github.com/openrewrite/rewrite-spring/issues/228
+tags:
+  - spring
+  - spring-boot
+  - spring-boot-3-0
+recipeList:
+  - org.openrewrite.java.spring.DeleteSpringProperty:
+      propertyKey: management.endpoint.configprops.additional-keys-to-sanitize
+  - org.openrewrite.java.spring.DeleteSpringProperty:
+      propertyKey: management.endpoint.env.additional-keys-to-sanitize
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: management.endpoint.configprops.show-values
+      value: ALWAYS
+      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: management.endpoint.env.show-values
+      value: ALWAYS
+      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: management.endpoint.quartz.show-values
+      value: ALWAYS
+      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
+
+---
+########################################################################################################################
+# SpringBoot 3.0 Configuration Changes
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
+displayName: Migrate Spring Boot properties to 3.0.0
+description: Migrate properties found in `application.properties` and `application.yml`.
+tags:
+  - spring
+  - spring-boot
+  - spring-boot-3-0
+recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.cassandra.compression
       newPropertyKey: spring.cassandra.compression

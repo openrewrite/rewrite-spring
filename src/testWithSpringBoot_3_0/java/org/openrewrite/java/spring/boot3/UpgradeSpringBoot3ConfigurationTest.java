@@ -17,27 +17,21 @@ package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.config.Environment;
-import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
 public class UpgradeSpringBoot3ConfigurationTest implements RewriteTest {
-    public void defaults(RecipeSpec spec) {
-        spec
-                .recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes(
-                                "org.openrewrite.java.spring.boot2.SpringBootProperties_3_0_0"
-                        )
-                );
-    }
 
     @Test
-    void springApplicationProperties() {
+    void legacyJmxExposure() {
         rewriteRun(
+                spec -> spec.recipe(Environment.builder()
+                        .scanRuntimeClasspath()
+                        .build()
+                        .activateRecipes("org.openrewrite.java.spring.boot3.LegacyJmxExposure")
+                ),
                 properties(
                         """
                             # application.properties
@@ -56,11 +50,61 @@ public class UpgradeSpringBoot3ConfigurationTest implements RewriteTest {
                               endpoints:
                                 jmx:
                                   exposure:
-                                    # In Spring Boot 3.0 only the health endpoint is exposed over JMX. See https://github.com/openrewrite/rewrite-spring/issues/229
+                                    # In Spring Boot 3.0 only the health endpoint is exposed over JMX. This setting was changed to maintain parity with Spring Boot 2.x but should be reviewed.
                                     include: "*"
                                 """,
                         s -> s.path("src/main/resources/application.yml")
                 )
         );
     }
+
+    @Test
+    void actuatorEndpointSanitization() {
+        rewriteRun(
+                spec -> spec.recipe(Environment.builder()
+                        .scanRuntimeClasspath()
+                        .build()
+                        .activateRecipes("org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization")
+                ),
+                properties(
+                        """
+                            # application.properties
+                            management.endpoint.configprops.additional-keys-to-sanitize=key1,key2
+                            management.endpoint.env.additional-keys-to-sanitize=key1,key2
+                        """,
+                        """
+                            # application.properties
+                            management.endpoint.configprops.show-values=ALWAYS
+                            management.endpoint.env.show-values=ALWAYS
+                            management.endpoint.quartz.show-values=ALWAYS
+                        """,
+                        s -> s.path("src/main/resources/application.properties")
+                ),
+                yaml(
+                        """
+                            management:
+                              endpoint:
+                                configprops:
+                                  additional-keys-to-sanitize: key1,key2
+                                env:
+                                  additional-keys-to-sanitize: key1,key2
+                        """,
+                        """
+                            management:
+                              endpoint:
+                                configprops:
+                                  # This value was added to maintain parity with SpringBoot 2.x and should be changed to either to "NEVER" or "WHEN_AUTHORIZED".
+                                  show-values: ALWAYS
+                                env:
+                                  # This value was added to maintain parity with SpringBoot 2.x and should be changed to either to "NEVER" or "WHEN_AUTHORIZED".
+                                  show-values: ALWAYS
+                                quartz:
+                                  # This value was added to maintain parity with SpringBoot 2.x and should be changed to either to "NEVER" or "WHEN_AUTHORIZED".
+                                  show-values: ALWAYS
+                        """,
+                        s -> s.path("src/main/resources/application.yml")
+                )
+        );
+    }
+
 }
