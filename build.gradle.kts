@@ -160,7 +160,7 @@ dependencies {
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
     // for generating properties migration configurations
-    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
     testImplementation("io.github.classgraph:classgraph:latest.release")
     testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")

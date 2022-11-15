@@ -78,7 +78,7 @@ public class LoggingShutdownHooks extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication")
+        return new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication", null)
                 .getVisitor();
     }
 }
