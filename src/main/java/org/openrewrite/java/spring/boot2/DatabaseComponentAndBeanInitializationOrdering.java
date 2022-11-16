@@ -41,7 +41,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Adds @DependsOnDatabaseInitialization to Spring Beans and Components depending on javax.sql.DataSource.";
+        return "Adds @DependsOnDatabaseInitialization to Spring Beans and Components depending on javax.sql.DataSource";
     }
 
     @Override

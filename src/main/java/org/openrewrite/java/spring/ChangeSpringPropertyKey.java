@@ -36,7 +36,7 @@ public class ChangeSpringPropertyKey extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Change the key of a spring application property.";
+        return "Change the key of a spring application property";
     }
 
     @Option(displayName = "Old property key",

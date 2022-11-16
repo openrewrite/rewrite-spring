@@ -38,7 +38,7 @@ public class DeleteSpringProperty extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Delete a spring configuration property from any configuration files that contains a matching key.";
+        return "Delete a spring configuration property from any configuration files that contains a matching key";
     }
 
     @Override

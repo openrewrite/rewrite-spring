@@ -33,7 +33,7 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Spring-Boot-Actuator `ActuatorMediaType` was deprecated in 2.5 in favor of `ApiVersion#getProducedMimeType()`. Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`";
+        return "Spring-Boot-Actuator `ActuatorMediaType` was deprecated in 2.5 in favor of `ApiVersion#getProducedMimeType()`. Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`.";
     }
 
     @Override

@@ -68,7 +68,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Upgrades un-managed spring-boot project dependencies according to the specified spring-boot version";
+        return "Upgrades un-managed spring-boot project dependencies according to the specified spring-boot version.";
     }
 
     private synchronized void buildDependencyMap() throws MavenDownloadingException {

@@ -63,7 +63,7 @@ public class AddSpringProperty extends Recipe {
     @Option(displayName = "Optional list of file path matcher",
             description = "Each value in this list represents a glob expression that is used to match which files will " +
                           "be modified. If this value is not present, this recipe will query the execution context for " +
-                          "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\"",
+                          "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\".",
             required = false,
             example = "**/application.yml")
     @Nullable
@@ -71,7 +71,7 @@ public class AddSpringProperty extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Add a spring configuration property to a configuration file if it does not already exist in that file.";
+        return "Add a spring configuration property to a configuration file if it does not already exist in that file";
     }
 
     @Override
