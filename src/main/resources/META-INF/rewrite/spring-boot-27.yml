@@ -35,6 +35,7 @@ recipeList:
       artifactId: spring-boot-starter-parent
       newVersion: 2.7.x
   # Use recommended replacements for deprecated APIs
+  - org.openrewrite.java.spring.boot2.WebSecurityConfigurerAdapter
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.server.LocalServerPort
       newFullyQualifiedTypeName: org.springframework.boot.test.web.server.LocalServerPort
