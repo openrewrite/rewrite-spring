@@ -31,7 +31,7 @@ import org.openrewrite.java.tree.TypeUtils;
 public class MigrateWebMvcConfigurerAdapter extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Transform classes that extend `WebMvcConfigurerAdapter` to implement the `WebMvcConfigurer` interface instead.";
+        return "Transform classes that extend `WebMvcConfigurerAdapter` to implement the `WebMvcConfigurer` interface instead";
     }
 
     @Override

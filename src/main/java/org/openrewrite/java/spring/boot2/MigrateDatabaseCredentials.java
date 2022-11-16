@@ -35,7 +35,7 @@ public class MigrateDatabaseCredentials extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Migrate flyway and liquibase credentials.";
+        return "Migrate flyway and liquibase credentials";
     }
 
     @Override

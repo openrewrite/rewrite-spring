@@ -38,7 +38,7 @@ public class PreciseBeanType extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Replace Bean method return types with concrete types being returned. This is required for Spring 6 AOT";
+        return "Replace Bean method return types with concrete types being returned. This is required for Spring 6 AOT.";
     }
 
     @Override
