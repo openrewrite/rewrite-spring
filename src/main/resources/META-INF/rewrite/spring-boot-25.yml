@@ -18,12 +18,15 @@
 # SpringBoot 2.5 Search Recipes
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.search.UpgradeRequirementsSpringBoot_2_5
-displayName: Spring Boot 2.5 upgrades plus any possible manual changes that need to be reviewed.
-description: |
-  Identify changes needed to upgrade to Spring Boot 2.5.
+displayName: Migrate to Spring Boot 2.5 from Spring Boot 2.0 through 2.4
+description: >
+  Migrate applications built on Spring Boot 2.0 through 2.4 to the latest Spring Boot 2.5 release. This recipe will modify an
+  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
+  changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
+  etc) that are required as part of the migration to Spring Boot 2.5.
 tags:
   - spring
-  - spring-boot
+  - boot
 recipeList:
   - org.openrewrite.java.spring.boot2.search.MessagesInTheDefaultErrorView
   - org.openrewrite.java.spring.boot2.search.CustomizingJooqDefaultConfiguration

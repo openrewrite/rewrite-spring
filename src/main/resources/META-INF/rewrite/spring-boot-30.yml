@@ -16,12 +16,15 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
-displayName: Upgrade to Spring Boot 3.0 from 2.7
-description: 'Upgrade to Spring Boot 3.0 from prior 2.x version.'
+displayName: Migrate to Spring Boot 3.0 from Spring Boot 2.7
+description: >
+  Migrate applications built on Spring Boot 2.7 to the latest Spring Boot 3.0 release. This recipe will modify an
+  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
+  changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
+  etc) that are required as part of the migration to Spring Boot 2.7.
 tags:
   - spring
-  - spring-boot
-  - spring-boot-3-0
+  - boot
 recipeList:
   # Upgrade 3.0.0 from 2.7
   - org.openrewrite.java.spring.boot3.MavenPomUpgrade

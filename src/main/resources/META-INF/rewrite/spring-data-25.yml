@@ -18,8 +18,8 @@
 # Spring Data 2.5
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_5
-displayName: Upgrade to Spring Data 2.5
-description: 'Upgrade to Spring Data to 2.5 from any prior version.'
+displayName: Migrate to Spring Data 2.5 from Spring Data 2.0 through 2.4
+description: Migrate applications built on Spring Data (2.0 through 2.4) to the latest Spring Data 2.5 release.
 recipeList:
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_3
   - org.openrewrite.java.spring.data.UseJpaRepositoryGetById

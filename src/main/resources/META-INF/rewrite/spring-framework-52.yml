@@ -18,8 +18,8 @@
 # Spring Framework 5.2
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_2
-displayName: Upgrade to Spring Framework 5.2
-description: 'Upgrade to Spring Framework to 5.2 from any prior version.'
+displayName: Migrate to Spring Framework 5.2 from Spring Framework 5.0 through 5.1
+description: Migrate applications built on Spring Framework (5.0 through 5.1) to the latest Spring Framework 5.2 release.
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_1
   - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
