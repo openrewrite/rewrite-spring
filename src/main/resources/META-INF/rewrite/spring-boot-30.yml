@@ -50,12 +50,12 @@ recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
-      newVersion: 3.0.0-SNAPSHOT
+      newVersion: 3.0.x
       trustParent: true
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
-      newVersion: 3.0.0-SNAPSHOT
+      newVersion: 3.0.x
 ---
 ########################################################################################################################
 # Migrate SAML configuration to Spring Boot 3.0 in yaml format
@@ -114,7 +114,7 @@ recipeList:
 # SpringBoot 3.0 Configuration Changes
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
-displayName: Migrate Spring Boot properties to 3.0.0
+displayName: Migrate Spring Boot properties to 3.0
 description: Migrate properties found in `application.properties` and `application.yml`.
 tags:
   - spring
