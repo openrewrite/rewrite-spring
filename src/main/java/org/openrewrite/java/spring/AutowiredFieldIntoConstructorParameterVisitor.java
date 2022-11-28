@@ -17,6 +17,8 @@ package org.openrewrite.java.spring;
 
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Tree;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.Block;
@@ -24,7 +26,9 @@ import org.openrewrite.java.tree.J.ClassDeclaration;
 import org.openrewrite.java.tree.J.MethodDeclaration;
 import org.openrewrite.java.tree.J.VariableDeclarations;
 import org.openrewrite.java.tree.JavaType.FullyQualified;
+import org.openrewrite.marker.Markers;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -118,6 +122,10 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
 
             mv = (VariableDeclarations) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + AUTOWIRED)).visitNonNull(multiVariable, p);
             if (mv != multiVariable && multiVariable.getTypeExpression() != null) {
+                if (!mv.getModifiers().stream().anyMatch(m -> m.getType() == J.Modifier.Type.Final)) {
+                    J.Modifier m = new J.Modifier(Tree.randomId(), mv.getVariables().get(0).getPrefix(), Markers.EMPTY, J.Modifier.Type.Final, Collections.emptyList());
+                    mv = mv.withModifiers(ListUtils.concat(mv.getModifiers(), m));
+                }
                 maybeRemoveImport(AUTOWIRED);
                 MethodDeclaration constructor = blockCursor.getParent().getMessage("applicableConstructor");
                 ClassDeclaration c = blockCursor.getParent().getValue();
