@@ -59,7 +59,7 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
               
               public class A {
               
-                  private String a;
+                  private final String a;
                   
                   A(String a) {
                       this.a = a;
@@ -93,7 +93,7 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
               
               public class A {
               
-                  private String a;
+                  private final String a;
             
                   A(String a) {
                       this.a = a;
@@ -135,7 +135,7 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
               
               public class A {
               
-                  private String a;
+                  private final String a;
                   
                   A() {
                   }
@@ -264,7 +264,7 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
               
               public class A {
               
-                  private String a;
+                  private final String a;
                   
                   A(String a) {
                       this.a = a;
@@ -335,4 +335,42 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void finalFieldIntoExistingSingleConstructor() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+              
+              public class A {
+              
+                  @Autowired
+                  final private String a;
+                  
+                  A() {
+                  }
+              
+              }
+              """,
+            """
+              package demo;
+              
+              public class A {
+              
+                  final private String a;
+                  
+                  A(String a) {
+                      this.a = a;
+                  }
+                 
+              }
+              """
+          )
+        );
+    }
+
 }

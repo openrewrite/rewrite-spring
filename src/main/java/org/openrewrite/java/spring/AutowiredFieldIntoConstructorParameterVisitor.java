@@ -15,8 +15,11 @@
  */
 package org.openrewrite.java.spring;
 
+import lombok.RequiredArgsConstructor;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Tree;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.Block;
@@ -24,7 +27,9 @@ import org.openrewrite.java.tree.J.ClassDeclaration;
 import org.openrewrite.java.tree.J.MethodDeclaration;
 import org.openrewrite.java.tree.J.VariableDeclarations;
 import org.openrewrite.java.tree.JavaType.FullyQualified;
+import org.openrewrite.marker.Markers;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,21 +37,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
+@RequiredArgsConstructor
 public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<ExecutionContext> {
-
     private static final String AUTOWIRED = "org.springframework.beans.factory.annotation.Autowired";
 
-    final private String classFqName;
-
-    final private String fieldName;
-
-    public AutowiredFieldIntoConstructorParameterVisitor(String classFqName, String fieldName) {
-        this.classFqName = classFqName;
-        this.fieldName = fieldName;
-    }
+    private final String classFqName;
+    private final String fieldName;
 
     @Override
-    public J visitClassDeclaration(ClassDeclaration classDecl, ExecutionContext p) {
+    public J visitClassDeclaration(ClassDeclaration classDecl, ExecutionContext ctx) {
         if (TypeUtils.isOfClassType(classDecl.getType(), classFqName)) {
             List<MethodDeclaration> constructors = classDecl.getBody().getStatements().stream()
                     .filter(J.MethodDeclaration.class::isInstance)
@@ -59,7 +58,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             } else if (constructors.size() == 1) {
                 MethodDeclaration c = constructors.get(0);
                 getCursor().putMessage("applicableConstructor", c);
-                applicable = !isConstructorInitializingField(c, fieldName);
+                applicable = isNotConstructorInitializingField(c, fieldName);
             } else {
                 List<MethodDeclaration> autowiredConstructors = constructors.stream().filter(constr -> constr.getLeadingAnnotations().stream()
                                 .map(a -> TypeUtils.asFullyQualified(a.getType()))
@@ -72,19 +71,19 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 if (autowiredConstructors.size() == 1) {
                     MethodDeclaration c = autowiredConstructors.get(0);
                     getCursor().putMessage("applicableConstructor", autowiredConstructors.get(0));
-                    applicable = !isConstructorInitializingField(c, fieldName);
+                    applicable = isNotConstructorInitializingField(c, fieldName);
                 }
             }
             if (applicable) {
                 // visit contents if there is applicable constructor
-                return super.visitClassDeclaration(classDecl, p);
+                return super.visitClassDeclaration(classDecl, ctx);
             }
         }
         return classDecl;
     }
 
-    public static boolean isConstructorInitializingField(MethodDeclaration c, String fieldName) {
-        return c.getBody().getStatements().stream().filter(J.Assignment.class::isInstance).map(J.Assignment.class::cast).anyMatch(a -> {
+    public static boolean isNotConstructorInitializingField(MethodDeclaration c, String fieldName) {
+        return c.getBody() == null || c.getBody().getStatements().stream().filter(J.Assignment.class::isInstance).map(J.Assignment.class::cast).noneMatch(a -> {
             Expression expr = a.getVariable();
             if (expr instanceof J.FieldAccess) {
                 J.FieldAccess fa = (J.FieldAccess) expr;
@@ -99,9 +98,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 JavaType.Variable fieldType = c.getMethodType().getDeclaringType().getMembers().stream().filter(v -> fieldName.equals(v.getName())).findFirst().orElse(null);
                 if (fieldType != null) {
                     J.Identifier identifier = (J.Identifier) expr;
-                    if (fieldType.equals(identifier.getFieldType())) {
-                        return true;
-                    }
+                    return fieldType.equals(identifier.getFieldType());
                 }
             }
             return false;
@@ -118,6 +115,10 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
 
             mv = (VariableDeclarations) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + AUTOWIRED)).visitNonNull(multiVariable, p);
             if (mv != multiVariable && multiVariable.getTypeExpression() != null) {
+                if (mv.getModifiers().stream().noneMatch(m -> m.getType() == J.Modifier.Type.Final)) {
+                    J.Modifier m = new J.Modifier(Tree.randomId(), mv.getVariables().get(0).getPrefix(), Markers.EMPTY, J.Modifier.Type.Final, Collections.emptyList());
+                    mv = mv.withModifiers(ListUtils.concat(mv.getModifiers(), m));
+                }
                 maybeRemoveImport(AUTOWIRED);
                 MethodDeclaration constructor = blockCursor.getParent().getMessage("applicableConstructor");
                 ClassDeclaration c = blockCursor.getParent().getValue();
@@ -162,11 +163,8 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                             maybeAddImport(fq);
                         }
                         Optional<Statement> firstMethod = block.getStatements().stream().filter(MethodDeclaration.class::isInstance).findFirst();
-                        if (firstMethod.isPresent()) {
-                            return block.withTemplate(template.build(), firstMethod.get().getCoordinates().before());
-                        } else {
-                            return block.withTemplate(template.build(), block.getCoordinates().lastStatement());
-                        }
+                        return firstMethod.map(statement -> (J) block.withTemplate(template.build(), statement.getCoordinates().before()))
+                                .orElseGet(() -> block.withTemplate(template.build(), block.getCoordinates().lastStatement()));
                     }
                 }
             }
@@ -175,7 +173,6 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
     }
 
     private static class AddConstructorParameterAndAssignment extends JavaIsoVisitor<ExecutionContext> {
-
         private final MethodDeclaration constructor;
         private final String fieldName;
         private final String methodType;
@@ -209,5 +206,4 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             return md;
         }
     }
-
 }
