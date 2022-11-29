@@ -100,3 +100,6 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.sql.init.enabled
       newPropertyKey: spring.sql.init.mode
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.tomcat.internal-proxies
+      newPropertyKey: server.tomcat.remoteip.internal-proxies
