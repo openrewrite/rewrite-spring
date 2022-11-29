@@ -71,7 +71,12 @@ public class AddSpringProperty extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Add a spring configuration property to a configuration file if it does not already exist in that file";
+        return "Add a spring configuration property";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Add a spring configuration property to a configuration file if it does not already exist in that file.";
     }
 
     @Override

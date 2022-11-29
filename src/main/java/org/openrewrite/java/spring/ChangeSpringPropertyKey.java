@@ -39,6 +39,11 @@ public class ChangeSpringPropertyKey extends Recipe {
         return "Change the key of a spring application property";
     }
 
+    @Override
+    public String getDescription() {
+        return "Change spring application property keys existing in either Properties or Yaml files.";
+    }
+
     @Option(displayName = "Old property key",
             description = "The property key to rename. Supports glob",
             example = "management.metrics.binders.*.enabled")

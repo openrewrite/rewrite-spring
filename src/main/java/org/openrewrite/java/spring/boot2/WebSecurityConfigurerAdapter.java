@@ -28,6 +28,7 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
+import org.openrewrite.marker.SearchResult;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,6 +73,11 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     }
 
     @Override
+    public String getDescription() {
+        return "The Spring-Security WebSecurityConfigurerAdapter was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details.";
+    }
+
+    @Override
     protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
         return new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER);
     }
@@ -110,7 +116,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, context);
                 Cursor classCursor = getCursor().dropParentUntil(J.ClassDeclaration.class::isInstance);
                 if (isConflictingMethod(m.getMethodType(), method.getSimpleName())) {
-                    m = m.withMarkers(m.getMarkers().searchResult("Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter"));
+                    m = SearchResult.found(m, "Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter");
                 } else if (!classCursor.getMessage(HAS_CONFLICT, true)) {
                     if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(m, classCursor.getValue())) {
                         JavaType securityChainType = JavaType.buildType(FQN_SECURITY_FILTER_CHAIN);
