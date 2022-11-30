@@ -46,7 +46,7 @@ tags:
   - spring-boot
   - spring-boot-3-0
 recipeList:
-  - org.openrewrite.java.migrate.UpdateMavenToJava17
+  - org.openrewrite.java.migrate.JavaVersion17
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
