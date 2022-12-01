@@ -34,7 +34,7 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Remove Unnecessary '@Repository' annotation from Spring Data 'Repository' sub-interface";
+        return "Remove unnecessary '@Repository' annotation from Spring Data 'Repository' sub-interface";
     }
 
     @Override
@@ -43,7 +43,7 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getApplicableTest() {
+    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
         return new UsesType<ExecutionContext>(ANNOTATION_REPOSITORY);
     }
 
@@ -51,8 +51,8 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, executionContext);
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
                 if (c.getKind() == J.ClassDeclaration.Kind.Type.Interface ) {
                     boolean hasRepoAnnotation = c.getLeadingAnnotations().stream().anyMatch(annotation -> {
                         if (annotation.getArguments() == null || annotation.getArguments().isEmpty()
@@ -64,7 +64,7 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
                     });
                     if (hasRepoAnnotation && TypeUtils.isAssignableTo(INTERFACE_REPOSITORY, c.getType())) {
                         maybeRemoveImport(ANNOTATION_REPOSITORY);
-                        return (J.ClassDeclaration) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + ANNOTATION_REPOSITORY)).visit(c, executionContext, getCursor());
+                        return (J.ClassDeclaration) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + ANNOTATION_REPOSITORY)).visit(c, ctx, getCursor());
                     }
                 }
                 return c;
