@@ -116,7 +116,13 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             mv = (VariableDeclarations) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + AUTOWIRED)).visitNonNull(multiVariable, p);
             if (mv != multiVariable && multiVariable.getTypeExpression() != null) {
                 if (mv.getModifiers().stream().noneMatch(m -> m.getType() == J.Modifier.Type.Final)) {
-                    J.Modifier m = new J.Modifier(Tree.randomId(), mv.getVariables().get(0).getPrefix(), Markers.EMPTY, J.Modifier.Type.Final, Collections.emptyList());
+                    Space prefix = Space.firstPrefix(mv.getVariables());
+                    J.Modifier m = new J.Modifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, J.Modifier.Type.Final, Collections.emptyList());
+                    if (mv.getModifiers().isEmpty()) {
+                        mv = mv.withTypeExpression(mv.getTypeExpression().withPrefix(prefix));
+                    } else {
+                        m = m.withPrefix(prefix);
+                    }
                     mv = mv.withModifiers(ListUtils.concat(mv.getModifiers(), m));
                 }
                 maybeRemoveImport(AUTOWIRED);
