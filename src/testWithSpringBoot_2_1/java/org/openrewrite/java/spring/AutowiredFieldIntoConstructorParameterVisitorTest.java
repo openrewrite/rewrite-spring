@@ -72,6 +72,43 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     }
 
     @Test
+    void fieldIntoExistingSingleConstructor2() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+              
+              public class A {
+              
+                  @Autowired
+                  String a;
+                  
+                  A() {
+                  }
+              
+              }
+              """,
+            """
+              package demo;
+              
+              public class A {
+              
+                  final String a;
+                  
+                  A(String a) {
+                      this.a = a;
+                  }
+                 
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void fieldIntoNewConstructor() {
         //language=java
         rewriteRun(
