@@ -30,7 +30,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.MavenPomUpgrade
   - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
-  - org.openrewrite.java.spring.boot3.LegacyJmxExposure
+#  - org.openrewrite.java.spring.boot3.LegacyJmxExposure
   - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
   - org.openrewrite.java.spring.boot3.Saml
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
@@ -96,18 +96,18 @@ recipeList:
       propertyKey: management.endpoint.configprops.additional-keys-to-sanitize
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: management.endpoint.env.additional-keys-to-sanitize
-  - org.openrewrite.java.spring.AddSpringProperty:
-      property: management.endpoint.configprops.show-values
-      value: ALWAYS
-      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
-  - org.openrewrite.java.spring.AddSpringProperty:
-      property: management.endpoint.env.show-values
-      value: ALWAYS
-      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
-  - org.openrewrite.java.spring.AddSpringProperty:
-      property: management.endpoint.quartz.show-values
-      value: ALWAYS
-      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
+#  - org.openrewrite.java.spring.AddSpringProperty:
+#      property: management.endpoint.configprops.show-values
+#      value: ALWAYS
+#      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
+#  - org.openrewrite.java.spring.AddSpringProperty:
+#      property: management.endpoint.env.show-values
+#      value: ALWAYS
+#      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
+#  - org.openrewrite.java.spring.AddSpringProperty:
+#      property: management.endpoint.quartz.show-values
+#      value: ALWAYS
+#      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
 
 ---
 ########################################################################################################################

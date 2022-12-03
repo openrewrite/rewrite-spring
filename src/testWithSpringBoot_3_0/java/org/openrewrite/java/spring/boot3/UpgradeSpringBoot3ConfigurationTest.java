@@ -58,53 +58,53 @@ public class UpgradeSpringBoot3ConfigurationTest implements RewriteTest {
         );
     }
 
-    @Test
-    void actuatorEndpointSanitization() {
-        rewriteRun(
-                spec -> spec.recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes("org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization")
-                ),
-                properties(
-                        """
-                            # application.properties
-                            management.endpoint.configprops.additional-keys-to-sanitize=key1,key2
-                            management.endpoint.env.additional-keys-to-sanitize=key1,key2
-                        """,
-                        """
-                            # application.properties
-                            management.endpoint.configprops.show-values=ALWAYS
-                            management.endpoint.env.show-values=ALWAYS
-                            management.endpoint.quartz.show-values=ALWAYS
-                        """,
-                        s -> s.path("src/main/resources/application.properties")
-                ),
-                yaml(
-                        """
-                            management:
-                              endpoint:
-                                configprops:
-                                  additional-keys-to-sanitize: key1,key2
-                                env:
-                                  additional-keys-to-sanitize: key1,key2
-                        """,
-                        """
-                            management:
-                              endpoint:
-                                configprops:
-                                  # This value was added to maintain parity with SpringBoot 2.x and should be changed to either to "NEVER" or "WHEN_AUTHORIZED".
-                                  show-values: ALWAYS
-                                env:
-                                  # This value was added to maintain parity with SpringBoot 2.x and should be changed to either to "NEVER" or "WHEN_AUTHORIZED".
-                                  show-values: ALWAYS
-                                quartz:
-                                  # This value was added to maintain parity with SpringBoot 2.x and should be changed to either to "NEVER" or "WHEN_AUTHORIZED".
-                                  show-values: ALWAYS
-                        """,
-                        s -> s.path("src/main/resources/application.yml")
-                )
-        );
-    }
+//    @Test
+//    void actuatorEndpointSanitization() {
+//        rewriteRun(
+//                spec -> spec.recipe(Environment.builder()
+//                        .scanRuntimeClasspath()
+//                        .build()
+//                        .activateRecipes("org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization")
+//                ),
+//                properties(
+//                        """
+//                            # application.properties
+//                            management.endpoint.configprops.additional-keys-to-sanitize=key1,key2
+//                            management.endpoint.env.additional-keys-to-sanitize=key1,key2
+//                        """,
+//                        """
+//                            # application.properties
+//                            management.endpoint.configprops.show-values=ALWAYS
+//                            management.endpoint.env.show-values=ALWAYS
+//                            management.endpoint.quartz.show-values=ALWAYS
+//                        """,
+//                        s -> s.path("src/main/resources/application.properties")
+//                ),
+//                yaml(
+//                        """
+//                            management:
+//                              endpoint:
+//                                configprops:
+//                                  additional-keys-to-sanitize: key1,key2
+//                                env:
+//                                  additional-keys-to-sanitize: key1,key2
+//                        """,
+//                        """
+//                            management:
+//                              endpoint:
+//                                configprops:
+//                                  # This value was added to maintain parity with SpringBoot 2.x and should be changed to either to "NEVER" or "WHEN_AUTHORIZED".
+//                                  show-values: ALWAYS
+//                                env:
+//                                  # This value was added to maintain parity with SpringBoot 2.x and should be changed to either to "NEVER" or "WHEN_AUTHORIZED".
+//                                  show-values: ALWAYS
+//                                quartz:
+//                                  # This value was added to maintain parity with SpringBoot 2.x and should be changed to either to "NEVER" or "WHEN_AUTHORIZED".
+//                                  show-values: ALWAYS
+//                        """,
+//                        s -> s.path("src/main/resources/application.yml")
+//                )
+//        );
+//    }
 
 }
