@@ -62,10 +62,10 @@ dependencyCheck {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBoot2Versions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0")
+val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0")
 
 sourceSets {
-    springBoot2Versions.forEach { version ->
+    springBootVersions.forEach { version ->
         create("testWithSpringBoot_${version}") {
             java {
                 compileClasspath += sourceSets.getByName("main").output
@@ -108,7 +108,7 @@ if(signingKey != null && signingPassword != null) {
 }
 
 configurations {
-    springBoot2Versions.forEach { version ->
+    springBootVersions.forEach { version ->
         getByName("testWithSpringBoot_${version}RuntimeOnly") {
             isCanBeResolved = true
             extendsFrom(getByName("testImplementation"))
@@ -213,8 +213,13 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.batch:spring-batch-test:4.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("javax.servlet:javax.servlet-api:4.+")
 
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
+
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:${springBoot3Version}")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:${springBoot3Version}")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
 
 }
 
@@ -223,7 +228,7 @@ tasks.named<Test>("test") {
     jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
 }
 
-springBoot2Versions.forEach { version ->
+springBootVersions.forEach { version ->
     val sourceSetName = "testWithSpringBoot_${version}"
     val sourceSetReference = project.sourceSets.getByName(sourceSetName)
     val testTask = tasks.register<Test>(sourceSetName) {
