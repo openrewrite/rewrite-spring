@@ -30,6 +30,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.MavenPomUpgrade
   - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
+  - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
 #  - org.openrewrite.java.spring.boot3.LegacyJmxExposure
   - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
   - org.openrewrite.java.spring.boot3.Saml
