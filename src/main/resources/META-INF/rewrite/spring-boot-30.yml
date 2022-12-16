@@ -33,6 +33,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
 #  - org.openrewrite.java.spring.boot3.LegacyJmxExposure
   - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
+  - org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
   - org.openrewrite.java.spring.boot3.Saml
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
 ---
@@ -86,29 +87,37 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
-displayName: "Maintain parity with Spring Boot 2.x by disabling sanitization of `/env`, `/configprops`, and `/quartz` endpoints."
-description: Spring Boot 3.0 removed the key-based sanitization mechanism used in Spring Boot 2.x in favor of a unified approach. This recipe maintains the previous behavior but adds a warning comment that these settings should be reviewed. See https://github.com/openrewrite/rewrite-spring/issues/228
+displayName: Remove the deprecated properties `additional-keys-to-sanitize` from the `configprops` and `env` end points
+description: Spring Boot 3.0 removed the key-based sanitization mechanism used in Spring Boot 2.x in favor of a unified approach. See https://github.com/openrewrite/rewrite-spring/issues/228
 tags:
   - spring
   - spring-boot
-  - spring-boot-3-0
+  - 3.0
 recipeList:
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: management.endpoint.configprops.additional-keys-to-sanitize
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: management.endpoint.env.additional-keys-to-sanitize
-#  - org.openrewrite.java.spring.AddSpringProperty:
-#      property: management.endpoint.configprops.show-values
-#      value: ALWAYS
-#      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
-#  - org.openrewrite.java.spring.AddSpringProperty:
-#      property: management.endpoint.env.show-values
-#      value: ALWAYS
-#      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
-#  - org.openrewrite.java.spring.AddSpringProperty:
-#      property: management.endpoint.quartz.show-values
-#      value: ALWAYS
-#      comment: "This value was added to maintain parity with SpringBoot 2.x and should be changed to either to \"NEVER\" or \"WHEN_AUTHORIZED\"."
+
+---
+
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
+displayName: Rename `server.max-http-header-size` to `server.max-http-request-header-size`
+description: >
+  Previously, the server.max-http-header-size was treated inconsistently across the four supported embedded web servers.
+  When using Jetty, Netty, or Undertow it would configure the max HTTP request header size. When using Tomcat it would
+  configure the max HTTP request and response header sizes. The renamed property is used to configure the http request
+  header size in Spring Boot 3.0. **To limit the max header size of an HTTP response on Tomcat or Jetty (the only two
+  servers that support such a setting), use a `WebServerFactoryCustomizer`**.
+tags:
+  - spring
+  - spring-boot
+  - spring-boot-3-0
+recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.max-http-header-size
+      newPropertyKey: server.max-http-request-header-size
 
 ---
 ########################################################################################################################
