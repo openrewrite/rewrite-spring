@@ -60,9 +60,36 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
+displayName: Use `WebServerFactoryCustomizer`
+description: >
+  Use `WebServerFactoryCustomizer` instead of the deprecated `EmbeddedServletContainerCustomizer` in
+  Spring Boot 2.0 or higher. This recipe will replace look for any classes that implement `EmbeddedServletContainerCustomizer`
+  and change the interface to `WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>`. This recipe also adjusts
+  the the types used in the `customize()` method from `*EmbeddedServletContainerFactory` to their `*ServletWebServerFactory`
+  counterparts.
+
+recipeList:
+  - org.openrewrite.java.spring.boot2.ChangeEmbeddedServletContainerCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer
+      newFullyQualifiedTypeName: org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.undertow.UnderTowEmbeddedServletContainerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.undertow.UnderTowServletWebServerFactory
+
+
+---
+type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
-displayName: Use `SpringBootServletInitializer`
-description: '`org.springframework.boot.web.support.SpringBootServletInitializer` was deprecated in 1.4.x.'
+displayName: Use `org.springframework.boot.web.servlet.support.SpringBootServletInitializer`
+description: Use `org.springframework.boot.web.servlet.support.SpringBootServletInitializer` instead of the deprecated `org.springframework.boot.web.support.SpringBootServletInitializer` in Spring Boot 1.4 or higher.
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.support.SpringBootServletInitializer
@@ -71,8 +98,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
-displayName: Use `HttpMessageConverters`
-description: '`org.springframework.boot.autoconfigure.web.HttpMessageConverters` was deprecated in 1.x.'
+displayName: Use `org.springframework.boot.autoconfigure.http.HttpMessageConverters`
+description: Use `org.springframework.boot.autoconfigure.http.HttpMessageConverters` instead of the deprecated `org.springframework.boot.autoconfigure.web.HttpMessageConverters` in Spring Boot 2.0 or higher.
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.HttpMessageConverters
@@ -81,8 +108,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
-displayName: Use `ErrorController`
-description: '`org.springframework.boot.autoconfigure.web.ErrorController` was deprecated in 1.x.'
+displayName: Use `org.springframework.boot.web.servlet.error.ErrorController`
+description: Use `org.springframework.boot.web.servlet.error.ErrorController` instead of the deprecated `org.springframework.boot.autoconfigure.web.ErrorController` in Spring Boot 2.0 or higher.
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.ErrorController
@@ -91,8 +118,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateHibernateContraintsToJavax
-displayName: Migrate hibernate validator constraints to javax.
-description: '`org.hibernate.validator.constraints` were deprecated in 1.x. in favor of their javax counterparts.'
+displayName: Use `javax.validation.constraints`
+description: Use `javax.validation.constraints` instead of the deprecated `org.hibernate.validator.constraints` in Spring Boot 2.0 or higher.
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotBlank

@@ -29,6 +29,7 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TextComment;
 import org.openrewrite.marker.Marker;
 import org.openrewrite.marker.Markers;
+import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.ResolvedDependency;
@@ -107,7 +108,7 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
             public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
 
                 if (isApplicableMavenProject(document)) {
-                    return document.withMarkers(document.getMarkers().searchResult());
+                    return SearchResult.found(document);
                 }
                 return document;
             }
@@ -145,7 +146,7 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
                             public Properties visitFile(Properties.File file, ExecutionContext context) {
                                 int idx = file.getContent().indexOf(entry);
                                 if (idx >= 0) {
-                                    Properties.Comment comment = new Properties.Comment(Tree.randomId(), "\n", Markers.EMPTY, PROPS_MIGRATION_MESSAGE);
+                                    Properties.Comment comment = new Properties.Comment(Tree.randomId(), "\n", Markers.EMPTY, Properties.Comment.Delimiter.HASH_TAG, PROPS_MIGRATION_MESSAGE);
                                     return file.withContent(ListUtils.insertAll(file.getContent(), idx, Collections.singletonList(comment)));
                                 } else {
                                     throw new RuntimeException("Entry must be present in the properties file!");

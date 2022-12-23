@@ -1,5 +1,3 @@
-import java.util.*
-
 plugins {
     id("org.openrewrite.build.recipe-library") version "latest.release"
     id("org.openrewrite.rewrite") version "latest.release"
@@ -35,7 +33,7 @@ configurations {
     springBootVersions.forEach { version ->
         getByName("testWithSpringBoot_${version}RuntimeOnly") {
             isCanBeResolved = true
-            extendsFrom(getByName("testImplementation"))
+            extendsFrom(getByName("testRuntimeOnly"))
         }
         getByName("testWithSpringBoot_${version}Implementation") {
             isCanBeResolved = true
@@ -65,6 +63,7 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
+    testRuntimeOnly("ch.qos.logback:logback-classic:1.2.+")
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
@@ -113,6 +112,7 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("javax.servlet:javax.servlet-api:4.+")
 
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
 
