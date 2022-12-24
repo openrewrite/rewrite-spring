@@ -48,6 +48,7 @@ recipeList:
   - org.openrewrite.maven.RemoveDependency:
       groupId: org.webjars
       artifactId: webjars-locator
+  - org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_0
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName

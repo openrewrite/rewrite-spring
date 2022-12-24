@@ -63,7 +63,6 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
-    testRuntimeOnly("ch.qos.logback:logback-classic:1.2.+")
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
