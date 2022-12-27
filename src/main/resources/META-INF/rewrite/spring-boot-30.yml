@@ -92,7 +92,6 @@ description: Spring Boot 3.0 removed the key-based sanitization mechanism used i
 tags:
   - spring
   - spring-boot
-  - 3.0
 recipeList:
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: management.endpoint.configprops.additional-keys-to-sanitize
