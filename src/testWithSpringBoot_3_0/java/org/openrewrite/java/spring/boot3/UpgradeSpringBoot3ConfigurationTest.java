@@ -25,40 +25,6 @@ import static org.openrewrite.yaml.Assertions.yaml;
 public class UpgradeSpringBoot3ConfigurationTest implements RewriteTest {
 
     @Test
-    void legacyJmxExposure() {
-        rewriteRun(
-                spec -> spec.recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes("org.openrewrite.java.spring.boot3.LegacyJmxExposure")
-                ),
-                properties(
-                        """
-                            # application.properties
-                        """,
-                        """
-                            # application.properties
-                            management.endpoints.jmx.exposure.include=*
-                        """,
-                        s -> s.path("src/main/resources/application.properties")
-                ),
-                yaml(
-                        """
-                        """,
-                        """
-                            management:
-                              endpoints:
-                                jmx:
-                                  exposure:
-                                    # In Spring Boot 3.0 only the health endpoint is exposed over JMX. This setting was changed to maintain parity with Spring Boot 2.x but should be reviewed.
-                                    include: "*"
-                                """,
-                        s -> s.path("src/main/resources/application.yml")
-                )
-        );
-    }
-
-    @Test
     void moveMaxHttpHeaderSize() {
         rewriteRun(
                 spec -> spec.recipe(Environment.builder()

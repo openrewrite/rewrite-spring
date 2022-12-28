@@ -111,30 +111,6 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
-displayName: Downgrade Jakarta Servlet API to 5.0 when using Jetty
-description: >
-  Jetty does not yet support Servlet 6.0. This recipe will detect the presence of the `spring-boot-starter-jetty` as a
-  first-order dependency and will add the maven property `jakarta-servlet.version` setting it's value to `5.0.0`. This
-  will downgrade the `jakarta-servlet` artifact if the pom's parent extends from the spring-boot-parent.
-tags:
-  - spring
-  - boot
-  - jetty
-applicability:
-  singleSource:
-    - org.openrewrite.maven.search.FindDependency:
-        groupId: org.springframework.boot
-        artifactId: spring-boot-starter-jetty
-recipeList:
-  - org.openrewrite.maven.AddProperty:
-      key: jakarta-servlet.version
-      value: 5.0.0
-      preserveExistingValue: "false"
-      trustParent: "false"
-
----
-type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
 displayName: Remove the deprecated properties `additional-keys-to-sanitize` from the `configprops` and `env` end points
 description: Spring Boot 3.0 removed the key-based sanitization mechanism used in Spring Boot 2.x in favor of a unified approach. See https://github.com/openrewrite/rewrite-spring/issues/228
