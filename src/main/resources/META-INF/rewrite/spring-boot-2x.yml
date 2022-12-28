@@ -47,7 +47,7 @@ displayName: Spring Boot 2.x best practices
 description: Applies best practices to Spring Boot 2 applications.
 tags:
   - spring
-  - spring-boot
+  - boot
 recipeList:
   - org.openrewrite.java.spring.NoRequestMappingAnnotation
   - org.openrewrite.java.spring.ImplicitWebAnnotationNames

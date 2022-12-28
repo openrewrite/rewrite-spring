@@ -31,7 +31,6 @@ recipeList:
   - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
-#  - org.openrewrite.java.spring.boot3.LegacyJmxExposure
   - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
   - org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
   - org.openrewrite.java.spring.boot3.Saml
@@ -45,8 +44,7 @@ displayName: Upgrade Maven Pom to Spring Boot 3.0 from 2.x
 description: 'Upgrade Maven Pom to Spring Boot 3.0 from prior 2.x version.'
 tags:
   - spring
-  - spring-boot
-  - spring-boot-3-0
+  - boot
 recipeList:
   - org.openrewrite.java.migrate.JavaVersion17
   - org.openrewrite.maven.UpgradeDependencyVersion:
@@ -59,30 +57,56 @@ recipeList:
       artifactId: spring-boot-starter-parent
       newVersion: 3.0.x
 ---
-########################################################################################################################
-# Migrate SAML configuration to Spring Boot 3.0 in yaml format
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.Saml
 displayName: Migrate SAML configuration to Spring Boot 3.0 in yaml format
 description: Renames spring.security.saml2.relyingparty.registration.(any).identityprovider to spring.security.saml2.relyingparty.registration.(any).assertingparty.
+tags:
+  - spring
+  - boot
+  - saml
 recipeList:
   - org.openrewrite.yaml.ChangeKey:
       oldKeyPath: $.spring.security.saml2.relyingparty.registration.*[?(@.identityprovider)]
       newKey: assertingparty
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.LegacyJmxExposure
-displayName: Maintain parity with Spring Boot 2.x by exposing all actuator endpoints via JMX.
-description: Spring Boot 3.0 only exposes the health endpoint via JMX. This change exposes all actuator endpoints via JMX to maintain parity with Spring Boot 2.x. See See https://github.com/openrewrite/rewrite-spring/issues/229
+name: org.openrewrite.java.spring.boot3.Saml
+displayName: Migrate SAML configuration to Spring Boot 3.0 in yaml format
+description: Renames spring.security.saml2.relyingparty.registration.(any).identityprovider to spring.security.saml2.relyingparty.registration.(any).assertingparty.
 tags:
   - spring
-  - spring-boot
-  - spring-boot-3-0
+  - boot
+  - saml
 recipeList:
-  - org.openrewrite.java.spring.AddSpringProperty:
-      property: management.endpoints.jmx.exposure.include
-      value: "*"
-      comment: "In Spring Boot 3.0 only the health endpoint is exposed over JMX. This setting was changed to maintain parity with Spring Boot 2.x but should be reviewed."
+  - org.openrewrite.yaml.ChangeKey:
+      oldKeyPath: $.spring.security.saml2.relyingparty.registration.*[?(@.identityprovider)]
+      newKey: assertingparty
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
+displayName: Downgrade Jakarta Servlet API to 5.0 when using Jetty
+description: >
+  Jetty does not yet support Servlet 6.0. This recipe will detect the presence of the `spring-boot-starter-jetty` as a
+  first-order dependency and will add the maven property `jakarta-servlet.version` setting it's value to `5.0.0`. This
+  will downgrade the `jakarta-servlet` artifact if the pom's parent extends from the spring-boot-parent.
+tags:
+  - spring
+  - boot
+  - jetty
+applicability:
+  singleSource:
+    - org.openrewrite.maven.search.FindDependency:
+        groupId: org.springframework.boot
+        artifactId: spring-boot-starter-jetty
+recipeList:
+  - org.openrewrite.maven.AddProperty:
+      key: jakarta-servlet.version
+      value: 5.0.0
+      preserveExistingValue: "false"
+      trustParent: "false"
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -91,7 +115,7 @@ displayName: Remove the deprecated properties `additional-keys-to-sanitize` from
 description: Spring Boot 3.0 removed the key-based sanitization mechanism used in Spring Boot 2.x in favor of a unified approach. See https://github.com/openrewrite/rewrite-spring/issues/228
 tags:
   - spring
-  - spring-boot
+  - boot
 recipeList:
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: management.endpoint.configprops.additional-keys-to-sanitize
@@ -111,8 +135,7 @@ description: >
   servers that support such a setting), use a `WebServerFactoryCustomizer`**.
 tags:
   - spring
-  - spring-boot
-  - spring-boot-3-0
+  - boot
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.max-http-header-size
@@ -127,8 +150,7 @@ displayName: Migrate Spring Boot properties to 3.0
 description: Migrate properties found in `application.properties` and `application.yml`.
 tags:
   - spring
-  - spring-boot
-  - spring-boot-3-0
+  - boot
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.cassandra.compression

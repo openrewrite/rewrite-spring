@@ -42,7 +42,7 @@ description: |
   You can still use the `server.error.include-message` property if you want messages to be included.
 tags:
   - spring
-  - spring-boot
+  - boot
 recipeList:
   - org.openrewrite.maven.search.FindDependency:
       groupId: org.springframework
