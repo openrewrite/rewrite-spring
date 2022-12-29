@@ -17,7 +17,7 @@
 ########################################################################################################################
 # SpringBoot 2.0
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.MigrateSpringBoot_2_0
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
 displayName: Migrate to Spring Boot 2.0 from Spring Boot 1.5
 description: >
   Migrate applications built on Spring Boot 1.5 to the latest Spring Boot 2.0 release. This recipe will modify an
