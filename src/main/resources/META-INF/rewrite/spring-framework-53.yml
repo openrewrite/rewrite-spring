@@ -36,9 +36,6 @@ recipeList:
       groupId: org.aspectj
       artifactId: aspectjrt
   - org.openrewrite.maven.RemoveDependency:
-      groupId: org.aspectj
-      artifactId: aspectjweaver
-  - org.openrewrite.maven.RemoveDependency:
       groupId: aopalliance
       artifactId: aopalliance
   - org.openrewrite.maven.RemoveDependency:
