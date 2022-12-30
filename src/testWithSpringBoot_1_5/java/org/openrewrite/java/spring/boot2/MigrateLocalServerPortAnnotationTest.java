@@ -37,20 +37,20 @@ class MigrateLocalServerPortAnnotationTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                  import org.springframework.boot.context.embedded.LocalServerPort;
+              import org.springframework.boot.context.embedded.LocalServerPort;
 
-                  public class RandomTestClass {
-                      @LocalServerPort
-                      private int port;
-                  }
+              public class RandomTestClass {
+                  @LocalServerPort
+                  private int port;
+              }
               """,
             """
-                  import org.springframework.boot.web.server.LocalServerPort;
-                  
-                  public class RandomTestClass {
-                      @LocalServerPort
-                      private int port;
-                  }
+              import org.springframework.boot.web.server.LocalServerPort;
+              
+              public class RandomTestClass {
+                  @LocalServerPort
+                  private int port;
+              }
               """
           )
         );

@@ -30,7 +30,7 @@ public class DeleteSpringPropertyKeyTest implements RewriteTest {
                 spec -> spec.recipe(new DeleteSpringProperty("server.servlet-path")),
                 properties(
                         """
-                            server.servlet-path=/tmp/my-server-path
+                        server.servlet-path=/tmp/my-server-path
                         """,
                         """
                         """
@@ -52,11 +52,11 @@ public class DeleteSpringPropertyKeyTest implements RewriteTest {
                 spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie.path")),
                 properties(
                         """
-                            server.servlet.session.cookie.path=/cookie-monster
-                            server.servlet.session.cookie.name=fred
+                        server.servlet.session.cookie.path=/cookie-monster
+                        server.servlet.session.cookie.name=fred
                         """,
                         """
-                            server.servlet.session.cookie.name=fred
+                        server.servlet.session.cookie.name=fred
                         """
                 ),
                 yaml(
@@ -85,11 +85,11 @@ public class DeleteSpringPropertyKeyTest implements RewriteTest {
                 spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie.path")),
                 properties(
                         """
-                            server.servlet.session.cookie.name=fred
-                            server.servlet.session.cookie.path=/cookie-monster
+                        server.servlet.session.cookie.name=fred
+                        server.servlet.session.cookie.path=/cookie-monster
                         """,
                         """
-                            server.servlet.session.cookie.name=fred
+                        server.servlet.session.cookie.name=fred
                         """
                 ),
                 yaml(

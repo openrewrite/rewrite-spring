@@ -32,11 +32,11 @@ public class AddSpringPropertyTest implements RewriteTest {
                 spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("*"))),
                 properties(
                         """
-                            server.port=8080
+                        server.port=8080
                         """,
                         """
-                            server.port=8080
-                            server.servlet.path=/tmp/my-server-path
+                        server.port=8080
+                        server.servlet.path=/tmp/my-server-path
                         """
                 ),
                 yaml(
@@ -60,11 +60,11 @@ public class AddSpringPropertyTest implements RewriteTest {
                 spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, List.of("*"))),
                 properties(
                         """
-                            servlet.session.cookie.path=/cookie-monster
+                        servlet.session.cookie.path=/cookie-monster
                         """,
                         """
-                            servlet.session.cookie.path=/cookie-monster
-                            fred=fred
+                        servlet.session.cookie.path=/cookie-monster
+                        fred=fred
                         """
                 ),
                 yaml(
@@ -73,9 +73,9 @@ public class AddSpringPropertyTest implements RewriteTest {
                               port: 8888
                         """,
                         """
-                            server:
-                              port: 8888
-                            fred: fred
+                        server:
+                          port: 8888
+                        fred: fred
                         """
                 )
         );
@@ -87,15 +87,15 @@ public class AddSpringPropertyTest implements RewriteTest {
                 spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, List.of("*"))),
                 properties(
                         """
-                            servlet.session.cookie.path=/cookie-monster
-                            fred=doNotChangeThis
+                        servlet.session.cookie.path=/cookie-monster
+                        fred=doNotChangeThis
                         """
                 ),
                 yaml(
                         """
-                            server:
-                              port: 8888
-                            fred: doNotChangeThis
+                        server:
+                          port: 8888
+                        fred: doNotChangeThis
                         """
                 )
         );
@@ -107,11 +107,11 @@ public class AddSpringPropertyTest implements RewriteTest {
                 spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", "This property was added", List.of("*"))),
                 properties(
                         """
-                            server.port=8080
+                        server.port=8080
                         """,
                         """
-                            server.port=8080
-                            server.servlet.path=/tmp/my-server-path
+                        server.port=8080
+                        server.servlet.path=/tmp/my-server-path
                         """
                 ),
                 yaml(
@@ -136,11 +136,11 @@ public class AddSpringPropertyTest implements RewriteTest {
                 spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("**/application.properties", "**/application.yml"))),
                 properties(
                         """
-                            server.port=8080
+                        server.port=8080
                         """,
                         """
-                            server.port=8080
-                            server.servlet.path=/tmp/my-server-path
+                        server.port=8080
+                        server.servlet.path=/tmp/my-server-path
                         """,
                         s -> s.path("src/main/resources/application.properties")
                 ),
@@ -166,7 +166,7 @@ public class AddSpringPropertyTest implements RewriteTest {
                 spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("**/application.properties", "**/application.yml"))),
                 properties(
                         """
-                            server.port=8080
+                        server.port=8080
                         """,
                         s -> s.path("src/main/resources/application-test.properties")
                 ),

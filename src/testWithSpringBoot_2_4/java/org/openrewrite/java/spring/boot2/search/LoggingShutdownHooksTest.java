@@ -66,23 +66,23 @@ class LoggingShutdownHooksTest implements RewriteTest {
           //language=xml
           pomXml(
             """
-                  <project>
-                      <parent>
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>2.4.13</version>
+                      <relativePath/> <!-- lookup parent from repository -->
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>acme</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <dependencies>
+                      <dependency>
                           <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-parent</artifactId>
-                          <version>2.4.13</version>
-                          <relativePath/> <!-- lookup parent from repository -->
-                      </parent>
-                      <groupId>com.example</groupId>
-                      <artifactId>acme</artifactId>
-                      <version>0.0.1-SNAPSHOT</version>
-                      <dependencies>
-                          <dependency>
-                              <groupId>org.springframework.boot</groupId>
-                              <artifactId>spring-boot-starter</artifactId>
-                          </dependency>
-                      </dependencies>
-                  </project>
+                          <artifactId>spring-boot-starter</artifactId>
+                      </dependency>
+                  </dependencies>
+              </project>
               """
           )
         );
@@ -95,24 +95,24 @@ class LoggingShutdownHooksTest implements RewriteTest {
           //language=xml
           pomXml(
             """
-                  <project>
-                      <parent>
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>2.4.13</version>
+                      <relativePath/> <!-- lookup parent from repository -->
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>acme</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <packaging>jar</packaging>
+                  <dependencies>
+                      <dependency>
                           <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-parent</artifactId>
-                          <version>2.4.13</version>
-                          <relativePath/> <!-- lookup parent from repository -->
-                      </parent>
-                      <groupId>com.example</groupId>
-                      <artifactId>acme</artifactId>
-                      <version>0.0.1-SNAPSHOT</version>
-                      <packaging>jar</packaging>
-                      <dependencies>
-                          <dependency>
-                              <groupId>org.springframework.boot</groupId>
-                              <artifactId>spring-boot-starter</artifactId>
-                          </dependency>
-                      </dependencies>
-                  </project>
+                          <artifactId>spring-boot-starter</artifactId>
+                      </dependency>
+                  </dependencies>
+              </project>
               """
           )
         );
@@ -125,24 +125,24 @@ class LoggingShutdownHooksTest implements RewriteTest {
           //language=xml
           pomXml(
             """
-                  <project>
-                      <parent>
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>2.4.13</version>
+                      <relativePath/> <!-- lookup parent from repository -->
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>acme</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <packaging>war</packaging>
+                  <dependencies>
+                      <dependency>
                           <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-parent</artifactId>
-                          <version>2.4.13</version>
-                          <relativePath/> <!-- lookup parent from repository -->
-                      </parent>
-                      <groupId>com.example</groupId>
-                      <artifactId>acme</artifactId>
-                      <version>0.0.1-SNAPSHOT</version>
-                      <packaging>war</packaging>
-                      <dependencies>
-                          <dependency>
-                              <groupId>org.springframework.boot</groupId>
-                              <artifactId>spring-boot-starter</artifactId>
-                          </dependency>
-                      </dependencies>
-                  </project>
+                          <artifactId>spring-boot-starter</artifactId>
+                      </dependency>
+                  </dependencies>
+              </project>
               """
           )
         );
@@ -155,24 +155,24 @@ class LoggingShutdownHooksTest implements RewriteTest {
           //language=xml
           pomXml(
             """
-                  <project>
-                      <parent>
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>2.3.12.RELEASE</version>
+                      <relativePath/> <!-- lookup parent from repository -->
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>acme</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <packaging>war</packaging>
+                  <dependencies>
+                      <dependency>
                           <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-parent</artifactId>
-                          <version>2.3.12.RELEASE</version>
-                          <relativePath/> <!-- lookup parent from repository -->
-                      </parent>
-                      <groupId>com.example</groupId>
-                      <artifactId>acme</artifactId>
-                      <version>0.0.1-SNAPSHOT</version>
-                      <packaging>war</packaging>
-                      <dependencies>
-                          <dependency>
-                              <groupId>org.springframework.boot</groupId>
-                              <artifactId>spring-boot-starter</artifactId>
-                          </dependency>
-                      </dependencies>
-                  </project>
+                          <artifactId>spring-boot-starter</artifactId>
+                      </dependency>
+                  </dependencies>
+              </project>
               """
           )
         );
@@ -185,24 +185,24 @@ class LoggingShutdownHooksTest implements RewriteTest {
           //language=xml
           pomXml(
             """
-                  <project>
-                      <parent>
+              <project>
+                  <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>2.5.7</version>
+                      <relativePath/> <!-- lookup parent from repository -->
+                  </parent>
+                  <groupId>com.example</groupId>
+                  <artifactId>acme</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <packaging>war</packaging>
+                  <dependencies>
+                      <dependency>
                           <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-parent</artifactId>
-                          <version>2.5.7</version>
-                          <relativePath/> <!-- lookup parent from repository -->
-                      </parent>
-                      <groupId>com.example</groupId>
-                      <artifactId>acme</artifactId>
-                      <version>0.0.1-SNAPSHOT</version>
-                      <packaging>war</packaging>
-                      <dependencies>
-                          <dependency>
-                              <groupId>org.springframework.boot</groupId>
-                              <artifactId>spring-boot-starter</artifactId>
-                          </dependency>
-                      </dependencies>
-                  </project>
+                          <artifactId>spring-boot-starter</artifactId>
+                      </dependency>
+                  </dependencies>
+              </project>
               """
           )
         );

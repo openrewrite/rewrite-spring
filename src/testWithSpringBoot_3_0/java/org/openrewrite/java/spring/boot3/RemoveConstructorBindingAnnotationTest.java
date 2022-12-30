@@ -39,24 +39,24 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                  import org.springframework.boot.context.properties.ConfigurationProperties;
-                  import org.springframework.boot.context.properties.ConstructorBinding;
-                  
-                  @ConfigurationProperties
-                  @ConstructorBinding
-                  class A {
-                      void method() {
-                      }
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.boot.context.properties.ConstructorBinding;
+              
+              @ConfigurationProperties
+              @ConstructorBinding
+              class A {
+                  void method() {
                   }
+              }
               """,
             """
-                  import org.springframework.boot.context.properties.ConfigurationProperties;
-                  
-                  @ConfigurationProperties
-                  class A {
-                      void method() {
-                      }
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              
+              @ConfigurationProperties
+              class A {
+                  void method() {
                   }
+              }
               """
           )
         );
@@ -68,24 +68,24 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                  import org.springframework.boot.context.properties.ConfigurationProperties;
-                  import org.springframework.boot.context.properties.ConstructorBinding;
-                  
-                  @ConfigurationProperties
-                  @ConstructorBinding
-                  class A {
-                      A() {
-                      }
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.boot.context.properties.ConstructorBinding;
+              
+              @ConfigurationProperties
+              @ConstructorBinding
+              class A {
+                  A() {
                   }
+              }
               """,
             """
-                  import org.springframework.boot.context.properties.ConfigurationProperties;
-                  
-                  @ConfigurationProperties
-                  class A {
-                      A() {
-                      }
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              
+              @ConfigurationProperties
+              class A {
+                  A() {
                   }
+              }
               """
           )
         );
