@@ -1,10 +1,5 @@
 plugins {
     id("org.openrewrite.build.recipe-library") version "latest.release"
-    id("org.openrewrite.rewrite") version "latest.release"
-}
-
-rewrite {
-    activeRecipe("org.openrewrite.java.format.AutoFormat", "org.openrewrite.java.cleanup.Cleanup")
 }
 
 group = "org.openrewrite.recipe"
