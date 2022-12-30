@@ -36,22 +36,22 @@ class MigrateActuatorMediaTypeToApiVersionTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                  import org.springframework.boot.actuate.endpoint.http.ActuatorMediaType;
-                  import org.springframework.http.MediaType;
-                  
-                  class T {
-                      private static final MediaType actuatorMediaType2 = MediaType.parseMediaType(ActuatorMediaType.V2_JSON);
-                      private static final MediaType actuatorMediaType3 = MediaType.parseMediaType(ActuatorMediaType.V3_JSON);
-                  }
+              import org.springframework.boot.actuate.endpoint.http.ActuatorMediaType;
+              import org.springframework.http.MediaType;
+              
+              class T {
+                  private static final MediaType actuatorMediaType2 = MediaType.parseMediaType(ActuatorMediaType.V2_JSON);
+                  private static final MediaType actuatorMediaType3 = MediaType.parseMediaType(ActuatorMediaType.V3_JSON);
+              }
               """,
             """
-                  import org.springframework.boot.actuate.endpoint.ApiVersion;
-                  import org.springframework.http.MediaType;
-                  
-                  class T {
-                      private static final MediaType actuatorMediaType2 = MediaType.asMediaType(ApiVersion.V2.getProducedMimeType());
-                      private static final MediaType actuatorMediaType3 = MediaType.asMediaType(ApiVersion.V3.getProducedMimeType());
-                  }
+              import org.springframework.boot.actuate.endpoint.ApiVersion;
+              import org.springframework.http.MediaType;
+              
+              class T {
+                  private static final MediaType actuatorMediaType2 = MediaType.asMediaType(ApiVersion.V2.getProducedMimeType());
+                  private static final MediaType actuatorMediaType3 = MediaType.asMediaType(ApiVersion.V3.getProducedMimeType());
+              }
               """
           )
         );

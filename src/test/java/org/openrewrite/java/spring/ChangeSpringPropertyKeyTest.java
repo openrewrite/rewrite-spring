@@ -29,10 +29,10 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
                 spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null)),
                 properties(
                         """
-                            server.servlet-path=/tmp/my-server-path
+                        server.servlet-path=/tmp/my-server-path
                         """,
                         """
-                            server.servlet.path=/tmp/my-server-path
+                        server.servlet.path=/tmp/my-server-path
                         """
                 ),
                 yaml(
@@ -55,10 +55,10 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
                 spec -> spec.recipe(new ChangeSpringPropertyKey("session.cookie.path", "servlet.session.cookie.path", null)),
                 properties(
                         """
-                            session.cookie.path=/cookie-monster
+                        session.cookie.path=/cookie-monster
                         """,
                         """
-                            servlet.session.cookie.path=/cookie-monster
+                        servlet.session.cookie.path=/cookie-monster
                         """
                 ),
                 yaml(

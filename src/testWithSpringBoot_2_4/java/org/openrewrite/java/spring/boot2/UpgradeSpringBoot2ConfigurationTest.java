@@ -40,14 +40,14 @@ public class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
         rewriteRun(
                 properties(
                         """
-                            # application.properties
-                            spring.profiles.active=production
-                            spring.profiles=dev
+                        # application.properties
+                        spring.profiles.active=production
+                        spring.profiles=dev
                         """,
                         """
-                            # application.properties
-                            spring.profiles.active=production
-                            spring.config.activate.on-profile=dev
+                        # application.properties
+                        spring.profiles.active=production
+                        spring.config.activate.on-profile=dev
                         """,
                         s -> s.path("src/main/resources/application.properties")
                 ),

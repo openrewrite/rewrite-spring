@@ -42,73 +42,73 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-                  import org.springframework.beans.factory.annotation.Autowired;
-                  import org.springframework.stereotype.Component;
-                  
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.stereotype.Component;
+              
+              @Autowired
+              public class TestConfiguration {
+                  private final TestSourceA testSourceA;
+                  private TestSourceB testSourceB;
+              
                   @Autowired
-                  public class TestConfiguration {
-                      private final TestSourceA testSourceA;
-                      private TestSourceB testSourceB;
-                  
-                      @Autowired
-                      private TestSourceC testSourceC;
-                  
-                      @Autowired
-                      public TestConfiguration(TestSourceA testSourceA) {
-                          this.testSourceA = testSourceA;
-                      }
-                  
-                      @Autowired
-                      public void setTestSourceB(TestSourceB testSourceB) {
-                          this.testSourceB = testSourceB;
-                      }
+                  private TestSourceC testSourceC;
+              
+                  @Autowired
+                  public TestConfiguration(TestSourceA testSourceA) {
+                      this.testSourceA = testSourceA;
                   }
-                  
-                  @Component
-                  public class TestSourceA {
+              
+                  @Autowired
+                  public void setTestSourceB(TestSourceB testSourceB) {
+                      this.testSourceB = testSourceB;
                   }
-                  
-                  @Component
-                  public class TestSourceB {
-                  }
-                  
-                  @Component
-                  public class TestSourceC {
-                  }
+              }
+              
+              @Component
+              public class TestSourceA {
+              }
+              
+              @Component
+              public class TestSourceB {
+              }
+              
+              @Component
+              public class TestSourceC {
+              }
               """,
             """
-                  import org.springframework.beans.factory.annotation.Autowired;
-                  import org.springframework.stereotype.Component;
-                  
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.stereotype.Component;
+              
+              @Autowired
+              public class TestConfiguration {
+                  private final TestSourceA testSourceA;
+                  private TestSourceB testSourceB;
+              
                   @Autowired
-                  public class TestConfiguration {
-                      private final TestSourceA testSourceA;
-                      private TestSourceB testSourceB;
-                  
-                      @Autowired
-                      private TestSourceC testSourceC;
-                  
-                      public TestConfiguration(TestSourceA testSourceA) {
-                          this.testSourceA = testSourceA;
-                      }
-                  
-                      @Autowired
-                      public void setTestSourceB(TestSourceB testSourceB) {
-                          this.testSourceB = testSourceB;
-                      }
+                  private TestSourceC testSourceC;
+              
+                  public TestConfiguration(TestSourceA testSourceA) {
+                      this.testSourceA = testSourceA;
                   }
-                  
-                  @Component
-                  public class TestSourceA {
+              
+                  @Autowired
+                  public void setTestSourceB(TestSourceB testSourceB) {
+                      this.testSourceB = testSourceB;
                   }
-                  
-                  @Component
-                  public class TestSourceB {
-                  }
-                  
-                  @Component
-                  public class TestSourceC {
-                  }
+              }
+              
+              @Component
+              public class TestSourceA {
+              }
+              
+              @Component
+              public class TestSourceB {
+              }
+              
+              @Component
+              public class TestSourceC {
+              }
               """
           )
         );

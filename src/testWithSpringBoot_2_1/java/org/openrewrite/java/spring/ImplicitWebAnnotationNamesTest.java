@@ -37,34 +37,34 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                  import org.springframework.http.ResponseEntity;
-                  import org.springframework.web.bind.annotation.*;
-                  
-                  @RestController
-                  @RequestMapping("/users")
-                  public class UsersController {
-                      @GetMapping("/{id}")
-                      public ResponseEntity<String> getUser(@PathVariable("id") Long id,
-                                                            @PathVariable(required = false) Long p2,
-                                                            @PathVariable(value = "p3") Long anotherName) {
-                          System.out.println(anotherName);
-                      }
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.*;
+              
+              @RestController
+              @RequestMapping("/users")
+              public class UsersController {
+                  @GetMapping("/{id}")
+                  public ResponseEntity<String> getUser(@PathVariable("id") Long id,
+                                                        @PathVariable(required = false) Long p2,
+                                                        @PathVariable(value = "p3") Long anotherName) {
+                      System.out.println(anotherName);
                   }
+              }
               """,
             """
-                  import org.springframework.http.ResponseEntity;
-                  import org.springframework.web.bind.annotation.*;
-                  
-                  @RestController
-                  @RequestMapping("/users")
-                  public class UsersController {
-                      @GetMapping("/{id}")
-                      public ResponseEntity<String> getUser(@PathVariable Long id,
-                                                            @PathVariable(required = false) Long p2,
-                                                            @PathVariable(value = "p3") Long anotherName) {
-                          System.out.println(anotherName);
-                      }
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.*;
+              
+              @RestController
+              @RequestMapping("/users")
+              public class UsersController {
+                  @GetMapping("/{id}")
+                  public ResponseEntity<String> getUser(@PathVariable Long id,
+                                                        @PathVariable(required = false) Long p2,
+                                                        @PathVariable(value = "p3") Long anotherName) {
+                      System.out.println(anotherName);
                   }
+              }
               """
           )
         );

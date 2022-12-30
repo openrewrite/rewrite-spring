@@ -34,12 +34,12 @@ public class UpgradeSpringBoot3ConfigurationTest implements RewriteTest {
                 ),
                 properties(
                         """
-                            # application.properties
-                            server.max-http-header-size=10KB
+                        # application.properties
+                        server.max-http-header-size=10KB
                         """,
                         """
-                            # application.properties
-                            server.max-http-request-header-size=10KB
+                        # application.properties
+                        server.max-http-request-header-size=10KB
                         """,
                         s -> s.path("src/main/resources/application.properties")
                 ),

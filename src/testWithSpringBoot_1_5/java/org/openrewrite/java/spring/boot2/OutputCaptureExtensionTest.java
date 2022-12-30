@@ -40,38 +40,38 @@ class OutputCaptureExtensionTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                  import org.junit.Rule;
-                  import org.springframework.boot.test.rule.OutputCapture;
-                  
-                  class Test {
-                      @Rule
-                      OutputCapture capture = new OutputCapture();
-                  
-                      void test() {
-                          System.out.println(capture.toString());
-                          System.out.println(this.capture.toString());
-                      }
-                  
-                      void doesntUse() {
-                      }
+              import org.junit.Rule;
+              import org.springframework.boot.test.rule.OutputCapture;
+              
+              class Test {
+                  @Rule
+                  OutputCapture capture = new OutputCapture();
+              
+                  void test() {
+                      System.out.println(capture.toString());
+                      System.out.println(this.capture.toString());
                   }
+              
+                  void doesntUse() {
+                  }
+              }
               """,
             """
-                  import org.junit.jupiter.api.extension.ExtendWith;
-                  import org.springframework.boot.test.system.CapturedOutput;
-                  import org.springframework.boot.test.system.OutputCaptureExtension;
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.boot.test.system.CapturedOutput;
+              import org.springframework.boot.test.system.OutputCaptureExtension;
 
-                  @ExtendWith(OutputCaptureExtension.class)
-                  class Test {
-                  
-                      void test(CapturedOutput capture) {
-                          System.out.println(capture.toString());
-                          System.out.println(capture.toString());
-                      }
-                  
-                      void doesntUse() {
-                      }
+              @ExtendWith(OutputCaptureExtension.class)
+              class Test {
+              
+                  void test(CapturedOutput capture) {
+                      System.out.println(capture.toString());
+                      System.out.println(capture.toString());
                   }
+              
+                  void doesntUse() {
+                  }
+              }
               """
           )
         );
@@ -85,40 +85,40 @@ class OutputCaptureExtensionTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-                  import org.hamcrest.CoreMatchers;
-                  import org.junit.Rule;
-                  import org.springframework.boot.test.rule.OutputCapture;
-                  
-                  class Test {
-                      @Rule
-                      OutputCapture capture = new OutputCapture();
-                  
-                      void test() {
-                          System.out.println("I am here");
-                          this.capture.expect(CoreMatchers.containsString("here"));
-                      }
-                  
-                      void doesntUse() {
-                      }
+              import org.hamcrest.CoreMatchers;
+              import org.junit.Rule;
+              import org.springframework.boot.test.rule.OutputCapture;
+              
+              class Test {
+                  @Rule
+                  OutputCapture capture = new OutputCapture();
+              
+                  void test() {
+                      System.out.println("I am here");
+                      this.capture.expect(CoreMatchers.containsString("here"));
                   }
+              
+                  void doesntUse() {
+                  }
+              }
               """,
             """
-                  import org.hamcrest.CoreMatchers;
-                  import org.junit.jupiter.api.extension.ExtendWith;
-                  import org.springframework.boot.test.system.CapturedOutput;
-                  import org.springframework.boot.test.system.OutputCaptureExtension;
-                  
-                  @ExtendWith(OutputCaptureExtension.class)
-                  class Test {
-                  
-                      void test(CapturedOutput capture) {
-                          System.out.println("I am here");
-                          CoreMatchers.containsString("here").matches(capture.getAll());
-                      }
-                  
-                      void doesntUse() {
-                      }
+              import org.hamcrest.CoreMatchers;
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.boot.test.system.CapturedOutput;
+              import org.springframework.boot.test.system.OutputCaptureExtension;
+              
+              @ExtendWith(OutputCaptureExtension.class)
+              class Test {
+              
+                  void test(CapturedOutput capture) {
+                      System.out.println("I am here");
+                      CoreMatchers.containsString("here").matches(capture.getAll());
                   }
+              
+                  void doesntUse() {
+                  }
+              }
               """
           )
         );
@@ -131,11 +131,11 @@ class OutputCaptureExtensionTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                  class FooConfig {
-                      void test(String name) {
-                          System.out.println(name);
-                      }
+              class FooConfig {
+                  void test(String name) {
+                      System.out.println(name);
                   }
+              }
               """
           )
         );

@@ -37,22 +37,22 @@ class MigrateHsqlEmbeddedDatabaseConnectionTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                  import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
-                  
-                  class A {
-                      void method() {
-                          EmbeddedDatabaseConnection edbc = EmbeddedDatabaseConnection.HSQL;
-                      }
+              import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
+              
+              class A {
+                  void method() {
+                      EmbeddedDatabaseConnection edbc = EmbeddedDatabaseConnection.HSQL;
                   }
+              }
               """,
             """
-                  import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
-                  
-                  class A {
-                      void method() {
-                          EmbeddedDatabaseConnection edbc = EmbeddedDatabaseConnection.HSQLDB;
-                      }
+              import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
+              
+              class A {
+                  void method() {
+                      EmbeddedDatabaseConnection edbc = EmbeddedDatabaseConnection.HSQLDB;
                   }
+              }
               """
           )
         );
