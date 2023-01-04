@@ -25,7 +25,7 @@ public class UseTlsJdbcConnectionStringTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new UseTlsJdbcConnectionString(null, 15021, "sslConnection=true;"));
+        spec.recipe(new UseTlsJdbcConnectionString(5021, 15021, "sslConnection=true;"));
     }
 
     @Test
@@ -44,6 +44,20 @@ public class UseTlsJdbcConnectionStringTest implements RewriteTest {
                       url: 'jdbc:db2://10.2.1.101:15021/DB2INST1:currentSchema=DEV;commandTimeout=30;sslConnection=true;'
               """
             )
+        );
+    }
+
+    @Test
+    void oldPortDoesNotMatch() {
+        rewriteRun(
+          //language=yaml
+          yaml(
+            """
+                spring:
+                    datasource:
+                      url: 'jdbc:db2://10.2.1.101:5000/DB2INST1:currentSchema=DEV;commandTimeout=30;'
+              """
+          )
         );
     }
 }

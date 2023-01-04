@@ -33,10 +33,11 @@ import java.net.URISyntaxException;
 @EqualsAndHashCode(callSuper = false)
 public class UseTlsJdbcConnectionString extends Recipe {
 
-    @Option(displayName = "Old Port",
+    @Option(
+            displayName = "Old Port",
             description = "The non-TLS enabled port number to replace with the TLS-enabled port. " +
-                    "If this value is not specified, then any port number will be replaced with the TLS-enabled port."
-    )
+                    "If this value is specified, no changes will be made to jdbc connection strings which do not contain this port number. ",
+            example = "1234")
     @Nullable
     Integer oldPort;
 
@@ -89,9 +90,11 @@ public class UseTlsJdbcConnectionString extends Recipe {
                     String connectionString = ((Yaml.Scalar) e.getValue()).getValue();
                     try {
                         URI jdbcUrl = URI.create(connectionString);
+                        if(oldPort != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + oldPort + "/")) {
+                            return e;
+                        }
                         URI updatedJdbcUrl = jdbcUrl;
-                        if (port != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + port + "/") &&
-                                (oldPort == null || jdbcUrl.getSchemeSpecificPart().contains(":" + oldPort + "/"))) {
+                        if (port != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + port + "/")) {
                             updatedJdbcUrl = new URI(jdbcUrl.getScheme(), jdbcUrl.getSchemeSpecificPart()
                                     .replaceFirst(":\\d+/", ":" + port + "/"), jdbcUrl.getFragment());
                         }
