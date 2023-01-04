@@ -33,8 +33,15 @@ import java.net.URISyntaxException;
 @EqualsAndHashCode(callSuper = false)
 public class UseTlsJdbcConnectionString extends Recipe {
 
+    @Option(displayName = "Old Port",
+            description = "The non-TLS enabled port number to replace with the TLS-enabled port. " +
+                    "If this value is not specified, then any port number will be replaced with the TLS-enabled port."
+    )
+    @Nullable
+    Integer oldPort;
+
     @Option(
-            displayName = "Port",
+            displayName = "TLS Port",
             description = "The TLS-enabled port to use.",
             example = "1234")
     @Nullable
@@ -63,6 +70,14 @@ public class UseTlsJdbcConnectionString extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
+        String attr = attribute;
+        if(attr != null) {
+            attr = attr.trim();
+            if(!attr.endsWith(";")) {
+                attr = attr + ';';
+            }
+        }
+        final String validatedAttribute = attr;
         return new YamlIsoVisitor<ExecutionContext>() {
             final JsonPathMatcher jdbcUrl = new JsonPathMatcher("$.spring.datasource.url");
 
@@ -75,15 +90,16 @@ public class UseTlsJdbcConnectionString extends Recipe {
                     try {
                         URI jdbcUrl = URI.create(connectionString);
                         URI updatedJdbcUrl = jdbcUrl;
-                        if (port != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + port + "/")) {
+                        if (port != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + port + "/") &&
+                                (oldPort == null || jdbcUrl.getSchemeSpecificPart().contains(":" + oldPort + "/"))) {
                             updatedJdbcUrl = new URI(jdbcUrl.getScheme(), jdbcUrl.getSchemeSpecificPart()
                                     .replaceFirst(":\\d+/", ":" + port + "/"), jdbcUrl.getFragment());
                         }
-                        if (attribute != null && !jdbcUrl.getSchemeSpecificPart().contains(attribute)) {
+                        if (validatedAttribute != null && !jdbcUrl.getSchemeSpecificPart().contains(validatedAttribute)) {
                             updatedJdbcUrl = new URI(updatedJdbcUrl.getScheme(),
                                     updatedJdbcUrl.getSchemeSpecificPart() +
                                     (updatedJdbcUrl.getSchemeSpecificPart().endsWith(";") ? "" : ":") +
-                                    attribute + ";",
+                                            validatedAttribute,
                                     updatedJdbcUrl.getFragment());
                         }
 

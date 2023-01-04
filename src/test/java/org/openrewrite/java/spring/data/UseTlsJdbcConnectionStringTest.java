@@ -25,7 +25,7 @@ public class UseTlsJdbcConnectionStringTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new UseTlsJdbcConnectionString(15021, "sslConnection=true"));
+        spec.recipe(new UseTlsJdbcConnectionString(null, 15021, "sslConnection=true;"));
     }
 
     @Test
