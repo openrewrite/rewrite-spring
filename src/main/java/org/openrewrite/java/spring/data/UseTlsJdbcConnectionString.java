@@ -37,6 +37,15 @@ import java.net.URISyntaxException;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class UseTlsJdbcConnectionString extends Recipe {
+    @Option(
+            displayName = "Property key",
+            description = "The Spring property key to perform updates against. " +
+                    "If this value is specified, the specified property will be used for searching, otherwise a default of `spring.datasource.url` " +
+                    "will be used instead.",
+            example = "spring.datasource.url"
+    )
+    @Nullable
+    String propertyKey;
 
     @Option(
             displayName = "Old Port",
@@ -84,6 +93,8 @@ public class UseTlsJdbcConnectionString extends Recipe {
             }
         }
         final String validatedAttribute = attr;
+
+        final String actualPropertyKey = propertyKey == null ? "spring.datasource.url" : propertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public boolean isAcceptable(SourceFile sourceFile, ExecutionContext executionContext) {
@@ -92,8 +103,8 @@ public class UseTlsJdbcConnectionString extends Recipe {
 
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                doNext(new UseTlsJdbcConnectionStringYaml(oldPort, port, validatedAttribute));
-                doNext(new UseTlsJdbcConnectionStringProperties(oldPort, port, validatedAttribute));
+                doNext(new UseTlsJdbcConnectionStringYaml(actualPropertyKey, oldPort, port, validatedAttribute));
+                doNext(new UseTlsJdbcConnectionStringProperties(actualPropertyKey, oldPort, port, validatedAttribute));
                 return tree;
             }
         };
@@ -102,6 +113,8 @@ public class UseTlsJdbcConnectionString extends Recipe {
     @Value
     @EqualsAndHashCode(callSuper = true)
     static class UseTlsJdbcConnectionStringYaml extends Recipe {
+        String propertyKey;
+
         @Nullable
         Integer oldPort;
 
@@ -121,7 +134,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
             return new YamlVisitor<ExecutionContext>() {
                 @Override
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
-                    if (!FindProperty.find(documents, "spring.datasource.url", true).isEmpty()) {
+                    if (!FindProperty.find(documents, propertyKey, true).isEmpty()) {
                         return SearchResult.found(documents);
                     }
                     return documents;
@@ -132,7 +145,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
         @Override
         protected TreeVisitor<?, ExecutionContext> getVisitor() {
             return new YamlIsoVisitor<ExecutionContext>() {
-                final JsonPathMatcher jdbcUrl = new JsonPathMatcher("$.spring.datasource.url");
+                final JsonPathMatcher jdbcUrl = new JsonPathMatcher("$." + propertyKey);
 
                 @Override
                 public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
@@ -163,6 +176,8 @@ public class UseTlsJdbcConnectionString extends Recipe {
     @Value
     @EqualsAndHashCode(callSuper = true)
     static class UseTlsJdbcConnectionStringProperties extends Recipe {
+        String propertyKey;
+
         @Nullable
         Integer oldPort;
 
@@ -182,7 +197,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
             return new PropertiesVisitor<ExecutionContext>() {
                 @Override
                 public Properties visitFile(Properties.File file, ExecutionContext ctx) {
-                    if (!FindProperties.find(file, "spring.datasource.url", true).isEmpty()) {
+                    if (!FindProperties.find(file, propertyKey, true).isEmpty()) {
                         return SearchResult.found(file);
                     }
                     return file;
@@ -197,7 +212,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
                 public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
                     Properties.Entry e = super.visitEntry(entry, ctx);
 
-                    if (NameCaseConvention.equalsRelaxedBinding(entry.getKey(), "spring.datasource.url")) {
+                    if (NameCaseConvention.equalsRelaxedBinding(entry.getKey(), propertyKey)) {
                         String connectionString = entry.getValue().getText();
                         try {
                             URI jdbcUrl = URI.create(connectionString);

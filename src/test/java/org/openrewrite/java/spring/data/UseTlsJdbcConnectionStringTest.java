@@ -26,7 +26,7 @@ class UseTlsJdbcConnectionStringTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new UseTlsJdbcConnectionString(5021, 15021, "sslConnection=true;"));
+        spec.recipe(new UseTlsJdbcConnectionString(null, 5021, 15021, "sslConnection=true;"));
     }
 
     @Test
@@ -66,6 +66,25 @@ class UseTlsJdbcConnectionStringTest implements RewriteTest {
                 spring:
                     datasource:
                       url: 'jdbc:db2://10.2.1.101:5000/DB2INST1:currentSchema=DEV;commandTimeout=30;'
+              """
+          )
+        );
+    }
+
+    @Test
+    void allowCustomPropertyKey() {
+        rewriteRun(
+          spec -> spec.recipe(new UseTlsJdbcConnectionString("my.custom.url", 5021, 15021, "sslConnection=true;")),
+          yaml(
+            """
+              my:
+                custom:
+                  url: 'jdbc:db2://10.2.1.101:5021/DB2INST1:currentSchema=DEV;commandTimeout=30;'
+              """,
+            """
+              my:
+                custom:
+                  url: 'jdbc:db2://10.2.1.101:15021/DB2INST1:currentSchema=DEV;commandTimeout=30;sslConnection=true;'
               """
           )
         );
