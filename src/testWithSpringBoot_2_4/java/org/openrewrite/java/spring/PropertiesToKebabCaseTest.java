@@ -20,12 +20,13 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.srcMainResources;
+import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-class YamlPropertiesToKebabCaseTest implements RewriteTest {
+class PropertiesToKebabCaseTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new YamlPropertiesToKebabCase());
+        spec.recipe(new PropertiesToKebabCase());
     }
 
     @Test
@@ -37,6 +38,11 @@ class YamlPropertiesToKebabCaseTest implements RewriteTest {
               "spring.main.showBanner: true",
               "spring.main.show-banner: true",
               spec -> spec.path("application.yaml")
+            ),
+            properties(
+              "spring.main.showBanner=true",
+              "spring.main.show-banner=true",
+              spec -> spec.path("application.properties")
             )
           )
         );
@@ -79,6 +85,17 @@ class YamlPropertiesToKebabCaseTest implements RewriteTest {
                   my-custom.property-value.goes-here: example
                 """,
               spec -> spec.path("application.yaml")
+            ),
+            properties(
+              """
+                spring.main.showBanner=true
+                myCustom.propertyValue.GOES_HERE=EXAMPLE
+                """,
+              """
+                spring.main.show-banner=true
+                my-custom.property-value.goes-here=EXAMPLE
+                """,
+              spec -> spec.path("application.properties")
             )
           )
         );
@@ -133,6 +150,14 @@ class YamlPropertiesToKebabCaseTest implements RewriteTest {
                       here: example
                 """,
               spec -> spec.path("application.yaml")
+            ),
+            properties(
+              """
+                some.example-custom.first-nested.first-value=first-example
+                some.example-custom.first-nested.second-value=second-example
+                some.example-custom.second-nested=second_nested_example
+                another.example-goes.here=example
+                """
             )
           )
         );
