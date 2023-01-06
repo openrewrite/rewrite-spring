@@ -128,7 +128,7 @@ springBootVersions.forEach { version ->
         classpath = sourceSetReference.runtimeClasspath
         shouldRunAfter(tasks.test)
     }
-    tasks.test {
+    tasks.check {
         dependsOn(testTask)
     }
 }

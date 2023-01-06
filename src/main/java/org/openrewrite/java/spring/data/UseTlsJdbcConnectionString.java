@@ -17,13 +17,18 @@ package org.openrewrite.java.spring.data;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Option;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
+import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.marker.SearchResult;
+import org.openrewrite.properties.PropertiesIsoVisitor;
+import org.openrewrite.properties.PropertiesVisitor;
+import org.openrewrite.properties.search.FindProperties;
+import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.JsonPathMatcher;
 import org.openrewrite.yaml.YamlIsoVisitor;
+import org.openrewrite.yaml.YamlVisitor;
+import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.net.URI;
@@ -79,42 +84,154 @@ public class UseTlsJdbcConnectionString extends Recipe {
             }
         }
         final String validatedAttribute = attr;
-        return new YamlIsoVisitor<ExecutionContext>() {
-            final JsonPathMatcher jdbcUrl = new JsonPathMatcher("$.spring.datasource.url");
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext executionContext) {
+                return sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File;
+            }
 
             @Override
-            public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
-                Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
-
-                if (jdbcUrl.matches(getCursor())) {
-                    String connectionString = ((Yaml.Scalar) e.getValue()).getValue();
-                    try {
-                        URI jdbcUrl = URI.create(connectionString);
-                        if(oldPort != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + oldPort + "/")) {
-                            return e;
-                        }
-                        URI updatedJdbcUrl = jdbcUrl;
-                        if (port != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + port + "/")) {
-                            updatedJdbcUrl = new URI(jdbcUrl.getScheme(), jdbcUrl.getSchemeSpecificPart()
-                                    .replaceFirst(":\\d+/", ":" + port + "/"), jdbcUrl.getFragment());
-                        }
-                        if (validatedAttribute != null && !jdbcUrl.getSchemeSpecificPart().contains(validatedAttribute)) {
-                            updatedJdbcUrl = new URI(updatedJdbcUrl.getScheme(),
-                                    updatedJdbcUrl.getSchemeSpecificPart() +
-                                    (updatedJdbcUrl.getSchemeSpecificPart().endsWith(";") ? "" : ":") +
-                                            validatedAttribute,
-                                    updatedJdbcUrl.getFragment());
-                        }
-
-                        if (updatedJdbcUrl != jdbcUrl) {
-                            e = e.withValue(((Yaml.Scalar) e.getValue()).withValue(updatedJdbcUrl.toString()));
-                        }
-                    } catch (URISyntaxException | IllegalArgumentException ignored) {
-                        // do nothing
-                    }
-                }
-                return e;
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                doNext(new UseTlsJdbcConnectionStringYaml(oldPort, port, validatedAttribute));
+                doNext(new UseTlsJdbcConnectionStringProperties(oldPort, port, validatedAttribute));
+                return tree;
             }
         };
+    }
+
+    @Value
+    @EqualsAndHashCode(callSuper = true)
+    static class UseTlsJdbcConnectionStringYaml extends Recipe {
+        @Nullable
+        Integer oldPort;
+
+        @Nullable
+        Integer port;
+
+        @Nullable
+        String attribute;
+
+        @Override
+        public String getDisplayName() {
+            return "Use TLS for JDBC connection strings";
+        }
+
+        @Override
+        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+            return new YamlVisitor<ExecutionContext>() {
+                @Override
+                public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
+                    if (!FindProperty.find(documents, "spring.datasource.url", true).isEmpty()) {
+                        return SearchResult.found(documents);
+                    }
+                    return documents;
+                }
+            };
+        }
+
+        @Override
+        protected TreeVisitor<?, ExecutionContext> getVisitor() {
+            return new YamlIsoVisitor<ExecutionContext>() {
+                final JsonPathMatcher jdbcUrl = new JsonPathMatcher("$.spring.datasource.url");
+
+                @Override
+                public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
+                    Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
+
+                    if (jdbcUrl.matches(getCursor())) {
+                        String connectionString = ((Yaml.Scalar) e.getValue()).getValue();
+                        try {
+                            URI jdbcUrl = URI.create(connectionString);
+                            if (oldPort != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + oldPort + "/")) {
+                                return e;
+                            }
+                            URI updatedJdbcUrl = maybeUpdateJdbcConnectionString(jdbcUrl, port, attribute);
+
+                            if (updatedJdbcUrl != jdbcUrl) {
+                                e = e.withValue(((Yaml.Scalar) e.getValue()).withValue(updatedJdbcUrl.toString()));
+                            }
+                        } catch (URISyntaxException | IllegalArgumentException ignored) {
+                            // do nothing
+                        }
+                    }
+                    return e;
+                }
+            };
+        }
+    }
+
+    @Value
+    @EqualsAndHashCode(callSuper = true)
+    static class UseTlsJdbcConnectionStringProperties extends Recipe {
+        @Nullable
+        Integer oldPort;
+
+        @Nullable
+        Integer port;
+
+        @Nullable
+        String attribute;
+
+        @Override
+        public String getDisplayName() {
+            return "Use TLS for JDBC connection strings";
+        }
+
+        @Override
+        protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+            return new PropertiesVisitor<ExecutionContext>() {
+                @Override
+                public Properties visitFile(Properties.File file, ExecutionContext ctx) {
+                    if (!FindProperties.find(file, "spring.datasource.url", true).isEmpty()) {
+                        return SearchResult.found(file);
+                    }
+                    return file;
+                }
+            };
+        }
+
+        @Override
+        protected TreeVisitor<?, ExecutionContext> getVisitor() {
+            return new PropertiesIsoVisitor<ExecutionContext>() {
+                @Override
+                public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
+                    Properties.Entry e = super.visitEntry(entry, ctx);
+
+                    if (NameCaseConvention.equalsRelaxedBinding(entry.getKey(), "spring.datasource.url")) {
+                        String connectionString = entry.getValue().getText();
+                        try {
+                            URI jdbcUrl = URI.create(connectionString);
+                            if (oldPort != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + oldPort + "/")) {
+                                return e;
+                            }
+                            URI updatedJdbcUrl = maybeUpdateJdbcConnectionString(jdbcUrl, port, attribute);
+
+                            if (updatedJdbcUrl != jdbcUrl) {
+                                e = e.withValue(e.getValue().withText(updatedJdbcUrl.toString()));
+                            }
+                        } catch (URISyntaxException | IllegalArgumentException ignored) {
+                            // do nothing
+                        }
+                    }
+                    return e;
+                }
+            };
+        }
+    }
+
+    private static URI maybeUpdateJdbcConnectionString(URI jdbcUrl, @Nullable Integer port, @Nullable String validatedAttribute) throws URISyntaxException {
+        URI updatedJdbcUrl = jdbcUrl;
+        if (port != null && !jdbcUrl.getSchemeSpecificPart().contains(":" + port + "/")) {
+            updatedJdbcUrl = new URI(jdbcUrl.getScheme(), jdbcUrl.getSchemeSpecificPart()
+                    .replaceFirst(":\\d+/", ":" + port + "/"), jdbcUrl.getFragment());
+        }
+        if (validatedAttribute != null && !jdbcUrl.getSchemeSpecificPart().contains(validatedAttribute)) {
+            updatedJdbcUrl = new URI(updatedJdbcUrl.getScheme(),
+                    updatedJdbcUrl.getSchemeSpecificPart() +
+                            (updatedJdbcUrl.getSchemeSpecificPart().endsWith(";") ? "" : ":") +
+                            validatedAttribute,
+                    updatedJdbcUrl.getFragment());
+        }
+        return updatedJdbcUrl;
     }
 }

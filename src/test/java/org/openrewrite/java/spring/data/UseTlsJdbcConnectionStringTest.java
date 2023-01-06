@@ -19,9 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-public class UseTlsJdbcConnectionStringTest implements RewriteTest {
+class UseTlsJdbcConnectionStringTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -42,6 +43,15 @@ public class UseTlsJdbcConnectionStringTest implements RewriteTest {
                 spring:
                     datasource:
                       url: 'jdbc:db2://10.2.1.101:15021/DB2INST1:currentSchema=DEV;commandTimeout=30;sslConnection=true;'
+              """
+            ),
+          //language=properties
+          properties(
+            """
+              spring.datasource.url=jdbc:db2://10.2.1.101:5021/DB2INST1:currentSchema=DEV;commandTimeout=30;
+              """,
+            """
+              spring.datasource.url=jdbc:db2://10.2.1.101:15021/DB2INST1:currentSchema=DEV;commandTimeout=30;sslConnection=true;
               """
             )
         );
