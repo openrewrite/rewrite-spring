@@ -17,6 +17,9 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RewriteTest;
+
+import java.util.List;
+
 import static org.openrewrite.yaml.Assertions.yaml;
 import static org.openrewrite.properties.Assertions.properties;
 
@@ -78,6 +81,71 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
                                   path: /tmp/my-server-path
                         """
                 )
+        );
+    }
+
+
+    @Test
+    void subproperties() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("spring.resources", "spring.web.resources", null)),
+          properties(
+            """
+                spring.resources.chain.strategy.content.enabled= true
+                spring.resources.chain.strategy.content.paths= /foo/**, /bar/**
+            """,
+            """
+                spring.web.resources.chain.strategy.content.enabled= true
+                spring.web.resources.chain.strategy.content.paths= /foo/**, /bar/**
+            """
+          ),
+          yaml(
+            """
+                spring:
+                  resources:
+                    chain:
+                      strategy:
+                        content:
+                          enabled: true
+                          paths:
+                            - /foo/**
+                            - /bar/**
+                  """,
+            """
+                spring:
+                  web:
+                    resources:
+                      chain:
+                        strategy:
+                          content:
+                            enabled: true
+                            paths:
+                              - /foo/**
+                              - /bar/**
+                  """
+          )
+        );
+    }
+
+    @Test
+    void except() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("spring.profiles", "spring.config.activate.on-profile", List.of("active", "default", "group", "include"))),
+          properties(
+            """
+                spring.profiles.group.local= local-security, local-db
+            """
+          ),
+          yaml(
+            """
+                spring:
+                  profiles:
+                    group:
+                      local:
+                        - local-security
+                        - local-db
+                  """
+          )
         );
     }
 

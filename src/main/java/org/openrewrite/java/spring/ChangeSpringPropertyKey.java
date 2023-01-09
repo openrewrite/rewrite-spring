@@ -24,6 +24,7 @@ import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * This composite recipe will change a spring application property key across YAML and properties files.
@@ -66,7 +67,9 @@ public class ChangeSpringPropertyKey extends Recipe {
         org.openrewrite.yaml.ChangePropertyKey yamlChangePropertyKey =
                 new org.openrewrite.yaml.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, null, except);
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, null);
+                new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, null, false);
+        org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
+                new org.openrewrite.properties.ChangePropertyKey(Pattern.quote(oldPropertyKey + ".") + exceptRegex() + "(.*)", newPropertyKey + ".$1", true, null, true);
         ExpandProperties expandYaml = new ExpandProperties();
         return ListUtils.map(before, s -> {
             if (s instanceof Yaml.Documents) {
@@ -76,10 +79,16 @@ public class ChangeSpringPropertyKey extends Recipe {
                 }
             } else if (s instanceof Properties.File) {
                 s = (Properties.File) propertiesChangePropertyKey.getVisitor().visit(s, ctx);
+                s = (Properties.File) subpropertiesChangePropertyKey.getVisitor().visit(s, ctx);
             }
 
             return s;
         });
     }
 
+    private String exceptRegex() {
+        return except == null || except.isEmpty()
+                ? ""
+                : "(?!(" + String.join("|", except) + "))";
+    }
 }
