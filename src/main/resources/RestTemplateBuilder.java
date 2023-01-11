@@ -15,6 +15,7 @@
  */
 package org.springframework.boot.web.client;
 
+import org.springframework.http.client.ClientHttpRequestFactory;
 import java.util.function.Supplier;
 
 public class RestTemplateBuilder {
