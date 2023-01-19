@@ -45,8 +45,7 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
                         """,
                         """
                             server:
-                              servlet:
-                                path: /tmp/my-server-path
+                              servlet.path: /tmp/my-server-path
                         """
                 )
         );
@@ -75,10 +74,7 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
                         """
                             server:
                               port: 8888
-                            servlet:
-                              session:
-                                cookie:
-                                  path: /tmp/my-server-path
+                            servlet.session.cookie.path: /tmp/my-server-path
                         """
                 )
         );
@@ -113,15 +109,14 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
                   """,
             """
                 spring:
-                  web:
-                    resources:
-                      chain:
-                        strategy:
-                          content:
-                            enabled: true
-                            paths:
-                              - /foo/**
-                              - /bar/**
+                  web.resources:
+                    chain:
+                      strategy:
+                        content:
+                          enabled: true
+                          paths:
+                            - /foo/**
+                            - /bar/**
                   """
           )
         );

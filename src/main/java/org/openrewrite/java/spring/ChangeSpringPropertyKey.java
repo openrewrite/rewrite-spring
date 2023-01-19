@@ -70,18 +70,13 @@ public class ChangeSpringPropertyKey extends Recipe {
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, null, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(Pattern.quote(oldPropertyKey + ".") + exceptRegex() + "(.*)", newPropertyKey + ".$1", true, null, true);
-        ExpandProperties expandYaml = new ExpandProperties();
         return ListUtils.map(before, s -> {
             if (s instanceof Yaml.Documents) {
-                Yaml.Documents after = (Yaml.Documents) yamlChangePropertyKey.getVisitor().visit(s, ctx);
-                if (after != s) {
-                    s = (Yaml.Documents) expandYaml.getVisitor().visit(after, ctx);
-                }
+                s = (Yaml.Documents) yamlChangePropertyKey.getVisitor().visit(s, ctx);
             } else if (s instanceof Properties.File) {
                 s = (Properties.File) propertiesChangePropertyKey.getVisitor().visit(s, ctx);
                 s = (Properties.File) subpropertiesChangePropertyKey.getVisitor().visit(s, ctx);
             }
-
             return s;
         });
     }
