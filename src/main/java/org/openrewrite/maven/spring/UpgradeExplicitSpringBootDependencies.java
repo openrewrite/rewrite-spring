@@ -78,9 +78,24 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
             GroupArtifactVersion gav = new GroupArtifactVersion(SPRINGBOOT_GROUP, SPRING_BOOT_DEPENDENCIES, toVersion);
             String relativePath = "";
             List<MavenRepository> repositories = new ArrayList<>();
-            repositories.add(new MavenRepository("repository.spring.milestone", "https://repo.spring.io/milestone", true, true, null, null));
-            repositories.add(new MavenRepository("spring-snapshot", "https://repo.spring.io/snapshot", false, true, null, null));
-            repositories.add(new MavenRepository("spring-release", "https://repo.spring.io/release", true, false, null, null));
+            repositories.add(MavenRepository.builder()
+                    .id("repository.spring.milestone")
+                    .uri("https://repo.spring.io/milestone")
+                    .releases(true)
+                    .snapshots(true)
+                    .build());
+            repositories.add(MavenRepository.builder()
+                    .id("spring-snapshot")
+                    .uri("https://repo.spring.io/snapshote")
+                    .releases(false)
+                    .snapshots(true)
+                    .build());
+            repositories.add(MavenRepository.builder()
+                    .id("spring-release")
+                    .uri("https://repo.spring.io/release")
+                    .releases(true)
+                    .snapshots(false)
+                    .build());
             Pom pom = downloader.download(gav, relativePath, null, repositories);
             ResolvedPom resolvedPom = pom.resolve(Collections.emptyList(), downloader, repositories, new InMemoryExecutionContext());
             List<ResolvedManagedDependency> dependencyManagement = resolvedPom.getDependencyManagement();
