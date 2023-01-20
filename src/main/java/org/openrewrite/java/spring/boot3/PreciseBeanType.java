@@ -27,9 +27,9 @@ import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
 public class PreciseBeanType extends Recipe {
-    private final static String BEAN = "org.springframework.context.annotation.Bean";
+    private static final String BEAN = "org.springframework.context.annotation.Bean";
 
-    private final static String MSG_KEY = "returnType";
+    private static final String MSG_KEY = "returnType";
 
     @Override
     public String getDisplayName() {

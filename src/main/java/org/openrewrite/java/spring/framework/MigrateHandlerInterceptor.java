@@ -78,7 +78,7 @@ public class MigrateHandlerInterceptor extends Recipe {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 if (method.getSelect() instanceof J.Identifier) {
-                    if (((J.Identifier) method.getSelect()).getSimpleName().equals("super")) {
+                    if ("super".equals(((J.Identifier) method.getSelect()).getSimpleName())) {
                         return method.withSelect(TypeTree.build("HandlerInterceptor.super")
                                 .withType(JavaType.buildType("org.springframework.web.servlet.HandlerInterceptor")));
                     }

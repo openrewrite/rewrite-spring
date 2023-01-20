@@ -252,7 +252,7 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
         }
     }
 
-    private static class AddAutoConfigurationAnnotation extends JavaIsoVisitor<ExecutionContext> {
+    private static final class AddAutoConfigurationAnnotation extends JavaIsoVisitor<ExecutionContext> {
 
         @Language("java")
         private static final String autoConfigStub =

@@ -23,7 +23,7 @@ import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.tree.Properties;
 
 public class SamlRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
-    private final static String REGEX_PATTERN = "(spring\\.security\\.saml2\\.relyingparty\\.registration\\..*)(\\.identityprovider)(.*)";
+    private static final String REGEX_PATTERN = "(spring\\.security\\.saml2\\.relyingparty\\.registration\\..*)(\\.identityprovider)(.*)";
 
     @Override
     public String getDisplayName() {

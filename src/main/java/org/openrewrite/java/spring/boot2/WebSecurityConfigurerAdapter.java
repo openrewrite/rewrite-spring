@@ -136,7 +136,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                 .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY,"SecurityFilterChain", securityChainType, null))
                                 .withName(m.getName().withSimpleName("filterChain"))
                                 .withMethodType(type)
-                                .withModifiers(ListUtils.map(m.getModifiers(), (modifier) -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
+                                .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
 
                         m = addBeanAnnotation(m, getCursor());
                         maybeAddImport(FQN_SECURITY_FILTER_CHAIN);
@@ -158,7 +158,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                 .withParameters(Collections.emptyList())
                                 .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY,"WebSecurityCustomizer", securityCustomizerType, null))
                                 .withName(m.getName().withSimpleName("webSecurityCustomizer"))
-                                .withModifiers(ListUtils.map(m.getModifiers(), (modifier) -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
+                                .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
 
                         m = addBeanAnnotation(m, getCursor());
                         maybeAddImport(FQN_WEB_SECURITY_CUSTOMIZER);

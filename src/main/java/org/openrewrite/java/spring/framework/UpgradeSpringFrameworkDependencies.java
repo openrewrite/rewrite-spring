@@ -50,7 +50,7 @@ public class UpgradeSpringFrameworkDependencies extends Recipe {
 
     @Override
     protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-        String[] artifacts_5_1 = new String[]{
+        String[] artifacts51 = new String[]{
                 "spring-bom",
                 "spring-aop",
                 "spring-aspects",
@@ -74,7 +74,7 @@ public class UpgradeSpringFrameworkDependencies extends Recipe {
                 "spring-webmvc",
                 "spring-websocket"};
 
-        for (String artifact : artifacts_5_1) {
+        for (String artifact : artifacts51) {
             doNext(new UpgradeDependencyVersion("org.springframework", artifact, newVersion, null, false));
         }
         if (newVersion.startsWith("5.3")) {
