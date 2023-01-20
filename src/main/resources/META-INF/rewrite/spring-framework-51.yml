@@ -18,8 +18,8 @@
 # Spring Framework 5.1
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_1
-displayName: Migrate to Spring Framework 5.1 from Spring Framework 5.0
-description: Migrate applications built on Spring Framework 5.0 to the latest Spring Framework 5.1 release.
+displayName: Migrate to Spring Framework 5.1
+description: Migrate applications to the latest Spring Framework 5.1 release.
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
       newVersion: 5.1.x
