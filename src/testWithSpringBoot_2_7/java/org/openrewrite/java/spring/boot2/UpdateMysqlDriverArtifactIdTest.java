@@ -16,12 +16,14 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.Issue;
 import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.maven.Assertions.pomXml;
 
+@Issue("https://github.com/openrewrite/rewrite-spring/issues/274")
 public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
 
     @Override
