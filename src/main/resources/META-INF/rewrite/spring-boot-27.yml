@@ -30,10 +30,14 @@ recipeList:
       artifactId: "*"
       newVersion: 2.7.x
       overrideManagedVersion: true
+      retainVersions:
+        - mysql:mysql-connector-java
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.7.x
+      retainVersions:
+        - mysql:mysql-connector-java
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.WebSecurityConfigurerAdapter
   - org.openrewrite.java.ChangeType:
@@ -46,7 +50,13 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.rsocket.context.LocalRSocketServerPort
       newFullyQualifiedTypeName: org.springframework.boot.test.rsocket.server.LocalRSocketServerPort
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
-
+  # Switch MySQL driver artifactId
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: mysql
+      oldArtifactId: mysql-connector-java
+      newGroupId: com.mysql
+      newArtifactId: mysql-connector-j
+      newVersion: 8.0.x
 ---
 ########################################################################################################################
 # SpringBoot 2.7 Configuration Changes
