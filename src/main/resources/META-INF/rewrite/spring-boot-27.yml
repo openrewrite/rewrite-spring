@@ -30,10 +30,14 @@ recipeList:
       artifactId: "*"
       newVersion: 2.7.x
       overrideManagedVersion: true
+      retainVersions:
+        - mysql:mysql-connector-java
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.7.x
+      retainVersions:
+        - mysql:mysql-connector-java
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.WebSecurityConfigurerAdapter
   - org.openrewrite.java.ChangeType:

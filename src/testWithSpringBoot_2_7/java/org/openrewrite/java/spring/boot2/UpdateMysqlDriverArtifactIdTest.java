@@ -93,9 +93,9 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                           </parent>
                           <dependencies>
                             <dependency>
-                               <groupId>mysql</groupId>
-                               <artifactId>mysql-connector-java</artifactId>
-                               <scope>runtime</scope>
+                              <groupId>mysql</groupId>
+                              <artifactId>mysql-connector-java</artifactId>
+                              <scope>runtime</scope>
                             </dependency>
                           </dependencies>
                         </project>
@@ -107,16 +107,16 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                           <artifactId>demo</artifactId>
                           <version>0.0.1-SNAPSHOT</version>
                           <parent>
-                              <groupId>org.springframework.boot</groupId>
-                              <artifactId>spring-boot-starter-parent</artifactId>
-                              <version>2.7.8</version>
-                              <relativePath/> <!-- lookup parent from repository -->
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-parent</artifactId>
+                            <version>2.7.8</version>
+                            <relativePath/> <!-- lookup parent from repository -->
                           </parent>
                           <dependencies>
                             <dependency>
-                               <groupId>com.mysql</groupId>
-                               <artifactId>mysql-connector-j</artifactId>
-                               <scope>runtime</scope>
+                              <groupId>com.mysql</groupId>
+                              <artifactId>mysql-connector-j</artifactId>
+                              <scope>runtime</scope>
                             </dependency>
                           </dependencies>
                         </project>
