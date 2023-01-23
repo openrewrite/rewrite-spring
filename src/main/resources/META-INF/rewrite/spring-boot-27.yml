@@ -46,7 +46,12 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.rsocket.context.LocalRSocketServerPort
       newFullyQualifiedTypeName: org.springframework.boot.test.rsocket.server.LocalRSocketServerPort
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
-
+  # Switch MySQL driver artifactId
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.mysql
+      oldArtifactId: mysql-connector-java
+      newArtifactId: mysql-connector-j
+      newVersion: 8.0.31+
 ---
 ########################################################################################################################
 # SpringBoot 2.7 Configuration Changes
