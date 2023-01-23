@@ -47,7 +47,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                           <version>0.0.1-SNAPSHOT</version>
                           <dependencies>
                             <dependency>
-                              <groupId>com.mysql</groupId>
+                              <groupId>mysql</groupId>
                               <artifactId>mysql-connector-java</artifactId>
                               <version>8.0.30</version>
                               <scope>runtime</scope>
@@ -88,12 +88,12 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                           <parent>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-starter-parent</artifactId>
-                            <version>2.7.8</version>
+                            <version>2.7.7</version>
                             <relativePath/> <!-- lookup parent from repository -->
                           </parent>
                           <dependencies>
                             <dependency>
-                               <groupId>com.mysql</groupId>
+                               <groupId>mysql</groupId>
                                <artifactId>mysql-connector-java</artifactId>
                                <scope>runtime</scope>
                             </dependency>

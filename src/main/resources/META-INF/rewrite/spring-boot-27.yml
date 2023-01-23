@@ -48,10 +48,11 @@ recipeList:
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
   # Switch MySQL driver artifactId
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.mysql
+      oldGroupId: mysql
       oldArtifactId: mysql-connector-java
+      newGroupId: com.mysql
       newArtifactId: mysql-connector-j
-      newVersion: 8.0.31+
+      newVersion: 8.0.x
 ---
 ########################################################################################################################
 # SpringBoot 2.7 Configuration Changes
