@@ -17,7 +17,6 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Issue;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -29,9 +28,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec
-          .recipe(new NoAutowiredOnConstructor())
-          .parser(JavaParser.fromJavaVersion().classpath("spring-beans"));
+        spec.recipe(new NoAutowiredOnConstructor());
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
