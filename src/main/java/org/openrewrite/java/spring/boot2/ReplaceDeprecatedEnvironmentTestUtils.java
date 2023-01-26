@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Parser;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
@@ -32,7 +31,10 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.marker.Marker;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
 
@@ -248,15 +250,15 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     private static class RemoveEnvironmentTestUtilsVisitor extends JavaIsoVisitor<ExecutionContext> {
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
             Optional<ReplaceEnvironmentUtilsMarker> maybeMarker = m.getMarkers().findFirst(ReplaceEnvironmentUtilsMarker.class);
             if (maybeMarker.isPresent()) {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = m.withTemplate(
                         JavaTemplate.builder(this::getCursor, marker.templateString)
                                 .javaParser(() -> JavaParser.fromJavaVersion()
-                                        .dependsOn(Collections.singletonList(Parser.Input.fromResource("/TestPropertyValues.java")))
+                                        .classpathFromResources(ctx, "spring-boot-test-2.*")
                                         .build())
                                 .imports("org.springframework.boot.test.util.TestPropertyValues")
                                 .build(),

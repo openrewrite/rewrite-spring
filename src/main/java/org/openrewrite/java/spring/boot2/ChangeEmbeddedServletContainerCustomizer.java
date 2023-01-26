@@ -27,6 +27,8 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
 
+import static java.util.Objects.requireNonNull;
+
 public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
 
     @Nullable
@@ -64,7 +66,7 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
                                 maybeAddImport("org.springframework.boot.web.server.WebServerFactoryCustomizer");
                                 maybeAddImport("org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory");
                                 maybeRemoveImport(DEPRECATED_INTERFACE_FQN);
-                                return getWebFactoryCustomizerIdentifier();
+                                return getWebFactoryCustomizerIdentifier(ctx);
                             }
                             return i;
                         })
@@ -75,37 +77,22 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
         };
     }
 
-    private static J.ParameterizedType getWebFactoryCustomizerIdentifier() {
-        //Really no need to use a JavaTemplate in this recipe, we just compile a stubbed out class and extract
-        //the J.ParameterizedType from the class's stub's implements.
+    private static J.ParameterizedType getWebFactoryCustomizerIdentifier(ExecutionContext ctx) {
+        // Really no need to use a JavaTemplate in this recipe, we just compile a stubbed out class and extract
+        // the J.ParameterizedType from the class's stub's implements.
         if (webFactoryCustomizerIdentifier == null) {
             JavaParser parser = JavaParser
                     .fromJavaVersion()
-                    .dependsOn(
-                            "package org.springframework.boot.web.server;\n" +
-                            "public interface WebServerFactory {}",
-
-                            "package org.springframework.boot.web.server;\n" +
-                            "public interface ConfigurableWebServerFactory extends WebServerFactory {}",
-
-                            "package org.springframework.boot.web.servlet.server;\n" +
-                            "import org.springframework.boot.web.server.ConfigurableWebServerFactory;\n" +
-                            "public interface ConfigurableServletWebServerFactory extends ConfigurableWebServerFactory {}",
-
-                            "package org.springframework.boot.web.server;\n" +
-                            "import org.springframework.boot.web.server.WebServerFactory;\n" +
-                            "public interface WebServerFactoryCustomizer<T extends WebServerFactory> {\n" +
-                            "  void customize(T factory);\n" +
-                            "}"
-                    ).build();
+                    .classpathFromResources(ctx, "spring-boot-2.*")
+                    .build();
             J.CompilationUnit cu = parser.parse(
                     "import org.springframework.boot.web.server.WebServerFactoryCustomizer;\n" +
                     "import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;\n" +
                     "public abstract class Template implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {}"
             ).get(0);
 
-            //noinspection DataFlowIssue
-            webFactoryCustomizerIdentifier = (J.ParameterizedType) cu.getClasses().get(0).getImplements().get(0);
+            webFactoryCustomizerIdentifier = (J.ParameterizedType) requireNonNull(cu.getClasses()
+                    .get(0).getImplements()).get(0);
         }
 
         return webFactoryCustomizerIdentifier.withId(Tree.randomId());

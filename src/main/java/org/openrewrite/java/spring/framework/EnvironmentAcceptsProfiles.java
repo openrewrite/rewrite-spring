@@ -53,25 +53,6 @@ public class EnvironmentAcceptsProfiles extends Recipe {
     }
 
     private static class EnvironmentAcceptsProfilesVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final String ENVIRONMENT_STUB = "" +
-                "package org.springframework.core.env;" +
-                "import java.io.*;" +
-                "public interface Environment extends PropertyResolver {" +
-                "   String[] getActiveProfiles();" +
-                "   String[] getDefaultProfiles();" +
-                "   boolean acceptsProfiles(String[] p0);" +
-                "   boolean acceptsProfiles(Profiles p0);" +
-                "}" +
-                "";
-        private static final String PROFILES_STUB = "" +
-                "package org.springframework.core.env;" +
-                "import java.io.*;" +
-                "public interface Profiles {" +
-                "   boolean matches(java.util.function.Predicate p0);" +
-                "   static Profiles of(String... p0);" +
-                "}" +
-                "";
-
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             if (MATCHER.matches(method)) {
@@ -80,7 +61,7 @@ public class EnvironmentAcceptsProfiles extends Recipe {
                 method = method.withTemplate(JavaTemplate.builder(this::getCursor, template)
                                 .imports("org.springframework.core.env.Profiles", "org.springframework.core.env.Environment")
                                 .javaParser(() -> JavaParser.fromJavaVersion()
-                                        .dependsOn(ENVIRONMENT_STUB, PROFILES_STUB)
+                                        .classpathFromResources(ctx, "spring-core-5.*")
                                         .build())
                                 .build(),
                         method.getCoordinates().replaceArguments(),
@@ -90,5 +71,4 @@ public class EnvironmentAcceptsProfiles extends Recipe {
             return super.visitMethodInvocation(method, ctx);
         }
     }
-
 }

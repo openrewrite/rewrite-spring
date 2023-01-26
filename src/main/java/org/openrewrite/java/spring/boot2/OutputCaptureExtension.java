@@ -16,7 +16,10 @@
 package org.openrewrite.java.spring.boot2;
 
 import lombok.SneakyThrows;
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.Tree;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
@@ -26,31 +29,12 @@ import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.text.RuleBasedCollator;
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 public class OutputCaptureExtension extends Recipe {
-    private static final Supplier<JavaParser> JAVA_PARSER = () ->
-            JavaParser.fromJavaVersion()
-                    .dependsOn(Arrays.asList(
-                            Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
-                                    "public class OutputCaptureExtension {\n" +
-                                    "}"),
-                            Parser.Input.fromString("package org.springframework.boot.test.system;\n" +
-                                    "public interface CapturedOutput {\n" +
-                                    "  String getAll();\n" +
-                                    "}"
-                            ),
-                            Parser.Input.fromString("package org.junit.jupiter.api.extension;\n" +
-                                    "public @interface ExtendWith {\n" +
-                                    "  Class[] value();\n" +
-                                    "}")
-                    ))
-                    .build();
 
     @Override
     public String getDisplayName() {
@@ -78,16 +62,10 @@ public class OutputCaptureExtension extends Recipe {
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-            private final JavaTemplate addOutputCaptureExtension = JavaTemplate.builder(this::getCursor, "@ExtendWith(OutputCaptureExtension.class)")
-                    .javaParser(JAVA_PARSER)
-                    .imports("org.junit.jupiter.api.extension.ExtendWith",
-                            "org.springframework.boot.test.system.OutputCaptureExtension")
-                    .build();
-
             @SneakyThrows
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
-                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, context);
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
                 c = c.withBody(c.getBody().withStatements(ListUtils.map(c.getBody().getStatements(), s -> {
                     if (!(s instanceof J.VariableDeclarations)) {
@@ -125,6 +103,14 @@ public class OutputCaptureExtension extends Recipe {
                 })));
 
                 if (classDecl.getBody().getStatements().size() != c.getBody().getStatements().size()) {
+                    JavaTemplate addOutputCaptureExtension = JavaTemplate.builder(this::getCursor, "@ExtendWith(OutputCaptureExtension.class)")
+                            .javaParser(() -> JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*")
+                                    .build())
+                            .imports("org.junit.jupiter.api.extension.ExtendWith",
+                                    "org.springframework.boot.test.system.OutputCaptureExtension")
+                            .build();
+
                     c = c.withTemplate(addOutputCaptureExtension, c.getCoordinates()
                             .addAnnotation(Comparator.comparing(
                                     J.Annotation::getSimpleName,
@@ -149,10 +135,6 @@ public class OutputCaptureExtension extends Recipe {
     );
 
     private static final class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
-        private final JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
-                .javaParser(JAVA_PARSER)
-                .build();
-
         private final String variableName;
 
         private ConvertExpectMethods(String variableName) {
@@ -160,11 +142,17 @@ public class OutputCaptureExtension extends Recipe {
         }
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
             if (!OUTPUT_CAPTURE_MATCHER.matches(m) && !OUTPUT_CAPTURE_RULE_MATCHER.matches(m)) {
                 return m;
             }
+
+            JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
+                    .javaParser(() -> JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*")
+                            .build())
+                    .build();
             m = m.withTemplate(matchesTemplate, m.getCoordinates().replace(), m.getArguments().get(0), variableName);
             return m;
         }

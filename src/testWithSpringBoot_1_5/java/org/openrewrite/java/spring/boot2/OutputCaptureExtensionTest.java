@@ -43,7 +43,7 @@ class OutputCaptureExtensionTest implements RewriteTest {
               import org.junit.Rule;
               import org.springframework.boot.test.rule.OutputCapture;
               
-              class Test {
+              class MyTest {
                   @Rule
                   OutputCapture capture = new OutputCapture();
               
@@ -62,7 +62,7 @@ class OutputCaptureExtensionTest implements RewriteTest {
               import org.springframework.boot.test.system.OutputCaptureExtension;
 
               @ExtendWith(OutputCaptureExtension.class)
-              class Test {
+              class MyTest {
               
                   void test(CapturedOutput capture) {
                       System.out.println(capture.toString());
@@ -89,7 +89,7 @@ class OutputCaptureExtensionTest implements RewriteTest {
               import org.junit.Rule;
               import org.springframework.boot.test.rule.OutputCapture;
               
-              class Test {
+              class MyTest {
                   @Rule
                   OutputCapture capture = new OutputCapture();
               
@@ -109,7 +109,7 @@ class OutputCaptureExtensionTest implements RewriteTest {
               import org.springframework.boot.test.system.OutputCaptureExtension;
               
               @ExtendWith(OutputCaptureExtension.class)
-              class Test {
+              class MyTest {
               
                   void test(CapturedOutput capture) {
                       System.out.println("I am here");

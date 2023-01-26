@@ -73,63 +73,30 @@ public class MigrateQuerydslJpaRepository extends Recipe {
             }
 
             @Override
-            public J visitNewClass(J.NewClass newClass, ExecutionContext context) {
-                if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), originalFqn) &&
-                        newClass.getArguments() != null) {
+            public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
+                if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), originalFqn)) {
                     String template = "new QuerydslJpaPredicateExecutor(#{any(org.springframework.data.jpa.repository.support.JpaEntityInformation)}, " +
-                            "#{any(javax.persistence.EntityManager)}, " +
-                            "#{any(org.springframework.data.querydsl.EntityPathResolver)}, null)";
+                                      "#{any(javax.persistence.EntityManager)}, " +
+                                      "#{any(org.springframework.data.querydsl.EntityPathResolver)}, null)";
 
                     J.FieldAccess entityPathResolver = TypeTree.build("SimpleEntityPathResolver.INSTANCE");
                     return newClass.withTemplate(
                             JavaTemplate.builder(this::getCursor, template)
                                     .imports(originalFqn)
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn(
-                                                    "package javax.persistence;" +
-                                                            "public interface EntityManager {}",
-                                                    "package org.springframework.data.querydsl;" +
-                                                            "public interface EntityPathResolver {}",
-                                                    "package org.springframework.data.querydsl;" +
-                                                            "public interface QuerydslPredicateExecutor<T> {}",
-                                                    "package org.springframework.data.repository.core;" +
-                                                            "public interface EntityMetadata<T> {}",
-                                                    "package org.springframework.data.repository.core;" +
-                                                            "public interface EntityInformation<T, ID> extends EntityMetadata<T> {}",
-                                                    "package org.springframework.data.jpa.repository.query;" +
-                                                            "import org.springframework.data.repository.core.EntityMetadata;" +
-                                                            "public interface JpaEntityMetadata<T> extends EntityMetadata<T> {",
-                                                    "package org.springframework.data.jpa.repository.support;" +
-                                                            "import org.springframework.data.repository.core.EntityInformation;" +
-                                                            "import org.springframework.data.jpa.repository.query.JpaEntityMetadata;" +
-                                                            "public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, JpaEntityMetadata<T> {}",
-                                                    "package org.springframework.data.jpa.repository.support;" +
-                                                            "public interface CrudMethodMetadata {}",
-                                                    "package org.springframework.data.jpa.repository.support;" +
-                                                            "import javax.persistence.EntityManager;" +
-                                                            "import org.springframework.data.querydsl.EntityPathResolver;" +
-                                                            "import org.springframework.data.querydsl.QuerydslPredicateExecutor;" +
-                                                            "public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {" +
-                                                            "public QuerydslJpaPredicateExecutor(" +
-                                                                "JpaEntityInformation<T, ?> entityInformation," +
-                                                                "EntityManager entityManager," +
-                                                                "EntityPathResolver resolver," +
-                                                                "@Nullable CrudMethodMetadata metadata) {}" +
-                                                            "}",
-                                                    "package org.springframework.data.querydsl;" +
-                                                            "public class SimpleEntityPathResolver implements EntityPathResolver {" +
-                                                            "public static final SimpleEntityPathResolver INSTANCE = new SimpleEntityPathResolver(\"\")" +
-                                                            "public SimpleEntityPathResolver(String querySuffix) {" +
-                                                            "Assert.notNull(querySuffix, \"Query suffix must not be null!\");" +
-                                                            "this.querySuffix = querySuffix;}}"
-                                            ).build())
+                                            .classpathFromResources(ctx,
+                                                    "javax.persistence-api-2.*",
+                                                    "spring-data-commons-2.*",
+                                                    "spring-data-jpa-2.*"
+                                            )
+                                            .build())
                                     .build(),
                             newClass.getCoordinates().replace(),
                             newClass.getArguments().get(0),
                             newClass.getArguments().get(1),
                             newClass.getArguments().size() == 3 ? newClass.getArguments().get(2) : entityPathResolver);
                 }
-                return super.visitNewClass(newClass, context);
+                return super.visitNewClass(newClass, ctx);
             }
         };
     }

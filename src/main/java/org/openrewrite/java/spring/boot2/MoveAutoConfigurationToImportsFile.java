@@ -15,14 +15,17 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.intellij.lang.annotations.Language;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.SourceFile;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.*;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.marker.Marker;
 import org.openrewrite.text.PlainText;
@@ -35,18 +38,18 @@ import java.util.stream.Collectors;
 public class MoveAutoConfigurationToImportsFile extends Recipe {
 
     private static final String AUTOCONFIGURATION_FILE = "org.springframework.boot.autoconfigure.AutoConfiguration.imports";
-
     private static final String ENABLE_AUTO_CONFIG_KEY = "org.springframework.boot.autoconfigure.EnableAutoConfiguration";
+
     @Override
     public String getDisplayName() {
-        return "Use `org.springframework.boot.autoconfigure.AutoConfiguration.imports`";
+        return "Use `AutoConfiguration#imports`";
     }
 
     @Override
     public String getDescription() {
-        return "Use `org.springframework.boot.autoconfigure.AutoConfiguration.imports` instead of the deprecated entry " +
-               "`org.springframework.boot.autoconfigure.EnableAutoConfiguration` in `spring.factories` when defining " +
-               "auto-configuration classes.";
+        return "Use `AutoConfiguration#imports` instead of the deprecated entry " +
+               "`EnableAutoConfiguration` in `spring.factories` when defining " +
+               "autoconfiguration classes.";
     }
 
     @Override
@@ -252,42 +255,21 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
         }
     }
 
-    private static final class AddAutoConfigurationAnnotation extends JavaIsoVisitor<ExecutionContext> {
-
-        @Language("java")
-        private static final String autoConfigStub =
-                "package org.springframework.boot.autoconfigure;\n" +
-                "\n" +
-                "import java.lang.annotation.Documented;\n" +
-                "import java.lang.annotation.ElementType;\n" +
-                "import java.lang.annotation.Retention;\n" +
-                "import java.lang.annotation.RetentionPolicy;\n" +
-                "import java.lang.annotation.Target;\n" +
-                "@Target(ElementType.TYPE)\n" +
-                "@Retention(RetentionPolicy.RUNTIME)\n" +
-                "@Documented\n" +
-                "public @interface AutoConfiguration {\n" +
-                "   String value() default \"\";\n" +
-                "   Class<?>[] before() default {};\n" +
-                "   String[] beforeName() default {};\n" +
-                "   Class<?>[] after() default {};\n" +
-                "   String[] afterName() default {};\n" +
-                "}";
-
-        private final Set<String> fullyQualifiedConfigClasses;
-
-        private final JavaTemplate addAnnotationTemplate = JavaTemplate.builder(this::getCursor, "@AutoConfiguration")
-                .javaParser(() -> JavaParser.fromJavaVersion().dependsOn(autoConfigStub).build())
-                .imports("org.springframework.boot.autoconfigure.AutoConfiguration")
-                .build();
-
-        private AddAutoConfigurationAnnotation(Set<String> fullyQualifiedConfigClasses) {
-            this.fullyQualifiedConfigClasses= fullyQualifiedConfigClasses;
-        }
+    @Value
+    @EqualsAndHashCode(callSuper = false)
+    private static class AddAutoConfigurationAnnotation extends JavaIsoVisitor<ExecutionContext> {
+        Set<String> fullyQualifiedConfigClasses;
 
         @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-            J.ClassDeclaration c = super.visitClassDeclaration(classDecl, executionContext);
+        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+            J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
+
+            JavaTemplate addAnnotationTemplate = JavaTemplate.builder(this::getCursor, "@AutoConfiguration")
+                    .javaParser(() -> JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-boot-autoconfigure-2.*")
+                            .build())
+                    .imports("org.springframework.boot.autoconfigure.AutoConfiguration")
+                    .build();
 
             if (c.getType() != null && fullyQualifiedConfigClasses.contains(c.getType().getFullyQualifiedName())) {
                 doAfterVisit(new RemoveAnnotation("@org.springframework.context.annotation.Configuration"));

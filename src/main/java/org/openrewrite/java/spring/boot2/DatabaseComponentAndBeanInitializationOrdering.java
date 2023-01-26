@@ -33,20 +33,21 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Migration for Spring Boot 2.4 to 2.5
- * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering">Initialization ordering</a>
- */
 public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Adds @DependsOnDatabaseInitialization to Spring Beans and Components depending on javax.sql.DataSource";
+        return "Adds `@DependsOnDatabaseInitialization` to Spring Beans and Components depending on `javax.sql.DataSource`";
     }
 
     @Override
     public String getDescription() {
-        return "Beans of certain well-known types, such as JdbcTemplate, will be ordered so that they are initialized after the database has been initialized. If you have a bean that works with the DataSource directly, annotate its class or @Bean method with @DependsOnDatabaseInitialization to ensure that it too is initialized after the database has been initialized.";
+        return "Beans of certain well-known types, such as `JdbcTemplate`, will be ordered so that they are initialized " +
+               "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
+               "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
+               "initialized after the database has been initialized. See the " +
+               "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
+               "for more.";
     }
 
     @Override
@@ -67,17 +68,16 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
     @Override
     protected JavaIsoVisitor<ExecutionContext> getVisitor() {
-
-        final String javaxDataSourceFqn = "javax.sql.DataSource";
-        final AnnotationMatcher dataSourceAnnotationMatcher = new AnnotationMatcher("@org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
-        final AnnotationMatcher beanAnnotationMatcher = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
-        final List<AnnotationMatcher> componentAnnotationMatchers = Arrays.asList(
+        String javaxDataSourceFqn = "javax.sql.DataSource";
+        AnnotationMatcher dataSourceAnnotationMatcher = new AnnotationMatcher("@org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
+        AnnotationMatcher beanAnnotationMatcher = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
+        List<AnnotationMatcher> componentAnnotationMatchers = Arrays.asList(
                 new AnnotationMatcher("@org.springframework.stereotype.Repository"),
                 new AnnotationMatcher("@org.springframework.stereotype.Component"),
                 new AnnotationMatcher("@org.springframework.stereotype.Service"),
                 new AnnotationMatcher("@org.springframework.boot.test.context.TestComponent"));
 
-        final List<String> wellKnowDataSourceTypes = Arrays.asList(
+        List<String> wellKnowDataSourceTypes = Arrays.asList(
                 "org.springframework.jdbc.core.JdbcTemplate",
                 "org.jooq.DSLContext",
                 "org.springframework.jdbc.core.JdbcOperations",
@@ -86,30 +86,17 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 "javax.persistence.EntityManagerFactory"
         );
 
-        final String dataSourceInitializationTemplate =
-                "package org.springframework.boot.sql.init.dependency;\n" +
-                "import java.lang.annotation.Documented;\n" +
-                "import java.lang.annotation.ElementType;\n" +
-                "import java.lang.annotation.Retention;\n" +
-                "import java.lang.annotation.RetentionPolicy;\n" +
-                "import java.lang.annotation.Target;\n" +
-                "import org.springframework.context.annotation.Bean;\n" +
-                "@Target({ ElementType.TYPE, ElementType.METHOD })\n" +
-                "@Retention(RetentionPolicy.RUNTIME)\n" +
-                "@Documented\n" +
-                "public @interface DependsOnDatabaseInitialization {}";
-
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-                J.MethodDeclaration md = super.visitMethodDeclaration(method, executionContext);
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
                 if (method.getMethodType() != null) {
                     if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md)
-                            && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
+                        && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
                         JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                                 .javaParser(() -> JavaParser.fromJavaVersion()
-                                        .dependsOn(dataSourceInitializationTemplate)
+                                        .classpathFromResources(ctx, "spring-boot-2.*")
                                         .build())
                                 .build();
                         md = md.withTemplate(template, md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
@@ -120,14 +107,14 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             }
 
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd)
-                        && requiresInitializationAnnotation(cd.getType())) {
+                    && requiresInitializationAnnotation(cd.getType())) {
                     JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                             .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .dependsOn(dataSourceInitializationTemplate)
+                                    .classpathFromResources(ctx, "spring-boot-2.*")
                                     .build())
                             .build();
                     cd = cd.withTemplate(template, cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
@@ -169,7 +156,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                     return false;
                 }
                 if (type instanceof JavaType.FullyQualified) {
-                    JavaType.FullyQualified fq = (JavaType.FullyQualified)type;
+                    JavaType.FullyQualified fq = (JavaType.FullyQualified) type;
                     // type fields
                     for (JavaType.Variable var : fq.getMembers()) {
                         if (isDataSourceType(var.getType())) {
@@ -192,7 +179,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             }
 
             private boolean isDataSourceType(@Nullable JavaType type) {
-                return type != null && TypeUtils.isAssignableTo(javaxDataSourceFqn, type);
+                return TypeUtils.isAssignableTo(javaxDataSourceFqn, type);
             }
 
             private boolean isWellKnownDataSourceInitializationType(@Nullable JavaType type) {

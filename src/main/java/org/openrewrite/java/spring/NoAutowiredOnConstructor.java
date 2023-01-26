@@ -28,7 +28,6 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 
 public class NoAutowiredOnConstructor extends Recipe {
-
     private static final AnnotationMatcher AUTOWIRED_ANNOTATION_MATCHER =
             new AnnotationMatcher("@org.springframework.beans.factory.annotation.Autowired(true)");
 

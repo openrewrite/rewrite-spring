@@ -51,20 +51,15 @@ public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
             final MethodMatcher readTimeout = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder setReadTimeout(int)");
 
             @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext context) {
-                J.MethodInvocation m = super.visitMethodInvocation(method, context);
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (connectionTimeout.matches(method) || readTimeout.matches(method)) {
                     m = m.withTemplate(
                             JavaTemplate
                                     .builder(this::getCursor,"Duration.ofMillis(#{any(int)})")
                                     .imports("java.time.Duration")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn("package org.springframework.boot.web.client;" +
-                                                    "import java.time.Duration;" +
-                                                    "public class RestTemplateBuilder {" +
-                                                    "public RestTemplateBuilder setConnectTimeout(java.time.Duration) { return null; }" +
-                                                    "public RestTemplateBuilder setReadTimeout(java.time.Duration) { return null; }" +
-                                                    "}")
+                                            .classpathFromResources(ctx, "spring-boot-2.*")
                                             .build())
                                     .build(),
                             m.getCoordinates().replaceArguments(),

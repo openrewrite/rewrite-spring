@@ -29,7 +29,6 @@ import org.openrewrite.java.tree.TypeUtils;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-
 public class MigrateJpaSort extends Recipe {
 
     @Override
@@ -51,12 +50,10 @@ public class MigrateJpaSort extends Recipe {
     @Override
     protected JavaVisitor<ExecutionContext> getVisitor() {
         return new JavaVisitor<ExecutionContext>() {
-            final String JPA_SORT_FQN = "org.springframework.data.jpa.domain.JpaSort";
-
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
-                if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), JPA_SORT_FQN) &&
-                        newClass.getArguments() != null) {
+                if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), "org.springframework.data.jpa.domain.JpaSort")) {
+                    newClass.getArguments();
                     String template = newClass.getArguments().stream()
                             .map(arg -> TypeUtils.asFullyQualified(arg.getType()))
                             .filter(Objects::nonNull)
@@ -65,25 +62,10 @@ public class MigrateJpaSort extends Recipe {
 
                     return newClass.withTemplate(
                             JavaTemplate.builder(this::getCursor, template)
-                                    .imports(JPA_SORT_FQN)
+                                    .imports("org.springframework.data.jpa.domain.JpaSort")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn(
-                                                    "package org.springframework.data.jpa.domain;" +
-                                                    "import org.springframework.data.domain.Sort;" +
-                                                    "import org.springframework.data.domain.Sort.Direction;" +
-                                                    "import javax.persistence.metamodel.Attribute;" +
-                                                    "public class JpaSort extends Sort {" +
-                                                        "public static JpaSort of(Attribute<?, ?>... attributes) { return null; }" +
-                                                        "public static JpaSort of(JpaSort.Path<?, ?>... paths) { return null; }" +
-                                                        "public static JpaSort of(Direction direction, Attribute<?, ?>... attributes) { return null; }" +
-                                                        "public static JpaSort of(Direction direction, Path<?, ?>... paths) { return null; }" +
-                                                        "public static class Path<T, S> {}" +
-                                                    "}",
-                                                    "package javax.persistence.metamodel; public interface Attribute<X, Y> {}",
-                                                    "package org.springframework.data.domain;" +
-                                                    "public class Sort implements Streamable<org.springframework.data.domain.Sort.Order>, Serializable {" +
-                                                        "public static enum Direction { ASC, DESC; }" +
-                                                    "}")
+                                            .logCompilationWarningsAndErrors(true)
+                                            .classpathFromResources(ctx, "spring-data-commons-2.*", "spring-data-jpa-2.*")
                                             .build())
                                     .build(),
                             newClass.getCoordinates().replace(),

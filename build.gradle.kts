@@ -1,5 +1,5 @@
 plugins {
-    id("org.openrewrite.build.recipe-library") version "latest.release"
+    id("org.openrewrite.build.recipe-library") version "1.7.0"
 }
 
 group = "org.openrewrite.recipe"
@@ -36,6 +36,38 @@ configurations {
         }
     }
 }
+
+//recipeDependencies {
+//    parserClasspath("javax.persistence:javax.persistence-api:2.+")
+//    parserClasspath("org.junit.jupiter:junit-jupiter-api:5.+")
+//
+//    parserClasspath("org.springframework.boot:spring-boot:1.+")
+//    parserClasspath("org.springframework.boot:spring-boot:2.+")
+//    parserClasspath("org.springframework.boot:spring-boot:3.+")
+//
+//    parserClasspath("org.springframework.boot:spring-boot-autoconfigure:2.+")
+//    parserClasspath("org.springframework.boot:spring-boot-actuator:2.+")
+//    parserClasspath("org.springframework.boot:spring-boot-test:2.+")
+//
+//    parserClasspath("org.springframework:spring-beans:4.+")
+//    parserClasspath("org.springframework:spring-beans:5.+")
+//    parserClasspath("org.springframework:spring-beans:6.+")
+//
+//    parserClasspath("org.springframework:spring-context:4.+")
+//    parserClasspath("org.springframework:spring-context:5.+")
+//    parserClasspath("org.springframework:spring-context:6.+")
+//
+//    parserClasspath("org.springframework:spring-core:4.+")
+//    parserClasspath("org.springframework:spring-core:5.+")
+//    parserClasspath("org.springframework:spring-core:6.+")
+//
+//    parserClasspath("org.springframework:spring-web:4.+")
+//    parserClasspath("org.springframework:spring-web:5.+")
+//    parserClasspath("org.springframework:spring-web:6.+")
+//
+//    parserClasspath("org.springframework.data:spring-data-commons:2.+")
+//    parserClasspath("org.springframework.data:spring-data-jpa:2.+")
+//}
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
 var springBoot3Version = "3.0.0-RC1"

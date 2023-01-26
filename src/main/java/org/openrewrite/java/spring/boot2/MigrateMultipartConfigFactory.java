@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.intellij.lang.annotations.Language;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -56,33 +55,16 @@ public class MigrateMultipartConfigFactory extends Recipe {
             final MethodMatcher setMaxRequestSizeByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(java.lang.String)");
             final MethodMatcher setFileSizeThresholdByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(java.lang.String)");
 
-            @Language("java")
-            final String dataSize = "package org.springframework.util.unit;" +
-                    "import java.io.Serializable;" +
-                    "public final class DataSize implements Comparable<DataSize>, Serializable {" +
-                    "  public static DataSize ofBytes(long bytes) { return null; }" +
-                    "  public static DataSize parse(CharSequence text) { return null; }" +
-                    "}";
-
-            @Language("java")
-            final String multipartConfigFactory = "package org.springframework.boot.web.servlet;" +
-                    "import org.springframework.util.unit.DataSize;" +
-                    "public class MultipartConfigFactory {" +
-                    "  public void setMaxFileSize(DataSize maxFileSize) {}" +
-                    "  public void setMaxRequestSize(DataSize maxRequestSize) {}" +
-                    "  public void setFileSizeThreshold(DataSize fileSizeThreshold) {}" +
-                    "}";
-
             @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext context) {
-                J.MethodInvocation m = super.visitMethodInvocation(method, context);
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (setMaxFileSizeByLong.matches(m) || setMaxRequestSizeByLong.matches(m) || setFileSizeThresholdByInt.matches(m)) {
                     m = m.withTemplate(
                             JavaTemplate
                                     .builder(this::getCursor,"DataSize.ofBytes(#{any()})")
                                     .imports("org.springframework.util.unit.DataSize")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn(dataSize, multipartConfigFactory)
+                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*")
                                             .build())
                                     .build(),
                             m.getCoordinates().replaceArguments(),
@@ -93,7 +75,7 @@ public class MigrateMultipartConfigFactory extends Recipe {
                                     .builder(this::getCursor,"DataSize.parse(#{any(java.lang.String)})")
                                     .imports("org.springframework.util.unit.DataSize")
                                     .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn(dataSize, multipartConfigFactory)
+                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*")
                                             .build())
                                     .build(),
                             m.getCoordinates().replaceArguments(),

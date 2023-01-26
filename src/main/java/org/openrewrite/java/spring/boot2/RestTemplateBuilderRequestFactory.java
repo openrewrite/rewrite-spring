@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Parser;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
@@ -29,9 +28,6 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
-/**
- * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder">...</a>
- */
 public class RestTemplateBuilderRequestFactory extends Recipe {
     private static final MethodMatcher REQUEST_FACTORY = new MethodMatcher(
             "org.springframework.boot.web.client.RestTemplateBuilder requestFactory(org.springframework.http.client.ClientHttpRequestFactory)");
@@ -43,7 +39,8 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Migrate `RestTemplateBuilder#requestFactory` calls to use a `Supplier`.";
+        return "Migrate `RestTemplateBuilder#requestFactory` calls to use a `Supplier`. " +
+               "See the [migration guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder) for more.";
     }
 
     @Nullable
@@ -70,7 +67,7 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
             if (REQUEST_FACTORY.matches(method) && isArgumentClientHttpRequestFactory) {
                 JavaTemplate.Builder t = JavaTemplate.builder(this::getCursor, "() -> #{any(org.springframework.http.client.ClientHttpRequestFactory)}")
                         .javaParser(() -> JavaParser.fromJavaVersion()
-                                .dependsOn(Parser.Input.fromResource("/RestTemplateBuilder.java", "---"))
+                                .classpathFromResources(ctx, "spring-boot-2.*")
                                 .build());
                 m = m.withTemplate(t.build(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
             }

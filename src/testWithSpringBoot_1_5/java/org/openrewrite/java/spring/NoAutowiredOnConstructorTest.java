@@ -17,9 +17,9 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Issue;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -28,7 +28,8 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new NoAutowiredOnConstructor());
+        spec.recipe(new NoAutowiredOnConstructor())
+          .parser(JavaParser.fromJavaVersion().classpath("spring-beans"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -36,11 +37,12 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     void removeLeadingAutowiredAnnotation() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          java("@org.springframework.stereotype.Component public class TestSourceA {}"),
+          java("@org.springframework.stereotype.Component public class TestSourceB {}"),
+          java("@org.springframework.stereotype.Component public class TestSourceC {}"),
           java(
             """
               import org.springframework.beans.factory.annotation.Autowired;
-              import org.springframework.stereotype.Component;
               
               @Autowired
               public class TestConfiguration {
@@ -59,23 +61,10 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                   public void setTestSourceB(TestSourceB testSourceB) {
                       this.testSourceB = testSourceB;
                   }
-              }
-              
-              @Component
-              public class TestSourceA {
-              }
-              
-              @Component
-              public class TestSourceB {
-              }
-              
-              @Component
-              public class TestSourceC {
               }
               """,
             """
               import org.springframework.beans.factory.annotation.Autowired;
-              import org.springframework.stereotype.Component;
               
               @Autowired
               public class TestConfiguration {
@@ -93,18 +82,6 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                   public void setTestSourceB(TestSourceB testSourceB) {
                       this.testSourceB = testSourceB;
                   }
-              }
-              
-              @Component
-              public class TestSourceA {
-              }
-              
-              @Component
-              public class TestSourceB {
-              }
-              
-              @Component
-              public class TestSourceC {
               }
               """
           )
@@ -116,11 +93,12 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     void removeLeadingAutowiredAnnotationNoModifiers() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          java("@org.springframework.stereotype.Component public class TestSourceA {}"),
+          java("@org.springframework.stereotype.Component public class TestSourceB {}"),
+          java("@org.springframework.stereotype.Component public class TestSourceC {}"),
           java(
             """
               import org.springframework.beans.factory.annotation.Autowired;
-              import org.springframework.stereotype.Component;
               
               public class TestConfiguration {
                   private final TestSourceA testSourceA;
@@ -138,23 +116,10 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                   public void setTestSourceB(TestSourceB testSourceB) {
                       this.testSourceB = testSourceB;
                   }
-              }
-              
-              @Component
-              public class TestSourceA {
-              }
-              
-              @Component
-              public class TestSourceB {
-              }
-              
-              @Component
-              public class TestSourceC {
               }
               """,
             """
               import org.springframework.beans.factory.annotation.Autowired;
-              import org.springframework.stereotype.Component;
               
               public class TestConfiguration {
                   private final TestSourceA testSourceA;
@@ -171,18 +136,6 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                   public void setTestSourceB(TestSourceB testSourceB) {
                       this.testSourceB = testSourceB;
                   }
-              }
-              
-              @Component
-              public class TestSourceA {
-              }
-              
-              @Component
-              public class TestSourceB {
-              }
-              
-              @Component
-              public class TestSourceC {
               }
               """
           )
@@ -194,13 +147,12 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     void removeAutowiredWithMultipleAnnotation() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          java("@org.springframework.stereotype.Component public class TestSourceA {}"),
           java(
             """
               import org.springframework.beans.factory.annotation.Autowired;
               import org.springframework.beans.factory.annotation.Qualifier;
               import org.springframework.beans.factory.annotation.Required;
-              import org.springframework.stereotype.Component;
               
               public class AnnotationPos1 {
                   private final TestSourceA testSourceA;
@@ -211,38 +163,11 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                   public AnnotationPos1(TestSourceA testSourceA) {
                       this.testSourceA = testSourceA;
                   }
-              }
-              
-              public class AnnotationPos2 {
-                  private final TestSourceA testSourceA;
-              
-                  @Required
-                  @Autowired
-                  @Qualifier
-                  public AnnotationPos2(TestSourceA testSourceA) {
-                      this.testSourceA = testSourceA;
-                  }
-              }
-              
-              public class AnnotationPos3 {
-                  private final TestSourceA testSourceA;
-              
-                  @Required
-                  @Qualifier
-                  @Autowired
-                  public AnnotationPos3(TestSourceA testSourceA) {
-                      this.testSourceA = testSourceA;
-                  }
-              }
-              
-              @Component
-              public class TestSourceA {
               }
               """,
             """
               import org.springframework.beans.factory.annotation.Qualifier;
               import org.springframework.beans.factory.annotation.Required;
-              import org.springframework.stereotype.Component;
               
               public class AnnotationPos1 {
                   private final TestSourceA testSourceA;
@@ -253,6 +178,28 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                       this.testSourceA = testSourceA;
                   }
               }
+              """
+          ),
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.beans.factory.annotation.Qualifier;
+              import org.springframework.beans.factory.annotation.Required;
+              
+              public class AnnotationPos2 {
+                  private final TestSourceA testSourceA;
+              
+                  @Required
+                  @Autowired
+                  @Qualifier
+                  public AnnotationPos2(TestSourceA testSourceA) {
+                      this.testSourceA = testSourceA;
+                  }
+              }
+              """,
+            """
+              import org.springframework.beans.factory.annotation.Qualifier;
+              import org.springframework.beans.factory.annotation.Required;
               
               public class AnnotationPos2 {
                   private final TestSourceA testSourceA;
@@ -263,6 +210,28 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                       this.testSourceA = testSourceA;
                   }
               }
+              """
+          ),
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.beans.factory.annotation.Qualifier;
+              import org.springframework.beans.factory.annotation.Required;
+              
+              public class AnnotationPos3 {
+                  private final TestSourceA testSourceA;
+              
+                  @Required
+                  @Qualifier
+                  @Autowired
+                  public AnnotationPos3(TestSourceA testSourceA) {
+                      this.testSourceA = testSourceA;
+                  }
+              }
+              """,
+            """
+              import org.springframework.beans.factory.annotation.Qualifier;
+              import org.springframework.beans.factory.annotation.Required;
               
               public class AnnotationPos3 {
                   private final TestSourceA testSourceA;
@@ -272,10 +241,6 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                   public AnnotationPos3(TestSourceA testSourceA) {
                       this.testSourceA = testSourceA;
                   }
-              }
-              
-              @Component
-              public class TestSourceA {
               }
               """
           )
@@ -287,13 +252,12 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     void removeAutowiredWithMultipleInLineAnnotation() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          java("@org.springframework.stereotype.Component public class TestSourceA {}"),
           java(
             """
               import org.springframework.beans.factory.annotation.Autowired;
               import org.springframework.beans.factory.annotation.Qualifier;
               import org.springframework.beans.factory.annotation.Required;
-              import org.springframework.stereotype.Component;
               
               public class AnnotationPos1 {
                   private final TestSourceA testSourceA;
@@ -303,33 +267,10 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                       this.testSourceA = testSourceA;
                   }
               }
-              
-              public class AnnotationPos2 {
-                  private final TestSourceA testSourceA;
-              
-                  @Required @Autowired @Qualifier
-                  public AnnotationPos2(TestSourceA testSourceA) {
-                      this.testSourceA = testSourceA;
-                  }
-              }
-              
-              public class AnnotationPos3 {
-                  private final TestSourceA testSourceA;
-              
-                  @Required @Qualifier @Autowired
-                  public AnnotationPos3(TestSourceA testSourceA) {
-                      this.testSourceA = testSourceA;
-                  }
-              }
-              
-              @Component
-              public class TestSourceA {
-              }
               """,
             """
               import org.springframework.beans.factory.annotation.Qualifier;
               import org.springframework.beans.factory.annotation.Required;
-              import org.springframework.stereotype.Component;
               
               public class AnnotationPos1 {
                   private final TestSourceA testSourceA;
@@ -339,6 +280,26 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                       this.testSourceA = testSourceA;
                   }
               }
+              """
+          ),
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.beans.factory.annotation.Qualifier;
+              import org.springframework.beans.factory.annotation.Required;
+              
+              public class AnnotationPos2 {
+                  private final TestSourceA testSourceA;
+              
+                  @Required @Autowired @Qualifier
+                  public AnnotationPos2(TestSourceA testSourceA) {
+                      this.testSourceA = testSourceA;
+                  }
+              }
+              """,
+            """
+              import org.springframework.beans.factory.annotation.Qualifier;
+              import org.springframework.beans.factory.annotation.Required;
               
               public class AnnotationPos2 {
                   private final TestSourceA testSourceA;
@@ -348,6 +309,26 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                       this.testSourceA = testSourceA;
                   }
               }
+              """
+          ),
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.beans.factory.annotation.Qualifier;
+              import org.springframework.beans.factory.annotation.Required;
+              
+              public class AnnotationPos3 {
+                  private final TestSourceA testSourceA;
+              
+                  @Required @Qualifier @Autowired
+                  public AnnotationPos3(TestSourceA testSourceA) {
+                      this.testSourceA = testSourceA;
+                  }
+              }
+              """,
+            """
+              import org.springframework.beans.factory.annotation.Qualifier;
+              import org.springframework.beans.factory.annotation.Required;
               
               public class AnnotationPos3 {
                   private final TestSourceA testSourceA;
@@ -356,10 +337,6 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                   public AnnotationPos3(TestSourceA testSourceA) {
                       this.testSourceA = testSourceA;
                   }
-              }
-              
-              @Component
-              public class TestSourceA {
               }
               """
           )
