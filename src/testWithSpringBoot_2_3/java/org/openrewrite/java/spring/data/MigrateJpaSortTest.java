@@ -27,7 +27,9 @@ class MigrateJpaSortTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateJpaSort())
-          .parser(JavaParser.fromJavaVersion().classpath("javax.persistence", "spring-data-jpa", "spring-data-commons"));
+          .parser(JavaParser.fromJavaVersion()
+            .logCompilationWarningsAndErrors(true)
+            .classpath("javax.persistence-api", "spring-data-jpa", "spring-data-commons"));
     }
 
     @Test

@@ -41,7 +41,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
             """
               import org.springframework.boot.context.properties.ConfigurationProperties;
               import org.springframework.boot.context.properties.ConstructorBinding;
-              
+                            
               @ConfigurationProperties
               @ConstructorBinding
               class A {
@@ -51,7 +51,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
               """,
             """
               import org.springframework.boot.context.properties.ConfigurationProperties;
-              
+                            
               @ConfigurationProperties
               class A {
                   void method() {
@@ -99,7 +99,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
             """
               import org.springframework.boot.context.properties.ConfigurationProperties;
               import org.springframework.boot.context.properties.ConstructorBinding;
-                            
+              
               @ConfigurationProperties
               @ConstructorBinding
               class A {
@@ -112,7 +112,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
             """
               import org.springframework.boot.context.properties.ConfigurationProperties;
               import org.springframework.boot.context.properties.ConstructorBinding;
-                            
+              
               @ConfigurationProperties
               /**
                * TODO:
@@ -139,7 +139,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
             """
               import org.springframework.boot.context.properties.ConfigurationProperties;
               import org.springframework.boot.context.properties.ConstructorBinding;
-                            
+              
               @ConfigurationProperties
               class A {
                   @ConstructorBinding
@@ -149,7 +149,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
               """,
             """
               import org.springframework.boot.context.properties.ConfigurationProperties;
-                            
+              
               @ConfigurationProperties
               class A {
                  \s
@@ -168,7 +168,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
           java(
             """
               import org.springframework.boot.context.properties.ConstructorBinding;
-                            
+              
               @ConstructorBinding
               class A {
               }
@@ -185,7 +185,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
             """
               import org.springframework.boot.context.properties.ConfigurationProperties;
               import org.springframework.boot.context.properties.ConstructorBinding;
-                            
+              
               @ConfigurationProperties
               class A {
                   A() {
@@ -206,7 +206,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
           java(
             """
               import org.springframework.boot.context.properties.ConfigurationProperties;
-                            
+              
               @ConfigurationProperties
               class A {
                   A() {

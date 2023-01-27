@@ -27,34 +27,37 @@ public class UpgradeSpringBoot3ConfigurationTest implements RewriteTest {
     @Test
     void moveMaxHttpHeaderSize() {
         rewriteRun(
-                spec -> spec.recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes("org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize")
-                ),
-                properties(
-                        """
-                        # application.properties
-                        server.max-http-header-size=10KB
-                        """,
-                        """
-                        # application.properties
-                        server.max-http-request-header-size=10KB
-                        """,
-                        s -> s.path("src/main/resources/application.properties")
-                ),
-                yaml(
-                        """
-                            server:
-                              max-http-header-size: 10KB
-                        """,
-                        """
-                            server:
-                              max-http-request-header-size: 10KB
-                        """,
-                        s -> s.path("src/main/resources/application.yml")
-                )
+          spec -> spec.recipe(Environment.builder()
+            .scanRuntimeClasspath()
+            .build()
+            .activateRecipes("org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize")
+          ),
+          properties(
+            //language=properties
+            """
+              # application.properties
+              server.max-http-header-size=10KB
+              """,
+            //language=properties
+            """
+              # application.properties
+              server.max-http-request-header-size=10KB
+              """,
+            s -> s.path("src/main/resources/application.properties")
+          ),
+          yaml(
+            //language=properties
+            """
+                  server:
+                    max-http-header-size: 10KB
+              """,
+            //language=properties
+            """
+                  server:
+                    max-http-request-header-size: 10KB
+              """,
+            s -> s.path("src/main/resources/application.yml")
+          )
         );
     }
-
 }
