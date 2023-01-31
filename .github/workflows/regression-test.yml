@@ -25,13 +25,13 @@ jobs:
           java-version: 8
 
       - name: Upgrade Maven Wrapper
-        run: ./mvnw wrapper:wrapper -Dmaven=3.8.7
+        run: ./mvnw -B wrapper:wrapper -Dmaven=3.8.7
 
       - name: Upgrade to Spring Boot 2.x
-        run: ./mvnw -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-spring:LATEST -DactiveRecipes=org.openrewrite.java.spring.boot2.SpringBoot1To2Migration
+        run: ./mvnw -B -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-spring:LATEST -DactiveRecipes=org.openrewrite.java.spring.boot2.SpringBoot1To2Migration
 
       - name: Upgrade to Java 17
-        run: ./mvnw -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-migrate-java:LATEST -DactiveRecipes=org.openrewrite.java.migrate.UpgradeToJava17
+        run: ./mvnw -B -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-migrate-java:LATEST -DactiveRecipes=org.openrewrite.java.migrate.UpgradeToJava17
 
       - uses: actions/setup-java@v3
         with:
