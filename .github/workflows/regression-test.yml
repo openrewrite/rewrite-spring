@@ -1,0 +1,42 @@
+---
+name: regression-test
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: 0 18 * * *
+
+concurrency:
+  group: regression-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          name: spring-projects/spring-petclinic
+          ref: 1.5.x
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+
+      - name: Upgrade Maven Wrapper
+        run: ./mvnw wrapper:wrapper -Dmaven=3.8.7
+
+      - name: Upgrade to Spring Boot 2.x
+        run: ./mvnw -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-spring:LATEST -DactiveRecipes=org.openrewrite.java.spring.boot2.SpringBoot1To2Migration
+
+      - name: Upgrade to Java 17
+        run: ./mvnw -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-migrate-java:LATEST -DactiveRecipes=org.openrewrite.java.migrate.UpgradeToJava17
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Maven Verify
+        run: ./mvnw verify
