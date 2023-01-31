@@ -1,10 +1,10 @@
 ---
 name: regression-test
 
-on:
-  workflow_dispatch: {}
-  schedule:
-    - cron: 0 18 * * *
+on: [push]
+#  workflow_dispatch: {}
+#  schedule:
+#    - cron: 0 18 * * *
 
 concurrency:
   group: regression-test-${{ github.ref }}
