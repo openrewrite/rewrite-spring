@@ -16,7 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
           name: spring-projects/spring-petclinic
           ref: 1.5.x
       - uses: actions/setup-java@v3
