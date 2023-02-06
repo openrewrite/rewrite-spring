@@ -67,6 +67,7 @@ recipeDependencies {
 
     parserClasspath("org.springframework.data:spring-data-commons:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.+")
+    parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
 }
 
@@ -116,8 +117,8 @@ dependencies {
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-web:5.2.+")
-    "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.data:spring-data-jpa:2.3.0.RELEASE")
-    "testWithSpringBoot_2_3RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
+    "testWithSpringBoot_2_3Implementation"("org.springframework.data:spring-data-jpa:2.3.+")
+    "testWithSpringBoot_2_3Implementation"("javax.persistence:javax.persistence-api:2.2")
 
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.4.+")
