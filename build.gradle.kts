@@ -47,6 +47,7 @@ recipeDependencies {
 
     parserClasspath("org.springframework.boot:spring-boot-autoconfigure:2.+")
     parserClasspath("org.springframework.boot:spring-boot-actuator:2.+")
+    parserClasspath("org.springframework.boot:spring-boot-actuator:2.5.+")
     parserClasspath("org.springframework.boot:spring-boot-test:2.+")
 
     parserClasspath("org.springframework:spring-beans:4.+")
@@ -140,6 +141,9 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.batch:spring-batch-test:4.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("javax.servlet:javax.servlet-api:4.+")
+
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.5.+")
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-web:5.3.+")
 
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")

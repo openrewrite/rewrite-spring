@@ -48,7 +48,7 @@ class MigrateActuatorMediaTypeToApiVersionTest implements RewriteTest {
               }
               """,
             """
-              import org.springframework.boot.actuate.endpoint.http.ApiVersion;
+              import org.springframework.boot.actuate.endpoint.ApiVersion;
               import org.springframework.http.MediaType;
               
               class T {
