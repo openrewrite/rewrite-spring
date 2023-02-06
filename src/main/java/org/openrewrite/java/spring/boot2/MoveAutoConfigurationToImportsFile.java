@@ -36,7 +36,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MoveAutoConfigurationToImportsFile extends Recipe {
-
     private static final String AUTOCONFIGURATION_FILE = "org.springframework.boot.autoconfigure.AutoConfiguration.imports";
     private static final String ENABLE_AUTO_CONFIG_KEY = "org.springframework.boot.autoconfigure.EnableAutoConfiguration";
 
@@ -54,17 +53,15 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
 
     @Override
     protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-
         // First pass will look for any spring.factories source files to collect any auto-config classes in those files
         // and remove them. We build a map to the path of the target import file (computed relative to the spring.factories
-        // file) to a list of auto-configuration classes from the spring.factories and any markers that may have been
+        // file) to a list of autoconfiguration classes from the spring.factories and any markers that may have been
         // on the factory class. If we end up creating a new file, we will copy the markers to this file as well.
         Map<Path, TargetImports> targetImportFileMap = new HashMap<>();
 
         // We also look for any existing import files (because we may need to merge entries from the spring.factories into
-        // an existing file.
+        // an existing file).
         Set<Path> existingImportFiles = new HashSet<>();
-
         Set<String> allFoundConfigs = new HashSet<>();
 
         List<SourceFile> after = ListUtils.map(before, s -> {
@@ -99,7 +96,7 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
             return s;
         });
 
-        // Remove any files that have been merged so they do not get added below.
+        // Remove any files that have been merged, so they do not get added below.
         for (Path existing : mergeTargets) {
             targetImportFileMap.remove(existing);
         }
@@ -110,7 +107,6 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
 
     @Nullable
     private static PlainText extractAutoConfigsFromSpringFactory(PlainText springFactory, Set<String> configs) {
-
         String contents = springFactory.getText();
         int state = 0;
         int index = 0;
@@ -140,7 +136,6 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
                 }
                 continue;
             } else if (state == 1) {
-
                 if (isLineBreakOrEof(contents, index)) {
                     //Building a key and encountered a line ending, if there is a key, the value is null, reset
                     //and continue;
@@ -215,14 +210,12 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
 
     private static SourceFile mergeEntries(SourceFile before, Set<String> configClasses) {
         PlainText plainText = (PlainText) before;
-        Set<String> original = Arrays.stream(plainText.getText().split("\n")).collect(Collectors.toSet());
-        Set<String> merged = new HashSet<>(configClasses);
+        Set<String> original = new HashSet<>(Arrays.asList(plainText.getText().split("\n")));
+        Set<String> merged = new TreeSet<>(configClasses);
         merged.addAll(original);
 
         if (merged.size() != original.size()) {
-            List<String> finalList = new ArrayList<>(merged);
-            Collections.sort(finalList);
-            return plainText.withText(String.join("\n", finalList));
+            return plainText.withText(String.join("\n", merged));
         } else {
             return before;
         }
@@ -264,15 +257,18 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
         public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
             J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
-            JavaTemplate addAnnotationTemplate = JavaTemplate.builder(this::getCursor, "@AutoConfiguration")
-                    .javaParser(() -> JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-boot-autoconfigure-2.*")
-                            .build())
-                    .imports("org.springframework.boot.autoconfigure.AutoConfiguration")
-                    .build();
-
             if (c.getType() != null && fullyQualifiedConfigClasses.contains(c.getType().getFullyQualifiedName())) {
+                JavaTemplate addAnnotationTemplate = JavaTemplate.builder(this::getCursor, "@AutoConfiguration")
+                        .javaParser(() -> JavaParser.fromJavaVersion()
+                                .logCompilationWarningsAndErrors(true)
+                                .classpathFromResources(ctx, "spring-boot-autoconfigure-2.7.*")
+                                .build())
+                        .imports("org.springframework.boot.autoconfigure.AutoConfiguration")
+                        .doBeforeParseTemplate(System.out::println)
+                        .build();
+
                 doAfterVisit(new RemoveAnnotation("@org.springframework.context.annotation.Configuration"));
+
                 c = c.withTemplate(addAnnotationTemplate, c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                 maybeAddImport("org.springframework.boot.autoconfigure.AutoConfiguration");
             }
@@ -281,12 +277,11 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
     }
 
     /**
-     * Used to track the auto configurations defined in spring.factories (along with any markers on that file)
+     * Used to track the auto configurations defined in `spring.factories` (along with any markers on that file)
      */
     @Value
     private static class TargetImports {
         Set<String> autoConfigurations;
         List<Marker> markers;
     }
-
 }
