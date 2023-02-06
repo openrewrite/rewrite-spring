@@ -155,7 +155,6 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-core:5.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-core:latest.release")
-
 }
 
 springBootVersions.forEach { version ->

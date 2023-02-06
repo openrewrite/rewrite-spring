@@ -1,5 +1,5 @@
 #
-# Copyright 2021 the original author or authors.
+# Copyright 2023 the original author or authors.
 # <p>
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,15 +29,9 @@ tags:
   - spring
   - boot
 recipeList:
-  # JUnit Jupiter's vintage engine was removed in Spring Boot 2.4
-  - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
-  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
-  - org.openrewrite.java.testing.junit5.JUnit5BestPractices
-
-  # Upgrade to 2.3.x from 2.2.x
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
-
-  # Upgrade to 2.4.x from 2.3.x
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
+  - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
@@ -126,3 +120,55 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.neo4j.username
       newPropertyKey: spring.neo4j.authentication.password
+---
+########################################################################################################################
+# SpringBoot 2.x JUnit 4 to Junit 5 Migration
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
+displayName: Migrate Spring Boot 2.x projects to JUnit 5 from JUnit 4.
+description: >
+  This recipe will migrate a Spring Boot application's tests from JUnit 4 to JUnit 5. This spring-specific migration
+  includes conversion of Spring Test runners to Spring Test extensions and awareness of the composable Spring Test
+  annotations.
+tags:
+  - test
+  - junit
+  - jupiter
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.testing.junit5.JUnit4to5Migration
+  - org.openrewrite.java.spring.boot2.OutputCaptureExtension
+  - org.openrewrite.java.spring.boot2.UnnecessarySpringRunWith
+  - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
+  - org.openrewrite.java.spring.boot2.RemoveObsoleteSpringRunners
+  - org.openrewrite.maven.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-tools
+      version: 2.x
+      onlyIfUsing: org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathExtension
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UnnecessarySpringRunWith
+displayName: Remove unnecessary Spring `@RunWith`
+description: Remove `@RunWith` annotations on Spring tests.
+recipeList:
+  - org.openrewrite.java.testing.junit5.RunnerToExtension:
+      runners:
+        - org.springframework.test.context.junit4.SpringRunner
+        - org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+      extension: org.springframework.test.context.junit.jupiter.SpringExtension
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.RemoveObsoleteSpringRunners
+displayName: Remove obsolete Spring JUnit runners
+description: Remove obsolete classpath runners.
+recipeList:
+  - org.openrewrite.java.testing.junit5.RemoveObsoleteRunners:
+      obsoleteRunners:
+        - org.springframework.boot.junit.runner.classpath.ModifiedClassPathRunner
+        - org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathRunner
+        # There is a third variant of this class in spring-cloud-commons and there is not yet a suitable migration
+        # path. Once one exists, this can likely be added for removal as well.
+        #- org.springframework.cloud.test.ModifiedClassPathRunner
+  - org.openrewrite.java.testing.junit5.JUnit5BestPractices

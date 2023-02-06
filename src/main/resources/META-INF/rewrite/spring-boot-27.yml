@@ -1,5 +1,5 @@
 #
-# Copyright 2021 the original author or authors.
+# Copyright 2023 the original author or authors.
 # <p>
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,9 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
 displayName: Migrate to Spring Boot 2.7
-description: 'Upgrade to Spring Boot 2.7 from any prior 2.x version.'
+description: 'Upgrade to Spring Boot 2.7'
 recipeList:
-  # Upgrade to 2.6.x from 2.5.x
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
-  # Upgrade to 2.7.x from 2.6.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"

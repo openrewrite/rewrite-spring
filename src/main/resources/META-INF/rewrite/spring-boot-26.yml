@@ -1,5 +1,5 @@
 #
-# Copyright 2021 the original author or authors.
+# Copyright 2023 the original author or authors.
 # <p>
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,9 +29,7 @@ tags:
   - spring
   - boot
 recipeList:
-  # Upgrade to 2.5.x from 2.4.x
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
-  # Upgrade to 2.6.x from 2.5.x
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
@@ -48,7 +46,7 @@ recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: "spring-cloud-dependencies"
-      newVersion: 2021.0.X
+      newVersion: 2023.0.X
       overrideManagedVersion: true
 ---
 ########################################################################################################################
