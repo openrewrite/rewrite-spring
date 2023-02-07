@@ -1,0 +1,90 @@
+#
+# Copyright 2022 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+
+name: org.openrewrite.java.spring.boot3.SpringBatch4To5Migration
+displayName: Migrate to Spring Batch 4.3 from Spring Batch 5.0
+description: Migrate applications built on Spring Batch 4.3 to the latest Spring Batch 2.3 release.
+tags:
+  - spring
+  - batch
+recipeList:
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.batch
+      artifactId: "*"
+      newVersion: 5.0.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.spring.batch.ImplementJobExecutionListenerDirectly
+  - org.openrewrite.java.spring.batch.ImplementStepExecutionListenerDirectly
+  - org.openrewrite.java.spring.batch.ImplementChunkListenerDirectly
+  - org.openrewrite.java.spring.batch.ImplementSkipListenerSupportDirectly
+  - org.openrewrite.java.spring.batch.ImplementChunkListenerDirectly
+  - org.openrewrite.java.spring.batch.MigrateJobBuilderFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.metrics.BatchMetrics
+      newFullyQualifiedTypeName: org.springframework.batch.core.observability.BatchMetrics
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.step.item.Chunk
+      newFullyQualifiedTypeName: org.springframework.batch.item.Chunk
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.configuration.annotation.ScopeConfiguration
+      newFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.ScopeConfiguration
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.batch.ImplementJobExecutionListenerDirectly
+displayName: Transform classes that extend `JobExecutionListenerSupport` to implement the `JobExecutionListener` interface instead
+description: As of 5.0 `JobExecutionListener` has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.
+recipeList:
+  - org.openrewrite.java.spring.batch.ReplaceSupportClassWithItsInterface:
+      fullyQualifiedClassName: org.springframework.batch.core.listener.JobExecutionListenerSupport
+      fullyQualifiedInterfaceName: org.springframework.batch.core.JobExecutionListener
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.batch.ImplementStepExecutionListenerDirectly
+displayName: Transform classes that extend `StepExecutionListenerSupport` to implement the `StepExecutionListener` interface instead
+description: As of 5.0 `StepExecutionListener` has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.
+recipeList:
+  - org.openrewrite.java.spring.batch.ReplaceSupportClassWithItsInterface:
+      fullyQualifiedClassName: org.springframework.batch.core.listener.StepExecutionListenerSupport 
+      fullyQualifiedInterfaceName: org.springframework.batch.core.StepExecutionListener
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.batch.ImplementChunkListenerDirectly
+displayName: Transform classes that extend `ChunkListenerSupport` to implement the `ChunkListener` interface instead
+description: As of 5.0 `ChunkListener` has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.
+recipeList:
+  - org.openrewrite.java.spring.batch.ReplaceSupportClassWithItsInterface:
+      fullyQualifiedClassName: org.springframework.batch.core.listener.ChunkListenerSupport 
+      fullyQualifiedInterfaceName: org.springframework.batch.core.ChunkListener
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.batch.ImplementSkipListenerSupportDirectly
+displayName: Transform classes that extend `SkipListenerSupport` to implement the `SkipListener` interface instead
+description: As of 5.0 `SkipListener` has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.
+recipeList:
+  - org.openrewrite.java.spring.batch.ReplaceSupportClassWithItsInterface:
+      fullyQualifiedClassName: org.springframework.batch.core.listener.SkipListenerSupport
+      fullyQualifiedInterfaceName: org.springframework.batch.core.SkipListener
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.batch.ImplementRepeatListenerDirectly
+displayName: Transform classes that extend `RepeatListenerSupport` to implement the `RepeatListener` interface instead
+description: As of 5.0 `RepeatListener` has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.
+recipeList:
+  - org.openrewrite.java.spring.batch.ReplaceSupportClassWithItsInterface:
+      fullyQualifiedClassName: org.springframework.batch.repeat.listener.RepeatListenerSupport
+      fullyQualifiedInterfaceName: org.springframework.batch.repeat.RepeatListener
