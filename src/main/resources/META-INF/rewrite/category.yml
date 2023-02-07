@@ -29,3 +29,7 @@ packageName: org.openrewrite.java.spring.data
 type: specs.openrewrite.org/v1beta/category
 name: Spring Framework
 packageName: org.openrewrite.java.spring.framework
+---
+type: specs.openrewrite.org/v1beta/category
+name: Spring Batch
+packageName: org.openrewrite.java.spring.batch

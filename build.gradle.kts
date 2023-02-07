@@ -149,6 +149,7 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:${springBoot3Version}")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-core:5.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-infrastructure:5.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-core:latest.release")
 
 }
