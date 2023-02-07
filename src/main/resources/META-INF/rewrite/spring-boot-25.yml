@@ -1,5 +1,5 @@
 #
-# Copyright 2021 the original author or authors.
+# Copyright 2023 the original author or authors.
 # <p>
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,43 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
----
-########################################################################################################################
-# SpringBoot 2.5 Search Recipes
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.search.UpgradeRequirementsSpringBoot_2_5
-displayName: Migrate to Spring Boot 2.5
-description: >
-  Migrate applications to the latest Spring Boot 2.5 release. This recipe will modify an
-  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
-  changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
-  etc) that are required as part of the migration to Spring Boot 2.5.
-tags:
-  - spring
-  - boot
-recipeList:
-  - org.openrewrite.java.spring.boot2.search.MessagesInTheDefaultErrorView
-  - org.openrewrite.java.spring.boot2.search.CustomizingJooqDefaultConfiguration
-  - org.openrewrite.java.spring.boot2.search.LoggingShutdownHooks
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.search.MessagesInTheDefaultErrorView
-displayName: Find projects affected by changes to the default error view message attribute
-description: |
-  As of Spring Boot 2.5 the `message` attribute in the default error view was removed rather than blanked when it is not shown.
-  `spring-webmvc` or `spring-webflux` projects that parse the error response JSON may need to deal with the missing item
-  ([release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#messages-in-the-default-error-view)).
-  You can still use the `server.error.include-message` property if you want messages to be included.
-tags:
-  - spring
-  - boot
-recipeList:
-  - org.openrewrite.maven.search.FindDependency:
-      groupId: org.springframework
-      artifactId: spring-webmvc
-  - org.openrewrite.maven.search.FindDependency:
-      groupId: org.springframework
-      artifactId: spring-webflux
 
 ########################################################################################################################
 # SpringBoot 2.5 Migration Recipes
@@ -59,10 +22,8 @@ name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
 displayName: Upgrade to Spring Boot 2.5
 description: 'Upgrade to Spring Boot 2.5 from any prior 2.x version.'
 recipeList:
-  # Upgrade to 2.4.x from 2.3.x
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
-
-  # Upgrade to 2.5.x from 2.4.x
+  - org.openrewrite.java.spring.data.UpgradeSpringData_2_5
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
@@ -103,3 +64,37 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.tomcat.internal-proxies
       newPropertyKey: server.tomcat.remoteip.internal-proxies
+---
+########################################################################################################################
+# SpringBoot 2.5 Search Recipes
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.search.FindUpgradeRequirementsSpringBoot_2_5
+displayName: Find patterns that require updating for Spring Boot 2.5
+description: >
+  Looks for a series of patterns that have not yet had auto-remediation recipes developed for.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.boot2.search.MessagesInTheDefaultErrorView
+  - org.openrewrite.java.spring.boot2.search.CustomizingJooqDefaultConfiguration
+  - org.openrewrite.java.spring.boot2.search.LoggingShutdownHooks
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.search.MessagesInTheDefaultErrorView
+displayName: Find projects affected by changes to the default error view message attribute
+description: |
+  As of Spring Boot 2.5 the `message` attribute in the default error view was removed rather than blanked when it is not shown.
+  `spring-webmvc` or `spring-webflux` projects that parse the error response JSON may need to deal with the missing item
+  ([release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#messages-in-the-default-error-view)).
+  You can still use the `server.error.include-message` property if you want messages to be included.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.maven.search.FindDependency:
+      groupId: org.springframework
+      artifactId: spring-webmvc
+  - org.openrewrite.maven.search.FindDependency:
+      groupId: org.springframework
+      artifactId: spring-webflux

@@ -1,5 +1,5 @@
 #
-# Copyright 2021 the original author or authors.
+# Copyright 2023 the original author or authors.
 # <p>
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,10 +55,9 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHibernateContraintsToJavax
   - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
-
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
-
+  - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
@@ -657,3 +656,22 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.metrics.export.statsd.port
       newPropertyKey: management.metrics.export.statsd.port
+---
+########################################################################################################################
+# SpringBoot 2.x Best Practices
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
+displayName: Spring Boot 2.x best practices
+description: Applies best practices to Spring Boot 2 applications.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.NoRequestMappingAnnotation
+  - org.openrewrite.java.spring.ImplicitWebAnnotationNames
+  - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
+  - org.openrewrite.java.spring.BeanMethodsNotPublic
+  - org.openrewrite.java.spring.NoAutowiredOnConstructor
+  - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
+  - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
+  - org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils

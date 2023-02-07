@@ -27,9 +27,7 @@ class MigrateJpaSortTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateJpaSort())
-          .parser(JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
-            .classpath("javax.persistence-api", "spring-data-jpa", "spring-data-commons"));
+          .parser(JavaParser.fromJavaVersion().classpath("javax.persistence-api", "spring-data-jpa", "spring-data-commons"));
     }
 
     @Test
@@ -43,7 +41,9 @@ class MigrateJpaSortTest implements RewriteTest {
 
               class Test {
                   Attribute<?, ?> attr;
-                  JpaSort onlyAttr = new JpaSort(attr);
+                  void test() {
+                      JpaSort onlyAttr = new JpaSort(attr);
+                  }
               }
               """,
             """
@@ -52,7 +52,9 @@ class MigrateJpaSortTest implements RewriteTest {
 
               class Test {
                   Attribute<?, ?> attr;
-                  JpaSort onlyAttr = JpaSort.of(attr);
+                  void test() {
+                      JpaSort onlyAttr = JpaSort.of(attr);
+                  }
               }
               """
           )
@@ -71,7 +73,9 @@ class MigrateJpaSortTest implements RewriteTest {
 
               class Test {
                   Attribute<?, ?> attr;
-                  JpaSort directionAndAttr = new JpaSort(Direction.DESC, attr);
+                  void test() {
+                      JpaSort onlyAttr = new JpaSort(Direction.DESC, attr);
+                  }
               }
               """,
             """
@@ -81,7 +85,9 @@ class MigrateJpaSortTest implements RewriteTest {
 
               class Test {
                   Attribute<?, ?> attr;
-                  JpaSort directionAndAttr = JpaSort.of(Direction.DESC, attr);
+                  void test() {
+                      JpaSort onlyAttr = JpaSort.of(Direction.DESC, attr);
+                  }
               }
               """
           )
@@ -99,7 +105,9 @@ class MigrateJpaSortTest implements RewriteTest {
 
               class Test {
                   Path<?, ?> path;
-                  JpaSort onlyPath = new JpaSort(path);
+                  void test() {
+                      JpaSort onlyAttr = new JpaSort(path);
+                  }
               }
               """,
             """
@@ -108,7 +116,9 @@ class MigrateJpaSortTest implements RewriteTest {
 
               class Test {
                   Path<?, ?> path;
-                  JpaSort onlyPath = JpaSort.of(path);
+                  void test() {
+                      JpaSort onlyAttr = JpaSort.of(path);
+                  }
               }
               """
           )
@@ -127,7 +137,9 @@ class MigrateJpaSortTest implements RewriteTest {
 
               class Test {
                   Path<?, ?> path;
-                  JpaSort directionAndPath = new JpaSort(Direction.DESC, path);
+                  void test() {
+                      JpaSort onlyAttr = new JpaSort(Direction.DESC, path);
+                  }
               }
               """,
             """
@@ -137,7 +149,9 @@ class MigrateJpaSortTest implements RewriteTest {
 
               class Test {
                   Path<?, ?> path;
-                  JpaSort directionAndPath = JpaSort.of(Direction.DESC, path);
+                  void test() {
+                      JpaSort onlyAttr = JpaSort.of(Direction.DESC, path);
+                  }
               }
               """
           )

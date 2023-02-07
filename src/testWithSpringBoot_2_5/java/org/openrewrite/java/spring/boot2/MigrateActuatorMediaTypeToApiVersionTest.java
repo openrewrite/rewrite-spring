@@ -26,11 +26,8 @@ class MigrateActuatorMediaTypeToApiVersionTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-
         spec.recipe(new MigrateActuatorMediaTypeToApiVersion())
-          .parser(JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
-            .classpath("spring-boot-actuator", "spring-web", "spring-core"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-boot-actuator", "spring-web", "spring-core"));
     }
 
     @Test
@@ -41,16 +38,16 @@ class MigrateActuatorMediaTypeToApiVersionTest implements RewriteTest {
             """
               import org.springframework.boot.actuate.endpoint.http.ActuatorMediaType;
               import org.springframework.http.MediaType;
-              
+                            
               class T {
                   private static final MediaType actuatorMediaType2 = MediaType.parseMediaType(ActuatorMediaType.V2_JSON);
                   private static final MediaType actuatorMediaType3 = MediaType.parseMediaType(ActuatorMediaType.V3_JSON);
               }
               """,
             """
-              import org.springframework.boot.actuate.endpoint.http.ApiVersion;
+              import org.springframework.boot.actuate.endpoint.ApiVersion;
               import org.springframework.http.MediaType;
-              
+                            
               class T {
                   private static final MediaType actuatorMediaType2 = MediaType.asMediaType(ApiVersion.V2.getProducedMimeType());
                   private static final MediaType actuatorMediaType3 = MediaType.asMediaType(ApiVersion.V3.getProducedMimeType());

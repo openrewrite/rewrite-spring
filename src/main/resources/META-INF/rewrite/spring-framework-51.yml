@@ -1,5 +1,5 @@
 #
-# Copyright 2021 the original author or authors.
+# Copyright 2023 the original author or authors.
 # <p>
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_1
 displayName: Migrate to Spring Framework 5.1
 description: Migrate applications to the latest Spring Framework 5.1 release.
 recipeList:
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_0
   - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
       newVersion: 5.1.x
   - org.openrewrite.java.spring.framework.EnvironmentAcceptsProfiles

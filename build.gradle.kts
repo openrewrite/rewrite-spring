@@ -1,5 +1,5 @@
 plugins {
-    id("org.openrewrite.build.recipe-library") version "1.7.0"
+    id("org.openrewrite.build.recipe-library") version "1.8.1"
 }
 
 group = "org.openrewrite.recipe"
@@ -37,38 +37,40 @@ configurations {
     }
 }
 
-//recipeDependencies {
-//    parserClasspath("javax.persistence:javax.persistence-api:2.+")
-//    parserClasspath("org.junit.jupiter:junit-jupiter-api:5.+")
-//
-//    parserClasspath("org.springframework.boot:spring-boot:1.+")
-//    parserClasspath("org.springframework.boot:spring-boot:2.+")
-//    parserClasspath("org.springframework.boot:spring-boot:3.+")
-//
-//    parserClasspath("org.springframework.boot:spring-boot-autoconfigure:2.+")
-//    parserClasspath("org.springframework.boot:spring-boot-actuator:2.+")
-//    parserClasspath("org.springframework.boot:spring-boot-test:2.+")
-//
-//    parserClasspath("org.springframework:spring-beans:4.+")
-//    parserClasspath("org.springframework:spring-beans:5.+")
-//    parserClasspath("org.springframework:spring-beans:6.+")
-//
-//    parserClasspath("org.springframework:spring-context:4.+")
-//    parserClasspath("org.springframework:spring-context:5.+")
-//    parserClasspath("org.springframework:spring-context:6.+")
-//
-//    parserClasspath("org.springframework:spring-core:4.+")
-//    parserClasspath("org.springframework:spring-core:5.+")
-//    parserClasspath("org.springframework:spring-core:6.+")
-//
-//    parserClasspath("org.springframework:spring-web:4.+")
-//    parserClasspath("org.springframework:spring-web:5.+")
-//    parserClasspath("org.springframework:spring-web:6.+")
-//
-//    parserClasspath("org.springframework.data:spring-data-commons:2.+")
-//    parserClasspath("org.springframework.data:spring-data-jpa:2.+")
-//    parserClasspath("org.springframework.batch:spring-batch-core:5.+")
-//}
+recipeDependencies {
+    parserClasspath("javax.persistence:javax.persistence-api:2.+")
+    parserClasspath("org.junit.jupiter:junit-jupiter-api:5.+")
+
+    parserClasspath("org.springframework.boot:spring-boot:1.+")
+    parserClasspath("org.springframework.boot:spring-boot:2.+")
+    parserClasspath("org.springframework.boot:spring-boot:3.+")
+
+    parserClasspath("org.springframework.boot:spring-boot-autoconfigure:2.+")
+    parserClasspath("org.springframework.boot:spring-boot-actuator:2.+")
+    parserClasspath("org.springframework.boot:spring-boot-actuator:2.5.+")
+    parserClasspath("org.springframework.boot:spring-boot-test:2.+")
+
+    parserClasspath("org.springframework:spring-beans:4.+")
+    parserClasspath("org.springframework:spring-beans:5.+")
+    parserClasspath("org.springframework:spring-beans:6.+")
+
+    parserClasspath("org.springframework:spring-context:4.+")
+    parserClasspath("org.springframework:spring-context:5.+")
+    parserClasspath("org.springframework:spring-context:6.+")
+
+    parserClasspath("org.springframework:spring-core:4.+")
+    parserClasspath("org.springframework:spring-core:5.+")
+    parserClasspath("org.springframework:spring-core:6.+")
+
+    parserClasspath("org.springframework:spring-web:4.+")
+    parserClasspath("org.springframework:spring-web:5.+")
+    parserClasspath("org.springframework:spring-web:6.+")
+
+    parserClasspath("org.springframework.data:spring-data-commons:2.+")
+    parserClasspath("org.springframework.data:spring-data-jpa:2.+")
+    parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
+    parserClasspath("org.springframework.batch:spring-batch-core:5.+")
+}
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
 var springBoot3Version = "3.0.0-RC1"
@@ -116,8 +118,8 @@ dependencies {
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-web:5.2.+")
-    "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.data:spring-data-jpa:2.3.0.RELEASE")
-    "testWithSpringBoot_2_3RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
+    "testWithSpringBoot_2_3Implementation"("org.springframework.data:spring-data-jpa:2.3.+")
+    "testWithSpringBoot_2_3Implementation"("javax.persistence:javax.persistence-api:2.2")
 
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.4.+")
@@ -140,6 +142,9 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.batch:spring-batch-test:4.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("javax.servlet:javax.servlet-api:4.+")
 
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.5.+")
+    "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-web:5.3.+")
+
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
@@ -151,7 +156,6 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-core:5.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-infrastructure:5.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-core:latest.release")
-
 }
 
 springBootVersions.forEach { version ->
