@@ -67,7 +67,6 @@ public class MigrateJobBuilderFactory extends Recipe {
 					.builder(this::getCursor, "new JobBuilder(#{any(java.lang.String)}, jobRepository)")
 					.imports("org.springframework.batch.core.repository.JobRepository",
 							"org.springframework.batch.core.job.builder.JobBuilder")
-					 .doBeforeParseTemplate(System.out::println)
 					.build();
 
 			@Override
