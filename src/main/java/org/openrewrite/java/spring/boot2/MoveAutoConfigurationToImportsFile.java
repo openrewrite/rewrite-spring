@@ -260,7 +260,6 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
             if (c.getType() != null && fullyQualifiedConfigClasses.contains(c.getType().getFullyQualifiedName())) {
                 JavaTemplate addAnnotationTemplate = JavaTemplate.builder(this::getCursor, "@AutoConfiguration")
                         .javaParser(() -> JavaParser.fromJavaVersion()
-                                .logCompilationWarningsAndErrors(true)
                                 .classpathFromResources(ctx, "spring-boot-autoconfigure-2.7.*")
                                 .build())
                         .imports("org.springframework.boot.autoconfigure.AutoConfiguration")
