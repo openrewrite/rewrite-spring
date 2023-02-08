@@ -10,7 +10,7 @@
         <packageUrl regex="true">^pkg:maven/com\.fasterxml\.woodstox/woodstox\-core@.*$</packageUrl>
         <vulnerabilityName>CVE-2022-40152</vulnerabilityName>
     </suppress>
-    <suppress until="2023-02-17Z">
+    <suppress until="2023-03-10Z">
         <notes><![CDATA[
             file name: snakeyaml-1.33.jar
             Severity: HIGH
