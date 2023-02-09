@@ -25,91 +25,91 @@ import org.openrewrite.test.RewriteTest;
 
 class MigrateItemWriterWriteTest implements RewriteTest {
 
-	@Override
-	public void defaults(RecipeSpec spec) {
-		spec.recipe(new MigrateItemWriterWrite())
-				.parser(JavaParser.fromJavaVersion().classpath("spring-batch-core", "spring-batch-infrastructure"));
-	}
+    @Override
+    public void defaults(RecipeSpec spec) {
+        spec.recipe(new MigrateItemWriterWrite())
+                .parser(JavaParser.fromJavaVersion().classpath("spring-batch-core", "spring-batch-infrastructure"));
+    }
 
-	@Test
-	void doNotChangeCurrentApi() {
-		// language=java
-		rewriteRun(java("""
-				import org.springframework.batch.item.Chunk;
-				import org.springframework.batch.item.ItemWriter;
+    @Test
+    void doNotChangeCurrentApi() {
+        // language=java
+        rewriteRun(java("""
+                import org.springframework.batch.item.Chunk;
+                import org.springframework.batch.item.ItemWriter;
 
-				public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                public class ConsoleItemWriter<T> implements ItemWriter<T> {
 
-				    @Override
-				    public void write(final Chunk<? extends T> chunk) throws Exception {
-				        for (final T item : chunk) {
-				            System.out.println(item.toString());
-				        }
-				    }
+                    @Override
+                    public void write(final Chunk<? extends T> chunk) throws Exception {
+                        for (final T item : chunk) {
+                            System.out.println(item.toString());
+                        }
+                    }
 
-				}
-				"""));
-	}
+                }
+                """));
+    }
 
-	@Disabled("until fixed!")
-	@Test
-	void replaceItemWriterWriteMethod() {
-		// language=java
-		rewriteRun(java("""
-				import java.util.List;
-				import org.springframework.batch.item.ItemWriter;
-				
-				public class ConsoleItemWriter<T> implements ItemWriter<T> {
-				
-				    @Override
-				    public void write(final List<? extends T> items) throws Exception {
-				        for (final T item : items) {
-				            System.out.println(item.toString());
-				        }
-				    }
-				}
-				""", """
-				import org.springframework.batch.item.Chunk;
-				import org.springframework.batch.item.ItemWriter;
-				
-				public class ConsoleItemWriter<T> implements ItemWriter<T> {
-				
-				    @Override
-				    public void write(final Chunk<? extends T> items) throws Exception {
-				        for (final T item : items) {
-				            System.out.println(item.toString());
-				        }
-				    }
-				}
-				"""));
-	}
+    @Disabled("until fixed!")
+    @Test
+    void replaceItemWriterWriteMethod() {
+        // language=java
+        rewriteRun(java("""
+                import java.util.List;
+                import org.springframework.batch.item.ItemWriter;
+                
+                public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                
+                    @Override
+                    public void write(final List<? extends T> items) throws Exception {
+                        for (final T item : items) {
+                            System.out.println(item.toString());
+                        }
+                    }
+                }
+                """, """
+                import org.springframework.batch.item.Chunk;
+                import org.springframework.batch.item.ItemWriter;
+                
+                public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                
+                    @Override
+                    public void write(final Chunk<? extends T> items) throws Exception {
+                        for (final T item : items) {
+                            System.out.println(item.toString());
+                        }
+                    }
+                }
+                """));
+    }
 
-	@Disabled("until fixed!")
-	@Test
-	void replaceExtendedItemWriterWriteMethod() {
-		// language=java
-		rewriteRun(java("""
-				import java.util.List;
-				import org.springframework.batch.item.database.JdbcBatchItemWriter;
+    @Disabled("until fixed!")
+    @Test
+    void replaceExtendedItemWriterWriteMethod() {
+        // language=java
+        rewriteRun(java("""
+                import java.util.List;
+                import org.springframework.batch.item.database.JdbcBatchItemWriter;
 
-				public class ExtendedJdbcBatchItemWriter extends JdbcBatchItemWriter<String> {
+                public class ExtendedJdbcBatchItemWriter extends JdbcBatchItemWriter<String> {
 
-				    @Override
-				    public void write(List<? extends String> items) throws Exception {
-				        super.write(items);
-				    }
-				}
-				""", """
-				import org.springframework.batch.item.Chunk;
-				import org.springframework.batch.item.database.JdbcBatchItemWriter;
+                    @Override
+                    public void write(List<? extends String> items) throws Exception {
+                        super.write(items);
+                    }
+                }
+                """, """
+                import org.springframework.batch.item.Chunk;
+                import org.springframework.batch.item.database.JdbcBatchItemWriter;
 
-				public class ExtendedJdbcBatchItemWriter extends JdbcBatchItemWriter<String> {
+                public class ExtendedJdbcBatchItemWriter extends JdbcBatchItemWriter<String> {
 
-				    @Override
-				    public void write(Chunk<? extends String> items) throws Exception {
-				        super.write(items);
-				    }
-				}
-				"""));
-	}
+                    @Override
+                    public void write(Chunk<? extends String> items) throws Exception {
+                        super.write(items);
+                    }
+                }
+                """));
+    }
 }

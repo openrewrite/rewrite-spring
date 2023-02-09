@@ -24,122 +24,122 @@ import org.openrewrite.test.RewriteTest;
 
 class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
 
-	@Override
-	public void defaults(RecipeSpec spec) {
-		spec.parser(JavaParser.fromJavaVersion().classpath("spring-batch", "spring-boot", "spring-beans", "spring-core",
-				"spring-context"));
-	}
+    @Override
+    public void defaults(RecipeSpec spec) {
+        spec.parser(JavaParser.fromJavaVersion().classpath("spring-batch", "spring-boot", "spring-beans", "spring-core",
+                "spring-context"));
+    }
 
-	@Test
-	void replaceChunkListenerSupport() {
+    @Test
+    void replaceChunkListenerSupport() {
 
-		rewriteRun(
-				spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
-						"org.springframework.batch.core.listener.ChunkListenerSupport",
-						"org.springframework.batch.core.ChunkListener")),
-				// language=java
-				java("""
-						import org.springframework.batch.core.listener.ChunkListenerSupport;
+        rewriteRun(
+                spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
+                        "org.springframework.batch.core.listener.ChunkListenerSupport",
+                        "org.springframework.batch.core.ChunkListener")),
+                // language=java
+                java("""
+                        import org.springframework.batch.core.listener.ChunkListenerSupport;
 
-						public class MyClass extends ChunkListenerSupport {
+                        public class MyClass extends ChunkListenerSupport {
 
-						}
-						""", """
-						import org.springframework.batch.core.ChunkListener;
+                        }
+                        """, """
+                        import org.springframework.batch.core.ChunkListener;
 
-						public class MyClass implements ChunkListener {
+                        public class MyClass implements ChunkListener {
 
-						}
-						"""));
-	}
+                        }
+                        """));
+    }
 
-	@Test
-	void replaceJobExecutionListenerSupport() {
+    @Test
+    void replaceJobExecutionListenerSupport() {
 
-		rewriteRun(
-				spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
-						"org.springframework.batch.core.listener.JobExecutionListenerSupport",
-						"org.springframework.batch.core.JobExecutionListener")),
-				// language=java
-				java("""
-						import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+        rewriteRun(
+                spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
+                        "org.springframework.batch.core.listener.JobExecutionListenerSupport",
+                        "org.springframework.batch.core.JobExecutionListener")),
+                // language=java
+                java("""
+                        import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 
-						public class MyClass extends JobExecutionListenerSupport {
+                        public class MyClass extends JobExecutionListenerSupport {
 
-						}
-						""", """
-						import org.springframework.batch.core.JobExecutionListener;
+                        }
+                        """, """
+                        import org.springframework.batch.core.JobExecutionListener;
 
-						public class MyClass implements JobExecutionListener {
+                        public class MyClass implements JobExecutionListener {
 
-						}
-						"""));
-	}
+                        }
+                        """));
+    }
 
-	@Test
-	void replaceStepExecutionListenerSupport() {
-		rewriteRun(
-				spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
-						"org.springframework.batch.core.listener.StepExecutionListenerSupport",
-						"org.springframework.batch.core.StepExecutionListener")),
-				// language=java
-				java("""
-						import org.springframework.batch.core.listener.StepExecutionListenerSupport;
+    @Test
+    void replaceStepExecutionListenerSupport() {
+        rewriteRun(
+                spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
+                        "org.springframework.batch.core.listener.StepExecutionListenerSupport",
+                        "org.springframework.batch.core.StepExecutionListener")),
+                // language=java
+                java("""
+                        import org.springframework.batch.core.listener.StepExecutionListenerSupport;
 
-						public class MyClass extends StepExecutionListenerSupport {
+                        public class MyClass extends StepExecutionListenerSupport {
 
-						}
-						""", """
-						import org.springframework.batch.core.StepExecutionListener;
+                        }
+                        """, """
+                        import org.springframework.batch.core.StepExecutionListener;
 
-						public class MyClass implements StepExecutionListener {
+                        public class MyClass implements StepExecutionListener {
 
-						}
-						"""));
-	}
+                        }
+                        """));
+    }
 
-	@Test
-	void replaceRepeatListenerSupport() {
-		rewriteRun(
-				spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
-						"org.springframework.batch.repeat.listener.RepeatListenerSupport",
-						"org.springframework.batch.repeat.RepeatListener")),
-				// language=java
-				java("""
-						import org.springframework.batch.repeat.listener.RepeatListenerSupport;
+    @Test
+    void replaceRepeatListenerSupport() {
+        rewriteRun(
+                spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
+                        "org.springframework.batch.repeat.listener.RepeatListenerSupport",
+                        "org.springframework.batch.repeat.RepeatListener")),
+                // language=java
+                java("""
+                        import org.springframework.batch.repeat.listener.RepeatListenerSupport;
 
-						public class MyClass extends RepeatListenerSupport {
+                        public class MyClass extends RepeatListenerSupport {
 
-						}
-						""", """
-						import org.springframework.batch.repeat.RepeatListener;
+                        }
+                        """, """
+                        import org.springframework.batch.repeat.RepeatListener;
 
-						public class MyClass implements RepeatListener {
+                        public class MyClass implements RepeatListener {
 
-						}
-						"""));
-	}
+                        }
+                        """));
+    }
 
-	@Test
-	void replaceSkipListenerSupport() {
-		rewriteRun(
-				spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
-						"org.springframework.batch.core.listener.SkipListenerSupport",
-						"org.springframework.batch.core.SkipListener")),
-				// language=java
-				java("""
-						import org.springframework.batch.core.listener.SkipListenerSupport;
+    @Test
+    void replaceSkipListenerSupport() {
+        rewriteRun(
+                spec -> spec.recipe(new ReplaceSupportClassWithItsInterface(
+                        "org.springframework.batch.core.listener.SkipListenerSupport",
+                        "org.springframework.batch.core.SkipListener")),
+                // language=java
+                java("""
+                        import org.springframework.batch.core.listener.SkipListenerSupport;
 
-						public class MyClass extends SkipListenerSupport {
+                        public class MyClass extends SkipListenerSupport {
 
-						}
-						""", """
-						import org.springframework.batch.core.SkipListener;
+                        }
+                        """, """
+                        import org.springframework.batch.core.SkipListener;
 
-						public class MyClass implements SkipListener {
+                        public class MyClass implements SkipListener {
 
-						}
-						"""));
-	}
+                        }
+                        """));
+    }
 
 }

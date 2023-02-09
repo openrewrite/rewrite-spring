@@ -37,59 +37,59 @@ import static java.util.Collections.singletonList;
 public class MigrateItemWriterWrite extends Recipe {
 
 
-	@Override
-	public String getDisplayName() {
-		return "Migrate `ItemWriter`";
-	}
+    @Override
+    public String getDisplayName() {
+        return "Migrate `ItemWriter`";
+    }
 
-	@Override
-	public String getDescription() {
-		return "`JobBuilderFactory` was deprecated in Springbatch 5.x : replaced by `JobBuilder`.";
-	}
+    @Override
+    public String getDescription() {
+        return "`JobBuilderFactory` was deprecated in Springbatch 5.x : replaced by `JobBuilder`.";
+    }
 
-	@Override
-	public Duration getEstimatedEffortPerOccurrence() {
-		return Duration.ofMinutes(5);
-	}
+    @Override
+    public Duration getEstimatedEffortPerOccurrence() {
+        return Duration.ofMinutes(5);
+    }
 
-	@Override
-	protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-		return new UsesMethod<>(new MethodMatcher(
-				 "*..* write(java.util.List)" 
-				));
-	}
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesMethod<>(new MethodMatcher(
+                 "*..* write(java.util.List)" 
+                ));
+    }
 
-	@Override
-	public JavaIsoVisitor<ExecutionContext> getVisitor() {
-		return new JavaIsoVisitor<ExecutionContext>() {
-			private String fullyQualifiedInterfaceName = "org.springframework.batch.item.ItemWriter";
+    @Override
+    public JavaIsoVisitor<ExecutionContext> getVisitor() {
+        return new JavaIsoVisitor<ExecutionContext>() {
+            private String fullyQualifiedInterfaceName = "org.springframework.batch.item.ItemWriter";
 
-			@Override
-			public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-				J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
-				if (m.getMethodType() != null && (TypeUtils.isOverride(m.getMethodType())
-						|| m.getMethodType().isInheritedFrom(fullyQualifiedInterfaceName))) {
-					if (m.getParameters().size() == 1) {
-						Statement parameter = m.getParameters().get(0);
-						if (parameter instanceof J.VariableDeclarations) {
-							J.VariableDeclarations param = (J.VariableDeclarations) parameter;
-							if (TypeUtils.isOfClassType(param.getType(), "java.util.List")) {
+                if (m.getMethodType() != null && (TypeUtils.isOverride(m.getMethodType())
+                        || m.getMethodType().isInheritedFrom(fullyQualifiedInterfaceName))) {
+                    if (m.getParameters().size() == 1) {
+                        Statement parameter = m.getParameters().get(0);
+                        if (parameter instanceof J.VariableDeclarations) {
+                            J.VariableDeclarations param = (J.VariableDeclarations) parameter;
+                            if (TypeUtils.isOfClassType(param.getType(), "java.util.List")) {
 
-								param = (J.VariableDeclarations) new ChangeType("java.util.List",
-										"org.springframework.batch.item.Chunk", false).getVisitor()
-										.visitNonNull(param, ctx, getCursor().getParentOrThrow());
+                                param = (J.VariableDeclarations) new ChangeType("java.util.List",
+                                        "org.springframework.batch.item.Chunk", false).getVisitor()
+                                        .visitNonNull(param, ctx, getCursor().getParentOrThrow());
 
-								m = m.withParameters(singletonList(param));
+                                m = m.withParameters(singletonList(param));
 
-								maybeAddImport("org.springframework.batch.item.Chunk");
-								maybeRemoveImport("java.util.List");
-							}
-						}
-					}
-				}
-				return m;
-			}
-		};
-	}
+                                maybeAddImport("org.springframework.batch.item.Chunk");
+                                maybeRemoveImport("java.util.List");
+                            }
+                        }
+                    }
+                }
+                return m;
+            }
+        };
+    }
 }
