@@ -79,7 +79,6 @@ class MigrateItemWriterWriteTest implements RewriteTest {
             
             public class ExtendedJdbcBatchItemWriter extends JdbcBatchItemWriter<String> {
             
-                @Override
                 public void write(List<? extends String> a) throws Exception {
                     super.write(a);
                 }

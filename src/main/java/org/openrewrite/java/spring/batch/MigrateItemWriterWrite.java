@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.batch;
 
 import java.time.Duration;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
@@ -69,6 +70,13 @@ public class MigrateItemWriterWrite extends Recipe {
                 String chunkTypeParameter = ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters().get(0).toString();
                 String paramName =  parameter.getVariables().get(0).getSimpleName();
 
+                // @Override may or may not already be present
+                String annotationsWithOverride = Stream.concat(
+                                m.getAllAnnotations().stream().map(it -> it.print(getCursor())),
+                                Stream.of("@Override"))
+                        .distinct()
+                        .collect(Collectors.joining("\n"));
+
                 // Should be able to replace just the parameters and have usages of those parameters get their types
                 // updated automatically. Since parameters usages do not have their type updated, must replace the whole
                 // method to ensure that type info is accurate / List import can potentially be removed
@@ -76,13 +84,14 @@ public class MigrateItemWriterWrite extends Recipe {
                 m = m.withTemplate(
                         JavaTemplate.builder(
                                         () -> getCursor().getParentTreeCursor(),
-                                        "@Override\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
+                                        "#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
                                 .javaParser(() -> JavaParser.fromJavaVersion()
                                         .classpathFromResources(ctx, "spring-batch-core-5.0.0", "spring-batch-infrastructure-5.0.0")
                                         .build())
                                 .imports("org.springframework.batch.item.Chunk")
                                 .build(),
                         m.getCoordinates().replace(),
+                        annotationsWithOverride,
                         m.getModifiers().stream()
                                         .map(J.Modifier::toString)
                                         .collect(Collectors.joining(" ")),
