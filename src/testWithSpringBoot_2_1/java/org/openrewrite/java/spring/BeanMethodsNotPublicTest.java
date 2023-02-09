@@ -38,7 +38,12 @@ class BeanMethodsNotPublicTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              import javax.sql.DataSource;
+              package a.b.c;
+              public class DataSource {}
+              """),
+          java(
+            """
+              import a.b.c.DataSource;
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Primary;
                             
@@ -64,7 +69,7 @@ class BeanMethodsNotPublicTest implements RewriteTest {
               }
               """,
             """
-              import javax.sql.DataSource;
+              import a.b.c.DataSource;
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Primary;
                             
@@ -76,12 +81,12 @@ class BeanMethodsNotPublicTest implements RewriteTest {
                   DataSource dataSource() {
                       return new DataSource();
                   }
-                            
+                  
                   @Bean // comments
                   final DataSource dataSource2() {
                       return new DataSource();
                   }
-                            
+                  
                   @Bean // comments
                   static DataSource dataSource3() {
                       return new DataSource();
@@ -114,7 +119,7 @@ class BeanMethodsNotPublicTest implements RewriteTest {
           java(
             """
               import org.springframework.context.annotation.Bean;
-              
+                            
               public class PublicBeans extends B implements A {
                   @Bean
                   public void a() {}

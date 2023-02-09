@@ -35,7 +35,7 @@ class RestTemplateBuilderRequestFactoryTest implements RewriteTest {
     void useSupplierArgument() {
         //language=java
         rewriteRun(
-          spec -> { spec.typeValidationOptions(new TypeValidation(true, true, true, false)); },
+          spec -> spec.typeValidationOptions(TypeValidation.builder().methodInvocations(false).build()),
           java(
             """
               import org.springframework.boot.web.client.RestTemplateBuilder;

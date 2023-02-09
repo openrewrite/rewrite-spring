@@ -82,7 +82,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                     J.FieldAccess entityPathResolver = TypeTree.build("SimpleEntityPathResolver.INSTANCE");
                     return newClass.withTemplate(
                             JavaTemplate.builder(this::getCursor, template)
-                                    .imports(originalFqn)
+                                    .imports(targetFqn)
                                     .javaParser(() -> JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx,
                                                     "javax.persistence-api-2.*",
