@@ -86,60 +86,60 @@ public class NoRepoAnnotationOnRepoInterfaceTest implements RewriteTest {
               @Repository
               public class MyRepo implements CrudRepository<String, String> {
 
-              	@Override
-              	public <S extends String> S save(S entity) {
-              		return null;
-              	}
+                  @Override
+                  public <S extends String> S save(S entity) {
+                      return null;
+                  }
 
-              	@Override
-              	public <S extends String> Iterable<S> saveAll(Iterable<S> entities) {
-              		return null;
-              	}
+                  @Override
+                  public <S extends String> Iterable<S> saveAll(Iterable<S> entities) {
+                      return null;
+                  }
 
-              	@Override
-              	public Optional<String> findById(String id) {
-              		return Optional.empty();
-              	}
+                  @Override
+                  public Optional<String> findById(String id) {
+                      return Optional.empty();
+                  }
 
-              	@Override
-              	public boolean existsById(String id) {
-              		return false;
-              	}
+                  @Override
+                  public boolean existsById(String id) {
+                      return false;
+                  }
 
-              	@Override
-              	public Iterable<String> findAll() {
-              		return null;
-              	}
+                  @Override
+                  public Iterable<String> findAll() {
+                      return null;
+                  }
 
-              	@Override
-              	public Iterable<String> findAllById(Iterable<String> ids) {
-              		return null;
-              	}
+                  @Override
+                  public Iterable<String> findAllById(Iterable<String> ids) {
+                      return null;
+                  }
 
-              	@Override
-              	public long count() {
-              		return 0;
-              	}
+                  @Override
+                  public long count() {
+                      return 0;
+                  }
 
-              	@Override
-              	public void deleteById(String id) {
-              	}
+                  @Override
+                  public void deleteById(String id) {
+                  }
 
-              	@Override
-              	public void delete(String entity) {
-              	}
+                  @Override
+                  public void delete(String entity) {
+                  }
 
-              	@Override
-              	public void deleteAllById(Iterable<? extends String> ids) {
-              	}
+                  @Override
+                  public void deleteAllById(Iterable<? extends String> ids) {
+                  }
 
-              	@Override
-              	public void deleteAll(Iterable<? extends String> entities) {
-              	}
+                  @Override
+                  public void deleteAll(Iterable<? extends String> entities) {
+                  }
 
-              	@Override
-              	public void deleteAll() {
-              	}
+                  @Override
+                  public void deleteAll() {
+                  }
 
               }
               """
