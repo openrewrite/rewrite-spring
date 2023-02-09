@@ -41,12 +41,12 @@ public class MigrateJobBuilderFactory extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Migrate `JobBuilderFactory`";
+        return "Migrate `JobBuilderFactory` to `JobBuilder`";
     }
 
     @Override
     public String getDescription() {
-        return "`JobBuilderFactory` was deprecated in Springbatch 5.x : replaced by `JobBuilder`.";
+        return "`JobBuilderFactory` was deprecated in spring-batch 5.x. It is replaced by `JobBuilder`.";
     }
 
     @Override
@@ -63,16 +63,9 @@ public class MigrateJobBuilderFactory extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaVisitor<ExecutionContext>() {
 
-            private final JavaTemplate newJobBuilder = JavaTemplate
-                    .builder(this::getCursor, "new JobBuilder(#{any(java.lang.String)}, jobRepository)")
-                    .imports("org.springframework.batch.core.repository.JobRepository",
-                            "org.springframework.batch.core.job.builder.JobBuilder")
-                    .build();
-
             @Override
-            public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
+            public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 if (JOB_BUILDER_FACTORY.matches(method)) {
-
                     J.ClassDeclaration clazz = getCursor().firstEnclosingOrThrow(J.ClassDeclaration.class);
                     J.MethodDeclaration enclosingMethod = getCursor().firstEnclosingOrThrow(J.MethodDeclaration.class);
 
@@ -82,10 +75,19 @@ public class MigrateJobBuilderFactory extends Recipe {
 
                     doAfterVisit(new MigrateJobBuilderFactory.RemoveJobBuilderFactoryVisitor(clazz, enclosingMethod));
 
-                    return ((J.NewClass) method.withTemplate(newJobBuilder, method.getCoordinates().replace(),
-                            method.getArguments().get(0)));
+                    return (method.withTemplate(JavaTemplate
+                                    .builder(() -> getCursor().getParentTreeCursor(), "new JobBuilder(#{any(java.lang.String)}, jobRepository)")
+                                    .javaParser(() -> JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-batch-core-5.0.0")
+                                            .build())
+                                    .imports("org.springframework.batch.core.repository.JobRepository",
+                                            "org.springframework.batch.core.job.builder.JobBuilder")
+                                    .build(),
+                            method.getCoordinates().replace(),
+                            method.getArguments().get(0))
+                    );
                 }
-                return super.visitMethodInvocation(method, executionContext);
+                return super.visitMethodInvocation(method, ctx);
             }
         };
     }
@@ -103,27 +105,27 @@ public class MigrateJobBuilderFactory extends Recipe {
 
         @Override
         public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-            J.ClassDeclaration cd = (ClassDeclaration) super.visitClassDeclaration(classDecl, ctx);
+            J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
-            if (cd.equals(scope)) {
-                cd = cd.withBody(cd.getBody().withStatements(ListUtils.map(cd.getBody().getStatements(), statement -> {
-                    if (statement instanceof J.VariableDeclarations) {
-                        if (TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getTypeExpression().getType(),
-                                "org.springframework.batch.core.configuration.annotation.JobBuilderFactory")) {
-                            maybeRemoveImport(
-                                    "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
-                            return null;
-                        }
-                    }
-                    return statement;
-                })));
+            if (!cd.equals(scope)) {
+                return cd;
             }
+            cd = cd.withBody(cd.getBody().withStatements(ListUtils.map(cd.getBody().getStatements(), statement -> {
+                if (statement instanceof J.VariableDeclarations && ((J.VariableDeclarations) statement).getTypeExpression() != null) {
+                    if (TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getTypeExpression().getType(),
+                            "org.springframework.batch.core.configuration.annotation.JobBuilderFactory")) {
+                        return null;
+                    }
+                }
+                return statement;
+            })));
+            maybeRemoveImport("org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
             return cd;
         }
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDecl, ExecutionContext ctx) {
-            J.MethodDeclaration md = (MethodDeclaration) super.visitMethodDeclaration(methodDecl, ctx);
+            J.MethodDeclaration md = super.visitMethodDeclaration(methodDecl, ctx);
 
             if (!enclosingMethod.equals(md) && !md.isConstructor()) {
                 return md;
@@ -134,6 +136,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                     .collect(Collectors.toList());
 
             if (params.isEmpty() && md.isConstructor()) {
+                //noinspection DataFlowIssue
                 return null;
             }
 
@@ -144,8 +147,12 @@ public class MigrateJobBuilderFactory extends Recipe {
             JavaTemplate paramsTemplate = JavaTemplate
                     .builder(this::getCursor, params.stream().map(p -> "#{}").collect(Collectors.joining(", ")))
                     .imports("org.springframework.batch.core.repository.JobRepository",
-                            "org.springframework.batch.core.job.builder.JobBuilder")
-                    .javaParser(() -> JavaParser.fromJavaVersion().classpath("spring-batch-core").build()).build();
+                            "org.springframework.batch.core.job.builder.JobBuilder",
+                            "org.springframework.batch.core.Step")
+                    .javaParser(() -> JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-batch-core-5.0.0")
+                            .build())
+                    .build();
 
             md = md.withTemplate(paramsTemplate, md.getCoordinates().replaceParameters(), params.toArray());
 

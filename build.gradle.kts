@@ -69,7 +69,12 @@ recipeDependencies {
     parserClasspath("org.springframework.data:spring-data-commons:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
+
+    parserClasspath("org.springframework.batch:spring-batch-core:4.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
+
+    parserClasspath("org.springframework.batch:spring-batch-infrastructure:4.+")
+    parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()

@@ -16,26 +16,16 @@
 package org.openrewrite.java.spring.batch;
 
 import java.time.Duration;
+import java.util.stream.Collectors;
 
-import org.openrewrite.Applicability;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.ChangeType;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.TreeVisitingPrinter;
-import org.openrewrite.java.search.FindImports;
-import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.*;
+import org.openrewrite.java.search.DeclaresMethod;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeUtils;
-
-import static java.util.Collections.singletonList;
 
 public class MigrateItemWriterWrite extends Recipe {
-
 
     @Override
     public String getDisplayName() {
@@ -52,42 +42,60 @@ public class MigrateItemWriterWrite extends Recipe {
         return Duration.ofMinutes(5);
     }
 
+    private static final MethodMatcher ITEM_WRITER_MATCHER = new MethodMatcher("org.springframework.batch.item.ItemWriter write(java.util.List)", true);
+
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesMethod<>(new MethodMatcher(
-                 "*..* write(java.util.List)" 
-                ));
+        return new DeclaresMethod<>(ITEM_WRITER_MATCHER);
     }
 
     @Override
     public JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-            private String fullyQualifiedInterfaceName = "org.springframework.batch.item.ItemWriter";
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
-                if (m.getMethodType() != null && (TypeUtils.isOverride(m.getMethodType())
-                        || m.getMethodType().isInheritedFrom(fullyQualifiedInterfaceName))) {
-                    if (m.getParameters().size() == 1) {
-                        Statement parameter = m.getParameters().get(0);
-                        if (parameter instanceof J.VariableDeclarations) {
-                            J.VariableDeclarations param = (J.VariableDeclarations) parameter;
-                            if (TypeUtils.isOfClassType(param.getType(), "java.util.List")) {
-
-                                param = (J.VariableDeclarations) new ChangeType("java.util.List",
-                                        "org.springframework.batch.item.Chunk", false).getVisitor()
-                                        .visitNonNull(param, ctx, getCursor().getParentOrThrow());
-
-                                m = m.withParameters(singletonList(param));
-
-                                maybeAddImport("org.springframework.batch.item.Chunk");
-                                maybeRemoveImport("java.util.List");
-                            }
-                        }
-                    }
+                if (!ITEM_WRITER_MATCHER.matches(method.getMethodType())) {
+                    return m;
                 }
+
+                J.VariableDeclarations parameter = (J.VariableDeclarations) m.getParameters().get(0);
+                if(!(parameter.getTypeExpression() instanceof J.ParameterizedType)
+                        || ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() == null) {
+                    return m;
+                }
+                String chunkTypeParameter = ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters().get(0).toString();
+                String paramName =  parameter.getVariables().get(0).getSimpleName();
+
+                // Should be able to replace just the parameters and have usages of those parameters get their types
+                // updated automatically. Since parameters usages do not have their type updated, must replace the whole
+                // method to ensure that type info is accurate / List import can potentially be removed
+                // See: https://github.com/openrewrite/rewrite/issues/2819
+                m = m.withTemplate(
+                        JavaTemplate.builder(
+                                        () -> getCursor().getParentTreeCursor(),
+                                        "@Override\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
+                                .javaParser(() -> JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-batch-core-5.0.0", "spring-batch-infrastructure-5.0.0")
+                                        .build())
+                                .imports("org.springframework.batch.item.Chunk")
+                                .build(),
+                        m.getCoordinates().replace(),
+                        m.getModifiers().stream()
+                                        .map(J.Modifier::toString)
+                                        .collect(Collectors.joining(" ")),
+                        parameter.getModifiers().stream()
+                                .map(J.Modifier::toString)
+                                .collect(Collectors.joining(" ")),
+                        chunkTypeParameter,
+                        paramName,
+                        m.getBody() == null ? "" : m.getBody().print(getCursor()));
+
+                maybeAddImport("org.springframework.batch.item.Chunk");
+                maybeRemoveImport("java.util.List");
+
                 return m;
             }
         };
