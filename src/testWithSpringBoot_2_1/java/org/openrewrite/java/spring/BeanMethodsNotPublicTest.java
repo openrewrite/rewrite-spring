@@ -20,6 +20,7 @@ import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -36,6 +37,7 @@ class BeanMethodsNotPublicTest implements RewriteTest {
     void removePublicModifierFromBeanMethods() {
         //language=java
         rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.builder().constructorInvocations(false).build()),
           java(
             """
               import javax.sql.DataSource;
