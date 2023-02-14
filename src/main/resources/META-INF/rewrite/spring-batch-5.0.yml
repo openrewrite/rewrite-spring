@@ -18,7 +18,7 @@ type: specs.openrewrite.org/v1beta/recipe
 
 name: org.openrewrite.java.spring.boot3.SpringBatch4To5Migration
 displayName: Migrate to Spring Batch 4.3 from Spring Batch 5.0
-description: Migrate applications built on Spring Batch 4.3 to the latest Spring Batch 2.3 release.
+description: Migrate applications built on Spring Batch 4.3 to the latest Spring Batch 5.0 release.
 tags:
   - spring
   - batch
