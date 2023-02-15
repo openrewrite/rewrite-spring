@@ -22,29 +22,26 @@ import org.openrewrite.DataTable;
 import org.openrewrite.Recipe;
 
 @JsonIgnoreType
-public class ApiEndpoints extends DataTable<ApiEndpoints.Row> {
+public class SpringComponentRelationships extends DataTable<SpringComponentRelationships.Row> {
 
-    public ApiEndpoints(Recipe recipe) {
-        super(recipe, Row.class, ApiEndpoints.class.getName(),
-                "API endpoints", "The API endpoints that applications expose.");
+    public SpringComponentRelationships(Recipe recipe) {
+        super(recipe, Row.class, SpringComponentRelationships.class.getName(),
+                "Relationships between Spring components",
+                "A table of relationships between Spring components.");
     }
 
     @Value
     public static class Row {
-        @Column(displayName = "Source path",
-                description = "The path to the source file containing the API endpoint definition.")
-        String sourcePath;
+        @Column(displayName = "Defined in source file",
+                description = "The source file that provides evidence of the relationship between dependant and dependency.")
+        String sourceFile;
 
-        @Column(displayName = "Method name",
-                description = "The name of the method that defines the API endpoint.")
-        String methodName;
+        @Column(displayName = "Dependant type",
+                description = "The type of the component requiring a collaborator.")
+        String dependantType;
 
-        @Column(displayName = "Method",
-                description = "The HTTP method of the API endpoint.")
-        String method;
-
-        @Column(displayName = "Path",
-                description = "The path of the API endpoint.")
-        String path;
+        @Column(displayName = "Dependency type",
+                description = "The type of the component that is being injected.")
+        String dependencyType;
     }
 }

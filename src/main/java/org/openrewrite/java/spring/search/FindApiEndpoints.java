@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.search;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Incubating;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
@@ -32,7 +31,6 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
-@Incubating(since = "4.12.0")
 public class FindApiEndpoints extends Recipe {
     private static final List<AnnotationMatcher> REST_ENDPOINTS = Stream.of("Request", "Get", "Post", "Put", "Delete", "Patch")
             .map(method -> new AnnotationMatcher("@org.springframework.web.bind.annotation." + method + "Mapping"))
