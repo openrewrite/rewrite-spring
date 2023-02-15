@@ -32,7 +32,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new WebSecurityConfigurerAdapter())
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "tomcat-embed"));
+            .classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "tomcat-embed", "spring-core"));
     }
 
     @Test
@@ -78,7 +78,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               public class SecurityConfiguration {
               
                   @Bean
-                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                  SecurityFilterChain securityConfigurationSecurityFilterChain(HttpSecurity http) throws Exception {
                       http
                           .authorizeHttpRequests((authz) -> authz
                               .anyRequest().authenticated()
@@ -153,7 +153,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               public class SecurityConfiguration {
 
                   @Bean
-                  WebSecurityCustomizer webSecurityCustomizer() {
+                  WebSecurityCustomizer securityConfigurationWebSecurityCustomizer() {
                       return (web) -> {
                           web.ignoring().antMatchers("/ignore1", "/ignore2");
                       };
@@ -325,7 +325,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               public class SecurityConfiguration {
                             
                   @Bean
-                  SecurityFilterChain filterChain(HttpSecurity http) {
+                  SecurityFilterChain securityConfigurationSecurityFilterChain(HttpSecurity http) {
                       System.out.println(getApplicationContext());
                       http
                           .authorizeHttpRequests((authz) -> authz
@@ -385,7 +385,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               public class SecurityConfiguration {
                             
                   @Bean
-                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                  SecurityFilterChain securityConfigurationSecurityFilterChain(HttpSecurity http) throws Exception {
                       http
                           .authorizeHttpRequests((authz) -> authz
                               .anyRequest().authenticated()
@@ -405,4 +405,200 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void multipleClasses() throws Exception {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.core.annotation.Order;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.core.userdetails.UserDetailsService;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+              @EnableWebSecurity
+              public class MultiHttpSecurityConfig {
+              	@Bean
+              	public UserDetailsService userDetailsService() throws Exception {
+              		InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+              		return manager;
+              	}
+
+              	@Configuration
+              	@Order(1)
+              	public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+              		protected void configure(HttpSecurity http) throws Exception {
+              			http
+              				.antMatcher("/api/**")
+              				.authorizeRequests()
+              					.anyRequest().hasRole("ADMIN")
+              					.and()
+              				.httpBasic();
+              		}
+              	}
+
+              	@Configuration
+              	public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+
+              		@Override
+              		protected void configure(HttpSecurity http) throws Exception {
+              			http
+              				.authorizeRequests()
+              					.anyRequest().authenticated()
+              					.and()
+              				.formLogin();
+              		}
+              	}
+              }
+            """,
+            """
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+
+@EnableWebSecurity
+public class MultiHttpSecurityConfig {
+    @Bean
+    public UserDetailsService userDetailsService() throws Exception {
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        return manager;
+    }
+
+    @Bean
+    SecurityFilterChain apiWebSecurityConfigurationSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .antMatcher("/api/**")
+                .authorizeRequests()
+                .anyRequest().hasRole("ADMIN")
+                .and()
+                .httpBasic();
+        return http.build();
+    }
+
+    @Bean
+    SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .anyRequest().authenticated()
+                .and()
+                .formLogin();
+        return http.build();
+    }
 }
+              """
+          )
+        );
+    }
+
+    @Test
+    void multipleClassesNoFlattening() throws Exception {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.core.annotation.Order;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.core.userdetails.UserDetailsService;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+              @EnableWebSecurity
+              public class MultiHttpSecurityConfig {
+                private int a;
+              	@Bean
+              	public UserDetailsService userDetailsService() throws Exception {
+              		InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+              		return manager;
+              	}
+
+              	@Configuration
+              	@Order(1)
+              	public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+              	    private String a;
+              		protected void configure(HttpSecurity http) throws Exception {
+              			http
+              				.antMatcher("/api/**")
+              				.authorizeRequests()
+              					.anyRequest().hasRole("ADMIN")
+              					.and()
+              				.httpBasic();
+              		}
+              	}
+
+              	@Configuration
+              	public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+
+              		@Override
+              		protected void configure(HttpSecurity http) throws Exception {
+              			http
+              				.authorizeRequests()
+              					.anyRequest().authenticated()
+              					.and()
+              				.formLogin();
+              		}
+              	}
+              }
+            """,
+            """
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+
+@EnableWebSecurity
+public class MultiHttpSecurityConfig {
+    private int a;
+
+    @Bean
+    public UserDetailsService userDetailsService() throws Exception {
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        return manager;
+    }
+
+    @Configuration
+    @Order(1)
+    public static class ApiWebSecurityConfigurationAdapter {
+        private String a;
+
+        @Bean
+        SecurityFilterChain apiWebSecurityConfigurationSecurityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    .antMatcher("/api/**")
+                    .authorizeRequests()
+                    .anyRequest().hasRole("ADMIN")
+                    .and()
+                    .httpBasic();
+            return http.build();
+        }
+    }
+    
+    @Bean
+    SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .anyRequest().authenticated()
+                .and()
+                .formLogin();
+        return http.build();
+    }
+}
+              """
+          )
+        );
+    }
+}
+
+
