@@ -17,7 +17,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 
 name: org.openrewrite.java.spring.boot3.SpringBatch4To5Migration
-displayName: Migrate to Spring Batch 4.3 from Spring Batch 5.0
+displayName: Migrate to Spring Batch 5.0 from 4.3
 description: Migrate applications built on Spring Batch 4.3 to the latest Spring Batch 5.0 release.
 tags:
   - spring
@@ -60,7 +60,7 @@ displayName: Transform classes that extend `StepExecutionListenerSupport` to imp
 description: As of 5.0 `StepExecutionListener` has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.
 recipeList:
   - org.openrewrite.java.spring.batch.ReplaceSupportClassWithItsInterface:
-      fullyQualifiedClassName: org.springframework.batch.core.listener.StepExecutionListenerSupport 
+      fullyQualifiedClassName: org.springframework.batch.core.listener.StepExecutionListenerSupport
       fullyQualifiedInterfaceName: org.springframework.batch.core.StepExecutionListener
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -69,7 +69,7 @@ displayName: Transform classes that extend `ChunkListenerSupport` to implement t
 description: As of 5.0 `ChunkListener` has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.
 recipeList:
   - org.openrewrite.java.spring.batch.ReplaceSupportClassWithItsInterface:
-      fullyQualifiedClassName: org.springframework.batch.core.listener.ChunkListenerSupport 
+      fullyQualifiedClassName: org.springframework.batch.core.listener.ChunkListenerSupport
       fullyQualifiedInterfaceName: org.springframework.batch.core.ChunkListener
 ---
 type: specs.openrewrite.org/v1beta/recipe
