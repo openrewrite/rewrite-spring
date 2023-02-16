@@ -22,18 +22,14 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.format.AutoFormatVisitor;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.Space;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.marker.SearchResult;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Alex Boyko
@@ -67,6 +63,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
     private static final String HAS_CONFLICT = "has-conflict";
 
+    private static final String FLATTEN_CLASSES = "flatten-classes";
+
     @Override
     public String getDisplayName() {
         return "Spring Security 5.4 introduces the ability to configure HttpSecurity by creating a SecurityFilterChain bean";
@@ -87,21 +85,129 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
-                if (TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
-                        && classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), FQN_CONFIGURATION))) {
-                    boolean hasConflict = false;
+                boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
+                        && isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION);
+                boolean hasConflict = false;
+                if (isWebSecurityConfigurerAdapterClass) {
                     for (JavaType.Method method : classDecl.getType().getMethods()) {
                         if (isConflictingMethod(method, method.getName())) {
                             hasConflict = true;
+                            break;
                         }
                     }
                     getCursor().putMessage(HAS_CONFLICT, hasConflict);
-                    if (!hasConflict) {
-                        maybeRemoveImport(FQN_WEB_SECURITY_CONFIGURER_ADAPTER);
-                        classDecl = classDecl.withExtends(null);
+                    maybeRemoveImport(FQN_WEB_SECURITY_CONFIGURER_ADAPTER);
+                }
+                classDecl = super.visitClassDeclaration(classDecl, context);
+                if (!isWebSecurityConfigurerAdapterClass) {
+                    classDecl = processAnyClass(classDecl);
+                } else if (!hasConflict) {
+                    classDecl = processSecurityAdapterClass(classDecl);
+                }
+                return classDecl;
+            }
+
+            private J.ClassDeclaration processSecurityAdapterClass(J.ClassDeclaration classDecl) {
+                classDecl = classDecl.withExtends(null);
+                // Flatten configuration classes if applicable
+                Cursor enclosingClassCursor = getCursor().getParent();
+                while (enclosingClassCursor != null && !(enclosingClassCursor.getValue() instanceof J.ClassDeclaration)) {
+                    enclosingClassCursor = enclosingClassCursor.getParent();
+                }
+                if (enclosingClassCursor != null && enclosingClassCursor.getValue() instanceof J.ClassDeclaration) {
+                    J.ClassDeclaration enclosingClass = enclosingClassCursor.getValue();
+                    if (isMetaAnnotated(enclosingClass.getType(), FQN_CONFIGURATION, new HashSet<>()) && canMergeClassDeclarations(enclosingClass, classDecl)) {
+                        // can flatten. Outer class is annotated as configuration bean
+                        List<J.ClassDeclaration> classesToFlatten = enclosingClassCursor.getMessage(FLATTEN_CLASSES);
+                        if (classesToFlatten == null) {
+                            classesToFlatten = new ArrayList<>();
+                            enclosingClassCursor.putMessage(FLATTEN_CLASSES, classesToFlatten);
+                        }
+                        // only applicable to former subclasses of WebSecurityConfigurereAdapter - other classes won't be flattened
+                        classesToFlatten.add(classDecl);
+                        // Remove imports for annotations being removed together with class declaration
+                        // It is impossible in the general case to tell whether some of these annotations might apply to the bean methods
+                        // However, a set of hardcoded annotations can be moved in the future
+                        for (J.Annotation a : classDecl.getLeadingAnnotations()) {
+                            JavaType.FullyQualified type = TypeUtils.asFullyQualified(a.getType());
+                            if (type != null) {
+                                maybeRemoveImport(type);
+                            }
+                        }
+                        classDecl = null; // remove class
                     }
                 }
-                return super.visitClassDeclaration(classDecl, context);
+                return classDecl;
+            }
+
+            private boolean canMergeClassDeclarations(J.ClassDeclaration a, J.ClassDeclaration b) {
+                Set<String> aVars = getAllVarNames(a);
+                Set<String> bVars = getAllVarNames(b);
+                for (String av : aVars) {
+                    if (bVars.contains(av)) {
+                        return false;
+                    }
+                }
+                Set<String> aMethods = getAllMethodSignatures(a);
+                Set<String> bMethods = getAllMethodSignatures(b);
+                for (String am : aMethods) {
+                    if (bMethods.contains(am)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            private Set<String> getAllVarNames(J.ClassDeclaration c) {
+                return c.getBody().getStatements().stream()
+                        .filter(J.VariableDeclarations.class::isInstance)
+                        .map(J.VariableDeclarations.class::cast)
+                        .flatMap(vd -> vd.getVariables().stream())
+                        .map(v -> v.getName().getSimpleName())
+                        .collect(Collectors.toSet());
+            }
+
+            private Set<String> getAllMethodSignatures(J.ClassDeclaration c) {
+                return c.getBody().getStatements().stream()
+                        .filter(J.MethodDeclaration.class::isInstance)
+                        .map(J.MethodDeclaration.class::cast)
+                        .map(this::simpleMethodSignature)
+                        .collect(Collectors.toSet());
+            }
+
+            private String simpleMethodSignature(J.MethodDeclaration method) {
+                String fullSignature = MethodMatcher.methodPattern(method);
+                int firstSpaceIdx = fullSignature.indexOf(' ');
+                return firstSpaceIdx < 0 ? fullSignature : fullSignature.substring(firstSpaceIdx + 1);
+            }
+
+            private J.ClassDeclaration processAnyClass(J.ClassDeclaration classDecl) {
+                // regular class case
+                List<J.ClassDeclaration> toFlatten = getCursor().pollMessage(FLATTEN_CLASSES);
+                if (toFlatten != null) {
+                    // The message won't be 'null' for a configuration class
+                    List<Statement> statements = new ArrayList<>(classDecl.getBody().getStatements().size() + toFlatten.size());
+                    statements.addAll(classDecl.getBody().getStatements());
+                    for (J.ClassDeclaration fc : toFlatten) {
+                        for (Statement s : fc.getBody().getStatements()) {
+                            if (s instanceof J.MethodDeclaration) {
+                                J.MethodDeclaration m = (J.MethodDeclaration) s;
+                                if (isAnnotatedWith(m.getLeadingAnnotations(), FQN_BEAN)) {
+                                    JavaType.FullyQualified beanType = TypeUtils.asFullyQualified(m.getMethodType().getReturnType());
+                                    String uniqueName = computeBeanNameFromClassName(fc.getSimpleName(), beanType.getClassName());
+                                    s = m
+                                            .withName(m.getName().withSimpleName(uniqueName))
+                                            .withMethodType(m.getMethodType().withName(uniqueName));
+                                }
+                            }
+                            statements.add(s);
+                        }
+                    }
+                    classDecl = classDecl.withBody(classDecl.getBody().withStatements(statements));
+                    //TODO: not sure how to autoformat only the statements added to the class declaration
+                    doAfterVisit(new AutoFormatVisitor<>());
+                }
+                return classDecl;
             }
 
             private boolean isConflictingMethod(@Nullable JavaType.Method methodType, String methodName) {
@@ -118,11 +224,13 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 if (isConflictingMethod(m.getMethodType(), method.getSimpleName())) {
                     m = SearchResult.found(m, "Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter");
                 } else if (!classCursor.getMessage(HAS_CONFLICT, true)) {
-                    if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(m, classCursor.getValue())) {
-                        JavaType securityChainType = JavaType.buildType(FQN_SECURITY_FILTER_CHAIN);
+                    J.ClassDeclaration c = classCursor.getValue();
+                    if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(m, c)) {
+                        JavaType.FullyQualified securityChainType = (JavaType.FullyQualified) JavaType.buildType(FQN_SECURITY_FILTER_CHAIN);
                         JavaType.Method type = m.getMethodType();
+                        String newMethodName = "filterChain";
                         if (type != null) {
-                            type = type.withName("filterChain").withReturnType(securityChainType);
+                            type = type.withName(newMethodName).withReturnType(securityChainType);
                         }
 
                         Space returnPrefix = m.getReturnTypeExpression() == null ? Space.EMPTY : m.getReturnTypeExpression().getPrefix();
@@ -133,18 +241,19 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                     }
                                     return anno;
                                 }))
-                                .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY,"SecurityFilterChain", securityChainType, null))
-                                .withName(m.getName().withSimpleName("filterChain"))
+                                .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY,securityChainType.getClassName(), securityChainType, null))
+                                .withName(m.getName().withSimpleName(newMethodName))
                                 .withMethodType(type)
                                 .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
 
                         m = addBeanAnnotation(m, getCursor());
                         maybeAddImport(FQN_SECURITY_FILTER_CHAIN);
                     } else if (CONFIGURE_WEB_SECURITY_METHOD_MATCHER.matches(m, classCursor.getValue())) {
-                        JavaType securityCustomizerType = JavaType.buildType(FQN_WEB_SECURITY_CUSTOMIZER);
+                        JavaType.FullyQualified securityCustomizerType = (JavaType.FullyQualified) JavaType.buildType(FQN_WEB_SECURITY_CUSTOMIZER);
                         JavaType.Method type = m.getMethodType();
+                        String newMethodName = "webSecurityCustomizer";
                         if (type != null) {
-                            type = type.withName("webSecurityCustomizer").withReturnType(securityCustomizerType);
+                            type = type.withName(newMethodName).withReturnType(securityCustomizerType);
                         }
                         Space returnPrefix = m.getReturnTypeExpression() == null ? Space.EMPTY : m.getReturnTypeExpression().getPrefix();
                         m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), anno -> {
@@ -156,8 +265,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                 }))
                                 .withMethodType(type)
                                 .withParameters(Collections.emptyList())
-                                .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY,"WebSecurityCustomizer", securityCustomizerType, null))
-                                .withName(m.getName().withSimpleName("webSecurityCustomizer"))
+                                .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY,securityCustomizerType.getClassName(), securityCustomizerType, null))
+                                .withName(m.getName().withSimpleName(newMethodName))
                                 .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
 
                         m = addBeanAnnotation(m, getCursor());
@@ -208,6 +317,44 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return m.withTemplate(template, m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
             }
 
+
         };
     }
+
+    private static String computeBeanNameFromClassName(String className, String beanType) {
+        String lowerCased = Character.toLowerCase(className.charAt(0)) + className.substring(1);
+        String newName = lowerCased
+                .replace("WebSecurityConfigurerAdapter", beanType)
+                .replace("SecurityConfigurerAdapter", beanType)
+                .replace("ConfigurerAdapter", beanType)
+                .replace("Adapter", beanType);
+        if (lowerCased.equals(newName)) {
+            newName = newName + beanType;
+        }
+        return newName;
+    }
+
+    private static boolean isMetaAnnotated(JavaType.FullyQualified t, String fqn, Set<JavaType.FullyQualified> visited) {
+        for (JavaType.FullyQualified a : t.getAnnotations()) {
+            if (!visited.contains(a)) {
+                visited.add(a);
+                if (fqn.equals(a.getFullyQualifiedName())) {
+                    return true;
+                } else {
+                    boolean metaAnnotated = isMetaAnnotated(a, fqn, visited);
+                    if (metaAnnotated) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isAnnotatedWith(Collection<J.Annotation> annotations, String annotationType) {
+        return annotations.stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), annotationType));
+    }
+
+
+
 }
