@@ -86,7 +86,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
                 boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
-                        && isClassAnnotatedWith(classDecl, FQN_CONFIGURATION);
+                        && isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION);
                 boolean hasConflict = false;
                 if (isWebSecurityConfigurerAdapterClass) {
                     for (JavaType.Method method : classDecl.getType().getMethods()) {
@@ -190,6 +190,16 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     statements.addAll(classDecl.getBody().getStatements());
                     for (J.ClassDeclaration fc : toFlatten) {
                         for (Statement s : fc.getBody().getStatements()) {
+                            if (s instanceof J.MethodDeclaration) {
+                                J.MethodDeclaration m = (J.MethodDeclaration) s;
+                                if (isAnnotatedWith(m.getLeadingAnnotations(), FQN_BEAN)) {
+                                    JavaType.FullyQualified beanType = TypeUtils.asFullyQualified(m.getMethodType().getReturnType());
+                                    String uniqueName = computeBeanNameFromClassName(fc.getSimpleName(), beanType.getClassName());
+                                    s = m
+                                            .withName(m.getName().withSimpleName(uniqueName))
+                                            .withMethodType(m.getMethodType().withName(uniqueName));
+                                }
+                            }
                             statements.add(s);
                         }
                     }
@@ -198,10 +208,6 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     doAfterVisit(new AutoFormatVisitor<>());
                 }
                 return classDecl;
-            }
-
-            private boolean isClassAnnotatedWith(J.ClassDeclaration classDecl, String annotationType) {
-                return classDecl.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), annotationType));
             }
 
             private boolean isConflictingMethod(@Nullable JavaType.Method methodType, String methodName) {
@@ -222,7 +228,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(m, c)) {
                         JavaType.FullyQualified securityChainType = (JavaType.FullyQualified) JavaType.buildType(FQN_SECURITY_FILTER_CHAIN);
                         JavaType.Method type = m.getMethodType();
-                        String newMethodName = computeBeanNameFromClassName(c.getSimpleName(), securityChainType.getClassName());
+                        String newMethodName = "filterChain";
                         if (type != null) {
                             type = type.withName(newMethodName).withReturnType(securityChainType);
                         }
@@ -245,7 +251,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     } else if (CONFIGURE_WEB_SECURITY_METHOD_MATCHER.matches(m, classCursor.getValue())) {
                         JavaType.FullyQualified securityCustomizerType = (JavaType.FullyQualified) JavaType.buildType(FQN_WEB_SECURITY_CUSTOMIZER);
                         JavaType.Method type = m.getMethodType();
-                        String newMethodName = computeBeanNameFromClassName(c.getSimpleName(), securityCustomizerType.getClassName());
+                        String newMethodName = "webSecurityCustomizer";
                         if (type != null) {
                             type = type.withName(newMethodName).withReturnType(securityCustomizerType);
                         }
@@ -344,5 +350,11 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         }
         return false;
     }
+
+    private static boolean isAnnotatedWith(Collection<J.Annotation> annotations, String annotationType) {
+        return annotations.stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), annotationType));
+    }
+
+
 
 }
