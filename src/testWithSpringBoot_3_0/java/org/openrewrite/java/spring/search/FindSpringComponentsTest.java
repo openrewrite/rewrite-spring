@@ -36,8 +36,8 @@ public class FindSpringComponentsTest implements RewriteTest {
         rewriteRun(
           spec -> spec.dataTableAsCsv(SpringComponentRelationships.class.getName(), """
             sourceFile,dependantType,dependencyType
-            test/Config.java,test.A,test.B
             test/C.java,test.C,test.B
+            test/Config.java,test.A,test.B
             """).cycles(1).expectedCyclesThatMakeChanges(1),
           //language=java
           java("package test; public class B {}"),
