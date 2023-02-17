@@ -54,7 +54,7 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 3.0.x
-      trustParent: true
+      overrideManagedVersion: true
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
