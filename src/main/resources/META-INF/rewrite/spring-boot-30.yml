@@ -43,8 +43,8 @@ recipeList:
 # SpringBoot 3_0 Maven Pom
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MavenPomUpgrade
-displayName: Upgrade Maven Pom to Spring Boot 3.0 from 2.x
-description: 'Upgrade Maven Pom to Spring Boot 3.0 from prior 2.x version.'
+displayName: Upgrade Maven POM to Spring Boot 3.0 from 2.x
+description: 'Upgrade Maven POM to Spring Boot 3.0 from prior 2.x version.'
 tags:
   - spring
   - boot
