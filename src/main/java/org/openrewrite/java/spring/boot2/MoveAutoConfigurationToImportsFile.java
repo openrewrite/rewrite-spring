@@ -263,7 +263,6 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
                                 .classpathFromResources(ctx, "spring-boot-autoconfigure-2.7.*")
                                 .build())
                         .imports("org.springframework.boot.autoconfigure.AutoConfiguration")
-                        .doBeforeParseTemplate(System.out::println)
                         .build();
 
                 doAfterVisit(new RemoveAnnotation("@org.springframework.context.annotation.Configuration"));

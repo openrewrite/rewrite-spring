@@ -67,7 +67,6 @@ public class MigrateJpaSort extends Recipe {
                                                     "spring-data-jpa-2.3.*", "javax.persistence-api-2.*")
                                             .build())
                                     .imports("org.springframework.data.jpa.domain.JpaSort")
-                                    .doBeforeParseTemplate(System.out::println)
                                     .build(),
                             newClass.getCoordinates().replace(),
                             newClass.getArguments().toArray());
