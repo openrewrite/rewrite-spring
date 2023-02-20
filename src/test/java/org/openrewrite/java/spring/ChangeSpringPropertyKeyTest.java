@@ -72,9 +72,9 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
                                 path: /tmp/my-server-path
                               """,
                         """
-                            server:
-                              port: 8888
-                            servlet.session.cookie.path: /tmp/my-server-path
+                        server:
+                          port: 8888
+                        servlet.session.cookie.path: /tmp/my-server-path
                         """
                 )
         );
@@ -87,12 +87,12 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
           spec -> spec.recipe(new ChangeSpringPropertyKey("spring.resources", "spring.web.resources", null)),
           properties(
             """
-                spring.resources.chain.strategy.content.enabled= true
-                spring.resources.chain.strategy.content.paths= /foo/**, /bar/**
+            spring.resources.chain.strategy.content.enabled= true
+            spring.resources.chain.strategy.content.paths= /foo/**, /bar/**
             """,
             """
-                spring.web.resources.chain.strategy.content.enabled= true
-                spring.web.resources.chain.strategy.content.paths= /foo/**, /bar/**
+            spring.web.resources.chain.strategy.content.enabled= true
+            spring.web.resources.chain.strategy.content.paths= /foo/**, /bar/**
             """
           ),
           yaml(
@@ -128,7 +128,7 @@ public class ChangeSpringPropertyKeyTest implements RewriteTest {
           spec -> spec.recipe(new ChangeSpringPropertyKey("spring.profiles", "spring.config.activate.on-profile", List.of("active", "default", "group", "include"))),
           properties(
             """
-                spring.profiles.group.local= local-security, local-db
+            spring.profiles.group.local= local-security, local-db
             """
           ),
           yaml(
