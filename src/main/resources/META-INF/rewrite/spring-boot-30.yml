@@ -29,8 +29,8 @@ recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
   - org.openrewrite.java.spring.boot3.MavenPomUpgrade
-  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.migrate.UpgradeToJava17
+  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
   - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
