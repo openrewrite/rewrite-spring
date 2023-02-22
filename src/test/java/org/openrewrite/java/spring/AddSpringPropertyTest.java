@@ -24,7 +24,7 @@ import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
 
-public class AddSpringPropertyTest implements RewriteTest {
+class AddSpringPropertyTest implements RewriteTest {
 
     @Test
     void addNestedIntoExisting() {

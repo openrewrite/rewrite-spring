@@ -24,7 +24,7 @@ import static org.openrewrite.yaml.Assertions.yaml;
 import static org.openrewrite.properties.Assertions.properties;
 
 
-public class ChangeSpringPropertyKeyTest implements RewriteTest {
+class ChangeSpringPropertyKeyTest implements RewriteTest {
 
     @Test
     void changeLastKey() {
