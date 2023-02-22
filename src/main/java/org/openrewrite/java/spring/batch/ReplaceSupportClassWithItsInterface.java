@@ -67,8 +67,8 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
     // and RecipeTest.assertUnchanged()
     @JsonCreator
     public ReplaceSupportClassWithItsInterface(
-            @NonNull @JsonProperty("fullyQualifiedClassName") final String fullyQualifiedClassName,
-            @NonNull @JsonProperty("fullyQualifiedInterfaceName") final String fullyQualifiedInterfaceName) {
+            @NonNull @JsonProperty("fullyQualifiedClassName")String fullyQualifiedClassName,
+            @NonNull @JsonProperty("fullyQualifiedInterfaceName")String fullyQualifiedInterfaceName) {
         this.fullyQualifiedClassName = fullyQualifiedClassName;
         this.fullyQualifiedInterfaceName = fullyQualifiedInterfaceName;
         this.simpleInterfaceName = JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName();
