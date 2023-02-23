@@ -21,6 +21,10 @@ import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 @Issue("https://github.com/openrewrite/rewrite-spring/issues/274")
@@ -101,27 +105,31 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                 </dependencies>
               </project>
               """,
-            """
-              <project>
-                <modelVersion>4.0.0</modelVersion>
-                <groupId>com.example</groupId>
-                <artifactId>demo</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-                <parent>
-                  <groupId>org.springframework.boot</groupId>
-                  <artifactId>spring-boot-starter-parent</artifactId>
-                  <version>2.7.9</version>
-                  <relativePath/> <!-- lookup parent from repository -->
-                </parent>
-                <dependencies>
-                  <dependency>
-                    <groupId>com.mysql</groupId>
-                    <artifactId>mysql-connector-j</artifactId>
-                    <scope>runtime</scope>
-                  </dependency>
-                </dependencies>
-              </project>
-              """
+            spec -> spec.after(pom -> {
+                Matcher version = Pattern.compile("2.7.\\d+").matcher(pom);
+                assertThat(version.find()).describedAs("Expected 2.7.x in %s", pom).isTrue();
+                return String.format("""
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>%s</version>
+                      <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <dependencies>
+                      <dependency>
+                        <groupId>com.mysql</groupId>
+                        <artifactId>mysql-connector-j</artifactId>
+                        <scope>runtime</scope>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """, version.group(0));
+            })
           )
         );
     }
