@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -29,6 +28,7 @@ import org.openrewrite.marker.Markers;
 import org.openrewrite.marker.SearchResult;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +44,14 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     private static final String FQN_SECURITY_FILTER_CHAIN = "org.springframework.security.web.SecurityFilterChain";
     private static final String FQN_OVERRIDE = "java.lang.Override";
     private static final String FQN_WEB_SECURITY_CUSTOMIZER = "org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer";
+    private static final String FQN_INMEMORY_AUTH_CONFIG = "org.springframework.security.config.annotation.authentication.configurers.provisioning.InMemoryUserDetailsManagerConfigurer";
+    private static final String FQN_INMEMORY_AUTH_MANAGER = "org.springframework.security.provisioning.InMemoryUserDetailsManager";
+    private static final String FQN_JDBC_AUTH_CONFIG = "org.springframework.security.config.annotation.authentication.configurers.provisioning.JdbcUserDetailsManagerConfigurer";
+    private static final String FQN_LDAP_AUTH_CONFIG = "org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer";
+    private static final String FQN_AUTH_MANAGER_BUILDER = "org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder";
+    private static final String FQN_USER = "org.springframework.security.core.userdetails.User";
+    private static final String FQN_USER_DETAILS_BUILDER = "org.springframework.security.core.userdetails.User$UserBuilder";
+    private static final String FQN_USER_DETAILS = "org.springframework.security.core.userdetails.UserDetails";
     private static final String BEAN_PKG = "org.springframework.context.annotation";
     private static final String BEAN_SIMPLE_NAME = "Bean";
     private static final String FQN_BEAN = BEAN_PKG + "." + BEAN_SIMPLE_NAME;
@@ -61,9 +69,19 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     private static final MethodMatcher AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER =
             new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter  authenticationManagerBean()", true);
 
+    private static final MethodMatcher AUTH_INMEMORY_WITH_USER =
+            new MethodMatcher("org.springframework.security.config.annotation.authentication.configurers.provisioning.UserDetailsManagerConfigurer withUser(..)");
+
     private static final String HAS_CONFLICT = "has-conflict";
 
     private static final String FLATTEN_CLASSES = "flatten-classes";
+
+    private enum AuthType {
+        NONE,
+        LDAP,
+        JDBC,
+        INMEMORY
+    }
 
     @Override
     public String getDisplayName() {
@@ -89,10 +107,13 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         && isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION);
                 boolean hasConflict = false;
                 if (isWebSecurityConfigurerAdapterClass) {
-                    for (JavaType.Method method : classDecl.getType().getMethods()) {
-                        if (isConflictingMethod(method, method.getName())) {
-                            hasConflict = true;
-                            break;
+                    for (Statement s : classDecl.getBody().getStatements()) {
+                        if (s instanceof J.MethodDeclaration) {
+                            J.MethodDeclaration method = (J.MethodDeclaration) s;
+                            if (isConflictingMethod(method)) {
+                                hasConflict = true;
+                                break;
+                            }
                         }
                     }
                     getCursor().putMessage(HAS_CONFLICT, hasConflict);
@@ -210,70 +231,92 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return classDecl;
             }
 
-            private boolean isConflictingMethod(@Nullable JavaType.Method methodType, String methodName) {
-                return (methodType == null && "authenticationManagerBean".equals(methodName) || "userDetailsServiceBean".equals(methodName)) ||
+            private boolean isConflictingMethod(J.MethodDeclaration m) {
+                String methodName = m.getSimpleName();
+                JavaType.Method methodType = m.getMethodType();
+                return (methodType == null && ("authenticationManagerBean".equals(methodName) || "userDetailsServiceBean".equals(methodName))) ||
                         (USER_DETAILS_SERVICE_BEAN_METHOD_MATCHER.matches(methodType)
-                        || AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER.matches(methodType)
-                        || CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(methodType));
+                                || AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER.matches(methodType)
+                                || (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(methodType) && inConflictingAuthConfigMethod(m)));
+            }
+
+            private boolean inConflictingAuthConfigMethod(J.MethodDeclaration m) {
+                AuthType authType = getAuthType(m);
+                switch (authType) {
+                    case INMEMORY:
+                        return false;
+                }
+                return true;
             }
 
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext context) {
-                J.MethodDeclaration m = super.visitMethodDeclaration(method, context);
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration m, ExecutionContext context) {
                 Cursor classCursor = getCursor().dropParentUntil(J.ClassDeclaration.class::isInstance);
-                if (isConflictingMethod(m.getMethodType(), method.getSimpleName())) {
+                if (isConflictingMethod(m)) {
                     m = SearchResult.found(m, "Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter");
                 } else if (!classCursor.getMessage(HAS_CONFLICT, true)) {
                     J.ClassDeclaration c = classCursor.getValue();
                     if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(m, c)) {
-                        JavaType.FullyQualified securityChainType = (JavaType.FullyQualified) JavaType.buildType(FQN_SECURITY_FILTER_CHAIN);
-                        JavaType.Method type = m.getMethodType();
-                        String newMethodName = "filterChain";
-                        if (type != null) {
-                            type = type.withName(newMethodName).withReturnType(securityChainType);
+                        m = changeToBeanMethod(m, c, FQN_SECURITY_FILTER_CHAIN, "filterChain", true);
+                    } else if (CONFIGURE_WEB_SECURITY_METHOD_MATCHER.matches(m, c)) {
+                        m = changeToBeanMethod(m, c, FQN_WEB_SECURITY_CUSTOMIZER, "webSecurityCustomizer", false);
+                    } else if (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(m, c)) {
+                        AuthType authType = getAuthType(m);
+                        switch (authType) {
+                            case INMEMORY:
+                                m = changeToBeanMethod(m, c, FQN_INMEMORY_AUTH_MANAGER, "inMemoryAuthManager", false);
+                                break;
+                            case JDBC:
+                                //TODO: implement
+                                break;
+                            case LDAP:
+                                //TODO: implement
+                                break;
+                            default:
+                                throw new IllegalStateException();
                         }
-
-                        Space returnPrefix = m.getReturnTypeExpression() == null ? Space.EMPTY : m.getReturnTypeExpression().getPrefix();
-                        m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), anno -> {
-                                    if (TypeUtils.isOfClassType(anno.getType(), FQN_OVERRIDE)) {
-                                        maybeRemoveImport(FQN_OVERRIDE);
-                                        return null;
-                                    }
-                                    return anno;
-                                }))
-                                .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY,securityChainType.getClassName(), securityChainType, null))
-                                .withName(m.getName().withSimpleName(newMethodName))
-                                .withMethodType(type)
-                                .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
-
-                        m = addBeanAnnotation(m, getCursor());
-                        maybeAddImport(FQN_SECURITY_FILTER_CHAIN);
-                    } else if (CONFIGURE_WEB_SECURITY_METHOD_MATCHER.matches(m, classCursor.getValue())) {
-                        JavaType.FullyQualified securityCustomizerType = (JavaType.FullyQualified) JavaType.buildType(FQN_WEB_SECURITY_CUSTOMIZER);
-                        JavaType.Method type = m.getMethodType();
-                        String newMethodName = "webSecurityCustomizer";
-                        if (type != null) {
-                            type = type.withName(newMethodName).withReturnType(securityCustomizerType);
-                        }
-                        Space returnPrefix = m.getReturnTypeExpression() == null ? Space.EMPTY : m.getReturnTypeExpression().getPrefix();
-                        m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), anno -> {
-                                    if (TypeUtils.isOfClassType(anno.getType(), FQN_OVERRIDE)) {
-                                        maybeRemoveImport(FQN_OVERRIDE);
-                                        return null;
-                                    }
-                                    return anno;
-                                }))
-                                .withMethodType(type)
-                                .withParameters(Collections.emptyList())
-                                .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY,securityCustomizerType.getClassName(), securityCustomizerType, null))
-                                .withName(m.getName().withSimpleName(newMethodName))
-                                .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
-
-                        m = addBeanAnnotation(m, getCursor());
-                        maybeAddImport(FQN_WEB_SECURITY_CUSTOMIZER);
                     }
                 }
-                return m;
+                return super.visitMethodDeclaration(m, context);
+            }
+
+            private J.MethodDeclaration changeToBeanMethod(J.MethodDeclaration m, J.ClassDeclaration c, String fqnReturnType, String newMethodName, boolean keepParams) {
+                JavaType.FullyQualified inmemoryAuthConfigType = (JavaType.FullyQualified) JavaType.buildType(fqnReturnType);
+                JavaType.Method type = m.getMethodType();
+                if (type != null) {
+                    type = type.withName(newMethodName).withReturnType(inmemoryAuthConfigType);
+                    if (!keepParams) {
+                        type = type
+                                .withParameterTypes(Collections.emptyList())
+                                .withParameterNames(Collections.emptyList());
+                        for (JavaType pt : type.getParameterTypes()) {
+                            JavaType.FullyQualified fqt = TypeUtils.asFullyQualified(pt);
+                            if (fqt != null) {
+                                maybeRemoveImport(fqt);
+                            }
+                        }
+                    }
+                }
+
+                Space returnPrefix = m.getReturnTypeExpression() == null ? Space.EMPTY : m.getReturnTypeExpression().getPrefix();
+                m = m.withLeadingAnnotations(ListUtils.map(m.getLeadingAnnotations(), anno -> {
+                            if (TypeUtils.isOfClassType(anno.getType(), FQN_OVERRIDE)) {
+                                maybeRemoveImport(FQN_OVERRIDE);
+                                return null;
+                            }
+                            return anno;
+                        }))
+                        .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY, inmemoryAuthConfigType.getClassName(), inmemoryAuthConfigType, null))
+                        .withName(m.getName().withSimpleName(newMethodName))
+                        .withMethodType(type)
+                        .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
+
+                if (!keepParams) {
+                    m = m.withParameters(Collections.emptyList());
+                }
+
+                maybeAddImport(inmemoryAuthConfigType);
+                return addBeanAnnotation(m, getCursor());
             }
 
             @Override
@@ -285,28 +328,111 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     J.ClassDeclaration classDecl = classDeclCursor.getValue();
                     if (!classDeclCursor.getMessage(HAS_CONFLICT, true)) {
                         if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
-                            JavaTemplate template = JavaTemplate.builder(this::getCursor,  "return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .dependsOn("package org.springframework.security.config.annotation;" +
-                                                    "public interface SecurityBuilder<O> {\n" +
-                                                    "    O build() throws Exception;" +
-                                                    "}")
-                                            .build()).imports("org.springframework.security.config.annotation.SecurityBuilder").build();
-                            b = b.withTemplate(template, b.getCoordinates().lastStatement(),
-                                    ((J.VariableDeclarations)parentMethod.getParameters().get(0)).getVariables().get(0).getName());
+                            b = handleHttpSecurity(b, parentMethod);
                         } else if (CONFIGURE_WEB_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
-                            String t = "return (" + ((J.VariableDeclarations)parentMethod.getParameters().get(0)).getVariables().get(0).getName().getSimpleName() + ") -> #{any()};";
-                            JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(() -> JavaParser.fromJavaVersion().build()).build();
-                            b = b.withTemplate(template, b.getCoordinates().firstStatement(), b);
-                            b = b.withStatements(ListUtils.map(b.getStatements(), (index, stmt) -> {
-                                if (index == 0){
-                                    return stmt;
-                                }
-                                return null;
-                            }));
+                            b = handleWebSecurity(b, parentMethod);
+                        } else if (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
+                            AuthType authType = getAuthType(parentMethod);
+                            switch (authType) {
+                                case INMEMORY:
+                                    b = handleAuthInMemory(b, parentMethod);
+                                    break;
+                                case LDAP:
+                                    //TODO: implement
+                                    break;
+                                case JDBC:
+                                    //TODO: implement
+                                    break;
+                            }
                         }
                     }
                 }
+                return b;
+            }
+
+            private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod) {
+                JavaTemplate template = JavaTemplate.builder(this::getCursor,  "return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
+                        .javaParser(() -> JavaParser.fromJavaVersion()
+                                .dependsOn("package org.springframework.security.config.annotation;" +
+                                        "public interface SecurityBuilder<O> {\n" +
+                                        "    O build() throws Exception;" +
+                                        "}")
+                                .build()).imports("org.springframework.security.config.annotation.SecurityBuilder").build();
+                return b.withTemplate(template, b.getCoordinates().lastStatement(),
+                        ((J.VariableDeclarations)parentMethod.getParameters().get(0)).getVariables().get(0).getName());
+            }
+
+            private J.Block handleWebSecurity(J.Block b, J.MethodDeclaration parentMethod) {
+                String t = "return (" + ((J.VariableDeclarations)parentMethod.getParameters().get(0)).getVariables().get(0).getName().getSimpleName() + ") -> #{any()};";
+                JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(() -> JavaParser.fromJavaVersion().build()).build();
+                b = b.withTemplate(template, b.getCoordinates().firstStatement(), b);
+                return b.withStatements(ListUtils.map(b.getStatements(), (index, stmt) -> {
+                    if (index == 0){
+                        return stmt;
+                    }
+                    return null;
+                }));
+            }
+
+            private J.Block handleAuthInMemory(J.Block b, J.MethodDeclaration parentMethod) {
+                Expression userExpr = findUserParameterExpression(b.getStatements().get(b.getStatements().size() - 1));
+                JavaType.FullyQualified type = userExpr == null ? null : TypeUtils.asFullyQualified(userExpr.getType());
+                String typeStr = "";
+                if (userExpr.getType() instanceof JavaType.Primitive) {
+                    typeStr = ((JavaType.Primitive) userExpr.getType()).getClassName();
+                } else if (userExpr.getType() instanceof JavaType.FullyQualified) {
+                    typeStr = ((JavaType.FullyQualified) userExpr.getType()).getFullyQualifiedName();
+                }
+                String t;
+                Object[] templateParams = new Object[0];
+                switch (typeStr) {
+                    case FQN_USER_DETAILS_BUILDER:
+                        t = "return new InMemoryUserDetailsManager(#{any()}.build());";
+                        templateParams = new Object[]{userExpr};
+                        break;
+                    case FQN_USER_DETAILS:
+                        t = "return new InMemoryUserDetailsManager(#{any()});";
+                        templateParams = new Object[]{userExpr};
+                        break;
+                    case "java.lang.String":
+                        t = "return new InMemoryUserDetailsManager(User.builder().username(#{any()}).build());";
+                        templateParams = new Object[]{userExpr};
+                        maybeAddImport(FQN_USER);
+                        break;
+                    default:
+                        t = "return new InMemoryUserDetailsManager();";
+                        b = SearchResult.found(b, "Unrecognized type of user expression " + userExpr + "\n.Please correct manually");
+                }
+                JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(() -> JavaParser.fromJavaVersion()
+                                .dependsOn(
+
+                                        "package org.springframework.security.core.userdetails;\n" +
+                                                "public interface UserDetails {}\n",
+
+                                        "package org.springframework.security.provisioning;\n" +
+                                                "public class InMemoryUserDetailsManager {\n" +
+                                                "    public InMemoryUserDetailsManager(org.springframework.security.core.userdetails.UserDetails user) {}\n" +
+                                                "}",
+
+                                        "package org.springframework.security.core.userdetails;\n" +
+                                                "public class User {\n" +
+                                                "   public static UserBuilder builder() {}\n" +
+                                                "   public interface UserBuilder {\n" +
+                                                "       UserBuilder username(String s);\n" +
+                                                "       UserDetails build();\n" +
+                                                "   }\n" +
+                                                "}\n"
+                                )
+                                .build())
+                        .imports(FQN_INMEMORY_AUTH_MANAGER, FQN_USER_DETAILS_BUILDER, FQN_USER)
+                        .build();
+                List<Statement> allExcetLastStatements = b.getStatements();
+                allExcetLastStatements.remove(b.getStatements().size() - 1);
+                b = b
+                        .withStatements(allExcetLastStatements)
+                        .withTemplate(template, b.getCoordinates().lastStatement(), templateParams);
+                maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
+                maybeRemoveImport(FQN_AUTH_MANAGER_BUILDER);
                 return b;
             }
 
@@ -355,6 +481,48 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         return annotations.stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), annotationType));
     }
 
+    private static AuthType getAuthType(J.MethodDeclaration m) {
+        Statement lastStatement = m.getBody().getStatements().get(m.getBody().getStatements().size() - 1);
+        if (lastStatement instanceof J.MethodInvocation) {
+            for (J.MethodInvocation invocation = (J.MethodInvocation) lastStatement; invocation != null;) {
+                Expression target = invocation.getSelect();
+                if (target != null) {
+                    JavaType.FullyQualified type = TypeUtils.asFullyQualified(target.getType());
+                    if (type != null) {
+                        switch (type.getFullyQualifiedName()) {
+                            case FQN_INMEMORY_AUTH_CONFIG:
+                                return AuthType.INMEMORY;
+                            case FQN_LDAP_AUTH_CONFIG:
+                                return AuthType.LDAP;
+                            case FQN_JDBC_AUTH_CONFIG:
+                                return AuthType.JDBC;
+                        }
+                    }
+                    if (target instanceof J.MethodInvocation) {
+                        invocation = (J.MethodInvocation) target;
+                        continue;
+                    }
+                }
+                invocation = null;
+            }
 
+        }
+        return AuthType.NONE;
+    }
+
+    private Expression findUserParameterExpression(Statement s) {
+        AtomicReference<Expression> context = new AtomicReference<>();
+        new JavaIsoVisitor<AtomicReference<Expression>>() {
+            @Override
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicReference<Expression> ref) {
+                if (AUTH_INMEMORY_WITH_USER.matches(method)) {
+                    ref.set(method.getArguments().get(0));
+                    return method;
+                }
+                return super.visitMethodInvocation(method, ref);
+            }
+        }.visit(s, context);
+        return context.get();
+    }
 
 }
