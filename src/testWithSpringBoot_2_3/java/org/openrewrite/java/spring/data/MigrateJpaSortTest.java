@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -54,6 +55,35 @@ class MigrateJpaSortTest implements RewriteTest {
                   Attribute<?, ?> attr;
                   void test() {
                       JpaSort onlyAttr = JpaSort.of(attr);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Disabled ("see an error: AST contains missing or invalid type information")
+    @Test
+    void constructorWithAttributeArray() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.data.jpa.domain.JpaSort;
+              import javax.persistence.metamodel.Attribute;
+
+              class Test {
+                  void test(Attribute<?, ?>... attributes) {
+                      JpaSort onlyAttr = new JpaSort(attributes);
+                  }
+              }
+              """,
+            """
+              import org.springframework.data.jpa.domain.JpaSort;
+              import javax.persistence.metamodel.Attribute;
+
+              class Test {
+                  void test(Attribute<?, ?>... attributes) {
+                      JpaSort onlyAttr = JpaSort.of(attributes);
                   }
               }
               """
@@ -151,6 +181,26 @@ class MigrateJpaSortTest implements RewriteTest {
                   Path<?, ?> path;
                   void test() {
                       JpaSort onlyAttr = JpaSort.of(Direction.DESC, path);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotRewriteJpaPackageItself() {
+        rewriteRun(
+          java(
+            """
+              package org.springframework.data.jpa.domain;
+
+              import org.springframework.data.jpa.domain.JpaSort;
+              import javax.persistence.metamodel.Attribute;
+ 
+              public class A {
+                  public static JpaSort test(Attribute<?, ?>... attributes) {
+                      return new JpaSort(attributes);
                   }
               }
               """

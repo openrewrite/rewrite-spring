@@ -56,13 +56,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-                doAfterVisit(new UsesType<>("org.springframework.boot.context.properties.ConstructorBinding"));
-                return cu;
-            }
-        };
+        return new UsesType<>("org.springframework.boot.context.properties.ConstructorBinding");
     }
 
     @Override
