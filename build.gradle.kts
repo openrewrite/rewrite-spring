@@ -150,10 +150,16 @@ dependencies {
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.5.+")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-web:5.3.+")
 
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
-    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-web:5.3.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-core:5.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-config:5.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-web:5.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-ldap:5.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
 
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:${springBoot3Version}")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:${springBoot3Version}")
