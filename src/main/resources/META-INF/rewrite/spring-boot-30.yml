@@ -37,6 +37,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
   - org.openrewrite.java.spring.boot3.Saml
   - org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
+  - org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
 ---
 ########################################################################################################################
