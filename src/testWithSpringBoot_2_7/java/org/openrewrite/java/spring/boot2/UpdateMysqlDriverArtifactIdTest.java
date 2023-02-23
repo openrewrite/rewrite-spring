@@ -110,7 +110,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                 <parent>
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-starter-parent</artifactId>
-                  <version>2.7.8</version>
+                  <version>2.7.9</version>
                   <relativePath/> <!-- lookup parent from repository -->
                 </parent>
                 <dependencies>
