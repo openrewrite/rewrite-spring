@@ -34,8 +34,14 @@ import java.util.Comparator;
 public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
 
     private static final String FQN_BEAN = "org.springframework.context.annotation.Bean";
+	private static final String CONFIGURATION_PACKAGE = "org.springframework.context.annotation";
+	private static final String CONFIGURATION_SIMPLE_NAME = "Configuration";
+	private static final String FQN_CONFIGURATION = CONFIGURATION_PACKAGE + "." + CONFIGURATION_SIMPLE_NAME;
+	private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@" + FQN_BEAN, true);
+	private static final AnnotationMatcher CONFIGURATION_ANNOTATION_MATCHER = new AnnotationMatcher("@" + FQN_CONFIGURATION, true);
 
-    @Override
+
+	@Override
     public String getDisplayName() {
         return "Add missing '@Configuration' annotation";
     }
@@ -52,93 +58,83 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new AddConfigurationVisitor();
+        return new JavaIsoVisitor<ExecutionContext>() {
+			@Override
+			public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext p) {
+				J.ClassDeclaration c = super.visitClassDeclaration(classDecl, p);
+				if (isApplicableClass(c, getCursor())) {
+					c = addConfigurationAnnotation(c);
+				}
+				return c;
+			}
+
+			private J.ClassDeclaration addConfigurationAnnotation(J.ClassDeclaration c) {
+				maybeAddImport(FQN_CONFIGURATION);
+				JavaTemplate template = JavaTemplate.builder(() -> getCursor(), "@" + CONFIGURATION_SIMPLE_NAME)
+						.imports(FQN_CONFIGURATION)
+						.javaParser(() -> JavaParser.fromJavaVersion().dependsOn("package " + CONFIGURATION_PACKAGE
+								+ "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}").build())
+						.build();
+				return c.withTemplate(template,
+						c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+			}
+		};
     }
 
-    private static class AddConfigurationVisitor extends JavaIsoVisitor<ExecutionContext> {
+	public static boolean isApplicableClass(J.ClassDeclaration classDecl, Cursor cursor) {
+		if (classDecl.getKind() != J.ClassDeclaration.Kind.Type.Class) {
+			return false;
+		}
 
-        private static final String CONFIGURATION_PACKAGE = "org.springframework.context.annotation";
-        private static final String CONFIGURATION_SIMPLE_NAME = "Configuration";
-        private static final String FQN_CONFIGURATION = CONFIGURATION_PACKAGE + "." + CONFIGURATION_SIMPLE_NAME;
-        private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@" + FQN_BEAN, true);
-        private static final AnnotationMatcher CONFIGURATION_ANNOTATION_MATCHER = new AnnotationMatcher("@" + FQN_CONFIGURATION, true);
+		boolean isStatic = false;
+		for (J.Modifier m : classDecl.getModifiers()) {
+			if (m.getType() == J.Modifier.Type.Abstract) {
+				return false;
+			} else if (m.getType() == J.Modifier.Type.Static) {
+				isStatic = true;
+			}
+		}
 
-        @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext p) {
-            J.ClassDeclaration c = super.visitClassDeclaration(classDecl, p);
-            if (isApplicableClass(c, getCursor())) {
-                c = addConfigurationAnnotation(c);
-            }
-            return c;
-        }
+		if (!isStatic) {
+			// no static keyword? check if it is top level class in the CU
+			J.CompilationUnit cu = cursor.dropParentUntil(J.CompilationUnit.class::isInstance).getValue();
+			if (!cu.getClasses().contains(classDecl)) {
+				return false;
+			}
+		}
 
-        private J.ClassDeclaration addConfigurationAnnotation(J.ClassDeclaration c) {
-            maybeAddImport(FQN_CONFIGURATION);
-            JavaTemplate template = JavaTemplate.builder(() -> getCursor(), "@" + CONFIGURATION_SIMPLE_NAME)
-                    .imports(FQN_CONFIGURATION)
-                    .javaParser(() -> JavaParser.fromJavaVersion().dependsOn("package " + CONFIGURATION_PACKAGE
-                            + "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}").build())
-                    .build();
-            return c.withTemplate(template,
-                    c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
-        }
+		// check if '@Configuration' is already over the class
+		for (J.Annotation a : classDecl.getLeadingAnnotations()) {
+			JavaType.FullyQualified aType = TypeUtils.asFullyQualified(a.getType());
+			if (aType != null && CONFIGURATION_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(aType)) {
+				// Found '@Configuration' annotation
+				return false;
+			}
+		}
+		// No '@Configuration' present. Check if any methods have '@Bean' annotation
+		for (Statement s : classDecl.getBody().getStatements()) {
+			if (s instanceof J.MethodDeclaration) {
+				if (isBeanMethod((J.MethodDeclaration) s)) {
+					return true;
+				}
+			}
+		}
 
-        private static boolean isApplicableClass(J.ClassDeclaration classDecl, Cursor cursor) {
-            if (classDecl.getKind() != J.ClassDeclaration.Kind.Type.Class) {
-                return false;
-            }
+		return false;
+	}
 
-            boolean isStatic = false;
-            for (J.Modifier m : classDecl.getModifiers()) {
-                if (m.getType() == J.Modifier.Type.Abstract) {
-                    return false;
-                } else if (m.getType() == J.Modifier.Type.Static) {
-                    isStatic = true;
-                }
-            }
-
-            if (!isStatic) {
-                // no static keyword? check if it is top level class in the CU
-                J.CompilationUnit cu = cursor.dropParentUntil(J.CompilationUnit.class::isInstance).getValue();
-                if (!cu.getClasses().contains(classDecl)) {
-                    return false;
-                }
-            }
-
-            // check if '@Configuration' is already over the class
-            for (J.Annotation a : classDecl.getLeadingAnnotations()) {
-                JavaType.FullyQualified aType = TypeUtils.asFullyQualified(a.getType());
-                if (aType != null && CONFIGURATION_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(aType)) {
-                    // Found '@Configuration' annotation
-                    return false;
-                }
-            }
-            // No '@Configuration' present. Check if any methods have '@Bean' annotation
-            for (Statement s : classDecl.getBody().getStatements()) {
-                if (s instanceof J.MethodDeclaration) {
-                    if (isBeanMethod((J.MethodDeclaration) s)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static boolean isBeanMethod(J.MethodDeclaration methodDecl) {
-            for (J.Modifier m : methodDecl.getModifiers()) {
-                if (m.getType() == J.Modifier.Type.Abstract || m.getType() == J.Modifier.Type.Static) {
-                    return false;
-                }
-            }
-            for (J.Annotation a : methodDecl.getLeadingAnnotations()) {
-                JavaType.FullyQualified aType = TypeUtils.asFullyQualified(a.getType());
-                if (aType != null && BEAN_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(aType)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-    }
+	private static boolean isBeanMethod(J.MethodDeclaration methodDecl) {
+		for (J.Modifier m : methodDecl.getModifiers()) {
+			if (m.getType() == J.Modifier.Type.Abstract || m.getType() == J.Modifier.Type.Static) {
+				return false;
+			}
+		}
+		for (J.Annotation a : methodDecl.getLeadingAnnotations()) {
+			JavaType.FullyQualified aType = TypeUtils.asFullyQualified(a.getType());
+			if (aType != null && BEAN_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(aType)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
