@@ -39,7 +39,7 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
             )
           )
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-boot-test", "junit", "spring-test"));
+            .classpath("spring-boot-test", "junit", "spring-test", "spring-context"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/43")
@@ -76,6 +76,57 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
                             
                   @Test
                   void testFindAll() {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/296")
+    @Test
+    void springBootRunWithContextConfigurationReplacedWithSpringJUnitConfig() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package org.springframework.samples.petclinic.system;
+
+              import org.junit.Test;
+              import org.junit.runner.RunWith;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.test.context.ContextConfiguration;
+              import org.springframework.test.context.junit4.SpringRunner;
+
+              @RunWith(SpringRunner.class)
+              @ContextConfiguration(classes = ProductionConfigurationTests.CustomConfiguration.class)
+              public class ProductionConfigurationTests {
+
+                  @Test
+                  public void testFindAll() {
+                  }
+
+                  @Configuration
+                  static class CustomConfiguration {
+                  }
+              }
+              """,
+            """
+              package org.springframework.samples.petclinic.system;
+
+              import org.junit.jupiter.api.Test;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+              @SpringJUnitConfig(classes = ProductionConfigurationTests.CustomConfiguration.class)
+              public class ProductionConfigurationTests {
+
+                  @Test
+                  void testFindAll() {
+                  }
+
+                  @Configuration
+                  static class CustomConfiguration {
                   }
               }
               """

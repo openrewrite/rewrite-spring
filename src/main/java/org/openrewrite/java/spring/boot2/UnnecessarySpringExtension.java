@@ -51,7 +51,8 @@ public class UnnecessarySpringExtension extends Recipe {
             "org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest",
             "org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest",
             "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest",
-            "org.springframework.batch.test.context.SpringBatchTest"
+            "org.springframework.batch.test.context.SpringBatchTest",
+            "org.springframework.test.context.junit.jupiter.SpringJUnitConfig"
     );
     private static final String EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN = "@org.junit.jupiter.api.extension.ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)";
 
