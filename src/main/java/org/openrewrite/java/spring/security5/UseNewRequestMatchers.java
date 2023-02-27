@@ -19,18 +19,22 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+
+import java.util.List;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class UseNewRequestMatchers extends Recipe {
 
-    private static final MethodMatcher ANT_MATCHERS_HTTP_METHOD = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry antMatchers(org.springframework.http.HttpMethod)");
-    private static final MethodMatcher ANT_MATCHERS_ANT_PATTERNS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry antMatchers(java.lang.String[])");
-    private static final MethodMatcher ANT_MATCHERS_HTTP_METHOD_ANT_PATTERNS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry antMatchers(org.springframework.http.HttpMethod, java.lang.String[])");
+    private static final MethodMatcher ANT_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry antMatchers(..)");
+    private static final MethodMatcher MVC_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry mvcMatchers(..)", true);
+    private static final MethodMatcher REGEX_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry regexMatchers(..)");
+
 
     @Override
     public String getDisplayName() {
@@ -49,23 +53,38 @@ public class UseNewRequestMatchers extends Recipe {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (ANT_MATCHERS_ANT_PATTERNS.matches(mi)) {
-                    String antPatterns = "requestMatchers(#{any(java.lang.String)})";
-                    JavaTemplate javaTemplate = JavaTemplate.builder(this::getCursor, antPatterns).build();
-                    mi = mi.withTemplate(javaTemplate, mi.getCoordinates().replaceMethod(), mi.getArguments().get(0));
-                }
-                else if (ANT_MATCHERS_HTTP_METHOD.matches(mi)) {
-                    String httpMethod = "requestMatchers(#{any(org.springframework.http.HttpMethod)})";
-                    JavaTemplate javaTemplate = JavaTemplate.builder(this::getCursor, httpMethod).build();
-                    mi = mi.withTemplate(javaTemplate, mi.getCoordinates().replaceMethod(), mi.getArguments().get(0));
-                }
-                else if (ANT_MATCHERS_HTTP_METHOD_ANT_PATTERNS.matches(mi)) {
-                    String methodAndAntPatterns = "requestMatchers(#{any(org.springframework.http.HttpMethod)}, #{any(java.lang.String)})";
-                    JavaTemplate javaTemplate = JavaTemplate.builder(this::getCursor, methodAndAntPatterns).build();
-                    mi = mi.withTemplate(javaTemplate, mi.getCoordinates().replaceMethod(), mi.getArguments().toArray());
+                if (ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi)) {
+                    mi = maybeChangeMethodInvocation(mi);
                 }
                 return mi;
             }
         };
+
+    }
+
+    private J.MethodInvocation maybeChangeMethodInvocation(J.MethodInvocation mi) {
+        JavaType.Method requestMatchersMethod = findRequestMatchersMethodWithMatchingParameterTypes(mi);
+        if (requestMatchersMethod != null) {
+            return mi
+                    .withMethodType(requestMatchersMethod)
+                    .withName(mi.getName().withSimpleName("requestMatchers"));
+        } else {
+            return mi;
+        }
+    }
+
+    @Nullable
+    private JavaType.Method findRequestMatchersMethodWithMatchingParameterTypes(J.MethodInvocation mi) {
+        JavaType.Method methodType = mi.getMethodType();
+        if (methodType == null) {
+            return null;
+        } else {
+            List<JavaType> parameterTypes = methodType.getParameterTypes();
+            return methodType.getDeclaringType().getMethods().stream()
+                    .filter(m -> m.getName().equals("requestMatchers"))
+                    .filter(m -> m.getParameterTypes().equals(parameterTypes))
+                    .findFirst()
+                    .orElse(null);
+        }
     }
 }

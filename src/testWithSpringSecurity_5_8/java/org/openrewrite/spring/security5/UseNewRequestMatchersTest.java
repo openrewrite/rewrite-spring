@@ -34,7 +34,63 @@ class UseNewRequestMatchersTest implements RewriteTest {
     }
 
     @Test
-    void migratesAntMatchers() {
+    void migratesMvcMatchersWithMvcPatterns() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package com.example;
+              
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .mvcMatchers("/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                  
+              }
+                            """
+            ,
+            """
+            package com.example;
+            
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.web.SecurityFilterChain;
+            
+            @Configuration
+            @EnableWebSecurity
+            public class SecurityConfig {
+                @Bean
+                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                    http
+                            .authorizeHttpRequests((authz) -> authz
+                                    .requestMatchers("/static/**").permitAll()
+                            );
+                    return http.build();
+                }
+            
+            }
+                        """
+          )
+        );
+    }
+
+    @Test
+    void migratesMvcMatchersWithMvcPatternsAndHttpMethod() {
         //language=java
         rewriteRun(
           java(
@@ -55,9 +111,353 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                       http
                               .authorizeHttpRequests((authz) -> authz
-                                      .antMatchers("/api/admin/**").hasRole("ADMIN")
+                                      .mvcMatchers(HttpMethod.GET, "/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                  
+              }
+                            """
+            ,
+            """
+            package com.example;
+            
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.http.HttpMethod;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.web.SecurityFilterChain;
+            
+            @Configuration
+            @EnableWebSecurity
+            public class SecurityConfig {
+                @Bean
+                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                    http
+                            .authorizeHttpRequests((authz) -> authz
+                                    .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
+                            );
+                    return http.build();
+                }
+            
+            }
+                        """
+          )
+        );
+    }
+
+    @Test
+    void migratesRegexMatchersWithRegexPatterns() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package com.example;
+              
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .regexMatchers("/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                  
+              }
+                            """
+            ,
+            """
+            package com.example;
+            
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.web.SecurityFilterChain;
+            
+            @Configuration
+            @EnableWebSecurity
+            public class SecurityConfig {
+                @Bean
+                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                    http
+                            .authorizeHttpRequests((authz) -> authz
+                                    .requestMatchers("/static/**").permitAll()
+                            );
+                    return http.build();
+                }
+            
+            }
+                        """
+          )
+        );
+    }
+
+    @Test
+    void migratesRegexMatchersWithRegexPatternsAndHttpMethod() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package com.example;
+              
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .regexMatchers(HttpMethod.GET, "/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                  
+              }
+                            """
+            ,
+            """
+            package com.example;
+            
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.http.HttpMethod;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.web.SecurityFilterChain;
+            
+            @Configuration
+            @EnableWebSecurity
+            public class SecurityConfig {
+                @Bean
+                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                    http
+                            .authorizeHttpRequests((authz) -> authz
+                                    .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
+                            );
+                    return http.build();
+                }
+            
+            }
+                        """
+          )
+        );
+    }
+
+    @Test
+    void migratesAntMatchersWithAntPatterns() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package com.example;
+              
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .antMatchers("/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                  
+              }
+                            """
+            ,
+            """
+            package com.example;
+            
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.web.SecurityFilterChain;
+            
+            @Configuration
+            @EnableWebSecurity
+            public class SecurityConfig {
+                @Bean
+                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                    http
+                            .authorizeHttpRequests((authz) -> authz
+                                    .requestMatchers("/static/**").permitAll()
+                            );
+                    return http.build();
+                }
+            
+            }
+                        """
+          )
+        );
+    }
+
+    @Test
+    void migratesAntMatchersWithHttpMethod() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package com.example;
+              
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .antMatchers(HttpMethod.GET).permitAll()
+                              );
+                      return http.build();
+                  }
+                  
+              }
+                            """
+            ,
+            """
+            package com.example;
+            
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.http.HttpMethod;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.web.SecurityFilterChain;
+            
+            @Configuration
+            @EnableWebSecurity
+            public class SecurityConfig {
+                @Bean
+                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                    http
+                            .authorizeHttpRequests((authz) -> authz
+                                    .requestMatchers(HttpMethod.GET).permitAll()
+                            );
+                    return http.build();
+                }
+            
+            }
+                        """
+          )
+        );
+    }
+
+    @Test
+    void migratesAntMatchersWithAntPatternsAndHttpMethod() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package com.example;
+              
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .antMatchers(HttpMethod.GET, "/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                  
+              }
+                            """
+            ,
+            """
+            package com.example;
+            
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.http.HttpMethod;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.web.SecurityFilterChain;
+            
+            @Configuration
+            @EnableWebSecurity
+            public class SecurityConfig {
+                @Bean
+                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                    http
+                            .authorizeHttpRequests((authz) -> authz
+                                    .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
+                            );
+                    return http.build();
+                }
+            
+            }
+                        """
+          )
+        );
+    }
+
+    @Test
+    void migratesAllTypesOfMatchers() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package com.example;
+              
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .regexMatchers("/api/admin/**").hasRole("ADMIN")
                                       .antMatchers(HttpMethod.GET, "/api/user/**").hasRole("USER")
-                                      .antMatchers(HttpMethod.PATCH).denyAll()
+                                      .mvcMatchers(HttpMethod.PATCH).denyAll()
                                       .anyRequest().authenticated()
                               );
                       return http.build();
