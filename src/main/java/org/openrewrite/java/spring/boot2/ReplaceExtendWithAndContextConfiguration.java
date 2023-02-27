@@ -48,7 +48,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Replaces `@ExtendWith(SpringRunner.class)` and `@ContextConfiguration` into `@SpringJunitConfig`, " +
+        return "Replaces `@ExtendWith(SpringRunner.class)` and `@ContextConfiguration` with `@SpringJunitConfig`, " +
                 "preserving attributes on `@ContextConfiguration`, unless `@ContextConfiguration(loader = ...)` is used.";
     }
 
