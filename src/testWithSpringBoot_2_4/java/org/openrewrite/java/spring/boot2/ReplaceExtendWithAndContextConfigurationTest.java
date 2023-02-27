@@ -241,7 +241,7 @@ class ReplaceExtendWithAndContextConfigurationTest implements RewriteTest {
         );
     }
 
-    void doExtendWithContextConfigurationTest(String contextConfigurationAnnotation, String springJunitConfigAnnotation) {
+    private void doExtendWithContextConfigurationTest(String contextConfigurationAnnotation, String springJunitConfigAnnotation) {
         //language=java
         rewriteRun(
           java(
@@ -253,19 +253,19 @@ class ReplaceExtendWithAndContextConfigurationTest implements RewriteTest {
               import org.springframework.test.context.junit.jupiter.SpringExtension;
                             
               @ExtendWith(SpringExtension.class)
-              """ + contextConfigurationAnnotation + """
+              %s
               public class ExampleClass {
               }
-              """,
+              """.formatted(contextConfigurationAnnotation),
             """
               package org.example;
                             
               import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
                             
-              """ + springJunitConfigAnnotation + """
+              %s
               public class ExampleClass {
               }
-              """
+              """.formatted(springJunitConfigAnnotation)
           )
         );
     }
