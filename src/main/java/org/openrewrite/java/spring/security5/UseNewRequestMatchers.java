@@ -19,13 +19,17 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.internal.lang.NonNull;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
+
+import static java.util.Objects.requireNonNull;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -36,11 +40,13 @@ public class UseNewRequestMatchers extends Recipe {
     private static final MethodMatcher REGEX_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry regexMatchers(..)");
 
 
+    @NonNull
     @Override
     public String getDisplayName() {
         return "Use the new `requestMatchers` methods";
     }
 
+    @NonNull
     @Override
     public String getDescription() {
         return "In Spring Security 5.8, the `antMatchers`, `mvcMatchers`, and `regexMatchers` methods were deprecated in favor of new `requestMatchers` methods. Refer to the [Spring Security docs](https://docs.spring.io/spring-security/reference/5.8/migration/servlet/config.html#use-new-requestmatchers) for more information.";
@@ -75,16 +81,19 @@ public class UseNewRequestMatchers extends Recipe {
 
     @Nullable
     private JavaType.Method findRequestMatchersMethodWithMatchingParameterTypes(J.MethodInvocation mi) {
-        JavaType.Method methodType = mi.getMethodType();
-        if (methodType == null) {
-            return null;
+        JavaType.Method methodType = requireNonNull(mi.getMethodType(), "methodType");
+        List<JavaType> parameterTypes = methodType.getParameterTypes();
+        List<JavaType.Method> methods;
+        boolean isOverride = TypeUtils.isOverride(mi.getMethodType());
+        if (isOverride) {
+            methods = requireNonNull(methodType.getDeclaringType().getSupertype(), "superType").getMethods();
         } else {
-            List<JavaType> parameterTypes = methodType.getParameterTypes();
-            return methodType.getDeclaringType().getMethods().stream()
-                    .filter(m -> m.getName().equals("requestMatchers"))
-                    .filter(m -> m.getParameterTypes().equals(parameterTypes))
-                    .findFirst()
-                    .orElse(null);
+            methods = methodType.getDeclaringType().getMethods();
         }
+        return methods.stream()
+                .filter(m -> m.getName().equals("requestMatchers"))
+                .filter(m -> m.getParameterTypes().equals(parameterTypes))
+                .findFirst()
+                .orElse(null);
     }
 }
