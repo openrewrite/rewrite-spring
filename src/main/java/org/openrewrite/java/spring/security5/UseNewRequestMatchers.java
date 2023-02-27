@@ -17,12 +17,15 @@ package org.openrewrite.java.spring.security5;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.openrewrite.Applicability;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNull;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
@@ -50,6 +53,14 @@ public class UseNewRequestMatchers extends Recipe {
     @Override
     public String getDescription() {
         return "In Spring Security 5.8, the `antMatchers`, `mvcMatchers`, and `regexMatchers` methods were deprecated in favor of new `requestMatchers` methods. Refer to the [Spring Security docs](https://docs.spring.io/spring-security/reference/5.8/migration/servlet/config.html#use-new-requestmatchers) for more information.";
+    }
+
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return Applicability.or(
+                new UsesMethod<>(ANT_MATCHERS),
+                new UsesMethod<>(MVC_MATCHERS),
+                new UsesMethod<>(REGEX_MATCHERS));
     }
 
     @Override
