@@ -40,18 +40,18 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-              
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+                            
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .mvcMatchers("/static/**").permitAll()
@@ -60,31 +60,31 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   }
                   
               }
-                            """
+              """
             ,
             """
-            package com.example;
-            
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.web.SecurityFilterChain;
-            
-            @Configuration
-            @EnableWebSecurity
-            public class SecurityConfig {
-                @Bean
-                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeHttpRequests((authz) -> authz
-                                    .requestMatchers("/static/**").permitAll()
-                            );
-                    return http.build();
-                }
-            
-            }
-                        """
+              package com.example;
+                          
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+                          
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .requestMatchers("/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                          
+              }
+              """
           )
         );
     }
@@ -96,19 +96,19 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-              
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+                            
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .mvcMatchers(HttpMethod.GET, "/static/**").permitAll()
@@ -117,32 +117,32 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   }
                   
               }
-                            """
+              """
             ,
             """
-            package com.example;
-            
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.http.HttpMethod;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.web.SecurityFilterChain;
-            
-            @Configuration
-            @EnableWebSecurity
-            public class SecurityConfig {
-                @Bean
-                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeHttpRequests((authz) -> authz
-                                    .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
-                            );
-                    return http.build();
-                }
-            
-            }
-                        """
+              package com.example;
+                          
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+                          
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                          
+              }
+              """
           )
         );
     }
@@ -154,18 +154,18 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-              
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+                            
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .regexMatchers("/static/**").permitAll()
@@ -174,31 +174,31 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   }
                   
               }
-                            """
+              """
             ,
             """
-            package com.example;
-            
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.web.SecurityFilterChain;
-            
-            @Configuration
-            @EnableWebSecurity
-            public class SecurityConfig {
-                @Bean
-                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeHttpRequests((authz) -> authz
-                                    .requestMatchers("/static/**").permitAll()
-                            );
-                    return http.build();
-                }
-            
-            }
-                        """
+              package com.example;
+                          
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+                          
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .requestMatchers("/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                          
+              }
+              """
           )
         );
     }
@@ -210,19 +210,19 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-              
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+                            
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .regexMatchers(HttpMethod.GET, "/static/**").permitAll()
@@ -231,32 +231,32 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   }
                   
               }
-                            """
+              """
             ,
             """
-            package com.example;
-            
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.http.HttpMethod;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.web.SecurityFilterChain;
-            
-            @Configuration
-            @EnableWebSecurity
-            public class SecurityConfig {
-                @Bean
-                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeHttpRequests((authz) -> authz
-                                    .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
-                            );
-                    return http.build();
-                }
-            
-            }
-                        """
+              package com.example;
+                          
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+                          
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                          
+              }
+              """
           )
         );
     }
@@ -268,18 +268,18 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-              
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+                            
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .antMatchers("/static/**").permitAll()
@@ -288,31 +288,31 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   }
                   
               }
-                            """
+              """
             ,
             """
-            package com.example;
-            
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.web.SecurityFilterChain;
-            
-            @Configuration
-            @EnableWebSecurity
-            public class SecurityConfig {
-                @Bean
-                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeHttpRequests((authz) -> authz
-                                    .requestMatchers("/static/**").permitAll()
-                            );
-                    return http.build();
-                }
-            
-            }
-                        """
+              package com.example;
+                          
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+                          
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .requestMatchers("/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                          
+              }
+              """
           )
         );
     }
@@ -324,19 +324,19 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-              
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+                            
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .antMatchers(HttpMethod.GET).permitAll()
@@ -345,32 +345,32 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   }
                   
               }
-                            """
+              """
             ,
             """
-            package com.example;
-            
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.http.HttpMethod;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.web.SecurityFilterChain;
-            
-            @Configuration
-            @EnableWebSecurity
-            public class SecurityConfig {
-                @Bean
-                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeHttpRequests((authz) -> authz
-                                    .requestMatchers(HttpMethod.GET).permitAll()
-                            );
-                    return http.build();
-                }
-            
-            }
-                        """
+              package com.example;
+                          
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+                          
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .requestMatchers(HttpMethod.GET).permitAll()
+                              );
+                      return http.build();
+                  }
+                          
+              }
+              """
           )
         );
     }
@@ -382,19 +382,19 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-              
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+                            
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .antMatchers(HttpMethod.GET, "/static/**").permitAll()
@@ -403,32 +403,32 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   }
                   
               }
-                            """
+              """
             ,
             """
-            package com.example;
-            
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.http.HttpMethod;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.web.SecurityFilterChain;
-            
-            @Configuration
-            @EnableWebSecurity
-            public class SecurityConfig {
-                @Bean
-                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeHttpRequests((authz) -> authz
-                                    .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
-                            );
-                    return http.build();
-                }
-            
-            }
-                        """
+              package com.example;
+                          
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+                          
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
+                              );
+                      return http.build();
+                  }
+                          
+              }
+              """
           )
         );
     }
@@ -440,19 +440,19 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-              
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+                            
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .regexMatchers("/api/admin/**").hasRole("ADMIN")
@@ -464,35 +464,35 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   }
                   
               }
-                            """
+              """
             ,
             """
-            package com.example;
-            
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.http.HttpMethod;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.web.SecurityFilterChain;
-            
-            @Configuration
-            @EnableWebSecurity
-            public class SecurityConfig {
-                @Bean
-                public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeHttpRequests((authz) -> authz
-                                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                                    .requestMatchers(HttpMethod.GET, "/api/user/**").hasRole("USER")
-                                    .requestMatchers(HttpMethod.PATCH).denyAll()
-                                    .anyRequest().authenticated()
-                            );
-                    return http.build();
-                }
-            
-            }
-                        """
+              package com.example;
+                          
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+                          
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                      http
+                              .authorizeHttpRequests((authz) -> authz
+                                      .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                      .requestMatchers(HttpMethod.GET, "/api/user/**").hasRole("USER")
+                                      .requestMatchers(HttpMethod.PATCH).denyAll()
+                                      .anyRequest().authenticated()
+                              );
+                      return http.build();
+                  }
+                          
+              }
+              """
           )
         );
     }
