@@ -49,16 +49,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                             
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .mvcMatchers("/static/**").permitAll()
                               );
                       return http.build();
                   }
-                  
               }
               """
             ,
@@ -73,16 +72,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                           
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .requestMatchers("/static/**").permitAll()
                               );
                       return http.build();
                   }
-                          
               }
               """
           )
@@ -106,16 +104,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                             
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .mvcMatchers(HttpMethod.GET, "/static/**").permitAll()
                               );
                       return http.build();
                   }
-                  
               }
               """
             ,
@@ -131,16 +128,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                           
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
                               );
                       return http.build();
                   }
-                          
               }
               """
           )
@@ -163,16 +159,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                             
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .regexMatchers("/static/**").permitAll()
                               );
                       return http.build();
                   }
-                  
               }
               """
             ,
@@ -187,16 +182,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                           
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .requestMatchers("/static/**").permitAll()
                               );
                       return http.build();
                   }
-                          
               }
               """
           )
@@ -220,16 +214,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                             
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .regexMatchers(HttpMethod.GET, "/static/**").permitAll()
                               );
                       return http.build();
                   }
-                  
               }
               """
             ,
@@ -245,16 +238,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                           
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
                               );
                       return http.build();
                   }
-                          
               }
               """
           )
@@ -277,16 +269,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                             
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .antMatchers("/static/**").permitAll()
                               );
                       return http.build();
                   }
-                  
               }
               """
             ,
@@ -301,16 +292,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                           
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .requestMatchers("/static/**").permitAll()
                               );
                       return http.build();
                   }
-                          
               }
               """
           )
@@ -334,16 +324,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                             
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .antMatchers(HttpMethod.GET).permitAll()
                               );
                       return http.build();
                   }
-                  
               }
               """
             ,
@@ -359,16 +348,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                           
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .requestMatchers(HttpMethod.GET).permitAll()
                               );
                       return http.build();
                   }
-                          
               }
               """
           )
@@ -392,16 +380,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                             
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .antMatchers(HttpMethod.GET, "/static/**").permitAll()
                               );
                       return http.build();
                   }
-                  
               }
               """
             ,
@@ -417,16 +404,15 @@ class UseNewRequestMatchersTest implements RewriteTest {
                           
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .requestMatchers(HttpMethod.GET, "/static/**").permitAll()
                               );
                       return http.build();
                   }
-                          
               }
               """
           )
@@ -450,9 +436,9 @@ class UseNewRequestMatchersTest implements RewriteTest {
                             
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .regexMatchers("/api/admin/**").hasRole("ADMIN")
@@ -462,7 +448,6 @@ class UseNewRequestMatchersTest implements RewriteTest {
                               );
                       return http.build();
                   }
-                  
               }
               """
             ,
@@ -478,9 +463,9 @@ class UseNewRequestMatchersTest implements RewriteTest {
                           
               @Configuration
               @EnableWebSecurity
-              public class SecurityConfig {
+              class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) {
                       http
                               .authorizeHttpRequests((authz) -> authz
                                       .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -490,7 +475,6 @@ class UseNewRequestMatchersTest implements RewriteTest {
                               );
                       return http.build();
                   }
-                          
               }
               """
           )
