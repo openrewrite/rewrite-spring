@@ -141,6 +141,8 @@ recipeList:
   - org.openrewrite.java.spring.boot2.OutputCaptureExtension
   - org.openrewrite.java.spring.boot2.UnnecessarySpringRunWith
   - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
+# TODO Enable once tested on more projects through public.moderne.io
+#  - org.openrewrite.java.spring.boot2.ReplaceExtendWithAndContextConfiguration
   - org.openrewrite.java.spring.boot2.RemoveObsoleteSpringRunners
   - org.openrewrite.maven.AddDependency:
       groupId: org.springframework.boot
