@@ -15,14 +15,9 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -30,6 +25,12 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaSourceFile;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ReplaceExtendWithAndContextConfiguration extends Recipe {
     private static final String FQN_EXTEND_WITH = "org.junit.jupiter.api.extension.ExtendWith";
@@ -38,8 +39,6 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
 
     public ReplaceExtendWithAndContextConfiguration() {
         doNext(new UnnecessarySpringExtension());
-        addSingleSourceApplicableTest(new UsesType<>(FQN_EXTEND_WITH));
-        addSingleSourceApplicableTest(new UsesType<>(FQN_CONTEXT_CONFIGURATION));
     }
 
     @Override
@@ -50,12 +49,24 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
     @Override
     public String getDescription() {
         return "Replaces `@ExtendWith(SpringRunner.class)` and `@ContextConfiguration` into `@SpringJunitConfig`, " +
-            "preserving attributes on `@ContextConfiguration`, unless `@ContextConfiguration(loader = ...)` is used.";
+                "preserving attributes on `@ContextConfiguration`, unless `@ContextConfiguration(loader = ...)` is used.";
     }
 
     @Override
-    public @Nullable Duration getEstimatedEffortPerOccurrence() {
+    public Duration getEstimatedEffortPerOccurrence() {
         return Duration.ofMinutes(2);
+    }
+
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext e) {
+                doAfterVisit(new UsesType<>(FQN_EXTEND_WITH));
+                doAfterVisit(new UsesType<>(FQN_CONTEXT_CONFIGURATION));
+                return cu;
+            }
+        };
     }
 
     @Override
@@ -90,7 +101,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                     maybeRemoveImport(FQN_CONTEXT_CONFIGURATION);
                     maybeAddImport(FQN_SPRING_JUNIT_CONFIG);
                     a = (J.Annotation) new ChangeType(FQN_CONTEXT_CONFIGURATION, FQN_SPRING_JUNIT_CONFIG, false)
-                        .getVisitor().visit(a, context, getCursor());
+                            .getVisitor().visit(a, context, getCursor());
                 }
 
                 return a != null ? autoFormat(a, context) : annotation;
@@ -104,7 +115,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                         String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
                         if (name.equals("value")) {
                             J.Assignment as = createLocationsAssignment(a, assignment.getAssignment())
-                                .withPrefix(expression.getPrefix());
+                                    .withPrefix(expression.getPrefix());
                             newArgs.set(i, as);
                             break;
                         }
@@ -119,9 +130,9 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
 
             private J.Assignment createLocationsAssignment(J.Annotation annotation, Expression value) {
                 return (J.Assignment) ((J.Annotation) annotation.withTemplate(
-                    JavaTemplate.builder(this::getCursor, "locations = #{any(String)}").build(),
-                    annotation.getCoordinates().replaceArguments(),
-                    value
+                        JavaTemplate.builder(this::getCursor, "locations = #{any(String)}").build(),
+                        annotation.getCoordinates().replaceArguments(),
+                        value
                 )).getArguments().get(0);
             }
         };
@@ -132,10 +143,10 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
             return Optional.empty();
         }
         return annotation.getArguments().stream()
-            .filter(arg -> arg instanceof J.Assignment
-                && ((J.Assignment) arg).getVariable() instanceof J.Identifier
-                && "loader".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName()))
-            .map(J.Assignment.class::cast)
-            .findFirst();
+                .filter(arg -> arg instanceof J.Assignment
+                        && ((J.Assignment) arg).getVariable() instanceof J.Identifier
+                        && "loader".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName()))
+                .map(J.Assignment.class::cast)
+                .findFirst();
     }
 }

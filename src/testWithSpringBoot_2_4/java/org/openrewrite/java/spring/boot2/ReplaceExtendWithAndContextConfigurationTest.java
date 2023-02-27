@@ -15,13 +15,13 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import static org.openrewrite.java.Assertions.java;
-
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+
+import static org.openrewrite.java.Assertions.java;
 
 @Issue("https://github.com/openrewrite/rewrite-spring/issues/296")
 class ReplaceExtendWithAndContextConfigurationTest implements RewriteTest {
@@ -56,7 +56,7 @@ class ReplaceExtendWithAndContextConfigurationTest implements RewriteTest {
               """,
             """
               package org.example;
-              
+                            
               import org.springframework.context.annotation.Configuration;
               import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
                             
@@ -261,7 +261,7 @@ class ReplaceExtendWithAndContextConfigurationTest implements RewriteTest {
               package org.example;
                             
               import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-              
+                            
               """ + springJunitConfigAnnotation + """
               public class ExampleClass {
               }
