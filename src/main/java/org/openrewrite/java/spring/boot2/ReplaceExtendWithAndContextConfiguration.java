@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.openrewrite.Applicability;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -25,7 +26,6 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaSourceFile;
 
 import java.time.Duration;
 import java.util.List;
@@ -49,7 +49,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
     @Override
     public String getDescription() {
         return "Replaces `@ExtendWith(SpringRunner.class)` and `@ContextConfiguration` with `@SpringJunitConfig`, " +
-                "preserving attributes on `@ContextConfiguration`, unless `@ContextConfiguration(loader = ...)` is used.";
+               "preserving attributes on `@ContextConfiguration`, unless `@ContextConfiguration(loader = ...)` is used.";
     }
 
     @Override
@@ -59,14 +59,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext e) {
-                doAfterVisit(new UsesType<>(FQN_EXTEND_WITH));
-                doAfterVisit(new UsesType<>(FQN_CONTEXT_CONFIGURATION));
-                return cu;
-            }
-        };
+        return Applicability.and(new UsesType<>(FQN_EXTEND_WITH), new UsesType<>(FQN_CONTEXT_CONFIGURATION));
     }
 
     @Override
@@ -144,8 +137,8 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
         }
         return annotation.getArguments().stream()
                 .filter(arg -> arg instanceof J.Assignment
-                        && ((J.Assignment) arg).getVariable() instanceof J.Identifier
-                        && "loader".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName()))
+                               && ((J.Assignment) arg).getVariable() instanceof J.Identifier
+                               && "loader".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName()))
                 .map(J.Assignment.class::cast)
                 .findFirst();
     }
