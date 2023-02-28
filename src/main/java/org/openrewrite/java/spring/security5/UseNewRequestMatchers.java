@@ -88,7 +88,7 @@ public class UseNewRequestMatchers extends Recipe {
     }
 
     private Optional<JavaType.Method> findRequestMatchersMethodWithMatchingParameterTypes(J.MethodInvocation mi) {
-        JavaType.Method methodType = requireNonNull(mi.getMethodType(), "methodType");
+        JavaType.Method methodType = mi.getMethodType();
         List<JavaType> parameterTypes = methodType.getParameterTypes();
         List<JavaType.Method> methods;
         boolean isOverride = TypeUtils.isOverride(mi.getMethodType());
