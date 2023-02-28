@@ -22,7 +22,6 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNull;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
@@ -31,6 +30,7 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -80,18 +80,14 @@ public class UseNewRequestMatchers extends Recipe {
     }
 
     private J.MethodInvocation maybeChangeMethodInvocation(J.MethodInvocation mi) {
-        JavaType.Method requestMatchersMethod = findRequestMatchersMethodWithMatchingParameterTypes(mi);
-        if (requestMatchersMethod != null) {
-            return mi
-                    .withMethodType(requestMatchersMethod)
-                    .withName(mi.getName().withSimpleName("requestMatchers"));
-        } else {
-            return mi;
-        }
+        return findRequestMatchersMethodWithMatchingParameterTypes(mi)
+                .map(requestMatchersMethod -> mi
+                        .withMethodType(requestMatchersMethod)
+                        .withName(mi.getName().withSimpleName("requestMatchers")))
+                .orElse(mi);
     }
 
-    @Nullable
-    private JavaType.Method findRequestMatchersMethodWithMatchingParameterTypes(J.MethodInvocation mi) {
+    private Optional<JavaType.Method> findRequestMatchersMethodWithMatchingParameterTypes(J.MethodInvocation mi) {
         JavaType.Method methodType = requireNonNull(mi.getMethodType(), "methodType");
         List<JavaType> parameterTypes = methodType.getParameterTypes();
         List<JavaType.Method> methods;
@@ -104,7 +100,6 @@ public class UseNewRequestMatchers extends Recipe {
         return methods.stream()
                 .filter(m -> m.getName().equals("requestMatchers"))
                 .filter(m -> m.getParameterTypes().equals(parameterTypes))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 }
