@@ -8,24 +8,22 @@ description = "Eliminate legacy Spring patterns and migrate between major Spring
 val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0")
 val springSecurityVersions: List<String> = listOf("5_8")
 
-sourceSets {
-    springBootVersions.forEach { version ->
-        create("testWithSpringBoot_${version}") {
-            java {
-                compileClasspath += sourceSets.getByName("main").output
-                runtimeClasspath += sourceSets.getByName("main").output
-            }
-        }
-    }
-    springSecurityVersions.forEach { version ->
-        create("testWithSpringSecurity_${version}") {
-            java {
-                compileClasspath += sourceSets.getByName("main").output
-                runtimeClasspath += sourceSets.getByName("main").output
-            }
-        }
-    }
+val sourceSetNames: Map<String, List<String>> = mapOf(
+        Pair("testWithSpringBoot_", springBootVersions),
+        Pair("testWithSpringSecurity_", springSecurityVersions)
+)
 
+sourceSets {
+    sourceSetNames.forEach { sourceSetName, versions ->
+        versions.forEach { version ->
+            create("${sourceSetName}${version}") {
+                java {
+                    compileClasspath += sourceSets.getByName("main").output
+                    runtimeClasspath += sourceSets.getByName("main").output
+                }
+            }
+        }
+    }
 }
 
 repositories {
@@ -35,24 +33,16 @@ repositories {
 }
 
 configurations {
-    springBootVersions.forEach { version ->
-        getByName("testWithSpringBoot_${version}RuntimeOnly") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testRuntimeOnly"))
-        }
-        getByName("testWithSpringBoot_${version}Implementation") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testImplementation"))
-        }
-    }
-    springSecurityVersions.forEach { version ->
-        getByName("testWithSpringSecurity_${version}RuntimeOnly") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testRuntimeOnly"))
-        }
-        getByName("testWithSpringSecurity_${version}Implementation") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testImplementation"))
+    sourceSetNames.forEach { sourceSetName, versions ->
+        versions.forEach { version ->
+            getByName("${sourceSetName}${version}RuntimeOnly") {
+                isCanBeResolved = true
+                extendsFrom(getByName("testRuntimeOnly"))
+            }
+            getByName("${sourceSetName}${version}Implementation") {
+                isCanBeResolved = true
+                extendsFrom(getByName("testImplementation"))
+            }
         }
     }
 }
@@ -198,36 +188,22 @@ dependencies {
     "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-web:5.3.+")
 }
 
-springBootVersions.forEach { version ->
-    val sourceSetName = "testWithSpringBoot_${version}"
-    val sourceSetReference = project.sourceSets.getByName(sourceSetName)
-    val testTask = tasks.register<Test>(sourceSetName) {
-        description = "Runs the unit tests for ${sourceSetName}."
-        group = "verification"
-        useJUnitPlatform()
-        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
-        testClassesDirs = sourceSetReference.output.classesDirs
-        classpath = sourceSetReference.runtimeClasspath
-        shouldRunAfter(tasks.test)
-    }
-    tasks.check {
-        dependsOn(testTask)
-    }
-}
 
-springSecurityVersions.forEach { version ->
-    val sourceSetName = "testWithSpringSecurity_${version}"
-    val sourceSetReference = project.sourceSets.getByName(sourceSetName)
-    val testTask = tasks.register<Test>(sourceSetName) {
-        description = "Runs the unit tests for ${sourceSetName}."
-        group = "verification"
-        useJUnitPlatform()
-        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
-        testClassesDirs = sourceSetReference.output.classesDirs
-        classpath = sourceSetReference.runtimeClasspath
-        shouldRunAfter(tasks.test)
-    }
-    tasks.check {
-        dependsOn(testTask)
+sourceSetNames.forEach { sourceSet, versions ->
+    versions.forEach { version ->
+        val sourceSetName = "${sourceSet}${version}"
+        val sourceSetReference = project.sourceSets.getByName(sourceSetName)
+        val testTask = tasks.register<Test>(sourceSetName) {
+            description = "Runs the unit tests for ${sourceSetName}."
+            group = "verification"
+            useJUnitPlatform()
+            jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
+            testClassesDirs = sourceSetReference.output.classesDirs
+            classpath = sourceSetReference.runtimeClasspath
+            shouldRunAfter(tasks.test)
+        }
+        tasks.check {
+            dependsOn(testTask)
+        }
     }
 }
