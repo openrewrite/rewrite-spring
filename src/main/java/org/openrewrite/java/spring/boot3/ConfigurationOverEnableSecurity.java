@@ -36,13 +36,11 @@ public class ConfigurationOverEnableSecurity extends Recipe {
     private static final String CONFIGURATION_PACKAGE = "org.springframework.context.annotation";
     private static final String CONFIGURATION_SIMPLE_NAME = "Configuration";
 
-    private static final String FQN_CONFIGURATION = "org.springframework.context.annotation.Configuration";
-
     private static List<String> EXCLUSIONS = Arrays.asList(new String[] {
        "org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity"
     });
 
-    private static final String ENABLE_SECURITY_ANNOTATION_PATTERN = "org.springframework.security.config.annotation..*.Enable.*Security";
+    private static final String ENABLE_SECURITY_ANNOTATION_PATTERN = "@org.springframework.security.config.annotation..*.Enable.*Security";
 
     @Override
     public String getDisplayName() {
@@ -61,7 +59,7 @@ public class ConfigurationOverEnableSecurity extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, executionContext);
                 AnnotationMatcher securityMatcher = new AnnotationMatcher(ENABLE_SECURITY_ANNOTATION_PATTERN, true);
-                AnnotationMatcher configMatcher = new AnnotationMatcher(CONFIGURATION_PACKAGE + "." + CONFIGURATION_SIMPLE_NAME, true);
+                AnnotationMatcher configMatcher = new AnnotationMatcher("@" + CONFIGURATION_PACKAGE + "." + CONFIGURATION_SIMPLE_NAME, true);
                 boolean hasEnableSecurity = false;
                 boolean hasConfiguration = false;
                 for (Iterator<J.Annotation> itr = c.getLeadingAnnotations().iterator(); itr.hasNext() && !hasEnableSecurity && !hasConfiguration;) {
