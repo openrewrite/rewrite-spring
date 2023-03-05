@@ -31,9 +31,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private static final String MSG_TOP_INVOCATION = "top-method-invocation";
 
-    private String securityFqn;
+    private final String securityFqn;
 
-    private Collection<String> convertableMethods;
+    private final Collection<String> convertableMethods;
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods) {
         this.securityFqn = securityFqn;

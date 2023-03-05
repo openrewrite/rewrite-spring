@@ -36,8 +36,8 @@ public class ConfigurationOverEnableSecurity extends Recipe {
     private static final String CONFIGURATION_PACKAGE = "org.springframework.context.annotation";
     private static final String CONFIGURATION_SIMPLE_NAME = "Configuration";
 
-    private static List<String> EXCLUSIONS = Arrays.asList(new String[] {
-       "org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity"
+    private static final List<String> EXCLUSIONS = Arrays.asList(new String[]{
+            "org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity"
     });
 
     private static final String ENABLE_SECURITY_ANNOTATION_PATTERN = "@org.springframework.security.config.annotation..*.Enable.*Security";
@@ -83,7 +83,7 @@ public class ConfigurationOverEnableSecurity extends Recipe {
             private J.ClassDeclaration addConfigurationAnnotation(J.ClassDeclaration c) {
                 String configurationFqn = CONFIGURATION_PACKAGE + "." + CONFIGURATION_SIMPLE_NAME;
                 maybeAddImport(configurationFqn);
-                JavaTemplate template = JavaTemplate.builder(() -> getCursor(), "@" + CONFIGURATION_SIMPLE_NAME).imports(configurationFqn).javaParser(() -> JavaParser.fromJavaVersion()
+                JavaTemplate template = JavaTemplate.builder(this::getCursor, "@" + CONFIGURATION_SIMPLE_NAME).imports(configurationFqn).javaParser(() -> JavaParser.fromJavaVersion()
                         .dependsOn("package " + CONFIGURATION_PACKAGE + "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}").build()).build();
                 return c.withTemplate(template, c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
             }

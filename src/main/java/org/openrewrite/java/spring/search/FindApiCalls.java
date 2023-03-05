@@ -29,7 +29,7 @@ import org.openrewrite.marker.SearchResult;
 import java.util.Objects;
 
 public class FindApiCalls extends Recipe {
-    transient final ApiCalls calls = new ApiCalls(this);
+    final transient ApiCalls calls = new ApiCalls(this);
 
     @Override
     public String getDisplayName() {

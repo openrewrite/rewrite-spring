@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MigrateUtf8MediaTypes extends Recipe {
-    private final JavaType.FullyQualified MEDIA_TYPE_FQN =
+    private final JavaType.FullyQualified mediaTypeFqn =
             JavaType.ShallowClass.build("org.springframework.http.MediaType");
 
     @Override
@@ -59,11 +59,11 @@ public class MigrateUtf8MediaTypes extends Recipe {
             @Override
             public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
                 J.FieldAccess fa = super.visitFieldAccess(fieldAccess, ctx);
-                if (TypeUtils.isOfType(MEDIA_TYPE_FQN, fa.getTarget().getType()) &&
+                if (TypeUtils.isOfType(mediaTypeFqn, fa.getTarget().getType()) &&
                     updateDeprecatedFields.containsKey(fa.getName().getSimpleName())) {
 
                     if (fa.getTarget() instanceof J.FieldAccess) {
-                        fa = TypeTree.build(MEDIA_TYPE_FQN.getFullyQualifiedName() + "." + updateDeprecatedFields.get(fieldAccess.getName().getSimpleName()))
+                        fa = TypeTree.build(mediaTypeFqn.getFullyQualifiedName() + "." + updateDeprecatedFields.get(fieldAccess.getName().getSimpleName()))
                                 .withPrefix(fa.getPrefix());
                     } else {
                         fa = fa.withName(fa.getName().withSimpleName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
@@ -71,8 +71,8 @@ public class MigrateUtf8MediaTypes extends Recipe {
                                 Tree.randomId(),
                                 fa.getTarget().getPrefix(),
                                 fa.getTarget().getMarkers(),
-                                MEDIA_TYPE_FQN.getClassName(),
-                                MEDIA_TYPE_FQN,
+                                mediaTypeFqn.getClassName(),
+                                mediaTypeFqn,
                                 null));
                     }
                 }
@@ -94,7 +94,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
                                     null,
                                     fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags()),
                                     updateDeprecatedFields.get(id.getSimpleName()),
-                                    MEDIA_TYPE_FQN,
+                                    mediaTypeFqn,
                                     null,
                                     Collections.emptyList()));
                 }
@@ -104,7 +104,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
             private boolean isTargetFieldType(J.Identifier identifier) {
                 if (identifier.getFieldType() != null) {
                     JavaType.FullyQualified fqn = TypeUtils.asFullyQualified((identifier.getFieldType()).getOwner());
-                    return fqn != null && MEDIA_TYPE_FQN.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
+                    return fqn != null && mediaTypeFqn.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
                 }
                 return false;
             }

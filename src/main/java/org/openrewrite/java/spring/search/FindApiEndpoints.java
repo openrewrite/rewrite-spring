@@ -36,7 +36,7 @@ public class FindApiEndpoints extends Recipe {
             .map(method -> new AnnotationMatcher("@org.springframework.web.bind.annotation." + method + "Mapping"))
             .collect(toList());
 
-    transient final ApiEndpoints apis = new ApiEndpoints(this);
+    final transient ApiEndpoints apis = new ApiEndpoints(this);
 
     @Override
     public String getDisplayName() {

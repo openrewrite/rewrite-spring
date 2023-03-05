@@ -61,7 +61,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
         return fullyQualifiedInterfaceName;
     }
 
-    private String simpleInterfaceName;
+    private final String simpleInterfaceName;
 
     // Recipes must be serializable. This is verified by RecipeTest.assertChanged()
     // and RecipeTest.assertUnchanged()

@@ -242,11 +242,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
             private boolean inConflictingAuthConfigMethod(J.MethodDeclaration m) {
                 AuthType authType = getAuthType(m);
-                switch (authType) {
-                    case INMEMORY:
-                        return false;
-                }
-                return true;
+                return authType != WebSecurityConfigurerAdapter.AuthType.INMEMORY;
             }
 
             @Override

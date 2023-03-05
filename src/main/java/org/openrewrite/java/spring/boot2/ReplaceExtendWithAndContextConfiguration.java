@@ -106,7 +106,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                     if (expression instanceof J.Assignment) {
                         J.Assignment assignment = (J.Assignment) expression;
                         String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                        if (name.equals("value")) {
+                        if ("value".equals(name)) {
                             J.Assignment as = createLocationsAssignment(a, assignment.getAssignment())
                                     .withPrefix(expression.getPrefix());
                             newArgs.set(i, as);

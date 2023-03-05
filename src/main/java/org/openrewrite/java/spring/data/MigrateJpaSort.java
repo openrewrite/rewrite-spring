@@ -49,7 +49,7 @@ public class MigrateJpaSort extends Recipe {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 if (cu.getPackageDeclaration() != null
-                    && cu.getPackageDeclaration().getPackageName().equals("org.springframework.data.jpa.domain")) {
+                    && "org.springframework.data.jpa.domain".equals(cu.getPackageDeclaration().getPackageName())) {
                     return cu;
                 }
 
