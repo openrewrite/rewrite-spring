@@ -16,6 +16,7 @@
 package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security5.UseNewRequestMatchers;
 import org.openrewrite.test.RecipeSpec;
@@ -30,7 +31,7 @@ class UseNewRequestMatchersTest implements RewriteTest {
         spec.recipe(new UseNewRequestMatchers())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpath("spring-context", "spring-beans", "spring-web", "spring-security-web", "spring-security-config"));
+            .classpathFromResources(new InMemoryExecutionContext(),"spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
     }
 
     @Test
