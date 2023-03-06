@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -97,8 +94,8 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
 
         if (!isStatic) {
             // no static keyword? check if it is top level class in the CU
-            J.CompilationUnit cu = cursor.dropParentUntil(J.CompilationUnit.class::isInstance).getValue();
-            if (!cu.getClasses().contains(classDecl)) {
+            Object enclosing = cursor.dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE).getValue();
+            if (enclosing instanceof J.ClassDeclaration) {
                 return false;
             }
         }
