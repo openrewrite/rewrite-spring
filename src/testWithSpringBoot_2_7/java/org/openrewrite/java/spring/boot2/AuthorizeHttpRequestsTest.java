@@ -100,12 +100,12 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
 
               @Configuration
               public class JdbcSecurityConfiguration {
-              	@Bean
-              	SecurityFilterChain web(HttpSecurity http) throws Exception {
-              	    ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry reqs = http.authorizeRequests();
-              	    reqs.antMatchers("/ll").authenticated();
-              	    return http.build();
-              	}
+                  @Bean
+                  SecurityFilterChain web(HttpSecurity http) throws Exception {
+                      ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry reqs = http.authorizeRequests();
+                      reqs.antMatchers("/ll").authenticated();
+                      return http.build();
+                  }
               }
                             """,
             """
@@ -117,12 +117,12 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
 
               @Configuration
               public class JdbcSecurityConfiguration {
-              	@Bean
-              	SecurityFilterChain web(HttpSecurity http) throws Exception {
-              	    AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry reqs = http.authorizeHttpRequests();
-              	    reqs.antMatchers("/ll").authenticated();
-              	    return http.build();
-              	}
+                  @Bean
+                  SecurityFilterChain web(HttpSecurity http) throws Exception {
+                      AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry reqs = http.authorizeHttpRequests();
+                      reqs.antMatchers("/ll").authenticated();
+                      return http.build();
+                  }
               }
                              """
           )

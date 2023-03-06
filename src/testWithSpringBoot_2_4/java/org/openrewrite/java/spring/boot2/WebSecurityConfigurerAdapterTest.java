@@ -422,37 +422,37 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
 
             @EnableWebSecurity
             public class MultiHttpSecurityConfig {
-            	@Bean
-            	public UserDetailsService userDetailsService() throws Exception {
-            		InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-            		return manager;
-            	}
+                @Bean
+                public UserDetailsService userDetailsService() throws Exception {
+                    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                    return manager;
+                }
 
-            	@Configuration
-            	@Order(1)
-            	public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
-            		protected void configure(HttpSecurity http) throws Exception {
-            			http
-            				.antMatcher("/api/**")
-            				.authorizeRequests()
-            					.anyRequest().hasRole("ADMIN")
-            					.and()
-            				.httpBasic();
-            		}
-            	}
+                @Configuration
+                @Order(1)
+                public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+                    protected void configure(HttpSecurity http) throws Exception {
+                        http
+                            .antMatcher("/api/**")
+                            .authorizeRequests()
+                                .anyRequest().hasRole("ADMIN")
+                                .and()
+                            .httpBasic();
+                    }
+                }
 
-            	@Configuration
-            	public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+                @Configuration
+                public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
-            		@Override
-            		protected void configure(HttpSecurity http) throws Exception {
-            			http
-            				.authorizeRequests()
-            					.anyRequest().authenticated()
-            					.and()
-            				.formLogin();
-            		}
-            	}
+                    @Override
+                    protected void configure(HttpSecurity http) throws Exception {
+                        http
+                            .authorizeRequests()
+                                .anyRequest().authenticated()
+                                .and()
+                            .formLogin();
+                    }
+                }
             }
             """,
             """
@@ -514,38 +514,38 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               @EnableWebSecurity
               public class MultiHttpSecurityConfig {
                 private int a;
-              	@Bean
-              	public UserDetailsService userDetailsService() throws Exception {
-              		InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-              		return manager;
-              	}
+                  @Bean
+                  public UserDetailsService userDetailsService() throws Exception {
+                      InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                      return manager;
+                  }
 
-              	@Configuration
-              	@Order(1)
-              	public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
-              	    private String a;
-              		protected void configure(HttpSecurity http) throws Exception {
-              			http
-              				.antMatcher("/api/**")
-              				.authorizeRequests()
-              					.anyRequest().hasRole("ADMIN")
-              					.and()
-              				.httpBasic();
-              		}
-              	}
+                  @Configuration
+                  @Order(1)
+                  public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+                      private String a;
+                      protected void configure(HttpSecurity http) throws Exception {
+                          http
+                              .antMatcher("/api/**")
+                              .authorizeRequests()
+                                  .anyRequest().hasRole("ADMIN")
+                                  .and()
+                              .httpBasic();
+                      }
+                  }
 
-              	@Configuration
-              	public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+                  @Configuration
+                  public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
-              		@Override
-              		protected void configure(HttpSecurity http) throws Exception {
-              			http
-              				.authorizeRequests()
-              					.anyRequest().authenticated()
-              					.and()
-              				.formLogin();
-              		}
-              	}
+                      @Override
+                      protected void configure(HttpSecurity http) throws Exception {
+                          http
+                              .authorizeRequests()
+                                  .anyRequest().authenticated()
+                                  .and()
+                              .formLogin();
+                      }
+                  }
               }
               """,
             """
@@ -616,10 +616,10 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
-              	  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
                       UserDetails user = User.withDefaultPasswordEncoder().username("user").password("password").roles("USER")
                           .build();
-              		  auth.inMemoryAuthentication().withUser(user);
+                        auth.inMemoryAuthentication().withUser(user);
                   }
               }
               """,
@@ -662,9 +662,9 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
-              	  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
                       UserBuilder builder = User.withDefaultPasswordEncoder().username("user").password("password").roles("USER");
-              		  auth.inMemoryAuthentication().withUser(builder);
+                        auth.inMemoryAuthentication().withUser(builder);
                   }
               }
               """,
@@ -704,8 +704,8 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
-              	  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-              		  auth.inMemoryAuthentication().withUser("user");
+                    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                        auth.inMemoryAuthentication().withUser("user");
                   }
               }
               """,

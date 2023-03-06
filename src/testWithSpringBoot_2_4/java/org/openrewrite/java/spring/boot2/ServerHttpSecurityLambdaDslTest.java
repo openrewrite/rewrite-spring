@@ -44,11 +44,11 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-	@Bean
-	SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    @Bean
+    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http.authorizeExchange().pathMatchers("/blog/**").permitAll().anyExchange().authenticated();
         return http.build();
-	}
+    }
 }
               """,
             """
@@ -60,11 +60,11 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-	@Bean
-	SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    @Bean
+    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http.authorizeExchange(exchange -> exchange.pathMatchers("/blog/**").permitAll().anyExchange().authenticated());
         return http.build();
-	}
+    }
 }
               """
           )
@@ -85,13 +85,13 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-	@Bean
-	SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-	
+    @Bean
+    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    
         http.authorizeExchange().pathMatchers("/blog/**").permitAll().anyExchange().authenticated().and().httpBasic()
                 .and().formLogin().loginPage("/login");
-		return http.build();
-	}
+        return http.build();
+    }
 }
               """,
             """
@@ -105,11 +105,11 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-	@Bean
-	SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    @Bean
+    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http.authorizeExchange(exchange -> exchange.pathMatchers("/blog/**").permitAll().anyExchange().authenticated()).httpBasic(withDefaults()).formLogin(login -> login.loginPage("/login"));
-		return http.build();
-	}
+        return http.build();
+    }
 }
               """
           )
