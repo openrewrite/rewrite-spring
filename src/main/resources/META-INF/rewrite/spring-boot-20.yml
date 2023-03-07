@@ -670,7 +670,6 @@ recipeList:
   - org.openrewrite.java.spring.NoRequestMappingAnnotation
   - org.openrewrite.java.spring.ImplicitWebAnnotationNames
   - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
-  - org.openrewrite.java.spring.BeanMethodsNotPublic
   - org.openrewrite.java.spring.NoAutowiredOnConstructor
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
