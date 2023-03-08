@@ -135,7 +135,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                         maybeAddImport("org.springframework.context.annotation.Conditional");
                     } else {
                         // add the new conditional class template string to the parent ClassDeclaration Cursor
-                        Cursor classDeclarationCursor = getCursor().dropParentUntil(J.ClassDeclaration.class::isInstance);
+                        Cursor classDeclarationCursor = getCursor().dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE);
                         Set<String> anyConditionClasses = classDeclarationCursor.getMessage(ANY_CONDITION_TEMPLATES);
                         if (anyConditionClasses == null) {
                             anyConditionClasses = new TreeSet<>();

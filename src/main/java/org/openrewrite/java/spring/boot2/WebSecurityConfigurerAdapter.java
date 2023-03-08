@@ -121,7 +121,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 }
                 classDecl = super.visitClassDeclaration(classDecl, context);
                 if (!isWebSecurityConfigurerAdapterClass) {
-                    classDecl = processAnyClass(classDecl);
+                    classDecl = processAnyClass(classDecl, context);
                 } else if (!hasConflict) {
                     classDecl = processSecurityAdapterClass(classDecl);
                 }
@@ -202,7 +202,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return firstSpaceIdx < 0 ? fullSignature : fullSignature.substring(firstSpaceIdx + 1);
             }
 
-            private J.ClassDeclaration processAnyClass(J.ClassDeclaration classDecl) {
+            private J.ClassDeclaration processAnyClass(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 // regular class case
                 List<J.ClassDeclaration> toFlatten = getCursor().pollMessage(FLATTEN_CLASSES);
                 if (toFlatten != null) {
@@ -213,20 +213,22 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         for (Statement s : fc.getBody().getStatements()) {
                             if (s instanceof J.MethodDeclaration) {
                                 J.MethodDeclaration m = (J.MethodDeclaration) s;
-                                if (isAnnotatedWith(m.getLeadingAnnotations(), FQN_BEAN)) {
+                                if (isAnnotatedWith(m.getLeadingAnnotations(), FQN_BEAN) && m.getMethodType() != null) {
                                     JavaType.FullyQualified beanType = TypeUtils.asFullyQualified(m.getMethodType().getReturnType());
+                                    if (beanType == null) {
+                                        continue;
+                                    }
                                     String uniqueName = computeBeanNameFromClassName(fc.getSimpleName(), beanType.getClassName());
                                     s = m
                                             .withName(m.getName().withSimpleName(uniqueName))
                                             .withMethodType(m.getMethodType().withName(uniqueName));
+                                    s = autoFormat(s, ctx, new Cursor(getCursor(), classDecl.getBody()));
                                 }
                             }
                             statements.add(s);
                         }
                     }
                     classDecl = classDecl.withBody(classDecl.getBody().withStatements(statements));
-                    //TODO: not sure how to autoformat only the statements added to the class declaration
-                    doAfterVisit(new AutoFormatVisitor<>());
                 }
                 return classDecl;
             }
@@ -247,7 +249,10 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration m, ExecutionContext context) {
-                Cursor classCursor = getCursor().dropParentUntil(J.ClassDeclaration.class::isInstance);
+                Cursor classCursor = getCursor().dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE);
+                if(!(classCursor.getValue() instanceof J.ClassDeclaration)) {
+                    return m;
+                }
                 if (isConflictingMethod(m)) {
                     m = SearchResult.found(m, "Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter");
                 } else if (!classCursor.getMessage(HAS_CONFLICT, true)) {
@@ -320,7 +325,10 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 J.Block b = super.visitBlock(block, context);
                 if (getCursor().getParent() != null && getCursor().getParent().getValue() instanceof J.MethodDeclaration) {
                     J.MethodDeclaration parentMethod = getCursor().getParent().getValue();
-                    Cursor classDeclCursor = getCursor().dropParentUntil(J.ClassDeclaration.class::isInstance);
+                    Cursor classDeclCursor = getCursor().dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE);
+                    if(!(classDeclCursor.getValue() instanceof J.ClassDeclaration)) {
+                        return b;
+                    }
                     J.ClassDeclaration classDecl = classDeclCursor.getValue();
                     if (!classDeclCursor.getMessage(HAS_CONFLICT, true)) {
                         if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {

@@ -513,7 +513,8 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
 
               @EnableWebSecurity
               public class MultiHttpSecurityConfig {
-                private int a;
+                  private int a;
+
                   @Bean
                   public UserDetailsService userDetailsService() throws Exception {
                       InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
@@ -576,11 +577,11 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                       @Bean
                       SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                           http
-                                  .antMatcher("/api/**")
-                                  .authorizeRequests()
+                              .antMatcher("/api/**")
+                              .authorizeRequests()
                                   .anyRequest().hasRole("ADMIN")
                                   .and()
-                                  .httpBasic();
+                              .httpBasic();
                           return http.build();
                       }
                   }
