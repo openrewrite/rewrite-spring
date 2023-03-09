@@ -6,13 +6,21 @@ group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
 val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0")
+val springSecurityVersions: List<String> = listOf("5_8")
+
+val sourceSetNames: Map<String, List<String>> = mapOf(
+        Pair("testWithSpringBoot_", springBootVersions),
+        Pair("testWithSpringSecurity_", springSecurityVersions)
+)
 
 sourceSets {
-    springBootVersions.forEach { version ->
-        create("testWithSpringBoot_${version}") {
-            java {
-                compileClasspath += sourceSets.getByName("main").output
-                runtimeClasspath += sourceSets.getByName("main").output
+    sourceSetNames.forEach { sourceSetName, versions ->
+        versions.forEach { version ->
+            create("${sourceSetName}${version}") {
+                java {
+                    compileClasspath += sourceSets.getByName("main").output
+                    runtimeClasspath += sourceSets.getByName("main").output
+                }
             }
         }
     }
@@ -25,14 +33,16 @@ repositories {
 }
 
 configurations {
-    springBootVersions.forEach { version ->
-        getByName("testWithSpringBoot_${version}RuntimeOnly") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testRuntimeOnly"))
-        }
-        getByName("testWithSpringBoot_${version}Implementation") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testImplementation"))
+    sourceSetNames.forEach { sourceSetName, versions ->
+        versions.forEach { version ->
+            getByName("${sourceSetName}${version}RuntimeOnly") {
+                isCanBeResolved = true
+                extendsFrom(getByName("testRuntimeOnly"))
+            }
+            getByName("${sourceSetName}${version}Implementation") {
+                isCanBeResolved = true
+                extendsFrom(getByName("testImplementation"))
+            }
         }
     }
 }
@@ -75,6 +85,9 @@ recipeDependencies {
 
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:4.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
+
+    parserClasspath("org.springframework.security:spring-security-config:5.8.+")
+    parserClasspath("org.springframework.security:spring-security-web:5.8.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -173,19 +186,22 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
 }
 
-springBootVersions.forEach { version ->
-    val sourceSetName = "testWithSpringBoot_${version}"
-    val sourceSetReference = project.sourceSets.getByName(sourceSetName)
-    val testTask = tasks.register<Test>(sourceSetName) {
-        description = "Runs the unit tests for ${sourceSetName}."
-        group = "verification"
-        useJUnitPlatform()
-        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
-        testClassesDirs = sourceSetReference.output.classesDirs
-        classpath = sourceSetReference.runtimeClasspath
-        shouldRunAfter(tasks.test)
-    }
-    tasks.check {
-        dependsOn(testTask)
+
+sourceSetNames.forEach { sourceSet, versions ->
+    versions.forEach { version ->
+        val sourceSetName = "${sourceSet}${version}"
+        val sourceSetReference = project.sourceSets.getByName(sourceSetName)
+        val testTask = tasks.register<Test>(sourceSetName) {
+            description = "Runs the unit tests for ${sourceSetName}."
+            group = "verification"
+            useJUnitPlatform()
+            jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
+            testClassesDirs = sourceSetReference.output.classesDirs
+            classpath = sourceSetReference.runtimeClasspath
+            shouldRunAfter(tasks.test)
+        }
+        tasks.check {
+            dependsOn(testTask)
+        }
     }
 }
