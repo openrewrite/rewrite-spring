@@ -56,7 +56,7 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
                     a = a.withAnnotationType(a.getAnnotationType().withType(JavaType.buildType("org.springframework.boot.web.server.LocalServerPort")));
                     maybeRemoveImport("org.springframework.boot.context.embedded.LocalServerPort");
                     maybeAddImport("org.springframework.boot.web.server.LocalServerPort");
-                    doNext(new AddDependency("org.springframework.boot", "spring-boot-starter-web", "2.0.x", null, null, null, "org.springframework.boot.web.server.LocalServerPort", null, null, null, null));
+                    doNext(new AddDependency("org.springframework.boot", "spring-boot-starter-web", "2.0.x", null, null, null, "org.springframework.boot.web.server.LocalServerPort", null, null, null, null, true));
                 }
                 return a;
             }
