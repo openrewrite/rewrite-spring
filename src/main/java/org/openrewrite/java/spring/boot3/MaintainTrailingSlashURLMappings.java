@@ -11,6 +11,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MaintainTrailingSlashURLMappings extends Recipe {
 
+    private static final String WEB_MVC_CONFIGUER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
+    private static final String WEB_FLUX_CONFIGUER = "org.springframework.web.reactive.config.WebFluxConfigurer";
+
     @Override
     public String getDisplayName() {
         return "Maintain trailing slash URL mappings";
@@ -33,7 +36,7 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
         for (SourceFile s : before) {
             if (s instanceof JavaSourceFile) {
                 JavaSourceFile cu = (JavaSourceFile) s;
-                anyConfigOverridden = FindWebMvcConfigurer.find(cu).get();
+                anyConfigOverridden = FindWebMvcConfigurer.find(cu);
                 if (anyConfigOverridden) {
                     break;
                 }
@@ -49,9 +52,9 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
     }
 
     private static class FindWebMvcConfigurer extends JavaIsoVisitor<AtomicBoolean> {
-        static AtomicBoolean find(J j) {
+        static boolean find(J j) {
             return new FindWebMvcConfigurer()
-                .reduce(j, new AtomicBoolean());
+                .reduce(j, new AtomicBoolean()).get();
         }
 
         @Override
@@ -60,7 +63,9 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
                 for (TypeTree impl : classDecl.getImplements()) {
                     JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
                     if (fullyQualified != null &&
-                        "org.springframework.web.servlet.config.annotation.WebMvcConfigurer".equals(fullyQualified.getFullyQualifiedName())) {
+                        (WEB_MVC_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()) ||
+                         WEB_FLUX_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()))
+                    ) {
                         atomicBoolean.set(true);
                         return classDecl;
                     }

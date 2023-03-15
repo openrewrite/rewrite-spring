@@ -1,8 +1,8 @@
-package org.openrewrite.java.spring.boot3;
+package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.spring.boot3.MaintainTrailingSlashURLMappings;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
