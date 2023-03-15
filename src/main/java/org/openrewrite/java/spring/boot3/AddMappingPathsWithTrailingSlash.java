@@ -15,7 +15,7 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static org.openrewrite.java.tree.Space.EMPTY;
 
-public class AddMappingPathsWithTrailingSlash extends Recipe {
+public class AddRouteTrailingSlash extends Recipe {
     private static final String GET_ANNOTATION_TYPE = "org.springframework.web.bind.annotation.GetMapping";
     private static final String REQUEST_ANNOTATION_TYPE = "org.springframework.web.bind.annotation.RequestMapping";
     private static final String POST_ANNOTATION_TYPE = "org.springframework.web.bind.annotation.PostMapping";
