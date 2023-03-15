@@ -2,18 +2,18 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.boot3.AddMappingPathsWithTrailingSlash;
+import org.openrewrite.java.spring.boot3.AddRouteTrailingSlash;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class AddMappingPathsWithTrailingSlashTest implements RewriteTest {
+public class AddRouteTrailingSlashTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion().classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "spring-core"))
-          .recipe(new AddMappingPathsWithTrailingSlash());
+          .recipe(new AddRouteTrailingSlash());
     }
 
     @Test

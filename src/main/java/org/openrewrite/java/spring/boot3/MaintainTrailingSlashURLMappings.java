@@ -47,7 +47,7 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
             return before;
         }
 
-        doNext(new AddMappingPathsWithTrailingSlash());
+        doNext(new AddRouteTrailingSlash());
         return before;
     }
 
