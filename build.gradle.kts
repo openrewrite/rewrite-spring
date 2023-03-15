@@ -168,6 +168,8 @@ dependencies {
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-web:5.3.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-webflux:5.3.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-core:5.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-config:5.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-web:5.7.+")
