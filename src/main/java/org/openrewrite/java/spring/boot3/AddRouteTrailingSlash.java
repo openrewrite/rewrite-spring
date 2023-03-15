@@ -33,10 +33,10 @@ public class AddRouteTrailingSlash extends Recipe {
     public String getDescription() {
         return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing" +
                " slash matching configuration option has been deprecated and its default value set to false. This " +
-               "means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both \"GET " +
-               "/some/greeting\" and \"GET /some/greeting/\", but it doesn't match \"GET /some/greeting/\" anymore by" +
+               "means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both `GET " +
+               "/some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` anymore by" +
                " default and will result in an HTTP 404 error. This recipe is to add declaration of additional route" +
-               " explicitly on the controller handler (like @GetMapping(\"/some/greeting\", \"/some/greeting/\").";
+               " explicitly on the controller handler (like `@GetMapping(\"/some/greeting\", \"/some/greeting/\")`.";
     }
 
     @Override
@@ -55,10 +55,10 @@ public class AddRouteTrailingSlash extends Recipe {
 
                     J.Literal str = (J.Literal) anno.getArguments().get(0);
                     if (!matchTrailingSlash(str.getValue().toString())) {
-                        J.Assignment assignment = buildAssignment(str);
-                        return annotation.withArguments(Collections.singletonList(assignment));
-                    }
+                        // J.Assignment assignment = buildAssignment(str);
 
+                        return annotation.withArguments(Collections.singletonList(buildTwoStringsArray(str)));
+                    }
                 } else {
                     // search for value
                     List<Expression> args = anno.getArguments();
@@ -89,19 +89,23 @@ public class AddRouteTrailingSlash extends Recipe {
         return str.endsWith("/") || str.endsWith("*");
     }
 
-    private J.Assignment buildAssignment(J.Literal path) {
+    private J.NewArray buildTwoStringsArray(J.Literal path) {
         String oriPath = path.getValue().toString();
         String pathWithTrailingSlash = oriPath + '/';
-
-        J.Assignment assignmentTemplate = getAssignmentTemplate().withPrefix(Space.EMPTY);
         J.NewArray twoPaths = getTwoStringsArrayTemplate();
         List<Expression> exps = twoPaths.getInitializer();
         exps.set(0, path.withPrefix(EMPTY));
         exps.set(1, path.withValue(pathWithTrailingSlash)
             .withValueSource("\"" + pathWithTrailingSlash + "\"")
             .withPrefix(Space.build(" ", emptyList())));
-        twoPaths = twoPaths.withInitializer(exps);
-        return assignmentTemplate.withAssignment(twoPaths);
+        return twoPaths.withInitializer(exps).withPrefix(EMPTY);
+    }
+
+    private J.Assignment buildAssignment(J.Literal path) {
+        J.NewArray twoPaths = buildTwoStringsArray(path);
+        return getAssignmentTemplate()
+            .withPrefix(Space.EMPTY)
+            .withAssignment(twoPaths.withPrefix(Space.build(" ", emptyList())));
     }
 
     private static boolean isHttpVerbMappingAnnotation(String fqn) {

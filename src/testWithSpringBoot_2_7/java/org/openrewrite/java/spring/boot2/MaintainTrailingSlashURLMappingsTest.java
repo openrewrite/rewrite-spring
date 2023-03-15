@@ -107,7 +107,7 @@ public class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
               @RestController
               public class ExampleController {
                 
-                  @GetMapping(value = {"/get", "/get/"})
+                  @GetMapping({"/get", "/get/"})
                   public String getExample() {
                       return "This is a GET example.";
                   }

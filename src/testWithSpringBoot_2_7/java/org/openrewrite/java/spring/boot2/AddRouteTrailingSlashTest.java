@@ -38,7 +38,7 @@ public class AddRouteTrailingSlashTest implements RewriteTest {
               @RestController
               public class ExampleController {
 
-                  @GetMapping(value = {"/get", "/get/"})
+                  @GetMapping({"/get", "/get/"})
                   public String getExample() {
                       return "This is a GET example.";
                   }
@@ -134,30 +134,30 @@ public class AddRouteTrailingSlashTest implements RewriteTest {
               import org.springframework.web.bind.annotation.*;
 
               @RestController
-              @RequestMapping(value = {"/example", "/example/"})
+              @RequestMapping({"/example", "/example/"})
               public class ExampleController {
 
-                  @GetMapping(value = {"/get", "/get/"})
+                  @GetMapping({"/get", "/get/"})
                   public String getExample() {
                       return "This is a GET example.";
                   }
                             
-                  @PostMapping(value = {"/post", "/post/"})
+                  @PostMapping({"/post", "/post/"})
                   public String postExample() {
                       return "This is a POST example.";
                   }
                             
-                  @PutMapping(value = {"/put", "/put/"})
+                  @PutMapping({"/put", "/put/"})
                   public String putExample() {
                       return "This is a PUT example.";
                   }
                             
-                  @PatchMapping(value = {"/patch", "/patch/"})
+                  @PatchMapping({"/patch", "/patch/"})
                   public String patchExample() {
                       return "This is a PATCH example.";
                   }
                             
-                  @DeleteMapping(value = {"/delete", "/delete/"})
+                  @DeleteMapping({"/delete", "/delete/"})
                   public String deleteExample() {
                       return "This is a DELETE example.";
                   }
@@ -196,5 +196,4 @@ public class AddRouteTrailingSlashTest implements RewriteTest {
           )
         );
     }
-
 }
