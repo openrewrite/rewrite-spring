@@ -2,7 +2,6 @@ package org.openrewrite.java.spring.boot3;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -27,7 +26,7 @@ public class AddRouteTrailingSlash extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Declare the additional route explicitly on the controller handler";
+        return "Add trailing slash to Spring routes";
     }
 
     @Override
@@ -42,43 +41,42 @@ public class AddRouteTrailingSlash extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>(){
+        return new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 J.Annotation anno = super.visitAnnotation(annotation, ctx);
+                if (anno.getType() == null || !isHttpVerbMappingAnnotation(anno.getType().toString())) {
+                    return anno;
+                }
 
-                if (anno.getType() != null &&
-                    isHttpVerbMappingAnnotation(anno.getType().toString())) {
-                    if (anno.getArguments().size() == 1 &&
-                        isStringLiteral(anno.getArguments().get(0))) {
+                if (anno.getArguments().size() == 1 &&
+                    isStringLiteral(anno.getArguments().get(0))) {
 
-                        J.Literal str = (J.Literal) anno.getArguments().get(0);
-                        if (!matchTrailingSlash(str.getValue().toString())) {
-                            J.Assignment assignment = buildAssignment(str);
-                            return annotation.withArguments(Collections.singletonList(assignment));
-                        }
+                    J.Literal str = (J.Literal) anno.getArguments().get(0);
+                    if (!matchTrailingSlash(str.getValue().toString())) {
+                        J.Assignment assignment = buildAssignment(str);
+                        return annotation.withArguments(Collections.singletonList(assignment));
+                    }
 
-                    } else {
-                        // search for value
-                        List<Expression> args = anno.getArguments();
-                        for (int i = 0 ; i < args.size(); i++) {
-                            Expression exp = args.get(i);
-                            if (exp instanceof J.Assignment) {
-                                J.Assignment assignment = (J.Assignment) exp;
-                                if (assignment.getVariable() instanceof J.Identifier &&
-                                    ((J.Identifier) assignment.getVariable()).getSimpleName().equals("value") &&
-                                    isStringLiteral(assignment.getAssignment()) ) {
+                } else {
+                    // search for value
+                    List<Expression> args = anno.getArguments();
+                    for (int i = 0; i < args.size(); i++) {
+                        Expression exp = args.get(i);
+                        if (exp instanceof J.Assignment) {
+                            J.Assignment assignment = (J.Assignment) exp;
+                            if (assignment.getVariable() instanceof J.Identifier &&
+                                ((J.Identifier) assignment.getVariable()).getSimpleName().equals("value") &&
+                                isStringLiteral(assignment.getAssignment())) {
 
-                                    J.Literal str = (J.Literal) assignment.getAssignment();
-                                    if (!matchTrailingSlash(str.getValue().toString())) {
-                                        args.set(i, buildAssignment(str));
-                                        return annotation.withArguments(args);
-                                    }
+                                J.Literal str = (J.Literal) assignment.getAssignment();
+                                if (!matchTrailingSlash(str.getValue().toString())) {
+                                    args.set(i, buildAssignment(str));
+                                    return annotation.withArguments(args);
                                 }
                             }
                         }
-
                     }
                 }
 
@@ -117,9 +115,10 @@ public class AddRouteTrailingSlash extends Recipe {
 
     private static J.NewArray getTwoStringsArrayTemplate() {
         if (twoStringsArrayTemplate == null) {
-            twoStringsArrayTemplate = PartProvider.buildPart("class Test {\n" +
-                                                                "    String[] value = { \"a\", \"b\"};\n" +
-                                                                "}",
+            twoStringsArrayTemplate = PartProvider.buildPart(
+                "class Test {\n" +
+                "    String[] value = { \"a\", \"b\"};\n" +
+                "}",
                 J.NewArray.class);
         }
         return twoStringsArrayTemplate;
@@ -127,12 +126,13 @@ public class AddRouteTrailingSlash extends Recipe {
 
     private static J.Assignment getAssignmentTemplate() {
         if (valueAssignmentTemplate == null) {
-            valueAssignmentTemplate = PartProvider.buildPart("class Test {\n" +
-                                                         "    void method() {\n" +
-                                                         "        String[] value;\n" +
-                                                         "        value = null;\n" +
-                                                         "    }\n" +
-                                                         "}",
+            valueAssignmentTemplate = PartProvider.buildPart(
+                "class Test {\n" +
+                "    void method() {\n" +
+                "        String[] value;\n" +
+                "        value = null;\n" +
+                "    }\n" +
+                "}",
                 J.Assignment.class);
         }
         return valueAssignmentTemplate;
@@ -141,5 +141,4 @@ public class AddRouteTrailingSlash extends Recipe {
     private static boolean isStringLiteral(Expression expression) {
         return expression instanceof J.Literal && TypeUtils.isString(((J.Literal) expression).getType());
     }
-
 }
