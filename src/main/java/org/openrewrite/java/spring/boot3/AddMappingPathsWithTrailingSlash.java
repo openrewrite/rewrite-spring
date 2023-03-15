@@ -34,7 +34,7 @@ public class AddMappingPathsWithTrailingSlash extends Recipe {
     public String getDescription() {
         return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing" +
                " slash matching configuration option has been deprecated and its default value set to false. This " +
-               "means that previously, a controller \"@GetMapping(\"/some/greeting\")\" would match both \"GET " +
+               "means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both \"GET " +
                "/some/greeting\" and \"GET /some/greeting/\", but it doesn't match \"GET /some/greeting/\" anymore by" +
                " default and will result in an HTTP 404 error. This recipe is to add declaration of additional route" +
                " explicitly on the controller handler (like @GetMapping(\"/some/greeting\", \"/some/greeting/\").";
