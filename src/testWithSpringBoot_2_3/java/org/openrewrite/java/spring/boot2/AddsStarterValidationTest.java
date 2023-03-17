@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ class AddsStarterValidationTest implements RewriteTest {
           ).parser(
             JavaParser.fromJavaVersion()
               .logCompilationWarningsAndErrors(true)
-              .classpathFromResources(new InMemoryExecutionContext(),"validation-api"));
+              .classpathFromResources(new InMemoryExecutionContext(), "validation-api"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/306")
@@ -47,18 +47,17 @@ class AddsStarterValidationTest implements RewriteTest {
         rewriteRun(
           mavenProject("project",
             srcMainJava(
-              //language=JAVA
+              //language=Java
               java("""
-                    import javax.validation.constraints.NotNull;
-                    
-                    class Foo {
-                        @NotNull
-                        String bar = "";
-                    }
+                import javax.validation.constraints.NotNull;
+                                    
+                class Foo {
+                    @NotNull
+                    String bar = "";
+                }
                 """),
-              pomXml(
-                //language=XML
-                """
+              //language=XML
+              pomXml("""
                   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                       <modelVersion>4.0.0</modelVersion>
                       <parent>
@@ -82,7 +81,6 @@ class AddsStarterValidationTest implements RewriteTest {
                       </dependencies>
                   </project>
                   """,
-                // language=xml
                 """
                   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                       <modelVersion>4.0.0</modelVersion>
@@ -110,7 +108,7 @@ class AddsStarterValidationTest implements RewriteTest {
                           </dependency>
                       </dependencies>
                   </project>
-                                    """
+                  """
               )
             )
           )
@@ -123,15 +121,14 @@ class AddsStarterValidationTest implements RewriteTest {
         rewriteRun(
           mavenProject("project",
             srcMainJava(
-              //language=JAVA
+              //language=Java
               java("""
-                    class Foo {
-                        String bar = "";
-                    }
+                class Foo {
+                    String bar = "";
+                }
                 """),
-              pomXml(
-                //language=XML
-                """
+              //language=XML
+              pomXml("""
                   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                       <modelVersion>4.0.0</modelVersion>
                       <parent>
@@ -151,7 +148,6 @@ class AddsStarterValidationTest implements RewriteTest {
                       </dependencies>
                   </project>
                   """,
-                // language=xml
                 """
                   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                       <modelVersion>4.0.0</modelVersion>
@@ -171,15 +167,11 @@ class AddsStarterValidationTest implements RewriteTest {
                           </dependency>
                       </dependencies>
                   </project>
-                                    """
+                  """
               )
             )
           )
         );
     }
-
-
-
-
 
 }
