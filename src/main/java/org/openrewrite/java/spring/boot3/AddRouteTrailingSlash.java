@@ -61,7 +61,9 @@ public class AddRouteTrailingSlash extends Recipe {
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 J.Annotation anno = super.visitAnnotation(annotation, ctx);
-                if (anno.getType() == null || !isHttpVerbMappingAnnotation(anno.getType().toString())) {
+                if (anno.getType() == null ||
+                    !isHttpVerbMappingAnnotation(anno.getType().toString()) ||
+                    anno.getArguments() == null) {
                     return anno;
                 }
 
