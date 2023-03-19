@@ -55,7 +55,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both" +
                " `GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
                "anymore by default and will result in an HTTP 404 error. This recipe is change the default with " +
-               "the global Spring MVC or Webflux configuration:";
+               "the global Spring MVC or Webflux configuration.";
     }
 
     @Override
