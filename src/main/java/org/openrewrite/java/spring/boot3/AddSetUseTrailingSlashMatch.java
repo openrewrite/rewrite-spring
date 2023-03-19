@@ -50,7 +50,12 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
 
     @Override
     public String getDescription() {
-        return "todo.";
+        return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing" +
+               " slash matching configuration option has been deprecated and its default value set to false. " +
+               "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both" +
+               " `GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
+               "anymore by default and will result in an HTTP 404 error. This recipe is change the default with " +
+               "the global Spring MVC or Webflux configuration:";
     }
 
     @Override

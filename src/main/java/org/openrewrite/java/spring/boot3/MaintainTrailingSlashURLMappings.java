@@ -59,6 +59,7 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
         }
 
         if (anyConfigOverridden) {
+            doNext(new AddSetUseTrailingSlashMatch());
             return before;
         }
 
