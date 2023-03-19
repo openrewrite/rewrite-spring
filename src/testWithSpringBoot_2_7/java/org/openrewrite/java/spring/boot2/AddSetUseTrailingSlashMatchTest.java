@@ -17,46 +17,33 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.boot3.MaintainTrailingSlashURLMappings;
+import org.openrewrite.java.spring.boot3.AddSetUseTrailingSlashMatch;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
+public class AddSetUseTrailingSlashMatchTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MaintainTrailingSlashURLMappings())
-          .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-webmvc", "spring-webflux", "spring-web", "spring-context"));
+        spec.parser(JavaParser.fromJavaVersion().classpath("spring-webmvc", "spring-webflux", "spring-web", "spring-context"))
+          .recipe(new AddSetUseTrailingSlashMatch());
     }
 
     @Test
-    void noChangeWithConfigOverriddenByWebMvcConfigurer() {
+    void noChangeIfExistWithWebMvcConfigurer() {
         rewriteRun(
           java(
             """
-              import org.springframework.web.bind.annotation.*;
+              package com.example.demo;
 
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping("/get")
-                  public String getExample() {
-                      return "This is a GET example.";
-                  }
-              }
-              """
-          ),
-          java(
-            """
               import org.springframework.context.annotation.Configuration;
               import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
               import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
               @Configuration
-              public class MyMvcConfig implements WebMvcConfigurer {
+              public class MyWebConfiguration implements WebMvcConfigurer {
                   @Override
                   public void configurePathMatch(PathMatchConfigurer configurer) {
                       configurer.setUseTrailingSlashMatch(true);
@@ -68,42 +55,49 @@ public class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
     }
 
     @Test
-    void addSetUseTrailingSlashMatchForWebMvcConfigurer() {
+    void noChangeIfExistWithWebflux() {
         rewriteRun(
           java(
             """
-              import org.springframework.web.bind.annotation.*;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.reactive.config.PathMatchConfigurer;
+              import org.springframework.web.reactive.config.WebFluxConfigurer;
 
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping("/get")
-                  public String getExample() {
-                      return "This is a GET example.";
+              @Configuration
+              public class MyWebConfig implements WebFluxConfigurer {
+                  @Override
+                  public void configurePathMatching(PathMatchConfigurer configurer) {
+                      configurer.setUseTrailingSlashMatch(true);
                   }
               }
               """
-          ),
+          )
+        );
+    }
+
+    @Test
+    void addConfigurePathMatchMethodForWebMvcConfigurer() {
+        rewriteRun(
           java(
             """
+              package com.example.demo;
+
               import org.springframework.context.annotation.Configuration;
-              import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
               import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
               @Configuration
-              public class MyMvcConfig implements WebMvcConfigurer {
-                  @Override
-                  public void configurePathMatch(PathMatchConfigurer configurer) {
-                  }
+              public class MyWebConfiguration implements WebMvcConfigurer {
               }
               """,
             """
+              package com.example.demo;
+
               import org.springframework.context.annotation.Configuration;
               import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
               import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
               @Configuration
-              public class MyMvcConfig implements WebMvcConfigurer {
+              public class MyWebConfiguration implements WebMvcConfigurer {
                   @Override
                   public void configurePathMatch(PathMatchConfigurer configurer) {
                       configurer.setUseTrailingSlashMatch(true);
@@ -115,68 +109,15 @@ public class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
     }
 
     @Test
-    void noChangeWithConfigOverriddenByWebFluxConfigurer() {
+    void addConfigurePathMatchMethodForWebFluxConfigurer() {
         rewriteRun(
           java(
             """
-              import org.springframework.web.bind.annotation.*;
-                
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping("/get")
-                  public String getExample() {
-                      return "This is a GET example.";
-                  }
-              }
-              """
-          ),
-          java(
-            """
               import org.springframework.context.annotation.Configuration;
-              import org.springframework.web.reactive.config.PathMatchConfigurer;
               import org.springframework.web.reactive.config.WebFluxConfigurer;
 
               @Configuration
               public class MyWebConfig implements WebFluxConfigurer {
-                  @Override
-                  public void configurePathMatching(PathMatchConfigurer configurer) {
-                      configurer.setUseTrailingSlashMatch(true);
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void addSetUseTrailingSlashForWebFluxConfigurer() {
-        rewriteRun(
-          java(
-            """
-              import org.springframework.web.bind.annotation.*;
-                
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping("/get")
-                  public String getExample() {
-                      return "This is a GET example.";
-                  }
-              }
-              """
-          ),
-          java(
-            """
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.web.reactive.config.PathMatchConfigurer;
-              import org.springframework.web.reactive.config.WebFluxConfigurer;
-
-              @Configuration
-              public class MyWebConfig implements WebFluxConfigurer {
-                  @Override
-                  public void configurePathMatching(PathMatchConfigurer configurer) {
-                  }
               }
               """,
             """
@@ -197,30 +138,68 @@ public class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
     }
 
     @Test
-    void noConfigOverridden() {
+    void addSetUseTrailingSlashMatchCallForWebMvcConfigurer() {
         rewriteRun(
           java(
             """
-              import org.springframework.web.bind.annotation.*;
-                
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping("/get")
-                  public String getExample() {
-                      return "This is a GET example.";
+              package com.example.demo;
+
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              @Configuration
+              public class MyWebConfiguration implements WebMvcConfigurer {
+                  @Override
+                  public void configurePathMatch(PathMatchConfigurer configurer) {
                   }
               }
               """,
             """
-              import org.springframework.web.bind.annotation.*;
-                
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping({"/get", "/get/"})
-                  public String getExample() {
-                      return "This is a GET example.";
+              package com.example.demo;
+
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              @Configuration
+              public class MyWebConfiguration implements WebMvcConfigurer {
+                  @Override
+                  public void configurePathMatch(PathMatchConfigurer configurer) {
+                      configurer.setUseTrailingSlashMatch(true);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addSetUseTrailingSlashMatchForWebFluxConfigurer() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.reactive.config.PathMatchConfigurer;
+              import org.springframework.web.reactive.config.WebFluxConfigurer;
+
+              @Configuration
+              public class MyWebConfig implements WebFluxConfigurer {
+                  @Override
+                  public void configurePathMatching(PathMatchConfigurer configurer) {
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.reactive.config.PathMatchConfigurer;
+              import org.springframework.web.reactive.config.WebFluxConfigurer;
+
+              @Configuration
+              public class MyWebConfig implements WebFluxConfigurer {
+                  @Override
+                  public void configurePathMatching(PathMatchConfigurer configurer) {
+                      configurer.setUseTrailingSlashMatch(true);
                   }
               }
               """

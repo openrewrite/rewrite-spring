@@ -51,7 +51,7 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
         for (SourceFile s : before) {
             if (s instanceof JavaSourceFile) {
                 JavaSourceFile cu = (JavaSourceFile) s;
-                anyConfigOverridden = FindWebMvcConfigurer.find(cu);
+                anyConfigOverridden = FindWebConfigurer.find(cu);
                 if (anyConfigOverridden) {
                     break;
                 }
@@ -59,6 +59,7 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
         }
 
         if (anyConfigOverridden) {
+            doNext(new AddSetUseTrailingSlashMatch());
             return before;
         }
 
@@ -66,9 +67,9 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
         return before;
     }
 
-    private static class FindWebMvcConfigurer extends JavaIsoVisitor<AtomicBoolean> {
+    private static class FindWebConfigurer extends JavaIsoVisitor<AtomicBoolean> {
         static boolean find(J j) {
-            return new FindWebMvcConfigurer()
+            return new FindWebConfigurer()
                 .reduce(j, new AtomicBoolean()).get();
         }
 
