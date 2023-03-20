@@ -88,6 +88,10 @@ recipeDependencies {
 
     parserClasspath("org.springframework.security:spring-security-config:5.8.+")
     parserClasspath("org.springframework.security:spring-security-web:5.8.+")
+
+    parserClasspath("org.springframework.security:spring-security-config:6.0.+")
+    parserClasspath("org.springframework.security:spring-security-core:6.0.+")
+    parserClasspath("org.springframework.security:spring-security-web:6.0.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()

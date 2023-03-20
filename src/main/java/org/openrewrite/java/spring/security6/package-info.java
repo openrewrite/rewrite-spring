@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @NonNullApi @NonNullFields
-package org.openrewrite.java.spring.security5;
+package org.openrewrite.java.spring.security6;
 
 import org.openrewrite.internal.lang.NonNullApi;
 import org.openrewrite.internal.lang.NonNullFields;
