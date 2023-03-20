@@ -114,5 +114,4 @@ public class ConfigurationOverEnableSecurityTest implements RewriteTest {
           )
         );
     }
-
 }

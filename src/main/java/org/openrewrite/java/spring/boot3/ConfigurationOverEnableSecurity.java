@@ -42,12 +42,13 @@ public class ConfigurationOverEnableSecurity extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Classes annotated with `@EnableXXXSecurity` coming from pre-Boot 3 project should have `@Configuration` annotation added";
+        return "Add `@Configuration` to classes with `@EnableXXXSecurity` annotations";
     }
 
     @Override
     public String getDescription() {
-        return "Annotations `@EnableXXXSecurity` have `@Configuration` removed from their definition in Spring-Security 6. " +
+        return "Prior to spring-security 6, `@EnableXXXSecurity` implicitly had `@Configuration`. " +
+                "`Configuration` was removed from the definitions of the `@EnableSecurity` definitions in Spring-Security 6. " +
                 "Consequently classes annotated with `@EnableXXXSecurity` coming from pre-Boot 3 should have `@Configuration` annotation added.";
     }
 
@@ -57,7 +58,7 @@ public class ConfigurationOverEnableSecurity extends Recipe {
             @Override
             public J visitJavaSourceFile(JavaSourceFile cu, ExecutionContext o) {
                 for (JavaType type : cu.getTypesInUse().getTypesInUse()) {
-                    if(SECURITY_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(type))) {
+                    if (SECURITY_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(type))) {
                         return SearchResult.found(cu);
                     }
                 }
@@ -75,14 +76,14 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                 // Avoid searching within the class declaration's body, lest we accidentally find an inner class's annotation
                 //noinspection DataFlowIssue
                 J.ClassDeclaration bodiless = c.withBody(null);
-                if(FindAnnotations.find(bodiless, "@" + CONFIGURATION_FQN, true).size() > 0) {
+                if (FindAnnotations.find(bodiless, "@" + CONFIGURATION_FQN, false).size() > 0) {
                     return c;
                 }
-                Set<J.Annotation> securityAnnotations = FindAnnotations.find(bodiless,  ENABLE_SECURITY_ANNOTATION_PATTERN, true);
-                if(securityAnnotations.size() == 0) {
+                Set<J.Annotation> securityAnnotations = FindAnnotations.find(bodiless, ENABLE_SECURITY_ANNOTATION_PATTERN, true);
+                if (securityAnnotations.size() == 0) {
                     return c;
                 }
-                if(securityAnnotations.stream()
+                if (securityAnnotations.stream()
                         .map(a -> TypeUtils.asFullyQualified(a.getType()))
                         .filter(Objects::nonNull)
                         .anyMatch(it -> EXCLUSIONS.contains(it.getFullyQualifiedName()))) {
