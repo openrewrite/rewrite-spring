@@ -33,80 +33,84 @@ public class ConfigurationOverEnableSecurityTest implements RewriteTest {
 
     @Test
     void enableWebSecurity() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
+              
               @EnableWebSecurity
               class A {}
-                            """,
+              """,
             """
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
-              @Configuration   
+              
+              @Configuration
               @EnableWebSecurity
               class A {}
-                            """
+              """
           )
         );
     }
 
     @Test
     void enableRSocketSecurity() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity;
-
+              
               @EnableRSocketSecurity
               class A{}
-                            """
+              """
           )
         );
     }
 
     @Test
     void enableWebFluxSecurity() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-
+              
               @EnableWebFluxSecurity
               class A {}
-                            """,
+              """,
             """
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-
-              @Configuration   
+              
+              @Configuration
               @EnableWebFluxSecurity
               class A {}
-                            """
+              """
           )
         );
     }
 
     @Test
     void enableMethodSecurity() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-
+              
               @EnableMethodSecurity
               class A {}
-                            """,
+              """,
             """
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-
-              @Configuration   
+              
+              @Configuration
               @EnableMethodSecurity
               class A {}
-                            """
+              """
           )
         );
     }

@@ -34,56 +34,60 @@ public class ConfigurationOverEnableSecurityTest implements RewriteTest {
 
     @Test
     void enableWebSecurity() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
+              
               @EnableWebSecurity
               class A{}
-                            """
+              """
           )
         );
     }
 
     @Test
     void enableRSocketSecurity() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity;
-
+              
               @EnableRSocketSecurity
               class A{}
-                            """
+              """
           )
         );
     }
 
     @Test
     void enableWebFluxSecurity() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-
+              
               @EnableWebFluxSecurity
               class A {}
-                            """
+              """
           )
         );
     }
 
     @Test
     void enableMethodSecurity() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-
+              
               @EnableMethodSecurity
               class A {}
-                            """
+              """
           )
         );
     }

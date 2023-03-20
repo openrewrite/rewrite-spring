@@ -52,7 +52,9 @@ public class UseNewRequestMatchers extends Recipe {
     @NonNull
     @Override
     public String getDescription() {
-        return "In Spring Security 5.8, the `antMatchers`, `mvcMatchers`, and `regexMatchers` methods were deprecated in favor of new `requestMatchers` methods. Refer to the [Spring Security docs](https://docs.spring.io/spring-security/reference/5.8/migration/servlet/config.html#use-new-requestmatchers) for more information.";
+        return "In Spring Security 5.8, the `antMatchers`, `mvcMatchers`, and `regexMatchers` methods were deprecated " +
+                "in favor of new `requestMatchers` methods. Refer to the [Spring Security docs](https://docs.spring.io/spring-security/reference/5.8/migration/servlet/config.html#use-new-requestmatchers) " +
+                "for more information.";
     }
 
     @Override
@@ -89,6 +91,9 @@ public class UseNewRequestMatchers extends Recipe {
 
     private Optional<JavaType.Method> findRequestMatchersMethodWithMatchingParameterTypes(J.MethodInvocation mi) {
         JavaType.Method methodType = mi.getMethodType();
+        if(methodType == null) {
+            return Optional.empty();
+        }
         List<JavaType> parameterTypes = methodType.getParameterTypes();
         List<JavaType.Method> methods;
         boolean isOverride = TypeUtils.isOverride(mi.getMethodType());
