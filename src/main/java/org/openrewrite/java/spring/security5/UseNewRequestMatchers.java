@@ -43,13 +43,11 @@ public class UseNewRequestMatchers extends Recipe {
     private static final MethodMatcher REGEX_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry regexMatchers(..)");
 
 
-    @NonNull
     @Override
     public String getDisplayName() {
         return "Use the new `requestMatchers` methods";
     }
 
-    @NonNull
     @Override
     public String getDescription() {
         return "In Spring Security 5.8, the `antMatchers`, `mvcMatchers`, and `regexMatchers` methods were deprecated " +

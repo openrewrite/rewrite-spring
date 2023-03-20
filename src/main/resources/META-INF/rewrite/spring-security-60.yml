@@ -26,7 +26,8 @@ tags:
   - security
 recipeList:
   - org.openrewrite.java.spring.security6.MavenPomUpgrade
-  - org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices
+  - org.openrewrite.java.spring.security6.UseSha256InRememberMe
+  - org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions
 ---
 ########################################################################################################################
 # Spring Security 6.0 Maven POM
