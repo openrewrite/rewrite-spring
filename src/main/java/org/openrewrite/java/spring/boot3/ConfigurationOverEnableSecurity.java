@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Option;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.*;
@@ -32,6 +33,11 @@ import static java.util.Collections.singletonList;
 
 public class ConfigurationOverEnableSecurity extends Recipe {
 
+    @Option(displayName = "Force add `@Configuration`",
+        description = "Force add `@Configuration` regardless current Boot version.",
+        example = "true")
+    private final boolean forceAddConfiguration;
+
     private static final String CONFIGURATION_FQN = "org.springframework.context.annotation.Configuration";
 
     private static final List<String> EXCLUSIONS = singletonList("org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity");
@@ -39,6 +45,14 @@ public class ConfigurationOverEnableSecurity extends Recipe {
     private static final String ENABLE_SECURITY_ANNOTATION_PATTERN = "@org.springframework.security.config.annotation..*.Enable.*Security";
 
     private static final AnnotationMatcher SECURITY_ANNOTATION_MATCHER = new AnnotationMatcher(ENABLE_SECURITY_ANNOTATION_PATTERN, true);
+
+    public ConfigurationOverEnableSecurity() {
+        this.forceAddConfiguration = false;
+    }
+
+    public ConfigurationOverEnableSecurity(boolean forceAddConfiguration) {
+        this.forceAddConfiguration = forceAddConfiguration;
+    }
 
     @Override
     public String getDisplayName() {
@@ -77,24 +91,30 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                 //noinspection DataFlowIssue
                 J.ClassDeclaration bodiless = c.withBody(null);
 
-                Set<J.Annotation> securityAnnotations = FindAnnotations.find(bodiless, ENABLE_SECURITY_ANNOTATION_PATTERN, true);
+                Set<J.Annotation> securityAnnotations = FindAnnotations.find(bodiless,
+                    ENABLE_SECURITY_ANNOTATION_PATTERN, true);
                 if (securityAnnotations.isEmpty() || isExcluded(securityAnnotations)) {
                     return c;
                 }
 
-                if (!FindAnnotations.find(bodiless, "@" + CONFIGURATION_FQN, false).isEmpty()) {
+                boolean alreadyHasConfigurationAnnotation = !FindAnnotations.find(bodiless, "@" + CONFIGURATION_FQN,
+                    false).isEmpty();
+                if (alreadyHasConfigurationAnnotation) {
                     return c;
                 }
 
-                J.Annotation securityAnnotation = securityAnnotations.stream().findFirst().get();
-                boolean securityAnnotationHasConfiguration = new AnnotationMatcher("@" + CONFIGURATION_FQN, true)
-                    .matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(securityAnnotation.getType()));
+                if (!forceAddConfiguration) {
+                    J.Annotation securityAnnotation = securityAnnotations.stream().findFirst().get();
+                    boolean securityAnnotationHasConfiguration = new AnnotationMatcher("@" + CONFIGURATION_FQN, true)
+                        .matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(securityAnnotation.getType()));
 
-                // The framework 6.+ (Boot 3+) removed `@Configuration` from `@EnableXXXSecurity`, so if it has not `@Configuration`, means it
-                // is already in version framework 6.+ (Boot 3+), and expected no change. otherwise we want to add `@Configuration`.
-                boolean isBoot3orPlus = !securityAnnotationHasConfiguration;
-                if (isBoot3orPlus) {
-                    return c;
+                    // The framework 6.+ (Boot 3+) removed `@Configuration` from `@EnableXXXSecurity`, so if it has not
+                    // `@Configuration`, means it is already in version framework 6.+ (Boot 3+), and expected no change.
+                    // Otherwise, we want to add `@Configuration`.
+                    boolean isBoot3orPlus = !securityAnnotationHasConfiguration;
+                    if (isBoot3orPlus) {
+                        return c;
+                    }
                 }
 
                 JavaTemplate template = JavaTemplate.builder(this::getCursor, "@Configuration")

@@ -22,7 +22,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class ConfigurationOverEnableSecurityTest implements RewriteTest {
+class ConfigurationOverEnableSecurityTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -84,6 +84,97 @@ public class ConfigurationOverEnableSecurityTest implements RewriteTest {
             """
               import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
               
+              @EnableMethodSecurity
+              class A {}
+              """
+          )
+        );
+    }
+
+    @Test
+    void enableWebSecurityForceAdd() {
+        //language=java
+        rewriteRun(
+          spec -> spec.recipe(new ConfigurationOverEnableSecurity(true)),
+          java(
+            """
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+                            
+              @EnableWebSecurity
+              class A {}
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
+              @Configuration
+              @EnableWebSecurity
+              class A {}
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeIfItExist() {
+        //language=java
+        rewriteRun(
+          spec -> spec.recipe(new ConfigurationOverEnableSecurity(true)),
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              
+              @Configuration
+              @EnableWebSecurity
+              class A {}
+              """
+          )
+        );
+    }
+
+
+    @Test
+    void enableWebFluxSecurityForceAdd() {
+        //language=java
+        rewriteRun(
+          spec -> spec.recipe(new ConfigurationOverEnableSecurity(true)),
+          java(
+            """
+              import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+              
+              @EnableWebFluxSecurity
+              class A {}
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+              
+              @Configuration
+              @EnableWebFluxSecurity
+              class A {}
+              """
+          )
+        );
+    }
+
+    @Test
+    void enableMethodSecurityForceAdd() {
+        //language=java
+        rewriteRun(
+          spec -> spec.recipe(new ConfigurationOverEnableSecurity(true)),
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+              
+              @EnableMethodSecurity
+              class A {}
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+              
+              @Configuration
               @EnableMethodSecurity
               class A {}
               """
