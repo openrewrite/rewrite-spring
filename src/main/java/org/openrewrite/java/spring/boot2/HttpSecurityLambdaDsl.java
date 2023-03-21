@@ -34,12 +34,12 @@ public final class HttpSecurityLambdaDsl extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Convert HttpSecurity chained calls into Lambda DSL";
+        return "Convert `HttpSecurity` chained calls into Lambda DSL";
     }
 
     @Override
     public String getDescription() {
-        return "Converts HttpSecurity chained call from Spring-Security pre 5.2.x into new lambda DSL style calls and removes `and()` methods.";
+        return "Converts `HttpSecurity` chained call from Spring Security pre 5.2.x into new lambda DSL style calls and removes `and()` methods.";
     }
 
     @Override

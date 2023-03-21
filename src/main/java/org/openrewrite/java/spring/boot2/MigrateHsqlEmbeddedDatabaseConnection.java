@@ -31,7 +31,7 @@ import java.util.Map;
 public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Migrate deprecated Spring-Boot EmbeddedDatabaseConnection.HSQL";
+        return "Migrate deprecated Spring-Boot `EmbeddedDatabaseConnection.HSQL`";
     }
 
     @Override

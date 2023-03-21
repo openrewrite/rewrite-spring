@@ -67,7 +67,7 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Spring Integration now reuses an available TaskScheduler rather than configuring its own. In a" +
+        return "Spring Integration now reuses an available `TaskScheduler` rather than configuring its own. In a" +
                 " typical application setup relying on the auto-configuration, this means that Spring Integration" +
                 " uses the auto-configured task scheduler that has a pool size of 1. To restore Spring Integration’s" +
                 " default of 10 threads, use the `spring.task.scheduling.pool.size` property.";

@@ -42,12 +42,12 @@ public class AuthorizeHttpRequests extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Replace 'HttpSecurity.authorizeRequests(...) with 'HttpSecurity.authorizeHttpRequests(...) and 'ExpressionUrlAuthorizationConfigurer', 'AbstractInterceptUrlConfigurer' with `AuthorizeHttpRequestsConfigurer`, etc";
+        return "Replace `HttpSecurity.authorizeRequests(...)` with `HttpSecurity.authorizeHttpRequests(...)` and `ExpressionUrlAuthorizationConfigurer`, `AbstractInterceptUrlConfigurer` with `AuthorizeHttpRequestsConfigurer`, etc";
     }
 
     @Override
     public String getDescription() {
-        return "Replace 'HttpSecurity.authorizeRequests(...) deprecated in Spring-Security 6 with 'HttpSecurity.authorizeHttpRequests(...) and all method calls on the resultant object respectively. Replace deprecated 'AbstractInterceptUrlConfigurer' and its deprecated subclasses with 'AuthorizeHttpRequestsConfigurer' and its corresponding subclasses.";
+        return "Replace `HttpSecurity.authorizeRequests(...)` deprecated in Spring Security 6 with `HttpSecurity.authorizeHttpRequests(...)` and all method calls on the resultant object respectively. Replace deprecated `AbstractInterceptUrlConfigurer` and its deprecated subclasses with `AuthorizeHttpRequestsConfigurer` and its corresponding subclasses.";
     }
 
     @Override

@@ -34,7 +34,7 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Remove unnecessary '@Repository' annotation from Spring Data 'Repository' sub-interface";
+        return "Remove unnecessary `@Repository` annotation from Spring Data `Repository` sub-interface";
     }
 
     @Override

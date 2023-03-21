@@ -40,12 +40,12 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Add missing '@Configuration' annotation";
+        return "Add missing `@Configuration` annotation";
     }
 
     @Override
     public String getDescription() {
-        return "Class having `@Bean' annotation over any methods but missing '@Configuration' annotation over the declaring class would have '@Configuration' annotation added.";
+        return "Class having `@Bean` annotation over any methods but missing `@Configuration` annotation over the declaring class would have `@Configuration` annotation added.";
     }
 
     @Override

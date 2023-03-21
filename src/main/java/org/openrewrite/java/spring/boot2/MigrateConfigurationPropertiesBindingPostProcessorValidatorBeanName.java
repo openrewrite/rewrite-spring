@@ -31,12 +31,12 @@ import java.util.Map;
 public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Use `EnableConfigurationProperties#VALIDATOR_BEAN_NAME`";
+        return "Use `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`";
     }
 
     @Override
     public String getDescription() {
-        return "Replaces field and static access of `ConfigurationPropertiesBindingPostProcessor#VALIDATOR_BEAN_NAME` with `EnableConfigurationProperties#VALIDATOR_BEAN_NAME`. Deprecated in 2.2.x.";
+        return "Replaces field and static access of `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` with `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`. Deprecated in 2.2.x.";
     }
 
     @Nullable

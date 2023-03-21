@@ -85,12 +85,12 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Spring Security 5.4 introduces the ability to configure HttpSecurity by creating a SecurityFilterChain bean";
+        return "Spring Security 5.4 introduces the ability to configure `HttpSecurity` by creating a `SecurityFilterChain` bean";
     }
 
     @Override
     public String getDescription() {
-        return "The Spring-Security WebSecurityConfigurerAdapter was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details.";
+        return "The Spring Security `WebSecurityConfigurerAdapter` was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details.";
     }
 
     @Override

@@ -61,8 +61,8 @@ public class ConfigurationOverEnableSecurity extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Prior to spring-security 6, `@EnableXXXSecurity` implicitly had `@Configuration`. " +
-                "`Configuration` was removed from the definitions of the `@EnableSecurity` definitions in Spring-Security 6. " +
+        return "Prior to Spring Security 6, `@EnableXXXSecurity` implicitly had `@Configuration`. " +
+                "`Configuration` was removed from the definitions of the `@EnableSecurity` definitions in Spring Security 6. " +
                 "Consequently classes annotated with `@EnableXXXSecurity` coming from pre-Boot 3 should have `@Configuration` annotation added.";
     }
 

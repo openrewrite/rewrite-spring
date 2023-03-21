@@ -45,12 +45,12 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Remove Unnecessary @ConstructorBinding";
+        return "Remove Unnecessary `@ConstructorBinding`";
     }
 
     @Override
     public String getDescription() {
-        return "As of Boot 3.0 @ConstructorBinding is no longer needed at the type level on @ConfigurationProperties classes and should be removed.";
+        return "As of Boot 3.0 `@ConstructorBinding` is no longer needed at the type level on `@ConfigurationProperties` classes and should be removed.";
     }
 
     @Nullable
