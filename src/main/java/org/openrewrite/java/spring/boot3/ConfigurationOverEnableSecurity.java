@@ -76,17 +76,24 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                 // Avoid searching within the class declaration's body, lest we accidentally find an inner class's annotation
                 //noinspection DataFlowIssue
                 J.ClassDeclaration bodiless = c.withBody(null);
-                if (FindAnnotations.find(bodiless, "@" + CONFIGURATION_FQN, false).size() > 0) {
-                    return c;
-                }
+
                 Set<J.Annotation> securityAnnotations = FindAnnotations.find(bodiless, ENABLE_SECURITY_ANNOTATION_PATTERN, true);
-                if (securityAnnotations.size() == 0) {
+                if (securityAnnotations.isEmpty() || isExcluded(securityAnnotations)) {
                     return c;
                 }
-                if (securityAnnotations.stream()
-                        .map(a -> TypeUtils.asFullyQualified(a.getType()))
-                        .filter(Objects::nonNull)
-                        .anyMatch(it -> EXCLUSIONS.contains(it.getFullyQualifiedName()))) {
+
+                if (!FindAnnotations.find(bodiless, "@" + CONFIGURATION_FQN, false).isEmpty()) {
+                    return c;
+                }
+
+                J.Annotation securityAnnotation = securityAnnotations.stream().findFirst().get();
+                boolean securityAnnotationHasConfiguration = new AnnotationMatcher("@" + CONFIGURATION_FQN, true)
+                    .matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(securityAnnotation.getType()));
+
+                // The framework 6.+ (Boot 3+) removed `@Configuration` from `@EnableXXXSecurity`, so if it has not `@Configuration`, means it
+                // is already in version framework 6.+ (Boot 3+), and expected no change. otherwise we want to add `@Configuration`.
+                boolean isBoot3orPlus = !securityAnnotationHasConfiguration;
+                if (isBoot3orPlus) {
                     return c;
                 }
 
@@ -99,6 +106,13 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                 maybeAddImport(CONFIGURATION_FQN);
 
                 return c.withTemplate(template, c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+            }
+
+            private boolean isExcluded(Set<J.Annotation> securityAnnotations) {
+                return (securityAnnotations.stream()
+                    .map(a -> TypeUtils.asFullyQualified(a.getType()))
+                    .filter(Objects::nonNull)
+                    .anyMatch(it -> EXCLUSIONS.contains(it.getFullyQualifiedName())));
             }
         };
     }
