@@ -86,11 +86,13 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                     return c;
                 }
 
-                boolean hasConfiguration = !FindAnnotations.find(bodiless, "@" + CONFIGURATION_FQN, true)
-                                               .isEmpty();
+                J.Annotation securityAnnotation = securityAnnotations.stream().findFirst().get();
+                boolean securityAnnotationHasConfiguration = new AnnotationMatcher("@" + CONFIGURATION_FQN, true)
+                    .matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(securityAnnotation.getType()));
+
                 // The framework 6.+ (Boot 3+) removed `@Configuration` from `@EnableXXXSecurity`, so if it has not `@Configuration`, means it
                 // is already in version framework 6.+ (Boot 3+), and expected no change. otherwise we want to add `@Configuration`.
-                boolean isBoot3orPlus = !hasConfiguration;
+                boolean isBoot3orPlus = !securityAnnotationHasConfiguration;
                 if (isBoot3orPlus) {
                     return c;
                 }
