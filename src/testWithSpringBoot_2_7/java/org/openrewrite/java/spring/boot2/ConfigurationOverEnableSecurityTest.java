@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.boot3;
+package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -39,6 +40,31 @@ public class ConfigurationOverEnableSecurityTest implements RewriteTest {
             """
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               
+              @EnableWebSecurity
+              class A {}
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              
+              @Configuration
+              @EnableWebSecurity
+              class A {}
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeIfItExist() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              
+              @Configuration
               @EnableWebSecurity
               class A {}
               """
@@ -71,6 +97,14 @@ public class ConfigurationOverEnableSecurityTest implements RewriteTest {
               
               @EnableWebFluxSecurity
               class A {}
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+              
+              @Configuration
+              @EnableWebFluxSecurity
+              class A {}
               """
           )
         );
@@ -84,6 +118,14 @@ public class ConfigurationOverEnableSecurityTest implements RewriteTest {
             """
               import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
               
+              @EnableMethodSecurity
+              class A {}
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+              
+              @Configuration
               @EnableMethodSecurity
               class A {}
               """
