@@ -72,8 +72,9 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                 J body = lambda.getBody();
                 if (body instanceof J.MethodInvocation && ToBeRemoved.hasMarker(body)) {
                     Expression select = ((J.MethodInvocation) body).getSelect();
-                    if (select instanceof J.Identifier) {
-                        J.VariableDeclarations declarations = (J.VariableDeclarations) lambda.getParameters().getParameters().get(0);
+                    List<J> parameters = lambda.getParameters().getParameters();
+                    if (select instanceof J.Identifier && !parameters.isEmpty() && parameters.get(0) instanceof J.VariableDeclarations) {
+                        J.VariableDeclarations declarations = (J.VariableDeclarations) parameters.get(0);
                         if (((J.Identifier) select).getSimpleName().equals(declarations.getVariables().get(0).getSimpleName())) {
                             return ToBeRemoved.withMarker(lambda);
                         }
@@ -90,7 +91,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
             public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
                 block = super.visitBlock(block, ctx);
                 List<Statement> statements = block.getStatements();
-                if (statements.stream().allMatch(ToBeRemoved::hasMarker)) {
+                if (!statements.isEmpty() && statements.stream().allMatch(ToBeRemoved::hasMarker)) {
                     return ToBeRemoved.withMarker(block);
                 }
                 if (statements.stream().anyMatch(ToBeRemoved::hasMarker)) {

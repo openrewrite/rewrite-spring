@@ -255,4 +255,20 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
           )
         );
     }
+
+    @Test
+    void unrelatedEmptyLambda() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              class T {
+                  public void m() {
+                      java.util.function.Consumer<Object> consumer = (o) -> {};
+                 }
+              }
+              """
+          )
+        );
+    }
 }
