@@ -45,6 +45,7 @@ recipeList:
       artifactId: spring-boot-starter-validation
       version: 2.3.x
       onlyIfUsing: javax.validation.constraints.*
+      acceptTransitive: true
 
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
