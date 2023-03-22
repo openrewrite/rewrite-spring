@@ -15,18 +15,20 @@
  */
 package org.openrewrite.java.spring.security6;
 
-import lombok.Value;
-import org.openrewrite.*;
-import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.Cursor;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.spring.internal.LocalVariableUtils;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class UseSha256InRememberMe extends Recipe {
 
@@ -47,6 +49,11 @@ public class UseSha256InRememberMe extends Recipe {
     public String getDescription() {
         return "As of Spring Security 6.0 the SHA-256 algorithm is the default for the encoding and matching algorithm used by `TokenBasedRememberMeServices` and does thus no longer need to be explicitly configured. "
                + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#servlet-opt-in-sha256-rememberme) for details.";
+    }
+
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices");
     }
 
     @Override
@@ -79,77 +86,15 @@ public class UseSha256InRememberMe extends Recipe {
     }
 
     private boolean isSha256Algorithm(Expression expression, Cursor cursor) {
+        Expression resolvedExpression = LocalVariableUtils.resolveExpression(expression, cursor);
         JavaType.Variable fieldType = null;
-        if (expression instanceof J.Identifier) {
-            fieldType = ((J.Identifier) expression).getFieldType();
-        } else if (expression instanceof J.FieldAccess) {
-            fieldType = ((J.FieldAccess) expression).getName().getFieldType();
+        if (resolvedExpression instanceof J.Identifier) {
+            fieldType = ((J.Identifier) resolvedExpression).getFieldType();
+        } else if (resolvedExpression instanceof J.FieldAccess) {
+            fieldType = ((J.FieldAccess) resolvedExpression).getName().getFieldType();
         }
-        if (fieldType == null) {
-            return false;
-        }
-        if (!TypeUtils.isOfType(fieldType.getOwner(), REMEMBER_ME_TOKEN_ALGORITHM_TYPE)) {
-            Expression resolvedVariable = resolveVariable(fieldType.getName(), cursor);
-            return resolvedVariable != null && resolvedVariable != expression && isSha256Algorithm(resolvedVariable, cursor);
-        }
-        return "SHA256".equals(fieldType.getName()) && TypeUtils.isOfType(fieldType.getType(), REMEMBER_ME_TOKEN_ALGORITHM_TYPE);
+
+        return fieldType != null && "SHA256".equals(fieldType.getName()) && TypeUtils.isOfType(fieldType.getType(), REMEMBER_ME_TOKEN_ALGORITHM_TYPE);
     }
 
-    /**
-     * Resolves a variable reference (by name) to the initializer expression of the corresponding declaration, provided that the
-     * variable is declared as `final`. In all other cases `null` will be returned.
-     */
-    @Nullable
-    private Expression resolveVariable(String name, Cursor cursor) {
-        return resolveVariable0(name, cursor.getValue(), cursor.getParentTreeCursor());
-    }
-
-    @Nullable
-    private Expression resolveVariable0(String name, J prior, Cursor cursor) {
-        Optional<VariableMatch> found = Optional.empty();
-        J value = cursor.getValue();
-        if (value instanceof SourceFile) {
-            return null;
-        } else if (value instanceof J.MethodDeclaration) {
-            found = findVariable(((J.MethodDeclaration) value).getParameters(), name);
-        } else if (value instanceof J.Block) {
-            J.Block block = (J.Block) value;
-            List<Statement> statements = block.getStatements();
-            boolean checkAllStatements = cursor.getParentTreeCursor().getValue() instanceof J.ClassDeclaration;
-            if (!checkAllStatements) {
-                int index = statements.indexOf(prior);
-                statements = index != -1 ? statements.subList(0, index) : statements;
-            }
-            found = findVariable(statements, name);
-        } else if (value instanceof J.ForLoop) {
-            found = findVariable(((J.ForLoop) value).getControl().getInit(), name);
-        } else if (value instanceof J.Try && ((J.Try) value).getResources() != null) {
-            found = findVariable(((J.Try) value).getResources().stream().map(J.Try.Resource::getVariableDeclarations).collect(Collectors.toList()), name);
-        } else if (value instanceof J.Lambda) {
-            found = findVariable(((J.Lambda) value).getParameters().getParameters(), name);
-        } else if (value instanceof J.VariableDeclarations) {
-            found = findVariable(Collections.singletonList(((J.VariableDeclarations) value)), name);
-        }
-        return found.map(f -> f.isFinal ? f.variable.getInitializer() : null).orElseGet(() -> resolveVariable0(name, value, cursor.getParentTreeCursor()));
-    }
-
-    Optional<VariableMatch> findVariable(List<? extends J> list, String name) {
-        for (J j : list) {
-            if (j instanceof J.VariableDeclarations) {
-                J.VariableDeclarations declaration = (J.VariableDeclarations) j;
-                for (J.VariableDeclarations.NamedVariable variable : declaration.getVariables()) {
-                    if (variable.getSimpleName().equals(name)) {
-                        return Optional.of(new VariableMatch(variable, declaration.hasModifier(J.Modifier.Type.Final)));
-                    }
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    @Value
-    private static class VariableMatch {
-        J.VariableDeclarations.NamedVariable variable;
-        boolean isFinal;
-    }
 }
