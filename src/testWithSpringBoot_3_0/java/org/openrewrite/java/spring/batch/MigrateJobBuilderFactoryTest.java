@@ -15,8 +15,6 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import static org.openrewrite.java.Assertions.java;
-
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -24,14 +22,16 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
+import static org.openrewrite.java.Assertions.java;
+
 class MigrateJobBuilderFactoryTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateJobBuilderFactory())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4.3.7",
-              "spring-batch-infrastructure-4.3.7", "spring-beans-4.3.30.RELEASE", "spring-context-4.3.30.RELEASE"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4.3.+",
+              "spring-batch-infrastructure-4.3.+", "spring-beans-4.3.30.RELEASE", "spring-context-4.3.30.RELEASE"));
     }
 
     @Test
