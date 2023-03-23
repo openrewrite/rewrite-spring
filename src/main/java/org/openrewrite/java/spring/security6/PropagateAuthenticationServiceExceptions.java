@@ -20,6 +20,7 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
@@ -37,6 +38,11 @@ public class PropagateAuthenticationServiceExceptions extends Recipe {
     public String getDescription() {
         return "Remove any calls matching `AuthenticationEntryPointFailureHandler.setRethrowAuthenticationServiceException(true)`. "
                + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#_propagate_authenticationserviceexceptions) for details.";
+    }
+
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler");
     }
 
     @Override

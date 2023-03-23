@@ -87,6 +87,7 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
 
     parserClasspath("org.springframework.security:spring-security-config:5.8.+")
+    parserClasspath("org.springframework.security:spring-security-crypto:5.8.+")
     parserClasspath("org.springframework.security:spring-security-web:5.8.+")
 
     parserClasspath("org.springframework.security:spring-security-config:6.0.+")

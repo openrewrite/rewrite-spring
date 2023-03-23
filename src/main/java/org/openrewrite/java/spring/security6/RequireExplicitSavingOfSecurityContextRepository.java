@@ -20,6 +20,7 @@ import lombok.With;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Marker;
 
@@ -43,6 +44,11 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
     public String getDescription() {
         return "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in as that is the new default in Spring Security 6. "
                + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
+    }
+
+    @Override
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesType<>("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer");
     }
 
     @Override
@@ -95,6 +101,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                     return ToBeRemoved.withMarker(block);
                 }
                 if (statements.stream().anyMatch(ToBeRemoved::hasMarker)) {
+                    //noinspection DataFlowIssue
                     return block.withStatements(statements.stream()
                             .filter(s -> !ToBeRemoved.hasMarker(s) || s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.MethodInvocation)
                             .map(s -> s instanceof J.MethodInvocation && ToBeRemoved.hasMarker(s) ? ((J.MethodInvocation) s).getSelect().withPrefix(s.getPrefix()) : s)
