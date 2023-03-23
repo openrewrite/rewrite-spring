@@ -32,3 +32,4 @@ recipeList:
       overrideManagedVersion: true
   - org.openrewrite.java.spring.security5.UseNewRequestMatchers
   - org.openrewrite.java.spring.security5.UpdatePbkdf2PasswordEncoder
+  - org.openrewrite.java.spring.security5.UpdateSCryptPasswordEncoder

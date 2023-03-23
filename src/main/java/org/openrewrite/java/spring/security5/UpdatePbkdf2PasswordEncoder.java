@@ -28,10 +28,7 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.openrewrite.Tree.randomId;
 import static org.openrewrite.java.spring.internal.LocalVariableUtils.resolveExpression;
@@ -48,6 +45,7 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
     private static final MethodMatcher THREE_ARG_CONSTRUCTOR_MATCHER = new MethodMatcher(PBKDF2_PASSWORD_ENCODER_CLASS + " <constructor>(java.lang.CharSequence, int, int)");
     private static final MethodMatcher VERSION5_5_FACTORY_MATCHER = new MethodMatcher(PBKDF2_PASSWORD_ENCODER_CLASS + " defaultsForSpringSecurity_v5_5(..)");
 
+    private static final String DEFAULT_SECRET = "";
     private static final Integer DEFAULT_SALT_LENGTH = 8;
     private static final Integer DEFAULT_HASH_WIDTH = 256;
     private static final Integer DEFAULT_ITERATIONS = 185000;
@@ -92,9 +90,9 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                     } else {
                         List<Expression> arguments = newClass.getArguments();
                         if (ONE_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
-                            Expression secret = resolveExpression(arguments.get(0), getCursor());
+                            Expression secret = arguments.get(0);
                             maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
-                            if (secret instanceof J.Literal && "".equals(((J.Literal) secret).getValue())) {
+                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET)) {
                                 return newClass.withTemplate(newFactoryMethodTemplate(ctx), newClass.getCoordinates().replace());
                             } else {
                                 String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(DEFAULT_HASH_WIDTH);
@@ -102,11 +100,11 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                                 return newClass.withTemplate(newConstructorTemplate(ctx, algorithm), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), newIntLiteral(DEFAULT_ITERATIONS));
                             }
                         } else if (TWO_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
-                            Expression secret = resolveExpression(arguments.get(0), getCursor());
-                            Expression saltLength = resolveExpression(arguments.get(1), getCursor());
+                            Expression secret = arguments.get(0);
+                            Expression saltLength = arguments.get(1);
                             maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
-                            if (secret instanceof J.Literal && "".equals(((J.Literal) secret).getValue())
-                                && saltLength instanceof J.Literal && DEFAULT_SALT_LENGTH.equals(((J.Literal) saltLength).getValue())) {
+                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET)
+                                && resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
                                 return newClass.withTemplate(newFactoryMethodTemplate(ctx), newClass.getCoordinates().replace());
                             } else {
                                 String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(DEFAULT_HASH_WIDTH);
@@ -114,13 +112,13 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                                 return newClass.withTemplate(newConstructorTemplate(ctx, algorithm), newClass.getCoordinates().replace(), secret, saltLength, newIntLiteral(DEFAULT_ITERATIONS));
                             }
                         } else if (THREE_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
-                            Expression secret = resolveExpression(arguments.get(0), getCursor());
-                            Expression iterations = resolveExpression(arguments.get(1), getCursor());
-                            Expression hashWidth = resolveExpression(arguments.get(2), getCursor());
+                            Expression secret = arguments.get(0);
+                            Expression iterations = arguments.get(1);
+                            Expression hashWidth = arguments.get(2);
                             Integer knownHashWidth = hashWidth instanceof J.Literal && hashWidth.getType() == JavaType.Primitive.Int ? (Integer) ((J.Literal) hashWidth).getValue() : null;
                             maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
-                            if (secret instanceof J.Literal && "".equals(((J.Literal) secret).getValue())
-                                && iterations instanceof J.Literal && DEFAULT_ITERATIONS.equals(((J.Literal) iterations).getValue())
+                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET)
+                                && resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS)
                                 && DEFAULT_HASH_WIDTH.equals(knownHashWidth)) {
                                 return newClass.withTemplate(newFactoryMethodTemplate(ctx), newClass.getCoordinates().replace());
                             } else {
@@ -147,6 +145,11 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                     return method.withTemplate(newFactoryMethodTemplate(ctx), method.getCoordinates().replace());
                 }
                 return j;
+            }
+
+            boolean resolvedValueMatchesLiteral(Expression expression, Object value) {
+                Expression resolvedExpression = resolveExpression(expression, getCursor());
+                return resolvedExpression instanceof J.Literal && Objects.equals(((J.Literal) resolvedExpression).getValue(), value);
             }
 
             private JavaTemplate newFactoryMethodTemplate(ExecutionContext ctx) {
