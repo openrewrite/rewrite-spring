@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
----
+
 ########################################################################################################################
 # Spring Data 2.3
+---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
 displayName: Migrate to Spring Data 2.3

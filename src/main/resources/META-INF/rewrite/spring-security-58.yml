@@ -15,22 +15,20 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
-displayName: Migrate to Spring Security 6.0
+name: org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
+displayName: Migrate to Spring Framework 6.0
 description: >
-  Migrate applications to the latest Spring Security 6.0 release. This recipe will modify an
+  Migrate applications to the latest Spring Security 5.8 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions.
 tags:
   - spring
   - security
 recipeList:
-  - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: "*"
-      newVersion: 6.0.x
+      newVersion: 5.8.x
       overrideManagedVersion: true
-  - org.openrewrite.java.spring.security6.UseSha256InRememberMe
-  - org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions
-  - org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository
+  - org.openrewrite.java.spring.security5.UseNewRequestMatchers
+  - org.openrewrite.java.spring.security5.UpdatePbkdf2PasswordEncoder
