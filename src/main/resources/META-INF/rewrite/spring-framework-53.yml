@@ -25,6 +25,7 @@ recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_2
   - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
       newVersion: 5.3.x
+  - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
   - org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
   - org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
   - org.openrewrite.java.spring.framework.JdbcTemplateObjectArrayArgToVarArgs
