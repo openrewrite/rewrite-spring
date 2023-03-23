@@ -1,5 +1,5 @@
 #
-# Copyright 2022 the original author or authors.
+# Copyright 2023 the original author or authors.
 # <p>
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
-displayName: Migrate to Spring Framework 6.0
+displayName: Migrate to Spring Framework 5.8
 description: >
   Migrate applications to the latest Spring Security 5.8 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
