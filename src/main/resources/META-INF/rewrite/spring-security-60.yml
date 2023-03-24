@@ -34,6 +34,11 @@ recipeList:
   - org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions
   - org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.thymeleaf
+      oldArtifactId: thymeleaf-spring5
+      newGroupId: org.thymeleaf
+      newArtifactId: thymeleaf-spring6
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: org.thymeleaf.extras
       oldArtifactId: thymeleaf-extras-springsecurity5
       newGroupId: org.thymeleaf.extras
