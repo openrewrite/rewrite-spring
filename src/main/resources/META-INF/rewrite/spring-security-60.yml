@@ -33,3 +33,8 @@ recipeList:
   - org.openrewrite.java.spring.security6.UseSha256InRememberMe
   - org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions
   - org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.thymeleaf.extras
+      oldArtifactId: thymeleaf-extras-springsecurity5
+      newGroupId: org.thymeleaf.extras
+      newArtifactId: thymeleaf-extras-springsecurity6
