@@ -34,3 +34,17 @@ recipeList:
   - org.openrewrite.java.spring.security5.UpdatePbkdf2PasswordEncoder
   - org.openrewrite.java.spring.security5.UpdateSCryptPasswordEncoder
   - org.openrewrite.java.spring.security5.UpdateArgon2PasswordEncoder
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.security5.search.FindEncryptorsQueryableTextUses
+displayName: Finds uses of `Encryptors.queryableText()`
+description: `Encryptors.queryableText()` is insecure and is removed in Spring Security 6.
+tags:
+  - spring
+  - security
+  - search
+recipeList:
+  - org.openrewrite.java.search.FindMethods:
+      methodPattern: org.springframework.security.crypto.encrypt.Encryptors queryableText(..)
+      matchOverrides: false
