@@ -31,6 +31,7 @@ recipeList:
       newVersion: 5.8.x
       overrideManagedVersion: true
   - org.openrewrite.java.spring.security5.UseNewRequestMatchers
+  - org.openrewrite.java.spring.security5.UseNewSecurityMatchers
   - org.openrewrite.java.spring.security5.UpdatePbkdf2PasswordEncoder
   - org.openrewrite.java.spring.security5.UpdateSCryptPasswordEncoder
   - org.openrewrite.java.spring.security5.UpdateArgon2PasswordEncoder
