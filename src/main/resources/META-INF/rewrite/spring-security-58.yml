@@ -39,7 +39,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security5.search.FindEncryptorsQueryableTextUses
 displayName: Finds uses of `Encryptors.queryableText()`
-description: `Encryptors.queryableText()` is insecure and is removed in Spring Security 6.
+description: "`Encryptors.queryableText()` is insecure and is removed in Spring Security 6."
 tags:
   - spring
   - security
