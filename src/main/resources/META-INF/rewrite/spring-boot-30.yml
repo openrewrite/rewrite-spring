@@ -57,10 +57,16 @@ recipeList:
       artifactId: "*"
       newVersion: 3.0.x
       overrideManagedVersion: true
+      retainVersions:
+        - org.thymeleaf:thymeleaf-spring5
+        - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 3.0.x
+      retainVersions:
+        - org.thymeleaf:thymeleaf-spring5
+        - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
