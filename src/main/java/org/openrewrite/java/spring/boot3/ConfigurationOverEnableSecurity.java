@@ -15,6 +15,8 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
 import org.openrewrite.Recipe;
@@ -31,12 +33,14 @@ import java.util.*;
 
 import static java.util.Collections.singletonList;
 
+@Value
+@EqualsAndHashCode(callSuper = true)
 public class ConfigurationOverEnableSecurity extends Recipe {
 
     @Option(displayName = "Force add `@Configuration`",
         description = "Force add `@Configuration` regardless current Boot version.",
         example = "true")
-    private final boolean forceAddConfiguration;
+    boolean forceAddConfiguration;
 
     private static final String CONFIGURATION_FQN = "org.springframework.context.annotation.Configuration";
 
@@ -45,14 +49,6 @@ public class ConfigurationOverEnableSecurity extends Recipe {
     private static final String ENABLE_SECURITY_ANNOTATION_PATTERN = "@org.springframework.security.config.annotation..*.Enable.*Security";
 
     private static final AnnotationMatcher SECURITY_ANNOTATION_MATCHER = new AnnotationMatcher(ENABLE_SECURITY_ANNOTATION_PATTERN, true);
-
-    public ConfigurationOverEnableSecurity() {
-        this.forceAddConfiguration = false;
-    }
-
-    public ConfigurationOverEnableSecurity(boolean forceAddConfiguration) {
-        this.forceAddConfiguration = forceAddConfiguration;
-    }
 
     @Override
     public String getDisplayName() {
