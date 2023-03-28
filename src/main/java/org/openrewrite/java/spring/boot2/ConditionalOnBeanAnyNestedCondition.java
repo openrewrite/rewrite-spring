@@ -15,7 +15,10 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.*;
+import org.openrewrite.Cursor;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -31,7 +34,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
 
@@ -157,7 +159,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     JavaTemplate t = JavaTemplate.builder(this::getCursor, s)
                             .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
                             .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-autoconfigure-2.*")
+                                    .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*")
                                     .build())
                             .build();
                     c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), ctx);

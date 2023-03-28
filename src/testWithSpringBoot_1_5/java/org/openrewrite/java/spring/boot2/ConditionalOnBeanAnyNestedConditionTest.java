@@ -63,7 +63,13 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void conditionalAnnotationMultipleClassCandidates() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          java(
+            """
+              class Aa {}
+              class Bb {}
+              class Cc {}
+              """
+          ),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
