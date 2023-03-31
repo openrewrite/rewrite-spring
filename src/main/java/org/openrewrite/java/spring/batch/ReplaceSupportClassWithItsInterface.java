@@ -15,6 +15,8 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
 import org.openrewrite.Recipe;
@@ -33,6 +35,8 @@ import org.openrewrite.java.tree.TypeUtils;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@Value
+@EqualsAndHashCode(callSuper = true)
 public class ReplaceSupportClassWithItsInterface extends Recipe {
 
     @Override
@@ -42,46 +46,28 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
 
     @Override
     public String getDescription() {
-        return "As of Spring-Batch 5.0 Listeners has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.";
+        return "As of Spring-Batch 5.0 Listeners has default methods (made possible by a Java 8 baseline) and can be " +
+                "implemented directly without the need for this adapter.";
     }
 
-    @Option(displayName = "Fully Qualified Class Name", description = "A fully-qualified class name to be replaced.", example = "org.springframework.batch.core.listener.JobExecutionListenerSupport")
-    @NonNull
-    private String fullyQualifiedClassName;
+    @Option(displayName = "Fully Qualified Class Name",
+            description = "A fully-qualified class name to be replaced.",
+            example = "org.springframework.batch.core.listener.JobExecutionListenerSupport")
+    String fullyQualifiedClassName;
 
-    @Option(displayName = "Fully Qualified Interface Name", description = "A fully-qualified Interface name to replace by.", example = "org.springframework.batch.core.JobExecutionListener")
-    @NonNull
-    private String fullyQualifiedInterfaceName;
-
-    public String getFullyQualifiedClassName() {
-        return fullyQualifiedClassName;
-    }
-
-    public String getFullyQualifiedInterfaceName() {
-        return fullyQualifiedInterfaceName;
-    }
-
-    private final String simpleInterfaceName;
-
-    // Recipes must be serializable. This is verified by RecipeTest.assertChanged()
-    // and RecipeTest.assertUnchanged()
-    @JsonCreator
-    public ReplaceSupportClassWithItsInterface(
-            @NonNull @JsonProperty("fullyQualifiedClassName")String fullyQualifiedClassName,
-            @NonNull @JsonProperty("fullyQualifiedInterfaceName")String fullyQualifiedInterfaceName) {
-        this.fullyQualifiedClassName = fullyQualifiedClassName;
-        this.fullyQualifiedInterfaceName = fullyQualifiedInterfaceName;
-        this.simpleInterfaceName = JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName();
-    }
+    @Option(displayName = "Fully Qualified Interface Name",
+            description = "A fully-qualified Interface name to replace by.",
+            example = "org.springframework.batch.core.JobExecutionListener")
+    String fullyQualifiedInterfaceName;
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return new UsesType<>(fullyQualifiedClassName, false);
     }
 
     @Override
     protected JavaIsoVisitor<ExecutionContext> getVisitor() {
-        
+
         return new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
@@ -104,7 +90,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                             JavaTemplate
                                     .builder(() -> getCursor().dropParentUntil(
                                             p -> p instanceof J.ClassDeclaration || p instanceof J.CompilationUnit),
-                                            simpleInterfaceName)
+                                            JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
                                     .imports(fullyQualifiedInterfaceName)
                                     .javaParser(() -> JavaParser.fromJavaVersion().classpath("spring-batch").build())
                                     .build(),
@@ -117,19 +103,22 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                 return cd;
             }
 
-            class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
-                final MethodMatcher wm = new MethodMatcher(fullyQualifiedClassName + " *(..)");
 
-                @Override
-                public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method,
-                        ExecutionContext executionContext) {
-                    J.MethodInvocation mi = super.visitMethodInvocation(method, executionContext);
-                    if (wm.matches(method.getMethodType())) {
-                        return null;
-                    }
-                    return mi;
-                }
-            }
         };
+    }
+
+    class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
+        final MethodMatcher wm = new MethodMatcher(fullyQualifiedClassName + " *(..)");
+
+        @Override
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method,
+                                                        ExecutionContext executionContext) {
+            J.MethodInvocation mi = super.visitMethodInvocation(method, executionContext);
+            if (wm.matches(method.getMethodType())) {
+                //noinspection DataFlowIssue
+                return null;
+            }
+            return mi;
+        }
     }
 }
