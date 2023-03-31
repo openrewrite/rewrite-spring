@@ -105,6 +105,12 @@ recipeList:
       newVersion: 1.0.x
   - org.openrewrite.maven.RemoveDependency:
       groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-sleuth
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-sleuth-*
+  - org.openrewrite.maven.RemoveManagedDependency:
+      groupId: org.springframework.cloud
       artifactId: spring-cloud-sleuth-*
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.cloud.sleuth
