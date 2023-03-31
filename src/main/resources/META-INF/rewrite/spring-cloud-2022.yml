@@ -1,0 +1,115 @@
+#
+# Copyright 2023 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
+displayName: Migrate to Spring Cloud 2022
+description: Migrate applications to the latest Spring Cloud 2022 (Kilburn) release.
+tags:
+  - spring
+  - cloud
+recipeList:
+  - org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing
+  - org.openrewrite.java.spring.cloud2022.MavenPomUpgrade
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.cloud2022.MavenPomUpgrade
+displayName: Upgrade Maven POM to Spring Cloud 2022
+description: 'Upgrade Maven POM to Spring Cloud 2022 from prior 2021.x version.'
+tags:
+  - spring
+  - cloud
+recipeList:
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: "*"
+      newVersion: 4.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-dependencies
+      newVersion: 2022.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-circuitbreaker-*
+      newVersion: 3.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-circuitbreaker-*
+      newVersion: 3.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-kubernetes-*
+      newVersion: 3.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-kubernetes-*
+      newVersion: 3.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-task-*
+      newVersion: 3.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-task-*
+      newVersion: 3.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-parent
+      newVersion: 3.0.x
+      retainVersions:
+        - org.thymeleaf:thymeleaf-spring5
+        - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing
+displayName: Migrate Spring Cloud Sleuth 3.1 to Micrometer Tracing 1.0
+description: Spring Cloud Sleuth has been discontinued and only compatible with Spring Boot 2.x.
+tags:
+  - spring
+  - cloud
+  - sleuth
+  - tracing
+  - micrometer
+recipeList:
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-starter-sleuth
+      newGroupId: io.micrometer
+      newArtifactId: micrometer-tracing-bridge-brave
+      newVersion: 1.0.x
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-sleuth-api
+      newGroupId: io.micrometer
+      newArtifactId: micrometer-tracing
+      newVersion: 1.0.x
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-sleuth-brave
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.cloud.sleuth
+      newPackageName: io.micrometer.tracing
+      recursive: true
