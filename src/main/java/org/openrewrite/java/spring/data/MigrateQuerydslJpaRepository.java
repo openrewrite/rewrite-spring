@@ -45,7 +45,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.data.jpa.repository.support.QuerydslJpaRepository");
+        return new UsesType<>("org.springframework.data.jpa.repository.support.QuerydslJpaRepository", false);
     }
 
     @Override

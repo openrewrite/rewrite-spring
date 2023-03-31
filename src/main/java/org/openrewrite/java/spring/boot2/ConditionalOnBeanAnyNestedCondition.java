@@ -50,7 +50,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
+        return new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnBean", false);
     }
 
     @Override

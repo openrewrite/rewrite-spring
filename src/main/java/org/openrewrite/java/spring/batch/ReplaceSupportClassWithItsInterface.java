@@ -76,7 +76,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
 
     @Override
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(fullyQualifiedClassName);
+        return new UsesType<>(fullyQualifiedClassName, false);
     }
 
     @Override

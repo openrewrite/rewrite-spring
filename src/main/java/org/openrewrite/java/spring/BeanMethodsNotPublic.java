@@ -41,7 +41,7 @@ public class BeanMethodsNotPublic extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.context.annotation.Bean");
+        return new UsesType<>("org.springframework.context.annotation.Bean", false);
     }
 
     @Override

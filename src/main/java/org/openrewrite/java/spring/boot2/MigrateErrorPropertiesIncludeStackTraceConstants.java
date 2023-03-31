@@ -42,7 +42,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace");
+        return new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace", false);
     }
 
     @Override

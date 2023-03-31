@@ -45,7 +45,7 @@ public final class ServerHttpSecurityLambdaDsl extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<>(FQN_SERVER_HTTP_SECURITY);
+        return new UsesType<>(FQN_SERVER_HTTP_SECURITY, true);
     }
 
     @Override

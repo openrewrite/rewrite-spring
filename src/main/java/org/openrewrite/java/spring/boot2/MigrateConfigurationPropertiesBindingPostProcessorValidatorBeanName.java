@@ -42,7 +42,7 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor");
+        return new UsesType<>("org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor", false);
     }
 
     @Override

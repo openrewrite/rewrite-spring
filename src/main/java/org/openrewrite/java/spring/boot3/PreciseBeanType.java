@@ -43,7 +43,7 @@ public class PreciseBeanType extends Recipe {
 
     @Override
     protected UsesType<ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(BEAN);
+        return new UsesType<>(BEAN, false);
     }
 
     @Override

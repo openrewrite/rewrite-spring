@@ -48,7 +48,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer");
+        return new UsesType<>("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer", true);
     }
 
     @Override

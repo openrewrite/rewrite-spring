@@ -43,7 +43,7 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.context.embedded.LocalServerPort");
+        return new UsesType<>("org.springframework.boot.context.embedded.LocalServerPort", false);
     }
 
     @Override

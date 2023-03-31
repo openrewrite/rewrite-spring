@@ -61,8 +61,8 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
     @Override
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         // todo, change to use FindImplementations after the getVisitor() method is ready
-        return Applicability.or(new UsesType<>(WEB_MVC_CONFIGUER),
-            new UsesType<>(WEB_FLUX_CONFIGUER));
+        return Applicability.or(new UsesType<>(WEB_MVC_CONFIGUER, false),
+            new UsesType<>(WEB_FLUX_CONFIGUER, false));
     }
 
     @Override

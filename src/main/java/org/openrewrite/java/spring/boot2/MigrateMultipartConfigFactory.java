@@ -41,7 +41,7 @@ public class MigrateMultipartConfigFactory extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.web.servlet.MultipartConfigFactory");
+        return new UsesType<>("org.springframework.boot.web.servlet.MultipartConfigFactory", true);
     }
 
     @Override

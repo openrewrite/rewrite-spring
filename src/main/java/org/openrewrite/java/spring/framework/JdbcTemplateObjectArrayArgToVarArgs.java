@@ -42,7 +42,7 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
 
     @Override
     protected UsesType<ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.jdbc.core.JdbcTemplate");
+        return new UsesType<>("org.springframework.jdbc.core.JdbcTemplate", true);
     }
 
     @Override

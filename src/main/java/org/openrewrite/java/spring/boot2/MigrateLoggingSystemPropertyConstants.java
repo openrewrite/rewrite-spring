@@ -43,7 +43,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.logging.LoggingSystemProperties");
+        return new UsesType<>("org.springframework.boot.logging.LoggingSystemProperties", false);
     }
 
     @Override

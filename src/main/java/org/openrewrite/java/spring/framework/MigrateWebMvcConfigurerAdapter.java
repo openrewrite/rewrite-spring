@@ -41,7 +41,7 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
 
     @Override
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
+        return new UsesType<>("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter", false);
     }
 
     @Override

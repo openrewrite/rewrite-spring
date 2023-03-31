@@ -53,7 +53,7 @@ public class UseSha256InRememberMe extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices");
+        return new UsesType<>("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices", true);
     }
 
     @Override

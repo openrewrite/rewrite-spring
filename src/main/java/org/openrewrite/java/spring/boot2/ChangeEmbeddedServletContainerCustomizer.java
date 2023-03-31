@@ -49,7 +49,7 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
 
     @Override
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(DEPRECATED_INTERFACE_FQN);
+        return new UsesType<>(DEPRECATED_INTERFACE_FQN, false);
     }
 
     @Override

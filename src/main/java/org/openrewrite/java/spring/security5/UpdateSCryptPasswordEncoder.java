@@ -68,7 +68,7 @@ public class UpdateSCryptPasswordEncoder extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(SCRYPT_PASSWORD_ENCODER_CLASS);
+        return new UsesType<>(SCRYPT_PASSWORD_ENCODER_CLASS, false);
     }
 
     @Override

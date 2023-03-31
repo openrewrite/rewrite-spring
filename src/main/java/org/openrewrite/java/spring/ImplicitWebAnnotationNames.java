@@ -48,13 +48,13 @@ public class ImplicitWebAnnotationNames extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.PathVariable"));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestParam"));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestHeader"));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestAttribute"));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.CookieValue"));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.ModelAttribute"));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.SessionAttribute"));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.PathVariable", false));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestParam", false));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestHeader", false));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestAttribute", false));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.CookieValue", false));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.ModelAttribute", false));
+                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.SessionAttribute", false));
                 return cu;
             }
         };

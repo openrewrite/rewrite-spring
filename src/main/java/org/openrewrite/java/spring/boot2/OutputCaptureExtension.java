@@ -52,8 +52,8 @@ public class OutputCaptureExtension extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule"));
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.rule.OutputCapture"));
+                doAfterVisit(new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule", false));
+                doAfterVisit(new UsesType<>("org.springframework.boot.test.rule.OutputCapture", false));
                 return cu;
             }
         };

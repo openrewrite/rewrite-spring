@@ -61,7 +61,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.test.util.EnvironmentTestUtils");
+        return new UsesType<>("org.springframework.boot.test.util.EnvironmentTestUtils", false);
     }
 
     private static final class ReplaceEnvironmentUtilsMarker implements Marker {

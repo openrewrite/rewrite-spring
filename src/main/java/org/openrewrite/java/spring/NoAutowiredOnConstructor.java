@@ -45,7 +45,7 @@ public class NoAutowiredOnConstructor extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.beans.factory.annotation.Autowired");
+        return new UsesType<>("org.springframework.beans.factory.annotation.Autowired", false);
     }
 
     @Override

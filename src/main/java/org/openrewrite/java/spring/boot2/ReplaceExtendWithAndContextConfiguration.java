@@ -59,7 +59,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return Applicability.and(new UsesType<>(FQN_EXTEND_WITH), new UsesType<>(FQN_CONTEXT_CONFIGURATION));
+        return Applicability.and(new UsesType<>(FQN_EXTEND_WITH, false), new UsesType<>(FQN_CONTEXT_CONFIGURATION, false));
     }
 
     @Override

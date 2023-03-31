@@ -26,6 +26,7 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.marker.SearchResult;
 
 import java.util.Arrays;
 import java.util.List;
@@ -69,7 +70,7 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
             @Override
             public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext ctx) {
                 for (String jooqType : jooqTypes) {
-                    doAfterVisit(new UsesType<>(jooqType));
+                    doAfterVisit(new UsesType<>(jooqType, false));
                 }
                 return cu;
             }
@@ -91,7 +92,7 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
             }
 
             private J.MethodDeclaration markAsMatch(J.MethodDeclaration md) {
-                return md.withMarkers(md.getMarkers().searchResult());
+                return SearchResult.found(md);
             }
 
             private boolean isJooqCustomizationBean(J.MethodDeclaration md) {

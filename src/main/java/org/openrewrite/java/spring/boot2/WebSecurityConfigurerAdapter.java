@@ -95,7 +95,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER);
+        return new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false);
     }
 
     @Override

@@ -69,7 +69,7 @@ public class UnnecessarySpringExtension extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.test.context.junit.jupiter.SpringExtension");
+        return new UsesType<>("org.springframework.test.context.junit.jupiter.SpringExtension", false);
     }
 
     @Override

@@ -43,7 +43,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.http.MediaType");
+        return new UsesType<>("org.springframework.http.MediaType", false);
     }
 
     @Override

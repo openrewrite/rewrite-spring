@@ -72,7 +72,7 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(PBKDF2_PASSWORD_ENCODER_CLASS);
+        return new UsesType<>(PBKDF2_PASSWORD_ENCODER_CLASS, false);
     }
 
     @Override

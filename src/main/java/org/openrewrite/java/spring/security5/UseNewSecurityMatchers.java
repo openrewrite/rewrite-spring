@@ -49,7 +49,7 @@ public class UseNewSecurityMatchers extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(HTTP_SECURITY_CLASS);
+        return new UsesType<>(HTTP_SECURITY_CLASS, true);
     }
 
     @Override

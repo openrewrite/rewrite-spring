@@ -42,7 +42,7 @@ public class MigrateDiskSpaceHealthIndicatorConstructor extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.actuate.system.DiskSpaceHealthIndicator");
+        return new UsesType<>("org.springframework.boot.actuate.system.DiskSpaceHealthIndicator", false);
     }
 
     @Override

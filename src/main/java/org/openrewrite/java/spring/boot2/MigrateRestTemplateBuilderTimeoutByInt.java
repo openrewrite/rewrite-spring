@@ -41,7 +41,7 @@ public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.web.client.RestTemplateBuilder");
+        return new UsesType<>("org.springframework.boot.web.client.RestTemplateBuilder", true);
     }
 
     @Override

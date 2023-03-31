@@ -53,7 +53,7 @@ public class MigrateJpaSort extends Recipe {
                     return cu;
                 }
 
-                doAfterVisit(new UsesType<>("org.springframework.data.jpa.domain.JpaSort"));
+                doAfterVisit(new UsesType<>("org.springframework.data.jpa.domain.JpaSort", false));
                 return cu;
             }
         };

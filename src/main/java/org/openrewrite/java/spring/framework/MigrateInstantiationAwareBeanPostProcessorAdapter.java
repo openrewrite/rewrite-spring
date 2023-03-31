@@ -48,7 +48,7 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
 
     @Override
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(fromExtendingFqn);
+        return new UsesType<>(fromExtendingFqn, false);
     }
 
 

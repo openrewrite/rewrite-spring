@@ -42,7 +42,7 @@ public class PropagateAuthenticationServiceExceptions extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler");
+        return new UsesType<>("org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler", true);
     }
 
     @Override

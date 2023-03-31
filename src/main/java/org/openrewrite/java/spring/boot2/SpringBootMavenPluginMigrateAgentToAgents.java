@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.boot2;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.search.FindPlugin;
 import org.openrewrite.xml.XmlVisitor;
@@ -42,7 +43,7 @@ public class SpringBootMavenPluginMigrateAgentToAgents extends Recipe {
             @Override
             public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
                 if (FindPlugin.find(document, "org.springframework.boot", "spring-boot-maven-plugin").stream().noneMatch(plugin -> FindTags.find(plugin, "//configuration/agent").isEmpty())) {
-                    document = document.withMarkers(document.getMarkers().searchResult());
+                    document = SearchResult.found(document);
                 }
                 return document;
             }

@@ -50,7 +50,7 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<>(FQN_BEAN);
+        return new UsesType<>(FQN_BEAN, false);
     }
 
     @Override

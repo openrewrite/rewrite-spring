@@ -44,7 +44,7 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<ExecutionContext>(ANNOTATION_REPOSITORY);
+        return new UsesType<>(ANNOTATION_REPOSITORY, false);
     }
 
     @Override

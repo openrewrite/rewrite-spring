@@ -55,12 +55,12 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext executionContext) {
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository"));
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository"));
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Component"));
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Service"));
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.context.TestComponent"));
-                doAfterVisit(new UsesType<>("org.springframework.context.annotation.Bean"));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository", false));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository", false));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Component", false));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Service", false));
+                doAfterVisit(new UsesType<>("org.springframework.boot.test.context.TestComponent", false));
+                doAfterVisit(new UsesType<>("org.springframework.context.annotation.Bean", false));
                 return cu;
             }
         };
