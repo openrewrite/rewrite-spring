@@ -17,11 +17,11 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.format.AutoFormatVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
@@ -101,6 +101,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
+            @Nullable
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
                 boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
@@ -128,6 +129,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return classDecl;
             }
 
+            @Nullable
             private J.ClassDeclaration processSecurityAdapterClass(J.ClassDeclaration classDecl) {
                 classDecl = classDecl.withExtends(null);
                 // Flatten configuration classes if applicable
@@ -137,7 +139,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 }
                 if (enclosingClassCursor != null && enclosingClassCursor.getValue() instanceof J.ClassDeclaration) {
                     J.ClassDeclaration enclosingClass = enclosingClassCursor.getValue();
-                    if (isMetaAnnotated(enclosingClass.getType(), FQN_CONFIGURATION, new HashSet<>()) && canMergeClassDeclarations(enclosingClass, classDecl)) {
+                    if (enclosingClass.getType() != null && isMetaAnnotated(enclosingClass.getType(), FQN_CONFIGURATION, new HashSet<>()) && canMergeClassDeclarations(enclosingClass, classDecl)) {
                         // can flatten. Outer class is annotated as configuration bean
                         List<J.ClassDeclaration> classesToFlatten = enclosingClassCursor.getMessage(FLATTEN_CLASSES);
                         if (classesToFlatten == null) {
@@ -382,10 +384,12 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 Expression userExpr = findUserParameterExpression(b.getStatements().get(b.getStatements().size() - 1));
                 JavaType.FullyQualified type = userExpr == null ? null : TypeUtils.asFullyQualified(userExpr.getType());
                 String typeStr = "";
-                if (userExpr.getType() instanceof JavaType.Primitive) {
-                    typeStr = ((JavaType.Primitive) userExpr.getType()).getClassName();
-                } else if (userExpr.getType() instanceof JavaType.FullyQualified) {
-                    typeStr = ((JavaType.FullyQualified) userExpr.getType()).getFullyQualifiedName();
+                if (userExpr != null) {
+                    if (userExpr.getType() instanceof JavaType.Primitive) {
+                        typeStr = ((JavaType.Primitive) userExpr.getType()).getClassName();
+                    } else if (userExpr.getType() instanceof JavaType.FullyQualified) {
+                        typeStr = ((JavaType.FullyQualified) userExpr.getType()).getFullyQualifiedName();
+                    }
                 }
                 String t;
                 Object[] templateParams = new Object[0];
@@ -486,6 +490,9 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     }
 
     private static AuthType getAuthType(J.MethodDeclaration m) {
+        if (m.getBody() == null) {
+            return AuthType.NONE;
+        }
         Statement lastStatement = m.getBody().getStatements().get(m.getBody().getStatements().size() - 1);
         if (lastStatement instanceof J.MethodInvocation) {
             for (J.MethodInvocation invocation = (J.MethodInvocation) lastStatement; invocation != null;) {
@@ -514,6 +521,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         return AuthType.NONE;
     }
 
+    @Nullable
     private Expression findUserParameterExpression(Statement s) {
         AtomicReference<Expression> context = new AtomicReference<>();
         new JavaIsoVisitor<AtomicReference<Expression>>() {
