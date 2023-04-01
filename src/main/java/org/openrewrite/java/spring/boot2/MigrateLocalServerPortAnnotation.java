@@ -50,8 +50,8 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
-                J.Annotation a = super.visitAnnotation(annotation, executionContext);
+            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                J.Annotation a = super.visitAnnotation(annotation, ctx);
                 if (LOCAL_SERVER_PORT_MATCHER.matches(annotation)) {
                     a = a.withAnnotationType(a.getAnnotationType().withType(JavaType.buildType("org.springframework.boot.web.server.LocalServerPort")));
                     maybeRemoveImport("org.springframework.boot.context.embedded.LocalServerPort");

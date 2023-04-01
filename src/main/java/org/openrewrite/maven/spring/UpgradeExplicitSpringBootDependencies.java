@@ -110,8 +110,8 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
         return new MavenIsoVisitor<ExecutionContext>() {
             @Override
-            public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext executionContext) {
-                Xml.Tag resultTag = super.visitTag(tag, executionContext);
+            public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
+                Xml.Tag resultTag = super.visitTag(tag, ctx);
                 if (isManagedDependencyTag()) {
                     ResolvedManagedDependency managedDependency = findManagedDependency(resultTag);
                     if (managedDependency != null && managedDependency.getGroupId().equals(SPRINGBOOT_GROUP)
@@ -145,18 +145,18 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new MavenIsoVisitor<ExecutionContext>() {
             @Override
-            public Xml.Document visitDocument(Xml.Document document, ExecutionContext executionContext) {
+            public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
                 try {
                     buildDependencyMap();
                 } catch (MavenDownloadingException e) {
                     return e.warn(document);
                 }
-                return super.visitDocument(document, executionContext);
+                return super.visitDocument(document, ctx);
             }
 
             @Override
-            public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext executionContext) {
-                Xml.Tag resultTag = super.visitTag(tag, executionContext);
+            public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
+                Xml.Tag resultTag = super.visitTag(tag, ctx);
                 if (isManagedDependencyTag()) {
                     ResolvedManagedDependency managedDependency = findManagedDependency(resultTag);
                     if (managedDependency != null) {

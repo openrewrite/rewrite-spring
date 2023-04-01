@@ -68,8 +68,8 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
             private final AnnotationMatcher CONTEXT_CONFIGURATION_ANNOTATION_MATCHER = new AnnotationMatcher("@" + FQN_CONTEXT_CONFIGURATION, true);
 
             @Override
-            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext context) {
-                J.Annotation a = super.visitAnnotation(annotation, context);
+            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                J.Annotation a = super.visitAnnotation(annotation, ctx);
 
                 if (CONTEXT_CONFIGURATION_ANNOTATION_MATCHER.matches(a) && getCursor().getParentOrThrow().getValue() instanceof J.ClassDeclaration) {
                     // @SpringJUnitConfig supports every attribute on @ContextConfiguration except loader()
@@ -94,10 +94,10 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                     maybeRemoveImport(FQN_CONTEXT_CONFIGURATION);
                     maybeAddImport(FQN_SPRING_JUNIT_CONFIG);
                     a = (J.Annotation) new ChangeType(FQN_CONTEXT_CONFIGURATION, FQN_SPRING_JUNIT_CONFIG, false)
-                            .getVisitor().visit(a, context, getCursor());
+                            .getVisitor().visit(a, ctx, getCursor());
                 }
 
-                return a != null ? autoFormat(a, context) : annotation;
+                return a != null ? autoFormat(a, ctx) : annotation;
             }
 
             private void replaceValueArgumentWithLocations(J.Annotation a, List<Expression> newArgs) {

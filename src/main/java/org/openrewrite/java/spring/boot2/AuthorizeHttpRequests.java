@@ -54,8 +54,8 @@ public class AuthorizeHttpRequests extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaVisitor<ExecutionContext>() {
             @Override
-            public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-                J visited = super.visitMethodInvocation(method, executionContext);
+            public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J visited = super.visitMethodInvocation(method, ctx);
                 if (visited instanceof J.MethodInvocation) {
                     J.MethodInvocation m = (J.MethodInvocation) visited;
                     JavaType.Method methodType = method.getMethodType();
@@ -63,7 +63,7 @@ public class AuthorizeHttpRequests extends Recipe {
                         if (MATCH_AUTHORIZE_REQUESTS.matches(methodType)) {
                             return processAuthorizeRequests(m);
                         } else if (MATCH_ACCESS_DECISION_MANAGER.matches(methodType)) {
-                            return processAccessDecisionManager(m, executionContext);
+                            return processAccessDecisionManager(m, ctx);
                         }
                     }
                     String commentToAdd = getCursor().pollMessage(MSG_ADD_COMMENT);
@@ -85,7 +85,7 @@ public class AuthorizeHttpRequests extends Recipe {
                 return m;
             }
 
-            private J processAccessDecisionManager(J.MethodInvocation m, ExecutionContext executionContext) {
+            private J processAccessDecisionManager(J.MethodInvocation m, ExecutionContext ctx) {
                 StringBuilder commentText = new StringBuilder();
                 commentText.append("TODO: replace removed '.");
                 commentText.append(m.getSimpleName());

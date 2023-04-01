@@ -51,7 +51,7 @@ public class OutputCaptureExtension extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 doAfterVisit(new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule", false));
                 doAfterVisit(new UsesType<>("org.springframework.boot.test.rule.OutputCapture", false));
                 return cu;
@@ -167,8 +167,8 @@ public class OutputCaptureExtension extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext context) {
-            J.MethodDeclaration m = super.visitMethodDeclaration(method, context);
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
             if (!FindMethods.find(m, "org.springframework.boot.test.rule.OutputCapture *(..)").isEmpty() ||
                     !FindMethods.find(m, "org.springframework.boot.test.system.OutputCaptureRule *(..)").isEmpty()) {
                 // FIXME need addParameter coordinate here...

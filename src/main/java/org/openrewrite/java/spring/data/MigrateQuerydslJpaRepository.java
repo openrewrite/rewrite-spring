@@ -62,8 +62,8 @@ public class MigrateQuerydslJpaRepository extends Recipe {
             }
 
             @Override
-            public J visitParameterizedType(J.ParameterizedType type, ExecutionContext context) {
-                J.ParameterizedType t = (J.ParameterizedType) super.visitParameterizedType(type, context);
+            public J visitParameterizedType(J.ParameterizedType type, ExecutionContext ctx) {
+                J.ParameterizedType t = (J.ParameterizedType) super.visitParameterizedType(type, ctx);
                 if (t.getClazz() instanceof J.Identifier && TypeUtils.isOfType(TypeUtils.asFullyQualified(t.getClazz().getType()),
                         TypeUtils.asFullyQualified(JavaType.ShallowClass.build(originalFqn))) &&
                         t.getTypeParameters() != null && t.getTypeParameters().size() == 2) {

@@ -54,7 +54,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext executionContext) {
+            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext ctx) {
                 doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository", false));
                 doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository", false));
                 doAfterVisit(new UsesType<>("org.springframework.stereotype.Component", false));

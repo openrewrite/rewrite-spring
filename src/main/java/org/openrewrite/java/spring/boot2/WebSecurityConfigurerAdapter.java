@@ -103,7 +103,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Nullable
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
                         && isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION);
                 boolean hasConflict = false;
@@ -120,9 +120,9 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     getCursor().putMessage(HAS_CONFLICT, hasConflict);
                     maybeRemoveImport(FQN_WEB_SECURITY_CONFIGURER_ADAPTER);
                 }
-                classDecl = super.visitClassDeclaration(classDecl, context);
+                classDecl = super.visitClassDeclaration(classDecl, ctx);
                 if (!isWebSecurityConfigurerAdapterClass) {
-                    classDecl = processAnyClass(classDecl, context);
+                    classDecl = processAnyClass(classDecl, ctx);
                 } else if (!hasConflict) {
                     classDecl = processSecurityAdapterClass(classDecl);
                 }
@@ -250,7 +250,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             }
 
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration m, ExecutionContext context) {
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration m, ExecutionContext ctx) {
                 Cursor classCursor = getCursor().dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE);
                 if(!(classCursor.getValue() instanceof J.ClassDeclaration)) {
                     return m;
@@ -280,7 +280,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         }
                     }
                 }
-                return super.visitMethodDeclaration(m, context);
+                return super.visitMethodDeclaration(m, ctx);
             }
 
             private J.MethodDeclaration changeToBeanMethod(J.MethodDeclaration m, J.ClassDeclaration c, String fqnReturnType, String newMethodName, boolean keepParams) {
@@ -323,8 +323,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             }
 
             @Override
-            public J.Block visitBlock(J.Block block, ExecutionContext context) {
-                J.Block b = super.visitBlock(block, context);
+            public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
+                J.Block b = super.visitBlock(block, ctx);
                 if (getCursor().getParent() != null && getCursor().getParent().getValue() instanceof J.MethodDeclaration) {
                     J.MethodDeclaration parentMethod = getCursor().getParent().getValue();
                     Cursor classDeclCursor = getCursor().dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE);

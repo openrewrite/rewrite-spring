@@ -52,8 +52,8 @@ public class NoAutowiredOnConstructor extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext context) {
-                J.ClassDeclaration cd =  super.visitClassDeclaration(classDecl, context);
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration cd =  super.visitClassDeclaration(classDecl, ctx);
 
                 int constructorCount = 0;
                 for(Statement s : cd.getBody().getStatements()) {
@@ -71,7 +71,7 @@ public class NoAutowiredOnConstructor extends Recipe {
                                 return s;
                             }
                             maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
-                            return (Statement) new RemoveAnnotationVisitor(AUTOWIRED_ANNOTATION_MATCHER).visit(s, context, getCursor());
+                            return (Statement) new RemoveAnnotationVisitor(AUTOWIRED_ANNOTATION_MATCHER).visit(s, ctx, getCursor());
                         })
                 ));
             }

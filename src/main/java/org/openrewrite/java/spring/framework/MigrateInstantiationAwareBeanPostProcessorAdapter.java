@@ -56,22 +56,22 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
     protected JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), fromExtendingFqn)) {
                     cd = cd.withExtends(null);
                     J.Identifier ident = new J.Identifier(UUID.randomUUID(), Space.format(" "), Markers.EMPTY,
                             "SmartInstantiationAwareBeanPostProcessor", JavaType.buildType(toImplementsFqn), null);
                     J.Block body = cd.getBody();
-                    cd = maybeAutoFormat(cd, cd.withBody(cd.getBody().withStatements(Collections.emptyList())).withImplements(ListUtils.concat(cd.getImplements(), ident)), executionContext, getCursor());
+                    cd = maybeAutoFormat(cd, cd.withBody(cd.getBody().withStatements(Collections.emptyList())).withImplements(ListUtils.concat(cd.getImplements(), ident)), ctx, getCursor());
                     cd = cd.withBody(body);
                 }
                 return cd;
             }
 
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-                J.CompilationUnit compilationUnit = super.visitCompilationUnit(cu, executionContext);
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                J.CompilationUnit compilationUnit = super.visitCompilationUnit(cu, ctx);
                 doAfterVisit(new ChangeType(fromExtendingFqn, toImplementsFqn, false));
                 return compilationUnit;
             }

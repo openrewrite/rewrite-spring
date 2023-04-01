@@ -54,13 +54,13 @@ public class SpringBootMavenPluginMigrateAgentToAgents extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new MavenVisitor<ExecutionContext>() {
             @Override
-            public Xml visitDocument(Xml.Document document, ExecutionContext executionContext) {
+            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
                 FindPlugin.find(document, "org.springframework.boot", "spring-boot-maven-plugin").forEach(plugin ->
                         FindTags.find(plugin, "//configuration/agent").forEach(agentTag ->
                                 doAfterVisit(new ChangeTagKeyVisitor<>(agentTag, "agents"))
                         )
                 );
-                return super.visitDocument(document, executionContext);
+                return super.visitDocument(document, ctx);
             }
         };
     }

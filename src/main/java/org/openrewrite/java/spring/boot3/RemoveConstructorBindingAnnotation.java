@@ -63,8 +63,8 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
     public JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, executionContext);
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
                 // Collect the class constructors.
                 List<J.MethodDeclaration> constructors = c.getBody().getStatements().stream()
@@ -86,7 +86,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                                         J.MethodDeclaration m = (J.MethodDeclaration) s;
                                         // Only visit the `J.MethodDeclaration` subtree and remove the target annotation.
                                         maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
-                                        return new RemoveTargetAnnotation(bindingAnnotation.get()).visitMethodDeclaration(m, executionContext);
+                                        return new RemoveTargetAnnotation(bindingAnnotation.get()).visitMethodDeclaration(m, ctx);
                                     }
                                     return s;
                                 }))
@@ -155,11 +155,11 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                 }
 
                 @Override
-                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
+                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                     if (targetToRemove == annotation) {
                         return null;
                     }
-                    return super.visitAnnotation(annotation, executionContext);
+                    return super.visitAnnotation(annotation, ctx);
                 }
             }
         };

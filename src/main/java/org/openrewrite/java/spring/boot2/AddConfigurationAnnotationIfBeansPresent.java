@@ -57,8 +57,8 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext p) {
-                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, p);
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
                 if (isApplicableClass(c, getCursor())) {
                     c = addConfigurationAnnotation(c);
                 }

@@ -72,8 +72,8 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
 
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl,
-                    ExecutionContext executionContext) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
+                    ExecutionContext ctx) {
+                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null
                         && TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
                     cd = cd.withExtends(null);
@@ -95,7 +95,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                                     .javaParser(() -> JavaParser.fromJavaVersion().classpath("spring-batch").build())
                                     .build(),
                             cd.getCoordinates().addImplementsClause());
-                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, executionContext,
+                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx,
                             getCursor());
                     maybeRemoveImport(fullyQualifiedClassName);
                     maybeAddImport(fullyQualifiedInterfaceName);
@@ -112,8 +112,8 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method,
-                                                        ExecutionContext executionContext) {
-            J.MethodInvocation mi = super.visitMethodInvocation(method, executionContext);
+                                                        ExecutionContext ctx) {
+            J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
             if (wm.matches(method.getMethodType())) {
                 //noinspection DataFlowIssue
                 return null;

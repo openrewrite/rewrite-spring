@@ -47,7 +47,7 @@ public class ImplicitWebAnnotationNames extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.PathVariable", false));
                 doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestParam", false));
                 doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestHeader", false));

@@ -146,7 +146,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method,
-                                                              ExecutionContext executionContext) {
+                                                              ExecutionContext ctx) {
 
                 if (isWebMVCConfigurerMatchMethod(method) || isWebFluxconfigurePathMatchingMethod(method)) {
 

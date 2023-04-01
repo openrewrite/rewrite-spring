@@ -92,13 +92,13 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         private static final int MINIMUM_ARGUMENT_COUNT_WITH_NAME = 3;
 
         @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-            return super.visitClassDeclaration(classDecl, executionContext);
+        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+            return super.visitClassDeclaration(classDecl, ctx);
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-            J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
             if (m.getBody() == null || m.getBody().getStatements().isEmpty()) {
                 return m;

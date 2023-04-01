@@ -72,13 +72,13 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
         }
 
         @Override
-        public J.Import visitImport(J.Import anImport, ExecutionContext executionContext) {
+        public J.Import visitImport(J.Import anImport, ExecutionContext ctx) {
             J.Identifier name = anImport.getQualid().getName();
             if (anImport.isStatic() && updateDeprecatedFields.containsKey(name.getSimpleName()) &&
                     TypeUtils.isOfClassType(anImport.getQualid().getTarget().getType(), ORIGINAL_FQN.getFullyQualifiedName())) {
                 return anImport.withQualid(anImport.getQualid().withName(name.withSimpleName(updateDeprecatedFields.get(name.getSimpleName()))));
             }
-            return super.visitImport(anImport, executionContext);
+            return super.visitImport(anImport, ctx);
         }
 
         @Override

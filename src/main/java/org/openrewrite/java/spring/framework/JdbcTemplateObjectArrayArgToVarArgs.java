@@ -56,8 +56,8 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
         private static final MethodMatcher queryForListMapper = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForList(..)");
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            J.MethodInvocation mi = super.visitMethodInvocation(method, executionContext);
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
             if (queryMapper.matches(mi) || queryForObjectMapper.matches(mi) || queryForListMapper.matches(mi)) {
                 List<Expression> args = mi.getArguments();
                 if (args.size() == 3 && shouldSwapArgs(args.get(1).getType(), args.get(2).getType())) {

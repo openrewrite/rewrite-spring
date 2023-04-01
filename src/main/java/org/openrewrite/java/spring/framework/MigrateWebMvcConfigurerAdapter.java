@@ -48,8 +48,8 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
     protected JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>(){
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter")) {
                     cd = cd.withExtends(null);
                     // This is an interesting one... WebMvcConfigurerAdapter implements WebMvcConfigurer
@@ -65,7 +65,7 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                                             .build())
                                     .build(),
                             cd.getCoordinates().addImplementsClause());
-                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, executionContext, getCursor());
+                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());
                     maybeRemoveImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
                     maybeAddImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurer");
                 }
@@ -75,8 +75,8 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
             class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
                 final MethodMatcher wm = new MethodMatcher("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter *(..)");
                 @Override
-                public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-                    J.MethodInvocation mi = super.visitMethodInvocation(method, executionContext);
+                public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                    J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                     if (wm.matches(method.getMethodType())) {
                         return null;
                     }

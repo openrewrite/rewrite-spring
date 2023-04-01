@@ -50,8 +50,8 @@ public class PreciseBeanType extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-                J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
                 Object o = getCursor().pollMessage(MSG_KEY);
                 if (o != null && (method.getReturnTypeExpression() != null && !o.equals(method.getReturnTypeExpression().getType())) && isBeanMethod(m)) {
                     if (o instanceof JavaType.FullyQualified) {
@@ -106,7 +106,7 @@ public class PreciseBeanType extends Recipe {
             }
 
             @Override
-            public J.Return visitReturn(J.Return _return, ExecutionContext executionContext) {
+            public J.Return visitReturn(J.Return _return, ExecutionContext ctx) {
                 if (_return.getExpression() != null && _return.getExpression().getType() != null) {
                     Cursor methodCursor = getCursor();
                     while (methodCursor != null && !(methodCursor.getValue() instanceof J.Lambda || methodCursor.getValue() instanceof J.MethodDeclaration)) {
@@ -116,7 +116,7 @@ public class PreciseBeanType extends Recipe {
                         methodCursor.putMessage(MSG_KEY, _return.getExpression().getType());
                     }
                 }
-                return super.visitReturn(_return, executionContext);
+                return super.visitReturn(_return, ctx);
             }
         };
     }

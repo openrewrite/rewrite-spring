@@ -42,13 +42,13 @@ public class SamlRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
         return new PropertiesVisitor<ExecutionContext>() {
 
             @Override
-            public Properties visitEntry(Properties.Entry entry, ExecutionContext executionContext) {
+            public Properties visitEntry(Properties.Entry entry, ExecutionContext ctx) {
 
                 if (entry.getKey().matches(REGEX_PATTERN)) {
-                    return super.visitEntry(updateEntry(entry), executionContext);
+                    return super.visitEntry(updateEntry(entry), ctx);
                 }
 
-                return super.visitEntry(entry, executionContext);
+                return super.visitEntry(entry, ctx);
             }
 
             @NonNull

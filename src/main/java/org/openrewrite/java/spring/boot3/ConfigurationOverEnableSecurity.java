@@ -66,7 +66,7 @@ public class ConfigurationOverEnableSecurity extends Recipe {
     protected JavaVisitor<ExecutionContext> getSingleSourceApplicableTest() {
         return new JavaVisitor<ExecutionContext>() {
             @Override
-            public J visitJavaSourceFile(JavaSourceFile cu, ExecutionContext o) {
+            public J visitJavaSourceFile(JavaSourceFile cu, ExecutionContext ctx) {
                 for (JavaType type : cu.getTypesInUse().getTypesInUse()) {
                     if (SECURITY_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(type))) {
                         return SearchResult.found(cu);
