@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.joining;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class GenerateReplaceStringLiteralWithConstantRecipe {
+class GenerateReplaceStringLiteralWithConstantRecipeTest {
     public static void main(String[] args) throws Exception {
         // Usage: GenerateReplaceStringLiteralWithConstantRecipe <fully qualified class name> <required dependency groupId> <required dependency artifactId> <output file>
         // Examples:
