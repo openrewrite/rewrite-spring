@@ -43,25 +43,45 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
     }
 
     private static void generateRecipe(String fullyQualifiedClassName, String requiredDependencyGroupId, String requiredDependencyArtifactId, Path outputFile) throws ClassNotFoundException, IOException {
+        // Write license header
+        Files.write(outputFile, """
+          #
+          # Copyright 2023 the original author or authors.
+          # <p>
+          # Licensed under the Apache License, Version 2.0 (the "License");
+          # you may not use this file except in compliance with the License.
+          # You may obtain a copy of the License at
+          # <p>
+          # https://www.apache.org/licenses/LICENSE-2.0
+          # <p>
+          # Unless required by applicable law or agreed to in writing, software
+          # distributed under the License is distributed on an "AS IS" BASIS,
+          # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+          # See the License for the specific language governing permissions and
+          # limitations under the License.
+          #
+          """.getBytes());
+
         // Write recipe header
         Class<?> fqclass = Class.forName(fullyQualifiedClassName);
         Files.write(outputFile, """
-          ---
-          type: specs.openrewrite.org/v1beta/recipe
-          name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWith%1$sConstants
-          displayName: Replace String literals with `%1$s` constants
-          description: Replace String literals with `%2$s` constants.
-          applicability:
-            singleSource:
-              - org.openrewrite.maven.search.FindDependency:
-                  groupId: %3$s
-                  artifactId: %4$s
-          recipeList:
-          """.formatted(
-          fqclass.getSimpleName(),
-          fullyQualifiedClassName,
-          requiredDependencyGroupId,
-          requiredDependencyArtifactId).getBytes());
+            ---
+            type: specs.openrewrite.org/v1beta/recipe
+            name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWith%1$sConstants
+            displayName: Replace String literals with `%1$s` constants
+            description: Replace String literals with `%2$s` constants.
+            applicability:
+              singleSource:
+                - org.openrewrite.maven.search.FindDependency:
+                    groupId: %3$s
+                    artifactId: %4$s
+            recipeList:
+            """.formatted(
+            fqclass.getSimpleName(),
+            fullyQualifiedClassName,
+            requiredDependencyGroupId,
+            requiredDependencyArtifactId).getBytes(),
+          StandardOpenOption.APPEND);
 
         // Write recipe for each field
         Files.write(outputFile,
@@ -92,7 +112,7 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
         Path tempFile = tempdir.resolve("recipe.yml");
         generateRecipe("org.springframework.http.MediaType", "org.springframework", "spring-web", tempFile);
         String contents = Files.readString(tempFile);
-        assertThat(contents).startsWith("""
+        assertThat(contents).contains("""
           ---
           type: specs.openrewrite.org/v1beta/recipe
           name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants
