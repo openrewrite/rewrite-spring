@@ -1,0 +1,71 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWith%sConstants
+displayName: Replace String literals with `MediaType` constants
+description: Replace String literals with `org.springframework.http.MediaType` constants.
+applicability:
+  singleSource:
+    - org.openrewrite.maven.search.FindDependency:
+        groupId: org.springframework
+        artifactId: spring-web
+recipeList:
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.ALL_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_ATOM_XML_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_CBOR_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_GRAPHQL_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_GRAPHQL_RESPONSE_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_PDF_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_UTF8_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_PROBLEM_XML_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_PROTOBUF_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_RSS_XML_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_STREAM_JSON_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_XML_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.IMAGE_GIF_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.IMAGE_JPEG_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.IMAGE_PNG_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.MULTIPART_MIXED_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.MULTIPART_RELATED_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.TEXT_HTML_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.TEXT_MARKDOWN_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.TEXT_PLAIN_VALUE
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      fullyQualifiedConstantName: org.springframework.http.MediaType.TEXT_XML_VALUE
