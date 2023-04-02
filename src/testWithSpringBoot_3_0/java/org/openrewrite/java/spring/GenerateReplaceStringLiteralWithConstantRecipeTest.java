@@ -48,7 +48,7 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
         Files.write(outputFile, """
           ---
           type: specs.openrewrite.org/v1beta/recipe
-          name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWith%1%sConstants
+          name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWith%1$sConstants
           displayName: Replace String literals with `%1$s` constants
           description: Replace String literals with `%2$s` constants.
           applicability:
@@ -95,7 +95,7 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
         assertThat(contents).startsWith("""
           ---
           type: specs.openrewrite.org/v1beta/recipe
-          name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWith%sConstants
+          name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants
           displayName: Replace String literals with `MediaType` constants
           description: Replace String literals with `org.springframework.http.MediaType` constants.
           applicability:

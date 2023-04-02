@@ -1,6 +1,6 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWith%sConstants
+name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWithHttpHeadersConstants
 displayName: Replace String literals with `HttpHeaders` constants
 description: Replace String literals with `org.springframework.http.HttpHeaders` constants.
 applicability:

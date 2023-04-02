@@ -1,6 +1,6 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWith%sConstants
+name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants
 displayName: Replace String literals with `MediaType` constants
 description: Replace String literals with `org.springframework.http.MediaType` constants.
 applicability:
