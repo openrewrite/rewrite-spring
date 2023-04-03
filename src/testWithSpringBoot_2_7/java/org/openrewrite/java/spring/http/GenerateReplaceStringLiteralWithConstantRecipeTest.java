@@ -72,9 +72,10 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
             description: Replace String literals with `%2$s` constants.
             applicability:
               anySource:
-                - org.openrewrite.maven.search.FindDependency:
+                - org.openrewrite.maven.search.DependencyInsight:
                     groupId: %3$s
                     artifactId: %4$s
+                    scope: compile
             recipeList:
             """.formatted(
             fqclass.getSimpleName(),
@@ -120,9 +121,10 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
           description: Replace String literals with `org.springframework.http.MediaType` constants.
           applicability:
             anySource:
-              - org.openrewrite.maven.search.FindDependency:
-                  groupId: org.springframework
-                  artifactId: spring-web
+              - org.openrewrite.maven.search.DependencyInsight:
+                  groupIdPattern: org.springframework
+                  artifactIdPattern: spring-web
+                  scope: compile
           recipeList:
             - org.openrewrite.java.ReplaceStringLiteralWithConstant:
                 fullyQualifiedConstantName: org.springframework.http.MediaType.ALL_VALUE
