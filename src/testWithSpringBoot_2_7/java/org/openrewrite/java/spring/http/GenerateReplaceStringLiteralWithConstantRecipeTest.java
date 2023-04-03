@@ -73,8 +73,8 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
             applicability:
               anySource:
                 - org.openrewrite.maven.search.DependencyInsight:
-                    groupId: %3$s
-                    artifactId: %4$s
+                    groupIdPattern: %3$s
+                    groupIdPattern: %4$s
                     scope: compile
             recipeList:
             """.formatted(
