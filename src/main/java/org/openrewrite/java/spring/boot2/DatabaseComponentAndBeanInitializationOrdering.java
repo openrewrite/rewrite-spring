@@ -95,9 +95,8 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                         && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
                         JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                                .javaParser(() -> JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-boot-2.*")
-                                        .build())
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-boot-2.*"))
                                 .build();
                         md = md.withTemplate(template, md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                         maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
@@ -113,9 +112,8 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                     && requiresInitializationAnnotation(cd.getType())) {
                     JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                            .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*")
-                                    .build())
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-boot-2.*"))
                             .build();
                     cd = cd.withTemplate(template, cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                     maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");

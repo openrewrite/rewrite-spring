@@ -104,9 +104,8 @@ public class OutputCaptureExtension extends Recipe {
 
                 if (classDecl.getBody().getStatements().size() != c.getBody().getStatements().size()) {
                     JavaTemplate addOutputCaptureExtension = JavaTemplate.builder(this::getCursor, "@ExtendWith(OutputCaptureExtension.class)")
-                            .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*")
-                                    .build())
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                             .imports("org.junit.jupiter.api.extension.ExtendWith",
                                     "org.springframework.boot.test.system.OutputCaptureExtension")
                             .build();
@@ -149,9 +148,8 @@ public class OutputCaptureExtension extends Recipe {
             }
 
             JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
-                    .javaParser(() -> JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*")
-                            .build())
+                    .javaParser(JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                     .build();
             m = m.withTemplate(matchesTemplate, m.getCoordinates().replace(), m.getArguments().get(0), variableName);
             return m;

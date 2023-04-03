@@ -60,9 +60,8 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                     }
                     cd = cd.withTemplate(JavaTemplate.builder(() -> getCursor().dropParentUntil(p -> p instanceof J.ClassDeclaration || p instanceof J.CompilationUnit), "WebMvcConfigurer")
                                     .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .classpath("spring-webmvc")
-                                            .build())
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpath("spring-webmvc"))
                                     .build(),
                             cd.getCoordinates().addImplementsClause());
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());

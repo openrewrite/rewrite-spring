@@ -77,9 +77,8 @@ public class GetErrorAttributes extends Recipe {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE)";
                     mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, template)
                                     .imports(parserImports)
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*")
-                                            .build())
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*"))
                                     .build(),
                             mi.getCoordinates().replaceArguments(),
                             mi.getArguments().get(0)
@@ -88,9 +87,8 @@ public class GetErrorAttributes extends Recipe {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, ErrorAttributeOptions.defaults()";
                     mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, template)
                                     .imports(parserImports)
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*")
-                                            .build())
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*"))
                                     .build(),
                             mi.getCoordinates().replaceArguments(),
                             mi.getArguments().get(0)
@@ -99,9 +97,8 @@ public class GetErrorAttributes extends Recipe {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, #{any(boolean)} ? ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE) : ErrorAttributeOptions.defaults()";
                     mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, template)
                                     .imports(parserImports)
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*")
-                                            .build())
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*"))
                                     .build(),
                             mi.getCoordinates().replaceArguments(),
                             mi.getArguments().toArray()

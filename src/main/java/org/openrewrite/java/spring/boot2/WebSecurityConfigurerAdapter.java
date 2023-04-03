@@ -358,19 +358,18 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
             private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod) {
                 JavaTemplate template = JavaTemplate.builder(this::getCursor,  "return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
-                        .javaParser(() -> JavaParser.fromJavaVersion()
+                        .javaParser(JavaParser.fromJavaVersion()
                                 .dependsOn("package org.springframework.security.config.annotation;" +
                                         "public interface SecurityBuilder<O> {\n" +
                                         "    O build() throws Exception;" +
-                                        "}")
-                                .build()).imports("org.springframework.security.config.annotation.SecurityBuilder").build();
+                                        "}")).imports("org.springframework.security.config.annotation.SecurityBuilder").build();
                 return b.withTemplate(template, b.getCoordinates().lastStatement(),
                         ((J.VariableDeclarations)parentMethod.getParameters().get(0)).getVariables().get(0).getName());
             }
 
             private J.Block handleWebSecurity(J.Block b, J.MethodDeclaration parentMethod) {
                 String t = "return (" + ((J.VariableDeclarations)parentMethod.getParameters().get(0)).getVariables().get(0).getName().getSimpleName() + ") -> #{any()};";
-                JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(() -> JavaParser.fromJavaVersion().build()).build();
+                JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(JavaParser.fromJavaVersion()).build();
                 b = b.withTemplate(template, b.getCoordinates().firstStatement(), b);
                 return b.withStatements(ListUtils.map(b.getStatements(), (index, stmt) -> {
                     if (index == 0){
@@ -411,7 +410,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         t = "return new InMemoryUserDetailsManager();";
                         b = SearchResult.found(b, "Unrecognized type of user expression " + userExpr + "\n.Please correct manually");
                 }
-                JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(() -> JavaParser.fromJavaVersion()
+                JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(JavaParser.fromJavaVersion()
                                 .dependsOn(
 
                                         "package org.springframework.security.core.userdetails;\n" +
@@ -430,8 +429,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                                 "       UserDetails build();\n" +
                                                 "   }\n" +
                                                 "}\n"
-                                )
-                                .build())
+                                ))
                         .imports(FQN_INMEMORY_AUTH_MANAGER, FQN_USER_DETAILS_BUILDER, FQN_USER)
                         .build();
                 List<Statement> allExcetLastStatements = b.getStatements();
@@ -446,8 +444,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
             private J.MethodDeclaration addBeanAnnotation(J.MethodDeclaration m, Cursor c) {
                 maybeAddImport(FQN_BEAN);
-                JavaTemplate template = JavaTemplate.builder(() -> c, BEAN_ANNOTATION).imports(FQN_BEAN).javaParser(() -> JavaParser.fromJavaVersion()
-                        .dependsOn("package " + BEAN_PKG + "; public @interface " + BEAN_SIMPLE_NAME + " {}").build()).build();
+                JavaTemplate template = JavaTemplate.builder(() -> c, BEAN_ANNOTATION).imports(FQN_BEAN).javaParser(JavaParser.fromJavaVersion()
+                        .dependsOn("package " + BEAN_PKG + "; public @interface " + BEAN_SIMPLE_NAME + " {}")).build();
                 return m.withTemplate(template, m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
             }
 

@@ -155,9 +155,8 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
             private JavaTemplate newFactoryMethodTemplate(ExecutionContext ctx) {
                 return JavaTemplate.builder(this::getCursor, "Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()")
                         .imports(PBKDF2_PASSWORD_ENCODER_CLASS)
-                        .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+")
-                                .build())
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
                         .build();
             }
 
@@ -165,18 +164,16 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                 return JavaTemplate.builder(this::getCursor, "new Pbkdf2PasswordEncoder(#{any(java.lang.CharSequence)}, #{any(int)}, #{any(int)}, " + algorithm + ")")
                         .imports(PBKDF2_PASSWORD_ENCODER_CLASS)
                         .staticImports(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm." + algorithm)
-                        .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+")
-                                .build())
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
                         .build();
             }
 
             private JavaTemplate newDeprecatedConstructorTemplate(ExecutionContext ctx) {
                 return JavaTemplate.builder(this::getCursor, "new Pbkdf2PasswordEncoder(#{any(java.lang.CharSequence)}, #{any(int)}, #{any(int)}, #{any(int)})")
                         .imports(PBKDF2_PASSWORD_ENCODER_CLASS)
-                        .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+")
-                                .build())
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
                         .build();
             }
         };

@@ -63,9 +63,8 @@ public class MigrateMultipartConfigFactory extends Recipe {
                             JavaTemplate
                                     .builder(this::getCursor,"DataSize.ofBytes(#{any()})")
                                     .imports("org.springframework.util.unit.DataSize")
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*")
-                                            .build())
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
                                     .build(),
                             m.getCoordinates().replaceArguments(),
                             m.getArguments().get(0));
@@ -74,9 +73,8 @@ public class MigrateMultipartConfigFactory extends Recipe {
                             JavaTemplate
                                     .builder(this::getCursor,"DataSize.parse(#{any(java.lang.String)})")
                                     .imports("org.springframework.util.unit.DataSize")
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*")
-                                            .build())
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
                                     .build(),
                             m.getCoordinates().replaceArguments(),
                             m.getArguments().get(0));

@@ -119,18 +119,16 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
             private JavaTemplate newV52FactoryMethodTemplate(ExecutionContext ctx) {
                 return JavaTemplate.builder(this::getCursor, "Argon2PasswordEncoder.defaultsForSpringSecurity_v5_2()")
                         .imports(ARGON2_PASSWORD_ENCODER_CLASS)
-                        .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+")
-                                .build())
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
                         .build();
             }
 
             private JavaTemplate newV58FactoryMethodTemplate(ExecutionContext ctx) {
                 return JavaTemplate.builder(this::getCursor, "Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8()")
                         .imports(ARGON2_PASSWORD_ENCODER_CLASS)
-                        .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+")
-                                .build())
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
                         .build();
             }
         };
