@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring;
+package org.openrewrite.java.spring.http;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -71,7 +71,7 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
             displayName: Replace String literals with `%1$s` constants
             description: Replace String literals with `%2$s` constants.
             applicability:
-              singleSource:
+              anySource:
                 - org.openrewrite.maven.search.FindDependency:
                     groupId: %3$s
                     artifactId: %4$s
@@ -119,7 +119,7 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
           displayName: Replace String literals with `MediaType` constants
           description: Replace String literals with `org.springframework.http.MediaType` constants.
           applicability:
-            singleSource:
+            anySource:
               - org.openrewrite.maven.search.FindDependency:
                   groupId: org.springframework
                   artifactId: spring-web
