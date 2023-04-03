@@ -20,10 +20,7 @@ displayName: Replace String literals with `MediaType` constants
 description: Replace String literals with `org.springframework.http.MediaType` constants.
 applicability:
   anySource:
-    - org.openrewrite.maven.search.DependencyInsight:
-        groupIdPattern: org.springframework
-        artifactIdPattern: spring-web
-        scope: compile
+    - org.openrewrite.java.spring.http.SpringWebDependency
 recipeList:
   - org.openrewrite.java.ReplaceStringLiteralWithConstant:
       fullyQualifiedConstantName: org.springframework.http.MediaType.ALL_VALUE

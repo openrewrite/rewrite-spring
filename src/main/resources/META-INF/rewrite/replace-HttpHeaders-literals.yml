@@ -20,10 +20,7 @@ displayName: Replace String literals with `HttpHeaders` constants
 description: Replace String literals with `org.springframework.http.HttpHeaders` constants.
 applicability:
   anySource:
-    - org.openrewrite.maven.search.DependencyInsight:
-        groupIdPattern: org.springframework
-        artifactIdPattern: spring-web
-        scope: compile
+    - org.openrewrite.java.spring.http.SpringWebDependency
 recipeList:
   - org.openrewrite.java.ReplaceStringLiteralWithConstant:
       fullyQualifiedConstantName: org.springframework.http.HttpHeaders.ACCEPT

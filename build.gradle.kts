@@ -103,6 +103,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-xml:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-properties:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-yaml:${rewriteVersion}")
+    implementation("org.openrewrite:rewrite-gradle:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
