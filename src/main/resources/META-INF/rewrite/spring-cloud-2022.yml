@@ -43,6 +43,10 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-parent
       newVersion: 2022.0.x
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-starter-feign
+      newArtifactId: spring-cloud-starter-openfeign
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies

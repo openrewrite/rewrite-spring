@@ -46,7 +46,7 @@ recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: "spring-cloud-dependencies"
-      newVersion: 2023.0.X
+      newVersion: 2021.0.X
       overrideManagedVersion: true
 ---
 ########################################################################################################################
