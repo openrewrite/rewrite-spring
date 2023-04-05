@@ -16,14 +16,18 @@
 package org.openrewrite.java.spring.security6;
 
 import org.openrewrite.*;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
+
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,6 +54,16 @@ public class UpdateRequestCache extends Recipe {
                "request if the HTTP parameter \"continue\" is defined. To maintain the same default behavior as " +
                "Spring Security 5, either explicitly add the HTTP parameter \"continue\" to every request or use " +
                "NullRequestCache to override the default behavior.";
+    }
+
+    @Override
+    public @Nullable Duration getEstimatedEffortPerOccurrence() {
+        return Duration.ofMinutes(5);
+    }
+
+    @Override
+    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesMethod<>(REQUEST_CACHE_MATCHER);
     }
 
     @Override
