@@ -94,6 +94,11 @@ recipeDependencies {
     parserClasspath("org.springframework.security:spring-security-config:6.0.+")
     parserClasspath("org.springframework.security:spring-security-core:6.0.+")
     parserClasspath("org.springframework.security:spring-security-web:6.0.+")
+
+    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-api:3.1.+")
+//    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-autoconfigure:3.1.+")
+//    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-instrumentation:3.1.+")
+//    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-brave:3.1.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
