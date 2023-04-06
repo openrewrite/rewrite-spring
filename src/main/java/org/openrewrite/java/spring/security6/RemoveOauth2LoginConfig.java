@@ -15,18 +15,17 @@
  */
 package org.openrewrite.java.spring.security6;
 
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Statement;
 
 import java.time.Duration;
-import java.util.List;
 
 public class RemoveOauth2LoginConfig extends Recipe {
 
@@ -51,7 +50,7 @@ public class RemoveOauth2LoginConfig extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "oauth2Login() is a Spring Security feature that allows users to authenticate with an OAuth2 or OpenID" +
+        return "`oauth2Login()` is a Spring Security feature that allows users to authenticate with an OAuth2 or OpenID" +
                " Connect 1.0 provider. When a user is authenticated using this feature, they are granted a set of " +
                "authorities that determines what actions they are allowed to perform within the application.\n" +
                "\n" +
@@ -75,47 +74,43 @@ public class RemoveOauth2LoginConfig extends Recipe {
     }
 
     @Override
+    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        return new UsesMethod<>(O_AUTH_2_LOGIN_MATCHER);
+    }
+
+    @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-
             @Override
-            public J.Block visitBlock(J.Block block, ExecutionContext executionContext) {
-                List<Statement> statements = block.getStatements();
-
-                for (int i = 0 ; i < statements.size(); i++) {
-                    Statement statement = statements.get(i);
-                    if (statement instanceof J.MethodInvocation) {
-                        J.MethodInvocation m = (J.MethodInvocation) statement;
-                        if (USER_AUTHORITIES_MAPPER_MATCHER.matches(m) ||
-                            O_AUTH_2_LOGIN_MATCHER.matches(m) ||
-                            USER_INFO_ENDPOINT_MATCHER.matches(m)) {
-
-                            if (m.getSelect() instanceof J.Identifier) {
-                                // remove this statement
-                                int indexToRemove = i;
-                                statements = ListUtils.map(statements, (index, s) -> {
-                                    if (index == indexToRemove) {
-                                        return null;
-                                    }
-                                    return s;
-                                });
-                                return block.withStatements(statements);
-                            } else if (m.getSelect() instanceof J.MethodInvocation) {
-                                // update the statement
-                                int indexToUpdate = i;
-                                statements = ListUtils.map(statements, (index, s) -> {
-                                    if (index == indexToUpdate) {
-                                        return m.getSelect().withPrefix(m.getPrefix());
-                                    }
-                                    return s;
-                                });
-                                return block.withStatements(statements);
-                            }
-                        }
-                    }
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method,
+                                                            ExecutionContext executionContext) {
+                Cursor parent = getCursor().dropParentUntil(p -> p instanceof J.Assignment ||
+                                                                 p instanceof J.VariableDeclarations.NamedVariable ||
+                                                                 p instanceof J.Return ||
+                                                                 p instanceof J.Block ||
+                                                                 p instanceof J.CompilationUnit);
+                boolean isAssignment = parent.getValue() instanceof J.Assignment ||
+                                       parent.getValue() instanceof J.VariableDeclarations.NamedVariable ||
+                                       parent.getValue() instanceof J.Return;
+                if (isAssignment) {
+                    // don't rewrite if this method invocation is assigned to a variable.
+                    return method;
                 }
 
-                return super.visitBlock(block, executionContext);
+                if (USER_AUTHORITIES_MAPPER_MATCHER.matches(method) ||
+                    O_AUTH_2_LOGIN_MATCHER.matches(method) ||
+                    USER_INFO_ENDPOINT_MATCHER.matches(method)) {
+
+                    if (method.getSelect() instanceof J.Identifier) {
+                        // remove this statement
+                        return null;
+                    } else if (method.getSelect() instanceof J.MethodInvocation) {
+                        // update the statement
+                        doAfterVisit(this);
+                        return method.getSelect().withPrefix(method.getPrefix());
+                    }
+                }
+                return super.visitMethodInvocation(method, executionContext);
             }
         };
     }

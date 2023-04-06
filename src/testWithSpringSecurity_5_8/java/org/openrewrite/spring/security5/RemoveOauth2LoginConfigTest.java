@@ -36,7 +36,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
     @Test
     void removeUnneededConfigFromACallChain() {
         rewriteRun(
-          spec -> spec.cycles(3).expectedCyclesThatMakeChanges(3),
+          spec -> spec.expectedCyclesThatMakeChanges(2),
           java(
             """
               import org.springframework.context.annotation.Bean;
@@ -102,7 +102,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
     @Test
     void removeUserInfoEndpointStatement() {
         rewriteRun(
-          spec -> spec.cycles(2).expectedCyclesThatMakeChanges(2),
+          // spec -> spec.cycles(2).expectedCyclesThatMakeChanges(2),
           java(
             """
               import org.springframework.context.annotation.Bean;
@@ -126,6 +126,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
                       OAuth2LoginConfigurer<HttpSecurity> auth2 = http.oauth2Login();
                       auth2.userInfoEndpoint()
                           .userAuthoritiesMapper(null);
+                      auth2.init(null);
                       return http.build();
                   }
               }
@@ -151,6 +152,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
                   @Bean
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       OAuth2LoginConfigurer<HttpSecurity> auth2 = http.oauth2Login();
+                      auth2.init(null);
                       return http.build();
                   }
               }
@@ -219,6 +221,24 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
                           .oauth2Login()
                           .userInfoEndpoint();
                       return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeForReturn() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+
+              public class config2 {
+                  OAuth2LoginConfigurer<HttpSecurity> get(HttpSecurity http) throws Exception {
+                      return http.oauth2Login();
                   }
               }
               """
