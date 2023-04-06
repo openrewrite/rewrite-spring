@@ -92,17 +92,22 @@ public class RemoveOauth2LoginConfig extends Recipe {
 
                             if (m.getSelect() instanceof J.Identifier) {
                                 // remove this statement
-                                // todo, maybe add a method `listUtils.remove(int index)`
-                                statements.remove(i);
+                                int indexToRemove = i;
+                                statements = ListUtils.map(statements, (index, s) -> {
+                                    if (index == indexToRemove) {
+                                        return null;
+                                    }
+                                    return s;
+                                });
                                 return block.withStatements(statements);
                             } else if (m.getSelect() instanceof J.MethodInvocation) {
                                 // update the statement
                                 int indexToUpdate = i;
                                 statements = ListUtils.map(statements, (index, s) -> {
-                                    if (index != indexToUpdate) {
-                                        return s;
+                                    if (index == indexToUpdate) {
+                                        return m.getSelect().withPrefix(m.getPrefix());
                                     }
-                                    return m.getSelect().withPrefix(m.getPrefix());
+                                    return s;
                                 });
                                 return block.withStatements(statements);
                             }
