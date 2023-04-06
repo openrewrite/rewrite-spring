@@ -3,6 +3,7 @@ package org.openrewrite.java.spring.security6;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
@@ -13,8 +14,17 @@ import java.time.Duration;
 import java.util.List;
 
 public class RemoveOauth2LoginConfig extends Recipe {
+
+    private static final MethodMatcher O_AUTH_2_LOGIN_MATCHER = new MethodMatcher(
+        "org.springframework.security.config.annotation.web.builders.HttpSecurity oauth2Login()"
+    );
+
+    private static final MethodMatcher USER_INFO_ENDPOINT_MATCHER = new MethodMatcher(
+        "org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer userInfoEndpoint()"
+    );
+
     private static final MethodMatcher USER_AUTHORITIES_MAPPER_MATCHER = new MethodMatcher(
-        "org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer userAuthoritiesMapper(org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper)"
+        "org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer$UserInfoEndpointConfig userAuthoritiesMapper(org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper)"
     );
 
 
@@ -54,23 +64,37 @@ public class RemoveOauth2LoginConfig extends Recipe {
 
             @Override
             public J.Block visitBlock(J.Block block, ExecutionContext executionContext) {
-                block = super.visitBlock(block, executionContext);
-
-
                 List<Statement> statements = block.getStatements();
 
+                for (int i = 0 ; i < statements.size(); i++) {
+                    Statement statement = statements.get(i);
+                    if (statement instanceof J.MethodInvocation) {
+                        J.MethodInvocation m = (J.MethodInvocation) statement;
+                        if (USER_AUTHORITIES_MAPPER_MATCHER.matches(m) ||
+                            O_AUTH_2_LOGIN_MATCHER.matches(m) ||
+                            USER_INFO_ENDPOINT_MATCHER.matches(m)) {
 
-                return block;
-            }
-
-            @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method,
-                                                            ExecutionContext executionContext) {
-
-                if (USER_AUTHORITIES_MAPPER_MATCHER.matches(method)) {
-                    return method;
+                            if (m.getSelect() instanceof J.Identifier) {
+                                // remove this statement
+                                // todo, maybe add a method `listUtils.remove(int index)`
+                                statements.remove(i);
+                                return block.withStatements(statements);
+                            } else if (m.getSelect() instanceof J.MethodInvocation) {
+                                // update the statement
+                                int indexToUpdate = i;
+                                statements = ListUtils.map(statements, (index, s) -> {
+                                    if (index != indexToUpdate) {
+                                        return s;
+                                    }
+                                    return m.getSelect().withPrefix(m.getPrefix());
+                                });
+                                return block.withStatements(statements);
+                            }
+                        }
+                    }
                 }
-                return method;
+
+                return super.visitBlock(block, executionContext);
             }
         };
     }

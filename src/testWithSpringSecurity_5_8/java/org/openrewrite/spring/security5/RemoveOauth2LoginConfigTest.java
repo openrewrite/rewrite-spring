@@ -21,12 +21,14 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
     @Test
     void removeUnneededConfigFromACallChain() {
         rewriteRun(
+          spec -> spec.cycles(3).expectedCyclesThatMakeChanges(3),
           java(
             """
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
               import org.springframework.security.core.GrantedAuthority;
               import org.springframework.security.core.authority.SimpleGrantedAuthority;
               import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
@@ -46,16 +48,8 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
                               .anyRequest().authenticated())
                           .oauth2Login()
                           .userInfoEndpoint()
-                              .userAuthoritiesMapper(userAuthoritiesMapper());
+                              .userAuthoritiesMapper(null);
                       return http.build();
-                  }
-
-                  private GrantedAuthoritiesMapper userAuthoritiesMapper() {
-                      return (authorities) -> {
-                          Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
-                          mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_CUSTOM"));
-                          return mappedAuthorities;
-                      };
                   }
               }
               """,
@@ -64,6 +58,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
               import org.springframework.security.core.GrantedAuthority;
               import org.springframework.security.core.authority.SimpleGrantedAuthority;
               import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
@@ -76,20 +71,12 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
               @EnableWebSecurity
               public class SecurityConfig {
                   @Bean
-                  public SecurityFilterChain filterChain_after(HttpSecurity http) throws Exception {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http.authorizeHttpRequests(authorize -> authorize
                               .requestMatchers("/public", "/public/*").permitAll()
                               .requestMatchers("/login").permitAll()
                               .anyRequest().authenticated());
                       return http.build();
-                  }
-
-                  private GrantedAuthoritiesMapper userAuthoritiesMapper() {
-                      return (authorities) -> {
-                          Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
-                          mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_CUSTOM"));
-                          return mappedAuthorities;
-                      };
                   }
               }
               """
@@ -100,6 +87,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
     @Test
     void removeUserInfoEndpointStatement() {
         rewriteRun(
+          spec -> spec.cycles(2).expectedCyclesThatMakeChanges(2),
           java(
             """
               import org.springframework.context.annotation.Bean;
@@ -122,16 +110,8 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       OAuth2LoginConfigurer<HttpSecurity> auth2 = http.oauth2Login();
                       auth2.userInfoEndpoint()
-                          .userAuthoritiesMapper(userAuthoritiesMapper());
+                          .userAuthoritiesMapper(null);
                       return http.build();
-                  }
-
-                  private GrantedAuthoritiesMapper userAuthoritiesMapper() {
-                      return (authorities) -> {
-                          Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
-                          mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_CUSTOM"));
-                          return mappedAuthorities;
-                      };
                   }
               }
               """,
@@ -157,14 +137,6 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       OAuth2LoginConfigurer<HttpSecurity> auth2 = http.oauth2Login();
                       return http.build();
-                  }
-
-                  private GrantedAuthoritiesMapper userAuthoritiesMapper() {
-                      return (authorities) -> {
-                          Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
-                          mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_CUSTOM"));
-                          return mappedAuthorities;
-                      };
                   }
               }
               """
@@ -201,16 +173,8 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
                               .anyRequest().authenticated())
                           .oauth2Login()
                           .userInfoEndpoint();
-                      x.userAuthoritiesMapper(userAuthoritiesMapper());
+                      x.userAuthoritiesMapper(null);
                       return http.build();
-                  }
-
-                  private GrantedAuthoritiesMapper userAuthoritiesMapper() {
-                      return (authorities) -> {
-                          Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
-                          mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_CUSTOM"));
-                          return mappedAuthorities;
-                      };
                   }
               }
               """,
@@ -240,14 +204,6 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
                           .oauth2Login()
                           .userInfoEndpoint();
                       return http.build();
-                  }
-
-                  private GrantedAuthoritiesMapper userAuthoritiesMapper() {
-                      return (authorities) -> {
-                          Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
-                          mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_CUSTOM"));
-                          return mappedAuthorities;
-                      };
                   }
               }
               """
