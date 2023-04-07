@@ -36,6 +36,7 @@ recipeList:
   - org.openrewrite.java.spring.security6.RemoveOauth2LoginConfig
   - org.openrewrite.java.spring.security6.UpdateRequestCache
   - org.openrewrite.java.spring.security6.RemoveUseAuthorizationManager
+  - org.openrewrite.java.spring.security6.UpdateEnableReactiveMethodSecurity
 ---
 ########################################################################################################################
 type: specs.openrewrite.org/v1beta/recipe
