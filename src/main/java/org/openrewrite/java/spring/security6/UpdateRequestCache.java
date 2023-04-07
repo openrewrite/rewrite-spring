@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.security6;
 
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -92,7 +93,7 @@ public class UpdateRequestCache extends Recipe {
                             .build();
 
                         statement = statement.withTemplate(template, statement.getCoordinates().replace(), getSelect(statement));
-                        statements.add(i + 1, statement);
+                        statements = ListUtils.insert(statements, statement, i+1);
 
                         return block.withStatements(statements);
                     }
