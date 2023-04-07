@@ -33,6 +33,9 @@ recipeList:
   - org.openrewrite.java.spring.security6.UseSha256InRememberMe
   - org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions
   - org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository
+  - org.openrewrite.java.spring.security6.RemoveOauth2LoginConfig
+  - org.openrewrite.java.spring.security6.UpdateRequestCache
+  - org.openrewrite.java.spring.security6.RemoveUseAuthorizationManager
 ---
 ########################################################################################################################
 type: specs.openrewrite.org/v1beta/recipe
