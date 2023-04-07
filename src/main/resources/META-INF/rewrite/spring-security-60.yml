@@ -39,7 +39,7 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security6.RemoveUseAuthorizationManager
 displayName: Remove unnecessary `use-authorization-manager` for message security in Spring security 6
 description: >
-  In Spring Security 6, In 6.0, <websocket-message-broker> defaults use-authorization-manager to true. 
+  In Spring Security 6, <websocket-message-broker> defaults use-authorization-manager to true. 
   So, the 'use-authorization-manager' attribute for message security is no longer needed and can be removed.
 tags:
   - spring
