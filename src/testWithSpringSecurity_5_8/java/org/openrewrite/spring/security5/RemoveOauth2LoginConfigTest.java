@@ -34,7 +34,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
     }
 
     @Test
-    void removeUnneededConfigFromACallChain() {
+    void removeUnneededConfigFromEndOfCallChain() {
         rewriteRun(
           spec -> spec.expectedCyclesThatMakeChanges(2),
           java(
@@ -43,10 +43,6 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
-              import org.springframework.security.core.GrantedAuthority;
-              import org.springframework.security.core.authority.SimpleGrantedAuthority;
-              import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
               import org.springframework.security.web.SecurityFilterChain;
 
               import java.util.HashSet;
@@ -73,10 +69,6 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
-              import org.springframework.security.core.GrantedAuthority;
-              import org.springframework.security.core.authority.SimpleGrantedAuthority;
-              import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
               import org.springframework.security.web.SecurityFilterChain;
 
               import java.util.HashSet;
@@ -100,6 +92,41 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
     }
 
     @Test
+    void noChangeIfMethodsAreInTheMiddleOfChain() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              import java.util.HashSet;
+              import java.util.Set;
+
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests(authorize -> authorize
+                              .requestMatchers("/public", "/public/*").permitAll()
+                              .requestMatchers("/login").permitAll()
+                              .anyRequest().authenticated())
+                          .oauth2Login()
+                          .userInfoEndpoint()
+                              .userAuthoritiesMapper(null)
+                              .oidcUserService(null);
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void removeUserInfoEndpointStatement() {
         rewriteRun(
           // spec -> spec.cycles(2).expectedCyclesThatMakeChanges(2),
@@ -110,13 +137,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
-              import org.springframework.security.core.GrantedAuthority;
-              import org.springframework.security.core.authority.SimpleGrantedAuthority;
-              import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
               import org.springframework.security.web.SecurityFilterChain;
-
-              import java.util.HashSet;
-              import java.util.Set;
 
               @Configuration
               @EnableWebSecurity
@@ -132,19 +153,12 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
               }
               """,
             """
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
-              import org.springframework.security.core.GrantedAuthority;
-              import org.springframework.security.core.authority.SimpleGrantedAuthority;
-              import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
               import org.springframework.security.web.SecurityFilterChain;
-
-              import java.util.HashSet;
-              import java.util.Set;
 
               @Configuration
               @EnableWebSecurity
@@ -171,13 +185,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
-              import org.springframework.security.core.GrantedAuthority;
-              import org.springframework.security.core.authority.SimpleGrantedAuthority;
-              import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
               import org.springframework.security.web.SecurityFilterChain;
-
-              import java.util.HashSet;
-              import java.util.Set;
 
               @Configuration
               @EnableWebSecurity
@@ -201,13 +209,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
-              import org.springframework.security.core.GrantedAuthority;
-              import org.springframework.security.core.authority.SimpleGrantedAuthority;
-              import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
               import org.springframework.security.web.SecurityFilterChain;
-
-              import java.util.HashSet;
-              import java.util.Set;
 
               @Configuration
               @EnableWebSecurity

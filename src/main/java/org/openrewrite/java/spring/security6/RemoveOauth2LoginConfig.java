@@ -110,7 +110,7 @@ public class RemoveOauth2LoginConfig extends Recipe {
                         return method.getSelect().withPrefix(method.getPrefix());
                     }
                 }
-                return super.visitMethodInvocation(method, executionContext);
+                return method;
             }
         };
     }
