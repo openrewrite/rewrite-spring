@@ -94,18 +94,6 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
     }
 
     @Test
-    @Disabled("This test is disabled because it is not a test. It is a utility for generating recipes.")
-    void generateReplaceHttpHeadersConstantsRecipe() throws Exception {
-        generateRecipe("org.springframework.http.HttpHeaders", "org.springframework", "spring-web", Path.of("src/main/resources/META-INF/rewrite/replace-HttpHeaders-literals.yml"));
-    }
-
-    @Test
-    @Disabled("This test is disabled because it is not a test. It is a utility for generating recipes.")
-    void generateReplaceMediaTypeConstantsRecipe() throws Exception {
-        generateRecipe("org.springframework.http.MediaType", "org.springframework", "spring-web", Path.of("src/main/resources/META-INF/rewrite/replace-MediaType-literals.yml"));
-    }
-
-    @Test
     void generateReplaceHttpMethodConstantsRecipe(@TempDir Path tempdir) throws Exception {
         Path tempFile = tempdir.resolve("recipe.yml");
         generateRecipe("org.springframework.http.MediaType", "org.springframework", "spring-web", tempFile);
