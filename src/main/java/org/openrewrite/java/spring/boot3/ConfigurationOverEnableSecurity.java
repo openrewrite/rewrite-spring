@@ -115,9 +115,8 @@ public class ConfigurationOverEnableSecurity extends Recipe {
 
                 JavaTemplate template = JavaTemplate.builder(this::getCursor, "@Configuration")
                         .imports(CONFIGURATION_FQN)
-                        .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-context-5.3.+")
-                                .build())
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-context-5.3.+"))
                         .build();
                 maybeAddImport(CONFIGURATION_FQN);
 

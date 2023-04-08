@@ -94,6 +94,11 @@ recipeDependencies {
     parserClasspath("org.springframework.security:spring-security-config:6.0.+")
     parserClasspath("org.springframework.security:spring-security-core:6.0.+")
     parserClasspath("org.springframework.security:spring-security-web:6.0.+")
+
+    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-api:3.1.+")
+//    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-autoconfigure:3.1.+")
+//    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-instrumentation:3.1.+")
+//    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-brave:3.1.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -193,6 +198,19 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-config:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
+
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-context:5.3.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-web:5.3.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-webflux:5.3.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-core:5.8.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-config:5.8.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-web:5.8.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-ldap:5.8.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
 }
 
 

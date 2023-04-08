@@ -129,10 +129,8 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     if (anyConditionClassExists) {
                         a = a.withTemplate(JavaTemplate.builder(this::getCursor, "@Conditional(#{}.class)")
                                 .imports("org.springframework.context.annotation.Conditional")
-                                .javaParser(() ->
-                                        JavaParser.fromJavaVersion()
-                                                .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*")
-                                                .build())
+                                .javaParser(JavaParser.fromJavaVersion()
+                                                .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
                                 .build(), a.getCoordinates().replace(), conditionalClassName);
                         maybeAddImport("org.springframework.context.annotation.Conditional");
                     } else {
@@ -158,9 +156,8 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                 for (String s : conditionalTemplates) {
                     JavaTemplate t = JavaTemplate.builder(this::getCursor, s)
                             .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
-                            .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*")
-                                    .build())
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
                             .build();
                     c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), ctx);
                 }

@@ -60,9 +60,8 @@ public class EnvironmentAcceptsProfiles extends Recipe {
                 String template = "Profiles.of(" + method.getArguments().stream().map(a -> "#{any(java.lang.String)}").collect(Collectors.joining(",")) + ")";
                 method = method.withTemplate(JavaTemplate.builder(this::getCursor, template)
                                 .imports("org.springframework.core.env.Profiles", "org.springframework.core.env.Environment")
-                                .javaParser(() -> JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-core-5.*")
-                                        .build())
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-core-5.*"))
                                 .build(),
                         method.getCoordinates().replaceArguments(),
                         method.getArguments().toArray()

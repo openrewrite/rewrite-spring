@@ -92,7 +92,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                                             p -> p instanceof J.ClassDeclaration || p instanceof J.CompilationUnit),
                                             JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
                                     .imports(fullyQualifiedInterfaceName)
-                                    .javaParser(() -> JavaParser.fromJavaVersion().classpath("spring-batch").build())
+                                    .javaParser(JavaParser.fromJavaVersion().classpath("spring-batch"))
                                     .build(),
                             cd.getCoordinates().addImplementsClause());
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx,

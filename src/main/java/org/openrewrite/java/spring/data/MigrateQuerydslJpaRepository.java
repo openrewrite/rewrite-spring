@@ -83,13 +83,12 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                     return newClass.withTemplate(
                             JavaTemplate.builder(this::getCursor, template)
                                     .imports(targetFqn)
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
+                                    .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx,
                                                     "javax.persistence-api-2.*",
                                                     "spring-data-commons-2.*",
                                                     "spring-data-jpa-2.*"
-                                            )
-                                            .build())
+                                            ))
                                     .build(),
                             newClass.getCoordinates().replace(),
                             newClass.getArguments().get(0),

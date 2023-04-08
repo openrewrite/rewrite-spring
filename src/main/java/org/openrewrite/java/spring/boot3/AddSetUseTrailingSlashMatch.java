@@ -110,9 +110,8 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                     JavaTemplate WebMvcConfigurePathMatchTemplate = JavaTemplate.builder(this::getCursor,
                             "@Override public void configurePathMatch(PathMatchConfigurer configurer) { configurer" +
                             ".setUseTrailingSlashMatch(true); }")
-                        .javaParser(() -> JavaParser.fromJavaVersion()
-                            .classpath("spring-webmvc", "spring-context", "spring-web")
-                            .build())
+                        .javaParser(JavaParser.fromJavaVersion()
+                            .classpath("spring-webmvc", "spring-context", "spring-web"))
                         .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
                             "org.springframework.web.servlet.config.annotation.WebMvcConfigurer",
                             "org.springframework.context.annotation.Configuration")
@@ -122,9 +121,8 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                         JavaTemplate.builder(this::getCursor,
                                 "@Override public void configurePathMatching(PathMatchConfigurer configurer) { configurer" +
                                 ".setUseTrailingSlashMatch(true); }")
-                            .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpath("spring-webflux", "spring-context", "spring-web")
-                                .build())
+                            .javaParser(JavaParser.fromJavaVersion()
+                                .classpath("spring-webflux", "spring-context", "spring-web"))
                             .imports(WEB_FLUX_PATH_MATCH_CONFIGURER,
                                 "org.springframework.web.reactive.config.WebFluxConfigurer",
                                 "org.springframework.context.annotation.Configuration")
@@ -158,9 +156,8 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
 
                         JavaTemplate WebMvcTemplate = JavaTemplate.builder(this::getCursor,
                                 "#{any()}.setUseTrailingSlashMatch(true);")
-                            .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpath("spring-webmvc", "spring-context", "spring-web")
-                                .build())
+                            .javaParser(JavaParser.fromJavaVersion()
+                                .classpath("spring-webmvc", "spring-context", "spring-web"))
                             .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
                                 "org.springframework.web.servlet.config.annotation.WebMvcConfigurer",
                                 "org.springframework.context.annotation.Configuration")
@@ -168,9 +165,8 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
 
                         JavaTemplate WebFluxTemplate = JavaTemplate.builder(this::getCursor,
                                 "#{any()}.setUseTrailingSlashMatch(true);")
-                            .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpath("spring-webflux", "spring-context", "spring-web")
-                                .build())
+                            .javaParser(JavaParser.fromJavaVersion()
+                                .classpath("spring-webflux", "spring-context", "spring-web"))
                             .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
                                 "org.springframework.web.reactive.config.WebFluxConfigurer",
                                 "org.springframework.context.annotation.Configuration")

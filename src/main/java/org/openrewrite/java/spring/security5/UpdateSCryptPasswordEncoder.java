@@ -119,18 +119,16 @@ public class UpdateSCryptPasswordEncoder extends Recipe {
             private JavaTemplate newV41FactoryMethodTemplate(ExecutionContext ctx) {
                 return JavaTemplate.builder(this::getCursor, "SCryptPasswordEncoder.defaultsForSpringSecurity_v4_1()")
                         .imports(SCRYPT_PASSWORD_ENCODER_CLASS)
-                        .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+")
-                                .build())
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
                         .build();
             }
 
             private JavaTemplate newV58FactoryMethodTemplate(ExecutionContext ctx) {
                 return JavaTemplate.builder(this::getCursor, "SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8()")
                         .imports(SCRYPT_PASSWORD_ENCODER_CLASS)
-                        .javaParser(() -> JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+")
-                                .build())
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
                         .build();
             }
         };
