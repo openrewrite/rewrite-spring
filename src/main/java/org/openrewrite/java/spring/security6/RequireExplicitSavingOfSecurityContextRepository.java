@@ -24,6 +24,7 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Marker;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
 
     private static final MethodMatcher REQUIRE_EXPLICIT_SAVE_MATCHER =
             new MethodMatcher("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer#requireExplicitSave(boolean)");
+    private static final String HTTP_SECURITY_TYPE = "org.springframework.security.config.annotation.web.builders.HttpSecurity";
 
     @Override
     public String getDisplayName() {
@@ -63,7 +65,8 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                     return ToBeRemoved.withMarker(method);
                 } else if (method.getSelect() instanceof J.MethodInvocation && ToBeRemoved.hasMarker(method.getSelect())) {
                     return method.withSelect(((J.MethodInvocation) method.getSelect()).getSelect());
-                } else if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker)) {
+                } else if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker)
+                           && method.getSelect() != null && TypeUtils.isAssignableTo(HTTP_SECURITY_TYPE, method.getSelect().getType())) {
                     if (method.getArguments().stream().allMatch(ToBeRemoved::hasMarker)) {
                         return ToBeRemoved.withMarker(method);
                     }
@@ -88,7 +91,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                         return lambda.withBody(select.withPrefix(body.getPrefix()));
                     }
                 } else if (body instanceof J.Block && ToBeRemoved.hasMarker(body)) {
-                    return ToBeRemoved.withMarker(lambda);
+                    return ToBeRemoved.withMarker(lambda.withBody(ToBeRemoved.removeMarker(body)));
                 }
                 return lambda;
             }
@@ -98,7 +101,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                 block = super.visitBlock(block, ctx);
                 List<Statement> statements = block.getStatements();
                 if (!statements.isEmpty() && statements.stream().allMatch(ToBeRemoved::hasMarker)) {
-                    return ToBeRemoved.withMarker(block);
+                    return ToBeRemoved.withMarker(block.withStatements(Collections.emptyList()));
                 }
                 if (statements.stream().anyMatch(ToBeRemoved::hasMarker)) {
                     //noinspection DataFlowIssue
@@ -118,6 +121,9 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
         UUID id;
         static <J2 extends J> J2 withMarker(J2 j) {
             return j.withMarkers(j.getMarkers().addIfAbsent(new ToBeRemoved(randomId())));
+        }
+        static <J2 extends J> J2 removeMarker(J2 j) {
+            return j.withMarkers(j.getMarkers().removeByType(ToBeRemoved.class));
         }
         static boolean hasMarker(J j) {
             return j.getMarkers().findFirst(ToBeRemoved.class).isPresent();

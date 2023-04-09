@@ -271,4 +271,60 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
           )
         );
     }
+
+    @Test
+    void callChainWithDifferentTypes() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+
+
+              public class T {
+                  SecurityContextConfigurer<HttpSecurity> mySecurityContext;
+                  OAuth2LoginConfigurer<HttpSecurity> myOAuth2;
+
+                  public OAuth2LoginConfigurer<HttpSecurity> customize(
+                      Customizer<SecurityContextConfigurer<HttpSecurity>> securityContextCustomizer) {
+                      securityContextCustomizer.customize(mySecurityContext);
+                      return myOAuth2;
+                  }
+
+                  public void doSomething(SecurityContextConfigurer<HttpSecurity> myConfigurer) {
+                      OAuth2LoginConfigurer<HttpSecurity> auth = this.customize(securityContext -> {
+                          securityContext.requireExplicitSave(true);
+                      }).permitAll();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+
+
+              public class T {
+                  SecurityContextConfigurer<HttpSecurity> mySecurityContext;
+                  OAuth2LoginConfigurer<HttpSecurity> myOAuth2;
+
+                  public OAuth2LoginConfigurer<HttpSecurity> customize(
+                      Customizer<SecurityContextConfigurer<HttpSecurity>> securityContextCustomizer) {
+                      securityContextCustomizer.customize(mySecurityContext);
+                      return myOAuth2;
+                  }
+
+                  public void doSomething(SecurityContextConfigurer<HttpSecurity> myConfigurer) {
+                      OAuth2LoginConfigurer<HttpSecurity> auth = this.customize(securityContext -> {
+                      }).permitAll();
+                  }
+              }
+              """
+          )
+        );
+    }
 }
