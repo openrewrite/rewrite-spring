@@ -130,7 +130,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
         }
     }
 
-    private boolean isTrue(Expression expression) {
+    public static boolean isTrue(Expression expression) {
         if (expression instanceof J.Literal) {
             return expression.getType() == JavaType.Primitive.Boolean && Boolean.TRUE.equals(((J.Literal) expression).getValue());
         }
