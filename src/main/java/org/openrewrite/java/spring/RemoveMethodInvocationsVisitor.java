@@ -31,16 +31,21 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
     @Override
     public J visitMethodInvocation(J.MethodInvocation method,
                                    ExecutionContext executionContext) {
+        if (inMethodCallChain()) {
+            return method;
+        }
+
+        method = (J.MethodInvocation) super.visitMethodInvocation(method, executionContext);
+
         Expression expression = removeMethods(method, 0, isStatement(), new Stack<>());
         if (expression != null) {
             expression = expression.withPrefix(method.getPrefix());
-
         }
         return expression;
     }
 
     @Nullable
-    private Expression removeMethods(Expression expression, int depth, boolean isStatement, Stack<Space> prefix) {
+    private Expression removeMethods(Expression expression, int depth, boolean isStatement, Stack<Space> selectAfter) {
         if (!(expression instanceof J.MethodInvocation)) {
             return expression;
         }
@@ -48,30 +53,30 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
         J.MethodInvocation m = (J.MethodInvocation) expression;
 
         if (matchers.stream().anyMatch(matcher -> matcher.matches(m))) {
-            boolean removable = (isStatement && depth == 0) ||
-                                TypeUtils.isAssignableTo(m.getMethodType().getReturnType(), m.getSelect().getType());
+            boolean hasSameReturnType = TypeUtils.isAssignableTo(m.getMethodType().getReturnType(), m.getSelect().getType());
+            boolean removable = (isStatement && depth == 0) || hasSameReturnType;
             if (!removable) {
                 return expression;
             }
 
-            if (m.getSelect() instanceof J.Identifier) {
+            if (m.getSelect() instanceof J.Identifier || m.getSelect() instanceof J.NewClass) {
                 boolean keepSelect = depth != 0;
                 if (keepSelect) {
-                    prefix.add(m.getPrefix());
+                    selectAfter.add(getSelectAfter(m));
                     return m.getSelect();
                 } else {
-                    return isStatement ? null : expression;
+                    return isStatement ? null :  hasSameReturnType ? m.getSelect() : expression;
                 }
             } else if (m.getSelect() instanceof J.MethodInvocation) {
-                return removeMethods(m.getSelect(), depth, isStatement, prefix);
+                return removeMethods(m.getSelect(), depth, isStatement, selectAfter);
             }
         }
 
-        J.MethodInvocation method = m.withSelect(removeMethods(m.getSelect(), depth + 1, isStatement, prefix));
+        J.MethodInvocation method = m.withSelect(removeMethods(m.getSelect(), depth + 1, isStatement, selectAfter));
 
         // inherit prefix
-        if (!prefix.isEmpty()) {
-            method = inheritFirstPrefix(method, prefix);
+        if (!selectAfter.isEmpty()) {
+            method = inheritSelectAfter(method, selectAfter);
         }
 
         return method;
@@ -87,7 +92,11 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
         ).getValue() instanceof J.Block;
     }
 
-    private J.MethodInvocation inheritFirstPrefix(J.MethodInvocation method, Stack<Space> prefix) {
+    private boolean inMethodCallChain() {
+        return getCursor().dropParentUntil(p -> !(p instanceof JRightPadded)).getValue() instanceof J.MethodInvocation;
+    }
+
+    private J.MethodInvocation inheritSelectAfter(J.MethodInvocation method, Stack<Space> prefix) {
         return (J.MethodInvocation) new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public <T> JRightPadded<T> visitRightPadded(@Nullable JRightPadded<T> right,
@@ -96,5 +105,19 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
                 return prefix.isEmpty() ? right : right.withAfter(prefix.pop());
             }
         }.visit(method, new InMemoryExecutionContext());
+    }
+
+    private Space getSelectAfter(J.MethodInvocation method) {
+        return new JavaIsoVisitor<List<Space>>() {
+            @Override
+            public <T> JRightPadded<T> visitRightPadded(@Nullable JRightPadded<T> right,
+                                                        JRightPadded.Location loc,
+                                                        List<Space> selectAfter) {
+                if (selectAfter.isEmpty()) {
+                    selectAfter.add(right.getAfter());
+                }
+                return right;
+            }
+        }.reduce(method, new ArrayList<>()).get(0);
     }
 }

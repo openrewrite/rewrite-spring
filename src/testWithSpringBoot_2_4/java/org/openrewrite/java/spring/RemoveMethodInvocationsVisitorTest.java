@@ -154,7 +154,7 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
     }
 
     @Test
-    void doNotChangeAssignment() {
+    void keepSelectForAssignment() {
         //language=java
         rewriteRun(
           spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
@@ -173,9 +173,45 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
               public class Test {
                   void method() {
                       StringBuilder sb = new StringBuilder();
-                      StringBuilder sb2 = sb.append("foo");
+                      StringBuilder sb2 = sb;
                       sb2.reverse();
                   }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void chainedCallsAsParameter() {
+        rewriteRun(
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
+          java(
+            """
+              class Test {
+                  void method() {
+                      print(new StringBuilder()
+                          .append("Hello")
+                          .append(" ")
+                          .append("World")
+                          .reverse()
+                          .append(" ")
+                          .reverse()
+                          .append("Yeah")
+                          .toString());
+                  }
+                  void print(String str) {}
+              }
+              """,
+            """
+              class Test {
+                  void method() {
+                      print(new StringBuilder()
+                          .reverse()
+                          .reverse()
+                          .toString());
+                  }
+                  void print(String str) {}
               }
               """
           )

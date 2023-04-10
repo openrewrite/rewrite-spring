@@ -17,17 +17,27 @@ package org.openrewrite.java.spring.security6;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Recipe;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.spring.RemoveMethodInvocationsVisitor;
+import org.openrewrite.test.AdHocRecipe;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.List;
+
+import static java.util.Collections.emptyList;
 import static org.openrewrite.java.Assertions.java;
 
 class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new RequireExplicitSavingOfSecurityContextRepository())
+        Recipe recipe = new AdHocRecipe(null, null, null,
+          () -> new RemoveMethodInvocationsVisitor(List.of("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer requireExplicitSave(boolean)")),
+          null, null, null, emptyList());
+
+        spec.recipe(recipe)
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
             .classpathFromResources(new InMemoryExecutionContext(),"spring-security-config-5.8.+", "spring-security-web-5.8.+"));
