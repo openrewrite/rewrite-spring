@@ -12,12 +12,12 @@ import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.ChangeMethodName;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.DeclaresType;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
-import org.openrewrite.marker.SearchResult;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -69,23 +69,6 @@ public class RenameBean extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return Applicability.or(new UsesType<>(type, false), new DeclaresType<>(type));
-    }
-
-    private static class DeclaresType<P> extends JavaIsoVisitor<P> {
-        private final String type;
-
-        public DeclaresType(String type) {
-            this.type = type;
-        }
-
-        @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, P p) {
-            J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, p);
-            if (cd.getType() != null && cd.getType().toString().equals(type)) {
-                return SearchResult.found(cd);
-            }
-            return cd;
-        }
     }
 
     /**
