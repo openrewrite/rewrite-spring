@@ -1,19 +1,27 @@
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.Recipe;
+import org.openrewrite.test.AdHocRecipe;
 import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static org.openrewrite.java.Assertions.java;
 
-public class RemoveMethodInvocationsTest implements RewriteTest {
+public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
+
+    private Recipe createRemoveMethodsRecipe(String... methods) {
+        return new AdHocRecipe(null, null, null, () -> new RemoveMethodInvocationsVisitor(List.of(methods)), null, null, null, emptyList());
+    }
 
     @Test
     void removeFromEnd() {
         //language=java
         rewriteRun(
-          spec -> spec.recipe(new RemoveMethodInvocations(List.of("java.lang.StringBuilder toString()"))),
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder toString()"))
+          ,
           java(
             """
               public class Test {
@@ -52,7 +60,7 @@ public class RemoveMethodInvocationsTest implements RewriteTest {
     void removeMultipleMethodsFromEnd() {
         //language=java
         rewriteRun(
-          spec -> spec.recipe(new RemoveMethodInvocations(List.of("java.lang.StringBuilder toString()", "java.lang.StringBuilder append(java.lang.String)"))),
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder toString()", "java.lang.StringBuilder append(java.lang.String)")),
           java(
             """
               public class Test {
@@ -86,7 +94,7 @@ public class RemoveMethodInvocationsTest implements RewriteTest {
     void removeFromMiddle() {
         //language=java
         rewriteRun(
-          spec -> spec.recipe(new RemoveMethodInvocations(List.of("java.lang.StringBuilder reverse()"))),
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder reverse()")),
           java(
             """
               public class Test {
@@ -124,7 +132,7 @@ public class RemoveMethodInvocationsTest implements RewriteTest {
     void removeEntireStatement() {
         //language=java
         rewriteRun(
-          spec -> spec.recipe(new RemoveMethodInvocations(List.of("java.lang.StringBuilder append(java.lang.String)"))),
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
           java(
             """
               public class Test {
@@ -149,7 +157,7 @@ public class RemoveMethodInvocationsTest implements RewriteTest {
     void doNotChangeAssignment() {
         //language=java
         rewriteRun(
-          spec -> spec.recipe(new RemoveMethodInvocations(List.of("java.lang.StringBuilder append(java.lang.String)"))),
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
           java(
             """
               public class Test {
@@ -173,5 +181,4 @@ public class RemoveMethodInvocationsTest implements RewriteTest {
           )
         );
     }
-
 }

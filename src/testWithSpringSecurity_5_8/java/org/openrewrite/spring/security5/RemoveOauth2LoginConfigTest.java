@@ -18,21 +18,16 @@ package org.openrewrite.spring.security5;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.RemoveMethodInvocations;
+import org.openrewrite.java.spring.security6.RemoveOauth2LoginConfig;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-
-import java.util.List;
 
 import static org.openrewrite.java.Assertions.java;
 
 public class RemoveOauth2LoginConfigTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new RemoveMethodInvocations(List.of("org.springframework.security.config.annotation.web.builders.HttpSecurity oauth2Login()",
-            "org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer userInfoEndpoint()",
-            "org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer$UserInfoEndpointConfig userAuthoritiesMapper(org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper)"
-            )))
+        spec.recipe(new RemoveOauth2LoginConfig())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
             .classpathFromResources(new InMemoryExecutionContext(),"spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
