@@ -233,4 +233,38 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void removeFromLambda() {
+        rewriteRun(
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
+          java(
+            """
+              import java.util.List;
+
+              public class Test {
+                  void method(List<String> names) {
+                      names.forEach(name -> new StringBuilder()
+                          .append("hello")
+                          .append(" ")
+                          .append(name)
+                          .reverse()
+                          .toString());
+                  }
+              }
+              """,
+            """
+              import java.util.List;
+
+              public class Test {
+                  void method(List<String> names) {
+                      names.forEach(name -> new StringBuilder()
+                          .reverse()
+                          .toString());
+                  }
+              }
+              """
+          )
+        );
+    }
 }

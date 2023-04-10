@@ -23,9 +23,9 @@ import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * This visitor can remove the specified method calls if it can be deleted without compile error,
@@ -33,14 +33,17 @@ import java.util.Stack;
  * review your code before deleting any methods to avoid errors or unexpected behavior.
  */
 public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext> {
-    private final List<MethodMatcher> matchers;
+    private final Map<MethodMatcher, Predicate<List<Expression>>> matchers;
 
-    @JsonCreator
+    public RemoveMethodInvocationsVisitor(Map<MethodMatcher, Predicate<List<Expression>>> matchers) {
+        this.matchers = matchers;
+    }
+
     public RemoveMethodInvocationsVisitor(List<String> methodSignatures) {
-        matchers = new ArrayList<>(methodSignatures.size());
-        for (String signature : methodSignatures) {
-            matchers.add(new MethodMatcher(signature));
-        }
+        matchers = methodSignatures.stream().collect(Collectors.toMap(
+            MethodMatcher::new,
+            signature -> args -> true
+        ));
     }
 
     @Override
@@ -67,7 +70,7 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
 
         J.MethodInvocation m = (J.MethodInvocation) expression;
 
-        if (matchers.stream().anyMatch(matcher -> matcher.matches(m))) {
+        if (matchers.entrySet().stream().anyMatch(entry -> matches(m, entry.getKey(), entry.getValue()))) {
             boolean hasSameReturnType = TypeUtils.isAssignableTo(m.getMethodType().getReturnType(), m.getSelect().getType());
             boolean removable = (isStatement && depth == 0) || hasSameReturnType;
             if (!removable) {
@@ -95,6 +98,10 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
         }
 
         return method;
+    }
+
+    private boolean matches(J.MethodInvocation m, MethodMatcher matcher, Predicate<List<Expression>> argsMatches) {
+        return matcher.matches(m) && argsMatches.test(m.getArguments());
     }
 
     private boolean isStatement() {

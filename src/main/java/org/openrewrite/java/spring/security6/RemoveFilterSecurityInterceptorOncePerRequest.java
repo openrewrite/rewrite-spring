@@ -18,10 +18,16 @@ package org.openrewrite.java.spring.security6;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.spring.RemoveMethodInvocationsVisitor;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 public class RemoveFilterSecurityInterceptorOncePerRequest extends Recipe {
     @Override
@@ -37,8 +43,23 @@ public class RemoveFilterSecurityInterceptorOncePerRequest extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        List<String> methods = new ArrayList<>();
-        methods.add("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer.AbstractInterceptUrlRegistry filterSecurityInterceptorOncePerRequest(boolean)");
-        return new RemoveMethodInvocationsVisitor(methods);
+        Map<MethodMatcher, Predicate<List<Expression>>> matchers = new HashMap<>();
+        matchers.put(new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer.AbstractInterceptUrlRegistry filterSecurityInterceptorOncePerRequest(boolean)"
+            ), RemoveFilterSecurityInterceptorOncePerRequest::isFalse);
+        return new RemoveMethodInvocationsVisitor(matchers);
+    }
+
+    public static boolean isFalse(List<Expression> args) {
+        return args != null &&
+               args.size() == 1 &&
+               isFalse(args.get(0));
+    }
+
+    public static boolean isFalse(Expression expression) {
+        if (expression instanceof J.Literal) {
+            return expression.getType() == JavaType.Primitive.Boolean &&
+                   Boolean.FALSE.equals(((J.Literal) expression).getValue());
+        }
+        return false;
     }
 }
