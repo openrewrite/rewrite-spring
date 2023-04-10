@@ -19,12 +19,17 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.spring.RemoveMethodInvocationsVisitor;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.test.AdHocRecipe;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 import static java.util.Collections.emptyList;
 import static org.openrewrite.java.Assertions.java;
@@ -33,8 +38,11 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
     @Override
     public void defaults(RecipeSpec spec) {
+        Map<MethodMatcher, Predicate<List<Expression>>> matchers = new HashMap<>();
+        matchers.put(new MethodMatcher("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer requireExplicitSave(boolean)"), RemoveMethodInvocationsVisitor.isTrueArgument());
+
         Recipe recipe = new AdHocRecipe(null, null, null,
-          () -> new RemoveMethodInvocationsVisitor(List.of("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer requireExplicitSave(boolean)")),
+          () -> new RemoveMethodInvocationsVisitor(matchers),
           null, null, null, emptyList());
 
         spec.recipe(recipe)
@@ -170,8 +178,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext((securityContext) -> securityContext
+                      http.securityContext(securityContext -> securityContext
                               .requireExplicitSave(true)
                           );
                       return http.build();
@@ -184,6 +191,8 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
+                      http.securityContext(securityContext -> securityContext
+                          );
                       return http.build();
                   }
               }
@@ -204,8 +213,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext((securityContext) -> {
+                      http.securityContext((securityContext) -> {
                               securityContext.requireExplicitSave(true);
                           });
                       return http.build();
@@ -218,6 +226,8 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
+                      http.securityContext((securityContext) -> {
+                          });
                       return http.build();
                   }
               }
@@ -238,10 +248,10 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
                       http
-                          .securityContext((securityContext) -> securityContext
+                          .securityContext(securityContext -> securityContext
                               .requireExplicitSave(false)
                           )
-                          .securityContext((securityContext) -> securityContext
+                          .securityContext(securityContext -> securityContext
                               .requireExplicitSave(true)
                           );
                       return http.build();
@@ -255,8 +265,10 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
                       http
-                          .securityContext((securityContext) -> securityContext
+                          .securityContext(securityContext -> securityContext
                               .requireExplicitSave(false)
+                          )
+                          .securityContext(securityContext -> securityContext
                           );
                       return http.build();
                   }
@@ -276,6 +288,60 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
                   public void m() {
                       java.util.function.Consumer<Object> consumer = (o) -> {};
                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void callChainWithDifferentTypes() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+
+              public class T {
+                  SecurityContextConfigurer<HttpSecurity> mySecurityContext;
+                  OAuth2LoginConfigurer<HttpSecurity> myOAuth2;
+
+                  public OAuth2LoginConfigurer<HttpSecurity> customize(
+                      Customizer<SecurityContextConfigurer<HttpSecurity>> securityContextCustomizer) {
+                      securityContextCustomizer.customize(mySecurityContext);
+                      return myOAuth2;
+                  }
+
+                  public void doSomething(SecurityContextConfigurer<HttpSecurity> myConfigurer) {
+                      OAuth2LoginConfigurer<HttpSecurity> auth = this.customize(securityContext -> {
+                          securityContext.requireExplicitSave(true);
+                      }).permitAll();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+
+              public class T {
+                  SecurityContextConfigurer<HttpSecurity> mySecurityContext;
+                  OAuth2LoginConfigurer<HttpSecurity> myOAuth2;
+
+                  public OAuth2LoginConfigurer<HttpSecurity> customize(
+                      Customizer<SecurityContextConfigurer<HttpSecurity>> securityContextCustomizer) {
+                      securityContextCustomizer.customize(mySecurityContext);
+                      return myOAuth2;
+                  }
+
+                  public void doSomething(SecurityContextConfigurer<HttpSecurity> myConfigurer) {
+                      OAuth2LoginConfigurer<HttpSecurity> auth = this.customize(securityContext -> {
+                      }).permitAll();
+                  }
               }
               """
           )

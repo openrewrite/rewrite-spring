@@ -15,8 +15,8 @@
  */
 package org.openrewrite.java.spring;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaVisitor;
@@ -48,12 +48,13 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
 
     @Override
     public J visitMethodInvocation(J.MethodInvocation method,
-                                   ExecutionContext executionContext) {
+                                   ExecutionContext ctx) {
         if (inMethodCallChain()) {
-            return method;
+            List<Expression> newArgs = ListUtils.map(method.getArguments(), arg -> (Expression) this.visit(arg, ctx));
+            return method.withArguments(newArgs);
         }
 
-        method = (J.MethodInvocation) super.visitMethodInvocation(method, executionContext);
+        method = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
 
         Expression expression = removeMethods(method, 0, isStatement(), new Stack<>());
         if (expression != null) {
@@ -141,5 +142,34 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
                 return right;
             }
         }.reduce(method, new ArrayList<>()).get(0);
+    }
+
+    public static Predicate<List<Expression>> isTrueArgument() {
+        return args -> (args != null &&
+                        args.size() == 1 &&
+                        isTrue(args.get(0))
+        );
+    }
+
+    public static Predicate<List<Expression>> isFalseArgument() {
+        return args -> (args != null &&
+                        args.size() == 1 &&
+                        isFalse(args.get(0))
+        );
+    }
+
+    public static boolean isTrue(Expression expression) {
+        return isBoolean(expression, Boolean.TRUE);
+    }
+
+    public static boolean isFalse(Expression expression) {
+        return isBoolean(expression, Boolean.FALSE);
+    }
+
+    private static boolean isBoolean(Expression expression, Boolean b) {
+        if (expression instanceof J.Literal) {
+            return expression.getType() == JavaType.Primitive.Boolean && b.equals(((J.Literal) expression).getValue());
+        }
+        return false;
     }
 }

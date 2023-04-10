@@ -21,8 +21,6 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.spring.RemoveMethodInvocationsVisitor;
 import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -45,21 +43,7 @@ public class RemoveFilterSecurityInterceptorOncePerRequest extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getVisitor() {
         Map<MethodMatcher, Predicate<List<Expression>>> matchers = new HashMap<>();
         matchers.put(new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer.AbstractInterceptUrlRegistry filterSecurityInterceptorOncePerRequest(boolean)"
-            ), RemoveFilterSecurityInterceptorOncePerRequest::isFalse);
+            ), RemoveMethodInvocationsVisitor.isFalseArgument());
         return new RemoveMethodInvocationsVisitor(matchers);
-    }
-
-    public static boolean isFalse(List<Expression> args) {
-        return args != null &&
-               args.size() == 1 &&
-               isFalse(args.get(0));
-    }
-
-    public static boolean isFalse(Expression expression) {
-        if (expression instanceof J.Literal) {
-            return expression.getType() == JavaType.Primitive.Boolean &&
-                   Boolean.FALSE.equals(((J.Literal) expression).getValue());
-        }
-        return false;
     }
 }

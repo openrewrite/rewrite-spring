@@ -35,6 +35,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
 
     @Test
     void removeUnneededConfigFromEndOfCallChain() {
+        // language=java
         rewriteRun(
           java(
             """
@@ -92,6 +93,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
 
     @Test
     void noChangeIfMethodsAreInTheMiddleOfChain() {
+        // language=java
         rewriteRun(
           java(
             """
@@ -126,6 +128,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
 
     @Test
     void removeUserInfoEndpointStatement() {
+        // language=java
         rewriteRun(
           // spec -> spec.cycles(2).expectedCyclesThatMakeChanges(2),
           java(
@@ -175,6 +178,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
 
     @Test
     void removeUserAuthoritiesMapperStatement() {
+        // language=java
         rewriteRun(
           java(
             """
@@ -230,6 +234,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
 
     @Test
     void noChangeForReturn() {
+        // language=java
         rewriteRun(
           java(
             """

@@ -199,7 +199,7 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
 
     @Test
     void chainedCallsAsParameter() {
-        //language=java
+        // language=java
         rewriteRun(
           spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
           java(
@@ -236,6 +236,7 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
 
     @Test
     void removeFromLambda() {
+        // language=java
         rewriteRun(
           spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
           java(
@@ -262,6 +263,53 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
                           .reverse()
                           .toString());
                   }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void complexCase() {
+        // language=java
+        rewriteRun(
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
+          java(
+            """
+              import java.util.List;
+              import java.util.function.Consumer;
+
+              public class Test {
+                  void method(List<String> names) {
+                      this.consume(s -> names.forEach(name -> {
+                                  new StringBuilder()
+                                      .append("hello")
+                                      .append(" ")
+                                      .append(name)
+                                      .reverse()
+                                      .toString();
+                              }
+                          )
+                      ).toString();
+                  }
+                  StringBuilder consume(Consumer<String> consumer) {return new StringBuilder();}
+              }
+              """,
+            """
+              import java.util.List;
+              import java.util.function.Consumer;
+
+              public class Test {
+                  void method(List<String> names) {
+                      this.consume(s -> names.forEach(name -> {
+                                  new StringBuilder()
+                                      .reverse()
+                                      .toString();
+                              }
+                          )
+                      ).toString();
+                  }
+                  StringBuilder consume(Consumer<String> consumer) {return new StringBuilder();}
               }
               """
           )
