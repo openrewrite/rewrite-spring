@@ -64,18 +64,18 @@ class RenameBeanTest implements RewriteTest {
                         }
                     }
                     """, """
-                        package sample;
-                        
-                        import org.springframework.context.annotation.Bean;
-                        import sample.MyType;
-                        
-                        class A {
-                            @Bean
-                            public MyType bar() {
-                                return new MyType();
-                            }
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean
+                        public MyType bar() {
+                            return new MyType();
                         }
-                        """
+                    }
+                    """
                   )
                 );
             }
@@ -97,18 +97,18 @@ class RenameBeanTest implements RewriteTest {
                         }
                     }
                     """, """
-                        package sample;
-                        
-                        import org.springframework.context.annotation.Bean;
-                        import sample.MyType;
-                        
-                        class A {
-                            @Bean(value = "bar")
-                            public MyType beanMethod() {
-                                return new MyType();
-                            }
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean(value = "bar")
+                        public MyType beanMethod() {
+                            return new MyType();
                         }
-                        """
+                    }
+                    """
                   )
                 );
             }
@@ -130,18 +130,18 @@ class RenameBeanTest implements RewriteTest {
                         }
                     }
                     """, """
-                        package sample;
-                        
-                        import org.springframework.context.annotation.Bean;
-                        import sample.MyType;
-                        
-                        class A {
-                            @Bean("bar")
-                            public MyType beanMethod() {
-                                return new MyType();
-                            }
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean("bar")
+                        public MyType beanMethod() {
+                            return new MyType();
                         }
-                        """
+                    }
+                    """
                   )
                 );
             }
@@ -163,18 +163,18 @@ class RenameBeanTest implements RewriteTest {
                         }
                     }
                     """, """
-                        package sample;
-                        
-                        import org.springframework.context.annotation.Bean;
-                        import sample.MyType;
-                        
-                        class A {
-                            @Bean(name = "bar")
-                            public MyType beanMethod() {
-                                return new MyType();
-                            }
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean(name = "bar")
+                        public MyType beanMethod() {
+                            return new MyType();
                         }
-                        """
+                    }
+                    """
                   )
                 );
             }
@@ -196,18 +196,18 @@ class RenameBeanTest implements RewriteTest {
                         }
                     }
                     """, """
-                        package sample;
-                        
-                        import org.springframework.context.annotation.Bean;
-                        import sample.MyType;
-                        
-                        class A {
-                            @Bean(name = { "bar", "somethingElse" })
-                            public MyType beanMethod() {
-                                return new MyType();
-                            }
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean(name = { "bar", "somethingElse" })
+                        public MyType beanMethod() {
+                            return new MyType();
                         }
-                        """
+                    }
+                    """
                   )
                 );
             }
@@ -231,20 +231,20 @@ class RenameBeanTest implements RewriteTest {
                         }
                     }
                     """, """
-                        package sample;
-                        
-                        import org.springframework.beans.factory.annotation.Qualifier;
-                        import org.springframework.context.annotation.Bean;
-                        import sample.MyType;
-                        
-                        class A {
-                            @Bean
-                            @Qualifier("bar")
-                            public MyType myType() {
-                                return new MyType();
-                            }
+                    package sample;
+                    
+                    import org.springframework.beans.factory.annotation.Qualifier;
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean
+                        @Qualifier("bar")
+                        public MyType myType() {
+                            return new MyType();
                         }
-                        """
+                    }
+                    """
                   )
                 );
             }
@@ -375,15 +375,15 @@ class RenameBeanTest implements RewriteTest {
                     class Foo {
                     }
                     """, """
-                        package sample;
-                        
-                        import org.springframework.context.annotation.Configuration;
-                        import sample.MyType;
-                        
-                        @Configuration
-                        class Bar {
-                        }
-                        """
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Configuration;
+                    import sample.MyType;
+                    
+                    @Configuration
+                    class Bar {
+                    }
+                    """
                   )
                 );
             }
@@ -403,15 +403,15 @@ class RenameBeanTest implements RewriteTest {
                     class Foo {
                     }
                     """, """
-                        package sample;
-                        
-                        import org.springframework.context.annotation.Configuration;
-                        import sample.MyType;
-                        
-                        @Configuration("bar")
-                        class Foo {
-                        }
-                        """
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Configuration;
+                    import sample.MyType;
+                    
+                    @Configuration("bar")
+                    class Foo {
+                    }
+                    """
                   )
                 );
             }
@@ -433,17 +433,17 @@ class RenameBeanTest implements RewriteTest {
                     class Foo {
                     }
                     """, """
-                        package sample;
-                        
-                        import org.springframework.beans.factory.annotation.Qualifier;
-                        import org.springframework.context.annotation.Configuration;
-                        import sample.MyType;
-                        
-                        @Configuration
-                        @Qualifier("barz")
-                        class Foo {
-                        }
-                        """
+                    package sample;
+                    
+                    import org.springframework.beans.factory.annotation.Qualifier;
+                    import org.springframework.context.annotation.Configuration;
+                    import sample.MyType;
+                    
+                    @Configuration
+                    @Qualifier("barz")
+                    class Foo {
+                    }
+                    """
                   )
                 );
             }
@@ -514,21 +514,21 @@ class RenameBeanTest implements RewriteTest {
                     }
                 }
                 """, """
-                    package sample;
-                    
-                    import org.springframework.beans.factory.annotation.Qualifier;
-                    import org.springframework.context.annotation.Bean;
-                    import org.springframework.context.annotation.Configuration;
-                    import sample.MyType;
-                    
-                    @Configuration
-                    class A {
-                        @Bean
-                        public String myBean(@Qualifier("bar") MyType myType) {
-                            return "";
-                        }
+                package sample;
+                
+                import org.springframework.beans.factory.annotation.Qualifier;
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+                import sample.MyType;
+                
+                @Configuration
+                class A {
+                    @Bean
+                    public String myBean(@Qualifier("bar") MyType myType) {
+                        return "";
                     }
-                    """
+                }
+                """
               )
             );
         }
@@ -621,18 +621,18 @@ class RenameBeanTest implements RewriteTest {
                     private MyType myType;
                 }
                 """, """
-                    package sample;
-                    
-                    import org.springframework.beans.factory.annotation.Qualifier;
-                    import org.springframework.context.annotation.Configuration;
-                    import sample.MyType;
-                    
-                    @Configuration
-                    class A {
-                        @Qualifier("bar")
-                        private MyType myType;
-                    }
-                    """
+                package sample;
+                
+                import org.springframework.beans.factory.annotation.Qualifier;
+                import org.springframework.context.annotation.Configuration;
+                import sample.MyType;
+                
+                @Configuration
+                class A {
+                    @Qualifier("bar")
+                    private MyType myType;
+                }
+                """
               )
             );
         }
