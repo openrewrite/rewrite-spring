@@ -15,6 +15,8 @@
  */
 package org.openrewrite.java.spring;
 
+import lombok.Value;
+import lombok.With;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
@@ -22,10 +24,13 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Marker;
 
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static org.openrewrite.Tree.randomId;
 
 /**
  * This visitor can remove the specified method calls if it can be deleted without compile error,
@@ -59,6 +64,10 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
         if (j != null) {
             j = j.withPrefix(method.getPrefix());
         }
+
+        if (method.getArguments().stream().allMatch(ToBeRemoved::hasMarker)) {
+            return ToBeRemoved.withMarker(j);
+        }
         return j;
     }
 
@@ -87,7 +96,7 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
                     if (isStatement) {
                         return null;
                     } else if (isLambdaBody) {
-                        return J.Block.createEmptyBlock();
+                        return ToBeRemoved.withMarker(J.Block.createEmptyBlock());
                     } else {
                         return hasSameReturnType ? m.getSelect() : expression;
                     }
@@ -182,5 +191,65 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
             return expression.getType() == JavaType.Primitive.Boolean && b.equals(((J.Literal) expression).getValue());
         }
         return false;
+    }
+
+    @Override
+    public J.Lambda visitLambda(J.Lambda lambda, ExecutionContext ctx) {
+        lambda = (J.Lambda) super.visitLambda(lambda, ctx);
+        J body = lambda.getBody();
+        if (body instanceof J.MethodInvocation && ToBeRemoved.hasMarker(body)) {
+            Expression select = ((J.MethodInvocation) body).getSelect();
+            List<J> parameters = lambda.getParameters().getParameters();
+            if (select instanceof J.Identifier && !parameters.isEmpty() && parameters.get(0) instanceof J.VariableDeclarations) {
+                J.VariableDeclarations declarations = (J.VariableDeclarations) parameters.get(0);
+                if (((J.Identifier) select).getSimpleName().equals(declarations.getVariables().get(0).getSimpleName())) {
+                    return ToBeRemoved.withMarker(lambda);
+                }
+            } else if (select instanceof J.MethodInvocation) {
+                return lambda.withBody(select.withPrefix(body.getPrefix()));
+            }
+        } else if (body instanceof J.Block && ToBeRemoved.hasMarker(body)) {
+            return ToBeRemoved.withMarker(lambda.withBody(ToBeRemoved.removeMarker(body)));
+        }
+        return lambda;
+    }
+
+    @Override
+    public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
+        int statementsCount = block.getStatements().size();
+
+        block = (J.Block) super.visitBlock(block, ctx);
+        List<Statement> statements = block.getStatements();
+        if (!statements.isEmpty() && statements.stream().allMatch(ToBeRemoved::hasMarker)) {
+            return ToBeRemoved.withMarker(block.withStatements(Collections.emptyList()));
+        }
+
+        if (statementsCount > 0 && statements.isEmpty()) {
+            return ToBeRemoved.withMarker(block.withStatements(Collections.emptyList()));
+        }
+
+        if (statements.stream().anyMatch(ToBeRemoved::hasMarker)) {
+            //noinspection DataFlowIssue
+            return block.withStatements(statements.stream()
+                .filter(s -> !ToBeRemoved.hasMarker(s) || s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.MethodInvocation)
+                .map(s -> s instanceof J.MethodInvocation && ToBeRemoved.hasMarker(s) ? ((J.MethodInvocation) s).getSelect().withPrefix(s.getPrefix()) : s)
+                .collect(Collectors.toList()));
+        }
+        return block;
+    }
+
+    @Value
+    @With
+    private static class ToBeRemoved implements Marker {
+        UUID id;
+        static <J2 extends J> J2 withMarker(J2 j) {
+            return j.withMarkers(j.getMarkers().addIfAbsent(new ToBeRemoved(randomId())));
+        }
+        static <J2 extends J> J2 removeMarker(J2 j) {
+            return j.withMarkers(j.getMarkers().removeByType(ToBeRemoved.class));
+        }
+        static boolean hasMarker(J j) {
+            return j.getMarkers().findFirst(ToBeRemoved.class).isPresent();
+        }
     }
 }

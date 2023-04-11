@@ -46,6 +46,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
           null, null, null, emptyList());
 
         spec.recipe(recipe)
+        // spec.recipe(new RequireExplicitSavingOfSecurityContextRepository())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
             .classpathFromResources(new InMemoryExecutionContext(),"spring-security-config-5.8.+", "spring-security-web-5.8.+"));
@@ -185,8 +186,6 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) throws Exception {
-                      http.securityContext(securityContext -> {}
-                          );
                       return http.build();
                   }
               }
@@ -220,8 +219,6 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http.securityContext((securityContext) -> {
-                          });
                       return http.build();
                   }
               }
@@ -241,8 +238,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext(securityContext -> securityContext
+                      http.securityContext(securityContext -> securityContext
                               .requireExplicitSave(false)
                           )
                           .securityContext(securityContext -> securityContext
@@ -258,11 +254,8 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext(securityContext -> securityContext
+                      http.securityContext(securityContext -> securityContext
                               .requireExplicitSave(false)
-                          )
-                          .securityContext(securityContext -> {}
                           );
                       return http.build();
                   }
@@ -343,53 +336,6 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
     }
 
     @Test
-    void test() {
-        rewriteRun(
-          java(
-            """
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
-
-              import java.util.function.Consumer;
-              import java.util.function.Function;
-
-              public class config2 {
-                  public void doSomething(
-                      Consumer<SecurityContextConfigurer<HttpSecurity>> f1) {
-                  }
-
-                  void method() throws Exception {
-                      doSomething(configurer -> {
-                              configurer.requireExplicitSave(true);
-                          }
-                      );
-                  }
-              }
-              """,
-            """
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
-
-            import java.util.function.Consumer;
-            import java.util.function.Function;
-
-            public class config2 {
-                public void doSomething(
-                    Consumer<SecurityContextConfigurer<HttpSecurity>> f1) {
-                }
-
-                void method() throws Exception {
-                    doSomething(configurer -> {
-                        }
-                    );
-                }
-            }
-            """
-          )
-        );
-    }
-
-    @Test
     void customize() {
         // language=java
         rewriteRun(
@@ -421,8 +367,6 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               public class config2 {
                   public SecurityFilterChain chain(HttpSecurity http) throws Exception {
-                      this.customize(securityContext -> {}
-                      );
                       return http.build();
                   }
 

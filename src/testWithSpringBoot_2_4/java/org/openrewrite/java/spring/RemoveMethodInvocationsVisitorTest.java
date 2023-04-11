@@ -341,8 +341,6 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
 
               public class Test {
                   public void method() throws Exception {
-                      this.customize(sb -> {}
-                      );
                   }
 
                   public void customize(Consumer<StringBuilder> securityContextCustomizer) {
