@@ -36,6 +36,11 @@ class RenameBeanTest implements RewriteTest {
                 """
                       package sample;
                       class MyType {}
+                  """, """
+                      package sample;
+                      @interface MyAnnotation {
+                          String value() default "";
+                      }
                   """
               )
               .classpathFromResources(new InMemoryExecutionContext(), "spring-context-6.0.7", "spring-beans-6.0.7")
@@ -355,6 +360,27 @@ class RenameBeanTest implements RewriteTest {
                   )
                 );
             }
+
+            @Test
+            void wrongAnnotation() {
+                rewriteRun(
+                  java(
+                    """
+                    package sample;
+                    
+                    import sample.MyAnnotation;
+                    import sample.MyType;
+                    
+                    class A {
+                        @MyAnnotation
+                        public String foo() {
+                            return "";
+                        }
+                    }
+                    """
+                  )
+                );
+            }
         }
 
         @Nested
@@ -482,6 +508,26 @@ class RenameBeanTest implements RewriteTest {
                     import sample.MyType;
                     
                     @Configuration("foo")
+                    class A {
+                    }
+                    """
+                  )
+                );
+            }
+
+            @Test
+            void wrongAnnotation() {
+                rewriteRun(
+                  spec -> spec.recipe(new RenameBean("sample.Foo", "foo", "bar")),
+                  java(
+                    """
+                    package sample;
+                    
+                    import org.springframework.beans.factory.annotation.Qualifier;
+                    import sample.MyAnnotation;
+                    import sample.MyType;
+                    
+                    @MyAnnotation("foo")
                     class A {
                     }
                     """

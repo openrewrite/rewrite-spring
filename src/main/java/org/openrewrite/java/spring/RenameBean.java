@@ -28,6 +28,7 @@ import org.openrewrite.java.ChangeMethodName;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.DeclaresType;
+import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
@@ -63,12 +64,7 @@ public class RenameBean extends Recipe {
 
     private static final Set<String> BEAN_TYPE_ANNOTATIONS = new HashSet<String>() {{
         add(QUALIFIER);
-        add("org.springframework.context.annotation.Configuration");
         add("org.springframework.stereotype.Component");
-        add("org.springframework.stereotype.Service");
-        add("org.springframework.stereotype.Repository");
-        add("org.springframework.stereotype.Controller");
-        add("org.springframework.web.bind.annotaiton.RestController");
     }};
 
     @Override
@@ -122,7 +118,7 @@ public class RenameBean extends Recipe {
 
     private static BeanSearchResult isBean(Collection<J.Annotation> annotations, Set<String> types) {
         for (J.Annotation annotation : annotations) {
-            if (annotation.getType() != null && types.contains(annotation.getType().toString())) {
+            if (anyAnnotationMatches(annotation, types)) {
                 if (annotation.getArguments() != null && !annotation.getArguments().isEmpty()) {
                     for (Expression expr : annotation.getArguments()) {
                         if (expr instanceof J.Literal) {
@@ -152,6 +148,15 @@ public class RenameBean extends Recipe {
             }
         }
         return new BeanSearchResult(false, null);
+    }
+
+    private static boolean anyAnnotationMatches(J.Annotation type, Set<String> types) {
+        for (String it : types) {
+            if (!FindAnnotations.find(type, it, true).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class BeanSearchResult {
@@ -239,7 +244,7 @@ public class RenameBean extends Recipe {
                 J.Assignment beanNameAssignment = null;
                 outer:
                 for (J.Annotation annotation : annotations) {
-                    if (annotation.getType() != null && types.contains(annotation.getType().toString())) {
+                    if (anyAnnotationMatches(annotation, types)) {
                         beanAnnotation = annotation;
                         if (beanAnnotation.getArguments() != null && !beanAnnotation.getArguments().isEmpty()) {
                             for (Expression expr : beanAnnotation.getArguments()) {
