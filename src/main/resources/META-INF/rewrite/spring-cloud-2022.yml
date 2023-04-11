@@ -103,19 +103,35 @@ recipeList:
       newVersion: 1.0.x
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-sleuth-otel-dependencies
+      newGroupId: io.micrometer
+      newArtifactId: micrometer-tracing-bridge-otel
+      newVersion: 1.0.x
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-api
       newGroupId: io.micrometer
       newArtifactId: micrometer-tracing
       newVersion: 1.0.x
   - org.openrewrite.maven.RemoveDependency:
       groupId: org.springframework.cloud
-      artifactId: spring-cloud-starter-sleuth
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: org.springframework.cloud
       artifactId: spring-cloud-sleuth-*
   - org.openrewrite.maven.RemoveManagedDependency:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-sleuth-*
+  - org.openrewrite.maven.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-actuator
+      version: 3.0.x
+      acceptTransitive: true
+      onlyIfUsing: org.springframework.cloud.sleuth..*
+      scope: compile
+  - org.openrewrite.maven.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-aop
+      version: 3.0.x
+      onlyIfUsing: org.springframework.cloud.sleuth.annotation.*
+      acceptTransitive: true
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.exporter.SpanFilter
       newFullyQualifiedTypeName: io.micrometer.tracing.exporter.SpanExportingPredicate
@@ -126,3 +142,24 @@ recipeList:
       oldPackageName: org.springframework.cloud.sleuth
       newPackageName: io.micrometer.tracing
       recursive: true
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.enabled
+      newPropertyKey: management.tracing.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.propagation.type
+      newPropertyKey: management.tracing.propagation.type
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.sampler.probability
+      newPropertyKey: management.tracing.sampling.probability
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.baggage.remote-fields
+      newPropertyKey: management.tracing.baggage.remote-fields
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.propagation-keys
+      newPropertyKey: management.tracing.baggage.remote-fields
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.baggage.correlation-enabled
+      newPropertyKey: management.tracing.baggage.correlation.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.baggage.correlation-fields
+      newPropertyKey: management.tracing.baggage.correlation.fields

@@ -17,7 +17,9 @@ package org.openrewrite.java.spring.security6;
 
 import lombok.Value;
 import lombok.With;
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
@@ -85,13 +87,13 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                     if (select instanceof J.Identifier && !parameters.isEmpty() && parameters.get(0) instanceof J.VariableDeclarations) {
                         J.VariableDeclarations declarations = (J.VariableDeclarations) parameters.get(0);
                         if (((J.Identifier) select).getSimpleName().equals(declarations.getVariables().get(0).getSimpleName())) {
-                            return ToBeRemoved.withMarker(lambda);
+                            return ToBeRemoved.withMarker(lambda.withBody(J.Block.createEmptyBlock().withPrefix(body.getPrefix())));
                         }
                     } else if (select instanceof J.MethodInvocation) {
                         return lambda.withBody(select.withPrefix(body.getPrefix()));
                     }
                 } else if (body instanceof J.Block && ToBeRemoved.hasMarker(body)) {
-                    return ToBeRemoved.withMarker(lambda.withBody(ToBeRemoved.removeMarker(body)));
+                    return ToBeRemoved.withMarker(lambda.withBody(J.Block.createEmptyBlock().withPrefix(body.getPrefix())));
                 }
                 return lambda;
             }
