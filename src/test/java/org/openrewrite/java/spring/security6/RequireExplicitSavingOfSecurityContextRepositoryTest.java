@@ -273,8 +273,6 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               public class config2 {
                   public SecurityFilterChain chain(HttpSecurity http) throws Exception {
-                      this.customize(securityContext -> {}
-                      );
                       return http.build();
                   }
 
@@ -419,7 +417,8 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
                   }
 
                   public void doSomething(SecurityContextConfigurer<HttpSecurity> myConfigurer) {
-                      OAuth2LoginConfigurer<HttpSecurity> auth = this.customize(securityContext -> {}).permitAll();
+                      OAuth2LoginConfigurer<HttpSecurity> auth = this.customize(securityContext -> {
+                      }).permitAll();
                   }
               }
               """
