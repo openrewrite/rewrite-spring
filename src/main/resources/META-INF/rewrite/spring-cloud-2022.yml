@@ -116,12 +116,14 @@ recipeList:
   - org.openrewrite.maven.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-actuator
+      version: 3.0.x
       acceptTransitive: true
       onlyIfUsing: org.springframework.cloud.sleuth..*
       scope: compile
   - org.openrewrite.maven.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-aop
+      version: 3.0.x
       onlyIfUsing: org.springframework.cloud.sleuth.annotation.*
       acceptTransitive: true
   - org.openrewrite.java.ChangeType:
