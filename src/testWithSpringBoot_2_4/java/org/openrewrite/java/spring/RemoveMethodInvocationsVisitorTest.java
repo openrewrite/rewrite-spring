@@ -32,42 +32,6 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
     }
 
     @Test
-    void tryCatchBlocks() {
-        rewriteRun(
-          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
-          java(
-            """
-              public class Test {
-                  public void method() {
-                      StringBuilder sb = new StringBuilder();
-                      try {
-                          sb.append("Hello");
-                      } catch (Exception e) {
-                          // handle the exception
-                          sb.append("Hello");
-                      } finally {
-                          sb.append("Hello");
-                      }
-                  }
-              }
-              """,
-            """
-              public class Test {
-                  public void method() {
-                      StringBuilder sb = new StringBuilder();
-                      try {
-                      } catch (Exception e) {
-                          // handle the exception
-                      } finally {
-                      }
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void removeFromEnd() {
         //language=java
         rewriteRun(
@@ -414,6 +378,40 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
                       Consumer<String> consumer = name -> {
                       };
                       consumer.accept("hello");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void tryCatchBlocks() {
+        rewriteRun(
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
+          java(
+            """
+              public class Test {
+                  public void method() {
+                      StringBuilder sb = new StringBuilder();
+                      try {
+                          sb.append("Hello");
+                      } catch (Exception e) {
+                          sb.append("Hello");
+                      } finally {
+                          sb.append("Hello");
+                      }
+                  }
+              }
+              """,
+            """
+              public class Test {
+                  public void method() {
+                      StringBuilder sb = new StringBuilder();
+                      try {
+                      } catch (Exception e) {
+                      } finally {
+                      }
                   }
               }
               """
