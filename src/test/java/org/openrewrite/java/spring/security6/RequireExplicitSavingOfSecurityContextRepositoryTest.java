@@ -182,6 +182,99 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
         );
     }
 
+    void consumer() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+
+              import java.util.function.Consumer;
+              import java.util.function.Function;
+
+              public class config2 {
+                  public void doSomething(
+                      Consumer<SecurityContextConfigurer<HttpSecurity>> f1) {
+                  }
+
+                  void method() throws Exception {
+                      doSomething(configurer -> {
+                              configurer.requireExplicitSave(true);
+                          }
+                      );
+                  }
+              }
+              """,
+            """
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+
+            import java.util.function.Consumer;
+            import java.util.function.Function;
+
+            public class config2 {
+                public void doSomething(
+                    Consumer<SecurityContextConfigurer<HttpSecurity>> f1) {
+                }
+
+                void method() throws Exception {
+                    doSomething(configurer -> {
+                        }
+                    );
+                }
+            }
+            """
+          )
+        );
+    }
+
+    @Test
+    void customizer() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              public class config2 {
+                  public SecurityFilterChain chain(HttpSecurity http) throws Exception {
+                      this.customize(securityContext -> securityContext
+                          .requireExplicitSave(true)
+                      );
+                      return http.build();
+                  }
+
+                  public void customize(Customizer<SecurityContextConfigurer<HttpSecurity>> securityContextCustomizer) {
+                      // do something else
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              public class config2 {
+                  public SecurityFilterChain chain(HttpSecurity http) throws Exception {
+                      this.customize(securityContext -> {}
+                      );
+                      return http.build();
+                  }
+
+                  public void customize(Customizer<SecurityContextConfigurer<HttpSecurity>> securityContextCustomizer) {
+                      // do something else
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     @SuppressWarnings("CodeBlock2Expr")
     void onlyInChainWithBlockBody() {
@@ -319,8 +412,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
                   }
 
                   public void doSomething(SecurityContextConfigurer<HttpSecurity> myConfigurer) {
-                      OAuth2LoginConfigurer<HttpSecurity> auth = this.customize(securityContext -> {
-                      }).permitAll();
+                      OAuth2LoginConfigurer<HttpSecurity> auth = this.customize(securityContext -> {}).permitAll();
                   }
               }
               """
