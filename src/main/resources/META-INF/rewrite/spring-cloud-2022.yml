@@ -103,6 +103,12 @@ recipeList:
       newVersion: 1.0.x
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-sleuth-otel-dependencies
+      newGroupId: io.micrometer
+      newArtifactId: micrometer-tracing-bridge-otel
+      newVersion: 1.0.x
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-api
       newGroupId: io.micrometer
       newArtifactId: micrometer-tracing
