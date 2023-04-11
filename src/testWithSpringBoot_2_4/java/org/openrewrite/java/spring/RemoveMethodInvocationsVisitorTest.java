@@ -350,4 +350,38 @@ public class RemoveMethodInvocationsVisitorTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void lambdaAssignment() {
+        rewriteRun(
+          spec -> spec.recipe(createRemoveMethodsRecipe("java.lang.StringBuilder append(java.lang.String)")),
+          java(
+            """
+              import java.util.function.Consumer;
+                          
+              public class Test {
+                  public void method() {
+                      StringBuilder sb = new StringBuilder();
+                      Consumer<String> consumer = name -> {
+                          sb.append(name);
+                      };
+                      consumer.accept("hello");
+                  }
+              }
+              """,
+            """
+              import java.util.function.Consumer;
+
+              public class Test {
+                  public void method() {
+                      StringBuilder sb = new StringBuilder();
+                      Consumer<String> consumer = name -> {
+                      };
+                      consumer.accept("hello");
+                  }
+              }
+              """
+          )
+        );
+    }
 }

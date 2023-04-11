@@ -469,4 +469,40 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
           )
         );
     }
+
+    @Test
+    void lambdaAssignment() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+
+              public class config2 {
+                  void method() {
+                      SecurityContextConfigurer<HttpSecurity> configurer = new SecurityContextConfigurer<>();
+                      Customizer<SecurityContextConfigurer<HttpSecurity>> customizer = x -> configurer.requireExplicitSave(true);
+                      customizer.toString();
+                  }
+              }
+              """,
+            """
+
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+
+              public class config2 {
+                  void method() {
+                      SecurityContextConfigurer<HttpSecurity> configurer = new SecurityContextConfigurer<>();
+                      Customizer<SecurityContextConfigurer<HttpSecurity>> customizer = x -> {};
+                      customizer.toString();
+                  }
+              }
+              """
+          )
+        );
+    }
 }
