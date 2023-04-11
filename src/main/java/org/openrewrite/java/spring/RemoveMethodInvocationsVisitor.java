@@ -55,20 +55,20 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
         }
 
         method = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
-
-        Expression expression = removeMethods(method, 0, isStatement(), new Stack<>());
-        if (expression != null) {
-            expression = expression.withPrefix(method.getPrefix());
+        J j = removeMethods(method, 0, isLambdaBody(), new Stack<>());
+        if (j != null) {
+            j = j.withPrefix(method.getPrefix());
         }
-        return expression;
+        return j;
     }
 
     @Nullable
-    private Expression removeMethods(Expression expression, int depth, boolean isStatement, Stack<Space> selectAfter) {
+    private J removeMethods(Expression expression, int depth, boolean isLambdaBody, Stack<Space> selectAfter) {
         if (!(expression instanceof J.MethodInvocation)) {
             return expression;
         }
 
+        boolean isStatement = isStatement();
         J.MethodInvocation m = (J.MethodInvocation) expression;
 
         if (matchers.entrySet().stream().anyMatch(entry -> matches(m, entry.getKey(), entry.getValue()))) {
@@ -84,14 +84,20 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
                     selectAfter.add(getSelectAfter(m));
                     return m.getSelect();
                 } else {
-                    return isStatement ? null :  hasSameReturnType ? m.getSelect() : expression;
+                    if (isStatement) {
+                        return null;
+                    } else if (isLambdaBody) {
+                        return J.Block.createEmptyBlock();
+                    } else {
+                        return hasSameReturnType ? m.getSelect() : expression;
+                    }
                 }
             } else if (m.getSelect() instanceof J.MethodInvocation) {
-                return removeMethods(m.getSelect(), depth, isStatement, selectAfter);
+                return removeMethods(m.getSelect(), depth, isLambdaBody, selectAfter);
             }
         }
 
-        J.MethodInvocation method = m.withSelect(removeMethods(m.getSelect(), depth + 1, isStatement, selectAfter));
+        J.MethodInvocation method = m.withSelect((Expression) removeMethods(m.getSelect(), depth + 1, isLambdaBody, selectAfter));
 
         // inherit prefix
         if (!selectAfter.isEmpty()) {
@@ -113,6 +119,11 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
                                                 p instanceof JContainer ||
                                                 p instanceof J.CompilationUnit
         ).getValue() instanceof J.Block;
+    }
+
+    private boolean isLambdaBody() {
+        Object parent = getCursor().getParent().getValue();
+        return parent instanceof J.Lambda && ((J.Lambda) parent).getBody() == getCursor().getValue();
     }
 
     private boolean inMethodCallChain() {

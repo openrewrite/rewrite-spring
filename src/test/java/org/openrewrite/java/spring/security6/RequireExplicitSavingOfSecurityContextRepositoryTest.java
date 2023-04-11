@@ -62,8 +62,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext((securityContext) -> securityContext
+                      http.securityContext((securityContext) -> securityContext
                               .requireExplicitSave(true)
                               .requireExplicitSave(false)
                           );
@@ -77,8 +76,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext((securityContext) -> securityContext
+                      http.securityContext((securityContext) -> securityContext
                               .requireExplicitSave(false)
                           );
                       return http.build();
@@ -100,8 +98,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext((securityContext) -> securityContext
+                      http.securityContext((securityContext) -> securityContext
                               .requireExplicitSave(false)
                               .requireExplicitSave(true)
                               .requireExplicitSave(false)
@@ -116,8 +113,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext((securityContext) -> securityContext
+                      http.securityContext((securityContext) -> securityContext
                               .requireExplicitSave(false)
                               .requireExplicitSave(false)
                           );
@@ -140,8 +136,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext((securityContext) -> securityContext
+                      http.securityContext((securityContext) -> securityContext
                               .requireExplicitSave(false)
                               .requireExplicitSave(true)
                           );
@@ -155,8 +150,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
 
               class T {
                   public SecurityFilterChain chain(HttpSecurity http) {
-                      http
-                          .securityContext((securityContext) -> securityContext
+                      http.securityContext((securityContext) -> securityContext
                               .requireExplicitSave(false)
                           );
                       return http.build();
@@ -177,7 +171,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
               import org.springframework.security.web.SecurityFilterChain;
 
               class T {
-                  public SecurityFilterChain chain(HttpSecurity http) {
+                  public SecurityFilterChain chain(HttpSecurity http) throws Exception {
                       http.securityContext(securityContext -> securityContext
                               .requireExplicitSave(true)
                           );
@@ -190,8 +184,8 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
               import org.springframework.security.web.SecurityFilterChain;
 
               class T {
-                  public SecurityFilterChain chain(HttpSecurity http) {
-                      http.securityContext(securityContext -> securityContext
+                  public SecurityFilterChain chain(HttpSecurity http) throws Exception {
+                      http.securityContext(securityContext -> {}
                           );
                       return http.build();
                   }
@@ -268,7 +262,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
                           .securityContext(securityContext -> securityContext
                               .requireExplicitSave(false)
                           )
-                          .securityContext(securityContext -> securityContext
+                          .securityContext(securityContext -> {}
                           );
                       return http.build();
                   }
@@ -341,6 +335,99 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
                   public void doSomething(SecurityContextConfigurer<HttpSecurity> myConfigurer) {
                       OAuth2LoginConfigurer<HttpSecurity> auth = this.customize(securityContext -> {
                       }).permitAll();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void test() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+
+              import java.util.function.Consumer;
+              import java.util.function.Function;
+
+              public class config2 {
+                  public void doSomething(
+                      Consumer<SecurityContextConfigurer<HttpSecurity>> f1) {
+                  }
+
+                  void method() throws Exception {
+                      doSomething(configurer -> {
+                              configurer.requireExplicitSave(true);
+                          }
+                      );
+                  }
+              }
+              """,
+            """
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+
+            import java.util.function.Consumer;
+            import java.util.function.Function;
+
+            public class config2 {
+                public void doSomething(
+                    Consumer<SecurityContextConfigurer<HttpSecurity>> f1) {
+                }
+
+                void method() throws Exception {
+                    doSomething(configurer -> {
+                        }
+                    );
+                }
+            }
+            """
+          )
+        );
+    }
+
+    @Test
+    void customize() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              public class config2 {
+                  public SecurityFilterChain chain(HttpSecurity http) throws Exception {
+                      this.customize(securityContext -> securityContext
+                          .requireExplicitSave(true)
+                      );
+                      return http.build();
+                  }
+
+                  public void customize(Customizer<SecurityContextConfigurer<HttpSecurity>> securityContextCustomizer) {
+                      // do something else
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              public class config2 {
+                  public SecurityFilterChain chain(HttpSecurity http) throws Exception {
+                      this.customize(securityContext -> {}
+                      );
+                      return http.build();
+                  }
+
+                  public void customize(Customizer<SecurityContextConfigurer<HttpSecurity>> securityContextCustomizer) {
+                      // do something else
                   }
               }
               """
