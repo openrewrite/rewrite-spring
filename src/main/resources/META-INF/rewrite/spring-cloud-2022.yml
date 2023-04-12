@@ -113,12 +113,21 @@ recipeList:
       newGroupId: io.micrometer
       newArtifactId: micrometer-tracing
       newVersion: 1.0.x
-  - org.openrewrite.maven.RemoveDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-sleuth-*
-  - org.openrewrite.maven.RemoveManagedDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-sleuth-*
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-sleuth-autoconfigure
+      newGroupId: org.springframework.boot
+      newArtifactId: spring-boot-actuator-autoconfigure
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-sleuth-otel-autoconfigure
+      newGroupId: org.springframework.boot
+      newArtifactId: spring-boot-actuator-autoconfigure
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-sleuth-zipkin
+      newGroupId: io.zipkin.reporter2
+      newArtifactId: zipkin-reporter-brave
   - org.openrewrite.maven.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-actuator
@@ -127,11 +136,24 @@ recipeList:
       onlyIfUsing: org.springframework.cloud.sleuth..*
       scope: compile
   - org.openrewrite.maven.AddDependency:
+      groupId: io.micrometer
+      artifactId: micrometer-tracing
+      version: 1.0.x
+      onlyIfUsing: org.springframework.cloud.sleuth.annotation.*
+      acceptTransitive: true
+  - org.openrewrite.maven.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-aop
       version: 3.0.x
       onlyIfUsing: org.springframework.cloud.sleuth.annotation.*
       acceptTransitive: true
+  - org.openrewrite.maven.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-sleuth-*
+  - org.openrewrite.maven.RemoveManagedDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-sleuth-*
+
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.exporter.SpanFilter
       newFullyQualifiedTypeName: io.micrometer.tracing.exporter.SpanExportingPredicate
@@ -139,15 +161,29 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.exporter.SpanIgnoringSpanFilter
       newFullyQualifiedTypeName: io.micrometer.tracing.exporter.SpanIgnoringSpanExportingPredicate
   - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.cloud.sleuth.autoconfig
+      newPackageName: org.springframework.boot.actuate.autoconfigure.tracing
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.cloud.sleuth
       newPackageName: io.micrometer.tracing
       recursive: true
+
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.sleuth.enabled
       newPropertyKey: management.tracing.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.batch.enabled
+      newPropertyKey: management.tracing.enabled
+  - org.openrewrite.java.spring.DeleteSpringProperty:
+      propertyKey: spring.sleuth.supports-join
+  - org.openrewrite.java.spring.DeleteSpringProperty:
+      propertyKey: spring.sleuth.trace-id128
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.sleuth.propagation.type
       newPropertyKey: management.tracing.propagation.type
+  - org.openrewrite.java.spring.DeleteSpringProperty:
+      propertyKey: spring.sleuth.sampler.rate
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.sleuth.sampler.probability
       newPropertyKey: management.tracing.sampling.probability
