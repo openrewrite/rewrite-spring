@@ -128,6 +128,7 @@ recipeList:
       oldArtifactId: spring-cloud-sleuth-zipkin
       newGroupId: io.zipkin.reporter2
       newArtifactId: zipkin-reporter-brave
+      newVersion: 2.16.x
   - org.openrewrite.maven.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-actuator
