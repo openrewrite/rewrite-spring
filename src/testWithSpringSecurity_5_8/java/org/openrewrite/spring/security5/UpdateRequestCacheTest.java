@@ -36,6 +36,7 @@ public class UpdateRequestCacheTest implements RewriteTest {
 
     @Test
     void security5Default() {
+        //language=java
         rewriteRun(
           java(
             """
@@ -105,6 +106,7 @@ public class UpdateRequestCacheTest implements RewriteTest {
 
     @Test
     void NoChangeIfContinueParameterHasBeenSet() {
+        //language=java
         rewriteRun(
           java(
             """
@@ -143,6 +145,7 @@ public class UpdateRequestCacheTest implements RewriteTest {
 
     @Test
     void HttpSessionRequestCacheConstructorAsParameter() {
+        //language=java
         rewriteRun(
           java(
             """

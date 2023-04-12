@@ -6,7 +6,7 @@ group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
 val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0")
-val springSecurityVersions: List<String> = listOf("5_8")
+val springSecurityVersions: List<String> = listOf("5_7", "5_8")
 
 val sourceSetNames: Map<String, List<String>> = mapOf(
         Pair("testWithSpringBoot_", springBootVersions),
@@ -197,6 +197,19 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-config:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
+
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-web:5.3.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-webflux:5.3.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.security:spring-security-core:5.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.security:spring-security-config:5.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.security:spring-security-web:5.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.security:spring-security-ldap:5.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
 
     "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
