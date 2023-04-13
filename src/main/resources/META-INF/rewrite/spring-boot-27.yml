@@ -23,7 +23,6 @@ displayName: Migrate to Spring Boot 2.7
 description: 'Upgrade to Spring Boot 2.7'
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
-  - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
