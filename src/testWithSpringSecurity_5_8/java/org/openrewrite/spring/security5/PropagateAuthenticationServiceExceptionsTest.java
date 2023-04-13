@@ -18,7 +18,6 @@ package org.openrewrite.spring.security5;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.security5.UseNewRequestMatchers;
 import org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
