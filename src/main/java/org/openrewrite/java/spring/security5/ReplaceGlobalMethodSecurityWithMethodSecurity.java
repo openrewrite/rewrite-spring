@@ -75,7 +75,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                     JavaTemplate enableMethodSecurityTemplate = JavaTemplate.builder(this::getCursor,
                             "@EnableMethodSecurity")
                         .javaParser(JavaParser.fromJavaVersion()
-                            .classpath("spring-security-config"))
+                            .classpath("spring-security"))
                         .imports(EnableMethodSecurityFqn)
                         .build();
 
@@ -105,7 +105,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                 "@EnableMethodSecurity(prePostEnabled = false)\n" +
                 "public class config {}",
                 J.Assignment.class,
-                "spring-security-config"
+                "spring-security"
             );
         }
         return prePostEnabledToFalseAssignment;
