@@ -38,7 +38,7 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: "*"
       newVersion: 4.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-parent
@@ -51,37 +51,37 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
       newVersion: 2022.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-circuitbreaker-*
       newVersion: 3.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-circuitbreaker-*
       newVersion: 3.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-kubernetes-*
       newVersion: 3.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-kubernetes-*
       newVersion: 3.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-task-*
       newVersion: 3.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-task-*
       newVersion: 3.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
