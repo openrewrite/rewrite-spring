@@ -77,6 +77,12 @@ public class ImplicitWebAnnotationNames extends Recipe {
         ).map(className -> "org.springframework.web.bind.annotation." + className).collect(toSet());
 
         @Override
+        public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext executionContext) {
+            J.VariableDeclarations varDecls = super.visitVariableDeclarations(multiVariable, executionContext);
+            return maybeAutoFormat(multiVariable, varDecls, executionContext);
+        }
+
+        @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation a = super.visitAnnotation(annotation, ctx);
 
