@@ -95,8 +95,8 @@ public class PropertiesToKebabCase extends Recipe {
         public PropertiesVisitor<ExecutionContext> getVisitor() {
             return new PropertiesIsoVisitor<ExecutionContext>() {
                 @Override
-                public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext executionContext) {
-                    Properties.Entry e = super.visitEntry(entry, executionContext);
+                public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
+                    Properties.Entry e = super.visitEntry(entry, ctx);
                     String key = e.getKey();
                     String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
                     if (!key.equals(asKebabCase)) {

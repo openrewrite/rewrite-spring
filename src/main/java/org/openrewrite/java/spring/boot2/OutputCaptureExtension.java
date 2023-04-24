@@ -51,9 +51,9 @@ public class OutputCaptureExtension extends Recipe {
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule"));
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.rule.OutputCapture"));
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                doAfterVisit(new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule", false));
+                doAfterVisit(new UsesType<>("org.springframework.boot.test.rule.OutputCapture", false));
                 return cu;
             }
         };
@@ -104,9 +104,8 @@ public class OutputCaptureExtension extends Recipe {
 
                 if (classDecl.getBody().getStatements().size() != c.getBody().getStatements().size()) {
                     JavaTemplate addOutputCaptureExtension = JavaTemplate.builder(this::getCursor, "@ExtendWith(OutputCaptureExtension.class)")
-                            .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*")
-                                    .build())
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                             .imports("org.junit.jupiter.api.extension.ExtendWith",
                                     "org.springframework.boot.test.system.OutputCaptureExtension")
                             .build();
@@ -149,9 +148,8 @@ public class OutputCaptureExtension extends Recipe {
             }
 
             JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
-                    .javaParser(() -> JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*")
-                            .build())
+                    .javaParser(JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                     .build();
             m = m.withTemplate(matchesTemplate, m.getCoordinates().replace(), m.getArguments().get(0), variableName);
             return m;
@@ -167,8 +165,8 @@ public class OutputCaptureExtension extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext context) {
-            J.MethodDeclaration m = super.visitMethodDeclaration(method, context);
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
             if (!FindMethods.find(m, "org.springframework.boot.test.rule.OutputCapture *(..)").isEmpty() ||
                     !FindMethods.find(m, "org.springframework.boot.test.system.OutputCaptureRule *(..)").isEmpty()) {
                 // FIXME need addParameter coordinate here...

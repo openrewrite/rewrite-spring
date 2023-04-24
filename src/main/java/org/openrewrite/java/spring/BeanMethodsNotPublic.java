@@ -41,7 +41,7 @@ public class BeanMethodsNotPublic extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.context.annotation.Bean");
+        return new UsesType<>("org.springframework.context.annotation.Bean", false);
     }
 
     @Override
@@ -53,8 +53,8 @@ public class BeanMethodsNotPublic extends Recipe {
         private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-            J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
             if (m.getAllAnnotations().stream().anyMatch(BEAN_ANNOTATION_MATCHER::matches)
                     && Boolean.FALSE.equals(TypeUtils.isOverride(method.getMethodType()))) {

@@ -61,7 +61,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.test.util.EnvironmentTestUtils");
+        return new UsesType<>("org.springframework.boot.test.util.EnvironmentTestUtils", false);
     }
 
     private static final class ReplaceEnvironmentUtilsMarker implements Marker {
@@ -92,13 +92,13 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         private static final int MINIMUM_ARGUMENT_COUNT_WITH_NAME = 3;
 
         @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-            return super.visitClassDeclaration(classDecl, executionContext);
+        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+            return super.visitClassDeclaration(classDecl, ctx);
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-            J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
             if (m.getBody() == null || m.getBody().getStatements().isEmpty()) {
                 return m;
@@ -257,9 +257,8 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = m.withTemplate(
                         JavaTemplate.builder(this::getCursor, marker.templateString)
-                                .javaParser(() -> JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-boot-test-2.*")
-                                        .build())
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-boot-test-2.*"))
                                 .imports("org.springframework.boot.test.util.TestPropertyValues")
                                 .build(),
                         m.getCoordinates().replace(),

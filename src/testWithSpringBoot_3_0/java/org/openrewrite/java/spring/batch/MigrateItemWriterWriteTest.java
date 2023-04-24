@@ -15,13 +15,13 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import static org.openrewrite.java.Assertions.java;
-
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+
+import static org.openrewrite.java.Assertions.java;
 
 @SuppressWarnings("RedundantThrows")
 class MigrateItemWriterWriteTest implements RewriteTest {
@@ -31,7 +31,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         spec.recipe(new MigrateItemWriterWrite())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-batch-core-4.3.7", "spring-batch-infrastructure-4.3.7", "spring-beans-4.3.30.RELEASE"));
+              "spring-batch-core-4.3.+", "spring-batch-infrastructure-4.3.+", "spring-beans-4.3.30.RELEASE"));
     }
 
     @Test

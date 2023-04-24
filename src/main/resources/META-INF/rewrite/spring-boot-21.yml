@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
----
+
 ########################################################################################################################
 # SpringBoot 2.1
+---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_1
 displayName: Migrate to Spring Boot 2.1

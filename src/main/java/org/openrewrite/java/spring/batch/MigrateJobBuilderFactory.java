@@ -75,17 +75,15 @@ public class MigrateJobBuilderFactory extends Recipe {
 
                     doAfterVisit(new MigrateJobBuilderFactory.RemoveJobBuilderFactoryVisitor(clazz, enclosingMethod));
 
-                    return (method.withTemplate(JavaTemplate
+                    return method.withTemplate(JavaTemplate
                                     .builder(() -> getCursor().getParentTreeCursor(), "new JobBuilder(#{any(java.lang.String)}, jobRepository)")
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-batch-core-5.0.0")
-                                            .build())
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-batch-core-5.0.0"))
                                     .imports("org.springframework.batch.core.repository.JobRepository",
                                             "org.springframework.batch.core.job.builder.JobBuilder")
                                     .build(),
                             method.getCoordinates().replace(),
-                            method.getArguments().get(0))
-                    );
+                            method.getArguments().get(0));
                 }
                 return super.visitMethodInvocation(method, ctx);
             }
@@ -149,9 +147,8 @@ public class MigrateJobBuilderFactory extends Recipe {
                     .imports("org.springframework.batch.core.repository.JobRepository",
                             "org.springframework.batch.core.job.builder.JobBuilder",
                             "org.springframework.batch.core.Step")
-                    .javaParser(() -> JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-batch-core-5.0.0")
-                            .build())
+                    .javaParser(JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-batch-core-5.0.0"))
                     .build();
 
             md = md.withTemplate(paramsTemplate, md.getCoordinates().replaceParameters(), params.toArray());

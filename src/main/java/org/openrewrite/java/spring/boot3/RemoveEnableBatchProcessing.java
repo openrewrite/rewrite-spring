@@ -50,8 +50,8 @@ public class RemoveEnableBatchProcessing extends Recipe {
 
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                if (!FindAnnotations.find(classDecl, "org.springframework.boot.autoconfigure.SpringBootApplication").isEmpty() &&
-                    !FindAnnotations.find(classDecl, "org.springframework.batch.core.configuration.annotation.EnableBatchProcessing").isEmpty()) {
+                if (!FindAnnotations.find(classDecl, "@org.springframework.boot.autoconfigure.SpringBootApplication").isEmpty() &&
+                    !FindAnnotations.find(classDecl, "@org.springframework.batch.core.configuration.annotation.EnableBatchProcessing").isEmpty()) {
                     return classDecl.withLeadingAnnotations(ListUtils.map(classDecl.getLeadingAnnotations(), a -> {
                         if (TypeUtils.isOfClassType(a.getType(), "org.springframework.batch.core.configuration.annotation.EnableBatchProcessing")) {
                             return null;

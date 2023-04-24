@@ -1,18 +1,26 @@
 plugins {
-    id("org.openrewrite.build.recipe-library") version "1.8.1"
+    id("org.openrewrite.build.recipe-library") version "latest.release"
 }
 
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
 val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0")
+val springSecurityVersions: List<String> = listOf("5_7", "5_8")
+
+val sourceSetNames: Map<String, List<String>> = mapOf(
+        Pair("testWithSpringBoot_", springBootVersions),
+        Pair("testWithSpringSecurity_", springSecurityVersions)
+)
 
 sourceSets {
-    springBootVersions.forEach { version ->
-        create("testWithSpringBoot_${version}") {
-            java {
-                compileClasspath += sourceSets.getByName("main").output
-                runtimeClasspath += sourceSets.getByName("main").output
+    sourceSetNames.forEach { sourceSetName, versions ->
+        versions.forEach { version ->
+            create("${sourceSetName}${version}") {
+                java {
+                    compileClasspath += sourceSets.getByName("main").output
+                    runtimeClasspath += sourceSets.getByName("main").output
+                }
             }
         }
     }
@@ -25,21 +33,24 @@ repositories {
 }
 
 configurations {
-    springBootVersions.forEach { version ->
-        getByName("testWithSpringBoot_${version}RuntimeOnly") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testRuntimeOnly"))
-        }
-        getByName("testWithSpringBoot_${version}Implementation") {
-            isCanBeResolved = true
-            extendsFrom(getByName("testImplementation"))
+    sourceSetNames.forEach { sourceSetName, versions ->
+        versions.forEach { version ->
+            getByName("${sourceSetName}${version}RuntimeOnly") {
+                isCanBeResolved = true
+                extendsFrom(getByName("testRuntimeOnly"))
+            }
+            getByName("${sourceSetName}${version}Implementation") {
+                isCanBeResolved = true
+                extendsFrom(getByName("testImplementation"))
+            }
         }
     }
 }
 
 recipeDependencies {
     parserClasspath("javax.persistence:javax.persistence-api:2.+")
-    parserClasspath("org.junit.jupiter:junit-jupiter-api:5.+")
+    parserClasspath("javax.validation:validation-api:2.0.1.Final")
+    parserClasspath("org.junit.jupiter:junit-jupiter-api:latest.release")
 
     parserClasspath("org.springframework.boot:spring-boot:1.+")
     parserClasspath("org.springframework.boot:spring-boot:2.+")
@@ -75,6 +86,19 @@ recipeDependencies {
 
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:4.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
+
+    parserClasspath("org.springframework.security:spring-security-config:5.8.+")
+    parserClasspath("org.springframework.security:spring-security-crypto:5.8.+")
+    parserClasspath("org.springframework.security:spring-security-web:5.8.+")
+
+    parserClasspath("org.springframework.security:spring-security-config:6.0.+")
+    parserClasspath("org.springframework.security:spring-security-core:6.0.+")
+    parserClasspath("org.springframework.security:spring-security-web:6.0.+")
+
+    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-api:3.1.+")
+//    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-autoconfigure:3.1.+")
+//    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-instrumentation:3.1.+")
+//    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-brave:3.1.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -84,6 +108,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-xml:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-properties:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-yaml:${rewriteVersion}")
+    implementation("org.openrewrite:rewrite-gradle:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
@@ -150,32 +175,73 @@ dependencies {
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.5.+")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-web:5.3.+")
 
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
-    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-web:5.3.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-webflux:5.3.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-core:5.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-config:5.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-web:5.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-ldap:5.7.+")
+    "testWithSpringBoot_2_7RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
 
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:${springBoot3Version}")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:${springBoot3Version}")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-core:5.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-infrastructure:5.+")
-    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-core:latest.release")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-core:6.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-config:6.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-web:6.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
+
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-web:5.3.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-webflux:5.3.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.security:spring-security-core:5.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.security:spring-security-config:5.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.security:spring-security-web:5.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.security:spring-security-ldap:5.7.+")
+    "testWithSpringSecurity_5_7RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
+
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-context:5.3.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:2.7.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-web:5.3.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework:spring-webflux:5.3.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-core:5.8.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-config:5.8.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-web:5.8.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-ldap:5.8.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
 }
 
-springBootVersions.forEach { version ->
-    val sourceSetName = "testWithSpringBoot_${version}"
-    val sourceSetReference = project.sourceSets.getByName(sourceSetName)
-    val testTask = tasks.register<Test>(sourceSetName) {
-        description = "Runs the unit tests for ${sourceSetName}."
-        group = "verification"
-        useJUnitPlatform()
-        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
-        testClassesDirs = sourceSetReference.output.classesDirs
-        classpath = sourceSetReference.runtimeClasspath
-        shouldRunAfter(tasks.test)
-    }
-    tasks.check {
-        dependsOn(testTask)
+
+sourceSetNames.forEach { sourceSet, versions ->
+    versions.forEach { version ->
+        val sourceSetName = "${sourceSet}${version}"
+        val sourceSetReference = project.sourceSets.getByName(sourceSetName)
+        val testTask = tasks.register<Test>(sourceSetName) {
+            description = "Runs the unit tests for ${sourceSetName}."
+            group = "verification"
+            useJUnitPlatform()
+            jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
+            testClassesDirs = sourceSetReference.output.classesDirs
+            classpath = sourceSetReference.runtimeClasspath
+            shouldRunAfter(tasks.test)
+        }
+        tasks.check {
+            dependsOn(testTask)
+        }
     }
 }

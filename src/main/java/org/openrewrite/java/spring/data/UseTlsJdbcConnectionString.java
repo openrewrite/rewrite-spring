@@ -92,12 +92,12 @@ public class UseTlsJdbcConnectionString extends Recipe {
                 attr = attr + ';';
             }
         }
-        final String validatedAttribute = attr;
+        String validatedAttribute = attr;
 
-        final String actualPropertyKey = propertyKey == null ? "spring.datasource.url" : propertyKey;
+        String actualPropertyKey = propertyKey == null ? "spring.datasource.url" : propertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext executionContext) {
+            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
                 return sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File;
             }
 

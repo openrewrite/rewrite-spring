@@ -22,6 +22,11 @@ description: >
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
   etc) that are required as part of the migration to Spring Boot 2.7.
+  
+  Migrating a Spring Boot application across major versions can be a complex task. Not every part of the 
+  process can be automated, and not everything that possibly could be automated is. We recommend first
+  running each of the minor version upgrades individually, making any manual changes which may be required. When you 
+  have a working spring-boot 2.7.x application, then run this recipe to migrate to 3.0.
 tags:
   - spring
   - boot
@@ -29,22 +34,25 @@ recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
   - org.openrewrite.java.spring.boot3.MavenPomUpgrade
-  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.migrate.UpgradeToJava17
+  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
   - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
   - org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
-  - org.openrewrite.java.spring.boot3.Saml
   - org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
+  - org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
+  - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
+  - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
+  - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
 ---
 ########################################################################################################################
 # SpringBoot 3_0 Maven Pom
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MavenPomUpgrade
-displayName: Upgrade Maven Pom to Spring Boot 3.0 from 2.x
-description: 'Upgrade Maven Pom to Spring Boot 3.0 from prior 2.x version.'
+displayName: Upgrade Maven POM to Spring Boot 3.0 from 2.x
+description: 'Upgrade Maven POM to Spring Boot 3.0 from prior 2.x version.'
 tags:
   - spring
   - boot
@@ -54,39 +62,17 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 3.0.x
-      trustParent: true
+      overrideManagedVersion: true
+      retainVersions:
+        - org.thymeleaf:thymeleaf-spring5
+        - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 3.0.x
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.Saml
-displayName: Migrate SAML configuration to Spring Boot 3.0 in yaml format
-description: Renames spring.security.saml2.relyingparty.registration.(any).identityprovider to spring.security.saml2.relyingparty.registration.(any).assertingparty.
-tags:
-  - spring
-  - boot
-  - saml
-recipeList:
-  - org.openrewrite.yaml.ChangeKey:
-      oldKeyPath: $.spring.security.saml2.relyingparty.registration.*[?(@.identityprovider)]
-      newKey: assertingparty
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.Saml
-displayName: Migrate SAML configuration to Spring Boot 3.0 in yaml format
-description: Renames spring.security.saml2.relyingparty.registration.(any).identityprovider to spring.security.saml2.relyingparty.registration.(any).assertingparty.
-tags:
-  - spring
-  - boot
-  - saml
-recipeList:
-  - org.openrewrite.yaml.ChangeKey:
-      oldKeyPath: $.spring.security.saml2.relyingparty.registration.*[?(@.identityprovider)]
-      newKey: assertingparty
-
+      retainVersions:
+        - org.thymeleaf:thymeleaf-spring5
+        - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
@@ -144,6 +130,24 @@ recipeList:
       oldPropertyKey: server.max-http-header-size
       newPropertyKey: server.max-http-request-header-size
 
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
+displayName: Migrate thymeleaf dependencies to Spring Boot 3.0.x
+description: Migrate thymeleaf dependencies to the new artifactId, since these are changed with Spring Boot 3.
+tags:
+  - spring
+  - boot
+  - thymeleaf
+recipeList:
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.thymeleaf
+      oldArtifactId: thymeleaf-spring5
+      newArtifactId: thymeleaf-spring6
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: org.thymeleaf.extras
+      oldArtifactId: thymeleaf-extras-springsecurity5
+      newArtifactId: thymeleaf-extras-springsecurity6
 ---
 ########################################################################################################################
 # SpringBoot 3.0 Configuration Changes

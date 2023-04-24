@@ -107,7 +107,10 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
 
     @Override
     public J visitVariableDeclarations(VariableDeclarations multiVariable, ExecutionContext p) {
-        Cursor blockCursor = getCursor().dropParentUntil(Block.class::isInstance);
+        Cursor blockCursor = getCursor().dropParentUntil(it -> it instanceof J.Block || it == Cursor.ROOT_VALUE);
+        if(!(blockCursor.getValue() instanceof J.Block)) {
+            return multiVariable;
+        }
         VariableDeclarations mv = multiVariable;
         if (blockCursor.getParent() != null && blockCursor.getParent().getValue() instanceof ClassDeclaration
                 && multiVariable.getVariables().size() == 1

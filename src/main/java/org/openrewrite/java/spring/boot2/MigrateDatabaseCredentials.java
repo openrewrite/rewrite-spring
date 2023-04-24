@@ -68,7 +68,7 @@ public class MigrateDatabaseCredentials extends Recipe {
         protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
             return new YamlVisitor<ExecutionContext>() {
                 @Override
-                public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext executionContext) {
+                public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                     if (FindProperty.find(documents, "spring." + tool + ".username", true).isEmpty() &&
                             FindProperty.find(documents, "spring." + tool + ".password", true).isEmpty()) {
                         doAfterVisit(new FindProperty("spring." + tool + ".url", true));
@@ -82,7 +82,7 @@ public class MigrateDatabaseCredentials extends Recipe {
         protected TreeVisitor<?, ExecutionContext> getVisitor() {
             return new YamlVisitor<ExecutionContext>() {
                 @Override
-                public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext executionContext) {
+                public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                     doAfterVisit(new MergeYaml("$.spring." + tool,"username: ${spring.datasource.username}", true, null, null));
                     doAfterVisit(new MergeYaml("$.spring." + tool,"password: ${spring.datasource.password}", true, null, null));
                     doAfterVisit(new CoalesceProperties());
@@ -107,7 +107,7 @@ public class MigrateDatabaseCredentials extends Recipe {
         protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
             return new PropertiesVisitor<ExecutionContext>() {
                 @Override
-                public Properties visitFile(Properties.File file, ExecutionContext executionContext) {
+                public Properties visitFile(Properties.File file, ExecutionContext ctx) {
                     if (FindProperties.find(file, "spring." + tool + ".username", true).isEmpty() &&
                             FindProperties.find(file, "spring." + tool + ".password", true).isEmpty()) {
                         doAfterVisit(new FindProperties("spring." + tool + ".url", true));
@@ -121,7 +121,7 @@ public class MigrateDatabaseCredentials extends Recipe {
         protected TreeVisitor<?, ExecutionContext> getVisitor() {
             return new PropertiesVisitor<ExecutionContext>() {
                 @Override
-                public Properties visitFile(Properties.File file, ExecutionContext executionContext) {
+                public Properties visitFile(Properties.File file, ExecutionContext ctx) {
                     doAfterVisit(new AddProperty("spring." + tool + ".username", "${spring.datasource.username}", null));
                     doAfterVisit(new AddProperty("spring." + tool + ".password", "${spring.datasource.password}", null));
                     return file;

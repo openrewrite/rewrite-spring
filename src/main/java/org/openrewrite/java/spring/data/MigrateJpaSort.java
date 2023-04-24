@@ -19,6 +19,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -26,7 +27,6 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class MigrateJpaSort extends Recipe {
@@ -44,7 +44,20 @@ public class MigrateJpaSort extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.data.jpa.domain.JpaSort");
+
+        return new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                if (cu.getPackageDeclaration() != null
+                    && "org.springframework.data.jpa.domain".equals(cu.getPackageDeclaration().getPackageName())) {
+                    return cu;
+                }
+
+                doAfterVisit(new UsesType<>("org.springframework.data.jpa.domain.JpaSort", false));
+                return cu;
+            }
+        };
+
     }
 
     @Override
@@ -56,18 +69,15 @@ public class MigrateJpaSort extends Recipe {
                     newClass.getArguments();
                     String template = newClass.getArguments().stream()
                             .map(arg -> TypeUtils.asFullyQualified(arg.getType()))
-                            .filter(Objects::nonNull)
-                            .map(type -> "#{any(" + type.getFullyQualifiedName() + ")}")
+                            .map(type -> "#{any(" + (type == null? "" :  type.getFullyQualifiedName()) + ")}")
                             .collect(Collectors.joining(",", "JpaSort.of(", ")"));
 
                     return newClass.withTemplate(
                             JavaTemplate.builder(this::getCursor, template)
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
+                                    .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-data-commons-2.*",
-                                                    "spring-data-jpa-2.3.*", "javax.persistence-api-2.*")
-                                            .build())
+                                                    "spring-data-jpa-2.3.*", "javax.persistence-api-2.*"))
                                     .imports("org.springframework.data.jpa.domain.JpaSort")
-                                    .doBeforeParseTemplate(System.out::println)
                                     .build(),
                             newClass.getCoordinates().replace(),
                             newClass.getArguments().toArray());

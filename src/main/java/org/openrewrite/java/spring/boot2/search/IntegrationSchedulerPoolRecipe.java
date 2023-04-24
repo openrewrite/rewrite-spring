@@ -67,7 +67,7 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Spring Integration now reuses an available TaskScheduler rather than configuring its own. In a" +
+        return "Spring Integration now reuses an available `TaskScheduler` rather than configuring its own. In a" +
                 " typical application setup relying on the auto-configuration, this means that Spring Integration" +
                 " uses the auto-configured task scheduler that has a pool size of 1. To restore Spring Integration’s" +
                 " default of 10 threads, use the `spring.task.scheduling.pool.size` property.";
@@ -143,7 +143,7 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
                         Properties.Entry entry = foundEntries.iterator().next();
                         source = (SourceFile) new PropertiesVisitor<ExecutionContext>() {
                             @Override
-                            public Properties visitFile(Properties.File file, ExecutionContext context) {
+                            public Properties visitFile(Properties.File file, ExecutionContext ctx) {
                                 int idx = file.getContent().indexOf(entry);
                                 if (idx >= 0) {
                                     Properties.Comment comment = new Properties.Comment(Tree.randomId(), "\n", Markers.EMPTY, Properties.Comment.Delimiter.HASH_TAG, PROPS_MIGRATION_MESSAGE);
@@ -161,11 +161,11 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
                     if (!foundEntriesValues.isEmpty()) {
                         source = (SourceFile) new YamlIsoVisitor<ExecutionContext>(){
                             @Override
-                            public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext context) {
+                            public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                                 if (foundEntriesValues.contains(entry.getValue())) {
                                     entry = entry.withPrefix("\n#" + PROPS_MIGRATION_MESSAGE + entry.getPrefix());
                                 }
-                                return super.visitMappingEntry(entry, context);
+                                return super.visitMappingEntry(entry, ctx);
                             }
                         }.visitNonNull(source, ctx);
                         javaProjects.remove(javaProject);
@@ -180,8 +180,8 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
             AnnotationMatcher annotationMatcher = new AnnotationMatcher("@org.springframework.boot.autoconfigure.SpringBootApplication");
             JavaIsoVisitor<ExecutionContext> commentVisitor = new JavaIsoVisitor<ExecutionContext>() {
                 @Override
-                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext context) {
-                    J.Annotation a = super.visitAnnotation(annotation, context);
+                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                    J.Annotation a = super.visitAnnotation(annotation, ctx);
                     if (annotationMatcher.matches(a)) {
                         a = a.withComments(ListUtils.concat(a.getComments(), new TextComment(false, GENERAL_MIGRATION_MESSAGE, "", Markers.EMPTY)));
                     }

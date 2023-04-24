@@ -42,7 +42,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace");
+        return new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace", false);
     }
 
     @Override
@@ -72,13 +72,13 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
         }
 
         @Override
-        public J.Import visitImport(J.Import anImport, ExecutionContext executionContext) {
+        public J.Import visitImport(J.Import anImport, ExecutionContext ctx) {
             J.Identifier name = anImport.getQualid().getName();
             if (anImport.isStatic() && updateDeprecatedFields.containsKey(name.getSimpleName()) &&
                     TypeUtils.isOfClassType(anImport.getQualid().getTarget().getType(), ORIGINAL_FQN.getFullyQualifiedName())) {
                 return anImport.withQualid(anImport.getQualid().withName(name.withSimpleName(updateDeprecatedFields.get(name.getSimpleName()))));
             }
-            return super.visitImport(anImport, executionContext);
+            return super.visitImport(anImport, ctx);
         }
 
         @Override
@@ -131,7 +131,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
 
         private boolean isTargetClass() {
             Cursor parentCursor = getCursor().dropParentUntil(
-                    is -> is instanceof J.CompilationUnit ||
+                    is -> is instanceof SourceFile ||
                             is instanceof J.ClassDeclaration);
             return parentCursor.getValue() instanceof J.ClassDeclaration &&
                     !((J.ClassDeclaration) parentCursor.getValue()).getName().getSimpleName().equals(ORIGINAL_FQN.getClassName());

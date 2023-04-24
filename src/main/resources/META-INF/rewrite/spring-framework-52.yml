@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
----
+
 ########################################################################################################################
 # Spring Framework 5.2
+---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_2
 displayName: Migrate to Spring Framework 5.2

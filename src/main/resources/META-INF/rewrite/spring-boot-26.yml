@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
----
+
 ########################################################################################################################
 # SpringBoot 2.6
 ---
@@ -46,7 +46,7 @@ recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: "spring-cloud-dependencies"
-      newVersion: 2023.0.X
+      newVersion: 2021.0.X
       overrideManagedVersion: true
 ---
 ########################################################################################################################

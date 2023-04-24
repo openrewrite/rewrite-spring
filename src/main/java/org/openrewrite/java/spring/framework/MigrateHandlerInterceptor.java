@@ -41,7 +41,7 @@ public class MigrateHandlerInterceptor extends Recipe {
 
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.web.servlet.handler.HandlerInterceptorAdapter");
+        return new UsesType<>("org.springframework.web.servlet.handler.HandlerInterceptorAdapter", false);
     }
 
     // It will therefore be necessary to use the interfaces of these classes, respectively org.springframework.web.servlet.HandlerInterceptor and org.springframework.web.servlet.config.annotation.WebMvcConfigurer.

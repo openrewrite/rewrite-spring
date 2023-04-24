@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
----
+
 ########################################################################################################################
 # SpringBoot 2.0
+---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
 displayName: Migrate to Spring Boot 2.0
@@ -141,11 +142,11 @@ name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
 displayName: Migrate Spring Boot properties to 2.0
 description: Migrate properties found in `application.properties` and `application.yml`.
 recipeList:
-  - org.openrewrite.properties.ChangePropertyValue:
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
       propertyKey: spring.main.banner-mode
       oldValue: true
       newValue: console
-  - org.openrewrite.properties.ChangePropertyValue:
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
       propertyKey: spring.main.banner-mode
       oldValue: false
       newValue: "off"
@@ -670,7 +671,6 @@ recipeList:
   - org.openrewrite.java.spring.NoRequestMappingAnnotation
   - org.openrewrite.java.spring.ImplicitWebAnnotationNames
   - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
-  - org.openrewrite.java.spring.BeanMethodsNotPublic
   - org.openrewrite.java.spring.NoAutowiredOnConstructor
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory

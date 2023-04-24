@@ -67,7 +67,7 @@ public class NoRequestMappingAnnotation extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.web.bind.annotation.RequestMapping");
+        return new UsesType<>("org.springframework.web.bind.annotation.RequestMapping", false);
     }
 
     @Override

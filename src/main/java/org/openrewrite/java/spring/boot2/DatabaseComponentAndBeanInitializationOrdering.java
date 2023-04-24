@@ -54,13 +54,13 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext executionContext) {
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository"));
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository"));
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Component"));
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Service"));
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.context.TestComponent"));
-                doAfterVisit(new UsesType<>("org.springframework.context.annotation.Bean"));
+            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext ctx) {
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository", false));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository", false));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Component", false));
+                doAfterVisit(new UsesType<>("org.springframework.stereotype.Service", false));
+                doAfterVisit(new UsesType<>("org.springframework.boot.test.context.TestComponent", false));
+                doAfterVisit(new UsesType<>("org.springframework.context.annotation.Bean", false));
                 return cu;
             }
         };
@@ -95,9 +95,8 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                         && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
                         JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                                .javaParser(() -> JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-boot-2.*")
-                                        .build())
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-boot-2.*"))
                                 .build();
                         md = md.withTemplate(template, md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                         maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
@@ -113,9 +112,8 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                     && requiresInitializationAnnotation(cd.getType())) {
                     JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                            .javaParser(() -> JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*")
-                                    .build())
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-boot-2.*"))
                             .build();
                     cd = cd.withTemplate(template, cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                     maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");

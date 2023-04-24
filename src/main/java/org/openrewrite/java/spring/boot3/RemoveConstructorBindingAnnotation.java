@@ -45,32 +45,26 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Remove Unnecessary @ConstructorBinding";
+        return "Remove Unnecessary `@ConstructorBinding`";
     }
 
     @Override
     public String getDescription() {
-        return "As of Boot 3.0 @ConstructorBinding is no longer needed at the type level on @ConfigurationProperties classes and should be removed.";
+        return "As of Boot 3.0 `@ConstructorBinding` is no longer needed at the type level on `@ConfigurationProperties` classes and should be removed.";
     }
 
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-                doAfterVisit(new UsesType<>("org.springframework.boot.context.properties.ConstructorBinding"));
-                return cu;
-            }
-        };
+        return new UsesType<>("org.springframework.boot.context.properties.ConstructorBinding", false);
     }
 
     @Override
     public JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, executionContext);
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
                 // Collect the class constructors.
                 List<J.MethodDeclaration> constructors = c.getBody().getStatements().stream()
@@ -92,7 +86,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                                         J.MethodDeclaration m = (J.MethodDeclaration) s;
                                         // Only visit the `J.MethodDeclaration` subtree and remove the target annotation.
                                         maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
-                                        return new RemoveTargetAnnotation(bindingAnnotation.get()).visitMethodDeclaration(m, executionContext);
+                                        return new RemoveTargetAnnotation(bindingAnnotation.get()).visitMethodDeclaration(m, ctx);
                                     }
                                     return s;
                                 }))
@@ -161,11 +155,11 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                 }
 
                 @Override
-                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
+                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                     if (targetToRemove == annotation) {
                         return null;
                     }
-                    return super.visitAnnotation(annotation, executionContext);
+                    return super.visitAnnotation(annotation, ctx);
                 }
             }
         };

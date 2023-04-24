@@ -70,11 +70,11 @@ public class ExpandProperties extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new YamlVisitor<ExecutionContext>() {
             @Override
-            public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext executionContext) {
-                Yaml docs = super.visitDocuments(documents, executionContext);
-                Yaml docsExpanded = new ExpandEntriesVisitor().visitNonNull(docs, executionContext);
+            public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
+                Yaml docs = super.visitDocuments(documents, ctx);
+                Yaml docsExpanded = new ExpandEntriesVisitor().visitNonNull(docs, ctx);
                 if (docsExpanded != docs) {
-                    docs = new CoalesceEntriesVisitor().visitNonNull(docsExpanded, executionContext);
+                    docs = new CoalesceEntriesVisitor().visitNonNull(docsExpanded, ctx);
                 }
                 return docs;
             }

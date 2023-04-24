@@ -32,7 +32,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new WebSecurityConfigurerAdapter())
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "tomcat-embed"));
+            .classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "tomcat-embed", "spring-core"));
     }
 
     @Test
@@ -405,4 +405,331 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void multipleClasses() throws Exception {
+        rewriteRun(
+          java(
+            """
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.core.annotation.Order;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+            import org.springframework.security.core.userdetails.UserDetailsService;
+            import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+            @EnableWebSecurity
+            public class MultiHttpSecurityConfig {
+                @Bean
+                public UserDetailsService userDetailsService() throws Exception {
+                    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                    return manager;
+                }
+
+                @Configuration
+                @Order(1)
+                public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+                    protected void configure(HttpSecurity http) throws Exception {
+                        http
+                            .antMatcher("/api/**")
+                            .authorizeRequests()
+                                .anyRequest().hasRole("ADMIN")
+                                .and()
+                            .httpBasic();
+                    }
+                }
+
+                @Configuration
+                public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+
+                    @Override
+                    protected void configure(HttpSecurity http) throws Exception {
+                        http
+                            .authorizeRequests()
+                                .anyRequest().authenticated()
+                                .and()
+                            .formLogin();
+                    }
+                }
+            }
+            """,
+            """
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.core.userdetails.UserDetailsService;
+            import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+            import org.springframework.security.web.SecurityFilterChain;
+            
+            @EnableWebSecurity
+            public class MultiHttpSecurityConfig {
+                @Bean
+                public UserDetailsService userDetailsService() throws Exception {
+                    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                    return manager;
+                }
+            
+                @Bean
+                SecurityFilterChain apiWebSecurityConfigurationSecurityFilterChain(HttpSecurity http) throws Exception {
+                    http
+                            .antMatcher("/api/**")
+                            .authorizeRequests()
+                            .anyRequest().hasRole("ADMIN")
+                            .and()
+                            .httpBasic();
+                    return http.build();
+                }
+            
+                @Bean
+                SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
+                    http
+                            .authorizeRequests()
+                            .anyRequest().authenticated()
+                            .and()
+                            .formLogin();
+                    return http.build();
+                }
+            }
+            """
+          )
+        );
+    }
+
+    @Test
+    void multipleClassesNoFlattening() throws Exception {
+        rewriteRun(
+          java(
+              """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.core.annotation.Order;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.core.userdetails.UserDetailsService;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+              @EnableWebSecurity
+              public class MultiHttpSecurityConfig {
+                  private int a;
+
+                  @Bean
+                  public UserDetailsService userDetailsService() throws Exception {
+                      InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                      return manager;
+                  }
+
+                  @Configuration
+                  @Order(1)
+                  public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+                      private String a;
+                      protected void configure(HttpSecurity http) throws Exception {
+                          http
+                              .antMatcher("/api/**")
+                              .authorizeRequests()
+                                  .anyRequest().hasRole("ADMIN")
+                                  .and()
+                              .httpBasic();
+                      }
+                  }
+
+                  @Configuration
+                  public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+
+                      @Override
+                      protected void configure(HttpSecurity http) throws Exception {
+                          http
+                              .authorizeRequests()
+                                  .anyRequest().authenticated()
+                                  .and()
+                              .formLogin();
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.core.annotation.Order;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.core.userdetails.UserDetailsService;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @EnableWebSecurity
+              public class MultiHttpSecurityConfig {
+                  private int a;
+
+                  @Bean
+                  public UserDetailsService userDetailsService() throws Exception {
+                      InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                      return manager;
+                  }
+
+                  @Configuration
+                  @Order(1)
+                  public static class ApiWebSecurityConfigurationAdapter {
+                      private String a;
+
+                      @Bean
+                      SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                          http
+                              .antMatcher("/api/**")
+                              .authorizeRequests()
+                                  .anyRequest().hasRole("ADMIN")
+                                  .and()
+                              .httpBasic();
+                          return http.build();
+                      }
+                  }
+                  
+                  @Bean
+                  SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeRequests()
+                              .anyRequest().authenticated()
+                              .and()
+                              .formLogin();
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void inMemoryConfig() throws Exception {
+        rewriteRun(
+          java(
+            """
+              package com.example.websecuritydemo;
+                            
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.core.userdetails.User;
+              import org.springframework.security.core.userdetails.UserDetails;
+
+              @Configuration
+              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  @Override
+                    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                      UserDetails user = User.withDefaultPasswordEncoder().username("user").password("password").roles("USER")
+                          .build();
+                        auth.inMemoryAuthentication().withUser(user);
+                  }
+              }
+              """,
+            """
+              package com.example.websecuritydemo;
+                            
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.core.userdetails.User;
+              import org.springframework.security.core.userdetails.UserDetails;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+              @Configuration
+              public class SecurityConfiguration {
+                  @Bean
+                  InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
+                      UserDetails user = User.withDefaultPasswordEncoder().username("user").password("password").roles("USER")
+                          .build();
+                      return new InMemoryUserDetailsManager(user);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void inMemoryConfigWithUserBuilder() throws Exception {
+        rewriteRun(
+          java(
+            """
+              package com.example.websecuritydemo;
+                            
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.core.userdetails.User;
+              import org.springframework.security.core.userdetails.User.UserBuilder;
+
+              @Configuration
+              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  @Override
+                    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                      UserBuilder builder = User.withDefaultPasswordEncoder().username("user").password("password").roles("USER");
+                        auth.inMemoryAuthentication().withUser(builder);
+                  }
+              }
+              """,
+            """
+              package com.example.websecuritydemo;
+                            
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.core.userdetails.User;
+              import org.springframework.security.core.userdetails.User.UserBuilder;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+              @Configuration
+              public class SecurityConfiguration {
+                  @Bean
+                  InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
+                      UserBuilder builder = User.withDefaultPasswordEncoder().username("user").password("password").roles("USER");
+                      return new InMemoryUserDetailsManager(builder.build());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void inMemoryConfigWithUserString() throws Exception {
+        rewriteRun(
+          java(
+            """
+              package com.example.websecuritydemo;
+                            
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @Configuration
+              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  @Override
+                    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                        auth.inMemoryAuthentication().withUser("user");
+                  }
+              }
+              """,
+            """
+              package com.example.websecuritydemo;
+                            
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.core.userdetails.User;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+              @Configuration
+              public class SecurityConfiguration {
+                  @Bean
+                  InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
+                      return new InMemoryUserDetailsManager(User.builder().username("user").build());
+                  }
+              }
+              """
+          )
+        );
+    }
+
 }
+
+

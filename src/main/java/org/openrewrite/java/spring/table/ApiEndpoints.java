@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.table;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import lombok.Value;
+import org.openrewrite.Column;
 import org.openrewrite.DataTable;
 import org.openrewrite.Recipe;
 
@@ -30,9 +31,20 @@ public class ApiEndpoints extends DataTable<ApiEndpoints.Row> {
 
     @Value
     public static class Row {
+        @Column(displayName = "Source path",
+                description = "The path to the source file containing the API endpoint definition.")
         String sourcePath;
+
+        @Column(displayName = "Method name",
+                description = "The name of the method that defines the API endpoint.")
         String methodName;
+
+        @Column(displayName = "Method",
+                description = "The HTTP method of the API endpoint.")
         String method;
+
+        @Column(displayName = "Path",
+                description = "The path of the API endpoint.")
         String path;
     }
 }

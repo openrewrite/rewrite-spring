@@ -62,7 +62,7 @@ public class UpdateApiManifest extends Recipe {
         for (SourceFile sourceFile : before) {
             new JavaVisitor<ExecutionContext>() {
                 @Override
-                public J visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+                public J visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                     method.getAllAnnotations().stream()
                             .filter(this::hasRequestMapping)
                             .findAny()
@@ -87,7 +87,7 @@ public class UpdateApiManifest extends Recipe {
                                         type.getClassName().replace("Mapping", "").toUpperCase();
                                 apis.add(httpMethod + " " + path);
                             });
-                    return super.visitMethodDeclaration(method, executionContext);
+                    return super.visitMethodDeclaration(method, ctx);
                 }
 
                 private boolean hasRequestMapping(J.Annotation ann) {

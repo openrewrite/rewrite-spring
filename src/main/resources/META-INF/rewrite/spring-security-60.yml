@@ -1,0 +1,59 @@
+#
+# Copyright 2022 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
+displayName: Migrate to Spring Security 6.0
+description: >
+  Migrate applications to the latest Spring Security 6.0 release. This recipe will modify an
+  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
+  changes between versions.
+tags:
+  - spring
+  - security
+recipeList:
+  - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: org.springframework.security
+      artifactId: "*"
+      newVersion: 6.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.java.spring.security6.UseSha256InRememberMe
+  - org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions
+  - org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository
+  - org.openrewrite.java.spring.security6.RemoveOauth2LoginConfig
+  - org.openrewrite.java.spring.security6.UpdateRequestCache
+  - org.openrewrite.java.spring.security6.RemoveUseAuthorizationManager
+  - org.openrewrite.java.spring.security6.UpdateEnableReactiveMethodSecurity
+  - org.openrewrite.java.spring.security6.RemoveFilterSecurityInterceptorOncePerRequest
+---
+########################################################################################################################
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.security6.RemoveUseAuthorizationManager
+displayName: Remove unnecessary `use-authorization-manager` for message security in Spring security 6
+description: >
+  In Spring Security 6, <websocket-message-broker> defaults use-authorization-manager to true. 
+  So, the 'use-authorization-manager' attribute for message security is no longer needed and can be removed.
+tags:
+  - spring
+  - security
+recipeList:
+  - org.openrewrite.xml.ChangeTagAttribute:
+      elementName: websocket-message-broker
+      attributeName: use-authorization-manager
+      newValue: null
+      oldValue: true
+      fileMatcher: null

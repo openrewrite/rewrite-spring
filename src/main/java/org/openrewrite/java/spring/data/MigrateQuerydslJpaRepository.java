@@ -45,7 +45,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
     @Nullable
     @Override
     protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.data.jpa.repository.support.QuerydslJpaRepository");
+        return new UsesType<>("org.springframework.data.jpa.repository.support.QuerydslJpaRepository", false);
     }
 
     @Override
@@ -62,8 +62,8 @@ public class MigrateQuerydslJpaRepository extends Recipe {
             }
 
             @Override
-            public J visitParameterizedType(J.ParameterizedType type, ExecutionContext context) {
-                J.ParameterizedType t = (J.ParameterizedType) super.visitParameterizedType(type, context);
+            public J visitParameterizedType(J.ParameterizedType type, ExecutionContext ctx) {
+                J.ParameterizedType t = (J.ParameterizedType) super.visitParameterizedType(type, ctx);
                 if (t.getClazz() instanceof J.Identifier && TypeUtils.isOfType(TypeUtils.asFullyQualified(t.getClazz().getType()),
                         TypeUtils.asFullyQualified(JavaType.ShallowClass.build(originalFqn))) &&
                         t.getTypeParameters() != null && t.getTypeParameters().size() == 2) {
@@ -83,13 +83,12 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                     return newClass.withTemplate(
                             JavaTemplate.builder(this::getCursor, template)
                                     .imports(targetFqn)
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
+                                    .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx,
                                                     "javax.persistence-api-2.*",
                                                     "spring-data-commons-2.*",
                                                     "spring-data-jpa-2.*"
-                                            )
-                                            .build())
+                                            ))
                                     .build(),
                             newClass.getCoordinates().replace(),
                             newClass.getArguments().get(0),
