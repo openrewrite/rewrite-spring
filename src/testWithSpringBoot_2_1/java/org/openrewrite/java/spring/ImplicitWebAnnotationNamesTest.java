@@ -85,7 +85,7 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
               public class UsersController {
                   @GetMapping("/{id}")
                   public ResponseEntity<String> getUser(
-                      @RequestParam(name = "count", defaultValue = 3) int count) {
+                          @RequestParam(name = "count", defaultValue = 3) int count) {
                   }
               }
               """,
@@ -98,7 +98,41 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
               public class UsersController {
                   @GetMapping("/{id}")
                   public ResponseEntity<String> getUser(
-                      @RequestParam(defaultValue = 3) int count) {
+                          @RequestParam(defaultValue = 3) int count) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/340")
+    @Test
+    void autoFormatAfterRemovingArgument() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.*;
+              
+              @RestController
+              @RequestMapping("/users")
+              public class UsersController {
+                  @GetMapping("/{id}")
+                  public ResponseEntity<String> getUser(@PathVariable("id")Long id) {
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.*;
+              
+              @RestController
+              @RequestMapping("/users")
+              public class UsersController {
+                  @GetMapping("/{id}")
+                  public ResponseEntity<String> getUser(@PathVariable Long id) {
                   }
               }
               """
