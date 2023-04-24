@@ -69,7 +69,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   <dependency>
                     <groupId>com.mysql</groupId>
                     <artifactId>mysql-connector-j</artifactId>
-                    <version>8.0.32</version>
+                    <version>8.0.33</version>
                     <scope>runtime</scope>
                   </dependency>
                 </dependencies>

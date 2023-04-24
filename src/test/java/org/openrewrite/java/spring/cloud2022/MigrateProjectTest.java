@@ -205,12 +205,12 @@ public class MigrateProjectTest implements RewriteTest {
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-starter-actuator</artifactId>
-                            <version>3.0.5</version>
+                            <version>3.0.6</version>
                         </dependency>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-starter-aop</artifactId>
-                            <version>3.0.5</version>
+                            <version>3.0.6</version>
                         </dependency>
                     </dependencies>
                 </project>
