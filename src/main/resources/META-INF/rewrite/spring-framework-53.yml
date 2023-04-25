@@ -32,7 +32,7 @@ recipeList:
       groupId: org.hibernate
       artifactId: hibernate-search-orm
       newVersion: 5.11.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.RemoveDependency:
       groupId: org.aspectj
       artifactId: aspectjrt

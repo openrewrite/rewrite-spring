@@ -30,7 +30,7 @@ recipeList:
       groupId: org.springframework.security
       artifactId: "*"
       newVersion: 6.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.java.spring.security6.UseSha256InRememberMe
   - org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions
   - org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository
