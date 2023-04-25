@@ -81,6 +81,7 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: logging.file
       newPropertyKey: logging.file.name
+      except: [ path ]
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: logging.path
       newPropertyKey: logging.file.path
