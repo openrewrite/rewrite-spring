@@ -18,6 +18,7 @@ package org.openrewrite.java.spring;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -52,6 +53,7 @@ class RenameBeanTest implements RewriteTest {
 
         @Nested
         class BeanMethods {
+            @DocumentExample
             @Test
             void impliedName() {
                 rewriteRun(
@@ -386,6 +388,7 @@ class RenameBeanTest implements RewriteTest {
         @Nested
         class BeanClasses {
 
+            @DocumentExample
             @Test
             void impliedName() {
                 rewriteRun(
@@ -540,6 +543,7 @@ class RenameBeanTest implements RewriteTest {
     @Nested
     class Usages {
 
+        @DocumentExample
         @Test
         void parameterUsage() {
             rewriteRun(

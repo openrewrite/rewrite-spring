@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.search;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -61,6 +62,7 @@ public class FindApiCallsTest implements RewriteTest {
         );
     }
 
+    @DocumentExample
     @Test
     void restTemplate() {
         rewriteRun(

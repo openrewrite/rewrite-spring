@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.boot2;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Issue;
 import org.openrewrite.config.Environment;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -38,6 +39,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
           .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"));
     }
 
+    @DocumentExample
     @Test
     void switchArtifactIdAndUpdateVersionNumber() {
         rewriteRun(

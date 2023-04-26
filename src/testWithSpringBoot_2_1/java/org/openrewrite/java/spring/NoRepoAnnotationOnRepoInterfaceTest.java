@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -30,6 +31,7 @@ public class NoRepoAnnotationOnRepoInterfaceTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-context", "spring-beans", "spring-data"));
     }
 
+    @DocumentExample
     @Test
     void simpleCase() {
         //language=java

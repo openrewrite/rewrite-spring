@@ -17,6 +17,7 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Issue;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -29,6 +30,7 @@ class ExpandPropertiesTest implements RewriteTest {
         spec.recipe(new ExpandProperties());
     }
 
+    @DocumentExample
     @Test
     void expandProperties() {
         rewriteRun(

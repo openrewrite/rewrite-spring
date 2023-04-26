@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
@@ -26,6 +27,7 @@ import static org.openrewrite.properties.Assertions.properties;
 
 class ChangeSpringPropertyKeyTest implements RewriteTest {
 
+    @DocumentExample
     @Test
     void changeLastKey() {
         rewriteRun(

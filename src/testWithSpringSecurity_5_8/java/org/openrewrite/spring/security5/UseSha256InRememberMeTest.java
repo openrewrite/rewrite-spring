@@ -17,6 +17,7 @@ package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security6.UseSha256InRememberMe;
 import org.openrewrite.test.RecipeSpec;
@@ -34,6 +35,7 @@ class UseSha256InRememberMeTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),"spring-beans-6.0.+", "spring-context-6.0.+", "spring-security-core-6.0.+", "spring-security-config-6.0.+", "spring-security-web-6.0.+"));
     }
 
+    @DocumentExample
     @Test
     void removeExplicitEncodingAlgorithmOnly() {
         // language=java

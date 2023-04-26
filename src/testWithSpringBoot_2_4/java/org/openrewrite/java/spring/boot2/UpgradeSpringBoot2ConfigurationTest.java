@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.config.Environment;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -35,6 +36,7 @@ public class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
                 );
     }
 
+    @DocumentExample
     @Test
     void activateOnProfileDoNotMoveActivate() {
         rewriteRun(

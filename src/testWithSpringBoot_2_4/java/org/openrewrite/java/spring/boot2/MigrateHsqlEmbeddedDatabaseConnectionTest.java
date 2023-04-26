@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -31,6 +32,7 @@ class MigrateHsqlEmbeddedDatabaseConnectionTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
     }
 
+    @DocumentExample
     @Test
     void updateFieldAccess() {
         //language=java 

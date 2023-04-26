@@ -17,6 +17,7 @@ package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security6.UpdateEnableReactiveMethodSecurity;
 import org.openrewrite.test.RecipeSpec;
@@ -35,6 +36,7 @@ public class UpdateEnableReactiveMethodSecurityTest implements RewriteTest {
               "spring-security-config-5.8.+"));
     }
 
+    @DocumentExample
     @Test
     void removeUseAuthorizationManager() {
         rewriteRun(

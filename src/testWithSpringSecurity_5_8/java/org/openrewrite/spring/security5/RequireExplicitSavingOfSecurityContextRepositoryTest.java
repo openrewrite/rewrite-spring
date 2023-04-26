@@ -18,6 +18,7 @@ package org.openrewrite.spring.security5;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository;
 import org.openrewrite.test.RecipeSpec;
@@ -35,6 +36,7 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
             .classpathFromResources(new InMemoryExecutionContext(),"spring-security-config-5.8.+", "spring-security-web-5.8.+"));
     }
 
+    @DocumentExample
     @Test
     void firstInChain() {
         // language=java

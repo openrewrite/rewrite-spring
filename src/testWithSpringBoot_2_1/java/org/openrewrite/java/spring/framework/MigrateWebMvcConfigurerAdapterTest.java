@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.framework;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -29,6 +30,7 @@ public class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
           .recipe(new MigrateWebMvcConfigurerAdapter());
     }
 
+    @DocumentExample
     @Test
     void transformSimple() {
         rewriteRun(

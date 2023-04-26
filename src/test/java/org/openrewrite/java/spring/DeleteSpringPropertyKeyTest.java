@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.properties.Assertions.properties;
@@ -24,6 +25,7 @@ import static org.openrewrite.yaml.Assertions.yaml;
 
 class DeleteSpringPropertyKeyTest implements RewriteTest {
 
+    @DocumentExample
     @Test
     void deleteOnlyKey() {
         rewriteRun(

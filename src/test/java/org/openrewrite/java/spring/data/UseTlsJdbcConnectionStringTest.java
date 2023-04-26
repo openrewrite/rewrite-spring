@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.data;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -29,6 +30,7 @@ class UseTlsJdbcConnectionStringTest implements RewriteTest {
         spec.recipe(new UseTlsJdbcConnectionString(null, 5021, 15021, "sslConnection=true;"));
     }
 
+    @DocumentExample
     @Test
     void useTls() {
         rewriteRun(

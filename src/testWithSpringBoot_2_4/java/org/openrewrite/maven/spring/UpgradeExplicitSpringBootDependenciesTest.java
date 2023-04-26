@@ -16,6 +16,7 @@
 package org.openrewrite.maven.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.*;
@@ -806,6 +807,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
         );
     }
 
+    @DocumentExample
     @Test
     void shouldBuildCorrectPomModelAfterUpdateTo3x() {
         rewriteRun(

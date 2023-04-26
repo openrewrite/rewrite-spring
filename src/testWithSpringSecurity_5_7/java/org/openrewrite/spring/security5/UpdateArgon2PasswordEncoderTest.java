@@ -17,6 +17,7 @@ package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.internal.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security5.UpdateArgon2PasswordEncoder;
 import org.openrewrite.test.RecipeSpec;
@@ -33,6 +34,7 @@ public class UpdateArgon2PasswordEncoderTest implements RewriteTest {
                         .classpathFromResources(new InMemoryExecutionContext(),"spring-security-crypto-5.8.+"));
     }
 
+    @DocumentExample
     @Test
     void replaceDefaultConstructorCall() {
         // language=java
