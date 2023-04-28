@@ -47,6 +47,9 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.rsocket.context.LocalRSocketServerPort
       newFullyQualifiedTypeName: org.springframework.boot.test.rsocket.server.LocalRSocketServerPort
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+      newFullyQualifiedTypeName: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
   # Switch MySQL driver artifactId
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
@@ -129,3 +132,7 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.flyway.check-location
       newPropertyKey: spring.flyway.fail-on-missing-locations
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
+      propertyKey: spring.jpa.hibernate.naming.physical-strategy
+      oldValue: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+      newValue: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
