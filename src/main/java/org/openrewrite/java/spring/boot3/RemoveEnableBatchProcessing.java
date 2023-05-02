@@ -17,15 +17,12 @@ package org.openrewrite.java.spring.boot3;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
-
-import java.util.List;
 
 public class RemoveEnableBatchProcessing extends Recipe {
 
@@ -40,12 +37,7 @@ public class RemoveEnableBatchProcessing extends Recipe {
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-        return super.visit(before, ctx);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
 
             @Override

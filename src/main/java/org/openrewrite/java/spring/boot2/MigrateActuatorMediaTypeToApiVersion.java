@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -35,11 +36,11 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
     @Override
     public String getDescription() {
         return "Spring Boot `ActuatorMediaType` was deprecated in 2.5 in favor of `ApiVersion#getProducedMimeType()`. " +
-               "Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`.";
+                "Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`.";
     }
 
     @Override
-    protected JavaIsoVisitor<ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             private final MethodMatcher mediaTypeMatcher = new MethodMatcher("org.springframework.http.MediaType parseMediaType(java.lang.String)");
 

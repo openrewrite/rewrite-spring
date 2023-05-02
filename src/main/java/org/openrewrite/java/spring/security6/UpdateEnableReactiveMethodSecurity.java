@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.security6;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
@@ -32,7 +33,7 @@ import java.util.List;
 public class UpdateEnableReactiveMethodSecurity extends Recipe {
 
     private static final AnnotationMatcher ENABLE_REACTIVE_METHOD_SECURITY_MATCHER =
-        new AnnotationMatcher("@org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity");
+            new AnnotationMatcher("@org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity");
 
     @Override
     public String getDisplayName() {
@@ -42,7 +43,7 @@ public class UpdateEnableReactiveMethodSecurity extends Recipe {
     @Override
     public String getDescription() {
         return "In Spring security 6.0, `@EnableReactiveMethodSecurity` defaults `useAuthorizationManager` to true. " +
-               "So, to complete migration, `@EnableReactiveMethodSecurity` remove the `useAuthorizationManager` attribute.";
+                "So, to complete migration, `@EnableReactiveMethodSecurity` remove the `useAuthorizationManager` attribute.";
     }
 
     @Override
@@ -51,34 +52,30 @@ public class UpdateEnableReactiveMethodSecurity extends Recipe {
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(
-            "org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity", false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                annotation = super.visitAnnotation(annotation, ctx);
-                if (ENABLE_REACTIVE_METHOD_SECURITY_MATCHER.matches(annotation) &&
-                    annotation.getArguments() != null &&
-                    !annotation.getArguments().isEmpty()) {
-                    List<Expression> args = annotation.getArguments();
-                    args = ListUtils.map(args, arg -> isUseAuthorizationManagerArgSetToTrue(arg) ? null : arg);
-                    return autoFormat(annotation.withArguments(args), ctx);
-                }
-                return annotation;
-            }
-        };
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(
+                new UsesType<>("org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity", false),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                        annotation = super.visitAnnotation(annotation, ctx);
+                        if (ENABLE_REACTIVE_METHOD_SECURITY_MATCHER.matches(annotation) &&
+                                annotation.getArguments() != null &&
+                                !annotation.getArguments().isEmpty()) {
+                            List<Expression> args = annotation.getArguments();
+                            args = ListUtils.map(args, arg -> isUseAuthorizationManagerArgSetToTrue(arg) ? null : arg);
+                            return autoFormat(annotation.withArguments(args), ctx);
+                        }
+                        return annotation;
+                    }
+                });
     }
 
     private static boolean isUseAuthorizationManagerArgSetToTrue(Expression arg) {
         if (arg instanceof J.Assignment) {
             J.Assignment assignment = (J.Assignment) arg;
             return assignment.getVariable().toString().equals("useAuthorizationManager") &&
-                   RequireExplicitSavingOfSecurityContextRepository.isTrue(assignment.getAssignment());
+                    RequireExplicitSavingOfSecurityContextRepository.isTrue(assignment.getAssignment());
         }
         return false;
     }

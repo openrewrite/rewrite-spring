@@ -94,13 +94,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
             @Nullable
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
@@ -252,7 +247,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration m, ExecutionContext ctx) {
                 Cursor classCursor = getCursor().dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE);
-                if(!(classCursor.getValue() instanceof J.ClassDeclaration)) {
+                if (!(classCursor.getValue() instanceof J.ClassDeclaration)) {
                     return m;
                 }
                 if (isConflictingMethod(m)) {
@@ -328,7 +323,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 if (getCursor().getParent() != null && getCursor().getParent().getValue() instanceof J.MethodDeclaration) {
                     J.MethodDeclaration parentMethod = getCursor().getParent().getValue();
                     Cursor classDeclCursor = getCursor().dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE);
-                    if(!(classDeclCursor.getValue() instanceof J.ClassDeclaration)) {
+                    if (!(classDeclCursor.getValue() instanceof J.ClassDeclaration)) {
                         return b;
                     }
                     J.ClassDeclaration classDecl = classDeclCursor.getValue();
@@ -357,22 +352,22 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             }
 
             private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod) {
-                JavaTemplate template = JavaTemplate.builder(this::getCursor,  "return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
+                JavaTemplate template = JavaTemplate.builder(this::getCursor, "return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
                         .javaParser(JavaParser.fromJavaVersion()
                                 .dependsOn("package org.springframework.security.config.annotation;" +
                                         "public interface SecurityBuilder<O> {\n" +
                                         "    O build() throws Exception;" +
                                         "}")).imports("org.springframework.security.config.annotation.SecurityBuilder").build();
                 return b.withTemplate(template, b.getCoordinates().lastStatement(),
-                        ((J.VariableDeclarations)parentMethod.getParameters().get(0)).getVariables().get(0).getName());
+                        ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName());
             }
 
             private J.Block handleWebSecurity(J.Block b, J.MethodDeclaration parentMethod) {
-                String t = "return (" + ((J.VariableDeclarations)parentMethod.getParameters().get(0)).getVariables().get(0).getName().getSimpleName() + ") -> #{any()};";
+                String t = "return (" + ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName().getSimpleName() + ") -> #{any()};";
                 JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(JavaParser.fromJavaVersion()).build();
                 b = b.withTemplate(template, b.getCoordinates().firstStatement(), b);
                 return b.withStatements(ListUtils.map(b.getStatements(), (index, stmt) -> {
-                    if (index == 0){
+                    if (index == 0) {
                         return stmt;
                     }
                     return null;
@@ -450,7 +445,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             }
 
 
-        };
+        });
     }
 
     private static String computeBeanNameFromClassName(String className, String beanType) {
@@ -493,7 +488,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         }
         Statement lastStatement = m.getBody().getStatements().get(m.getBody().getStatements().size() - 1);
         if (lastStatement instanceof J.MethodInvocation) {
-            for (J.MethodInvocation invocation = (J.MethodInvocation) lastStatement; invocation != null;) {
+            for (J.MethodInvocation invocation = (J.MethodInvocation) lastStatement; invocation != null; ) {
                 Expression target = invocation.getSelect();
                 if (target != null) {
                     JavaType.FullyQualified type = TypeUtils.asFullyQualified(target.getType());

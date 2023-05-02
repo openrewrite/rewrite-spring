@@ -106,8 +106,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
         }
     }
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
+    private TreeVisitor<?, ExecutionContext> precondition() {
         return new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
@@ -142,8 +141,8 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new MavenIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(precondition(), new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
                 try {
@@ -179,9 +178,9 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                     if (!version.isPresent() || !version.get().getValue().isPresent()) {
                         return;
                     }
-                    doNext(new UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null));
+                    doAfterVisit(new UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null));
                 }
             }
-        };
+        });
     }
 }

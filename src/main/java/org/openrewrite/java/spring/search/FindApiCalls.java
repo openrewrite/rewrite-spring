@@ -42,7 +42,7 @@ public class FindApiCalls extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             final MethodMatcher restTemplateCall = new MethodMatcher("org.springframework.web.client.RestTemplate *For*(..)");
             final MethodMatcher restTemplateExchange = new MethodMatcher("org.springframework.web.client.RestTemplate exchange(String, ..)");

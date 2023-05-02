@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.marker.SearchResult;
@@ -37,9 +38,8 @@ public class SpringBootMavenPluginMigrateAgentToAgents extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new MavenVisitor<ExecutionContext>() {
-
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        MavenVisitor<ExecutionContext> precondition = new MavenVisitor<ExecutionContext>() {
             @Override
             public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
                 if (FindPlugin.find(document, "org.springframework.boot", "spring-boot-maven-plugin").stream().noneMatch(plugin -> FindTags.find(plugin, "//configuration/agent").isEmpty())) {
@@ -48,11 +48,7 @@ public class SpringBootMavenPluginMigrateAgentToAgents extends Recipe {
                 return document;
             }
         };
-    }
-
-    @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new MavenVisitor<ExecutionContext>() {
+        return Preconditions.check(precondition, new MavenVisitor<ExecutionContext>() {
             @Override
             public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
                 FindPlugin.find(document, "org.springframework.boot", "spring-boot-maven-plugin").forEach(plugin ->
@@ -62,7 +58,7 @@ public class SpringBootMavenPluginMigrateAgentToAgents extends Recipe {
                 );
                 return super.visitDocument(document, ctx);
             }
-        };
+        });
     }
 
     private static class ChangeTagKeyVisitor<P> extends XmlVisitor<P> {

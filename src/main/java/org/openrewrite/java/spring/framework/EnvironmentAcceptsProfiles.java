@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.framework;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -42,14 +42,8 @@ public class EnvironmentAcceptsProfiles extends Recipe {
     }
 
     @Override
-    @Nullable
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesMethod<>(MATCHER);
-    }
-
-    @Override
-    protected EnvironmentAcceptsProfilesVisitor getVisitor() {
-        return new EnvironmentAcceptsProfilesVisitor();
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesMethod<>(MATCHER), new EnvironmentAcceptsProfilesVisitor());
     }
 
     private static class EnvironmentAcceptsProfilesVisitor extends JavaIsoVisitor<ExecutionContext> {

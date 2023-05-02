@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.intellij.lang.annotations.Language;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.properties.AddProperty;
@@ -46,13 +47,6 @@ public class MigrateDatabaseCredentials extends Recipe {
                 "provided their own `DataSource` beans.";
     }
 
-    public MigrateDatabaseCredentials() {
-        doNext(new MigrateDatabaseCredentialsForToolYaml("flyway"));
-        doNext(new MigrateDatabaseCredentialsForToolProperties("flyway"));
-        doNext(new MigrateDatabaseCredentialsForToolYaml("liquibase"));
-        doNext(new MigrateDatabaseCredentialsForToolProperties("liquibase"));
-    }
-
     @Value
     @EqualsAndHashCode(callSuper = true)
     static class MigrateDatabaseCredentialsForToolYaml extends Recipe {
@@ -65,8 +59,8 @@ public class MigrateDatabaseCredentials extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-            return new YamlVisitor<ExecutionContext>() {
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(new YamlVisitor<ExecutionContext>() {
                 @Override
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                     if (FindProperty.find(documents, "spring." + tool + ".username", true).isEmpty() &&
@@ -75,20 +69,22 @@ public class MigrateDatabaseCredentials extends Recipe {
                     }
                     return documents;
                 }
-            };
-        }
+            }, new YamlVisitor<ExecutionContext>() {
+                {
+                    doAfterVisit(new MigrateDatabaseCredentialsForToolYaml("flyway"));
+                    doAfterVisit(new MigrateDatabaseCredentialsForToolProperties("flyway"));
+                    doAfterVisit(new MigrateDatabaseCredentialsForToolYaml("liquibase"));
+                    doAfterVisit(new MigrateDatabaseCredentialsForToolProperties("liquibase"));
+                }
 
-        @Override
-        protected TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new YamlVisitor<ExecutionContext>() {
                 @Override
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
-                    doAfterVisit(new MergeYaml("$.spring." + tool,"username: ${spring.datasource.username}", true, null, null));
-                    doAfterVisit(new MergeYaml("$.spring." + tool,"password: ${spring.datasource.password}", true, null, null));
+                    doAfterVisit(new MergeYaml("$.spring." + tool, "username: ${spring.datasource.username}", true, null));
+                    doAfterVisit(new MergeYaml("$.spring." + tool, "password: ${spring.datasource.password}", true, null));
                     doAfterVisit(new CoalesceProperties());
                     return documents;
                 }
-            };
+            });
         }
     }
 
@@ -104,8 +100,8 @@ public class MigrateDatabaseCredentials extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-            return new PropertiesVisitor<ExecutionContext>() {
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(new PropertiesVisitor<ExecutionContext>() {
                 @Override
                 public Properties visitFile(Properties.File file, ExecutionContext ctx) {
                     if (FindProperties.find(file, "spring." + tool + ".username", true).isEmpty() &&
@@ -114,19 +110,14 @@ public class MigrateDatabaseCredentials extends Recipe {
                     }
                     return file;
                 }
-            };
-        }
-
-        @Override
-        protected TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new PropertiesVisitor<ExecutionContext>() {
+            }, new PropertiesVisitor<ExecutionContext>() {
                 @Override
                 public Properties visitFile(Properties.File file, ExecutionContext ctx) {
                     doAfterVisit(new AddProperty("spring." + tool + ".username", "${spring.datasource.username}", null));
                     doAfterVisit(new AddProperty("spring." + tool + ".password", "${spring.datasource.password}", null));
                     return file;
                 }
-            };
+            });
         }
     }
 }

@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2.search;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.search.FindAnnotations;
@@ -55,8 +56,8 @@ public class LoggingShutdownHooks extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new MavenVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        MavenVisitor<ExecutionContext> precondition = new MavenVisitor<ExecutionContext>() {
 
             @Override
             public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
@@ -74,11 +75,8 @@ public class LoggingShutdownHooks extends Recipe {
                 return document;
             }
         };
-    }
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication", null)
-                .getVisitor();
+        return Preconditions.check(precondition, new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication", null)
+                .getVisitor());
     }
 }

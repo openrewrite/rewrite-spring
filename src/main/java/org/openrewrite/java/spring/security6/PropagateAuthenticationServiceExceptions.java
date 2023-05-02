@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.security6;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -29,6 +30,7 @@ import java.util.Objects;
 public class PropagateAuthenticationServiceExceptions extends Recipe {
 
     private static final MethodMatcher MATCHER = new MethodMatcher("org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler setRethrowAuthenticationServiceException(boolean)");
+
     @Override
     public String getDisplayName() {
         return "Remove calls matching `AuthenticationEntryPointFailureHandler.setRethrowAuthenticationServiceException(true)`";
@@ -37,17 +39,12 @@ public class PropagateAuthenticationServiceExceptions extends Recipe {
     @Override
     public String getDescription() {
         return "Remove any calls matching `AuthenticationEntryPointFailureHandler.setRethrowAuthenticationServiceException(true)`. "
-               + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#_propagate_authenticationserviceexceptions) for details.";
+                + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#_propagate_authenticationserviceexceptions) for details.";
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler", true);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler", true), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
@@ -60,6 +57,6 @@ public class PropagateAuthenticationServiceExceptions extends Recipe {
                 }
                 return method;
             }
-        };
+        });
     }
 }

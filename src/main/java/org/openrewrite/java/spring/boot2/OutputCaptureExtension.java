@@ -16,12 +16,8 @@
 package org.openrewrite.java.spring.boot2;
 
 import lombok.SneakyThrows;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.search.UsesType;
@@ -46,22 +42,13 @@ public class OutputCaptureExtension extends Recipe {
         return "Use the JUnit Jupiter extension instead of JUnit 4 rule.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule", false));
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.rule.OutputCapture", false));
-                return cu;
-            }
-        };
-    }
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(Preconditions.or(
+                new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule", false),
+                new UsesType<>("org.springframework.boot.test.rule.OutputCapture", false)
+        ), new JavaIsoVisitor<ExecutionContext>() {
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
             @SneakyThrows
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
@@ -123,7 +110,7 @@ public class OutputCaptureExtension extends Recipe {
 
                 return c;
             }
-        };
+        });
     }
 
     private static final MethodMatcher OUTPUT_CAPTURE_MATCHER = new MethodMatcher(

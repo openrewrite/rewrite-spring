@@ -15,12 +15,14 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import org.openrewrite.Applicability;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.*;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -31,10 +33,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AddSetUseTrailingSlashMatch extends Recipe {
     private static final MethodMatcher WEB_MVC_setUseTrailingSlashMatch = new MethodMatcher(
-        "org.springframework.web.servlet.config.annotation.PathMatchConfigurer setUseTrailingSlashMatch(java.lang.Boolean)"
+            "org.springframework.web.servlet.config.annotation.PathMatchConfigurer setUseTrailingSlashMatch(java.lang.Boolean)"
     );
     private static final MethodMatcher WEB_FLUX_setUseTrailingSlashMatch = new MethodMatcher(
-    "org.springframework.web.reactive.config.PathMatchConfigurer setUseTrailingSlashMatch(java.lang.Boolean)"
+            "org.springframework.web.reactive.config.PathMatchConfigurer setUseTrailingSlashMatch(java.lang.Boolean)"
     );
 
     private static final String WEB_MVC_CONFIGUER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
@@ -51,23 +53,19 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
     @Override
     public String getDescription() {
         return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing" +
-               " slash matching configuration option has been deprecated and its default value set to false. " +
-               "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both" +
-               " `GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
-               "anymore by default and will result in an HTTP 404 error. This recipe is change the default with " +
-               "the global Spring MVC or Webflux configuration.";
+                " slash matching configuration option has been deprecated and its default value set to false. " +
+                "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both" +
+                " `GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
+                "anymore by default and will result in an HTTP 404 error. This recipe is change the default with " +
+                "the global Spring MVC or Webflux configuration.";
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        // todo, change to use FindImplementations after the getVisitor() method is ready
-        return Applicability.or(new UsesType<>(WEB_MVC_CONFIGUER, false),
-            new UsesType<>(WEB_FLUX_CONFIGUER, false));
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(Preconditions.or(
+                new UsesType<>(WEB_MVC_CONFIGUER, false),
+                new UsesType<>(WEB_FLUX_CONFIGUER, false)
+        ), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
@@ -77,8 +75,8 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                     for (TypeTree impl : classDecl.getImplements()) {
                         JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
                         if (fullyQualified != null &&
-                            (WEB_MVC_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()) ||
-                             WEB_FLUX_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()))
+                                (WEB_MVC_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()) ||
+                                        WEB_FLUX_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()))
                         ) {
                             isWebMVC = WEB_MVC_CONFIGUER.equals(fullyQualified.getFullyQualifiedName());
                             isWebConfigClass = true;
@@ -98,43 +96,43 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                 //      this method
                 // 2. if it has not `configurePathMatch` method, add it to this class.
                 boolean configMethodExists = classDecl.getBody().getStatements().stream()
-                    .filter(statement -> statement instanceof J.MethodDeclaration)
-                    .map(J.MethodDeclaration.class::cast)
-                    .anyMatch(methodDeclaration -> isWebMVCConfigurerMatchMethod(methodDeclaration) ||
-                                                   isWebFluxconfigurePathMatchingMethod(methodDeclaration));
+                        .filter(statement -> statement instanceof J.MethodDeclaration)
+                        .map(J.MethodDeclaration.class::cast)
+                        .anyMatch(methodDeclaration -> isWebMVCConfigurerMatchMethod(methodDeclaration) ||
+                                isWebFluxconfigurePathMatchingMethod(methodDeclaration));
 
                 if (configMethodExists) {
                     return super.visitClassDeclaration(classDecl, ctx);
                 } else {
                     // add a `configurePathMatch` or `configurePathMatching` method to this class
                     JavaTemplate WebMvcConfigurePathMatchTemplate = JavaTemplate.builder(this::getCursor,
-                            "@Override public void configurePathMatch(PathMatchConfigurer configurer) { configurer" +
-                            ".setUseTrailingSlashMatch(true); }")
-                        .javaParser(JavaParser.fromJavaVersion()
-                            .classpath("spring-webmvc", "spring-context", "spring-web"))
-                        .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
-                            "org.springframework.web.servlet.config.annotation.WebMvcConfigurer",
-                            "org.springframework.context.annotation.Configuration")
-                        .build();
+                                    "@Override public void configurePathMatch(PathMatchConfigurer configurer) { configurer" +
+                                            ".setUseTrailingSlashMatch(true); }")
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpath("spring-webmvc", "spring-context", "spring-web"))
+                            .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
+                                    "org.springframework.web.servlet.config.annotation.WebMvcConfigurer",
+                                    "org.springframework.context.annotation.Configuration")
+                            .build();
 
                     JavaTemplate webFluxConfigurePathMatchingTemplate =
-                        JavaTemplate.builder(this::getCursor,
-                                "@Override public void configurePathMatching(PathMatchConfigurer configurer) { configurer" +
-                                ".setUseTrailingSlashMatch(true); }")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                .classpath("spring-webflux", "spring-context", "spring-web"))
-                            .imports(WEB_FLUX_PATH_MATCH_CONFIGURER,
-                                "org.springframework.web.reactive.config.WebFluxConfigurer",
-                                "org.springframework.context.annotation.Configuration")
-                            .build();
+                            JavaTemplate.builder(this::getCursor,
+                                            "@Override public void configurePathMatching(PathMatchConfigurer configurer) { configurer" +
+                                                    ".setUseTrailingSlashMatch(true); }")
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpath("spring-webflux", "spring-context", "spring-web"))
+                                    .imports(WEB_FLUX_PATH_MATCH_CONFIGURER,
+                                            "org.springframework.web.reactive.config.WebFluxConfigurer",
+                                            "org.springframework.context.annotation.Configuration")
+                                    .build();
 
 
                     JavaTemplate template = isWebMVC ? WebMvcConfigurePathMatchTemplate : webFluxConfigurePathMatchingTemplate;
                     classDecl = classDecl.withBody(
-                        classDecl.getBody().withTemplate(
-                            template,
-                            classDecl.getBody().getCoordinates().lastStatement()
-                        ));
+                            classDecl.getBody().withTemplate(
+                                    template,
+                                    classDecl.getBody().getCoordinates().lastStatement()
+                            ));
 
                     String importPathMatchConfigurer = isWebMVC ? WEB_MVC_PATH_MATCH_CONFIGURER : WEB_FLUX_PATH_MATCH_CONFIGURER;
                     maybeAddImport(importPathMatchConfigurer, false);
@@ -155,31 +153,31 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                         // add statement
 
                         JavaTemplate WebMvcTemplate = JavaTemplate.builder(this::getCursor,
-                                "#{any()}.setUseTrailingSlashMatch(true);")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                .classpath("spring-webmvc", "spring-context", "spring-web"))
-                            .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
-                                "org.springframework.web.servlet.config.annotation.WebMvcConfigurer",
-                                "org.springframework.context.annotation.Configuration")
-                            .build();
+                                        "#{any()}.setUseTrailingSlashMatch(true);")
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpath("spring-webmvc", "spring-context", "spring-web"))
+                                .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
+                                        "org.springframework.web.servlet.config.annotation.WebMvcConfigurer",
+                                        "org.springframework.context.annotation.Configuration")
+                                .build();
 
                         JavaTemplate WebFluxTemplate = JavaTemplate.builder(this::getCursor,
-                                "#{any()}.setUseTrailingSlashMatch(true);")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                .classpath("spring-webflux", "spring-context", "spring-web"))
-                            .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
-                                "org.springframework.web.reactive.config.WebFluxConfigurer",
-                                "org.springframework.context.annotation.Configuration")
-                            .build();
+                                        "#{any()}.setUseTrailingSlashMatch(true);")
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpath("spring-webflux", "spring-context", "spring-web"))
+                                .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
+                                        "org.springframework.web.reactive.config.WebFluxConfigurer",
+                                        "org.springframework.context.annotation.Configuration")
+                                .build();
 
                         boolean isWebMVC = isWebMVCConfigurerMatchMethod(method);
 
                         method = method.withBody(
-                            method.getBody().withTemplate(
-                                isWebMVC ? WebMvcTemplate : WebFluxTemplate,
-                                method.getBody().getCoordinates().lastStatement(),
-                                ((J.VariableDeclarations)method.getParameters().get(0)).getVariables().get(0).getName()
-                            ));
+                                method.getBody().withTemplate(
+                                        isWebMVC ? WebMvcTemplate : WebFluxTemplate,
+                                        method.getBody().getCoordinates().lastStatement(),
+                                        ((J.VariableDeclarations) method.getParameters().get(0)).getVariables().get(0).getName()
+                                ));
 
                         return method;
                     }
@@ -187,25 +185,25 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
 
                 return method;
             }
-        };
+        });
     }
 
     private static boolean isWebMVCConfigurerMatchMethod(J.MethodDeclaration method) {
         return method.getName().getSimpleName().equals("configurePathMatch") &&
-               method.getMethodType().getParameterTypes().size() == 1 &&
-               method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_MVC_PATH_MATCH_CONFIGURER);
+                method.getMethodType().getParameterTypes().size() == 1 &&
+                method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_MVC_PATH_MATCH_CONFIGURER);
     }
 
     private static boolean isWebFluxconfigurePathMatchingMethod(J.MethodDeclaration method) {
         return method.getName().getSimpleName().equals("configurePathMatching") &&
-               method.getMethodType().getParameterTypes().size() == 1 &&
-               method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_FLUX_PATH_MATCH_CONFIGURER);
+                method.getMethodType().getParameterTypes().size() == 1 &&
+                method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_FLUX_PATH_MATCH_CONFIGURER);
     }
 
     private static class findSetUseTrailingSlashMatchMethodCall extends JavaIsoVisitor<AtomicBoolean> {
         static boolean find(J j) {
             return new findSetUseTrailingSlashMatchMethodCall()
-                .reduce(j, new AtomicBoolean()).get();
+                    .reduce(j, new AtomicBoolean()).get();
         }
 
         @Override
@@ -214,7 +212,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                 return method;
             }
             if (WEB_MVC_setUseTrailingSlashMatch.matches(method) ||
-                WEB_FLUX_setUseTrailingSlashMatch.matches(method)) {
+                    WEB_FLUX_setUseTrailingSlashMatch.matches(method)) {
                 found.set(true);
                 return method;
             }

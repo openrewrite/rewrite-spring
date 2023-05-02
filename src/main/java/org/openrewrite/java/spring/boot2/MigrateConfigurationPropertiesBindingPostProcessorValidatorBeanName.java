@@ -15,11 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
@@ -39,15 +35,10 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
         return "Replaces field and static access of `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` with `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`. Deprecated in 2.2.x.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor", false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameVisitor();
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor",
+                false), new MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameVisitor());
     }
 
     private static class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameVisitor extends JavaIsoVisitor<ExecutionContext> {

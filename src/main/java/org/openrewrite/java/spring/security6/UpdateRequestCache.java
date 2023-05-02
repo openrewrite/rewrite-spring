@@ -15,9 +15,11 @@
  */
 package org.openrewrite.java.spring.security6;
 
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -28,18 +30,17 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
 public class UpdateRequestCache extends Recipe {
 
     private static final MethodMatcher CONTINUE_PARAMETER_MATCHER = new MethodMatcher(
-        "org.springframework.security.web.savedrequest.HttpSessionRequestCache setMatchingRequestParameterName(java.lang.String)"
+            "org.springframework.security.web.savedrequest.HttpSessionRequestCache setMatchingRequestParameterName(java.lang.String)"
     );
 
     private static final MethodMatcher REQUEST_CACHE_MATCHER = new MethodMatcher(
-        "org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer requestCache(org.springframework.security.web.savedrequest.RequestCache)"
+            "org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer requestCache(org.springframework.security.web.savedrequest.RequestCache)"
     );
 
     @Override
@@ -50,26 +51,16 @@ public class UpdateRequestCache extends Recipe {
     @Override
     public String getDescription() {
         return "By default, Spring Security 5 queries the saved request on every request, which means that in a " +
-               "typical setup, the HttpSession is queried on every request to use the RequestCache. In Spring " +
-               "Security 6, the default behavior has changed, and RequestCache will only be queried for a cached " +
-               "request if the HTTP parameter \"continue\" is defined. To maintain the same default behavior as " +
-               "Spring Security 5, either explicitly add the HTTP parameter \"continue\" to every request or use " +
-               "NullRequestCache to override the default behavior.";
+                "typical setup, the HttpSession is queried on every request to use the RequestCache. In Spring " +
+                "Security 6, the default behavior has changed, and RequestCache will only be queried for a cached " +
+                "request if the HTTP parameter \"continue\" is defined. To maintain the same default behavior as " +
+                "Spring Security 5, either explicitly add the HTTP parameter \"continue\" to every request or use " +
+                "NullRequestCache to override the default behavior.";
     }
 
     @Override
-    public @Nullable Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(5);
-    }
-
-    @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesMethod<>(REQUEST_CACHE_MATCHER);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesMethod<>(REQUEST_CACHE_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.Block visitBlock(J.Block block, ExecutionContext executionContext) {
@@ -85,15 +76,15 @@ public class UpdateRequestCache extends Recipe {
                     Statement statement = statements.get(i);
                     if (isNewHttpSessionRequestCacheStatement(statement)) {
                         JavaTemplate template = JavaTemplate.builder(this::getCursor,
-                                "#{any()}.setMatchingRequestParameterName(\"continue\");")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                .classpath("spring-security-web"))
-                            .imports(
-                                "org.springframework.security.web.savedrequest.HttpSessionRequestCache")
-                            .build();
+                                        "#{any()}.setMatchingRequestParameterName(\"continue\");")
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpath("spring-security-web"))
+                                .imports(
+                                        "org.springframework.security.web.savedrequest.HttpSessionRequestCache")
+                                .build();
 
                         statement = statement.withTemplate(template, statement.getCoordinates().replace(), getSelect(statement));
-                        statements = ListUtils.insert(statements, statement, i+1);
+                        statements = ListUtils.insert(statements, statement, i + 1);
 
                         return block.withStatements(statements);
                     }
@@ -108,12 +99,12 @@ public class UpdateRequestCache extends Recipe {
                     Expression arg = method.getArguments().get(0);
                     if (isNewHttpSessionRequestCacheExpression(arg)) {
                         JavaTemplate template = JavaTemplate.builder(this::getCursor,
-                                "new NullRequestCache()")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                .classpath("spring-security-web"))
-                            .imports(
-                                "org.springframework.security.web.savedrequest.NullRequestCache")
-                            .build();
+                                        "new NullRequestCache()")
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpath("spring-security-web"))
+                                .imports(
+                                        "org.springframework.security.web.savedrequest.NullRequestCache")
+                                .build();
 
                         maybeAddImport("org.springframework.security.web.savedrequest.NullRequestCache");
                         maybeRemoveImport("org.springframework.security.web.savedrequest.HttpSessionRequestCache");
@@ -126,7 +117,7 @@ public class UpdateRequestCache extends Recipe {
 
                 return super.visitMethodInvocation(method, executionContext);
             }
-        };
+        });
     }
 
     private static J.Identifier getSelect(Statement statement) {
@@ -139,8 +130,8 @@ public class UpdateRequestCache extends Recipe {
             if (mv.getVariables().size() == 1) {
                 J.VariableDeclarations.NamedVariable v = mv.getVariables().get(0);
                 return TypeUtils.isOfClassType(v.getType(),
-                    "org.springframework.security.web.savedrequest.HttpSessionRequestCache") &&
-                       v.getInitializer() != null && isNewHttpSessionRequestCacheExpression(v.getInitializer());
+                        "org.springframework.security.web.savedrequest.HttpSessionRequestCache") &&
+                        v.getInitializer() != null && isNewHttpSessionRequestCacheExpression(v.getInitializer());
             }
         }
         return false;
@@ -160,7 +151,7 @@ public class UpdateRequestCache extends Recipe {
     }
 
     private static boolean findContinueParameterStatement(List<Statement> statements) {
-        return  statements.stream().anyMatch(UpdateRequestCache::isContinueParameterStatement);
+        return statements.stream().anyMatch(UpdateRequestCache::isContinueParameterStatement);
     }
 
     private static boolean isNewHttpSessionRequestCacheExpression(Expression expression) {
@@ -170,7 +161,7 @@ public class UpdateRequestCache extends Recipe {
         J.NewClass newClass = (J.NewClass) expression;
 
         if (TypeUtils.isOfClassType(newClass.getConstructorType().getReturnType(),
-            "org.springframework.security.web.savedrequest.HttpSessionRequestCache")) {
+                "org.springframework.security.web.savedrequest.HttpSessionRequestCache")) {
             return true;
         }
         return false;

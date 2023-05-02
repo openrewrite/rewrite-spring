@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -38,35 +38,30 @@ public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
         return "`RestTemplateBuilder#setConnectTimeout(int)` and `RestTemplateBuilder#setReadTimeout(int)` were deprecated in Spring Boot 2.1.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.web.client.RestTemplateBuilder", true);
-    }
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.boot.web.client.RestTemplateBuilder", true),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    final MethodMatcher connectionTimeout = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder setConnectTimeout(int)");
+                    final MethodMatcher readTimeout = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder setReadTimeout(int)");
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            final MethodMatcher connectionTimeout = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder setConnectTimeout(int)");
-            final MethodMatcher readTimeout = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder setReadTimeout(int)");
-
-            @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                if (connectionTimeout.matches(method) || readTimeout.matches(method)) {
-                    m = m.withTemplate(
-                            JavaTemplate
-                                    .builder(this::getCursor,"Duration.ofMillis(#{any(int)})")
-                                    .imports("java.time.Duration")
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-boot-2.*"))
-                                    .build(),
-                            m.getCoordinates().replaceArguments(),
-                            m.getArguments().get(0));
-                    maybeAddImport("java.time.Duration");
-                }
-                return m;
-            }
-        };
+                    @Override
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
+                        if (connectionTimeout.matches(method) || readTimeout.matches(method)) {
+                            m = m.withTemplate(
+                                    JavaTemplate
+                                            .builder(this::getCursor, "Duration.ofMillis(#{any(int)})")
+                                            .imports("java.time.Duration")
+                                            .javaParser(JavaParser.fromJavaVersion()
+                                                    .classpathFromResources(ctx, "spring-boot-2.*"))
+                                            .build(),
+                                    m.getCoordinates().replaceArguments(),
+                                    m.getArguments().get(0));
+                            maybeAddImport("java.time.Duration");
+                        }
+                        return m;
+                    }
+                });
     }
 }

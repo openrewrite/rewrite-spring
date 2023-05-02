@@ -16,18 +16,22 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
+import org.openrewrite.ScanningRecipe;
+import org.openrewrite.Tree;
+import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeTree;
+import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MaintainTrailingSlashURLMappings extends Recipe {
+public class MaintainTrailingSlashURLMappings extends ScanningRecipe<AtomicBoolean> {
 
-    private static final String WEB_MVC_CONFIGUER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
-    private static final String WEB_FLUX_CONFIGUER = "org.springframework.web.reactive.config.WebFluxConfigurer";
+    private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
+    private static final String WEB_FLUX_CONFIGURER = "org.springframework.web.reactive.config.WebFluxConfigurer";
 
     @Override
     public String getDisplayName() {
@@ -45,26 +49,36 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-        boolean anyConfigOverridden = false;
+    public AtomicBoolean getInitialValue() {
+        return new AtomicBoolean(false);
+    }
 
-        for (SourceFile s : before) {
-            if (s instanceof JavaSourceFile) {
-                JavaSourceFile cu = (JavaSourceFile) s;
-                anyConfigOverridden = FindWebConfigurer.find(cu);
-                if (anyConfigOverridden) {
-                    break;
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean acc) {
+        return new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                if (!acc.get()) {
+                    acc.set(FindWebConfigurer.find(cu));
                 }
+                return cu;
             }
-        }
+        };
+    }
 
-        if (anyConfigOverridden) {
-            doNext(new AddSetUseTrailingSlashMatch());
-            return before;
-        }
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean acc) {
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (acc.get()) {
+                    doAfterVisit(new AddSetUseTrailingSlashMatch());
+                }
 
-        doNext(new AddRouteTrailingSlash());
-        return before;
+                doAfterVisit(new AddRouteTrailingSlash());
+                return tree;
+            }
+        };
     }
 
     private static class FindWebConfigurer extends JavaIsoVisitor<AtomicBoolean> {
@@ -74,15 +88,15 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
         }
 
         @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, AtomicBoolean atomicBoolean) {
+        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, AtomicBoolean found) {
             if (classDecl.getImplements() != null) {
                 for (TypeTree impl : classDecl.getImplements()) {
                     JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
                     if (fullyQualified != null &&
-                        (WEB_MVC_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()) ||
-                         WEB_FLUX_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()))
+                        (WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()) ||
+                         WEB_FLUX_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()))
                     ) {
-                        atomicBoolean.set(true);
+                        found.set(true);
                         return classDecl;
                     }
                 }

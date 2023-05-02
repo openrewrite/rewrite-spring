@@ -157,7 +157,7 @@ public class AddSpringProperty extends Recipe {
         } else {
             yaml.append(" ").append(value);
         }
-        return new MergeYaml("$", yaml.toString(), true, null, null);
+        return new MergeYaml("$", yaml.toString(), true, null);
     }
 
     private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");

@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.security6;
 import lombok.Value;
 import lombok.With;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -47,28 +48,23 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
     @Override
     public String getDescription() {
         return "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in as that is the new default in Spring Security 6. "
-               + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
+                + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer", true);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer", true), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
                 if (method.getSelect() != null && method.getArguments().size() == 1
-                    && REQUIRE_EXPLICIT_SAVE_MATCHER.matches(method)
-                    && isTrue(method.getArguments().get(0))) {
+                        && REQUIRE_EXPLICIT_SAVE_MATCHER.matches(method)
+                        && isTrue(method.getArguments().get(0))) {
                     return ToBeRemoved.withMarker(method);
                 } else if (method.getSelect() instanceof J.MethodInvocation && ToBeRemoved.hasMarker(method.getSelect())) {
                     return method.withSelect(((J.MethodInvocation) method.getSelect()).getSelect());
                 } else if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker)
-                           && method.getSelect() != null && TypeUtils.isAssignableTo(HTTP_SECURITY_TYPE, method.getSelect().getType())) {
+                        && method.getSelect() != null && TypeUtils.isAssignableTo(HTTP_SECURITY_TYPE, method.getSelect().getType())) {
                     if (method.getArguments().stream().allMatch(ToBeRemoved::hasMarker)) {
                         return ToBeRemoved.withMarker(method);
                     }
@@ -114,19 +110,22 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                 }
                 return block;
             }
-        };
+        });
     }
 
     @Value
     @With
     private static class ToBeRemoved implements Marker {
         UUID id;
+
         static <J2 extends J> J2 withMarker(J2 j) {
             return j.withMarkers(j.getMarkers().addIfAbsent(new ToBeRemoved(randomId())));
         }
+
         static <J2 extends J> J2 removeMarker(J2 j) {
             return j.withMarkers(j.getMarkers().removeByType(ToBeRemoved.class));
         }
+
         static boolean hasMarker(J j) {
             return j.getMarkers().findFirst(ToBeRemoved.class).isPresent();
         }

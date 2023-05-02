@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.security5;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaParser;
@@ -63,17 +64,12 @@ public class UpdateSCryptPasswordEncoder extends Recipe {
     @Override
     public String getDescription() {
         return "In Spring Security 5.8 some `SCryptPasswordEncoder` constructors have been deprecated in favor of factory methods. "
-               + "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_scryptpasswordencoder) for more information.";
+                + "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_scryptpasswordencoder) for more information.";
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(SCRYPT_PASSWORD_ENCODER_CLASS, false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(SCRYPT_PASSWORD_ENCODER_CLASS, false), new JavaVisitor<ExecutionContext>() {
 
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
@@ -93,17 +89,17 @@ public class UpdateSCryptPasswordEncoder extends Recipe {
                             Expression saltLength = arguments.get(4);
                             maybeAddImport(SCRYPT_PASSWORD_ENCODER_CLASS);
                             if (resolvedValueMatchesLiteral(cpuCost, DEFAULT_CPU_COST)
-                                && resolvedValueMatchesLiteral(memoryCost, DEFAULT_MEMORY_COST)
-                                && resolvedValueMatchesLiteral(parallelization, DEFAULT_PARALLELIZATION)
-                                && resolvedValueMatchesLiteral(keyLength, DEFAULT_KEY_LENGTH)
-                                && resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
+                                    && resolvedValueMatchesLiteral(memoryCost, DEFAULT_MEMORY_COST)
+                                    && resolvedValueMatchesLiteral(parallelization, DEFAULT_PARALLELIZATION)
+                                    && resolvedValueMatchesLiteral(keyLength, DEFAULT_KEY_LENGTH)
+                                    && resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
                                 return newClass.withTemplate(newV58FactoryMethodTemplate(ctx), newClass.getCoordinates().replace());
                             } else if (resolvedValueMatchesLiteral(cpuCost, DEFAULT_V41_CPU_COST)
                                     && resolvedValueMatchesLiteral(memoryCost, DEFAULT_V41_MEMORY_COST)
                                     && resolvedValueMatchesLiteral(parallelization, DEFAULT_V41_PARALLELIZATION)
                                     && resolvedValueMatchesLiteral(keyLength, DEFAULT_V41_KEY_LENGTH)
                                     && resolvedValueMatchesLiteral(saltLength, DEFAULT_V41_SALT_LENGTH)) {
-                                    return newClass.withTemplate(newV41FactoryMethodTemplate(ctx), newClass.getCoordinates().replace());
+                                return newClass.withTemplate(newV41FactoryMethodTemplate(ctx), newClass.getCoordinates().replace());
                             }
                         }
                     }
@@ -131,6 +127,6 @@ public class UpdateSCryptPasswordEncoder extends Recipe {
                                 .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
                         .build();
             }
-        };
+        });
     }
 }

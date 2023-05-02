@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -27,11 +28,10 @@ public final class ServerHttpSecurityLambdaDsl extends Recipe {
 
     private static final String FQN_SERVER_HTTP_SECURITY = "org.springframework.security.config.web.server.ServerHttpSecurity";
 
-    private static final Collection<String> APPLICABLE_METHOD_NAMES = Arrays.asList(new String[]{
+    private static final Collection<String> APPLICABLE_METHOD_NAMES = Arrays.asList(
             "anonymous", "authorizeExchange", "cors", "csrf", "exceptionHandling", "formLogin",
             "headers", "httpBasic", "logout", "oauth2Client", "oauth2Login", "oauth2ResourceServer",
-            "redirectToHttps", "requestCache", "x509"
-    });
+            "redirectToHttps", "requestCache", "x509");
 
     @Override
     public String getDisplayName() {
@@ -44,13 +44,9 @@ public final class ServerHttpSecurityLambdaDsl extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<>(FQN_SERVER_HTTP_SECURITY, true);
-    }
-
-    @Override
-    public ConvertToSecurityDslVisitor<ExecutionContext> getVisitor() {
-        return new ConvertToSecurityDslVisitor<>(FQN_SERVER_HTTP_SECURITY, APPLICABLE_METHOD_NAMES);
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(FQN_SERVER_HTTP_SECURITY, true),
+                new ConvertToSecurityDslVisitor<>(FQN_SERVER_HTTP_SECURITY, APPLICABLE_METHOD_NAMES));
     }
 
 }

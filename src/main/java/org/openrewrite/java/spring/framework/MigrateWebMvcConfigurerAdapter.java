@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.framework;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -40,13 +40,8 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter", false);
-    }
-
-    @Override
-    protected JavaIsoVisitor<ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>(){
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter", false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
@@ -73,6 +68,7 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
 
             class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
                 final MethodMatcher wm = new MethodMatcher("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter *(..)");
+
                 @Override
                 public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                     J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
@@ -82,6 +78,6 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                     return mi;
                 }
             }
-        };
+        });
     }
 }

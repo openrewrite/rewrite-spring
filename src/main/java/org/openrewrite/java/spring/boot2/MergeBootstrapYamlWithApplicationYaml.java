@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Data;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
@@ -26,10 +27,13 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MergeBootstrapYamlWithApplicationYaml extends Recipe {
+public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeBootstrapYamlWithApplicationYaml.Accumulator> {
+
     @Override
     public String getDisplayName() {
         return "Merge Spring `bootstrap.yml` with `application.yml`";
@@ -41,54 +45,89 @@ public class MergeBootstrapYamlWithApplicationYaml extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new HasSourcePath<>("**/main/resources/bootstrap.yml");
+    public Accumulator getInitialValue() {
+        return new Accumulator();
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-        Yaml.Documents bootstrapYaml = findByPath(before, "bootstrap.yml");
-        Yaml.Documents applicationYaml = findByPath(before, "application.yml");
-
-        assert bootstrapYaml != null;
-        return ListUtils.map(before, source -> {
-            if (source == bootstrapYaml) {
-                if (applicationYaml == null) {
-                    return source.withSourcePath(source.getSourcePath().resolveSibling("application.yml"));
+    public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
                 }
-                return null;
-            } else if (applicationYaml != null && source == applicationYaml) {
-                AtomicBoolean merged = new AtomicBoolean(false);
-
-                Yaml.Documents a = (Yaml.Documents) new ExpandProperties().getVisitor().visit(applicationYaml, ctx);
-                assert a != null;
-
-                Yaml.Documents b = (Yaml.Documents) new ExpandProperties().getVisitor().visit(bootstrapYaml, ctx);
-                assert b != null;
-
-                //noinspection unchecked
-                return (SourceFile) new CoalescePropertiesVisitor<Integer>().visit(a.withDocuments(ListUtils.map((List<Yaml.Document>) a.getDocuments(), doc -> {
-                    if (merged.compareAndSet(false, true) && FindProperty.find(doc, "spring.config.activate.on-profile", true).isEmpty()) {
-                        return (Yaml.Document) new MergeYamlVisitor<Integer>(doc.getBlock(), b.getDocuments()
-                                .get(0).getBlock(), true, null).visit(doc, 0, new Cursor(new Cursor(null, a), doc));
-                    }
-                    return doc;
-                })), 0);
+                SourceFile source = (SourceFile) tree;
+                Path sourcePath = source.getSourcePath();
+                if (acc.getBootstrapYaml() == null && source instanceof Yaml.Documents
+                        && pathMatcher(sourcePath, "glob:**/main/resources/bootstrap.yml").matches(sourcePath)) {
+                    acc.setBootstrapYaml((Yaml.Documents) source);
+                } else if (acc.getApplicationYaml() == null
+                        && pathMatcher(sourcePath, "glob:**/main/resources/application.yml").matches(sourcePath)) {
+                    acc.setApplicationYaml((Yaml.Documents) source);
+                }
+                return source;
             }
 
-            return source;
-        });
+            PathMatcher pathMatcher(Path sourcePath, String pattern) {
+                return sourcePath.getFileSystem().getPathMatcher(pattern);
+            }
+        };
     }
 
-    @Nullable
-    private Yaml.Documents findByPath(List<SourceFile> before, String fileName) {
-        for (SourceFile sourceFile : before) {
-            Path sourcePath = sourceFile.getSourcePath();
-            PathMatcher pathMatcher = sourcePath.getFileSystem().getPathMatcher("glob:**/main/resources/" + fileName);
-            if (pathMatcher.matches(sourcePath)) {
-                return (Yaml.Documents) sourceFile;
-            }
+    @Override
+    public Collection<SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
+        if (acc.getBootstrapYaml() != null && acc.getApplicationYaml() == null) {
+            // rename
+            Yaml.Documents yaml = acc.getBootstrapYaml();
+            return Collections.singletonList(yaml.withSourcePath(yaml.getSourcePath().resolve("application.yml")));
         }
-        return null;
+        return Collections.emptyList();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
+        if (acc.getBootstrapYaml() == null) {
+            return TreeVisitor.noop();
+        }
+
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
+                }
+                SourceFile source = (SourceFile) tree;
+                Path sourcePath = source.getSourcePath();
+                if (sourcePath.equals(acc.getBootstrapYaml().getSourcePath())) {
+                    // delete bootstrap.yml file
+                    source = null;
+                } else if (acc.getApplicationYaml() != null && sourcePath.equals(acc.getApplicationYaml().getSourcePath())) {
+                    // update application.yml file
+                    AtomicBoolean merged = new AtomicBoolean(false);
+
+                    Yaml.Documents a = (Yaml.Documents) new ExpandProperties().getVisitor().visit(acc.getApplicationYaml(), ctx);
+                    Yaml.Documents b = (Yaml.Documents) new ExpandProperties().getVisitor().visit(acc.getBootstrapYaml(), ctx);
+                    assert a != null;
+                    assert b != null;
+
+                    //noinspection unchecked
+                    source = new CoalescePropertiesVisitor<Integer>().visitDocuments(a.withDocuments(ListUtils.map((List<Yaml.Document>) a.getDocuments(), doc -> {
+                        if (merged.compareAndSet(false, true) && FindProperty.find(doc, "spring.config.activate.on-profile", true).isEmpty()) {
+                            return (Yaml.Document) new MergeYamlVisitor<Integer>(doc.getBlock(), b.getDocuments()
+                                    .get(0).getBlock(), true, null).visit(doc, 0, new Cursor(new Cursor(null, a), doc));
+                        }
+                        return doc;
+                    })), 0);
+                }
+                return source;
+            }
+        };
+    }
+
+    @Data
+    static class Accumulator {
+        @Nullable Yaml.Documents bootstrapYaml;
+        @Nullable Yaml.Documents applicationYaml;
     }
 }

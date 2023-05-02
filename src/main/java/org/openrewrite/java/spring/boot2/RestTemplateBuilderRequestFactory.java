@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -40,18 +40,13 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
     @Override
     public String getDescription() {
         return "Migrate `RestTemplateBuilder#requestFactory` calls to use a `Supplier`. " +
-               "See the [migration guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder) for more.";
-    }
-
-    @Nullable
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.web.client.RestTemplateBuilder", true);
+                "See the [migration guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder) for more.";
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new RestTemplateBuilderRequestFactoryVisitor();
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.boot.web.client.RestTemplateBuilder", true),
+                new RestTemplateBuilderRequestFactoryVisitor());
     }
 
     private static class RestTemplateBuilderRequestFactoryVisitor extends JavaIsoVisitor<ExecutionContext> {

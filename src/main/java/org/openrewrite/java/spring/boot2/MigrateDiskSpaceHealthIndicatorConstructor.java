@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -39,23 +39,17 @@ public class MigrateDiskSpaceHealthIndicatorConstructor extends Recipe {
         return "`DiskSpaceHealthIndicator(File, long)` was deprecated in Spring Data 2.1 for removal in 2.2.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.actuate.system.DiskSpaceHealthIndicator", false);
-    }
-
-    @Override
-    protected JavaVisitor<ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.boot.actuate.system.DiskSpaceHealthIndicator", false), new JavaVisitor<ExecutionContext>() {
             final String diskSpaceHealthIndicatorFqn = "org.springframework.boot.actuate.system.DiskSpaceHealthIndicator";
 
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 if (TypeUtils.isOfClassType(newClass.getType(), diskSpaceHealthIndicatorFqn) &&
-                    newClass.getConstructorType() != null &&
-                    TypeUtils.isOfType(newClass.getConstructorType().getParameterTypes().get(0), JavaType.buildType("java.io.File")) &&
-                    TypeUtils.isOfType(newClass.getConstructorType().getParameterTypes().get(1), JavaType.Primitive.Long)) {
+                        newClass.getConstructorType() != null &&
+                        TypeUtils.isOfType(newClass.getConstructorType().getParameterTypes().get(0), JavaType.buildType("java.io.File")) &&
+                        TypeUtils.isOfType(newClass.getConstructorType().getParameterTypes().get(1), JavaType.Primitive.Long)) {
 
                     maybeAddImport("org.springframework.util.unit.DataSize");
                     return newClass.withTemplate(
@@ -71,6 +65,6 @@ public class MigrateDiskSpaceHealthIndicatorConstructor extends Recipe {
 
                 return super.visitNewClass(newClass, ctx);
             }
-        };
+        });
     }
 }

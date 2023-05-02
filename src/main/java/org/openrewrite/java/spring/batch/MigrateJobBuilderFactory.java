@@ -15,25 +15,21 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.J.ClassDeclaration;
 import org.openrewrite.java.tree.J.MethodDeclaration;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class MigrateJobBuilderFactory extends Recipe {
     private static final MethodMatcher JOB_BUILDER_FACTORY = new MethodMatcher(
@@ -50,18 +46,8 @@ public class MigrateJobBuilderFactory extends Recipe {
     }
 
     @Override
-    public Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(5);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesMethod<>(JOB_BUILDER_FACTORY);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesMethod<>(JOB_BUILDER_FACTORY), new JavaVisitor<ExecutionContext>() {
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
@@ -87,7 +73,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                 }
                 return super.visitMethodInvocation(method, ctx);
             }
-        };
+        });
     }
 
     private static class RemoveJobBuilderFactoryVisitor extends JavaIsoVisitor<ExecutionContext> {
@@ -162,13 +148,13 @@ public class MigrateJobBuilderFactory extends Recipe {
         private boolean isJobRepositoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations
                     && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                            "org.springframework.batch.core.repository.JobRepository");
+                    "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations
                     && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                            "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
+                    "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
         }
     }
 }

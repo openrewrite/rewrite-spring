@@ -17,8 +17,8 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.Applicability;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
@@ -35,11 +35,7 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.openrewrite.java.MethodMatcher.methodPattern;
 
@@ -77,14 +73,9 @@ public class RenameBean extends Recipe {
         return "Renames a Spring bean, both declaration and references.";
     }
 
-    @Override
-    public TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return Applicability.or(new UsesType<>(type, false), new DeclaresType<>(type));
-    }
-
     /**
      * @param methodDeclaration, which may or may not declare a bean
-     * @param newName, for the potential bean
+     * @param newName,           for the potential bean
      * @return a recipe for this methodDeclaration if it declares a bean, or null if it does not declare a bean
      */
     @Nullable
@@ -101,7 +92,7 @@ public class RenameBean extends Recipe {
 
     /**
      * @param classDeclaration, which may or may not declare a bean
-     * @param newName, for the potential bean
+     * @param newName,          for the potential bean
      * @return a recipe for this classDeclaration if it declares a bean, or null if it does not declare a bean
      */
     @Nullable
@@ -173,10 +164,13 @@ public class RenameBean extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(
+                new UsesType<>(type, false),
+                new DeclaresType<>(type)
+        ), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method,
-                    ExecutionContext executionContext) {
+                                                              ExecutionContext executionContext) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
 
                 // handle bean declarations
@@ -184,7 +178,7 @@ public class RenameBean extends Recipe {
                     boolean maybeRenameMethodDeclaration = maybeRenameBean(m.getAllAnnotations(),
                             BEAN_METHOD_ANNOTATIONS);
                     if (maybeRenameMethodDeclaration && m.getSimpleName().equals(oldName)) {
-                        doNext(new ChangeMethodName(methodPattern(m), newName, false, false));
+                        doAfterVisit(new ChangeMethodName(methodPattern(m), newName, false, false));
                     }
                 }
 
@@ -198,7 +192,7 @@ public class RenameBean extends Recipe {
 
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl,
-                    ExecutionContext executionContext) {
+                                                            ExecutionContext executionContext) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
 
                 // handle bean declarations
@@ -207,7 +201,7 @@ public class RenameBean extends Recipe {
                     if (maybeRenameClass && StringUtils.uncapitalize(cd.getSimpleName()).equals(oldName)) {
                         String newFullyQualifiedTypeName = cd.getType().getFullyQualifiedName()
                                 .replaceAll("^((.+\\.)*)[^.]+$", "$1" + StringUtils.capitalize(newName));
-                        doNext(new ChangeType(cd.getType().getFullyQualifiedName(), newFullyQualifiedTypeName, false));
+                        doAfterVisit(new ChangeType(cd.getType().getFullyQualifiedName(), newFullyQualifiedTypeName, false));
                     }
                 }
 
@@ -275,7 +269,7 @@ public class RenameBean extends Recipe {
                 }
                 return false;
             }
-        };
+        });
     }
 
     @Nullable
@@ -293,7 +287,7 @@ public class RenameBean extends Recipe {
     }
 
     private TreeVisitor<J, ExecutionContext> renameBeanAnnotationValue(J.Annotation beanAnnotation,
-            J.Assignment beanNameAssignment) {
+                                                                       J.Assignment beanNameAssignment) {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {

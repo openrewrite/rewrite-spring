@@ -15,15 +15,11 @@
  */
 package org.openrewrite.java.spring.boot2.search;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Incubating;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.SearchResult;
@@ -37,7 +33,7 @@ import java.util.List;
  */
 @Incubating(since = "4.16.0")
 public class CustomizingJooqDefaultConfiguration extends Recipe {
-    private final List<String> jooqTypes = Arrays.asList(
+    private static final List<String> jooqTypes = Arrays.asList(
             "org.jooq.conf.Settings",
             "org.jooq.ConnectionProvider",
             "org.jooq.ExecutorProvider",
@@ -49,6 +45,9 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
             "org.jooq.VisitListenerProvider",
             "org.jooq.TransactionListenerProvider"
     );
+    @SuppressWarnings("unchecked")
+    private static final TreeVisitor<?, ExecutionContext> precondition =
+            Preconditions.or(jooqTypes.stream().map(t -> new UsesType<>(t, false)).toArray(UsesType[]::new));
 
     @Override
     public String getDisplayName() {
@@ -65,21 +64,8 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
     }
 
     @Override
-    protected JavaIsoVisitor<ExecutionContext> getSingleSourceApplicableTest() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext ctx) {
-                for (String jooqType : jooqTypes) {
-                    doAfterVisit(new UsesType<>(jooqType, false));
-                }
-                return cu;
-            }
-        };
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(precondition, new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
@@ -111,6 +97,6 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
                 }
                 return false;
             }
-        };
+        });
     }
 }

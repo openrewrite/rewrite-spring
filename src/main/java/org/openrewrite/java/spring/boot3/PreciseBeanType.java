@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
@@ -42,13 +39,8 @@ public class PreciseBeanType extends Recipe {
     }
 
     @Override
-    protected UsesType<ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(BEAN, false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(BEAN, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
@@ -118,6 +110,6 @@ public class PreciseBeanType extends Recipe {
                 }
                 return super.visitReturn(_return, ctx);
             }
-        };
+        });
     }
 }

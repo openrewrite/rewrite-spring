@@ -15,11 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -47,15 +43,9 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         return "Migrate multi-condition `@ConditionalOnBean` annotations to `AnyNestedCondition`.";
     }
 
-    @Nullable
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnBean", false);
-    }
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new ConditionalOnBeanAnyNestedConditionVisitor();
+        return Preconditions.check(new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnBean", false), new ConditionalOnBeanAnyNestedConditionVisitor());
     }
 
     private static class ConditionalOnBeanAnyNestedConditionVisitor extends JavaIsoVisitor<ExecutionContext> {
@@ -130,7 +120,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                         a = a.withTemplate(JavaTemplate.builder(this::getCursor, "@Conditional(#{}.class)")
                                 .imports("org.springframework.context.annotation.Conditional")
                                 .javaParser(JavaParser.fromJavaVersion()
-                                                .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
+                                        .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
                                 .build(), a.getCoordinates().replace(), conditionalClassName);
                         maybeAddImport("org.springframework.context.annotation.Conditional");
                     } else {

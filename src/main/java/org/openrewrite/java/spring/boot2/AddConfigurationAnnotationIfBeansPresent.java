@@ -49,13 +49,8 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<>(FQN_BEAN, false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(FQN_BEAN, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
@@ -75,7 +70,7 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
                 return c.withTemplate(template,
                         c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
             }
-        };
+        });
     }
 
     public static boolean isApplicableClass(J.ClassDeclaration classDecl, Cursor cursor) {

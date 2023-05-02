@@ -17,10 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
-import org.openrewrite.internal.ListUtils;
+import org.openrewrite.*;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -34,8 +31,9 @@ import org.openrewrite.text.PlainTextParser;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class MoveAutoConfigurationToImportsFile extends Recipe {
+public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoConfigurationToImportsFile.Accumulator> {
     private static final String AUTOCONFIGURATION_FILE = "org.springframework.boot.autoconfigure.AutoConfiguration.imports";
     private static final String ENABLE_AUTO_CONFIG_KEY = "org.springframework.boot.autoconfigure.EnableAutoConfiguration";
 
@@ -47,62 +45,103 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
     @Override
     public String getDescription() {
         return "Use `AutoConfiguration#imports` instead of the deprecated entry " +
-               "`EnableAutoConfiguration` in `spring.factories` when defining " +
-               "autoconfiguration classes.";
+                "`EnableAutoConfiguration` in `spring.factories` when defining " +
+                "autoconfiguration classes.";
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
+    public Accumulator getInitialValue() {
+        return new Accumulator();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
         // First pass will look for any spring.factories source files to collect any auto-config classes in those files
         // and remove them. We build a map to the path of the target import file (computed relative to the spring.factories
         // file) to a list of autoconfiguration classes from the spring.factories and any markers that may have been
         // on the factory class. If we end up creating a new file, we will copy the markers to this file as well.
-        Map<Path, TargetImports> targetImportFileMap = new HashMap<>();
 
         // We also look for any existing import files (because we may need to merge entries from the spring.factories into
         // an existing file).
-        Set<Path> existingImportFiles = new HashSet<>();
-        Set<String> allFoundConfigs = new HashSet<>();
 
-        List<SourceFile> after = ListUtils.map(before, s -> {
-            if (s instanceof PlainText) {
-                if (s.getSourcePath().endsWith("spring.factories")) {
-                    Set<String> configs = new HashSet<>();
-                    PlainText plainText = extractAutoConfigsFromSpringFactory(((PlainText) s), configs);
-                    if (!configs.isEmpty()) {
-                        targetImportFileMap.put(s.getSourcePath().getParent().resolve("spring/" + AUTOCONFIGURATION_FILE),
-                                new TargetImports(configs, s.getMarkers().getMarkers()));
-                        allFoundConfigs.addAll(configs);
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof PlainText) {
+                    PlainText source = ((PlainText) tree);
+                    Path sourcePath = source.getSourcePath();
+                    if (sourcePath.endsWith("spring.factories")) {
+                        Set<String> configs = new HashSet<>();
+                        extractAutoConfigsFromSpringFactory(source, configs);
+                        if (!configs.isEmpty()) {
+                            acc.getExistingSpringFactories().add(sourcePath);
+                            acc.getTargetImports().put(sourcePath.getParent().resolve("spring/" + AUTOCONFIGURATION_FILE),
+                                    new TargetImports(configs, source.getMarkers().getMarkers()));
+                            acc.getAllFoundConfigs().addAll(configs);
+                        }
+                    } else if (sourcePath.endsWith(AUTOCONFIGURATION_FILE)) {
+                        acc.getExistingImportFiles().add(sourcePath);
                     }
-                    return plainText;
-                } else if (s.getSourcePath().endsWith(AUTOCONFIGURATION_FILE)) {
-                    existingImportFiles.add(s.getSourcePath());
                 }
+                return tree;
             }
-            return s;
-        });
+        };
+    }
 
-        Set<Path> mergeTargets = existingImportFiles.stream().filter(targetImportFileMap::containsKey).collect(Collectors.toSet());
-        after = ListUtils.map(after, s -> {
-            if (s instanceof PlainText) {
-                if (mergeTargets.contains(s.getSourcePath())) {
-                    //If there is both a spring.factories and an existing imports file, merge the contents of both into the
-                    //import.
-                    return mergeEntries(s, targetImportFileMap.get(s.getSourcePath()).getAutoConfigurations());
-                }
-            } else if (s instanceof J.CompilationUnit) {
-                s = (J.CompilationUnit) new AddAutoConfigurationAnnotation(allFoundConfigs).visit(s, ctx);
+    @Override
+    public Collection<SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
+        List<SourceFile> newImportFiles = new ArrayList<>();
+        for (Map.Entry<Path, TargetImports> entry : acc.getTargetImports().entrySet()) {
+            if (entry.getValue().getAutoConfigurations().isEmpty() || acc.getExistingImportFiles().contains(entry.getKey())) {
+                continue;
             }
-            return s;
-        });
 
-        // Remove any files that have been merged, so they do not get added below.
-        for (Path existing : mergeTargets) {
-            targetImportFileMap.remove(existing);
+            List<String> finalList = new ArrayList<>(entry.getValue().getAutoConfigurations());
+            Collections.sort(finalList);
+
+            PlainTextParser parser = new PlainTextParser();
+            PlainText brandNewFile = parser.parse(String.join("\n", finalList)).findFirst().get();
+            newImportFiles.add(brandNewFile
+                    .withSourcePath(entry.getKey())
+                    .withMarkers(brandNewFile.getMarkers().withMarkers(entry.getValue().getMarkers()))
+            );
         }
 
-        //And add any new files!
-        return ListUtils.concatAll(after, createNewImportFiles(targetImportFileMap));
+        if (!newImportFiles.isEmpty()) {
+            return newImportFiles;
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
+        Set<Path> mergeTargets = acc.getExistingImportFiles().stream().filter(acc.getTargetImports()::containsKey).collect(Collectors.toSet());
+        if (mergeTargets.isEmpty() && acc.getAllFoundConfigs().isEmpty() && acc.getExistingSpringFactories().isEmpty()) {
+            return TreeVisitor.noop();
+        }
+
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
+                }
+                SourceFile source = (SourceFile) tree;
+                Path sourcePath = source.getSourcePath();
+                if (tree instanceof PlainText) {
+                    if (mergeTargets.contains(sourcePath)) {
+                        //If there is both a spring.factories and an existing imports file, merge the contents of both into the import
+                        tree = mergeEntries(source, acc.getTargetImports().get(sourcePath).getAutoConfigurations());
+                    } else if (acc.getExistingSpringFactories().contains(sourcePath)) {
+                        tree = extractAutoConfigsFromSpringFactory((PlainText) source, new HashSet<>());
+                    }
+                } else if (tree instanceof J.CompilationUnit) {
+                    tree = new AddAutoConfigurationAnnotation(acc.getAllFoundConfigs()).visit(tree, ctx);
+                }
+                return tree;
+            }
+        };
     }
 
     @Nullable
@@ -155,7 +194,7 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
                 //Building Value
                 if (isLineBreakOrEof(contents, index)) {
                     //End of value!
-                    if (ENABLE_AUTO_CONFIG_KEY.equals(currentKey.toString())) {
+                    if (ENABLE_AUTO_CONFIG_KEY.contentEquals(currentKey)) {
                         //Found the key, lets break now.
                         index = advanceToNextLine(contents, index);
                         valueIndexEnd = Math.min(index, contents.length());
@@ -171,8 +210,9 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
             }
             index++;
         }
-        if (ENABLE_AUTO_CONFIG_KEY.equals(currentKey.toString())) {
-            configs.addAll(Arrays.stream(currentValue.toString().split(",")).map(String::trim).collect(Collectors.toSet()));
+
+        if (ENABLE_AUTO_CONFIG_KEY.contentEquals(currentKey)) {
+            Stream.of(currentValue.toString().split(",")).map(String::trim).forEach(configs::add);
             String newContent = contents.substring(0, keyIndexStart) + contents.substring(valueIndexEnd == 0 ? contents.length() : valueIndexEnd);
             return newContent.isEmpty() ? null : springFactory.withText(newContent);
         } else {
@@ -191,7 +231,7 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
         while (index < contents.length() && !isLineBreakOrEof(contents, index)) {
             index++;
         }
-        if (index + 1 < contents.length() && contents.charAt(index) == '\r' && contents.charAt(index +1) == '\n') {
+        if (index + 1 < contents.length() && contents.charAt(index) == '\r' && contents.charAt(index + 1) == '\n') {
             index = index + 2;
         } else {
             index++;
@@ -221,33 +261,6 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
         }
     }
 
-    @Nullable
-    private List<SourceFile> createNewImportFiles(Map<Path, TargetImports> destinationToConfigurationClasses) {
-        List<SourceFile> newImportFiles = new ArrayList<>();
-        for (Map.Entry<Path, TargetImports> entry : destinationToConfigurationClasses.entrySet()) {
-            if (entry.getValue().getAutoConfigurations().isEmpty()) {
-                continue;
-            }
-
-            List<String> finalList = new ArrayList<>(entry.getValue().getAutoConfigurations());
-            Collections.sort(finalList);
-
-            PlainTextParser parser = new PlainTextParser();
-            PlainText brandNewFile = parser.parse(String.join("\n", finalList)).get(0);
-            newImportFiles.add(
-                    brandNewFile
-                            .withSourcePath(entry.getKey())
-                            .withMarkers(brandNewFile.getMarkers().withMarkers(entry.getValue().getMarkers()))
-            );
-        }
-
-        if (!newImportFiles.isEmpty()) {
-            return newImportFiles;
-        } else {
-            return null;
-        }
-    }
-
     @Value
     @EqualsAndHashCode(callSuper = false)
     private static class AddAutoConfigurationAnnotation extends JavaIsoVisitor<ExecutionContext> {
@@ -273,11 +286,19 @@ public class MoveAutoConfigurationToImportsFile extends Recipe {
         }
     }
 
+    @Value
+    static class Accumulator {
+        Set<Path> existingSpringFactories = new HashSet<>();
+        Set<Path> existingImportFiles = new HashSet<>();
+        Set<String> allFoundConfigs = new HashSet<>();
+        Map<Path, TargetImports> targetImports = new HashMap<>();
+    }
+
     /**
      * Used to track the auto configurations defined in `spring.factories` (along with any markers on that file)
      */
     @Value
-    private static class TargetImports {
+    static class TargetImports {
         Set<String> autoConfigurations;
         List<Marker> markers;
     }

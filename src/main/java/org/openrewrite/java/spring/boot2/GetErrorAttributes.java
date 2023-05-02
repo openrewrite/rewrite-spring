@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
@@ -40,15 +41,9 @@ public class GetErrorAttributes extends Recipe {
         return "`ErrorAttributes#getErrorAttributes(WebRequest, boolean)` was deprecated in Spring Boot 2.3.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesMethod<>(MATCHER);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new GetErrorAttributesVisitor();
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesMethod<>(MATCHER), new GetErrorAttributesVisitor());
     }
 
     private static class GetErrorAttributesVisitor extends JavaIsoVisitor<ExecutionContext> {

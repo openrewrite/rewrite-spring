@@ -15,7 +15,10 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.*;
+import org.openrewrite.Cursor;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
@@ -34,12 +37,6 @@ public class AuthorizeHttpRequests extends Recipe {
 
     private static final MethodMatcher MATCH_ACCESS_DECISION_MANAGER = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer$AbstractInterceptUrlRegistry accessDecisionManager(..)");
 
-    public AuthorizeHttpRequests() {
-        doNext(new ChangeType("org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer.ExpressionInterceptUrlRegistry", "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry", false));
-        doNext(new ChangeType("org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer", "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer", false));
-        doNext(new ChangeType("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer", "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer", false));
-    }
-
     @Override
     public String getDisplayName() {
         return "Replace `HttpSecurity.authorizeRequests(...)` with `HttpSecurity.authorizeHttpRequests(...)` and `ExpressionUrlAuthorizationConfigurer`, `AbstractInterceptUrlConfigurer` with `AuthorizeHttpRequestsConfigurer`, etc";
@@ -51,8 +48,14 @@ public class AuthorizeHttpRequests extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaVisitor<ExecutionContext>() {
+            {
+                doAfterVisit(new ChangeType("org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer.ExpressionInterceptUrlRegistry", "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry", false));
+                doAfterVisit(new ChangeType("org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer", "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer", false));
+                doAfterVisit(new ChangeType("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer", "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer", false));
+            }
+
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J visited = super.visitMethodInvocation(method, ctx);
