@@ -22,6 +22,7 @@ import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.spring.ChangeSpringPropertyValue;
+import org.openrewrite.java.spring.SpringExecutionContextView;
 import org.openrewrite.marker.SearchResult;
 import org.openrewrite.properties.PropertiesIsoVisitor;
 import org.openrewrite.properties.PropertiesVisitor;
@@ -35,6 +36,8 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.util.List;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
@@ -70,6 +73,15 @@ public class UseTlsAmqpConnectionString extends Recipe {
     @Nullable
     String tlsPropertyKey;
 
+    @Option(displayName = "Optional list of file path matcher",
+            description = "Each value in this list represents a glob expression that is used to match which files will " +
+                    "be modified. If this value is not present, this recipe will query the execution context for " +
+                    "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\".",
+            required = false,
+            example = "**/application.yml")
+    @Nullable
+    List<String> pathExpressions;
+
     @Override
     public String getDisplayName() {
         return "Use TLS for AMQP connection strings";
@@ -92,9 +104,38 @@ public class UseTlsAmqpConnectionString extends Recipe {
 
             @Override
             public Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                doNext(new UseTlsAmqpConnectionStringYaml(actualPropertyKey, oldPort, port, actualTlsPropertyKey));
-                doNext(new UseTlsAmqpConnectionStringProperties(actualPropertyKey, oldPort, port, actualTlsPropertyKey));
+                if (tree instanceof SourceFile) {
+                    return super.visit(tree, ctx);
+                }
                 return tree;
+            }
+
+            @Override
+            public Tree preVisit(Tree tree, ExecutionContext ctx) {
+                if (tree instanceof Yaml.Documents && sourcePathMatches(((SourceFile) tree).getSourcePath(), ctx)) {
+                    doAfterVisit(new UseTlsAmqpConnectionStringYaml(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions));
+                } else if (tree instanceof Properties.File && sourcePathMatches(((SourceFile) tree).getSourcePath(), ctx)) {
+                    doAfterVisit(new UseTlsAmqpConnectionStringProperties(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions));
+                }
+                return tree;
+            }
+
+            private boolean sourcePathMatches(Path sourcePath, ExecutionContext ctx) {
+                List<String> expressions = pathExpressions;
+                if (expressions == null || pathExpressions.isEmpty()) {
+                    //If not defined, get reasonable defaults from the execution context.
+                    expressions = SpringExecutionContextView.view(ctx).getDefaultApplicationConfigurationPaths();
+                }
+                if (expressions.isEmpty()) {
+                    return true;
+                }
+                for (String filePattern : expressions) {
+                    if (PathUtils.matchesGlob(sourcePath, filePattern)) {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         };
     }
@@ -111,6 +152,9 @@ public class UseTlsAmqpConnectionString extends Recipe {
         Integer port;
 
         String tlsPropertyKey;
+
+        @Nullable
+        List<String> pathExpressions;
 
         @Override
         public String getDisplayName() {
@@ -170,7 +214,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (!updatedConnectionString.equals(connectionString)) {
                                         updated = true;
                                         connectionStrings[i] = updatedConnectionString;
-                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, null));
+                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions));
                                         doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null));
                                     }
                                 }
@@ -205,6 +249,9 @@ public class UseTlsAmqpConnectionString extends Recipe {
         Integer port;
 
         String tlsPropertyKey;
+
+        @Nullable
+        List<String> pathExpressions;
 
         @Override
         public String getDisplayName() {
@@ -262,7 +309,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (!updatedConnectionString.equals(connectionString)) {
                                         updated = true;
                                         connectionStrings[i] = updatedConnectionString;
-                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, null));
+                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions));
                                         doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null));
                                     }
                                 }

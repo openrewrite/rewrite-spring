@@ -25,8 +25,6 @@ import org.openrewrite.yaml.MergeYaml;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -118,14 +116,7 @@ public class AddSpringProperty extends Recipe {
             return true;
         }
         for (String filePattern : expressions) {
-            if (filePattern.startsWith("**")) {
-                sourcePath = Paths.get(".").resolve(sourcePath.normalize());
-            } else {
-                sourcePath = sourcePath.normalize();
-            }
-
-            PathMatcher pathMatcher = sourcePath.getFileSystem().getPathMatcher("glob:" + filePattern);
-            if (pathMatcher.matches(sourcePath)) {
+            if (PathUtils.matchesGlob(sourcePath, filePattern)) {
                 return true;
             }
         }

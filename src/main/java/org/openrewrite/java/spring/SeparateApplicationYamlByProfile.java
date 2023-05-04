@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.yaml.DeleteProperty;
 import org.openrewrite.yaml.search.FindProperty;
@@ -45,8 +42,7 @@ public class SeparateApplicationYamlByProfile extends Recipe {
     @Override
     protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
         return ListUtils.flatMap(before, s -> {
-            if (s.getSourcePath().getFileSystem().getPathMatcher("glob:application.yml")
-                    .matches(s.getSourcePath().getFileName())) {
+            if (PathUtils.matchesGlob(s.getSourcePath(), "application.yml")) {
                 Yaml.Documents yaml = (Yaml.Documents) s;
 
                 Map<Yaml.Document, String> profiles = new HashMap<>(yaml.getDocuments().size());

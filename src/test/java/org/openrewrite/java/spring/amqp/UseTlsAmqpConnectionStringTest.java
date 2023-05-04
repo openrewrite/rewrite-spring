@@ -19,13 +19,15 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.Arrays;
+
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
 class UseTlsAmqpConnectionStringTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new UseTlsAmqpConnectionString(null, 5672, 5671, null));
+        spec.recipe(new UseTlsAmqpConnectionString(null, 5672, 5671, null, null));
     }
 
     @Test
@@ -114,6 +116,84 @@ class UseTlsAmqpConnectionStringTest implements RewriteTest {
               spring.rabbitmq.addresses=amqps://host1:5671,amqps://host2:5671
               """,
             spec -> spec.path("application.properties")
+          )
+        );
+    }
+
+    @Test
+    void customProperties() {
+        rewriteRun(
+          spec -> spec.recipe(new UseTlsAmqpConnectionString("my.custom.addresses", 5672, 5671, "my.custom.ssl.enabled", null)),
+          yaml(
+            """
+              my:
+                custom:
+                  addresses: host1:5672
+              """,
+            """
+              my:
+                custom:
+                  addresses: host1:5671
+                  ssl:
+                    enabled: true
+              """,
+            spec -> spec.path("application.yml")
+          ),
+          properties(
+            """
+              my.custom.addresses=host1:5672
+              """,
+            """
+              my.custom.addresses=host1:5671
+              my.custom.ssl.enabled=true
+              """,
+            spec -> spec.path("application.properties")
+          )
+        );
+    }
+
+    @Test
+    void profileSpecific() {
+        rewriteRun(
+          spec -> spec.recipe(new UseTlsAmqpConnectionString("my.custom.addresses", 5672, 5671, "my.custom.ssl.enabled", Arrays.asList("**/application*.yml", "**/application*.yaml", "**/application*.properties"))),
+          yaml(
+            """
+              my:
+                custom:
+                  virtual-host: vhost
+              """,
+            spec -> spec.path("application.yml")
+          ),
+          yaml(
+            """
+              my:
+                custom:
+                  addresses: host1:5672
+              """,
+            """
+              my:
+                custom:
+                  addresses: host1:5671
+                  ssl:
+                    enabled: true
+              """,
+            spec -> spec.path("application-test.yml")
+          ),
+          properties(
+            """
+              my.custom.virtual-host=vhost
+              """,
+            spec -> spec.path("application.properties")
+          ),
+          properties(
+            """
+              my.custom.addresses=host1:5672
+              """,
+            """
+              my.custom.addresses=host1:5671
+              my.custom.ssl.enabled=true
+              """,
+            spec -> spec.path("application-test.properties")
           )
         );
     }

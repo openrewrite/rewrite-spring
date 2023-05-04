@@ -24,8 +24,6 @@ import org.openrewrite.yaml.MergeYamlVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -83,9 +81,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends Recipe {
     @Nullable
     private Yaml.Documents findByPath(List<SourceFile> before, String fileName) {
         for (SourceFile sourceFile : before) {
-            Path sourcePath = sourceFile.getSourcePath();
-            PathMatcher pathMatcher = sourcePath.getFileSystem().getPathMatcher("glob:**/main/resources/" + fileName);
-            if (pathMatcher.matches(sourcePath)) {
+            if (PathUtils.matchesGlob(sourceFile.getSourcePath(), "**/main/resources/" + fileName)) {
                 return (Yaml.Documents) sourceFile;
             }
         }
