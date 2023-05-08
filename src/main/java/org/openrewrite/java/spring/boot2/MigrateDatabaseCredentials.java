@@ -32,6 +32,9 @@ import org.openrewrite.yaml.YamlVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class MigrateDatabaseCredentials extends Recipe {
 
     @Override
@@ -45,6 +48,16 @@ public class MigrateDatabaseCredentials extends Recipe {
                 "additional username and password properties. In earlier versions of Spring Boot, these settings were " +
                 "derived from `spring.datasource` properties but this turned out to be problematic for people that " +
                 "provided their own `DataSource` beans.";
+    }
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return Arrays.asList(
+                new MigrateDatabaseCredentialsForToolYaml("flyway"),
+                new MigrateDatabaseCredentialsForToolProperties("flyway"),
+                new MigrateDatabaseCredentialsForToolYaml("liquibase"),
+                new MigrateDatabaseCredentialsForToolProperties("liquibase")
+        );
     }
 
     @Value
@@ -70,13 +83,6 @@ public class MigrateDatabaseCredentials extends Recipe {
                     return documents;
                 }
             }, new YamlVisitor<ExecutionContext>() {
-                {
-                    doAfterVisit(new MigrateDatabaseCredentialsForToolYaml("flyway"));
-                    doAfterVisit(new MigrateDatabaseCredentialsForToolProperties("flyway"));
-                    doAfterVisit(new MigrateDatabaseCredentialsForToolYaml("liquibase"));
-                    doAfterVisit(new MigrateDatabaseCredentialsForToolProperties("liquibase"));
-                }
-
                 @Override
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                     doAfterVisit(new MergeYaml("$.spring." + tool, "username: ${spring.datasource.username}", true, null));

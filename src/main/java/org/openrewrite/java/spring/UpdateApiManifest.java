@@ -67,7 +67,7 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
 
     @Override
     public Collection<SourceFile> generate(ApiManifest acc, ExecutionContext ctx) {
-        return acc.isGenerate() ? Collections.emptyList() : Collections.singletonList(generateManifest(acc.getApis()));
+        return acc.isGenerate() ? Collections.singletonList(generateManifest(acc.getApis())) : Collections.emptyList();
     }
 
     @Override
