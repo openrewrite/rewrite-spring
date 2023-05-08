@@ -237,7 +237,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
 
     @Data
     static class JavaProjects {
-        Set<JavaProject> applicableProjects;
+        Set<JavaProject> applicableProjects = new HashSet<>();
         Map<JavaProject, Path> sourceToCommentByProject = new HashMap<>();
     }
 

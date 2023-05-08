@@ -52,16 +52,7 @@ public class RemoveMethodInvocationsVisitor extends JavaVisitor<ExecutionContext
     }
 
     @Override
-    public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
-        if (tree instanceof J.CompilationUnit) {
-            return super.visit(tree, ctx);
-        }
-        return (J) tree;
-    }
-
-    @Override
-    public J visitMethodInvocation(J.MethodInvocation method,
-                                   ExecutionContext ctx) {
+    public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
         if (inMethodCallChain()) {
             List<Expression> newArgs = ListUtils.map(method.getArguments(), arg -> (Expression) this.visit(arg, ctx));
             return method.withArguments(newArgs);
