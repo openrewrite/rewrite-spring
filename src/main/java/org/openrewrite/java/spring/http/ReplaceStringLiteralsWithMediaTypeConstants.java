@@ -111,11 +111,9 @@ public class ReplaceStringLiteralsWithMediaTypeConstants extends ScanningRecipe<
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!(tree instanceof SourceFile) || acc.get()) {
-                    return tree;
+                if (!acc.get() && tree instanceof SourceFile) {
+                    acc.set(declaresSpringWebDependency((SourceFile) tree, ctx));
                 }
-
-                acc.set(hasSpringWebDependency((SourceFile) tree, ctx));
                 return tree;
             }
         };
@@ -135,7 +133,7 @@ public class ReplaceStringLiteralsWithMediaTypeConstants extends ScanningRecipe<
         });
     }
 
-    static boolean hasSpringWebDependency(SourceFile sourceFile, ExecutionContext ctx) {
+    static boolean declaresSpringWebDependency(SourceFile sourceFile, ExecutionContext ctx) {
         TreeVisitor<?, ExecutionContext> visitor = new DependencyInsight("org.springframework", "spring-web", "compile", null).getVisitor();
         if (visitor.isAcceptable(sourceFile, ctx) && visitor.visit(sourceFile, ctx) != sourceFile) {
             return true;

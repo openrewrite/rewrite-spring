@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants.hasSpringWebDependency;
+import static org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants.declaresSpringWebDependency;
 
 public class ReplaceStringLiteralsWithHttpHeadersConstants extends ScanningRecipe<AtomicBoolean> {
 
@@ -81,11 +81,9 @@ public class ReplaceStringLiteralsWithHttpHeadersConstants extends ScanningRecip
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!(tree instanceof SourceFile) || acc.get()) {
-                    return tree;
+                if (!acc.get() && tree instanceof SourceFile) {
+                    acc.set(declaresSpringWebDependency((SourceFile) tree, ctx));
                 }
-
-                acc.set(hasSpringWebDependency((SourceFile) tree, ctx));
                 return tree;
             }
         };
