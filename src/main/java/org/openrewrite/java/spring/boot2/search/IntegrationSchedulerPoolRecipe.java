@@ -111,13 +111,17 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!(tree instanceof SourceFile) || tree.getMarkers().findFirst(CommentAdded.class).isPresent()) {
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
+                } else if (tree.getMarkers().findFirst(CommentAdded.class).isPresent()) {
                     // already processed in a previous cycle
+                    tree.getMarkers().findFirst(JavaProject.class).ifPresent(acc.getProcessedProjects()::add);
+                    tree.getMarkers().findFirst(JavaProject.class).ifPresent(acc.getApplicableProjects()::remove);
                     return tree;
                 }
 
                 Optional<JavaProject> maybeJavaProject = tree.getMarkers().findFirst(JavaProject.class);
-                if (!maybeJavaProject.isPresent() || acc.getSourceToCommentByProject().get(maybeJavaProject.get()) != null) {
+                if (!maybeJavaProject.isPresent() || acc.getProcessedProjects().contains(maybeJavaProject.get())) {
                     return tree;
                 }
 
@@ -139,7 +143,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
                     if (!FindProperty.find((Yaml) source, PROPERTY_KEY, false).isEmpty()) {
                         acc.getSourceToCommentByProject().put(javaProject, source.getSourcePath());
                     }
-                } else if (source instanceof JavaSourceFile) {
+                } else if (source instanceof JavaSourceFile && acc.getSourceToCommentByProject().get(javaProject) == null) {
                     JavaSourceFile javaSourceFile = (JavaSourceFile) source;
                     if (javaSourceFile.getTypesInUse().getTypesInUse().stream().anyMatch(t -> t instanceof
                             JavaType.Class && ((JavaType.Class) t).getFullyQualifiedName().equals(SPRING_BOOT_APPLICATION))) {
@@ -238,6 +242,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
     @Data
     static class JavaProjects {
         Set<JavaProject> applicableProjects = new HashSet<>();
+        Set<JavaProject> processedProjects = new HashSet<>();
         Map<JavaProject, Path> sourceToCommentByProject = new HashMap<>();
     }
 

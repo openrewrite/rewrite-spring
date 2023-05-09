@@ -72,11 +72,10 @@ public class MaintainTrailingSlashURLMappings extends ScanningRecipe<AtomicBoole
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (acc.get()) {
-                    doAfterVisit(new AddSetUseTrailingSlashMatch());
+                    return new AddSetUseTrailingSlashMatch().getVisitor().visit(tree, ctx);
                 }
 
-                doAfterVisit(new AddRouteTrailingSlash());
-                return tree;
+                return new AddRouteTrailingSlash().getVisitor().visit(tree, ctx);
             }
         };
     }

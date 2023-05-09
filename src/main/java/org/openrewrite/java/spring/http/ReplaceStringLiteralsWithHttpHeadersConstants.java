@@ -96,7 +96,11 @@ public class ReplaceStringLiteralsWithHttpHeadersConstants extends ScanningRecip
             public J preVisit(J tree, ExecutionContext ctx) {
                 stopAfterPreVisit();
                 for (String mediaType : MEDIA_TYPES) {
-                    doAfterVisit(new ReplaceStringLiteralWithConstant("org.springframework.http.MediaType." + mediaType));
+                    try {
+                        doAfterVisit(new ReplaceStringLiteralWithConstant("org.springframework.http.MediaType." + mediaType));
+                    } catch (IllegalArgumentException ignore) {
+                        // this is typically a NoSuchFieldException when an older version of Spring is used
+                    }
                 }
                 return tree;
             }

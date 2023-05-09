@@ -50,8 +50,10 @@ public class DowngradeServletApiWhenUsingJetty extends Recipe {
         return Preconditions.check(new FindDependency("org.springframework.boot", "spring-boot-starter-jetty"), new MavenVisitor<ExecutionContext>() {
             @Override
             public @Nullable Xml visit(@Nullable Tree tree, ExecutionContext ctx) {
-                doAfterVisit(new AddProperty("jakarta-servlet.version", "5.0.0", false, false));
-                return (Xml) tree;
+                if (tree == null) {
+                    return null;
+                }
+                return (Xml) new AddProperty("jakarta-servlet.version", "5.0.0", false, false).getVisitor().visit(tree, ctx);
             }
         });
     }
