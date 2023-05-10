@@ -23,6 +23,14 @@ displayName: Upgrade to Spring Boot 2.5
 description: 'Upgrade to Spring Boot 2.5 from any prior 2.x version.'
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5_Isolated
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5_Isolated
+displayName: Upgrade to Spring Boot 2.5 from 2.4
+description: 'Upgrade to Spring Boot 2.5 from 2.4.'
+recipeList:
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_5
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
