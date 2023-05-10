@@ -84,8 +84,8 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
     @Test
     void doNotPinWhenNotVersioned() {
         rewriteRun(
-          //language=xml
           pomXml(
+            //language=xml
             """
               <project>
                 <modelVersion>4.0.0</modelVersion>
@@ -110,6 +110,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
             spec -> spec.after(pom -> {
                 Matcher version = Pattern.compile("2.7.\\d+").matcher(pom);
                 assertThat(version.find()).describedAs("Expected 2.7.x in %s", pom).isTrue();
+                //language=xml
                 return String.format("""
                   <project>
                     <modelVersion>4.0.0</modelVersion>
