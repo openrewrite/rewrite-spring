@@ -67,7 +67,7 @@ description: >
   Use `WebServerFactoryCustomizer` instead of the deprecated `EmbeddedServletContainerCustomizer` in
   Spring Boot 2.0 or higher. This recipe will replace look for any classes that implement `EmbeddedServletContainerCustomizer`
   and change the interface to `WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>`. This recipe also adjusts
-  the the types used in the `customize()` method from `*EmbeddedServletContainerFactory` to their `*ServletWebServerFactory`
+  the types used in the `customize()` method from `*EmbeddedServletContainerFactory` to their `*ServletWebServerFactory`
   counterparts.
 
 recipeList:
