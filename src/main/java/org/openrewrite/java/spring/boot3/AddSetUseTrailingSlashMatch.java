@@ -37,8 +37,8 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
     "org.springframework.web.reactive.config.PathMatchConfigurer setUseTrailingSlashMatch(java.lang.Boolean)"
     );
 
-    private static final String WEB_MVC_CONFIGUER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
-    private static final String WEB_FLUX_CONFIGUER = "org.springframework.web.reactive.config.WebFluxConfigurer";
+    private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
+    private static final String WEB_FLUX_CONFIGURER = "org.springframework.web.reactive.config.WebFluxConfigurer";
 
     private static final String WEB_MVC_PATH_MATCH_CONFIGURER = "org.springframework.web.servlet.config.annotation.PathMatchConfigurer";
     private static final String WEB_FLUX_PATH_MATCH_CONFIGURER = "org.springframework.web.reactive.config.PathMatchConfigurer";
@@ -61,8 +61,8 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
     @Override
     protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
         // todo, change to use FindImplementations after the getVisitor() method is ready
-        return Applicability.or(new UsesType<>(WEB_MVC_CONFIGUER, false),
-            new UsesType<>(WEB_FLUX_CONFIGUER, false));
+        return Applicability.or(new UsesType<>(WEB_MVC_CONFIGURER, false),
+            new UsesType<>(WEB_FLUX_CONFIGURER, false));
     }
 
     @Override
@@ -77,10 +77,10 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                     for (TypeTree impl : classDecl.getImplements()) {
                         JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
                         if (fullyQualified != null &&
-                            (WEB_MVC_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()) ||
-                             WEB_FLUX_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()))
+                            (WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()) ||
+                             WEB_FLUX_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()))
                         ) {
-                            isWebMVC = WEB_MVC_CONFIGUER.equals(fullyQualified.getFullyQualifiedName());
+                            isWebMVC = WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName());
                             isWebConfigClass = true;
                             break;
                         }

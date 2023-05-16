@@ -146,7 +146,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                             classesToFlatten = new ArrayList<>();
                             enclosingClassCursor.putMessage(FLATTEN_CLASSES, classesToFlatten);
                         }
-                        // only applicable to former subclasses of WebSecurityConfigurereAdapter - other classes won't be flattened
+                        // only applicable to former subclasses of WebSecurityConfigurerAdapter - other classes won't be flattened
                         classesToFlatten.add(classDecl);
                         // Remove imports for annotations being removed together with class declaration
                         // It is impossible in the general case to tell whether some of these annotations might apply to the bean methods
