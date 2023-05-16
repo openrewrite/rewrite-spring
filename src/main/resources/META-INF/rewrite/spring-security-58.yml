@@ -37,6 +37,7 @@ recipeList:
   - org.openrewrite.java.spring.security5.UpdateArgon2PasswordEncoder
   - org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurity
   - org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml
+  - org.openrewrite.java.spring.security5.WebSecurityConfigurerAdapter
 
 ---
 type: specs.openrewrite.org/v1beta/recipe

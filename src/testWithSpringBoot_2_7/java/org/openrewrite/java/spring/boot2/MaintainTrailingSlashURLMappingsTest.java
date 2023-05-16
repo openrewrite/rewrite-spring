@@ -35,6 +35,7 @@ public class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
 
     @Test
     void noChangeWithConfigOverriddenByWebMvcConfigurer() {
+        //language=java
         rewriteRun(
           java(
             """

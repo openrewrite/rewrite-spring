@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.boot2;
+package org.openrewrite.java.spring.security5;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;

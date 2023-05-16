@@ -26,7 +26,6 @@ import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -60,17 +59,13 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                 SourceFile source = (SourceFile) tree;
                 Path sourcePath = source.getSourcePath();
                 if (acc.getBootstrapYaml() == null && source instanceof Yaml.Documents
-                        && pathMatcher(sourcePath, "glob:**/main/resources/bootstrap.yml").matches(sourcePath)) {
+                        && PathUtils.matchesGlob(sourcePath, "**/main/resources/bootstrap.yml")) {
                     acc.setBootstrapYaml((Yaml.Documents) source);
                 } else if (acc.getApplicationYaml() == null
-                        && pathMatcher(sourcePath, "glob:**/main/resources/application.yml").matches(sourcePath)) {
+                        && PathUtils.matchesGlob(sourcePath, "**/main/resources/application.yml")) {
                     acc.setApplicationYaml((Yaml.Documents) source);
                 }
                 return source;
-            }
-
-            PathMatcher pathMatcher(Path sourcePath, String pattern) {
-                return sourcePath.getFileSystem().getPathMatcher(pattern);
             }
         };
     }

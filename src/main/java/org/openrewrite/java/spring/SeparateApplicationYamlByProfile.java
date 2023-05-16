@@ -48,8 +48,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
         return new YamlIsoVisitor<ExecutionContext>() {
             @Override
             public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
-                if (yaml.getSourcePath().getFileSystem().getPathMatcher("glob:application.yml")
-                        .matches(yaml.getSourcePath().getFileName())) {
+                if (PathUtils.matchesGlob(yaml.getSourcePath(), "application.yml")) {
 
                     Set<Yaml.Documents> profiles = new HashSet<>(yaml.getDocuments().size());
 

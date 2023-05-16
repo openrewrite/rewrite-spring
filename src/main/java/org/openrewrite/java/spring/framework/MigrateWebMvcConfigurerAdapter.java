@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.framework;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
+import org.openrewrite.SourceFile;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -31,12 +32,13 @@ import org.openrewrite.java.tree.TypeUtils;
 public class MigrateWebMvcConfigurerAdapter extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Transform classes that extend `WebMvcConfigurerAdapter` to implement the `WebMvcConfigurer` interface instead";
+        return "Replace `WebMvcConfigurerAdapter` with `WebMvcConfigurer`";
     }
 
     @Override
     public String getDescription() {
-        return "As of 5.0 `WebMvcConfigurer` has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.";
+        return "As of 5.0 `WebMvcConfigurer` has default methods (made possible by a Java 8 baseline) and can be " +
+               "implemented directly without the need for this adapter.";
     }
 
     @Override
@@ -53,10 +55,10 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                     if (type != null) {
                         cd = cd.withType(type.withSupertype(null));
                     }
-                    cd = cd.withTemplate(JavaTemplate.builder(() -> getCursor().dropParentUntil(p -> p instanceof J.ClassDeclaration || p instanceof J.CompilationUnit), "WebMvcConfigurer")
+                    cd = cd.withTemplate(JavaTemplate.builder(() -> getCursor().dropParentUntil(p -> p instanceof J.ClassDeclaration || p instanceof SourceFile), "WebMvcConfigurer")
                                     .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
                                     .javaParser(JavaParser.fromJavaVersion()
-                                            .classpath("spring-webmvc"))
+                                            .classpathFromResources(ctx, "spring-webmvc-5.*"))
                                     .build(),
                             cd.getCoordinates().addImplementsClause());
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());

@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.framework;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -26,7 +27,8 @@ import static org.openrewrite.java.Assertions.java;
 public class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.parser(JavaParser.fromJavaVersion().classpath("spring-webmvc", "spring-core", "spring-web"))
+        spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-webmvc-5.*", "spring-core-5.*", "spring-web-5.*"))
           .recipe(new MigrateWebMvcConfigurerAdapter());
     }
 

@@ -15,13 +15,21 @@
  */
 package org.openrewrite.java.spring.cloud2022;
 
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.SourceSpec;
+import org.openrewrite.xml.tree.Xml;
 
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
@@ -37,15 +45,29 @@ public class MigrateProjectTest implements RewriteTest {
             .activateRecipes("org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing"))
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-cloud-sleuth-api"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-cloud-sleuth-api-3.*"));
     }
+
+    Consumer<SourceSpec<Xml.Document>> withDynamicMicrometerVersion(@Language("xml") String fmt) {
+        return spec -> spec.after(after -> {
+            Matcher matcher = Pattern.compile(
+                "<groupId>io.micrometer</groupId>\\s+<artifactId>[a-zA-Z-_.]+</artifactId>\\s+<version>(.*)</version>",
+                Pattern.MULTILINE)
+              .matcher(after);
+            assertThat(matcher.find()).isTrue();
+            String version = matcher.group(1);
+            //language=xml
+            return fmt.formatted(version);
+        });
+    }
+
 
     @Test
     void migrateSleuthStarter() {
         rewriteRun(
           mavenProject("project",
-            //language=xml
             pomXml(
+              //language=xml
               """
                     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -70,7 +92,7 @@ public class MigrateProjectTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              """
+              withDynamicMicrometerVersion("""
                     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -89,11 +111,11 @@ public class MigrateProjectTest implements RewriteTest {
                         <dependency>
                             <groupId>io.micrometer</groupId>
                             <artifactId>micrometer-tracing-bridge-brave</artifactId>
-                            <version>1.0.4</version>
+                            <version>%s</version>
                         </dependency>
                     </dependencies>
                 </project>
-                """
+                """)
             )
           )
         );
@@ -146,7 +168,7 @@ public class MigrateProjectTest implements RewriteTest {
                 """,
                 """
                   import io.micrometer.tracing.annotation.NewSpan;
-  
+                  
                   class A {
                       @NewSpan
                       void m() {
@@ -181,7 +203,7 @@ public class MigrateProjectTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              """
+              withDynamicMicrometerVersion("""
                     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -200,7 +222,7 @@ public class MigrateProjectTest implements RewriteTest {
                         <dependency>
                             <groupId>io.micrometer</groupId>
                             <artifactId>micrometer-tracing</artifactId>
-                            <version>1.0.4</version>
+                            <version>%s</version>
                         </dependency>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -214,7 +236,7 @@ public class MigrateProjectTest implements RewriteTest {
                         </dependency>
                     </dependencies>
                 </project>
-                """
+                """)
             )
           )
         );
