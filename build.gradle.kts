@@ -101,6 +101,9 @@ recipeDependencies {
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-autoconfigure:3.1.+")
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-instrumentation:3.1.+")
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-brave:3.1.+")
+
+    parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
+    parserClasspath("net.minidev:json-smart")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -227,6 +230,8 @@ dependencies {
     "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-web:5.8.+")
     "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-ldap:5.8.+")
     "testWithSpringSecurity_5_8RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("com.nimbusds:nimbus-jose-jwt:9.13")
+    "testWithSpringSecurity_5_8RuntimeOnly"("net.minidev:json-smart")
 }
 
 
