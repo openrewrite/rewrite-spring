@@ -52,11 +52,12 @@ public class EnvironmentAcceptsProfiles extends Recipe {
             if (MATCHER.matches(method)) {
                 maybeAddImport("org.springframework.core.env.Profiles");
                 String template = "Profiles.of(" + method.getArguments().stream().map(a -> "#{any(java.lang.String)}").collect(Collectors.joining(",")) + ")";
-                method = method.withTemplate(JavaTemplate.builder(this::getCursor, template)
+                method = method.withTemplate(JavaTemplate.builder(template)
                                 .imports("org.springframework.core.env.Profiles", "org.springframework.core.env.Environment")
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpathFromResources(ctx, "spring-core-5.*"))
                                 .build(),
+                        getCursor(),
                         method.getCoordinates().replaceArguments(),
                         method.getArguments().toArray()
                 );

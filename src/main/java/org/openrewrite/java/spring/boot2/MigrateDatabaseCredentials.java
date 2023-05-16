@@ -72,6 +72,11 @@ public class MigrateDatabaseCredentials extends Recipe {
         }
 
         @Override
+        public String getDescription() {
+            return "Migrate " + tool + " credentials.";
+        }
+
+        @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return Preconditions.check(new YamlVisitor<ExecutionContext>() {
                 @Override
@@ -103,6 +108,11 @@ public class MigrateDatabaseCredentials extends Recipe {
         @Override
         public String getDisplayName() {
             return "Migrate " + tool + " credentials";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Migrate " + tool + " credentials.";
         }
 
         @Override

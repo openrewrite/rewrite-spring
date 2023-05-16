@@ -75,7 +75,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
 
                     J.FieldAccess entityPathResolver = TypeTree.build("SimpleEntityPathResolver.INSTANCE");
                     return newClass.withTemplate(
-                            JavaTemplate.builder(this::getCursor, template)
+                            JavaTemplate.builder(template)
                                     .imports(targetFqn)
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx,
@@ -84,6 +84,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                                                     "spring-data-jpa-2.*"
                                             ))
                                     .build(),
+                            getCursor(),
                             newClass.getCoordinates().replace(),
                             newClass.getArguments().get(0),
                             newClass.getArguments().get(1),

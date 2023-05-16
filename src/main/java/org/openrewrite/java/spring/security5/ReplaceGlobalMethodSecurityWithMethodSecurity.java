@@ -68,8 +68,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                         newArgs.add(buildPrePostEnabledAssignedToFalse());
                     }
 
-                    JavaTemplate enableMethodSecurityTemplate = JavaTemplate.builder(this::getCursor,
-                                    "@EnableMethodSecurity")
+                    JavaTemplate enableMethodSecurityTemplate = JavaTemplate.builder("@EnableMethodSecurity")
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-security-config-5.8.+"))
                             .imports(EnableMethodSecurityFqn)
@@ -77,7 +76,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
 
                     maybeAddImport(EnableMethodSecurityFqn);
                     maybeRemoveImport(EnableGlobalMethodSecurityFqn);
-                    annotation = annotation.withTemplate(enableMethodSecurityTemplate, annotation.getCoordinates().replace());
+                    annotation = annotation.withTemplate(enableMethodSecurityTemplate, getCursor(), annotation.getCoordinates().replace());
                     return autoFormat(annotation.withArguments(newArgs), ctx);
                 }
                 return annotation;

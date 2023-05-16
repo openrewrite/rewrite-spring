@@ -352,20 +352,21 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             }
 
             private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod) {
-                JavaTemplate template = JavaTemplate.builder(this::getCursor, "return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
+                JavaTemplate template = JavaTemplate.builder("return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
+                        .context(getCursor())
                         .javaParser(JavaParser.fromJavaVersion()
                                 .dependsOn("package org.springframework.security.config.annotation;" +
                                         "public interface SecurityBuilder<O> {\n" +
                                         "    O build() throws Exception;" +
                                         "}")).imports("org.springframework.security.config.annotation.SecurityBuilder").build();
-                return b.withTemplate(template, b.getCoordinates().lastStatement(),
+                return b.withTemplate(template, getCursor(), b.getCoordinates().lastStatement(),
                         ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName());
             }
 
             private J.Block handleWebSecurity(J.Block b, J.MethodDeclaration parentMethod) {
                 String t = "return (" + ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName().getSimpleName() + ") -> #{any()};";
-                JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(JavaParser.fromJavaVersion()).build();
-                b = b.withTemplate(template, b.getCoordinates().firstStatement(), b);
+                JavaTemplate template = JavaTemplate.builder(t).context(getCursor()).javaParser(JavaParser.fromJavaVersion()).build();
+                b = b.withTemplate(template, getCursor(), b.getCoordinates().firstStatement(), b);
                 return b.withStatements(ListUtils.map(b.getStatements(), (index, stmt) -> {
                     if (index == 0) {
                         return stmt;
@@ -405,7 +406,9 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         t = "return new InMemoryUserDetailsManager();";
                         b = SearchResult.found(b, "Unrecognized type of user expression " + userExpr + "\n.Please correct manually");
                 }
-                JavaTemplate template = JavaTemplate.builder(this::getCursor, t).javaParser(JavaParser.fromJavaVersion()
+                JavaTemplate template = JavaTemplate.builder(t)
+                        .context(getCursor())
+                        .javaParser(JavaParser.fromJavaVersion()
                                 .dependsOn(
 
                                         "package org.springframework.security.core.userdetails;\n" +
@@ -431,7 +434,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 allExcetLastStatements.remove(b.getStatements().size() - 1);
                 b = b
                         .withStatements(allExcetLastStatements)
-                        .withTemplate(template, b.getCoordinates().lastStatement(), templateParams);
+                        .withTemplate(template, getCursor(), b.getCoordinates().lastStatement(), templateParams);
                 maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
                 maybeRemoveImport(FQN_AUTH_MANAGER_BUILDER);
                 return b;
@@ -439,9 +442,9 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
             private J.MethodDeclaration addBeanAnnotation(J.MethodDeclaration m, Cursor c) {
                 maybeAddImport(FQN_BEAN);
-                JavaTemplate template = JavaTemplate.builder(() -> c, BEAN_ANNOTATION).imports(FQN_BEAN).javaParser(JavaParser.fromJavaVersion()
+                JavaTemplate template = JavaTemplate.builder(BEAN_ANNOTATION).imports(FQN_BEAN).javaParser(JavaParser.fromJavaVersion()
                         .dependsOn("package " + BEAN_PKG + "; public @interface " + BEAN_SIMPLE_NAME + " {}")).build();
-                return m.withTemplate(template, m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                return m.withTemplate(template, c, m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
             }
 
 

@@ -78,7 +78,7 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
                     newClass = (J.NewClass) j;
                     if (DEFAULT_CONSTRUCTOR_MATCHER.matches(newClass)) {
                         maybeAddImport(ARGON2_PASSWORD_ENCODER_CLASS);
-                        return newClass.withTemplate(newV52FactoryMethodTemplate(ctx), newClass.getCoordinates().replace());
+                        return newClass.withTemplate(newV52FactoryMethodTemplate(ctx), getCursor(), newClass.getCoordinates().replace());
                     } else {
                         List<Expression> arguments = newClass.getArguments();
                         if (FULL_CONSTRUCTOR_MATCHER.matches(newClass)) {
@@ -93,13 +93,13 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
                                     && resolvedValueMatchesLiteral(parallelism, DEFAULT_PARALLELISM)
                                     && resolvedValueMatchesLiteral(memory, DEFAULT_MEMORY)
                                     && resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS)) {
-                                return newClass.withTemplate(newV58FactoryMethodTemplate(ctx), newClass.getCoordinates().replace());
+                                return newClass.withTemplate(newV58FactoryMethodTemplate(ctx), getCursor(), newClass.getCoordinates().replace());
                             } else if (resolvedValueMatchesLiteral(saltLength, DEFAULT_V52_SALT_LENGTH)
                                     && resolvedValueMatchesLiteral(hashLength, DEFAULT_V52_HASH_LENGTH)
                                     && resolvedValueMatchesLiteral(parallelism, DEFAULT_V52_PARALLELISM)
                                     && resolvedValueMatchesLiteral(memory, DEFAULT_V52_MEMORY)
                                     && resolvedValueMatchesLiteral(iterations, DEFAULT_V52_ITERATIONS)) {
-                                return newClass.withTemplate(newV52FactoryMethodTemplate(ctx), newClass.getCoordinates().replace());
+                                return newClass.withTemplate(newV52FactoryMethodTemplate(ctx), getCursor(), newClass.getCoordinates().replace());
                             }
                         }
                     }
@@ -113,7 +113,7 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
             }
 
             private JavaTemplate newV52FactoryMethodTemplate(ExecutionContext ctx) {
-                return JavaTemplate.builder(this::getCursor, "Argon2PasswordEncoder.defaultsForSpringSecurity_v5_2()")
+                return JavaTemplate.builder("Argon2PasswordEncoder.defaultsForSpringSecurity_v5_2()")
                         .imports(ARGON2_PASSWORD_ENCODER_CLASS)
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
@@ -121,7 +121,7 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
             }
 
             private JavaTemplate newV58FactoryMethodTemplate(ExecutionContext ctx) {
-                return JavaTemplate.builder(this::getCursor, "Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8()")
+                return JavaTemplate.builder("Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8()")
                         .imports(ARGON2_PASSWORD_ENCODER_CLASS)
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))

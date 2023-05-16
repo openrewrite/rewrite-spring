@@ -252,11 +252,13 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             if (maybeMarker.isPresent()) {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = m.withTemplate(
-                        JavaTemplate.builder(this::getCursor, marker.templateString)
+                        JavaTemplate.builder(marker.templateString)
+                                .context(getCursor())
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpathFromResources(ctx, "spring-boot-test-2.*"))
                                 .imports("org.springframework.boot.test.util.TestPropertyValues")
                                 .build(),
+                        getCursor(),
                         m.getCoordinates().replace(),
                         marker.parameters.toArray()
                 );

@@ -51,11 +51,12 @@ public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
                         if (connectionTimeout.matches(method) || readTimeout.matches(method)) {
                             m = m.withTemplate(
                                     JavaTemplate
-                                            .builder(this::getCursor, "Duration.ofMillis(#{any(int)})")
+                                            .builder("Duration.ofMillis(#{any(int)})")
                                             .imports("java.time.Duration")
                                             .javaParser(JavaParser.fromJavaVersion()
                                                     .classpathFromResources(ctx, "spring-boot-2.*"))
                                             .build(),
+                                    getCursor(),
                                     m.getCoordinates().replaceArguments(),
                                     m.getArguments().get(0));
                             maybeAddImport("java.time.Duration");

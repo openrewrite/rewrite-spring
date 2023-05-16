@@ -128,6 +128,11 @@ public class UseTlsJdbcConnectionString extends Recipe {
             return "Use TLS for JDBC connection strings";
         }
 
+        @Override
+        public String getDescription() {
+            return "Use TLS for JDBC connection strings.";
+        }
+
         private TreeVisitor<?, ExecutionContext> precondition() {
             return new YamlVisitor<ExecutionContext>() {
                 @Override
@@ -188,6 +193,11 @@ public class UseTlsJdbcConnectionString extends Recipe {
         @Override
         public String getDisplayName() {
             return "Use TLS for JDBC connection strings";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Use TLS for JDBC connection strings.";
         }
 
         private TreeVisitor<?, ExecutionContext> precondition() {

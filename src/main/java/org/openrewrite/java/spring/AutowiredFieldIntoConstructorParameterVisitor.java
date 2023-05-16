@@ -108,7 +108,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
     @Override
     public J visitVariableDeclarations(VariableDeclarations multiVariable, ExecutionContext p) {
         Cursor blockCursor = getCursor().dropParentUntil(it -> it instanceof J.Block || it == Cursor.ROOT_VALUE);
-        if(!(blockCursor.getValue() instanceof J.Block)) {
+        if (!(blockCursor.getValue() instanceof J.Block)) {
             return multiVariable;
         }
         VariableDeclarations mv = multiVariable;
@@ -161,19 +161,19 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                     ClassDeclaration classDecl = (ClassDeclaration) n;
                     JavaType.FullyQualified typeFqn = TypeUtils.asFullyQualified(type.getType());
                     if (typeFqn != null && classDecl.getKind() == ClassDeclaration.Kind.Type.Class && className.equals(classDecl.getSimpleName())) {
-                        JavaTemplate.Builder template = JavaTemplate.builder(this::getCursor, ""
+                        JavaTemplate.Builder template = JavaTemplate.builder(""
                                 + classDecl.getSimpleName() + "(" + typeFqn.getClassName() + " " + fieldName + ") {\n"
                                 + "this." + fieldName + " = " + fieldName + ";\n"
                                 + "}\n"
-                        );
+                        ).context(getCursor());
                         FullyQualified fq = TypeUtils.asFullyQualified(type.getType());
                         if (fq != null) {
                             template.imports(fq.getFullyQualifiedName());
                             maybeAddImport(fq);
                         }
                         Optional<Statement> firstMethod = block.getStatements().stream().filter(MethodDeclaration.class::isInstance).findFirst();
-                        return firstMethod.map(statement -> (J) block.withTemplate(template.build(), statement.getCoordinates().before()))
-                                .orElseGet(() -> block.withTemplate(template.build(), block.getCoordinates().lastStatement()));
+                        return firstMethod.map(statement -> (J) block.withTemplate(template.build(), getCursor(), statement.getCoordinates().before()))
+                                .orElseGet(() -> block.withTemplate(template.build(), getCursor(), block.getCoordinates().lastStatement()));
                     }
                 }
             }
@@ -205,12 +205,12 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 String paramsStr = Stream.concat(params.stream()
                         .map(s -> "#{}"), Stream.of(methodType + " " + fieldName)).collect(Collectors.joining(", "));
 
-                JavaTemplate.Builder paramsTemplate = JavaTemplate.builder(this::getCursor, paramsStr);
-                md = md.withTemplate(paramsTemplate.build(), md.getCoordinates().replaceParameters(), params.toArray());
+                JavaTemplate.Builder paramsTemplate = JavaTemplate.builder(paramsStr).context(getCursor());
+                md = md.withTemplate(paramsTemplate.build(), getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
 
-                JavaTemplate.Builder statementTemplate = JavaTemplate.builder(this::getCursor, "this." + fieldName + " = " + fieldName + ";");
+                JavaTemplate.Builder statementTemplate = JavaTemplate.builder("this." + fieldName + " = " + fieldName + ";").context(getCursor());
                 //noinspection ConstantConditions
-                md = md.withTemplate(statementTemplate.build(), md.getBody().getCoordinates().lastStatement());
+                md = md.withTemplate(statementTemplate.build(), getCursor(), md.getBody().getCoordinates().lastStatement());
             }
             return md;
         }

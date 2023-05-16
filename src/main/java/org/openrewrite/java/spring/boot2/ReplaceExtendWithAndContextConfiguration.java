@@ -119,7 +119,8 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
 
                     private J.Assignment createLocationsAssignment(J.Annotation annotation, Expression value) {
                         return (J.Assignment) ((J.Annotation) annotation.withTemplate(
-                                JavaTemplate.builder(this::getCursor, "locations = #{any(String)}").build(),
+                                JavaTemplate.builder("locations = #{any(String)}").context(getCursor()).build(),
+                                getCursor(),
                                 annotation.getCoordinates().replaceArguments(),
                                 value
                         )).getArguments().get(0);

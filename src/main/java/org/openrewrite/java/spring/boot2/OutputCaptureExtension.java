@@ -90,14 +90,14 @@ public class OutputCaptureExtension extends Recipe {
                 })));
 
                 if (classDecl.getBody().getStatements().size() != c.getBody().getStatements().size()) {
-                    JavaTemplate addOutputCaptureExtension = JavaTemplate.builder(this::getCursor, "@ExtendWith(OutputCaptureExtension.class)")
+                    JavaTemplate addOutputCaptureExtension = JavaTemplate.builder("@ExtendWith(OutputCaptureExtension.class)")
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                             .imports("org.junit.jupiter.api.extension.ExtendWith",
                                     "org.springframework.boot.test.system.OutputCaptureExtension")
                             .build();
 
-                    c = c.withTemplate(addOutputCaptureExtension, c.getCoordinates()
+                    c = c.withTemplate(addOutputCaptureExtension, getCursor(), c.getCoordinates()
                             .addAnnotation(Comparator.comparing(
                                     J.Annotation::getSimpleName,
                                     new RuleBasedCollator("< ExtendWith")
@@ -134,11 +134,12 @@ public class OutputCaptureExtension extends Recipe {
                 return m;
             }
 
-            JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
+            JavaTemplate matchesTemplate = JavaTemplate.builder("#{any()}.matches(#{}.getAll())")
+                    .context(getCursor())
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                     .build();
-            m = m.withTemplate(matchesTemplate, m.getCoordinates().replace(), m.getArguments().get(0), variableName);
+            m = m.withTemplate(matchesTemplate, getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), variableName);
             return m;
         }
     }

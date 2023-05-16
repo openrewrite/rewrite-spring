@@ -62,12 +62,14 @@ public class MigrateJobBuilderFactory extends Recipe {
                     doAfterVisit(new MigrateJobBuilderFactory.RemoveJobBuilderFactoryVisitor(clazz, enclosingMethod));
 
                     return method.withTemplate(JavaTemplate
-                                    .builder(() -> getCursor().getParentTreeCursor(), "new JobBuilder(#{any(java.lang.String)}, jobRepository)")
+                                    .builder("new JobBuilder(#{any(java.lang.String)}, jobRepository)")
+                                    .context(getCursor())
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-batch-core-5.0.0"))
                                     .imports("org.springframework.batch.core.repository.JobRepository",
                                             "org.springframework.batch.core.job.builder.JobBuilder")
                                     .build(),
+                            getCursor(),
                             method.getCoordinates().replace(),
                             method.getArguments().get(0));
                 }
@@ -129,7 +131,8 @@ public class MigrateJobBuilderFactory extends Recipe {
             }
 
             JavaTemplate paramsTemplate = JavaTemplate
-                    .builder(this::getCursor, params.stream().map(p -> "#{}").collect(Collectors.joining(", ")))
+                    .builder(params.stream().map(p -> "#{}").collect(Collectors.joining(", ")))
+                    .context(getCursor())
                     .imports("org.springframework.batch.core.repository.JobRepository",
                             "org.springframework.batch.core.job.builder.JobBuilder",
                             "org.springframework.batch.core.Step")
@@ -137,7 +140,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                             .classpathFromResources(ctx, "spring-batch-core-5.0.0"))
                     .build();
 
-            md = md.withTemplate(paramsTemplate, md.getCoordinates().replaceParameters(), params.toArray());
+            md = md.withTemplate(paramsTemplate, getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
 
             maybeRemoveImport("org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
             maybeAddImport("org.springframework.batch.core.repository.JobRepository");

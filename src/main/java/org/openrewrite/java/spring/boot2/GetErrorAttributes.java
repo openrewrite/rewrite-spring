@@ -70,31 +70,37 @@ public class GetErrorAttributes extends Recipe {
                 Expression includeStackTraceArgument = mi.getArguments().get(1);
                 if (isLiteralTrue(includeStackTraceArgument)) {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE)";
-                    mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, template)
+                    mi = mi.withTemplate(JavaTemplate.builder(template)
+                                    .context(getCursor())
                                     .imports(parserImports)
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*"))
                                     .build(),
+                            getCursor(),
                             mi.getCoordinates().replaceArguments(),
                             mi.getArguments().get(0)
                     );
                 } else if (isLiteralFalse(includeStackTraceArgument)) {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, ErrorAttributeOptions.defaults()";
-                    mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, template)
+                    mi = mi.withTemplate(JavaTemplate.builder(template)
+                                    .context(getCursor())
                                     .imports(parserImports)
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*"))
                                     .build(),
+                            getCursor(),
                             mi.getCoordinates().replaceArguments(),
                             mi.getArguments().get(0)
                     );
                 } else if (!(mi.getArguments().get(1) instanceof J.Ternary)) {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, #{any(boolean)} ? ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE) : ErrorAttributeOptions.defaults()";
-                    mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, template)
+                    mi = mi.withTemplate(JavaTemplate.builder(template)
+                                    .context(getCursor())
                                     .imports(parserImports)
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*"))
                                     .build(),
+                            getCursor(),
                             mi.getCoordinates().replaceArguments(),
                             mi.getArguments().toArray()
                     );

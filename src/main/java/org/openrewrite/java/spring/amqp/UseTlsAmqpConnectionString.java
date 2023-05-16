@@ -93,7 +93,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         String actualPropertyKey = propertyKey == null ? "spring.rabbitmq.addresses" : propertyKey;
         String actualTlsPropertyKey = tlsPropertyKey == null ? "spring.rabbitmq.ssl.enabled" : tlsPropertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
@@ -162,8 +162,13 @@ public class UseTlsAmqpConnectionString extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-            return new YamlVisitor<ExecutionContext>() {
+        public String getDescription() {
+            return "Use TLS for AMQP connection strings.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(new YamlVisitor<ExecutionContext>() {
                 @Override
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                     if (!FindProperty.find(documents, propertyKey, true).isEmpty()) {
@@ -171,12 +176,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     }
                     return documents;
                 }
-            };
-        }
-
-        @Override
-        protected TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new YamlIsoVisitor<ExecutionContext>() {
+            }, new YamlIsoVisitor<ExecutionContext>() {
                 final JsonPathMatcher amqpUrl = new JsonPathMatcher("$." + propertyKey);
 
                 @Override
@@ -233,7 +233,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     }
                     return e;
                 }
-            };
+            });
         }
     }
 
@@ -259,8 +259,13 @@ public class UseTlsAmqpConnectionString extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-            return new PropertiesVisitor<ExecutionContext>() {
+        public String getDescription() {
+            return "Use TLS for AMQP connection strings.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(new PropertiesVisitor<ExecutionContext>() {
                 @Override
                 public Properties visitFile(Properties.File file, ExecutionContext ctx) {
                     if (!FindProperties.find(file, propertyKey, true).isEmpty()) {
@@ -268,12 +273,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     }
                     return file;
                 }
-            };
-        }
-
-        @Override
-        protected TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new PropertiesIsoVisitor<ExecutionContext>() {
+            }, new PropertiesIsoVisitor<ExecutionContext>() {
                 @Override
                 public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
                     Properties.Entry e = super.visitEntry(entry, ctx);
@@ -328,7 +328,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     }
                     return e;
                 }
-            };
+            });
         }
     }
 

@@ -56,6 +56,11 @@ public class PropertiesToKebabCase extends Recipe {
         }
 
         @Override
+        public String getDescription() {
+            return "Normalize Spring `application*.{yml,yaml}` properties to kebab-case.";
+        }
+
+        @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return Preconditions.check(new HasSourcePath<>("**/application*.{yml,yaml}"), new YamlIsoVisitor<ExecutionContext>() {
                 @Override
@@ -79,6 +84,11 @@ public class PropertiesToKebabCase extends Recipe {
         @Override
         public String getDisplayName() {
             return "Normalize Spring `application*.properties` properties to kebab-case";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Normalize Spring `application*.properties` properties to kebab-case.";
         }
 
         @Override

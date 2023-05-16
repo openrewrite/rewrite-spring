@@ -56,21 +56,23 @@ public class MigrateMultipartConfigFactory extends Recipe {
                         if (setMaxFileSizeByLong.matches(m) || setMaxRequestSizeByLong.matches(m) || setFileSizeThresholdByInt.matches(m)) {
                             m = m.withTemplate(
                                     JavaTemplate
-                                            .builder(this::getCursor, "DataSize.ofBytes(#{any()})")
+                                            .builder("DataSize.ofBytes(#{any()})")
                                             .imports("org.springframework.util.unit.DataSize")
                                             .javaParser(JavaParser.fromJavaVersion()
                                                     .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
                                             .build(),
+                                    getCursor(),
                                     m.getCoordinates().replaceArguments(),
                                     m.getArguments().get(0));
                         } else if (setMaxFileSizeByString.matches(m) || setMaxRequestSizeByString.matches(m) || setFileSizeThresholdByString.matches(m)) {
                             m = m.withTemplate(
                                     JavaTemplate
-                                            .builder(this::getCursor, "DataSize.parse(#{any(java.lang.String)})")
+                                            .builder("DataSize.parse(#{any(java.lang.String)})")
                                             .imports("org.springframework.util.unit.DataSize")
                                             .javaParser(JavaParser.fromJavaVersion()
                                                     .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
                                             .build(),
+                                    getCursor(),
                                     m.getCoordinates().replaceArguments(),
                                     m.getArguments().get(0));
                         }

@@ -271,7 +271,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
             J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
             if (c.getType() != null && fullyQualifiedConfigClasses.contains(c.getType().getFullyQualifiedName())) {
-                JavaTemplate addAnnotationTemplate = JavaTemplate.builder(this::getCursor, "@AutoConfiguration")
+                JavaTemplate addAnnotationTemplate = JavaTemplate.builder("@AutoConfiguration")
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-boot-autoconfigure-2.7.*"))
                         .imports("org.springframework.boot.autoconfigure.AutoConfiguration")
@@ -279,7 +279,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
 
                 doAfterVisit(new RemoveAnnotation("@org.springframework.context.annotation.Configuration"));
 
-                c = c.withTemplate(addAnnotationTemplate, c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                c = c.withTemplate(addAnnotationTemplate, getCursor(), c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                 maybeAddImport("org.springframework.boot.autoconfigure.AutoConfiguration");
             }
             return c;

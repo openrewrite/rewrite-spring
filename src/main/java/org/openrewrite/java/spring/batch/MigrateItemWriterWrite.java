@@ -75,13 +75,13 @@ public class MigrateItemWriterWrite extends Recipe {
                 // method to ensure that type info is accurate / List import can potentially be removed
                 // See: https://github.com/openrewrite/rewrite/issues/2819
                 m = m.withTemplate(
-                        JavaTemplate.builder(
-                                        () -> getCursor().getParentTreeCursor(),
-                                        "#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
+                        JavaTemplate.builder("#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
+                                .context(getCursor())
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpathFromResources(ctx, "spring-batch-core-5.0.0", "spring-batch-infrastructure-5.0.0"))
                                 .imports("org.springframework.batch.item.Chunk")
                                 .build(),
+                        getCursor(),
                         m.getCoordinates().replace(),
                         annotationsWithOverride,
                         m.getModifiers().stream()
