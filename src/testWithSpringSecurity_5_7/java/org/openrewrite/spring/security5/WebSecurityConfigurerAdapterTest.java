@@ -217,7 +217,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void overideUnapplicableMethod() {
+    void overrideUnapplicableMethod() {
         //language=java
         rewriteRun(
           java(
