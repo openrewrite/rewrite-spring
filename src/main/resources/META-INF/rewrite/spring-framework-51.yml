@@ -13,15 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
----
 ########################################################################################################################
 # Spring Framework 5.1
+---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_1
 displayName: Migrate to Spring Framework 5.1
 description: Migrate applications to the latest Spring Framework 5.1 release.
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_0
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_1_Only
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_1_Only
+displayName: Migrate to Spring Framework 5.1 from 5.0
+description: Applies any migrations specific to the Spring Framework 5.1 release, without any migrations from older releases.
+recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
       newVersion: 5.1.x
   - org.openrewrite.java.spring.framework.EnvironmentAcceptsProfiles

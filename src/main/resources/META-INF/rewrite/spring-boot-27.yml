@@ -23,6 +23,14 @@ displayName: Migrate to Spring Boot 2.7
 description: 'Upgrade to Spring Boot 2.7'
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7_Only
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7_Only
+displayName: Migrate to Spring Boot 2.7 from 2.6
+description: 'Upgrade to Spring Boot 2.7 from 2.6'
+recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"

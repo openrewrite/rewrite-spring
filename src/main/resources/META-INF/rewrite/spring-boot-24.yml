@@ -30,7 +30,19 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
-  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4_Only
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4_Only
+displayName: Migrate to Spring Boot 2.4
+description: >
+  Applies any migrations specific to the Spring Boot 2.4 release, without any migrations from older releases.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3_Only
   - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot

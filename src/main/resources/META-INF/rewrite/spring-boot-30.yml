@@ -27,6 +27,18 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
+  - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_3_0_Only
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0_Only
+displayName: Migrate to Spring Boot 3.0 from 2.7
+description: >
+  Applies any migrations specific to the Spring Boot 3.0 release, without any migrations from older releases.
+tags:
+  - spring
+  - boot
+recipeList:
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
   - org.openrewrite.java.spring.boot3.MavenPomUpgrade
   - org.openrewrite.java.migrate.UpgradeToJava17

@@ -23,6 +23,14 @@ displayName: Migrate to Spring Data 2.5
 description: Migrate applications to the latest Spring Data 2.5 release.
 recipeList:
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_3
+  - org.openrewrite.java.spring.data.UpgradeSpringData_2_5_Only
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.data.UpgradeSpringData_2_5_Only
+displayName: Migrate to Spring Data 2.5 from 2.3
+description: Applies any migrations specific to the Spring Data 2.3 release, without any migrations from older releases.
+recipeList:
   - org.openrewrite.java.spring.data.UseJpaRepositoryGetById
   - org.openrewrite.java.spring.data.UseJpaRepositoryDeleteAllInBatch
 ---

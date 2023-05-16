@@ -26,6 +26,18 @@ tags:
   - security
 recipeList:
   - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
+  - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_6_0_Only
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0_Only
+displayName: Migrate to Spring Security 6.0 from 5.8
+description: >
+  Applies any migrations specific to the Spring Security 6.0 release, without any migrations from older releases.
+tags:
+  - spring
+  - security
+recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: "*"
