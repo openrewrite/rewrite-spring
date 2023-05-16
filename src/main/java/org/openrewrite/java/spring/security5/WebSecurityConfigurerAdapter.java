@@ -432,10 +432,10 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                 ))
                         .imports(FQN_INMEMORY_AUTH_MANAGER, FQN_USER_DETAILS_BUILDER, FQN_USER)
                         .build();
-                List<Statement> allExcetLastStatements = b.getStatements();
-                allExcetLastStatements.remove(b.getStatements().size() - 1);
+                List<Statement> allExceptLastStatements = b.getStatements();
+                allExceptLastStatements.remove(b.getStatements().size() - 1);
                 b = b
-                        .withStatements(allExcetLastStatements)
+                        .withStatements(allExceptLastStatements)
                         .withTemplate(template, b.getCoordinates().lastStatement(), templateParams);
                 maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
                 maybeRemoveImport(FQN_AUTH_MANAGER_BUILDER);
