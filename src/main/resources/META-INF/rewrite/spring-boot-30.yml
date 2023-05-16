@@ -38,6 +38,7 @@ description: >
 tags:
   - spring
   - boot
+  - hidden
 recipeList:
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
   - org.openrewrite.java.spring.boot3.MavenPomUpgrade

@@ -41,6 +41,7 @@ description: >
 tags:
   - spring
   - boot
+  - hidden
 recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.boot

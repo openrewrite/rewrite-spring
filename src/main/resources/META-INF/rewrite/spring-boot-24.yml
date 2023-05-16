@@ -41,6 +41,7 @@ description: >
 tags:
   - spring
   - boot
+  - hidden
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3_Only
   - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration

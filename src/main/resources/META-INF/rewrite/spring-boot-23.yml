@@ -41,6 +41,7 @@ description: >
 tags:
   - spring
   - boot
+  - hidden
 recipeList:
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_3
   - org.openrewrite.maven.UpgradeDependencyVersion:

@@ -37,6 +37,7 @@ description: >
 tags:
   - spring
   - security
+  - hidden
 recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: org.springframework.security
