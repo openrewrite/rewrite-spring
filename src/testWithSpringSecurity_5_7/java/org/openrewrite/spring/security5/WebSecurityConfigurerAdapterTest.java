@@ -168,7 +168,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void configurAuthManagerMethod() {
+    void configureAuthManagerMethod() {
         //language=java
         rewriteRun(
           java(
