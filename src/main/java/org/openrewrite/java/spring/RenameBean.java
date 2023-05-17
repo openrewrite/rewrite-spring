@@ -55,7 +55,7 @@ public class RenameBean extends Recipe {
 
     private static final String QUALIFIER = "org.springframework.beans.factory.annotation.Qualifier";
 
-    private static final Set<String> JUST_QUALIFER = Collections.singleton(QUALIFIER);
+    private static final Set<String> JUST_QUALIFIER = Collections.singleton(QUALIFIER);
 
     private static final Set<String> BEAN_METHOD_ANNOTATIONS = new HashSet<String>() {{
         add(QUALIFIER);
@@ -224,7 +224,7 @@ public class RenameBean extends Recipe {
                     J.VariableDeclarations varDecls = (J.VariableDeclarations) statement;
                     for (J.VariableDeclarations.NamedVariable namedVar : varDecls.getVariables()) {
                         if (namedVar.getType() != null && TypeUtils.isOfClassType(namedVar.getType(), type)) {
-                            maybeRenameBean(varDecls.getAllAnnotations(), JUST_QUALIFER);
+                            maybeRenameBean(varDecls.getAllAnnotations(), JUST_QUALIFIER);
                             break;
                         }
                     }

@@ -25,7 +25,7 @@ import static org.openrewrite.maven.Assertions.pomXml;
 class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
 
     @Test
-    void shouldUpdateExplicitDepenciesTo30() {
+    void shouldUpdateExplicitDependenciesTo30() {
         rewriteRun(
           spec -> spec.recipe(new UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3"))
             .expectedCyclesThatMakeChanges(1),

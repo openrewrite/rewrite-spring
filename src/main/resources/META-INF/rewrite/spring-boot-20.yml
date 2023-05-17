@@ -54,7 +54,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
-  - org.openrewrite.java.spring.boot2.MigrateHibernateContraintsToJavax
+  - org.openrewrite.java.spring.boot2.MigrateHibernateConstraintsToJavax
   - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
@@ -67,7 +67,7 @@ description: >
   Use `WebServerFactoryCustomizer` instead of the deprecated `EmbeddedServletContainerCustomizer` in
   Spring Boot 2.0 or higher. This recipe will replace look for any classes that implement `EmbeddedServletContainerCustomizer`
   and change the interface to `WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>`. This recipe also adjusts
-  the the types used in the `customize()` method from `*EmbeddedServletContainerFactory` to their `*ServletWebServerFactory`
+  the types used in the `customize()` method from `*EmbeddedServletContainerFactory` to their `*ServletWebServerFactory`
   counterparts.
 
 recipeList:
@@ -118,7 +118,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.MigrateHibernateContraintsToJavax
+name: org.openrewrite.java.spring.boot2.MigrateHibernateConstraintsToJavax
 displayName: Use `javax.validation.constraints`
 description: Use `javax.validation.constraints` instead of the deprecated `org.hibernate.validator.constraints` in Spring Boot 2.0 or higher.
 recipeList:

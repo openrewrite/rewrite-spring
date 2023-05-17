@@ -146,7 +146,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                             classesToFlatten = new ArrayList<>();
                             enclosingClassCursor.putMessage(FLATTEN_CLASSES, classesToFlatten);
                         }
-                        // only applicable to former subclasses of WebSecurityConfigurereAdapter - other classes won't be flattened
+                        // only applicable to former subclasses of WebSecurityConfigurerAdapter - other classes won't be flattened
                         classesToFlatten.add(classDecl);
                         // Remove imports for annotations being removed together with class declaration
                         // It is impossible in the general case to tell whether some of these annotations might apply to the bean methods
@@ -432,10 +432,10 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                 ))
                         .imports(FQN_INMEMORY_AUTH_MANAGER, FQN_USER_DETAILS_BUILDER, FQN_USER)
                         .build();
-                List<Statement> allExcetLastStatements = b.getStatements();
-                allExcetLastStatements.remove(b.getStatements().size() - 1);
+                List<Statement> allExceptLastStatements = b.getStatements();
+                allExceptLastStatements.remove(b.getStatements().size() - 1);
                 b = b
-                        .withStatements(allExcetLastStatements)
+                        .withStatements(allExceptLastStatements)
                         .withTemplate(template, b.getCoordinates().lastStatement(), templateParams);
                 maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
                 maybeRemoveImport(FQN_AUTH_MANAGER_BUILDER);

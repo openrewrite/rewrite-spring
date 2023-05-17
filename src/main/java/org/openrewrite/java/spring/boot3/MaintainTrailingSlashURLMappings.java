@@ -26,8 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MaintainTrailingSlashURLMappings extends Recipe {
 
-    private static final String WEB_MVC_CONFIGUER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
-    private static final String WEB_FLUX_CONFIGUER = "org.springframework.web.reactive.config.WebFluxConfigurer";
+    private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
+    private static final String WEB_FLUX_CONFIGURER = "org.springframework.web.reactive.config.WebFluxConfigurer";
 
     @Override
     public String getDisplayName() {
@@ -79,8 +79,8 @@ public class MaintainTrailingSlashURLMappings extends Recipe {
                 for (TypeTree impl : classDecl.getImplements()) {
                     JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
                     if (fullyQualified != null &&
-                        (WEB_MVC_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()) ||
-                         WEB_FLUX_CONFIGUER.equals(fullyQualified.getFullyQualifiedName()))
+                        (WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()) ||
+                         WEB_FLUX_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()))
                     ) {
                         atomicBoolean.set(true);
                         return classDecl;
