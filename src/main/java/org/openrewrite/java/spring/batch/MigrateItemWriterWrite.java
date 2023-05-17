@@ -86,7 +86,7 @@ public class MigrateItemWriterWrite extends Recipe {
                                         () -> getCursor().getParentTreeCursor(),
                                         "#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
                                 .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-batch-core-5.0.0", "spring-batch-infrastructure-5.0.0"))
+                                        .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                                 .imports("org.springframework.batch.item.Chunk")
                                 .build(),
                         m.getCoordinates().replace(),
