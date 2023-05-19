@@ -26,7 +26,7 @@ tags:
   - security
 recipeList:
   - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
-  - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_6_0_Only
+  - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0_Only
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
