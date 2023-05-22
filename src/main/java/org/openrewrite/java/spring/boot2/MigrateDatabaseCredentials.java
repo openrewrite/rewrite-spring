@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.Value;
 import org.intellij.lang.annotations.Language;
 import org.openrewrite.ExecutionContext;
@@ -35,6 +36,8 @@ import org.openrewrite.yaml.tree.Yaml;
 import java.util.Arrays;
 import java.util.List;
 
+@Value
+@EqualsAndHashCode(callSuper = false)
 public class MigrateDatabaseCredentials extends Recipe {
 
     @Override
@@ -50,15 +53,13 @@ public class MigrateDatabaseCredentials extends Recipe {
                 "provided their own `DataSource` beans.";
     }
 
-    @Override
-    public List<Recipe> getRecipeList() {
-        return Arrays.asList(
-                new MigrateDatabaseCredentialsForToolYaml("flyway"),
-                new MigrateDatabaseCredentialsForToolProperties("flyway"),
-                new MigrateDatabaseCredentialsForToolYaml("liquibase"),
-                new MigrateDatabaseCredentialsForToolProperties("liquibase")
-        );
-    }
+    @Getter(lazy = true)
+    List<Recipe> recipeList = Arrays.asList(
+            new MigrateDatabaseCredentialsForToolYaml("flyway"),
+            new MigrateDatabaseCredentialsForToolProperties("flyway"),
+            new MigrateDatabaseCredentialsForToolYaml("liquibase"),
+            new MigrateDatabaseCredentialsForToolProperties("liquibase")
+    );
 
     @Value
     @EqualsAndHashCode(callSuper = true)
