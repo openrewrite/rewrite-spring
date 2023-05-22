@@ -35,7 +35,7 @@ import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-public class MigrateProjectTest implements RewriteTest {
+class MigrateProjectTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -227,12 +227,12 @@ public class MigrateProjectTest implements RewriteTest {
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-starter-actuator</artifactId>
-                            <version>3.0.6</version>
+                            <version>3.0.7</version>
                         </dependency>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-starter-aop</artifactId>
-                            <version>3.0.6</version>
+                            <version>3.0.7</version>
                         </dependency>
                     </dependencies>
                 </project>
