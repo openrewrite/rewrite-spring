@@ -154,6 +154,10 @@ recipeList:
   - org.openrewrite.maven.RemoveManagedDependency:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-sleuth-*
+  - org.openrewrite.maven.RemoveRedundantDependencyVersions:
+      groupPattern: io.micrometer
+      artifactPattern: micrometer-tracing*
+      onlyIfVersionsMatch: false
 
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.exporter.SpanFilter
