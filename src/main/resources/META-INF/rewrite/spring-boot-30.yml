@@ -147,7 +147,7 @@ recipeList:
 ########################################################################################################################
 # SpringBoot 3.0 Configuration Changes
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
+name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
 displayName: Migrate Spring Boot properties to 3.0
 description: Migrate properties found in `application.properties` and `application.yml`.
 tags:
@@ -843,7 +843,7 @@ recipeList:
       newPropertyKey: management.wavefront.metrics.export.api-token
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.batch-size
-      newPropertyKey: management.wavefront.metrics.export.batch-size
+      newPropertyKey: management.wavefront.sender.batch-size
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.connect-timeout
       newPropertyKey: management.wavefront.metrics.export.connect-timeout
@@ -861,22 +861,22 @@ recipeList:
       newPropertyKey: management.wavefront.metrics.export.read-timeout
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.sender.flush-interval
-      newPropertyKey: management.wavefront.sender.metrics.export.flush-interval
+      newPropertyKey: management.wavefront.sender.flush-interval
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.sender.max-queue-size
-      newPropertyKey: management.wavefront.sender.metrics.export.max-queue-size
+      newPropertyKey: management.wavefront.sender.max-queue-size
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.sender.message-size
-      newPropertyKey: management.wavefront.sender.metrics.export.message-size
+      newPropertyKey: management.wavefront.sender.message-size
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.source
-      newPropertyKey: management.wavefront.metrics.export.source
+      newPropertyKey: management.wavefront.source
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.step
       newPropertyKey: management.wavefront.metrics.export.step
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.uri
-      newPropertyKey: management.wavefront.metrics.export.uri
+      newPropertyKey: management.wavefront.uri
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.trace.http.enabled
       newPropertyKey: management.httpexchanges.recording.enabled

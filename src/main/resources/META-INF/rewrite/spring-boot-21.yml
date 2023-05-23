@@ -137,3 +137,13 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.resources.chain.gzipped
       newPropertyKey: spring.resources.chain.compressed
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.binders.files.enabled
+      newPropertyKey: management.metrics.enable.process.files
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.binders.jvm.enabled
+      newPropertyKey: management.metrics.enable.jvm
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.binders.logback.enabled
+      newPropertyKey: management.metrics.enable.logback
+

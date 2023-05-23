@@ -104,7 +104,7 @@ class GeneratePropertiesMigratorConfiguration {
                     var majorMinor = version.split("\\.");
 
                     var config = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s.yml".formatted(majorMinor[0], majorMinor[1]));
-                    Files.writeString(config, "\n#" +
+                    Files.writeString(config, "#\n#" +
                       Files.readAllLines(Paths.get("gradle/licenseHeader.txt"))
                         .stream().map(str -> str.replaceAll("^", "# "))
                         .collect(Collectors.joining("\n")) + "\n#\n");
