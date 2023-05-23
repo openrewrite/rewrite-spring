@@ -30,7 +30,7 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.1.x

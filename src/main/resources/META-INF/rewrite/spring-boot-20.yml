@@ -30,23 +30,23 @@ tags:
   - boot
 recipeList:
   # Upgrade 2.0.x from 1.x
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.0.x
       overrideManagedVersion: false
-  - org.openrewrite.maven.UpgradeParentVersion:
+  - org.openrewrite.java.dependencies.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.0.x
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mockito
       artifactId: "*"
       newVersion: 3.x
       overrideManagedVersion: false
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
-  - org.openrewrite.maven.RemoveDependency:
+  - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.webjars
       artifactId: webjars-locator
   - org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
@@ -128,7 +128,7 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
       newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: javax.validation
       artifactId: validation-api
       version: 2.x

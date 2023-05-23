@@ -25,7 +25,7 @@ tags:
   - spring
   - security
 recipeList:
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: "*"
       newVersion: 5.8.x
@@ -88,7 +88,7 @@ recipeList:
       oldPackageName: com.nimbusds.jose.shaded.json
       newPackageName: net.minidev.json
       recursive: false
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: net.minidev
       artifactId: json-smart
       version: 2.x

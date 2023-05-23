@@ -32,7 +32,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
   - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.4.x
@@ -143,7 +143,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
   - org.openrewrite.java.spring.boot2.ReplaceExtendWithAndContextConfiguration
   - org.openrewrite.java.spring.boot2.RemoveObsoleteSpringRunners
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-tools
       version: 2.x

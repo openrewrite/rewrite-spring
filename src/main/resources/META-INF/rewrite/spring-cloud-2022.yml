@@ -34,7 +34,7 @@ tags:
   - spring
   - cloud
 recipeList:
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: "*"
       newVersion: 4.0.x
@@ -47,37 +47,37 @@ recipeList:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-starter-feign
       newArtifactId: spring-cloud-starter-openfeign
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
       newVersion: 2022.0.x
       overrideManagedVersion: false
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-circuitbreaker-*
       newVersion: 3.0.x
       overrideManagedVersion: false
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-circuitbreaker-*
       newVersion: 3.0.x
       overrideManagedVersion: false
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-kubernetes-*
       newVersion: 3.0.x
       overrideManagedVersion: false
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-kubernetes-*
       newVersion: 3.0.x
       overrideManagedVersion: false
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-task-*
       newVersion: 3.0.x
       overrideManagedVersion: false
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-task-*
       newVersion: 3.0.x
@@ -129,26 +129,26 @@ recipeList:
       newGroupId: io.zipkin.reporter2
       newArtifactId: zipkin-reporter-brave
       newVersion: 2.16.x
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-actuator
       version: 3.0.x
       acceptTransitive: true
       onlyIfUsing: org.springframework.cloud.sleuth..*
       scope: compile
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.micrometer
       artifactId: micrometer-tracing
       version: 1.0.x
       onlyIfUsing: org.springframework.cloud.sleuth.annotation.*
       acceptTransitive: true
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-aop
       version: 3.0.x
       onlyIfUsing: org.springframework.cloud.sleuth.annotation.*
       acceptTransitive: true
-  - org.openrewrite.maven.RemoveDependency:
+  - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-sleuth-*
   - org.openrewrite.maven.RemoveManagedDependency:

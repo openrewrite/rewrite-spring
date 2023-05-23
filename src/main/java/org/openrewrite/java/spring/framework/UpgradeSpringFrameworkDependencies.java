@@ -18,7 +18,7 @@ package org.openrewrite.java.spring.framework;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
-import org.openrewrite.maven.UpgradeDependencyVersion;
+import org.openrewrite.java.dependencies.UpgradeDependencyVersion;
 import org.openrewrite.semver.Semver;
 
 import java.util.List;

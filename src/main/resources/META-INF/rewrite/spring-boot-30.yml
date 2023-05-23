@@ -53,7 +53,7 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.migrate.JavaVersion17
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 3.0.x

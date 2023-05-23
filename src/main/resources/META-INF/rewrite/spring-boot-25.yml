@@ -24,7 +24,7 @@ description: 'Upgrade to Spring Boot 2.5 from any prior 2.x version.'
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_5
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.5.x

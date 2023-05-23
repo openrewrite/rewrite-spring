@@ -30,7 +30,7 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.6.x
@@ -43,7 +43,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
 
   # Upgrade spring-cloud-dependencies release train
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: "spring-cloud-dependencies"
       newVersion: 2021.0.X

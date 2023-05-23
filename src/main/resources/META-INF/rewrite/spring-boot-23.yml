@@ -31,7 +31,7 @@ tags:
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_2
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_3
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.3.x
@@ -41,7 +41,7 @@ recipeList:
       artifactId: spring-boot-starter-parent
       newVersion: 2.3.x
   # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#validation-starter-no-longer-included-in-web-starters
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-validation
       version: 2.3.x
