@@ -74,7 +74,11 @@ class MigrateProjectTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              """
+              spec -> spec.after(after -> {
+                  Matcher matcher = Pattern.compile("            <version>(.*)</version>").matcher(after);
+                  assertThat(matcher.find()).describedAs(after).isTrue();
+                  String micrometerVersion = matcher.group(1);
+                  return """
                     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -93,10 +97,12 @@ class MigrateProjectTest implements RewriteTest {
                         <dependency>
                             <groupId>io.micrometer</groupId>
                             <artifactId>micrometer-tracing-bridge-brave</artifactId>
+                            <version>%s</version>
                         </dependency>
                     </dependencies>
                 </project>
-                """
+                """.formatted(micrometerVersion);
+                })
             )
           )
         );
@@ -187,7 +193,9 @@ class MigrateProjectTest implements RewriteTest {
               spec -> spec.after(after -> {
                   Matcher matcher = Pattern.compile("            <version>(.*)</version>").matcher(after);
                   assertThat(matcher.find()).describedAs(after).isTrue();
-                  String version = matcher.group(1);
+                  String micrometerVersion = matcher.group(1);
+                  assertThat(matcher.find()).describedAs(after).isTrue();
+                  String springBootVersion = matcher.group(1);
                   return """
                         <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                              xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -207,20 +215,21 @@ class MigrateProjectTest implements RewriteTest {
                             <dependency>
                                 <groupId>io.micrometer</groupId>
                                 <artifactId>micrometer-tracing</artifactId>
+                                <version>%1$s</version>
                             </dependency>
                             <dependency>
                                 <groupId>org.springframework.boot</groupId>
                                 <artifactId>spring-boot-starter-actuator</artifactId>
-                                <version>%1$s</version>
+                                <version>%2$s</version>
                             </dependency>
                             <dependency>
                                 <groupId>org.springframework.boot</groupId>
                                 <artifactId>spring-boot-starter-aop</artifactId>
-                                <version>%1$s</version>
+                                <version>%2$s</version>
                             </dependency>
                         </dependencies>
                     </project>
-                    """.formatted(version);
+                    """.formatted(micrometerVersion, springBootVersion);
               })
             )
           )
