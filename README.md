@@ -13,3 +13,10 @@ This project contains a series of Rewrite recipes and visitors to automatically 
 ## How to use?
 
 See the full documentation at [docs.openrewrite.org](https://docs.openrewrite.org/).
+
+## How to generate Spring Boot configuration properties replacement recipes?
+
+1. Run [GeneratePropertiesMigratorConfiguration.java](src/test/java/org/openrewrite/java/spring/GeneratePropertiesMigratorConfiguration.java)
+2. Revert any unwanted changes to src/main/resources/META-INF/rewrite/*.yml
+3. Commit & push changes.
+4. Repeat periodically as new minor versions of Spring Boot are released.
