@@ -878,6 +878,9 @@ recipeList:
       oldPropertyKey: management.metrics.export.wavefront.uri
       newPropertyKey: management.wavefront.metrics.export.uri
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.trace.http.enabled
+      newPropertyKey: management.httpexchanges.recording.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.trace.http.include
       newPropertyKey: management.httpexchanges.recording.include
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
