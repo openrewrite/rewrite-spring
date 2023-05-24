@@ -56,6 +56,10 @@ name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
 displayName: Migrate Spring Boot properties to 2.6
 description: Migrate properties found in `application.properties` and `application.yml`.
 recipeList:
+
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.server.servlet.context-path
+      newPropertyKey: management.server.base-path
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.mongodb.grid-fs-database
       newPropertyKey: spring.data.mongodb.gridfs.database
@@ -134,6 +138,4 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.resources.static-locations
       newPropertyKey: spring.web.resources.static-locations
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.server.servlet.context-path
-      newPropertyKey: management.server.base-path
+

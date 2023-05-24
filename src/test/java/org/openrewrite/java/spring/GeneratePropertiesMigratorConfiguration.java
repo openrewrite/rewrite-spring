@@ -43,12 +43,12 @@ import static java.util.stream.Collectors.toSet;
 /*
  * TODO move this to buildSrc or somewhere else where it can be run automatically
  */
-public class GeneratePropertiesMigratorConfiguration {
+class GeneratePropertiesMigratorConfiguration {
     public static void main(String[] args) throws IOException {
         var springBootReleases = new SpringBootReleases(true);
 
         var objectMapper = new ObjectMapper()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         var releasesDir = new File(".boot-releases");
         //noinspection ResultOfMethodCallIgnored
@@ -56,15 +56,9 @@ public class GeneratePropertiesMigratorConfiguration {
 
         File[] listing = releasesDir.listFiles();
         Set<String> latestPatchReleases = Arrays.asList(args).contains("offline") ?
-                (listing == null ? emptySet() :
-                        Arrays.stream(listing).map(File::getName).collect(toSet())) :
-                springBootReleases.latestPatchReleases();
-
-        Files.createDirectories(Paths.get("build/rewrite/"));
-        var config = Paths.get("build/rewrite/spring-boot-configuration-migration.yml");
-        Files.write(config, ("\n" +
-                             Files.readString(Paths.get("gradle/licenseHeader.txt")).replace("^", "# ") +
-                             "\n").getBytes());
+          (listing == null ? emptySet() :
+            Arrays.stream(listing).map(File::getName).collect(toSet())) :
+          springBootReleases.latestPatchReleases();
 
         var alreadyDefined = new HashSet<>();
         for (String version : latestPatchReleases) {
@@ -72,13 +66,12 @@ public class GeneratePropertiesMigratorConfiguration {
                 continue;
             }
             var versionDir = new File(releasesDir, version);
-
             if (versionDir.mkdirs()) {
                 System.out.println("Downloading version " + version);
                 springBootReleases.download(version).forEach(download -> {
                     try {
                         Files.write(versionDir.toPath().resolve(download.getModuleName() + "-" +
-                                                                version + ".jar"), download.getBody());
+                          version + ".jar"), download.getBody());
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
@@ -90,46 +83,51 @@ public class GeneratePropertiesMigratorConfiguration {
             System.out.println("Scanning version " + version);
 
             try (ScanResult scanResult = new ClassGraph()
-                    .overrideClasspath(Arrays.stream(requireNonNull(versionDir.listFiles())).map(File::toURI).collect(Collectors.toList()))
-                    .acceptPaths("META-INF")
-                    .enableMemoryMapping()
-                    .scan()) {
+              .overrideClasspath(Arrays.stream(requireNonNull(versionDir.listFiles())).map(File::toURI).collect(Collectors.toList()))
+              .acceptPaths("META-INF")
+              .enableMemoryMapping()
+              .scan()) {
                 var replacements = scanResult.getResourcesWithLeafName("additional-spring-configuration-metadata.json").stream()
-                        .flatMap(res -> {
-                            try (InputStream inputStream = res.open()) {
-                                var metadata = objectMapper.readValue(inputStream, SpringConfigurationMetadata.class);
-                                return metadata.properties().stream()
-                                        .filter(p -> p.deprecation() != null && p.deprecation().replacement() != null);
-                            } catch (IOException e) {
-                                throw new UncheckedIOException(e);
-                            }
-                        })
-                        .filter(p -> alreadyDefined.add(p.name()))
-                        .toList();
+                  .flatMap(res -> {
+                      try (InputStream inputStream = res.open()) {
+                          var metadata = objectMapper.readValue(inputStream, SpringConfigurationMetadata.class);
+                          return metadata.properties().stream()
+                            .filter(p -> p.deprecation() != null && p.deprecation().replacement() != null);
+                      } catch (IOException e) {
+                          throw new UncheckedIOException(e);
+                      }
+                  })
+                  .filter(p -> alreadyDefined.add(p.name()))
+                  .toList();
 
                 if (!replacements.isEmpty()) {
                     var majorMinor = version.split("\\.");
-                    Files.write(config, """
-                                    ---
-                                    type: specs.openrewrite.org/v1beta/recipe
-                                    name: org.openrewrite.java.spring.boot2.SpringBootProperties_%s_%s_%s
-                                    displayName: Migrate Spring Boot properties to %s.%s.%s
-                                    description: Migrate properties found in `application.properties` and `application.yml`.
-                                    recipeList:
-                                    """.formatted(majorMinor[0], majorMinor[1], majorMinor[2], majorMinor[0], majorMinor[1], majorMinor[2]).getBytes(),
-                            StandardOpenOption.APPEND);
 
-                    Files.write(config, replacements.stream()
-                                    .map(r -> """
-                                              - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-                                                oldPropertyKey: %s
-                                                newPropertyKey: %s
-                                            """.formatted(
-                                            r.name(), requireNonNull(r.deprecation()).replacement())
-                                    )
-                                    .collect(joining("", "\n", "\n"))
-                                    .getBytes(),
-                            StandardOpenOption.APPEND);
+                    var config = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s.yml".formatted(majorMinor[0], majorMinor[1]));
+                    Files.writeString(config, "#\n#" +
+                      Files.readAllLines(Paths.get("gradle/licenseHeader.txt"))
+                        .stream().map(str -> str.replaceAll("^", "# "))
+                        .collect(Collectors.joining("\n")) + "\n#\n");
+
+                    Files.writeString(config, """
+                        ---
+                        type: specs.openrewrite.org/v1beta/recipe
+                        name: org.openrewrite.java.spring.boot%1$s.SpringBootProperties_%1$s_%2$s
+                        displayName: Migrate Spring Boot properties to %1$s.%2$s
+                        description: Migrate properties found in `application.properties` and `application.yml`.
+                        recipeList:""".formatted(majorMinor[0], majorMinor[1]),
+                      StandardOpenOption.APPEND);
+
+                    Files.writeString(config, replacements.stream()
+                        .map(r -> """
+                            - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+                                oldPropertyKey: %s
+                                newPropertyKey: %s
+                          """.formatted(
+                          r.name(), requireNonNull(r.deprecation()).replacement())
+                        )
+                        .collect(joining("", "\n", "\n")),
+                      StandardOpenOption.APPEND);
                 }
             }
         }
@@ -137,10 +135,8 @@ public class GeneratePropertiesMigratorConfiguration {
 }
 
 record SpringConfigurationMetadata(List<ConfigurationProperty> properties) {
-}
-
-record ConfigurationProperty(String name, @Nullable Deprecation deprecation) {
-}
-
-record Deprecation(@Nullable String replacement) {
+    record ConfigurationProperty(String name, @Nullable Deprecation deprecation) {
+        record Deprecation(@Nullable String replacement) {
+        }
+    }
 }

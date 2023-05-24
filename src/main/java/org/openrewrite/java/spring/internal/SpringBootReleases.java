@@ -101,7 +101,7 @@ public class SpringBootReleases {
         }
     }
 
-    public Set<String> allReleases() {
+    private Set<String> allReleases() {
         if (availableReleases == null) {
             HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
             HttpSender.Request request = HttpSender.Request

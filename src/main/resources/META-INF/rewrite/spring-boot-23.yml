@@ -137,3 +137,16 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.http.log-request-details
       newPropertyKey: spring.mvc.log-request-details
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.health.probes.enabled
+      newPropertyKey: management.endpoint.health.probes.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.web.client.requests-metric-name
+      newPropertyKey: management.metrics.web.client.request.metric-name
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.web.server.auto-time-requests
+      newPropertyKey: management.metrics.web.server.request.autotime.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.web.server.requests-metric-name
+      newPropertyKey: management.metrics.web.server.request.metric-name
+
