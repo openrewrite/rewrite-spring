@@ -42,7 +42,7 @@ recipeList:
       newVersion: 2.2.x
 
   # Use recommended replacements for deprecated APIs
-  - org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
+  - org.openrewrite.java.spring.boot2.MigrateApplicationHealthIndicatorToPingHealthIndicator
   - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
   - org.openrewrite.java.spring.boot2.MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
 
@@ -53,12 +53,12 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.MigrateAbstractHealthIndicatorToPingHealthIndicator
+name: org.openrewrite.java.spring.boot2.MigrateApplicationHealthIndicatorToPingHealthIndicator
 displayName: Use `PingHealthIndicator`
-description: '`org.springframework.boot.actuate.health.AbstractHealthIndicator` was deprecated in 2.2.'
+description: '`org.springframework.boot.actuate.health.ApplicationHealthIndicator` was deprecated in 2.2.'
 recipeList:
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.actuate.health.AbstractHealthIndicator
+      oldFullyQualifiedTypeName: org.springframework.boot.actuate.health.ApplicationHealthIndicator
       newFullyQualifiedTypeName: org.springframework.boot.actuate.health.PingHealthIndicator
 
 ---
