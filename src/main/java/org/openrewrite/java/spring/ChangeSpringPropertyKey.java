@@ -20,6 +20,7 @@ import lombok.Value;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
@@ -71,13 +72,19 @@ public class ChangeSpringPropertyKey extends Recipe {
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(Pattern.quote(oldPropertyKey + ".") + exceptRegex() + "(.*)", newPropertyKey + ".$1", true, null, true);
         return ListUtils.map(before, s -> {
-            if (s instanceof Yaml.Documents) {
-                s = (Yaml.Documents) yamlChangePropertyKey.getVisitor().visit(s, ctx);
-            } else if (s instanceof Properties.File) {
-                s = (Properties.File) propertiesChangePropertyKey.getVisitor().visit(s, ctx);
-                s = (Properties.File) subpropertiesChangePropertyKey.getVisitor().visit(s, ctx);
+            SourceFile after = s;
+            if (after instanceof Yaml.Documents) {
+                after = (Yaml.Documents) yamlChangePropertyKey.getVisitor().visit(after, ctx);
+            } else if (after instanceof Properties.File) {
+                if (FindProperties.find((Properties.File) after, newPropertyKey, true).isEmpty()) {
+                    after = (Properties.File) propertiesChangePropertyKey.getVisitor().visit(after, ctx);
+                    // for compatibility with yaml syntax, a spring property key will never have both a (scalar) value and also subproperties
+                    if (after == s) {
+                        after = (Properties.File) subpropertiesChangePropertyKey.getVisitor().visit(after, ctx);
+                    }
+                }
             }
-            return s;
+            return after;
         });
     }
 
