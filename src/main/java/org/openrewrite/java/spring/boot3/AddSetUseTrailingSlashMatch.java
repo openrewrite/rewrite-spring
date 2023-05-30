@@ -53,11 +53,11 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
     @Override
     public String getDescription() {
         return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing" +
-                " slash matching configuration option has been deprecated and its default value set to false. " +
-                "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both" +
-                " `GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
-                "anymore by default and will result in an HTTP 404 error. This recipe is change the default with " +
-                "the global Spring MVC or Webflux configuration.";
+               " slash matching configuration option has been deprecated and its default value set to false. " +
+               "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both" +
+               " `GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
+               "anymore by default and will result in an HTTP 404 error. This recipe is change the default with " +
+               "the global Spring MVC or Webflux configuration.";
     }
 
     @Override
@@ -75,8 +75,8 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                     for (TypeTree impl : classDecl.getImplements()) {
                         JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
                         if (fullyQualified != null &&
-                                (WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()) ||
-                                        WEB_FLUX_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()))
+                            (WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()) ||
+                             WEB_FLUX_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()))
                         ) {
                             isWebMVC = WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName());
                             isWebConfigClass = true;
@@ -99,15 +99,15 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                         .filter(statement -> statement instanceof J.MethodDeclaration)
                         .map(J.MethodDeclaration.class::cast)
                         .anyMatch(methodDeclaration -> isWebMVCConfigurerMatchMethod(methodDeclaration) ||
-                                isWebFluxconfigurePathMatchingMethod(methodDeclaration));
+                                                       isWebFluxconfigurePathMatchingMethod(methodDeclaration));
 
                 if (configMethodExists) {
                     return super.visitClassDeclaration(classDecl, ctx);
                 } else {
                     // add a `configurePathMatch` or `configurePathMatching` method to this class
                     JavaTemplate WebMvcConfigurePathMatchTemplate = JavaTemplate.builder(
-                            "@Override public void configurePathMatch(PathMatchConfigurer configurer) { configurer" +
-                                            ".setUseTrailingSlashMatch(true); }")
+                                    "@Override public void configurePathMatch(PathMatchConfigurer configurer) { configurer" +
+                                    ".setUseTrailingSlashMatch(true); }")
                             .context(getCursor())
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpath("spring-webmvc", "spring-context", "spring-web"))
@@ -119,7 +119,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                     JavaTemplate webFluxConfigurePathMatchingTemplate =
                             JavaTemplate.builder(
                                             "@Override public void configurePathMatching(PathMatchConfigurer configurer) { configurer" +
-                                                    ".setUseTrailingSlashMatch(true); }")
+                                            ".setUseTrailingSlashMatch(true); }")
                                     .context(getCursor())
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpath("spring-webflux", "spring-context", "spring-web"))
@@ -194,14 +194,14 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
 
     private static boolean isWebMVCConfigurerMatchMethod(J.MethodDeclaration method) {
         return method.getName().getSimpleName().equals("configurePathMatch") &&
-                method.getMethodType().getParameterTypes().size() == 1 &&
-                method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_MVC_PATH_MATCH_CONFIGURER);
+               method.getMethodType().getParameterTypes().size() == 1 &&
+               method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_MVC_PATH_MATCH_CONFIGURER);
     }
 
     private static boolean isWebFluxconfigurePathMatchingMethod(J.MethodDeclaration method) {
         return method.getName().getSimpleName().equals("configurePathMatching") &&
-                method.getMethodType().getParameterTypes().size() == 1 &&
-                method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_FLUX_PATH_MATCH_CONFIGURER);
+               method.getMethodType().getParameterTypes().size() == 1 &&
+               method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_FLUX_PATH_MATCH_CONFIGURER);
     }
 
     private static class findSetUseTrailingSlashMatchMethodCall extends JavaIsoVisitor<AtomicBoolean> {
@@ -216,7 +216,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                 return method;
             }
             if (WEB_MVC_setUseTrailingSlashMatch.matches(method) ||
-                    WEB_FLUX_setUseTrailingSlashMatch.matches(method)) {
+                WEB_FLUX_setUseTrailingSlashMatch.matches(method)) {
                 found.set(true);
                 return method;
             }

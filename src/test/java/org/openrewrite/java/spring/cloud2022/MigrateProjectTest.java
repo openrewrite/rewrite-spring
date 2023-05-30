@@ -15,17 +15,13 @@
  */
 package org.openrewrite.java.spring.cloud2022;
 
-import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.SourceSpec;
-import org.openrewrite.xml.tree.Xml;
 
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,7 +31,7 @@ import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-public class MigrateProjectTest implements RewriteTest {
+class MigrateProjectTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -48,26 +44,12 @@ public class MigrateProjectTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "spring-cloud-sleuth-api-3.*"));
     }
 
-    Consumer<SourceSpec<Xml.Document>> withDynamicMicrometerVersion(@Language("xml") String fmt) {
-        return spec -> spec.after(after -> {
-            Matcher matcher = Pattern.compile(
-                "<groupId>io.micrometer</groupId>\\s+<artifactId>[a-zA-Z-_.]+</artifactId>\\s+<version>(.*)</version>",
-                Pattern.MULTILINE)
-              .matcher(after);
-            assertThat(matcher.find()).isTrue();
-            String version = matcher.group(1);
-            //language=xml
-            return fmt.formatted(version);
-        });
-    }
-
-
     @Test
     void migrateSleuthStarter() {
         rewriteRun(
           mavenProject("project",
+            //language=xml
             pomXml(
-              //language=xml
               """
                     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -92,7 +74,11 @@ public class MigrateProjectTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              withDynamicMicrometerVersion("""
+              spec -> spec.after(after -> {
+                  Matcher matcher = Pattern.compile("            <version>(.*)</version>").matcher(after);
+                  assertThat(matcher.find()).describedAs(after).isTrue();
+                  String micrometerVersion = matcher.group(1);
+                  return """
                     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
@@ -115,7 +101,8 @@ public class MigrateProjectTest implements RewriteTest {
                         </dependency>
                     </dependencies>
                 </project>
-                """)
+                """.formatted(micrometerVersion);
+                })
             )
           )
         );
@@ -157,18 +144,18 @@ public class MigrateProjectTest implements RewriteTest {
             //language=java
             srcMainJava(
               java(
-              """
-                import org.springframework.cloud.sleuth.annotation.NewSpan;
+                """
+                  import org.springframework.cloud.sleuth.annotation.NewSpan;
 
-                class A {
-                    @NewSpan
-                    void m() {
-                    }
-                }
-                """,
+                  class A {
+                      @NewSpan
+                      void m() {
+                      }
+                  }
+                  """,
                 """
                   import io.micrometer.tracing.annotation.NewSpan;
-                  
+                                    
                   class A {
                       @NewSpan
                       void m() {
@@ -203,40 +190,47 @@ public class MigrateProjectTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              withDynamicMicrometerVersion("""
-                    <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>com.example</groupId>
-                    <artifactId>explicit-deps-app</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <name>explicit-deps-app</name>
-                    <description>explicit-deps-app</description>
-                    <properties>
-                        <java.version>17</java.version>
-                        <maven.compiler.source>17</maven.compiler.source>
-                        <maven.compiler.target>17</maven.compiler.target>
-                    </properties>
-                                
-                    <dependencies>
-                        <dependency>
-                            <groupId>io.micrometer</groupId>
-                            <artifactId>micrometer-tracing</artifactId>
-                            <version>%s</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-actuator</artifactId>
-                            <version>3.0.6</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-aop</artifactId>
-                            <version>3.0.6</version>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """)
+              spec -> spec.after(after -> {
+                  Matcher matcher = Pattern.compile("            <version>(.*)</version>").matcher(after);
+                  assertThat(matcher.find()).describedAs(after).isTrue();
+                  String micrometerVersion = matcher.group(1);
+                  assertThat(matcher.find()).describedAs(after).isTrue();
+                  String springBootVersion = matcher.group(1);
+                  return """
+                        <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>com.example</groupId>
+                        <artifactId>explicit-deps-app</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                        <name>explicit-deps-app</name>
+                        <description>explicit-deps-app</description>
+                        <properties>
+                            <java.version>17</java.version>
+                            <maven.compiler.source>17</maven.compiler.source>
+                            <maven.compiler.target>17</maven.compiler.target>
+                        </properties>
+                                    
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.micrometer</groupId>
+                                <artifactId>micrometer-tracing</artifactId>
+                                <version>%1$s</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter-actuator</artifactId>
+                                <version>%2$s</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter-aop</artifactId>
+                                <version>%2$s</version>
+                            </dependency>
+                        </dependencies>
+                    </project>
+                    """.formatted(micrometerVersion, springBootVersion);
+              })
             )
           )
         );

@@ -21,10 +21,10 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.dependencies.AddDependency;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.maven.AddDependency;
 
 public class MigrateLocalServerPortAnnotation extends Recipe {
     private static final AnnotationMatcher LOCAL_SERVER_PORT_MATCHER =
@@ -51,7 +51,15 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
                             a = a.withAnnotationType(a.getAnnotationType().withType(JavaType.buildType("org.springframework.boot.web.server.LocalServerPort")));
                             maybeRemoveImport("org.springframework.boot.context.embedded.LocalServerPort");
                             maybeAddImport("org.springframework.boot.web.server.LocalServerPort");
-                            doAfterVisit(new AddDependency("org.springframework.boot", "spring-boot-starter-web", "2.0.x", null, null, null, "org.springframework.boot.web.server.LocalServerPort", null, null, null, null, true));
+                            doAfterVisit(new AddDependency(
+                                    "org.springframework.boot",
+                                    "spring-boot-starter-web",
+                                    "2.0.x",
+                                    null,
+                                    "org.springframework.boot.web.server.LocalServerPort",
+                                    "org.springframework.boot.web.server.LocalServerPort",
+                                    null,
+                                    null, null, null, null, null, null, null));
                         }
                         return a;
                     }

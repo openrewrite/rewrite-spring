@@ -146,4 +146,49 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
+    @Test
+    void avoidRegenerativeChanges() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("logging.file", "logging.file.name", null)),
+          properties("""
+            logging.file = foo.txt
+            """,
+            """
+            logging.file.name = foo.txt
+            """
+          ),
+          properties(
+            """
+            logging.file.name = foo.txt
+            """
+          ),
+          yaml("""
+            logging:
+              file: foo.txt
+            """,
+            """
+            logging:
+              file.name: foo.txt
+            """
+          ),
+          yaml("""
+            logging.file: foo.txt
+            """,
+            """
+            logging.file.name: foo.txt
+            """
+          ),
+          yaml("""
+            logging:
+              file:
+                name: foo.txt
+            """
+          ),
+          yaml("""
+            logging.file.name: foo.txt
+            """
+          )
+        );
+    }
+
 }

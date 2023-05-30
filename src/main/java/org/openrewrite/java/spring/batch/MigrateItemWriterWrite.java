@@ -78,7 +78,7 @@ public class MigrateItemWriterWrite extends Recipe {
                         JavaTemplate.builder("#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
                                 .context(getCursor())
                                 .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-batch-core-5.0.0", "spring-batch-infrastructure-5.0.0"))
+                                        .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                                 .imports("org.springframework.batch.item.Chunk")
                                 .build(),
                         getCursor(),

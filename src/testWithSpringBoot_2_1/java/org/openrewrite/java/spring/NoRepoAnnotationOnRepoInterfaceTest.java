@@ -220,7 +220,7 @@ public class NoRepoAnnotationOnRepoInterfaceTest implements RewriteTest {
     }
 
     @Test
-    void noRepoSublclass() {
+    void noRepoSubclass() {
         //language=java
         rewriteRun(
           java(

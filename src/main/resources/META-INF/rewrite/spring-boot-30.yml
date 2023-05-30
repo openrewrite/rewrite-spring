@@ -37,7 +37,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
   - org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
   - org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
-  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
+  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
   - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
   - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
@@ -53,7 +53,7 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.migrate.JavaVersion17
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 3.0.x
@@ -124,7 +124,7 @@ recipeList:
 ########################################################################################################################
 # SpringBoot 3.0 Configuration Changes
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_0_0
+name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
 displayName: Migrate Spring Boot properties to 3.0
 description: Migrate properties found in `application.properties` and `application.yml`.
 tags:
@@ -342,6 +342,9 @@ recipeList:
       oldPropertyKey: management.metrics.export.atlas.meter-time-to-live
       newPropertyKey: management.atlas.metrics.export.meter-time-to-live
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.atlas.num-threads
+      newPropertyKey: management.atlas.metrics.export.num-threads
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.atlas.read-timeout
       newPropertyKey: management.atlas.metrics.export.read-timeout
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -371,6 +374,9 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.datadog.host-tag
       newPropertyKey: management.datadog.metrics.export.host-tag
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.datadog.num-threads
+      newPropertyKey: management.datadog.metrics.export.num-threads
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.datadog.read-timeout
       newPropertyKey: management.datadog.metrics.export.read-timeout
@@ -492,6 +498,12 @@ recipeList:
       oldPropertyKey: management.metrics.export.ganglia.port
       newPropertyKey: management.ganglia.metrics.export.port
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.ganglia.protocol-version
+      newPropertyKey: management.ganglia.metrics.export.protocol-version
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.ganglia.rate-units
+      newPropertyKey: management.ganglia.metrics.export.rate-units
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.ganglia.step
       newPropertyKey: management.ganglia.metrics.export.step
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -575,6 +587,9 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.influx.enabled
       newPropertyKey: management.influx.metrics.export.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.influx.num-threads
+      newPropertyKey: management.influx.metrics.export.num-threads
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.influx.org
       newPropertyKey: management.influx.metrics.export.org
@@ -666,6 +681,9 @@ recipeList:
       oldPropertyKey: management.metrics.export.newrelic.meter-name-event-type-enabled
       newPropertyKey: management.newrelic.metrics.export.meter-name-event-type-enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.newrelic.num-threads
+      newPropertyKey: management.newrelic.metrics.export.num-threads
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.newrelic.read-timeout
       newPropertyKey: management.newrelic.metrics.export.read-timeout
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -722,6 +740,9 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.signalfx.enabled
       newPropertyKey: management.signalfx.metrics.export.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.signalfx.num-threads
+      newPropertyKey: management.signalfx.metrics.export.num-threads
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.signalfx.read-timeout
       newPropertyKey: management.signalfx.metrics.export.read-timeout
@@ -796,16 +817,25 @@ recipeList:
       newPropertyKey: management.statsd.metrics.export.publish-unchanged-meters
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.api-token
-      newPropertyKey: management.wavefront.api-token
+      newPropertyKey: management.wavefront.metrics.export.api-token
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.batch-size
       newPropertyKey: management.wavefront.sender.batch-size
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.wavefront.connect-timeout
+      newPropertyKey: management.wavefront.metrics.export.connect-timeout
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.enabled
       newPropertyKey: management.wavefront.metrics.export.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.global-prefix
       newPropertyKey: management.wavefront.metrics.export.global-prefix
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.wavefront.num-threads
+      newPropertyKey: management.wavefront.metrics.export.num-threads
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.wavefront.read-timeout
+      newPropertyKey: management.wavefront.metrics.export.read-timeout
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.sender.flush-interval
       newPropertyKey: management.wavefront.sender.flush-interval
@@ -824,3 +854,12 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.wavefront.uri
       newPropertyKey: management.wavefront.uri
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.trace.http.enabled
+      newPropertyKey: management.httpexchanges.recording.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.trace.http.include
+      newPropertyKey: management.httpexchanges.recording.include
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.trace.include
+      newPropertyKey: management.httpexchanges.recording.include

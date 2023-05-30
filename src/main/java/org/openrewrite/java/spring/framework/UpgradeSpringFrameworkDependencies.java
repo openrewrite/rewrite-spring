@@ -21,7 +21,7 @@ import lombok.Value;
 import org.openrewrite.Option;
 import org.openrewrite.Recipe;
 import org.openrewrite.Validated;
-import org.openrewrite.maven.UpgradeDependencyVersion;
+import org.openrewrite.java.dependencies.UpgradeDependencyVersion;
 import org.openrewrite.semver.Semver;
 
 import java.util.ArrayList;

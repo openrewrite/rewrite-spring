@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
 import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
@@ -75,8 +76,14 @@ public class ChangeSpringPropertyKey extends Recipe {
                 if (tree instanceof Yaml.Documents) {
                     tree = yamlChangePropertyKey.getVisitor().visit(tree, ctx);
                 } else if (tree instanceof Properties.File) {
-                    tree = propertiesChangePropertyKey.getVisitor().visit(tree, ctx);
-                    tree = subpropertiesChangePropertyKey.getVisitor().visit(tree, ctx);
+                    if (FindProperties.find((Properties.File) tree, newPropertyKey, true).isEmpty()) {
+                        Tree newTree = propertiesChangePropertyKey.getVisitor().visit(tree, ctx);
+                        // for compatibility with yaml syntax, a spring property key will never have both a (scalar) value and also subproperties
+                        if (newTree == tree) {
+                            newTree = (Properties.File) subpropertiesChangePropertyKey.getVisitor().visit(tree, ctx);
+                        }
+                        tree = newTree;
+                    }
                 }
                 return tree;
             }
