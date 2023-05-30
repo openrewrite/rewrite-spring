@@ -135,7 +135,6 @@ recipeList:
       version: 3.0.x
       acceptTransitive: true
       onlyIfUsing: org.springframework.cloud.sleuth..*
-      scope: compile
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.micrometer
       artifactId: micrometer-tracing
