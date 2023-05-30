@@ -16,8 +16,6 @@
 package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Value;
 import org.openrewrite.*;
 import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.properties.PropertiesIsoVisitor;
@@ -28,12 +26,7 @@ import org.openrewrite.yaml.tree.Yaml;
 import java.util.Arrays;
 import java.util.List;
 
-@Value
-@EqualsAndHashCode(callSuper = true)
 public class PropertiesToKebabCase extends Recipe {
-
-    @Getter(lazy = true)
-    List<Recipe> recipeList = Arrays.asList(new PropertiesToKebabCaseYaml(), new PropertiesToKebabCaseProperties());
 
     @Override
     public String getDisplayName() {
@@ -48,6 +41,11 @@ public class PropertiesToKebabCase extends Recipe {
                 "`kebab-case` may be used in properties files and still be converted to configuration beans. " +
                 "Note, an exception to this is the case of `@Value`, which is match-sensitive. For example, `@Value(\"${anExampleValue}\")` will not match `an-example-value`. " +
                 "[The Spring reference documentation recommends using `kebab-case` for properties where possible](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding).";
+    }
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return Arrays.asList(new PropertiesToKebabCaseYaml(), new PropertiesToKebabCaseProperties());
     }
 
     @EqualsAndHashCode(callSuper = true)

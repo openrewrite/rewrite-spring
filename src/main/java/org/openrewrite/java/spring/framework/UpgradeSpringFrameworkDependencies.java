@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.framework;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Value;
 import org.openrewrite.Option;
 import org.openrewrite.Recipe;
@@ -52,10 +51,8 @@ public class UpgradeSpringFrameworkDependencies extends Recipe {
         return validated;
     }
 
-    @Getter(lazy = true)
-    List<Recipe> recipeList = initRecipeList();
-
-    private List<Recipe> initRecipeList() {
+    @Override
+    public List<Recipe> getRecipeList() {
         String[] artifacts51 = new String[]{
                 "spring-bom",
                 "spring-aop",
