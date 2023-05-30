@@ -49,7 +49,7 @@ public class MaintainTrailingSlashURLMappings extends ScanningRecipe<AtomicBoole
     }
 
     @Override
-    public AtomicBoolean getInitialValue() {
+    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
         return new AtomicBoolean(false);
     }
 

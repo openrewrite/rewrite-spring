@@ -102,7 +102,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
     }
 
     @Override
-    public JavaProjects getInitialValue() {
+    public JavaProjects getInitialValue(ExecutionContext ctx) {
         return new JavaProjects();
     }
 

@@ -46,7 +46,7 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
     }
 
     @Override
-    public ApiManifest getInitialValue() {
+    public ApiManifest getInitialValue(ExecutionContext ctx) {
         return new ApiManifest();
     }
 

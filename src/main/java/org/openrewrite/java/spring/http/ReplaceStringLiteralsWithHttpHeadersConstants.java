@@ -72,7 +72,7 @@ public class ReplaceStringLiteralsWithHttpHeadersConstants extends ScanningRecip
     }
 
     @Override
-    public AtomicBoolean getInitialValue() {
+    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
         return new AtomicBoolean(false);
     }
 

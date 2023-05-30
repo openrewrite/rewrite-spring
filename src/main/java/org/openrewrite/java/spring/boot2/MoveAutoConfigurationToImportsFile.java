@@ -50,7 +50,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
     }
 
     @Override
-    public Accumulator getInitialValue() {
+    public Accumulator getInitialValue(ExecutionContext ctx) {
         return new Accumulator();
     }
 

@@ -39,7 +39,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
     }
 
     @Override
-    public ApplicationProfiles getInitialValue() {
+    public ApplicationProfiles getInitialValue(ExecutionContext ctx) {
         return new ApplicationProfiles();
     }
 

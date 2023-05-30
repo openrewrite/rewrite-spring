@@ -102,7 +102,7 @@ public class ReplaceStringLiteralsWithMediaTypeConstants extends ScanningRecipe<
     }
 
     @Override
-    public AtomicBoolean getInitialValue() {
+    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
         return new AtomicBoolean(false);
     }
 
