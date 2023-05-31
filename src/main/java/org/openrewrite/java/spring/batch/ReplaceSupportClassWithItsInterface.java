@@ -17,12 +17,7 @@ package org.openrewrite.java.spring.batch;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Option;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.NonNull;
-import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -31,9 +26,6 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
@@ -61,18 +53,13 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
     String fullyQualifiedInterfaceName;
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(fullyQualifiedClassName, false);
-    }
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
 
-    @Override
-    protected JavaIsoVisitor<ExecutionContext> getVisitor() {
-
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(fullyQualifiedClassName, false), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl,
-                    ExecutionContext ctx) {
+                                                            ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null
                         && TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
@@ -88,12 +75,11 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
 
                     cd = cd.withTemplate(
                             JavaTemplate
-                                    .builder(() -> getCursor().dropParentUntil(
-                                            p -> p instanceof J.ClassDeclaration || p instanceof J.CompilationUnit),
-                                            JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
+                                    .builder(JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
                                     .imports(fullyQualifiedInterfaceName)
                                     .javaParser(JavaParser.fromJavaVersion().classpath("spring-batch"))
                                     .build(),
+                            getCursor(),
                             cd.getCoordinates().addImplementsClause());
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx,
                             getCursor());
@@ -102,9 +88,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                 }
                 return cd;
             }
-
-
-        };
+        });
     }
 
     class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {

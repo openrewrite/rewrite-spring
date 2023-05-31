@@ -16,10 +16,10 @@
 package org.openrewrite.java.spring;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotationVisitor;
@@ -42,24 +42,18 @@ public class NoAutowiredOnConstructor extends Recipe {
                 "This recipe removes unneeded `@Autowired` annotations on constructors.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.beans.factory.annotation.Autowired", false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.beans.factory.annotation.Autowired", false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                J.ClassDeclaration cd =  super.visitClassDeclaration(classDecl, ctx);
+                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
                 int constructorCount = 0;
-                for(Statement s : cd.getBody().getStatements()) {
-                    if(isConstructor(s)) {
+                for (Statement s : cd.getBody().getStatements()) {
+                    if (isConstructor(s)) {
                         constructorCount++;
-                        if(constructorCount > 1) {
+                        if (constructorCount > 1) {
                             return cd;
                         }
                     }
@@ -67,7 +61,7 @@ public class NoAutowiredOnConstructor extends Recipe {
 
                 return cd.withBody(cd.getBody().withStatements(
                         ListUtils.map(cd.getBody().getStatements(), s -> {
-                            if(!isConstructor(s)) {
+                            if (!isConstructor(s)) {
                                 return s;
                             }
                             maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
@@ -75,10 +69,10 @@ public class NoAutowiredOnConstructor extends Recipe {
                         })
                 ));
             }
-        };
+        });
     }
 
     private static boolean isConstructor(Statement s) {
-        return s instanceof J.MethodDeclaration && ((J.MethodDeclaration)s).isConstructor();
+        return s instanceof J.MethodDeclaration && ((J.MethodDeclaration) s).isConstructor();
     }
 }

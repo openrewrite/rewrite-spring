@@ -17,10 +17,7 @@ package org.openrewrite.java.spring.boot3;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Option;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.tree.J;
@@ -29,7 +26,10 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.SearchResult;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import static java.util.Collections.singletonList;
 
@@ -38,8 +38,8 @@ import static java.util.Collections.singletonList;
 public class ConfigurationOverEnableSecurity extends Recipe {
 
     @Option(displayName = "Force add `@Configuration`",
-        description = "Force add `@Configuration` regardless current Boot version.",
-        example = "true")
+            description = "Force add `@Configuration` regardless current Boot version.",
+            example = "true")
     boolean forceAddConfiguration;
 
     private static final String CONFIGURATION_FQN = "org.springframework.context.annotation.Configuration";
@@ -62,24 +62,26 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                 "Consequently classes annotated with `@EnableXXXSecurity` coming from pre-Boot 3 should have `@Configuration` annotation added.";
     }
 
-    @Override
-    protected JavaVisitor<ExecutionContext> getSingleSourceApplicableTest() {
+    private JavaVisitor<ExecutionContext> precondition() {
         return new JavaVisitor<ExecutionContext>() {
             @Override
-            public J visitJavaSourceFile(JavaSourceFile cu, ExecutionContext ctx) {
-                for (JavaType type : cu.getTypesInUse().getTypesInUse()) {
-                    if (SECURITY_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(type))) {
-                        return SearchResult.found(cu);
+            public J preVisit(J tree, ExecutionContext ctx) {
+                stopAfterPreVisit();
+                if (tree instanceof JavaSourceFile) {
+                    for (JavaType type : ((JavaSourceFile) tree).getTypesInUse().getTypesInUse()) {
+                        if (SECURITY_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(type))) {
+                            return SearchResult.found(tree);
+                        }
                     }
                 }
-                return cu;
+                return tree;
             }
         };
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(precondition(), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
@@ -88,13 +90,13 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                 J.ClassDeclaration bodiless = c.withBody(null);
 
                 Set<J.Annotation> securityAnnotations = FindAnnotations.find(bodiless,
-                    ENABLE_SECURITY_ANNOTATION_PATTERN, true);
+                        ENABLE_SECURITY_ANNOTATION_PATTERN, true);
                 if (securityAnnotations.isEmpty() || isExcluded(securityAnnotations)) {
                     return c;
                 }
 
                 boolean alreadyHasConfigurationAnnotation = !FindAnnotations.find(bodiless, "@" + CONFIGURATION_FQN,
-                    false).isEmpty();
+                        false).isEmpty();
                 if (alreadyHasConfigurationAnnotation) {
                     return c;
                 }
@@ -102,7 +104,7 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                 if (!forceAddConfiguration) {
                     J.Annotation securityAnnotation = securityAnnotations.stream().findFirst().get();
                     boolean securityAnnotationHasConfiguration = new AnnotationMatcher("@" + CONFIGURATION_FQN, true)
-                        .matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(securityAnnotation.getType()));
+                            .matchesAnnotationOrMetaAnnotation(TypeUtils.asFullyQualified(securityAnnotation.getType()));
 
                     // The framework 6.+ (Boot 3+) removed `@Configuration` from `@EnableXXXSecurity`, so if it has not
                     // `@Configuration`, means it is already in version framework 6.+ (Boot 3+), and expected no change.
@@ -113,22 +115,22 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                     }
                 }
 
-                JavaTemplate template = JavaTemplate.builder(this::getCursor, "@Configuration")
+                JavaTemplate template = JavaTemplate.builder("@Configuration")
                         .imports(CONFIGURATION_FQN)
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-context-5.3.+"))
                         .build();
                 maybeAddImport(CONFIGURATION_FQN);
 
-                return c.withTemplate(template, c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                return c.withTemplate(template, getCursor(), c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
             }
 
             private boolean isExcluded(Set<J.Annotation> securityAnnotations) {
                 return (securityAnnotations.stream()
-                    .map(a -> TypeUtils.asFullyQualified(a.getType()))
-                    .filter(Objects::nonNull)
-                    .anyMatch(it -> EXCLUSIONS.contains(it.getFullyQualifiedName())));
+                        .map(a -> TypeUtils.asFullyQualified(a.getType()))
+                        .filter(Objects::nonNull)
+                        .anyMatch(it -> EXCLUSIONS.contains(it.getFullyQualifiedName())));
             }
-        };
+        });
     }
 }

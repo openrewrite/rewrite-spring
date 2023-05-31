@@ -86,22 +86,13 @@ public class AddSpringProperty extends Recipe {
             }
 
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                //Short circuit visitor navigation for everything except source file
-                if (tree instanceof SourceFile) {
-                    tree = super.visit(tree, ctx);
+            public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
+                if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile)t).getSourcePath(), ctx)) {
+                    t = createMergeYamlVisitor().getVisitor().visit(t, ctx);
+                } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile)t).getSourcePath(), ctx)) {
+                    t = new AddProperty(property, value, null).getVisitor().visit(t, ctx);
                 }
-                return tree;
-            }
-
-            @Override
-            public @Nullable Tree preVisit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof Yaml.Documents && sourcePathMatches(((SourceFile)tree).getSourcePath(), ctx)) {
-                    doAfterVisit(createMergeYamlVisitor());
-                } else if (tree instanceof Properties.File && sourcePathMatches(((SourceFile)tree).getSourcePath(), ctx)) {
-                    doAfterVisit(new AddProperty(property, value, null));
-                }
-                return tree;
+                return t;
             }
         };
     }
@@ -148,7 +139,7 @@ public class AddSpringProperty extends Recipe {
         } else {
             yaml.append(" ").append(value);
         }
-        return new MergeYaml("$", yaml.toString(), true, null, null);
+        return new MergeYaml("$", yaml.toString(), true, null);
     }
 
     private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");

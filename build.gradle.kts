@@ -119,8 +119,8 @@ dependencies {
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
-    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:latest.release")
-    runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:latest.release")
+    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
+    runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
@@ -130,8 +130,8 @@ dependencies {
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
     testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
-    testImplementation("org.openrewrite.recipe:rewrite-migrate-java:latest.release")
-    testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:latest.release")
+    testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
+    testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")

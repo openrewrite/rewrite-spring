@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.security5;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 
 public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
     private static final AnnotationMatcher ENABLE_GLOBAL_METHOD_SECURITY_MATCHER =
-        new AnnotationMatcher("@org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity");
+            new AnnotationMatcher("@org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity");
 
     private static final String EnableGlobalMethodSecurityFqn = "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity";
     private static final String EnableMethodSecurityFqn = "org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity";
@@ -45,19 +46,14 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
     @Override
     public String getDescription() {
         return "`@EnableGlobalMethodSecurity` and `<global-method-security>` are deprecated in favor of " +
-               "`@EnableMethodSecurity` and `<method-security>`, respectively. The new annotation and XML " +
-               "element activate Spring’s pre-post annotations by default and use AuthorizationManager internally.";
+                "`@EnableMethodSecurity` and `<method-security>`, respectively. The new annotation and XML " +
+                "element activate Spring’s pre-post annotations by default and use AuthorizationManager internally.";
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(
-            "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity", false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(
+                "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity", false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 annotation = super.visitAnnotation(annotation, ctx);
@@ -72,17 +68,16 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                         newArgs.add(buildPrePostEnabledAssignedToFalse());
                     }
 
-                    JavaTemplate enableMethodSecurityTemplate = JavaTemplate.builder(this::getCursor,
-                            "@EnableMethodSecurity")
-                        .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-security-config-5.8.+"))
-                        .imports(EnableMethodSecurityFqn)
-                        .build();
+                    JavaTemplate enableMethodSecurityTemplate = JavaTemplate.builder("@EnableMethodSecurity")
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-security-config-5.8.+"))
+                            .imports(EnableMethodSecurityFqn)
+                            .build();
 
                     maybeAddImport(EnableMethodSecurityFqn);
                     maybeRemoveImport(EnableGlobalMethodSecurityFqn);
-                    annotation = annotation.withTemplate(enableMethodSecurityTemplate, annotation.getCoordinates().replace());
-                    return autoFormat(annotation.withArguments(newArgs), ctx) ;
+                    annotation = annotation.withTemplate(enableMethodSecurityTemplate, getCursor(), annotation.getCoordinates().replace());
+                    return autoFormat(annotation.withArguments(newArgs), ctx);
                 }
                 return annotation;
             }
@@ -91,21 +86,21 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                 if (arg instanceof J.Assignment) {
                     J.Assignment assignment = (J.Assignment) arg;
                     return assignment.getVariable().toString().equals("prePostEnabled") &&
-                           RemoveMethodInvocationsVisitor.isTrue(assignment.getAssignment());
+                            RemoveMethodInvocationsVisitor.isTrue(assignment.getAssignment());
                 }
                 return false;
             }
-        };
+        });
     }
 
     private static J.Assignment buildPrePostEnabledAssignedToFalse() {
         if (prePostEnabledToFalseAssignment == null) {
             prePostEnabledToFalseAssignment = PartProvider.buildPart(
-                "import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;\n" +
-                "@EnableMethodSecurity(prePostEnabled = false)\n" +
-                "public class config {}",
-                J.Assignment.class,
-                "spring-security-config-5.8.+"
+                    "import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;\n" +
+                            "@EnableMethodSecurity(prePostEnabled = false)\n" +
+                            "public class config {}",
+                    J.Assignment.class,
+                    "spring-security-config-5.8.+"
             );
         }
         return prePostEnabledToFalseAssignment;

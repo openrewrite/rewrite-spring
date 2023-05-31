@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -35,11 +36,11 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
     @Override
     public String getDescription() {
         return "Spring Boot `ActuatorMediaType` was deprecated in 2.5 in favor of `ApiVersion#getProducedMimeType()`. " +
-               "Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`.";
+                "Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`.";
     }
 
     @Override
-    protected JavaIsoVisitor<ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             private final MethodMatcher mediaTypeMatcher = new MethodMatcher("org.springframework.http.MediaType parseMediaType(java.lang.String)");
 
@@ -61,12 +62,13 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
                                 maybeAddImport("org.springframework.boot.actuate.endpoint.ApiVersion");
                                 maybeAddImport("org.springframework.http.MediaType");
                                 maybeRemoveImport("org.springframework.boot.actuate.endpoint.http.ActuatorMediaType");
-                                mi = mi.withTemplate(JavaTemplate.builder(this::getCursor, "MediaType.asMediaType(ApiVersion.#{}.getProducedMimeType())")
+                                mi = mi.withTemplate(JavaTemplate.builder("MediaType.asMediaType(ApiVersion.#{}.getProducedMimeType())")
                                                 .javaParser(JavaParser.fromJavaVersion()
                                                         .classpathFromResources(ctx, "spring-web-5.*", "spring-boot-actuator-2.5.*", "spring-core-5.*"))
                                                 .imports("org.springframework.http.MediaType",
                                                         "org.springframework.boot.actuate.endpoint.ApiVersion")
                                                 .build(),
+                                        getCursor(),
                                         mi.getCoordinates().replace(),
                                         apiVersion);
                             }

@@ -15,11 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.*;
 import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -30,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MigrateLoggingSystemPropertyConstants extends Recipe {
+
     @Override
     public String getDisplayName() {
         return "Migrate to recommended constants in `LogbackLoggingSystemProperties` from deprecated values in `LoggingSystemProperties`";
@@ -40,15 +37,10 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
         return "Replaces field and static access of deprecated fields in `LoggingSystemProperties` with the recommendations from `LogbackLoggingSystemProperties`. Deprecated in 2.4.x and removed in 2.6.0.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.logging.LoggingSystemProperties", false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new MigrateLoggingSystemPropertyConstants.UpdateDeprecatedConstantFieldNames();
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.boot.logging.LoggingSystemProperties", false),
+                new MigrateLoggingSystemPropertyConstants.UpdateDeprecatedConstantFieldNames());
     }
 
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {

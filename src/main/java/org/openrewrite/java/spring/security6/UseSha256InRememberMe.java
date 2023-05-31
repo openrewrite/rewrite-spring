@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
@@ -35,10 +32,10 @@ public class UseSha256InRememberMe extends Recipe {
     private static final JavaType.Class REMEMBER_ME_TOKEN_ALGORITHM_TYPE = (JavaType.Class) JavaType.buildType("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices$RememberMeTokenAlgorithm");
     private static final MethodMatcher REMEMBER_ME_SERVICES_CONSTRUCTOR_MATCHER =
             new MethodMatcher("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices <constructor>(String, org.springframework.security.core.userdetails.UserDetailsService, "
-                              + REMEMBER_ME_TOKEN_ALGORITHM_TYPE.getFullyQualifiedName() + ")");
+                    + REMEMBER_ME_TOKEN_ALGORITHM_TYPE.getFullyQualifiedName() + ")");
     private static final MethodMatcher REMEMBER_ME_SERVICES_SET_MATCHING_ALGORITHM_MATCHER =
             new MethodMatcher("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices setMatchingAlgorithm("
-                              + REMEMBER_ME_TOKEN_ALGORITHM_TYPE.getFullyQualifiedName() + ")");
+                    + REMEMBER_ME_TOKEN_ALGORITHM_TYPE.getFullyQualifiedName() + ")");
 
     @Override
     public String getDisplayName() {
@@ -48,17 +45,12 @@ public class UseSha256InRememberMe extends Recipe {
     @Override
     public String getDescription() {
         return "As of Spring Security 6.0 the SHA-256 algorithm is the default for the encoding and matching algorithm used by `TokenBasedRememberMeServices` and does thus no longer need to be explicitly configured. "
-               + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#servlet-opt-in-sha256-rememberme) for details.";
+                + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#servlet-opt-in-sha256-rememberme) for details.";
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices", true);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices", true), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 newClass = super.visitNewClass(newClass, ctx);
@@ -75,14 +67,14 @@ public class UseSha256InRememberMe extends Recipe {
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
                 if (method.getSelect() != null && method.getArguments().size() == 1
-                    && REMEMBER_ME_SERVICES_SET_MATCHING_ALGORITHM_MATCHER.matches(method)) {
+                        && REMEMBER_ME_SERVICES_SET_MATCHING_ALGORITHM_MATCHER.matches(method)) {
                     if (isSha256Algorithm(method.getArguments().get(0), getCursor())) {
                         return null;
                     }
                 }
                 return method;
             }
-        };
+        });
     }
 
     private boolean isSha256Algorithm(Expression expression, Cursor cursor) {

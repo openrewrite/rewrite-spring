@@ -17,10 +17,13 @@ package org.openrewrite.java.spring.framework;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.*;
+import org.openrewrite.Option;
+import org.openrewrite.Recipe;
+import org.openrewrite.Validated;
 import org.openrewrite.java.dependencies.UpgradeDependencyVersion;
 import org.openrewrite.semver.Semver;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Value
@@ -49,7 +52,7 @@ public class UpgradeSpringFrameworkDependencies extends Recipe {
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
+    public List<Recipe> getRecipeList() {
         String[] artifacts51 = new String[]{
                 "spring-bom",
                 "spring-aop",
@@ -74,13 +77,14 @@ public class UpgradeSpringFrameworkDependencies extends Recipe {
                 "spring-webmvc",
                 "spring-websocket"};
 
+        List<Recipe> result = new ArrayList<>();
         for (String artifact : artifacts51) {
-            doNext(new UpgradeDependencyVersion("org.springframework", artifact, newVersion, null, false, null));
+            result.add(new UpgradeDependencyVersion("org.springframework", artifact, newVersion, null, false, null));
         }
         if (newVersion.startsWith("5.3")) {
-            doNext(new UpgradeDependencyVersion("org.springframework", "spring-r2dbc", newVersion, null, false, null));
+            result.add(new UpgradeDependencyVersion("org.springframework", "spring-r2dbc", newVersion, null, false, null));
         }
 
-        return super.visit(before, ctx);
+        return result;
     }
 }

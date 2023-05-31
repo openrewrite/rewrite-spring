@@ -65,7 +65,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
     @Option(
             displayName = "Connection attribute",
             description = "A connection attribute, if any, indicating to the JDBC " +
-                          "provider that this is a TLS connection.",
+                    "provider that this is a TLS connection.",
             example = "sslConnection=true")
     @Nullable
     String attribute;
@@ -78,17 +78,17 @@ public class UseTlsJdbcConnectionString extends Recipe {
     @Override
     public String getDescription() {
         return "Increasingly, for compliance reasons (e.g. [NACHA](https://www.nacha.org/sites/default/files/2022-06/End_User_Briefing_Supplementing_Data_Security_UPDATED_FINAL.pdf)), JDBC connection strings " +
-               "should be TLS-enabled. This recipe will update the port and " +
-               "optionally add a connection attribute to indicate that the " +
-               "connection is TLS-enabled.";
+                "should be TLS-enabled. This recipe will update the port and " +
+                "optionally add a connection attribute to indicate that the " +
+                "connection is TLS-enabled.";
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         String attr = attribute;
-        if(attr != null) {
+        if (attr != null) {
             attr = attr.trim();
-            if(!attr.endsWith(";")) {
+            if (!attr.endsWith(";")) {
                 attr = attr + ';';
             }
         }
@@ -96,16 +96,17 @@ public class UseTlsJdbcConnectionString extends Recipe {
 
         String actualPropertyKey = propertyKey == null ? "spring.datasource.url" : propertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
-            @Override
-            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
-                return sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File;
-            }
 
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                doNext(new UseTlsJdbcConnectionStringYaml(actualPropertyKey, oldPort, port, validatedAttribute));
-                doNext(new UseTlsJdbcConnectionStringProperties(actualPropertyKey, oldPort, port, validatedAttribute));
-                return tree;
+            public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
+                if (t instanceof Yaml.Documents) {
+                    t = new UseTlsJdbcConnectionStringYaml(actualPropertyKey, oldPort, port, validatedAttribute)
+                            .getVisitor().visitNonNull(t, ctx);
+                } else if (t instanceof Properties.File) {
+                    t = new UseTlsJdbcConnectionStringProperties(actualPropertyKey, oldPort, port, validatedAttribute)
+                            .getVisitor().visitNonNull(t, ctx);
+                }
+                return t;
             }
         };
     }
@@ -130,7 +131,11 @@ public class UseTlsJdbcConnectionString extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        public String getDescription() {
+            return "Use TLS for JDBC connection strings.";
+        }
+
+        private TreeVisitor<?, ExecutionContext> precondition() {
             return new YamlVisitor<ExecutionContext>() {
                 @Override
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
@@ -143,8 +148,8 @@ public class UseTlsJdbcConnectionString extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new YamlIsoVisitor<ExecutionContext>() {
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(precondition(), new YamlIsoVisitor<ExecutionContext>() {
                 final JsonPathMatcher jdbcUrl = new JsonPathMatcher("$." + propertyKey);
 
                 @Override
@@ -169,7 +174,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
                     }
                     return e;
                 }
-            };
+            });
         }
     }
 
@@ -193,7 +198,11 @@ public class UseTlsJdbcConnectionString extends Recipe {
         }
 
         @Override
-        protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
+        public String getDescription() {
+            return "Use TLS for JDBC connection strings.";
+        }
+
+        private TreeVisitor<?, ExecutionContext> precondition() {
             return new PropertiesVisitor<ExecutionContext>() {
                 @Override
                 public Properties visitFile(Properties.File file, ExecutionContext ctx) {
@@ -206,8 +215,8 @@ public class UseTlsJdbcConnectionString extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new PropertiesIsoVisitor<ExecutionContext>() {
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(precondition(), new PropertiesIsoVisitor<ExecutionContext>() {
                 @Override
                 public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
                     Properties.Entry e = super.visitEntry(entry, ctx);
@@ -230,7 +239,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
                     }
                     return e;
                 }
-            };
+            });
         }
     }
 

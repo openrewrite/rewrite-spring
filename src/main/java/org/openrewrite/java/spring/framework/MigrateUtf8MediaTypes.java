@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
@@ -42,13 +39,8 @@ public class MigrateUtf8MediaTypes extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.http.MediaType", false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.http.MediaType", false), new JavaIsoVisitor<ExecutionContext>() {
             private final Map<String, String> updateDeprecatedFields = new HashMap<String, String>() {{
                 put("APPLICATION_JSON_UTF8", "APPLICATION_JSON");
                 put("APPLICATION_JSON_UTF8_VALUE", "APPLICATION_JSON_VALUE");
@@ -60,7 +52,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
             public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
                 J.FieldAccess fa = super.visitFieldAccess(fieldAccess, ctx);
                 if (TypeUtils.isOfType(mediaTypeFqn, fa.getTarget().getType()) &&
-                    updateDeprecatedFields.containsKey(fa.getName().getSimpleName())) {
+                        updateDeprecatedFields.containsKey(fa.getName().getSimpleName())) {
 
                     if (fa.getTarget() instanceof J.FieldAccess) {
                         fa = TypeTree.build(mediaTypeFqn.getFullyQualifiedName() + "." + updateDeprecatedFields.get(fieldAccess.getName().getSimpleName()))
@@ -108,6 +100,6 @@ public class MigrateUtf8MediaTypes extends Recipe {
                 }
                 return false;
             }
-        };
+        });
     }
 }

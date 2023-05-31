@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.*;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Flag;
@@ -39,15 +38,10 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
         return "`ErrorProperties#IncludeStacktrace.ON_TRACE_PARAM` was deprecated in 2.3.x and removed in 2.5.0.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace", false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new MigrateErrorPropertiesIncludeStackTraceConstants.UpdateDeprecatedConstantFieldNames();
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.boot.autoconfigure.web.ErrorProperties$IncludeStacktrace", false),
+                new MigrateErrorPropertiesIncludeStackTraceConstants.UpdateDeprecatedConstantFieldNames());
     }
 
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {

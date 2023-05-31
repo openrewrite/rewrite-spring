@@ -15,16 +15,19 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import java.time.Duration;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.*;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.DeclaresMethod;
 import org.openrewrite.java.tree.J;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MigrateItemWriterWrite extends Recipe {
 
@@ -38,21 +41,11 @@ public class MigrateItemWriterWrite extends Recipe {
         return "`JobBuilderFactory` was deprecated in Springbatch 5.x : replaced by `JobBuilder`.";
     }
 
-    @Override
-    public Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(5);
-    }
-
     private static final MethodMatcher ITEM_WRITER_MATCHER = new MethodMatcher("org.springframework.batch.item.ItemWriter write(java.util.List)", true);
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new DeclaresMethod<>(ITEM_WRITER_MATCHER);
-    }
-
-    @Override
-    public JavaIsoVisitor<ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new DeclaresMethod<>(ITEM_WRITER_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
@@ -63,12 +56,12 @@ public class MigrateItemWriterWrite extends Recipe {
                 }
 
                 J.VariableDeclarations parameter = (J.VariableDeclarations) m.getParameters().get(0);
-                if(!(parameter.getTypeExpression() instanceof J.ParameterizedType)
+                if (!(parameter.getTypeExpression() instanceof J.ParameterizedType)
                         || ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() == null) {
                     return m;
                 }
                 String chunkTypeParameter = ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters().get(0).toString();
-                String paramName =  parameter.getVariables().get(0).getSimpleName();
+                String paramName = parameter.getVariables().get(0).getSimpleName();
 
                 // @Override may or may not already be present
                 String annotationsWithOverride = Stream.concat(
@@ -82,18 +75,18 @@ public class MigrateItemWriterWrite extends Recipe {
                 // method to ensure that type info is accurate / List import can potentially be removed
                 // See: https://github.com/openrewrite/rewrite/issues/2819
                 m = m.withTemplate(
-                        JavaTemplate.builder(
-                                        () -> getCursor().getParentTreeCursor(),
-                                        "#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
+                        JavaTemplate.builder("#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
+                                .context(getCursor())
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                                 .imports("org.springframework.batch.item.Chunk")
                                 .build(),
+                        getCursor(),
                         m.getCoordinates().replace(),
                         annotationsWithOverride,
                         m.getModifiers().stream()
-                                        .map(J.Modifier::toString)
-                                        .collect(Collectors.joining(" ")),
+                                .map(J.Modifier::toString)
+                                .collect(Collectors.joining(" ")),
                         parameter.getModifiers().stream()
                                 .map(J.Modifier::toString)
                                 .collect(Collectors.joining(" ")),
@@ -106,6 +99,6 @@ public class MigrateItemWriterWrite extends Recipe {
 
                 return m;
             }
-        };
+        });
     }
 }

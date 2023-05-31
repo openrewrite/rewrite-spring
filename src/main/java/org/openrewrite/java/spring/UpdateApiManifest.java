@@ -15,34 +15,26 @@
  */
 package org.openrewrite.java.spring;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Incubating;
-import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
-import org.openrewrite.internal.ListUtils;
+import lombok.Data;
+import org.openrewrite.*;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.tree.*;
 import org.openrewrite.text.PlainText;
 import org.openrewrite.text.PlainTextParser;
+import org.openrewrite.text.PlainTextVisitor;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
-
 @Incubating(since = "4.12.0")
-public class UpdateApiManifest extends Recipe {
+public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManifest> {
     private static final List<AnnotationMatcher> REST_ENDPOINTS = Stream.of("Request", "Get", "Post", "Put", "Delete", "Patch")
             .map(method -> new AnnotationMatcher("@org.springframework.web.bind.annotation." + method + "Mapping"))
-            .collect(toList());
+            .collect(Collectors.toList());
 
     @Override
     public String getDisplayName() {
@@ -55,63 +47,49 @@ public class UpdateApiManifest extends Recipe {
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
+    public ApiManifest getInitialValue(ExecutionContext ctx) {
+        return new ApiManifest();
+    }
 
-        List<String> apis = new ArrayList<>();
-
-        for (SourceFile sourceFile : before) {
-            new JavaVisitor<ExecutionContext>() {
-                @Override
-                public J visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                    method.getAllAnnotations().stream()
-                            .filter(this::hasRequestMapping)
-                            .findAny()
-                            .ifPresent(mapping -> {
-                                String path =
-                                        getCursor().getPathAsStream()
-                                                .filter(J.ClassDeclaration.class::isInstance)
-                                                .map(classDecl -> ((J.ClassDeclaration) classDecl).getAllAnnotations().stream()
-                                                        .filter(this::hasRequestMapping)
-                                                        .findAny()
-                                                        .map(classMapping -> getArg(classMapping, "value", ""))
-                                                        .orElse(null))
-                                                .filter(Objects::nonNull)
-                                                .collect(Collectors.joining("/")) +
-                                                getArg(mapping, "value", "");
-                                path = path.replace("//", "/");
-
-                                JavaType.FullyQualified type = TypeUtils.asFullyQualified(mapping.getType());
-                                assert type != null;
-                                String httpMethod = type.getClassName().startsWith("Request") ?
-                                        getArg(mapping, "method", "GET") :
-                                        type.getClassName().replace("Mapping", "").toUpperCase();
-                                apis.add(httpMethod + " " + path);
-                            });
-                    return super.visitMethodDeclaration(method, ctx);
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(ApiManifest acc) {
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof JavaSourceFile) {
+                    new SpringHttpEndpointCollector().visit(tree, acc.getApis());
+                } else if (tree instanceof PlainText && ((PlainText) tree).getSourcePath().equals(Paths.get("META-INF/api-manifest.txt"))) {
+                    acc.setGenerate(false);
                 }
+                return tree;
+            }
+        };
+    }
 
-                private boolean hasRequestMapping(J.Annotation ann) {
-                    for (AnnotationMatcher restEndpoint : REST_ENDPOINTS) {
-                        if (restEndpoint.matches(ann)) {
-                            return true;
-                        }
-                    }
-                    return false;
+    @Override
+    public Collection<SourceFile> generate(ApiManifest acc, ExecutionContext ctx) {
+        return acc.isGenerate() ? Collections.singletonList(generateManifest(acc.getApis())) : Collections.emptyList();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(ApiManifest acc) {
+        return Preconditions.check(!acc.isGenerate(), new PlainTextVisitor<ExecutionContext>() {
+            @Override
+            public PlainText visitText(PlainText text, ExecutionContext executionContext) {
+                if(text.getSourcePath().equals(Paths.get("META-INF/api-manifest.txt"))) {
+                    return text.withText(generateManifest(acc.getApis()).getText());
                 }
-            }.visit(sourceFile, ctx);
-        }
-
-        List<SourceFile> after = ListUtils.map(before, sourceFile ->
-                sourceFile.getSourcePath().equals(Paths.get("META-INF/api-manifest.txt")) ?
-                        generateManifest(apis) : sourceFile);
-
-        return after == before ? ListUtils.concat(before, generateManifest(apis)) : after;
+                return text;
+            }
+        });
     }
 
     private PlainText generateManifest(List<String> apis) {
+        //noinspection OptionalGetWithoutIsPresent
         return new PlainTextParser()
                 .parse(String.join("\n", apis))
-                .get(0)
+                .findFirst()
+                .get()
                 .withSourcePath(Paths.get("META-INF/api-manifest.txt"));
     }
 
@@ -137,5 +115,51 @@ public class UpdateApiManifest extends Recipe {
             }
         }
         return defaultValue;
+    }
+
+    @Data
+    static class ApiManifest {
+        boolean generate = true;
+        List<String> apis = new ArrayList<>();
+    }
+
+    private class SpringHttpEndpointCollector extends JavaIsoVisitor<List<String>> {
+        @Override
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, List<String> apis) {
+            method.getAllAnnotations().stream()
+                    .filter(this::hasRequestMapping)
+                    .findAny()
+                    .ifPresent(mapping -> {
+                        String path =
+                                getCursor().getPathAsStream()
+                                        .filter(J.ClassDeclaration.class::isInstance)
+                                        .map(classDecl -> ((J.ClassDeclaration) classDecl).getAllAnnotations().stream()
+                                                .filter(this::hasRequestMapping)
+                                                .findAny()
+                                                .map(classMapping -> getArg(classMapping, "value", ""))
+                                                .orElse(null))
+                                        .filter(Objects::nonNull)
+                                        .collect(Collectors.joining("/")) +
+                                        getArg(mapping, "value", "");
+                        path = path.replace("//", "/");
+
+                        JavaType.FullyQualified type = TypeUtils.asFullyQualified(mapping.getType());
+                        assert type != null;
+                        String httpMethod = type.getClassName().startsWith("Request") ?
+                                getArg(mapping, "method", "GET") :
+                                type.getClassName().replace("Mapping", "").toUpperCase();
+                        apis.add(httpMethod + " " + path);
+                    });
+            return method;
+        }
+
+        private boolean hasRequestMapping(J.Annotation ann) {
+            for (AnnotationMatcher restEndpoint : REST_ENDPOINTS) {
+                if (restEndpoint.matches(ann)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

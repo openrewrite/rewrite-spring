@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.search.FindAnnotations;
@@ -66,38 +66,33 @@ public class UnnecessarySpringExtension extends Recipe {
         return "`@SpringBootTest` and all test slice annotations already applies `@SpringExtension` as of Spring Boot 2.1.0.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.test.context.junit.jupiter.SpringExtension", false);
-    }
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.test.context.junit.jupiter.SpringExtension", false),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                        // Clear the class body to make annotation search and replace faster
+                        // noinspection ConstantConditions
+                        J.ClassDeclaration c = classDecl.withBody(null);
 
-                // Clear the class body to make annotation search and replace faster
-                // noinspection ConstantConditions
-                J.ClassDeclaration c = classDecl.withBody(null);
+                        AtomicBoolean annotationFound = new AtomicBoolean(false);
+                        new FindBootTestAnnotation().visit(c, annotationFound);
 
-                AtomicBoolean annotationFound = new AtomicBoolean(false);
-                new FindBootTestAnnotation().visit(c, annotationFound);
-
-                if (annotationFound.get()) {
-                    if (!FindAnnotations.find(c, EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN).isEmpty()) {
-                        c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
-                                .getVisitor().visit(c, ctx, getCursor().getParentOrThrow());
-                        assert c != null;
-                        maybeRemoveImport("org.springframework.test.context.junit.jupiter.SpringExtension");
-                        maybeRemoveImport("org.junit.jupiter.api.extension.ExtendWith");
-                        return super.visitClassDeclaration(c.withBody(classDecl.getBody()), ctx);
+                        if (annotationFound.get()) {
+                            if (!FindAnnotations.find(c, EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN).isEmpty()) {
+                                c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
+                                        .getVisitor().visit(c, ctx, getCursor().getParentOrThrow());
+                                assert c != null;
+                                maybeRemoveImport("org.springframework.test.context.junit.jupiter.SpringExtension");
+                                maybeRemoveImport("org.junit.jupiter.api.extension.ExtendWith");
+                                return super.visitClassDeclaration(c.withBody(classDecl.getBody()), ctx);
+                            }
+                        }
+                        return super.visitClassDeclaration(classDecl, ctx);
                     }
-                }
-                return super.visitClassDeclaration(classDecl, ctx);
-            }
-        };
+                });
     }
 
     // Using this visitor vs making 15 calls to findAnnotations.

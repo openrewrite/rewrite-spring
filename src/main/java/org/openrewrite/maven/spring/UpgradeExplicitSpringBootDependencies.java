@@ -21,9 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import org.openrewrite.*;
+import org.openrewrite.groovy.tree.G;
 import org.openrewrite.internal.lang.NonNull;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.dependencies.UpgradeDependencyVersion;
 import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.MavenDownloadingException;
 import org.openrewrite.maven.MavenIsoVisitor;
@@ -106,8 +106,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
         }
     }
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
+    private TreeVisitor<?, ExecutionContext> precondition() {
         return new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
@@ -142,8 +141,8 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new MavenIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(precondition(), new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
                 try {
@@ -179,9 +178,14 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                     if (!version.isPresent() || !version.get().getValue().isPresent()) {
                         return;
                     }
-                    doNext(new UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null));
+                    SourceFile sourceFile = getCursor().firstEnclosing(SourceFile.class);
+                    if (sourceFile instanceof Xml.Document) {
+                        doAfterVisit(new org.openrewrite.maven.UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null).getVisitor());
+                    } else if (sourceFile instanceof G.CompilationUnit) {
+                        doAfterVisit(new org.openrewrite.gradle.UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null).getVisitor());
+                    }
                 }
             }
-        };
+        });
     }
 }

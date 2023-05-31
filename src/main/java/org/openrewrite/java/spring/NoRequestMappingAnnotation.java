@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
@@ -64,15 +65,10 @@ public class NoRequestMappingAnnotation extends Recipe {
         return Duration.ofMinutes(2);
     }
 
-    @Nullable
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.web.bind.annotation.RequestMapping", false);
-    }
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new NoRequestMappingAnnotationVisitor();
+        return Preconditions.check(new UsesType<>("org.springframework.web.bind.annotation.RequestMapping", false),
+                new NoRequestMappingAnnotationVisitor());
     }
 
     private static class NoRequestMappingAnnotationVisitor extends JavaIsoVisitor<ExecutionContext> {

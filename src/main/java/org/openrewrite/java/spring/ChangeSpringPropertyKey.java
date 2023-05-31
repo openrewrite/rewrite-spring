@@ -18,13 +18,12 @@ package org.openrewrite.java.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.util.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -63,29 +62,32 @@ public class ChangeSpringPropertyKey extends Recipe {
     List<String> except;
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         org.openrewrite.yaml.ChangePropertyKey yamlChangePropertyKey =
-                new org.openrewrite.yaml.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, null, except);
+                new org.openrewrite.yaml.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except);
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, null, false);
+                new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(Pattern.quote(oldPropertyKey + ".") + exceptRegex() + "(.*)", newPropertyKey + ".$1", true, null, true);
-        return ListUtils.map(before, s -> {
-            SourceFile after = s;
-            if (after instanceof Yaml.Documents) {
-                after = (Yaml.Documents) yamlChangePropertyKey.getVisitor().visit(after, ctx);
-            } else if (after instanceof Properties.File) {
-                if (FindProperties.find((Properties.File) after, newPropertyKey, true).isEmpty()) {
-                    after = (Properties.File) propertiesChangePropertyKey.getVisitor().visit(after, ctx);
-                    // for compatibility with yaml syntax, a spring property key will never have both a (scalar) value and also subproperties
-                    if (after == s) {
-                        after = (Properties.File) subpropertiesChangePropertyKey.getVisitor().visit(after, ctx);
+                new org.openrewrite.properties.ChangePropertyKey(Pattern.quote(oldPropertyKey + ".") + exceptRegex() + "(.*)", newPropertyKey + ".$1", true, true);
+
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof Yaml.Documents) {
+                    tree = yamlChangePropertyKey.getVisitor().visit(tree, ctx);
+                } else if (tree instanceof Properties.File) {
+                    if (FindProperties.find((Properties.File) tree, newPropertyKey, true).isEmpty()) {
+                        Tree newTree = propertiesChangePropertyKey.getVisitor().visit(tree, ctx);
+                        // for compatibility with yaml syntax, a spring property key will never have both a (scalar) value and also subproperties
+                        if (newTree == tree) {
+                            newTree = (Properties.File) subpropertiesChangePropertyKey.getVisitor().visit(tree, ctx);
+                        }
+                        tree = newTree;
                     }
                 }
+                return tree;
             }
-            return after;
-        });
+        };
     }
 
     private String exceptRegex() {

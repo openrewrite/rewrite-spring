@@ -16,12 +16,8 @@
 package org.openrewrite.java.spring.boot2;
 
 import lombok.SneakyThrows;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.search.UsesType;
@@ -46,22 +42,13 @@ public class OutputCaptureExtension extends Recipe {
         return "Use the JUnit Jupiter extension instead of JUnit 4 rule.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule", false));
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.rule.OutputCapture", false));
-                return cu;
-            }
-        };
-    }
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(Preconditions.or(
+                new UsesType<>("org.springframework.boot.test.system.OutputCaptureRule", false),
+                new UsesType<>("org.springframework.boot.test.rule.OutputCapture", false)
+        ), new JavaIsoVisitor<ExecutionContext>() {
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
             @SneakyThrows
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
@@ -87,9 +74,9 @@ public class OutputCaptureExtension extends Recipe {
 
                         //Covert any remaining method calls from OutputCapture -> CapturedOutput
                         doAfterVisit(new ChangeMethodTargetToVariable("org.springframework.boot.test.rule.OutputCapture *(..)",
-                                fieldName, "org.springframework.boot.test.system.CapturedOutput", false));
+                                fieldName, "org.springframework.boot.test.system.CapturedOutput", false).getVisitor());
                         doAfterVisit(new ChangeMethodTargetToVariable("org.springframework.boot.test.system.OutputCaptureRule *(..)",
-                                fieldName, "org.springframework.boot.test.system.CapturedOutput", false));
+                                fieldName, "org.springframework.boot.test.system.CapturedOutput", false).getVisitor());
 
                         getCursor().putMessageOnFirstEnclosing(J.ClassDeclaration.class, "addOutputCaptureExtension", true);
 
@@ -103,14 +90,14 @@ public class OutputCaptureExtension extends Recipe {
                 })));
 
                 if (classDecl.getBody().getStatements().size() != c.getBody().getStatements().size()) {
-                    JavaTemplate addOutputCaptureExtension = JavaTemplate.builder(this::getCursor, "@ExtendWith(OutputCaptureExtension.class)")
+                    JavaTemplate addOutputCaptureExtension = JavaTemplate.builder("@ExtendWith(OutputCaptureExtension.class)")
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                             .imports("org.junit.jupiter.api.extension.ExtendWith",
                                     "org.springframework.boot.test.system.OutputCaptureExtension")
                             .build();
 
-                    c = c.withTemplate(addOutputCaptureExtension, c.getCoordinates()
+                    c = c.withTemplate(addOutputCaptureExtension, getCursor(), c.getCoordinates()
                             .addAnnotation(Comparator.comparing(
                                     J.Annotation::getSimpleName,
                                     new RuleBasedCollator("< ExtendWith")
@@ -123,7 +110,7 @@ public class OutputCaptureExtension extends Recipe {
 
                 return c;
             }
-        };
+        });
     }
 
     private static final MethodMatcher OUTPUT_CAPTURE_MATCHER = new MethodMatcher(
@@ -147,11 +134,12 @@ public class OutputCaptureExtension extends Recipe {
                 return m;
             }
 
-            JavaTemplate matchesTemplate = JavaTemplate.builder(this::getCursor, "#{any()}.matches(#{}.getAll())")
+            JavaTemplate matchesTemplate = JavaTemplate.builder("#{any()}.matches(#{}.getAll())")
+                    .context(getCursor())
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                     .build();
-            m = m.withTemplate(matchesTemplate, m.getCoordinates().replace(), m.getArguments().get(0), variableName);
+            m = m.withTemplate(matchesTemplate, getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), variableName);
             return m;
         }
     }

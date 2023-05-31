@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.http;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -70,9 +69,6 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
             name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWith%1$sConstants
             displayName: Replace String literals with `%1$s` constants
             description: Replace String literals with `%2$s` constants.
-            applicability:
-              anySource:
-                - org.openrewrite.java.spring.http.SpringWebDependency
             recipeList:
             """.formatted(
             fqclass.getSimpleName(),
@@ -104,9 +100,6 @@ class GenerateReplaceStringLiteralWithConstantRecipeTest {
           name: org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants
           displayName: Replace String literals with `MediaType` constants
           description: Replace String literals with `org.springframework.http.MediaType` constants.
-          applicability:
-            anySource:
-              - org.openrewrite.java.spring.http.SpringWebDependency
           recipeList:
             - org.openrewrite.java.ReplaceStringLiteralWithConstant:
                 fullyQualifiedConstantName: org.springframework.http.MediaType.ALL_VALUE

@@ -93,7 +93,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         String actualPropertyKey = propertyKey == null ? "spring.rabbitmq.addresses" : propertyKey;
         String actualTlsPropertyKey = tlsPropertyKey == null ? "spring.rabbitmq.ssl.enabled" : tlsPropertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
@@ -103,21 +103,15 @@ public class UseTlsAmqpConnectionString extends Recipe {
             }
 
             @Override
-            public Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof SourceFile) {
-                    return super.visit(tree, ctx);
+            public Tree visit(@Nullable Tree t, ExecutionContext ctx) {
+                if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
+                    t = new UseTlsAmqpConnectionStringYaml(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions)
+                            .getVisitor().visit(t, ctx);
+                } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
+                    t = new UseTlsAmqpConnectionStringProperties(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions)
+                            .getVisitor().visit(t, ctx);
                 }
-                return tree;
-            }
-
-            @Override
-            public Tree preVisit(Tree tree, ExecutionContext ctx) {
-                if (tree instanceof Yaml.Documents && sourcePathMatches(((SourceFile) tree).getSourcePath(), ctx)) {
-                    doAfterVisit(new UseTlsAmqpConnectionStringYaml(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions));
-                } else if (tree instanceof Properties.File && sourcePathMatches(((SourceFile) tree).getSourcePath(), ctx)) {
-                    doAfterVisit(new UseTlsAmqpConnectionStringProperties(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions));
-                }
-                return tree;
+                return t;
             }
 
             private boolean sourcePathMatches(Path sourcePath, ExecutionContext ctx) {
@@ -162,8 +156,13 @@ public class UseTlsAmqpConnectionString extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-            return new YamlVisitor<ExecutionContext>() {
+        public String getDescription() {
+            return "Use TLS for AMQP connection strings.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(new YamlVisitor<ExecutionContext>() {
                 @Override
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                     if (!FindProperty.find(documents, propertyKey, true).isEmpty()) {
@@ -171,12 +170,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     }
                     return documents;
                 }
-            };
-        }
-
-        @Override
-        protected TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new YamlIsoVisitor<ExecutionContext>() {
+            }, new YamlIsoVisitor<ExecutionContext>() {
                 final JsonPathMatcher amqpUrl = new JsonPathMatcher("$." + propertyKey);
 
                 @Override
@@ -201,7 +195,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (updatedAmqpUrl != amqpUrl) {
                                         updated = true;
                                         connectionStrings[i] = updatedAmqpUrl.toString();
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null));
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null).getVisitor());
                                     }
                                 } else {
                                     // hostname:port(/virtualhost)
@@ -214,8 +208,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (!updatedConnectionString.equals(connectionString)) {
                                         updated = true;
                                         connectionStrings[i] = updatedConnectionString;
-                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions));
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null));
+                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions).getVisitor());
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null).getVisitor());
                                     }
                                 }
                             }
@@ -233,7 +227,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     }
                     return e;
                 }
-            };
+            });
         }
     }
 
@@ -259,8 +253,13 @@ public class UseTlsAmqpConnectionString extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-            return new PropertiesVisitor<ExecutionContext>() {
+        public String getDescription() {
+            return "Use TLS for AMQP connection strings.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(new PropertiesVisitor<ExecutionContext>() {
                 @Override
                 public Properties visitFile(Properties.File file, ExecutionContext ctx) {
                     if (!FindProperties.find(file, propertyKey, true).isEmpty()) {
@@ -268,12 +267,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     }
                     return file;
                 }
-            };
-        }
-
-        @Override
-        protected TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new PropertiesIsoVisitor<ExecutionContext>() {
+            }, new PropertiesIsoVisitor<ExecutionContext>() {
                 @Override
                 public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
                     Properties.Entry e = super.visitEntry(entry, ctx);
@@ -296,7 +290,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (updatedAmqpUrl != amqpUrl) {
                                         updated = true;
                                         connectionStrings[i] = updatedAmqpUrl.toString();
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null));
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null).getVisitor());
                                     }
                                 } else {
                                     // hostname:port(/virtualhost)
@@ -309,8 +303,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (!updatedConnectionString.equals(connectionString)) {
                                         updated = true;
                                         connectionStrings[i] = updatedConnectionString;
-                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions));
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null));
+                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions).getVisitor());
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null).getVisitor());
                                     }
                                 }
                             }
@@ -328,7 +322,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     }
                     return e;
                 }
-            };
+            });
         }
     }
 

@@ -16,7 +16,9 @@
 package org.openrewrite.java.spring.framework;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
@@ -41,13 +43,8 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
     }
 
     @Override
-    protected UsesType<ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.jdbc.core.JdbcTemplate", true);
-    }
-
-    @Override
-    protected JdbcTemplateArgsVisitor getVisitor() {
-        return new JdbcTemplateArgsVisitor();
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.jdbc.core.JdbcTemplate", true), new JdbcTemplateArgsVisitor());
     }
 
     private static class JdbcTemplateArgsVisitor extends JavaIsoVisitor<ExecutionContext> {
@@ -73,7 +70,7 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
 
         private boolean shouldSwapArgs(@Nullable JavaType arg1, @Nullable JavaType arg2) {
             return arg1 instanceof JavaType.Array && (
-                    (arg2 instanceof JavaType.Parameterized && ((JavaType.Parameterized)arg2).getTypeParameters().get(0) instanceof JavaType.Class)
+                    (arg2 instanceof JavaType.Parameterized && ((JavaType.Parameterized) arg2).getTypeParameters().get(0) instanceof JavaType.Class)
                             || TypeUtils.isOfClassType(arg2, "org.springframework.jdbc.core.RowMapper")
                             || TypeUtils.isOfClassType(arg2, "org.springframework.jdbc.core.ResultSetExtractor")
                             || TypeUtils.isOfClassType(arg2, "org.springframework.jdbc.core.RowCallbackHandler")

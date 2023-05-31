@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
@@ -54,14 +55,9 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new FindEnvironmentTestUtilsVisitor();
-    }
-
-    @Nullable
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.test.util.EnvironmentTestUtils", false);
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.boot.test.util.EnvironmentTestUtils", false),
+                new FindEnvironmentTestUtilsVisitor());
     }
 
     private static final class ReplaceEnvironmentUtilsMarker implements Marker {
@@ -256,11 +252,13 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             if (maybeMarker.isPresent()) {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = m.withTemplate(
-                        JavaTemplate.builder(this::getCursor, marker.templateString)
+                        JavaTemplate.builder(marker.templateString)
+                                .context(getCursor())
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpathFromResources(ctx, "spring-boot-test-2.*"))
                                 .imports("org.springframework.boot.test.util.TestPropertyValues")
                                 .build(),
+                        getCursor(),
                         m.getCoordinates().replace(),
                         marker.parameters.toArray()
                 );

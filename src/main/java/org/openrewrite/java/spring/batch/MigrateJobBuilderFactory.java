@@ -15,25 +15,21 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.J.ClassDeclaration;
 import org.openrewrite.java.tree.J.MethodDeclaration;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class MigrateJobBuilderFactory extends Recipe {
     private static final MethodMatcher JOB_BUILDER_FACTORY = new MethodMatcher(
@@ -50,18 +46,8 @@ public class MigrateJobBuilderFactory extends Recipe {
     }
 
     @Override
-    public Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(5);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesMethod<>(JOB_BUILDER_FACTORY);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesMethod<>(JOB_BUILDER_FACTORY), new JavaVisitor<ExecutionContext>() {
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
@@ -76,18 +62,20 @@ public class MigrateJobBuilderFactory extends Recipe {
                     doAfterVisit(new MigrateJobBuilderFactory.RemoveJobBuilderFactoryVisitor(clazz, enclosingMethod));
 
                     return method.withTemplate(JavaTemplate
-                                    .builder(() -> getCursor().getParentTreeCursor(), "new JobBuilder(#{any(java.lang.String)}, jobRepository)")
+                                    .builder("new JobBuilder(#{any(java.lang.String)}, jobRepository)")
+                                    .context(getCursor())
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-batch-core-5.+"))
                                     .imports("org.springframework.batch.core.repository.JobRepository",
                                             "org.springframework.batch.core.job.builder.JobBuilder")
                                     .build(),
+                            getCursor(),
                             method.getCoordinates().replace(),
                             method.getArguments().get(0));
                 }
                 return super.visitMethodInvocation(method, ctx);
             }
-        };
+        });
     }
 
     private static class RemoveJobBuilderFactoryVisitor extends JavaIsoVisitor<ExecutionContext> {
@@ -143,7 +131,8 @@ public class MigrateJobBuilderFactory extends Recipe {
             }
 
             JavaTemplate paramsTemplate = JavaTemplate
-                    .builder(this::getCursor, params.stream().map(p -> "#{}").collect(Collectors.joining(", ")))
+                    .builder(params.stream().map(p -> "#{}").collect(Collectors.joining(", ")))
+                    .context(getCursor())
                     .imports("org.springframework.batch.core.repository.JobRepository",
                             "org.springframework.batch.core.job.builder.JobBuilder",
                             "org.springframework.batch.core.Step")
@@ -151,7 +140,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                             .classpathFromResources(ctx, "spring-batch-core-5.+"))
                     .build();
 
-            md = md.withTemplate(paramsTemplate, md.getCoordinates().replaceParameters(), params.toArray());
+            md = md.withTemplate(paramsTemplate, getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
 
             maybeRemoveImport("org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
             maybeAddImport("org.springframework.batch.core.repository.JobRepository");
@@ -162,13 +151,13 @@ public class MigrateJobBuilderFactory extends Recipe {
         private boolean isJobRepositoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations
                     && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                            "org.springframework.batch.core.repository.JobRepository");
+                    "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations
                     && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                            "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
+                    "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
         }
     }
 }
