@@ -16,10 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.search.UsesType;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,8 +42,8 @@ public final class HttpSecurityLambdaDsl extends Recipe {
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(FQN_HTTP_SECURITY, true), new ConvertToSecurityDslVisitor<>(FQN_HTTP_SECURITY, APPLICABLE_METHOD_NAMES));
+    public ConvertToSecurityDslVisitor<ExecutionContext> getVisitor() {
+        return new ConvertToSecurityDslVisitor<>(FQN_HTTP_SECURITY, APPLICABLE_METHOD_NAMES);
     }
 
 }
