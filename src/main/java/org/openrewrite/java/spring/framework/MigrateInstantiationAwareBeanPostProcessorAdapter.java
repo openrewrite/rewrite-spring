@@ -60,11 +60,12 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
 
             @Override
             public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if(tree instanceof JavaSourceFile) {
-                    tree = new ChangeType(fromExtendingFqn, toImplementsFqn, false)
-                            .getVisitor().visitNonNull(tree, ctx);
+                J j = super.visit(tree, ctx);
+                if (j instanceof JavaSourceFile) {
+                    j = (J) new ChangeType(fromExtendingFqn, toImplementsFqn, false)
+                            .getVisitor().visitNonNull(j, ctx);
                 }
-                return super.visit(tree, ctx);
+                return j;
             }
         });
     }
