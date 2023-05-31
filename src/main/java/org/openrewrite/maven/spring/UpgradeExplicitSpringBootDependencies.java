@@ -21,9 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import org.openrewrite.*;
+import org.openrewrite.groovy.tree.G;
 import org.openrewrite.internal.lang.NonNull;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.dependencies.UpgradeDependencyVersion;
 import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.MavenDownloadingException;
 import org.openrewrite.maven.MavenIsoVisitor;
@@ -178,9 +178,12 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                     if (!version.isPresent() || !version.get().getValue().isPresent()) {
                         return;
                     }
-                    doAfterVisit(new UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null).getVisitor());
-                    doAfterVisit(new UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null).getVisitor());
-
+                    SourceFile sourceFile = getCursor().firstEnclosing(SourceFile.class);
+                    if (sourceFile instanceof Xml.Document) {
+                        doAfterVisit(new org.openrewrite.maven.UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null).getVisitor());
+                    } else if (sourceFile instanceof G.CompilationUnit) {
+                        doAfterVisit(new org.openrewrite.gradle.UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null).getVisitor());
+                    }
                 }
             }
         });
