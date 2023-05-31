@@ -23,6 +23,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.text.PlainText;
 import org.openrewrite.text.PlainTextParser;
+import org.openrewrite.text.PlainTextVisitor;
 
 import java.nio.file.Paths;
 import java.util.*;
@@ -72,18 +73,19 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(ApiManifest acc) {
-        return Preconditions.check(!acc.isGenerate(), new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(!acc.isGenerate(), new PlainTextVisitor<ExecutionContext>() {
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof PlainText && ((PlainText) tree).getSourcePath().equals(Paths.get("META-INF/api-manifest.txt"))) {
-                    return ((PlainText) tree).withText(generateManifest(acc.getApis()).getText());
+            public PlainText visitText(PlainText text, ExecutionContext executionContext) {
+                if(text.getSourcePath().equals(Paths.get("META-INF/api-manifest.txt"))) {
+                    return text.withText(generateManifest(acc.getApis()).getText());
                 }
-                return tree;
+                return text;
             }
         });
     }
 
     private PlainText generateManifest(List<String> apis) {
+        //noinspection OptionalGetWithoutIsPresent
         return new PlainTextParser()
                 .parse(String.join("\n", apis))
                 .findFirst()
