@@ -103,21 +103,15 @@ public class UseTlsAmqpConnectionString extends Recipe {
             }
 
             @Override
-            public Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof SourceFile) {
-                    return super.visit(tree, ctx);
+            public Tree visit(@Nullable Tree t, ExecutionContext ctx) {
+                if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
+                    t = new UseTlsAmqpConnectionStringYaml(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions)
+                            .getVisitor().visit(t, ctx);
+                } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
+                    t = new UseTlsAmqpConnectionStringProperties(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions)
+                            .getVisitor().visit(t, ctx);
                 }
-                return tree;
-            }
-
-            @Override
-            public Tree preVisit(Tree tree, ExecutionContext ctx) {
-                if (tree instanceof Yaml.Documents && sourcePathMatches(((SourceFile) tree).getSourcePath(), ctx)) {
-                    doAfterVisit(new UseTlsAmqpConnectionStringYaml(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions));
-                } else if (tree instanceof Properties.File && sourcePathMatches(((SourceFile) tree).getSourcePath(), ctx)) {
-                    doAfterVisit(new UseTlsAmqpConnectionStringProperties(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions));
-                }
-                return tree;
+                return t;
             }
 
             private boolean sourcePathMatches(Path sourcePath, ExecutionContext ctx) {
@@ -201,7 +195,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (updatedAmqpUrl != amqpUrl) {
                                         updated = true;
                                         connectionStrings[i] = updatedAmqpUrl.toString();
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null));
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null).getVisitor());
                                     }
                                 } else {
                                     // hostname:port(/virtualhost)
@@ -214,8 +208,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (!updatedConnectionString.equals(connectionString)) {
                                         updated = true;
                                         connectionStrings[i] = updatedConnectionString;
-                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions));
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null));
+                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions).getVisitor());
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null).getVisitor());
                                     }
                                 }
                             }
@@ -296,7 +290,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (updatedAmqpUrl != amqpUrl) {
                                         updated = true;
                                         connectionStrings[i] = updatedAmqpUrl.toString();
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null));
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null).getVisitor());
                                     }
                                 } else {
                                     // hostname:port(/virtualhost)
@@ -309,8 +303,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (!updatedConnectionString.equals(connectionString)) {
                                         updated = true;
                                         connectionStrings[i] = updatedConnectionString;
-                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions));
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null));
+                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions).getVisitor());
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null).getVisitor());
                                     }
                                 }
                             }

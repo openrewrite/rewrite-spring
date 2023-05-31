@@ -277,7 +277,8 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
                         .imports("org.springframework.boot.autoconfigure.AutoConfiguration")
                         .build();
 
-                doAfterVisit(new RemoveAnnotation("@org.springframework.context.annotation.Configuration"));
+                c = (J.ClassDeclaration) new RemoveAnnotation("@org.springframework.context.annotation.Configuration")
+                        .getVisitor().visitNonNull(c, ctx);
 
                 c = c.withTemplate(addAnnotationTemplate, getCursor(), c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                 maybeAddImport("org.springframework.boot.autoconfigure.AutoConfiguration");

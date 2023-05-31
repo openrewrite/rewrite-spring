@@ -178,7 +178,7 @@ public class RenameBean extends Recipe {
                     boolean maybeRenameMethodDeclaration = maybeRenameBean(m.getAllAnnotations(),
                             BEAN_METHOD_ANNOTATIONS);
                     if (maybeRenameMethodDeclaration && m.getSimpleName().equals(oldName)) {
-                        doAfterVisit(new ChangeMethodName(methodPattern(m), newName, false, false));
+                        doAfterVisit(new ChangeMethodName(methodPattern(m), newName, false, false).getVisitor());
                     }
                 }
 
@@ -201,7 +201,7 @@ public class RenameBean extends Recipe {
                     if (maybeRenameClass && StringUtils.uncapitalize(cd.getSimpleName()).equals(oldName)) {
                         String newFullyQualifiedTypeName = cd.getType().getFullyQualifiedName()
                                 .replaceAll("^((.+\\.)*)[^.]+$", "$1" + StringUtils.capitalize(newName));
-                        doAfterVisit(new ChangeType(cd.getType().getFullyQualifiedName(), newFullyQualifiedTypeName, false));
+                        doAfterVisit(new ChangeType(cd.getType().getFullyQualifiedName(), newFullyQualifiedTypeName, false).getVisitor());
                     }
                 }
 

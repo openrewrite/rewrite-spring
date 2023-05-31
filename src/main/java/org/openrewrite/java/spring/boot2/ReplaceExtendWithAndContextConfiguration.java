@@ -60,7 +60,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                     private final AnnotationMatcher CONTEXT_CONFIGURATION_ANNOTATION_MATCHER = new AnnotationMatcher("@" + FQN_CONTEXT_CONFIGURATION, true);
 
                     {
-                        doAfterVisit(new UnnecessarySpringExtension());
+                        doAfterVisit(new UnnecessarySpringExtension().getVisitor());
                     }
 
                     @Override

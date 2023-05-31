@@ -96,15 +96,17 @@ public class UseTlsJdbcConnectionString extends Recipe {
 
         String actualPropertyKey = propertyKey == null ? "spring.datasource.url" : propertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
+
             @Override
-            public Tree preVisit(Tree tree, ExecutionContext ctx) {
-                stopAfterPreVisit();
-                if (tree instanceof Yaml.Documents) {
-                    doAfterVisit(new UseTlsJdbcConnectionStringYaml(actualPropertyKey, oldPort, port, validatedAttribute));
-                } else if (tree instanceof Properties.File) {
-                    doAfterVisit(new UseTlsJdbcConnectionStringProperties(actualPropertyKey, oldPort, port, validatedAttribute));
+            public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
+                if (t instanceof Yaml.Documents) {
+                    t = new UseTlsJdbcConnectionStringYaml(actualPropertyKey, oldPort, port, validatedAttribute)
+                            .getVisitor().visitNonNull(t, ctx);
+                } else if (t instanceof Properties.File) {
+                    t = new UseTlsJdbcConnectionStringProperties(actualPropertyKey, oldPort, port, validatedAttribute)
+                            .getVisitor().visitNonNull(t, ctx);
                 }
-                return tree;
+                return t;
             }
         };
     }

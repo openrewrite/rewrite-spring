@@ -20,6 +20,7 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -55,6 +56,7 @@ class MigrateDiskSpaceHealthIndicatorConstructorTest implements RewriteTest {
     void changeDeprecatedConstructor() {
         //language=java
         rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import org.springframework.boot.actuate.system.DiskSpaceHealthIndicator;

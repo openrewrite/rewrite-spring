@@ -74,9 +74,9 @@ public class OutputCaptureExtension extends Recipe {
 
                         //Covert any remaining method calls from OutputCapture -> CapturedOutput
                         doAfterVisit(new ChangeMethodTargetToVariable("org.springframework.boot.test.rule.OutputCapture *(..)",
-                                fieldName, "org.springframework.boot.test.system.CapturedOutput", false));
+                                fieldName, "org.springframework.boot.test.system.CapturedOutput", false).getVisitor());
                         doAfterVisit(new ChangeMethodTargetToVariable("org.springframework.boot.test.system.OutputCaptureRule *(..)",
-                                fieldName, "org.springframework.boot.test.system.CapturedOutput", false));
+                                fieldName, "org.springframework.boot.test.system.CapturedOutput", false).getVisitor());
 
                         getCursor().putMessageOnFirstEnclosing(J.ClassDeclaration.class, "addOutputCaptureExtension", true);
 

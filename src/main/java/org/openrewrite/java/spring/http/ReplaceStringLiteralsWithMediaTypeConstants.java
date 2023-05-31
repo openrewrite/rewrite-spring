@@ -126,7 +126,7 @@ public class ReplaceStringLiteralsWithMediaTypeConstants extends ScanningRecipe<
             public J preVisit(J tree, ExecutionContext ctx) {
                 stopAfterPreVisit();
                 for (String header : HEADERS) {
-                    doAfterVisit(new ReplaceStringLiteralWithConstant("org.springframework.http.HttpHeaders." + header));
+                    doAfterVisit(new ReplaceStringLiteralWithConstant("org.springframework.http.HttpHeaders." + header).getVisitor());
                 }
                 return tree;
             }
@@ -139,9 +139,6 @@ public class ReplaceStringLiteralsWithMediaTypeConstants extends ScanningRecipe<
             return true;
         }
         visitor = new org.openrewrite.gradle.search.DependencyInsight("org.springframework", "spring-web", "compileClasspath").getVisitor();
-        if (visitor.isAcceptable(sourceFile, ctx) && visitor.visit(sourceFile, ctx) != sourceFile) {
-            return true;
-        }
-        return false;
+        return visitor.isAcceptable(sourceFile, ctx) && visitor.visit(sourceFile, ctx) != sourceFile;
     }
 }

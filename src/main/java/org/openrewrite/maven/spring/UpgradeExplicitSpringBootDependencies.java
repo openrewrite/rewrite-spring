@@ -178,7 +178,9 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                     if (!version.isPresent() || !version.get().getValue().isPresent()) {
                         return;
                     }
-                    doAfterVisit(new UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null));
+                    doAfterVisit(new UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null).getVisitor());
+                    doAfterVisit(new UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null).getVisitor());
+
                 }
             }
         });
