@@ -314,12 +314,15 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 }
 
                 maybeAddImport(inmemoryAuthConfigType);
-                return addBeanAnnotation(m, getCursor());
+                // not calling `updateCursor()` here because `visitBlock()` currently requires
+                // the original to be stored in the cursor
+                return addBeanAnnotation(m, new Cursor(getCursor().getParentOrThrow(), m));
             }
 
             @Override
             public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
                 J.Block b = super.visitBlock(block, ctx);
+                updateCursor(b);
                 if (getCursor().getParent() != null && getCursor().getParent().getValue() instanceof J.MethodDeclaration) {
                     J.MethodDeclaration parentMethod = getCursor().getParent().getValue();
                     Cursor classDeclCursor = getCursor().dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE);
@@ -443,7 +446,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 List<Statement> allExceptLastStatements = b.getStatements();
                 allExceptLastStatements.remove(b.getStatements().size() - 1);
                 b = b.withStatements(allExceptLastStatements);
-                b = template.apply(getCursor(), b.getCoordinates().lastStatement(), templateParams);
+                b = template.apply(updateCursor(b), b.getCoordinates().lastStatement(), templateParams);
                 maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
                 maybeRemoveImport(FQN_AUTH_MANAGER_BUILDER);
                 return b;
