@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -83,7 +80,7 @@ public class UpdateRequestCache extends Recipe {
                                 "org.springframework.security.web.savedrequest.HttpSessionRequestCache")
                             .build()
                             .apply(
-                                getCursor(),
+                                new Cursor(getCursor(), statement),
                                 statement.getCoordinates().replace(),
                                 getSelect(statement)
                             );
@@ -109,7 +106,9 @@ public class UpdateRequestCache extends Recipe {
                                 .build();
                         maybeAddImport("org.springframework.security.web.savedrequest.NullRequestCache");
                         maybeRemoveImport("org.springframework.security.web.savedrequest.HttpSessionRequestCache");
-                        arg = template.apply(getCursor(), arg.getCoordinates().replace());
+                        arg = template.apply(
+                            new Cursor(getCursor(), arg),
+                            arg.getCoordinates().replace());
                         return method.withArguments(Collections.singletonList(arg));
                     }
 
