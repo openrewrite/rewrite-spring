@@ -64,6 +64,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                 if (cd.getExtends() != null
                         && TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
                     cd = cd.withExtends(null);
+                    updateCursor(cd);
                     // This is an interesting one... JobExecutionListenerSupport implements
                     // JobExecutionListener
                     // remove the super type from the class type to prevent a stack-overflow
@@ -71,6 +72,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                     JavaType.Class type = (JavaType.Class) cd.getType();
                     if (type != null) {
                         cd = cd.withType(type.withSupertype(null));
+                        updateCursor(cd);
                     }
 
                     cd = JavaTemplate
@@ -79,7 +81,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                         .javaParser(JavaParser.fromJavaVersion().classpath("spring-batch"))
                         .build()
                         .apply(
-                            new Cursor(getCursor().getParent(), cd),
+                            getCursor(),
                             cd.getCoordinates().addImplementsClause()
                         );
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());

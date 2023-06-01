@@ -88,6 +88,7 @@ public class OutputCaptureExtension extends Recipe {
                     }
                     return s;
                 })));
+                updateCursor(c);
 
                 if (classDecl.getBody().getStatements().size() != c.getBody().getStatements().size()) {
                     JavaTemplate addOutputCaptureExtension = JavaTemplate.builder("@ExtendWith(OutputCaptureExtension.class)")
@@ -98,7 +99,7 @@ public class OutputCaptureExtension extends Recipe {
                             .build();
 
                     c = addOutputCaptureExtension.apply(
-                        new Cursor(getCursor().getParent(), c),
+                        getCursor(),
                         c.getCoordinates()
                             .addAnnotation(Comparator.comparing(
                                 J.Annotation::getSimpleName,

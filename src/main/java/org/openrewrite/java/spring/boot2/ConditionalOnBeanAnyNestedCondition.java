@@ -158,8 +158,9 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
 
                     c = maybeAutoFormat(
                             c,
-                            t.apply(new Cursor(getCursor().getParent(), c), c.getBody().getCoordinates().lastStatement()),
+                            t.apply(getCursor(), c.getBody().getCoordinates().lastStatement()),
                             ctx);
+                    updateCursor(c);
                 }
 
                 // Schedule another visit to modify the associated annotations now that the new conditional classes have been added to the AST

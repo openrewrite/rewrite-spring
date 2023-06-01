@@ -225,13 +225,14 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                         md.getCoordinates().replaceParameters(),
                         params.toArray()
                     );
+                updateCursor(md);
 
                 //noinspection ConstantConditions
                 md = JavaTemplate.builder("this." + fieldName + " = " + fieldName + ";")
                     .contextSensitive()
                     .build()
                     .apply(
-                        new Cursor(getCursor().getParent(), md),
+                        getCursor(),
                         md.getBody().getCoordinates().lastStatement()
                     );
             }
