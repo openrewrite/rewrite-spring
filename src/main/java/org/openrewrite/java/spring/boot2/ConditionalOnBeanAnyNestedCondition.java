@@ -23,6 +23,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.ArrayList;
@@ -154,8 +155,11 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
                             .build();
-                    J.Block block = t.apply( getCursor(), c.getBody().getCoordinates().lastStatement());
-                    c = maybeAutoFormat(c, c.withBody(block), ctx);
+
+                    c = maybeAutoFormat(
+                            c,
+                            t.apply(new Cursor(getCursor().getParent(), c), c.getBody().getCoordinates().lastStatement()),
+                            ctx);
                 }
 
                 // Schedule another visit to modify the associated annotations now that the new conditional classes have been added to the AST
