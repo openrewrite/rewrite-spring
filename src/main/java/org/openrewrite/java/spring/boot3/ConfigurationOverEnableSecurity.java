@@ -115,14 +115,17 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                     }
                 }
 
-                JavaTemplate template = JavaTemplate.builder("@Configuration")
-                        .imports(CONFIGURATION_FQN)
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-context-5.3.+"))
-                        .build();
                 maybeAddImport(CONFIGURATION_FQN);
 
-                return c.withTemplate(template, getCursor(), c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                return JavaTemplate.builder("@Configuration")
+                    .imports(CONFIGURATION_FQN)
+                    .javaParser(JavaParser.fromJavaVersion()
+                        .classpathFromResources(ctx, "spring-context-5.3.+"))
+                    .build()
+                    .apply(
+                        getCursor(),
+                        c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                    );
             }
 
             private boolean isExcluded(Set<J.Annotation> securityAnnotations) {

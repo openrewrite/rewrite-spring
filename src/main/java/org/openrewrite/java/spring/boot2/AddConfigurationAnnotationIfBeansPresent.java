@@ -62,13 +62,14 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
 
             private J.ClassDeclaration addConfigurationAnnotation(J.ClassDeclaration c) {
                 maybeAddImport(FQN_CONFIGURATION);
-                JavaTemplate template = JavaTemplate.builder("@" + CONFIGURATION_SIMPLE_NAME)
-                        .imports(FQN_CONFIGURATION)
-                        .javaParser(JavaParser.fromJavaVersion().dependsOn("package " + CONFIGURATION_PACKAGE
-                                + "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
-                        .build();
-                return c.withTemplate(template, getCursor(),
-                        c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                return JavaTemplate.builder("@" + CONFIGURATION_SIMPLE_NAME)
+                    .imports(FQN_CONFIGURATION)
+                    .javaParser(JavaParser.fromJavaVersion().dependsOn("package " + CONFIGURATION_PACKAGE
+                                                                       + "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
+                    .build().apply(
+                        getCursor(),
+                        c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                    );
             }
         });
     }

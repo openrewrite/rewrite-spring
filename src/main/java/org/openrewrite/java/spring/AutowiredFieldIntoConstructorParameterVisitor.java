@@ -165,15 +165,27 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                                 + classDecl.getSimpleName() + "(" + typeFqn.getClassName() + " " + fieldName + ") {\n"
                                 + "this." + fieldName + " = " + fieldName + ";\n"
                                 + "}\n"
-                        ).context(getCursor());
+                        ).contextSensitive();
                         FullyQualified fq = TypeUtils.asFullyQualified(type.getType());
                         if (fq != null) {
                             template.imports(fq.getFullyQualifiedName());
                             maybeAddImport(fq);
                         }
                         Optional<Statement> firstMethod = block.getStatements().stream().filter(MethodDeclaration.class::isInstance).findFirst();
-                        return firstMethod.map(statement -> (J) block.withTemplate(template.build(), getCursor(), statement.getCoordinates().before()))
-                                .orElseGet(() -> block.withTemplate(template.build(), getCursor(), block.getCoordinates().lastStatement()));
+
+                        return firstMethod.map(statement ->
+                                (J) template.build()
+                                    .apply(getCursor(),
+                                        statement.getCoordinates().before()
+                                    )
+                            )
+                            .orElseGet(() ->
+                                template.build()
+                                    .apply(
+                                        getCursor(),
+                                        block.getCoordinates().lastStatement()
+                                    )
+                            );
                     }
                 }
             }
@@ -205,12 +217,24 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 String paramsStr = Stream.concat(params.stream()
                         .map(s -> "#{}"), Stream.of(methodType + " " + fieldName)).collect(Collectors.joining(", "));
 
-                JavaTemplate.Builder paramsTemplate = JavaTemplate.builder(paramsStr).context(getCursor());
-                md = md.withTemplate(paramsTemplate.build(), getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
+                md = JavaTemplate.builder(paramsStr)
+                    .contextSensitive()
+                    .build()
+                    .apply(
+                        getCursor(),
+                        md.getCoordinates().replaceParameters(),
+                        params.toArray()
+                    );
+                updateCursor(md);
 
-                JavaTemplate.Builder statementTemplate = JavaTemplate.builder("this." + fieldName + " = " + fieldName + ";").context(getCursor());
                 //noinspection ConstantConditions
-                md = md.withTemplate(statementTemplate.build(), getCursor(), md.getBody().getCoordinates().lastStatement());
+                md = JavaTemplate.builder("this." + fieldName + " = " + fieldName + ";")
+                    .contextSensitive()
+                    .build()
+                    .apply(
+                        getCursor(),
+                        md.getBody().getCoordinates().lastStatement()
+                    );
             }
             return md;
         }

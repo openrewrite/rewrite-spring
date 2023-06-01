@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -75,15 +72,18 @@ public class UpdateRequestCache extends Recipe {
                 for (int i = 0; i < statements.size(); i++) {
                     Statement statement = statements.get(i);
                     if (isNewHttpSessionRequestCacheStatement(statement)) {
-                        JavaTemplate template = JavaTemplate.builder("#{any()}.setMatchingRequestParameterName(\"continue\");")
-                                .context(getCursor())
-                                .javaParser(JavaParser.fromJavaVersion()
-                                        .classpath("spring-security-web"))
-                                .imports(
-                                        "org.springframework.security.web.savedrequest.HttpSessionRequestCache")
-                                .build();
-
-                        statement = statement.withTemplate(template, getCursor(), statement.getCoordinates().replace(), getSelect(statement));
+                        statement = JavaTemplate.builder("#{any()}.setMatchingRequestParameterName(\"continue\");")
+                            .contextSensitive()
+                            .javaParser(JavaParser.fromJavaVersion()
+                                .classpath("spring-security-web"))
+                            .imports(
+                                "org.springframework.security.web.savedrequest.HttpSessionRequestCache")
+                            .build()
+                            .apply(
+                                new Cursor(getCursor(), statement),
+                                statement.getCoordinates().replace(),
+                                getSelect(statement)
+                            );
                         statements = ListUtils.insert(statements, statement, i + 1);
 
                         return block.withStatements(statements);
@@ -104,10 +104,11 @@ public class UpdateRequestCache extends Recipe {
                                 .imports(
                                         "org.springframework.security.web.savedrequest.NullRequestCache")
                                 .build();
-
                         maybeAddImport("org.springframework.security.web.savedrequest.NullRequestCache");
                         maybeRemoveImport("org.springframework.security.web.savedrequest.HttpSessionRequestCache");
-                        arg = arg.withTemplate(template, getCursor(), arg.getCoordinates().replace());
+                        arg = template.apply(
+                            new Cursor(getCursor(), arg),
+                            arg.getCoordinates().replace());
                         return method.withArguments(Collections.singletonList(arg));
                     }
 

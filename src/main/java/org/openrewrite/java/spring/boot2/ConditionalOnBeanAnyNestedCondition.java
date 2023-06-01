@@ -23,6 +23,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.ArrayList;
@@ -117,11 +118,15 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     }
 
                     if (anyConditionClassExists) {
-                        a = a.withTemplate(JavaTemplate.builder("@Conditional(#{}.class)")
-                                .imports("org.springframework.context.annotation.Conditional")
-                                .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
-                                .build(), getCursor(), a.getCoordinates().replace(), conditionalClassName);
+                        a = JavaTemplate.builder("@Conditional(#{}.class)")
+                            .imports("org.springframework.context.annotation.Conditional")
+                            .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
+                            .build()
+                            .apply(
+                                getCursor(),
+                                a.getCoordinates().replace(), conditionalClassName
+                            );
                         maybeAddImport("org.springframework.context.annotation.Conditional");
                     } else {
                         // add the new conditional class template string to the parent ClassDeclaration Cursor
@@ -145,12 +150,17 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
             if (conditionalTemplates != null && !conditionalTemplates.isEmpty()) {
                 for (String s : conditionalTemplates) {
                     JavaTemplate t = JavaTemplate.builder(s)
-                            .context(getCursor())
+                            .contextSensitive()
                             .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
                             .build();
-                    c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, getCursor(), c.getBody().getCoordinates().lastStatement())), ctx);
+
+                    c = maybeAutoFormat(
+                            c,
+                            t.apply(getCursor(), c.getBody().getCoordinates().lastStatement()),
+                            ctx);
+                    updateCursor(c);
                 }
 
                 // Schedule another visit to modify the associated annotations now that the new conditional classes have been added to the AST

@@ -64,6 +64,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                 if (cd.getExtends() != null
                         && TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
                     cd = cd.withExtends(null);
+                    updateCursor(cd);
                     // This is an interesting one... JobExecutionListenerSupport implements
                     // JobExecutionListener
                     // remove the super type from the class type to prevent a stack-overflow
@@ -71,18 +72,19 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                     JavaType.Class type = (JavaType.Class) cd.getType();
                     if (type != null) {
                         cd = cd.withType(type.withSupertype(null));
+                        updateCursor(cd);
                     }
 
-                    cd = cd.withTemplate(
-                            JavaTemplate
-                                    .builder(JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
-                                    .imports(fullyQualifiedInterfaceName)
-                                    .javaParser(JavaParser.fromJavaVersion().classpath("spring-batch"))
-                                    .build(),
+                    cd = JavaTemplate
+                        .builder(JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
+                        .imports(fullyQualifiedInterfaceName)
+                        .javaParser(JavaParser.fromJavaVersion().classpath("spring-batch"))
+                        .build()
+                        .apply(
                             getCursor(),
-                            cd.getCoordinates().addImplementsClause());
-                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx,
-                            getCursor());
+                            cd.getCoordinates().addImplementsClause()
+                        );
+                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());
                     maybeRemoveImport(fullyQualifiedClassName);
                     maybeAddImport(fullyQualifiedInterfaceName);
                 }

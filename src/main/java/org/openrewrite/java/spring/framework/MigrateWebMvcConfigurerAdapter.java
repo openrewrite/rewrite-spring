@@ -15,11 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -49,20 +45,21 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter")) {
                     cd = cd.withExtends(null);
+                    updateCursor(cd);
                     // This is an interesting one... WebMvcConfigurerAdapter implements WebMvcConfigurer
                     // remove the super type from the class type to prevent a stack-overflow exception when the JavaTemplate visits class type.
                     JavaType.Class type = (JavaType.Class) cd.getType();
                     if (type != null) {
                         cd = cd.withType(type.withSupertype(null));
+                        updateCursor(cd);
                     }
-                    cd = cd.withTemplate(JavaTemplate.builder("WebMvcConfigurer")
-                                    .context(getCursor().dropParentUntil(p -> p instanceof J.ClassDeclaration || p instanceof SourceFile))
+                    cd = JavaTemplate.builder("WebMvcConfigurer")
+                                    .contextSensitive()
                                     .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-webmvc-5.*"))
-                                    .build(),
-                            getCursor(),
-                            cd.getCoordinates().addImplementsClause());
+                                    .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
+                    updateCursor(cd);
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());
                     maybeRemoveImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
                     maybeAddImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurer");

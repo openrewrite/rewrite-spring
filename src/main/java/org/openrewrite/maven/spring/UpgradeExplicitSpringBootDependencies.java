@@ -178,6 +178,8 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                     if (!version.isPresent() || !version.get().getValue().isPresent()) {
                         return;
                     }
+                    // TODO: we could use the org.openrewrite.java.dependencies.UpgradeDependencyVersion if we implement there a getVisitor with a similar logic than here,
+                    //  but right now it's just a list of recipes, and the getVisitor is the default from Recipe and does nothing
                     SourceFile sourceFile = getCursor().firstEnclosing(SourceFile.class);
                     if (sourceFile instanceof Xml.Document) {
                         doAfterVisit(new org.openrewrite.maven.UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null).getVisitor());

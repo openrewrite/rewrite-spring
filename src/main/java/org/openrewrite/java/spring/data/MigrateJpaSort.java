@@ -68,17 +68,18 @@ public class MigrateJpaSort extends Recipe {
                             .map(type -> "#{any(" + (type == null ? "" : type.getFullyQualifiedName()) + ")}")
                             .collect(Collectors.joining(",", "JpaSort.of(", ")"));
 
-                    return newClass.withTemplate(
-                            JavaTemplate.builder(template)
-                                    .context(getCursor())
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-data-commons-2.*",
-                                                    "spring-data-jpa-2.3.*", "javax.persistence-api-2.*"))
-                                    .imports("org.springframework.data.jpa.domain.JpaSort")
-                                    .build(),
+                    return JavaTemplate.builder(template)
+                        .contextSensitive()
+                        .javaParser(JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-data-commons-2.*",
+                                "spring-data-jpa-2.3.*", "javax.persistence-api-2.*"))
+                        .imports("org.springframework.data.jpa.domain.JpaSort")
+                        .build()
+                        .apply(
                             getCursor(),
                             newClass.getCoordinates().replace(),
-                            newClass.getArguments().toArray());
+                            newClass.getArguments().toArray()
+                            );
                 }
 
                 return super.visitNewClass(newClass, ctx);

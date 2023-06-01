@@ -56,14 +56,14 @@ public class UseNewSecurityMatchers extends Recipe {
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                 if (HTTP_SECURITY_MATCHER.matches(mi) && mi.getMethodType() != null) {
-                    return mi.withTemplate(securityMatcherTemplate(ctx), getCursor(), mi.getCoordinates().replaceMethod(), mi.getArguments().get(0));
+                    return securityMatcherTemplate(ctx).apply(getCursor(), mi.getCoordinates().replaceMethod(), mi.getArguments().get(0));
                 }
                 return mi;
             }
 
             private JavaTemplate securityMatcherTemplate(ExecutionContext ctx) {
                 return JavaTemplate.builder("securityMatcher(#{any(String)})")
-                        .context(getCursor())
+                        .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-security-web-5.8.+", "spring-security-config-5.8.+"))
                         .build();

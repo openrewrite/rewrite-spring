@@ -32,8 +32,8 @@ import org.openrewrite.yaml.tree.Yaml;
 public class DeleteSpringProperty extends Recipe {
 
     @Option(displayName = "Property key",
-            description = "The property key to delete. Supports glob expressions",
-            example = "management.endpoint.configprops.*")
+        description = "The property key to delete. Supports glob expressions",
+        example = "management.endpoint.configprops.*")
     String propertyKey;
 
     @Override
@@ -58,10 +58,10 @@ public class DeleteSpringProperty extends Recipe {
             public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
                 if (t instanceof Yaml.Documents) {
                     t = new org.openrewrite.yaml.DeleteProperty(propertyKey, false, true)
-                            .getVisitor().visitNonNull(t, ctx);
+                        .getVisitor().visitNonNull(t, ctx);
                 } else if (t instanceof Properties.File) {
                     t = new DeleteProperty(propertyKey, true)
-                            .getVisitor().visitNonNull(t, ctx);
+                        .getVisitor().visitNonNull(t, ctx);
                 }
                 return t;
             }

@@ -74,22 +74,23 @@ public class MigrateItemWriterWrite extends Recipe {
                 // updated automatically. Since parameters usages do not have their type updated, must replace the whole
                 // method to ensure that type info is accurate / List import can potentially be removed
                 // See: https://github.com/openrewrite/rewrite/issues/2819
-                m = m.withTemplate(
-                        JavaTemplate.builder("#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
-                                .context(getCursor())
-                                .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
-                                .imports("org.springframework.batch.item.Chunk")
-                                .build(),
+
+                m = JavaTemplate.builder("#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
+                    .contextSensitive()
+                    .javaParser(JavaParser.fromJavaVersion()
+                        .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                    .imports("org.springframework.batch.item.Chunk")
+                    .build()
+                    .apply(
                         getCursor(),
                         m.getCoordinates().replace(),
                         annotationsWithOverride,
                         m.getModifiers().stream()
-                                .map(J.Modifier::toString)
-                                .collect(Collectors.joining(" ")),
+                            .map(J.Modifier::toString)
+                            .collect(Collectors.joining(" ")),
                         parameter.getModifiers().stream()
-                                .map(J.Modifier::toString)
-                                .collect(Collectors.joining(" ")),
+                            .map(J.Modifier::toString)
+                            .collect(Collectors.joining(" ")),
                         chunkTypeParameter,
                         paramName,
                         m.getBody() == null ? "" : m.getBody().print(getCursor()));
