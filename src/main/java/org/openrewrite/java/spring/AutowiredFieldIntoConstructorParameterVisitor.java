@@ -231,7 +231,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                     .contextSensitive()
                     .build()
                     .apply(
-                        getCursor(),
+                        new Cursor(getCursor().getParent(), md),
                         md.getBody().getCoordinates().lastStatement()
                     );
             }
