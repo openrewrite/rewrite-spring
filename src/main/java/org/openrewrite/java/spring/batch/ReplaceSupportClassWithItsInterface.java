@@ -79,11 +79,10 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                         .javaParser(JavaParser.fromJavaVersion().classpath("spring-batch"))
                         .build()
                         .apply(
-                            getCursor(),
+                            new Cursor(getCursor().getParent(), cd),
                             cd.getCoordinates().addImplementsClause()
                         );
-                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx,
-                            getCursor());
+                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());
                     maybeRemoveImport(fullyQualifiedClassName);
                     maybeAddImport(fullyQualifiedInterfaceName);
                 }
