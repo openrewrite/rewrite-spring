@@ -15,11 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -56,13 +52,12 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                         cd = cd.withType(type.withSupertype(null));
                     }
                     cd = JavaTemplate.builder("WebMvcConfigurer")
-                                    // todo
-                                    // .context(getCursor().dropParentUntil(p -> p instanceof J.ClassDeclaration || p instanceof SourceFile))
+                                    .contextSensitive()
                                     .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-webmvc-5.*"))
                                     .build().apply(
-                            getCursor(),
+                            new Cursor(getCursor().getParent(), cd),
                             cd.getCoordinates().addImplementsClause());
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());
                     maybeRemoveImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
