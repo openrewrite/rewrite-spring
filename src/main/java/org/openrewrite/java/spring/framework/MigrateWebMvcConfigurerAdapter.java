@@ -57,8 +57,9 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-webmvc-5.*"))
                                     .build().apply(
-                            new Cursor(getCursor().getParent(), cd),
-                            cd.getCoordinates().addImplementsClause());
+                                            new Cursor(getCursor().getParent(), cd),
+                                            cd.getCoordinates().addImplementsClause()
+                                    );
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());
                     maybeRemoveImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
                     maybeAddImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurer");
