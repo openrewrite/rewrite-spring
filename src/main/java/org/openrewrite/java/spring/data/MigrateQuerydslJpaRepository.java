@@ -51,8 +51,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
             @Override
             public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 J.CompilationUnit c = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
-                c = (J.CompilationUnit) new ChangeType(originalFqn, targetFqn, false)
-                        .getVisitor().visitNonNull(c, ctx);
+                doAfterVisit(new ChangeType(originalFqn, targetFqn, false).getVisitor());
                 return c;
             }
 
@@ -75,16 +74,15 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                             "#{any(org.springframework.data.querydsl.EntityPathResolver)}, null)";
 
                     J.FieldAccess entityPathResolver = TypeTree.build("SimpleEntityPathResolver.INSTANCE");
-                    return newClass.withTemplate(
-                            JavaTemplate.builder(template)
-                                    .imports(targetFqn)
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx,
-                                                    "javax.persistence-api-2.*",
-                                                    "spring-data-commons-2.*",
-                                                    "spring-data-jpa-2.*"
-                                            ))
-                                    .build(),
+                    return JavaTemplate.builder(template)
+                        .imports(targetFqn)
+                        .javaParser(JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx,
+                                "javax.persistence-api-2.*",
+                                "spring-data-commons-2.*",
+                                "spring-data-jpa-2.*"
+                            ))
+                        .build().apply(
                             getCursor(),
                             newClass.getCoordinates().replace(),
                             newClass.getArguments().get(0),

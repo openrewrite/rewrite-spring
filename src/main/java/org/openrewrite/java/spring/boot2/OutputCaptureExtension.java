@@ -97,10 +97,12 @@ public class OutputCaptureExtension extends Recipe {
                                     "org.springframework.boot.test.system.OutputCaptureExtension")
                             .build();
 
-                    c = c.withTemplate(addOutputCaptureExtension, getCursor(), c.getCoordinates()
+                    c = addOutputCaptureExtension.apply(
+                        getCursor(),
+                        c.getCoordinates()
                             .addAnnotation(Comparator.comparing(
-                                    J.Annotation::getSimpleName,
-                                    new RuleBasedCollator("< ExtendWith")
+                                J.Annotation::getSimpleName,
+                                new RuleBasedCollator("< ExtendWith")
                             ))
                     );
 
@@ -135,11 +137,11 @@ public class OutputCaptureExtension extends Recipe {
             }
 
             JavaTemplate matchesTemplate = JavaTemplate.builder("#{any()}.matches(#{}.getAll())")
-                    .context(getCursor())
+                    .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                     .build();
-            m = m.withTemplate(matchesTemplate, getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), variableName);
+            m = matchesTemplate.apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), variableName);
             return m;
         }
     }
@@ -158,7 +160,7 @@ public class OutputCaptureExtension extends Recipe {
             if (!FindMethods.find(m, "org.springframework.boot.test.rule.OutputCapture *(..)").isEmpty() ||
                     !FindMethods.find(m, "org.springframework.boot.test.system.OutputCaptureRule *(..)").isEmpty()) {
                 // FIXME need addParameter coordinate here...
-                // m = m.withTemplate(parameter.build(), m.getCoordinates().replaceParameters());
+                // m = parameter.build().apply(m.getCoordinates().replaceParameters());
 
                 J.VariableDeclarations param = new J.VariableDeclarations(Tree.randomId(),
                         Space.EMPTY,

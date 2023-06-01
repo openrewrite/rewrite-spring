@@ -55,12 +55,13 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                     if (type != null) {
                         cd = cd.withType(type.withSupertype(null));
                     }
-                    cd = cd.withTemplate(JavaTemplate.builder("WebMvcConfigurer")
-                                    .context(getCursor().dropParentUntil(p -> p instanceof J.ClassDeclaration || p instanceof SourceFile))
+                    cd = JavaTemplate.builder("WebMvcConfigurer")
+                                    // todo
+                                    // .context(getCursor().dropParentUntil(p -> p instanceof J.ClassDeclaration || p instanceof SourceFile))
                                     .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-webmvc-5.*"))
-                                    .build(),
+                                    .build().apply(
                             getCursor(),
                             cd.getCoordinates().addImplementsClause());
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());

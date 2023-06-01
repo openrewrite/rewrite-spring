@@ -84,12 +84,15 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 if (method.getMethodType() != null) {
                     if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md)
                             && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
-                        JavaTemplate template = JavaTemplate.builder("@DependsOnDatabaseInitialization")
-                                .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                                .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-boot-2.*"))
-                                .build();
-                        md = md.withTemplate(template, getCursor(), md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                        md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
+                            .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
+                            .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-boot-2.*"))
+                            .build()
+                            .apply(
+                                getCursor(),
+                                md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                            );
                         maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
                     }
                 }
@@ -101,12 +104,15 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd)
                         && requiresInitializationAnnotation(cd.getType())) {
-                    JavaTemplate template = JavaTemplate.builder("@DependsOnDatabaseInitialization")
-                            .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*"))
-                            .build();
-                    cd = cd.withTemplate(template, getCursor(), cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                    cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
+                        .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
+                        .javaParser(JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-boot-2.*"))
+                        .build()
+                        .apply(
+                            getCursor(),
+                            cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                        );
                     maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
                 }
                 return cd;

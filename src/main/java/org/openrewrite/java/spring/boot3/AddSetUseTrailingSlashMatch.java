@@ -108,7 +108,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                     JavaTemplate WebMvcConfigurePathMatchTemplate = JavaTemplate.builder(
                                     "@Override public void configurePathMatch(PathMatchConfigurer configurer) { configurer" +
                                     ".setUseTrailingSlashMatch(true); }")
-                            .context(getCursor())
+                            .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpath("spring-webmvc", "spring-context", "spring-web"))
                             .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
@@ -120,7 +120,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                             JavaTemplate.builder(
                                             "@Override public void configurePathMatching(PathMatchConfigurer configurer) { configurer" +
                                             ".setUseTrailingSlashMatch(true); }")
-                                    .context(getCursor())
+                                    .contextSensitive()
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpath("spring-webflux", "spring-context", "spring-web"))
                                     .imports(WEB_FLUX_PATH_MATCH_CONFIGURER,
@@ -128,14 +128,12 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                                             "org.springframework.context.annotation.Configuration")
                                     .build();
 
-
                     JavaTemplate template = isWebMVC ? WebMvcConfigurePathMatchTemplate : webFluxConfigurePathMatchingTemplate;
                     classDecl = classDecl.withBody(
-                            classDecl.getBody().withTemplate(
-                                    template,
-                                    getCursor(),
-                                    classDecl.getBody().getCoordinates().lastStatement()
-                            ));
+                        template.apply(
+                            getCursor(),
+                            classDecl.getBody().getCoordinates().lastStatement()
+                        ));
 
                     String importPathMatchConfigurer = isWebMVC ? WEB_MVC_PATH_MATCH_CONFIGURER : WEB_FLUX_PATH_MATCH_CONFIGURER;
                     maybeAddImport(importPathMatchConfigurer, false);
@@ -156,7 +154,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                         // add statement
 
                         JavaTemplate WebMvcTemplate = JavaTemplate.builder("#{any()}.setUseTrailingSlashMatch(true);")
-                                .context(getCursor())
+                                .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpath("spring-webmvc", "spring-context", "spring-web"))
                                 .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
@@ -165,7 +163,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                                 .build();
 
                         JavaTemplate WebFluxTemplate = JavaTemplate.builder("#{any()}.setUseTrailingSlashMatch(true);")
-                                .context(getCursor())
+                                .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpath("spring-webflux", "spring-context", "spring-web"))
                                 .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
@@ -176,12 +174,11 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                         boolean isWebMVC = isWebMVCConfigurerMatchMethod(method);
 
                         method = method.withBody(
-                                method.getBody().withTemplate(
-                                        isWebMVC ? WebMvcTemplate : WebFluxTemplate,
-                                        getCursor(),
-                                        method.getBody().getCoordinates().lastStatement(),
-                                        ((J.VariableDeclarations) method.getParameters().get(0)).getVariables().get(0).getName()
-                                ));
+                            (isWebMVC ? WebMvcTemplate : WebFluxTemplate).apply(
+                                getCursor(),
+                                method.getBody().getCoordinates().lastStatement(),
+                                ((J.VariableDeclarations) method.getParameters().get(0)).getVariables().get(0).getName()
+                            ));
 
                         return method;
                     }

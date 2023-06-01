@@ -352,21 +352,32 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             }
 
             private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod) {
-                JavaTemplate template = JavaTemplate.builder("return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
-                        .context(getCursor())
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .dependsOn("package org.springframework.security.config.annotation;" +
-                                        "public interface SecurityBuilder<O> {\n" +
-                                        "    O build() throws Exception;" +
-                                        "}")).imports("org.springframework.security.config.annotation.SecurityBuilder").build();
-                return b.withTemplate(template, getCursor(), b.getCoordinates().lastStatement(),
-                        ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName());
+                return JavaTemplate.builder("return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
+                    .contextSensitive()
+                    .javaParser(JavaParser.fromJavaVersion()
+                        .dependsOn("package org.springframework.security.config.annotation;" +
+                                   "public interface SecurityBuilder<O> {\n" +
+                                   "    O build() throws Exception;" +
+                                   "}"))
+                    .imports("org.springframework.security.config.annotation.SecurityBuilder")
+                    .build()
+                    .apply(
+                        getCursor(),
+                        b.getCoordinates().lastStatement(),
+                        ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName()
+                    );
             }
 
             private J.Block handleWebSecurity(J.Block b, J.MethodDeclaration parentMethod) {
                 String t = "return (" + ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName().getSimpleName() + ") -> #{any()};";
-                JavaTemplate template = JavaTemplate.builder(t).context(getCursor()).javaParser(JavaParser.fromJavaVersion()).build();
-                b = b.withTemplate(template, getCursor(), b.getCoordinates().firstStatement(), b);
+                b = JavaTemplate.builder(t)
+                    .contextSensitive()
+                    .javaParser(JavaParser.fromJavaVersion())
+                    .build()
+                    .apply(
+                        getCursor(),
+                        b.getCoordinates().firstStatement(), b
+                    );
                 return b.withStatements(ListUtils.map(b.getStatements(), (index, stmt) -> {
                     if (index == 0) {
                         return stmt;
@@ -407,10 +418,9 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         b = SearchResult.found(b, "Unrecognized type of user expression " + userExpr + "\n.Please correct manually");
                 }
                 JavaTemplate template = JavaTemplate.builder(t)
-                        .context(getCursor())
+                        .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
                                 .dependsOn(
-
                                         "package org.springframework.security.core.userdetails;\n" +
                                                 "public interface UserDetails {}\n",
 
@@ -432,9 +442,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         .build();
                 List<Statement> allExceptLastStatements = b.getStatements();
                 allExceptLastStatements.remove(b.getStatements().size() - 1);
-                b = b
-                        .withStatements(allExceptLastStatements)
-                        .withTemplate(template, getCursor(), b.getCoordinates().lastStatement(), templateParams);
+                b = b.withStatements(allExceptLastStatements);
+                b = template.apply(getCursor(), b.getCoordinates().lastStatement(), templateParams);
                 maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
                 maybeRemoveImport(FQN_AUTH_MANAGER_BUILDER);
                 return b;
@@ -442,12 +451,16 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
             private J.MethodDeclaration addBeanAnnotation(J.MethodDeclaration m, Cursor c) {
                 maybeAddImport(FQN_BEAN);
-                JavaTemplate template = JavaTemplate.builder(BEAN_ANNOTATION).imports(FQN_BEAN).javaParser(JavaParser.fromJavaVersion()
-                        .dependsOn("package " + BEAN_PKG + "; public @interface " + BEAN_SIMPLE_NAME + " {}")).build();
-                return m.withTemplate(template, c, m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                return JavaTemplate.builder(BEAN_ANNOTATION)
+                    .imports(FQN_BEAN)
+                    .javaParser(JavaParser.fromJavaVersion()
+                        .dependsOn("package " + BEAN_PKG + "; public @interface " + BEAN_SIMPLE_NAME + " {}"))
+                    .build()
+                    .apply(
+                        c,
+                        m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                    );
             }
-
-
         });
     }
 

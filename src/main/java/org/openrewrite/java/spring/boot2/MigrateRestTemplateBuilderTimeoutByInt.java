@@ -49,13 +49,13 @@ public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                         if (connectionTimeout.matches(method) || readTimeout.matches(method)) {
-                            m = m.withTemplate(
-                                    JavaTemplate
-                                            .builder("Duration.ofMillis(#{any(int)})")
-                                            .imports("java.time.Duration")
-                                            .javaParser(JavaParser.fromJavaVersion()
-                                                    .classpathFromResources(ctx, "spring-boot-2.*"))
-                                            .build(),
+                            m = JavaTemplate
+                                .builder("Duration.ofMillis(#{any(int)})")
+                                .imports("java.time.Duration")
+                                .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-boot-2.*"))
+                                .build()
+                                .apply(
                                     getCursor(),
                                     m.getCoordinates().replaceArguments(),
                                     m.getArguments().get(0));

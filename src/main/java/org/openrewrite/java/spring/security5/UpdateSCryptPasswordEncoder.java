@@ -78,7 +78,7 @@ public class UpdateSCryptPasswordEncoder extends Recipe {
                     newClass = (J.NewClass) j;
                     if (DEFAULT_CONSTRUCTOR_MATCHER.matches(newClass)) {
                         maybeAddImport(SCRYPT_PASSWORD_ENCODER_CLASS);
-                        return newClass.withTemplate(newV41FactoryMethodTemplate(ctx), getCursor(), newClass.getCoordinates().replace());
+                        return newV41FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                     } else {
                         List<Expression> arguments = newClass.getArguments();
                         if (FULL_CONSTRUCTOR_MATCHER.matches(newClass)) {
@@ -93,13 +93,13 @@ public class UpdateSCryptPasswordEncoder extends Recipe {
                                     && resolvedValueMatchesLiteral(parallelization, DEFAULT_PARALLELIZATION)
                                     && resolvedValueMatchesLiteral(keyLength, DEFAULT_KEY_LENGTH)
                                     && resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
-                                return newClass.withTemplate(newV58FactoryMethodTemplate(ctx), getCursor(), newClass.getCoordinates().replace());
+                                return newV58FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                             } else if (resolvedValueMatchesLiteral(cpuCost, DEFAULT_V41_CPU_COST)
                                     && resolvedValueMatchesLiteral(memoryCost, DEFAULT_V41_MEMORY_COST)
                                     && resolvedValueMatchesLiteral(parallelization, DEFAULT_V41_PARALLELIZATION)
                                     && resolvedValueMatchesLiteral(keyLength, DEFAULT_V41_KEY_LENGTH)
                                     && resolvedValueMatchesLiteral(saltLength, DEFAULT_V41_SALT_LENGTH)) {
-                                return newClass.withTemplate(newV41FactoryMethodTemplate(ctx), getCursor(), newClass.getCoordinates().replace());
+                                return newV41FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                             }
                         }
                     }

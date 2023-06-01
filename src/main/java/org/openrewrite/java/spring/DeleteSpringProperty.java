@@ -55,15 +55,22 @@ public class DeleteSpringProperty extends Recipe {
             }
 
             @Override
-            public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
-                if (t instanceof Yaml.Documents) {
-                    t = new org.openrewrite.yaml.DeleteProperty(propertyKey, false, true)
-                            .getVisitor().visitNonNull(t, ctx);
-                } else if (t instanceof Properties.File) {
-                    t = new DeleteProperty(propertyKey, true)
-                            .getVisitor().visitNonNull(t, ctx);
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                //Short circuit visitor navigation for everything except source file
+                if (tree instanceof SourceFile) {
+                    tree = super.visit(tree, ctx);
                 }
-                return t;
+                return tree;
+            }
+
+            @Override
+            public @Nullable Tree preVisit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof Yaml.Documents) {
+                    doAfterVisit(new org.openrewrite.yaml.DeleteProperty(propertyKey, false, true).getVisitor());
+                } else if (tree instanceof Properties.File) {
+                    doAfterVisit(new DeleteProperty(propertyKey, true).getVisitor());
+                }
+                return tree;
             }
         };
     }

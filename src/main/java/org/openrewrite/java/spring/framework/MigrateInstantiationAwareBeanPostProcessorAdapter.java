@@ -15,13 +15,18 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Space;
+import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 
 import java.util.Collections;
@@ -59,13 +64,10 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
             }
 
             @Override
-            public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
-                J j = super.visit(tree, ctx);
-                if (j instanceof JavaSourceFile) {
-                    j = (J) new ChangeType(fromExtendingFqn, toImplementsFqn, false)
-                            .getVisitor().visitNonNull(j, ctx);
-                }
-                return j;
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                J.CompilationUnit compilationUnit = super.visitCompilationUnit(cu, ctx);
+                doAfterVisit(new ChangeType(fromExtendingFqn, toImplementsFqn, false).getVisitor());
+                return compilationUnit;
             }
         });
     }
