@@ -105,7 +105,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                     return super.visitClassDeclaration(classDecl, ctx);
                 } else {
                     // add a `configurePathMatch` or `configurePathMatching` method to this class
-                    JavaTemplate WebMvcConfigurePathMatchTemplate = JavaTemplate.builder(
+                    JavaTemplate webMvcConfigurePathMatchTemplate = JavaTemplate.builder(
                                     "@Override public void configurePathMatch(PathMatchConfigurer configurer) { configurer" +
                                     ".setUseTrailingSlashMatch(true); }")
                             .contextSensitive()
@@ -128,12 +128,13 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                                             "org.springframework.context.annotation.Configuration")
                                     .build();
 
-                    JavaTemplate template = isWebMVC ? WebMvcConfigurePathMatchTemplate : webFluxConfigurePathMatchingTemplate;
-                    classDecl = classDecl.withBody(
+                    JavaTemplate template = isWebMVC ? webMvcConfigurePathMatchTemplate : webFluxConfigurePathMatchingTemplate;
+                    classDecl = template.apply(getCursor(), classDecl.getBody().getCoordinates().lastStatement());
+/*                    classDecl = classDecl.withBody(
                         template.apply(
                             getCursor(),
                             classDecl.getBody().getCoordinates().lastStatement()
-                        ));
+                        ));*/
 
                     String importPathMatchConfigurer = isWebMVC ? WEB_MVC_PATH_MATCH_CONFIGURER : WEB_FLUX_PATH_MATCH_CONFIGURER;
                     maybeAddImport(importPathMatchConfigurer, false);
@@ -153,7 +154,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                     } else {
                         // add statement
 
-                        JavaTemplate WebMvcTemplate = JavaTemplate.builder("#{any()}.setUseTrailingSlashMatch(true);")
+                        JavaTemplate webMvcTemplate = JavaTemplate.builder("#{any()}.setUseTrailingSlashMatch(true);")
                                 .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpath("spring-webmvc", "spring-context", "spring-web"))
@@ -162,7 +163,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                                         "org.springframework.context.annotation.Configuration")
                                 .build();
 
-                        JavaTemplate WebFluxTemplate = JavaTemplate.builder("#{any()}.setUseTrailingSlashMatch(true);")
+                        JavaTemplate webFluxTemplate = JavaTemplate.builder("#{any()}.setUseTrailingSlashMatch(true);")
                                 .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpath("spring-webflux", "spring-context", "spring-web"))
@@ -170,15 +171,13 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                                         "org.springframework.web.reactive.config.WebFluxConfigurer",
                                         "org.springframework.context.annotation.Configuration")
                                 .build();
-
-                        boolean isWebMVC = isWebMVCConfigurerMatchMethod(method);
-
-                        method = method.withBody(
-                            (isWebMVC ? WebMvcTemplate : WebFluxTemplate).apply(
+                        
+                        JavaTemplate template = isWebMVCConfigurerMatchMethod(method) ? webMvcTemplate : webFluxTemplate;
+                        method = template.apply(
                                 getCursor(),
                                 method.getBody().getCoordinates().lastStatement(),
                                 ((J.VariableDeclarations) method.getParameters().get(0)).getVariables().get(0).getName()
-                            ));
+                        );
 
                         return method;
                     }
