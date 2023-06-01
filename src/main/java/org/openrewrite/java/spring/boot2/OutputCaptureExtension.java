@@ -98,7 +98,7 @@ public class OutputCaptureExtension extends Recipe {
                             .build();
 
                     c = addOutputCaptureExtension.apply(
-                        getCursor(),
+                        new Cursor(getCursor().getParent(), c),
                         c.getCoordinates()
                             .addAnnotation(Comparator.comparing(
                                 J.Annotation::getSimpleName,
