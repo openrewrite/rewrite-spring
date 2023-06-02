@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Issue;
 import org.openrewrite.config.Environment;
@@ -41,7 +40,6 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/43")
     @Test
-    @Disabled // TODO: dependency on rewrite-testing-frameworks
     void springBootRunWithRemovedNoExtension() {
         //language=java
         rewriteRun(
@@ -83,7 +81,6 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/296")
     @Test
-    @Disabled // TODO: dependency on rewrite-testing-frameworks
     void springBootRunWithContextConfigurationReplacedWithSpringJUnitConfig() {
         //language=java
         rewriteRun(
