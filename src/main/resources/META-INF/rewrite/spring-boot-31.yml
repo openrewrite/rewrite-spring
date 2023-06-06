@@ -13,6 +13,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+########################################################################################################################
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_1
+displayName: Migrate to Spring Boot 3.1
+description: 'Upgrade to Spring Boot 3.1'
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
+  - org.openrewrite.java.spring.boot3.MavenPomUpgrade_3_1
+  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
+---
+# SpringBoot 3_1 Maven Pom
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.MavenPomUpgrade_3_1
+displayName: Upgrade Maven POM to Spring Boot 3.1 from 3.0
+description: 'Upgrade Maven POM to Spring Boot 3.1 from prior 3.0 version.'
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.boot
+      artifactId: "*"
+      newVersion: 3.1.x
+      overrideManagedVersion: false
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-parent
+      newVersion: 3.1.x
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
