@@ -90,6 +90,7 @@ public class AddSpringProperty extends Recipe {
                 if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile)t).getSourcePath(), ctx)) {
                     t = createMergeYamlVisitor().getVisitor().visit(t, ctx);
                 } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile)t).getSourcePath(), ctx)) {
+                    // TODO Should this insert a comment as well to match YAML?
                     t = new AddProperty(property, value, null).getVisitor().visit(t, ctx);
                 }
                 return t;

@@ -203,3 +203,5 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.sleuth.baggage.correlation-fields
       newPropertyKey: management.tracing.baggage.correlation.fields
+
+  - org.openrewrite.java.spring.cloud.AddLoggingPatternLevelForSleuth
