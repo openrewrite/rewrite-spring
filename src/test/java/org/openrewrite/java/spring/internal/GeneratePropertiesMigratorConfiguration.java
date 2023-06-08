@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring;
+package org.openrewrite.java.spring.internal;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.spring.internal.SpringBootReleases;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,7 +103,7 @@ class GeneratePropertiesMigratorConfiguration {
                     var majorMinor = version.split("\\.");
 
                     var config = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s.yml".formatted(majorMinor[0], majorMinor[1]));
-                    Files.writeString(config, "#\n#" +
+                    Files.writeString(config, "#\n" +
                       Files.readAllLines(Paths.get("gradle/licenseHeader.txt"))
                         .stream().map(str -> str.replaceAll("^", "# "))
                         .collect(Collectors.joining("\n")) + "\n#\n");
