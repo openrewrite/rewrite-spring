@@ -95,6 +95,7 @@ tags:
   - tracing
   - micrometer
 recipeList:
+  - org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-starter-sleuth
@@ -203,5 +204,3 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.sleuth.baggage.correlation-fields
       newPropertyKey: management.tracing.baggage.correlation.fields
-
-  - org.openrewrite.java.spring.cloud.AddLoggingPatternLevelForSleuth

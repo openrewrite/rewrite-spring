@@ -119,8 +119,6 @@ class MigrateProjectTest implements RewriteTest {
                 """,
               """
                 management.tracing.baggage.correlation.enabled=true
-                # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
-                logging.pattern.level="%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
                 """,
               s -> s.path("src/main/resources/application.properties")
             ),
@@ -134,10 +132,6 @@ class MigrateProjectTest implements RewriteTest {
                 """,
               """
                 management.tracing.baggage.correlation.enabled: true
-                logging:
-                  pattern:
-                    # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
-                    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
                 """,
               s -> s.path("src/main/resources/application.yml")
             )
