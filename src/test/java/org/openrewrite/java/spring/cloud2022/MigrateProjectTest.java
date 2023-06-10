@@ -119,7 +119,8 @@ class MigrateProjectTest implements RewriteTest {
                 """,
               """
                 management.tracing.baggage.correlation.enabled=true
-                """
+                """,
+              s -> s.path("src/main/resources/application.properties")
             ),
             //language=yaml
             yaml(
@@ -131,7 +132,8 @@ class MigrateProjectTest implements RewriteTest {
                 """,
               """
                 management.tracing.baggage.correlation.enabled: true
-                """
+                """,
+              s -> s.path("src/main/resources/application.yml")
             )
           )
         );
