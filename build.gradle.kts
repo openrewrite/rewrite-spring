@@ -124,6 +124,7 @@ dependencies {
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
+    testRuntimeOnly(gradleApi())
 
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
