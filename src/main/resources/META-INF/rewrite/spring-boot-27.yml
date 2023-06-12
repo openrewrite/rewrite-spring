@@ -51,7 +51,7 @@ recipeList:
       newFullyQualifiedTypeName: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
   # Switch MySQL driver artifactId
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: mysql
       oldArtifactId: mysql-connector-java
       newGroupId: com.mysql
