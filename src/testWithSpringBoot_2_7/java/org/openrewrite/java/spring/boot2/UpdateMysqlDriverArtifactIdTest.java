@@ -23,6 +23,7 @@ import org.openrewrite.config.Environment;
 import org.openrewrite.gradle.Assertions;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,15 +31,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.withToolingApi;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-@Issue("https://github.com/openrewrite/rewrite-spring/issues/274 & https://github.com/openrewrite/rewrite-spring/issues/375")
+@Issue("https://github.com/openrewrite/rewrite-spring/issues/274")
 public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-                               .scanRuntimeClasspath("org.openrewrite.java.spring.boot2")
-                               .build()
-                               .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"));
+          .scanRuntimeClasspath("org.openrewrite.java.spring.boot2")
+          .build()
+          .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"));
     }
 
     @Nested
@@ -48,160 +49,174 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
         void switchArtifactIdAndUpdateVersionNumber() {
             rewriteRun(
               //language=xml
-              pomXml("""
-                     <project>
-                       <modelVersion>4.0.0</modelVersion>
-                       <groupId>com.example</groupId>
-                       <artifactId>demo</artifactId>
-                       <version>0.0.1-SNAPSHOT</version>
-                       <dependencies>
-                         <dependency>
-                           <groupId>mysql</groupId>
-                           <artifactId>mysql-connector-java</artifactId>
-                           <version>8.0.30</version>
-                           <scope>runtime</scope>
-                         </dependency>
-                       </dependencies>
-                     </project>
-                     """, """
-                          <project>
-                            <modelVersion>4.0.0</modelVersion>
-                            <groupId>com.example</groupId>
-                            <artifactId>demo</artifactId>
-                            <version>0.0.1-SNAPSHOT</version>
-                            <dependencies>
-                              <dependency>
-                                <groupId>com.mysql</groupId>
-                                <artifactId>mysql-connector-j</artifactId>
-                                <version>8.0.33</version>
-                                <scope>runtime</scope>
-                              </dependency>
-                            </dependencies>
-                          </project>
-                          """));
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                      <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>8.0.30</version>
+                        <scope>runtime</scope>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """,
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                      <dependency>
+                        <groupId>com.mysql</groupId>
+                        <artifactId>mysql-connector-j</artifactId>
+                        <version>8.0.33</version>
+                        <scope>runtime</scope>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """));
         }
 
         @Test
         void doNotPinWhenNotVersioned() {
-            rewriteRun(pomXml(
-              //language=xml
-              """
-              <project>
-                <modelVersion>4.0.0</modelVersion>
-                <groupId>com.example</groupId>
-                <artifactId>demo</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-                <parent>
-                  <groupId>org.springframework.boot</groupId>
-                  <artifactId>spring-boot-starter-parent</artifactId>
-                  <version>2.7.7</version>
-                  <relativePath/> <!-- lookup parent from repository -->
-                </parent>
-                <dependencies>
-                  <dependency>
-                    <groupId>mysql</groupId>
-                    <artifactId>mysql-connector-java</artifactId>
-                    <scope>runtime</scope>
-                  </dependency>
-                </dependencies>
-              </project>
-              """, spec -> spec.after(pom -> {
-                  Matcher version = Pattern.compile("2.7.\\d+").matcher(pom);
-                  assertThat(version.find()).describedAs("Expected 2.7.x in %s", pom).isTrue();
-                  //language=xml
-                  return String.format("""
-                                       <project>
-                                         <modelVersion>4.0.0</modelVersion>
-                                         <groupId>com.example</groupId>
-                                         <artifactId>demo</artifactId>
-                                         <version>0.0.1-SNAPSHOT</version>
-                                         <parent>
-                                           <groupId>org.springframework.boot</groupId>
-                                           <artifactId>spring-boot-starter-parent</artifactId>
-                                           <version>%s</version>
-                                           <relativePath/> <!-- lookup parent from repository -->
-                                         </parent>
-                                         <dependencies>
-                                           <dependency>
-                                             <groupId>com.mysql</groupId>
-                                             <artifactId>mysql-connector-j</artifactId>
-                                             <scope>runtime</scope>
-                                           </dependency>
-                                         </dependencies>
-                                       </project>
-                                       """, version.group(0));
-              })));
+            rewriteRun(
+              pomXml(
+                //language=xml
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <parent>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-parent</artifactId>
+                      <version>2.7.7</version>
+                      <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <dependencies>
+                      <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <scope>runtime</scope>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """,
+                spec -> spec.after(pom -> {
+                    Matcher version = Pattern.compile("2.7.\\d+").matcher(pom);
+                    assertThat(version.find()).describedAs("Expected 2.7.x in %s", pom).isTrue();
+                    //language=xml
+                    return String.format(
+                      """
+                        <project>
+                          <modelVersion>4.0.0</modelVersion>
+                          <groupId>com.example</groupId>
+                          <artifactId>demo</artifactId>
+                          <version>0.0.1-SNAPSHOT</version>
+                          <parent>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-parent</artifactId>
+                            <version>%s</version>
+                            <relativePath/> <!-- lookup parent from repository -->
+                          </parent>
+                          <dependencies>
+                            <dependency>
+                              <groupId>com.mysql</groupId>
+                              <artifactId>mysql-connector-j</artifactId>
+                              <scope>runtime</scope>
+                            </dependency>
+                          </dependencies>
+                        </project>
+                        """, version.group(0));
+                })
+              )
+            );
         }
     }
 
     @Nested
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/375")
     class Gradle {
 
         @DocumentExample
         @Test
-        void gradleSwitchArtifactIdAndUpdateVersionNumber() {
+        void switchArtifactIdAndUpdateVersionNumber() {
             rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
-                       //language=groovy
-                       Assertions.buildGradle("""
-                                              plugins {
-                                                id 'java'
-                                              }
-                                                                   
-                                              repositories {
-                                                 mavenCentral()
-                                              }
-                                                                   
-                                              dependencies {
-                                                  runtimeOnly 'mysql:mysql-connector-java:8.0.30'
-                                              }
-                                              """, """
-                                                   plugins {
-                                                     id 'java'
-                                                   }
-                                                                        
-                                                   repositories {
-                                                      mavenCentral()
-                                                   }
-                                                                        
-                                                   dependencies {
-                                                       runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
-                                                   }
-                                                   """));
+              //language=groovy
+              Assertions.buildGradle(
+                """
+                  plugins {
+                    id 'java'
+                  }
+                                       
+                  repositories {
+                     mavenCentral()
+                  }
+                                       
+                  dependencies {
+                      runtimeOnly 'mysql:mysql-connector-java:8.0.30'
+                  }
+                  """,
+                """
+                  plugins {
+                    id 'java'
+                  }
+                                       
+                  repositories {
+                     mavenCentral()
+                  }
+                                       
+                  dependencies {
+                      runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
+                  }
+                  """)
+            );
         }
 
         @Test
-        void gradleDoNotPinWhenNotVersioned() {
+        void doNotPinWhenNotVersioned() {
             rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
-                       //language=groovy
-                       Assertions.buildGradle("""
-                                              plugins {
-                                                id 'java'
-                                                id 'org.springframework.boot' version '2.6.1'
-                                                id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-                                              }
-                                                                                        
-                                              repositories {
-                                                 mavenCentral()
-                                              }
-                                                                   
-                                              dependencies {
-                                                  runtimeOnly 'mysql:mysql-connector-java'
-                                              }
-                                              """, """
-                                                   plugins {
-                                                     id 'java'
-                                                     id 'org.springframework.boot' version '2.6.1'
-                                                     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-                                                   }
-                                                                        
-                                                   repositories {
-                                                      mavenCentral()
-                                                   }
-                                                                        
-                                                   dependencies {
-                                                       runtimeOnly 'com.mysql:mysql-connector-j'
-                                                   }
-                                                   """));
+              //language=groovy
+              Assertions.buildGradle(
+                """
+                  plugins {
+                    id 'java'
+                    id 'org.springframework.boot' version '2.6.1'
+                    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+                  }
+                                                            
+                  repositories {
+                     mavenCentral()
+                  }
+                                       
+                  dependencies {
+                      runtimeOnly 'mysql:mysql-connector-java'
+                  }
+                  """,
+                """
+                  plugins {
+                    id 'java'
+                    id 'org.springframework.boot' version '2.6.1'
+                    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+                  }
+                                       
+                  repositories {
+                     mavenCentral()
+                  }
+                                       
+                  dependencies {
+                      runtimeOnly 'com.mysql:mysql-connector-j'
+                  }
+                  """)
+            );
         }
     }
 }
