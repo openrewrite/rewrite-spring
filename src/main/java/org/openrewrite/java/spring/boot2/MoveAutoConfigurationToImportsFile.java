@@ -100,7 +100,10 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
             Collections.sort(finalList);
 
             PlainTextParser parser = new PlainTextParser();
-            PlainText brandNewFile = parser.parse(String.join("\n", finalList)).findFirst().get();
+            PlainText brandNewFile = parser.parse(String.join("\n", finalList))
+                .map(PlainText.class::cast)
+                .findFirst()
+                .get();
             newImportFiles.add(brandNewFile
                     .withSourcePath(entry.getKey())
                     .withMarkers(brandNewFile.getMarkers().withMarkers(entry.getValue().getMarkers()))

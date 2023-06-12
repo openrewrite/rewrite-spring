@@ -82,7 +82,10 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
                     "import org.springframework.boot.web.server.WebServerFactoryCustomizer;\n" +
                             "import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;\n" +
                             "public abstract class Template implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {}"
-            ).findFirst().orElseThrow(NoSuchElementException::new);
+            )
+                .map(J.CompilationUnit.class::cast)
+                .findFirst()
+                .get();
 
             webFactoryCustomizerIdentifier = (J.ParameterizedType) requireNonNull(cu.getClasses()
                     .get(0).getImplements()).get(0);
