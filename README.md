@@ -11,6 +11,8 @@
 
 This project contains a series of Rewrite recipes and visitors to automatically apply best practices in Java Spring Boot applications.
 
+Browse [a selection of recipes available through this module in the recipe catalog](https://docs.openrewrite.org/recipes/java/spring).
+
 ## How to use?
 
 See the full documentation at [docs.openrewrite.org](https://docs.openrewrite.org/).
