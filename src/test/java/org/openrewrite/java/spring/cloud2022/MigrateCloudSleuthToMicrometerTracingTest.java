@@ -106,5 +106,4 @@ class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
           )
         );
     }
-
 }

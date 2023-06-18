@@ -31,54 +31,58 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     @Test
     void changeLastKey() {
         rewriteRun(
-                spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null)),
-                properties(
-                        """
-                        server.servlet-path=/tmp/my-server-path
-                        """,
-                        """
-                        server.servlet.path=/tmp/my-server-path
-                        """
-                ),
-                yaml(
-                        """
-                            server:
-                              servlet-path: /tmp/my-server-path
-                        """,
-                        """
-                            server:
-                              servlet.path: /tmp/my-server-path
-                        """
-                )
+          spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null)),
+          //language=properties
+          properties(
+            """
+              server.servlet-path=/tmp/my-server-path
+              """,
+            """
+              server.servlet.path=/tmp/my-server-path
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              server:
+                servlet-path: /tmp/my-server-path
+              """,
+            """
+              server:
+                servlet.path: /tmp/my-server-path
+              """
+          )
         );
     }
 
     @Test
     void changePropertyPath() {
         rewriteRun(
-                spec -> spec.recipe(new ChangeSpringPropertyKey("session.cookie.path", "servlet.session.cookie.path", null)),
-                properties(
-                        """
-                        session.cookie.path=/cookie-monster
-                        """,
-                        """
-                        servlet.session.cookie.path=/cookie-monster
-                        """
-                ),
-                yaml(
-                        """
-                            server:
-                              port: 8888
-                            session:
-                              cookie:
-                                path: /tmp/my-server-path
-                              """,
-                        """
-                        server:
-                          port: 8888
-                        servlet.session.cookie.path: /tmp/my-server-path
-                        """
-                )
+          spec -> spec.recipe(new ChangeSpringPropertyKey("session.cookie.path", "servlet.session.cookie.path", null)),
+          //language=properties
+          properties(
+            """
+              session.cookie.path=/cookie-monster
+              """,
+            """
+              servlet.session.cookie.path=/cookie-monster
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              server:
+                port: 8888
+              session:
+                cookie:
+                  path: /tmp/my-server-path
+                """,
+            """
+              server:
+                port: 8888
+              servlet.session.cookie.path: /tmp/my-server-path
+              """
+          )
         );
     }
 
@@ -87,39 +91,41 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void subproperties() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("spring.resources", "spring.web.resources", null)),
+          //language=properties
           properties(
             """
-            spring.resources.chain.strategy.content.enabled= true
-            spring.resources.chain.strategy.content.paths= /foo/**, /bar/**
-            """,
+              spring.resources.chain.strategy.content.enabled= true
+              spring.resources.chain.strategy.content.paths= /foo/**, /bar/**
+              """,
             """
-            spring.web.resources.chain.strategy.content.enabled= true
-            spring.web.resources.chain.strategy.content.paths= /foo/**, /bar/**
-            """
+              spring.web.resources.chain.strategy.content.enabled= true
+              spring.web.resources.chain.strategy.content.paths= /foo/**, /bar/**
+              """
           ),
+          //language=yaml
           yaml(
             """
-                spring:
-                  resources:
-                    chain:
-                      strategy:
-                        content:
-                          enabled: true
-                          paths:
-                            - /foo/**
-                            - /bar/**
-                  """,
+              spring:
+                resources:
+                  chain:
+                    strategy:
+                      content:
+                        enabled: true
+                        paths:
+                          - /foo/**
+                          - /bar/**
+                """,
             """
-                spring:
-                  web.resources:
-                    chain:
-                      strategy:
-                        content:
-                          enabled: true
-                          paths:
-                            - /foo/**
-                            - /bar/**
-                  """
+              spring:
+                web.resources:
+                  chain:
+                    strategy:
+                      content:
+                        enabled: true
+                        paths:
+                          - /foo/**
+                          - /bar/**
+                """
           )
         );
     }
@@ -128,20 +134,22 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void except() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("spring.profiles", "spring.config.activate.on-profile", List.of("active", "default", "group", "include"))),
+          //language=properties
           properties(
             """
-            spring.profiles.group.local= local-security, local-db
-            """
+              spring.profiles.group.local= local-security, local-db
+              """
           ),
+          //language=yaml
           yaml(
             """
-                spring:
-                  profiles:
-                    group:
-                      local:
-                        - local-security
-                        - local-db
-                  """
+              spring:
+                profiles:
+                  group:
+                    local:
+                      - local-security
+                      - local-db
+                """
           )
         );
     }

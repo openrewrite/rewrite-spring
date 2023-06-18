@@ -29,89 +29,94 @@ class DeleteSpringPropertyKeyTest implements RewriteTest {
     @Test
     void deleteOnlyKey() {
         rewriteRun(
-                spec -> spec.recipe(new DeleteSpringProperty("server.servlet-path")),
-                properties(
-                        """
-                        server.servlet-path=/tmp/my-server-path
-                        """,
-                        """
-                        """
-                ),
-                yaml(
-                        """
-                            server:
-                              servlet-path: /tmp/my-server-path
-                        """,
-                        """
-                        """
-                )
+          spec -> spec.recipe(new DeleteSpringProperty("server.servlet-path")),
+          //language=properties
+          properties(
+            """
+              server.servlet-path=/tmp/my-server-path
+              """,
+            """
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              server:
+                servlet-path: /tmp/my-server-path
+              """,
+            """
+              """
+          )
         );
     }
 
     @Test
     void deleteFirstKey() {
         rewriteRun(
-                spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie.path")),
-                properties(
-                        """
-                        server.servlet.session.cookie.path=/cookie-monster
-                        server.servlet.session.cookie.name=fred
-                        """,
-                        """
-                        server.servlet.session.cookie.name=fred
-                        """
-                ),
-                yaml(
-                        """
-                            server:
-                              servlet:
-                                session:
-                                  cookie:
-                                    path: /cookie-monster
-                                    name: fred
-                        """,
-                        """
-                            server:
-                              servlet:
-                                session:
-                                  cookie:
-                                    name: fred
-                        """
-                )
+          spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie.path")),
+          //language=properties
+          properties(
+            """
+              server.servlet.session.cookie.path=/cookie-monster
+              server.servlet.session.cookie.name=fred
+              """,
+            """
+              server.servlet.session.cookie.name=fred
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              server:
+                servlet:
+                  session:
+                    cookie:
+                      path: /cookie-monster
+                      name: fred
+              """,
+            """
+              server:
+                servlet:
+                  session:
+                    cookie:
+                      name: fred
+              """
+          )
         );
     }
 
     @Test
     void deleteLastKey() {
         rewriteRun(
-                spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie.path")),
-                properties(
-                        """
-                        server.servlet.session.cookie.name=fred
-                        server.servlet.session.cookie.path=/cookie-monster
-                        """,
-                        """
-                        server.servlet.session.cookie.name=fred
-                        """
-                ),
-                yaml(
-                        """
-                            server:
-                              servlet:
-                                session:
-                                  cookie:
-                                    name: fred
-                                    path: /cookie-monster
-                        """,
-                        """
-                            server:
-                              servlet:
-                                session:
-                                  cookie:
-                                    name: fred
-                        """
-                )
+          spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie.path")),
+          //language=properties
+          properties(
+            """
+              server.servlet.session.cookie.name=fred
+              server.servlet.session.cookie.path=/cookie-monster
+              """,
+            """
+              server.servlet.session.cookie.name=fred
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              server:
+                servlet:
+                  session:
+                    cookie:
+                      name: fred
+                      path: /cookie-monster
+              """,
+            """
+              server:
+                servlet:
+                  session:
+                    cookie:
+                      name: fred
+              """
+          )
         );
     }
-
 }
