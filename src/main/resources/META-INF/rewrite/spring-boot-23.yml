@@ -43,7 +43,6 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.3.x
-      versionPattern: .RELEASE
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: ^6.3
       addIfMissing: false

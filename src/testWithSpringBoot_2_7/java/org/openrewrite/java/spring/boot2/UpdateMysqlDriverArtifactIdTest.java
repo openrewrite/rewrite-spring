@@ -192,11 +192,11 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                     id 'org.springframework.boot' version '2.6.1'
                     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
                   }
-                                                            
+                  
                   repositories {
                      mavenCentral()
                   }
-                                       
+                  
                   dependencies {
                       runtimeOnly 'mysql:mysql-connector-java'
                   }
@@ -204,14 +204,14 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                 """
                   plugins {
                     id 'java'
-                    id 'org.springframework.boot' version '2.6.1'
-                    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+                    id 'org.springframework.boot' version '2.7.13'
+                    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
                   }
-                                       
+                  
                   repositories {
                      mavenCentral()
                   }
-                                       
+                  
                   dependencies {
                       runtimeOnly 'com.mysql:mysql-connector-j'
                   }

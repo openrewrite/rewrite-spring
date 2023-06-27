@@ -42,7 +42,6 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.0.x
-      versionPattern: .RELEASE
   - org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: 4.x
