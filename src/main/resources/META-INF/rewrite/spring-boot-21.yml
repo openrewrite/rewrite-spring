@@ -45,8 +45,7 @@ recipeList:
       versionPattern: .RELEASE
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: io.spring.dependency-management
-      newVersion: 1.0.10
-      versionPattern: .RELEASE
+      newVersion: 1.0.10.RELEASE
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: ^4.4
       addIfMissing: false
