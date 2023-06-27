@@ -18,6 +18,7 @@ package org.openrewrite.java.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
+import org.openrewrite.internal.StringUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.properties.AddProperty;
 import org.openrewrite.properties.tree.Properties;
@@ -125,7 +126,7 @@ public class AddSpringProperty extends Recipe {
             if (yaml.length() > 0) {
                 yaml.append("\n");
             }
-            if (comment != null) {
+            if (!StringUtils.isBlank(comment)) {
                 //noinspection StringEquality
                 if (part == propertyParts[propertyParts.length - 1]) {
                     yaml.append(indent).append("# ").append(comment).append("\n");
