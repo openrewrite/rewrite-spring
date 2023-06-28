@@ -53,6 +53,10 @@ recipeList:
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: ^7.4
       addIfMissing: false
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.ehcache
+      oldArtifactId: ehcache
+      newVersion: 3.x.x
   - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
