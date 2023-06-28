@@ -36,6 +36,9 @@ recipeList:
       newVersion: 2.7.x
       retainVersions:
         - mysql:mysql-connector-java
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 2.7.x
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.server.LocalServerPort

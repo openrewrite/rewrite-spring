@@ -117,6 +117,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-gradle:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
+    implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")

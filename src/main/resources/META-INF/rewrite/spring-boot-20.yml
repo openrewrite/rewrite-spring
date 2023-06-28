@@ -39,6 +39,13 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.0.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 2.0.x
+  - org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
+  - org.openrewrite.gradle.UpdateGradleWrapper:
+      version: 4.x
+      addIfMissing: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mockito
       artifactId: "*"

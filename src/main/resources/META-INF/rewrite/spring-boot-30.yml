@@ -28,31 +28,7 @@ tags:
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
-  - org.openrewrite.java.spring.boot3.MavenPomUpgrade
   - org.openrewrite.java.migrate.UpgradeToJava17
-  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
-  - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
-  - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
-  - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
-  - org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
-  - org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
-  - org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
-  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
-  - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
-  - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
-  - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
----
-########################################################################################################################
-# SpringBoot 3_0 Maven Pom
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.MavenPomUpgrade
-displayName: Upgrade Maven POM to Spring Boot 3.0 from 2.x
-description: 'Upgrade Maven POM to Spring Boot 3.0 from prior 2.x version.'
-tags:
-  - spring
-  - boot
-recipeList:
-  - org.openrewrite.java.migrate.JavaVersion17
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
@@ -68,7 +44,26 @@ recipeList:
       retainVersions:
         - org.thymeleaf:thymeleaf-spring5
         - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
-
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 3.0.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: io.spring.dependency-management
+      newVersion: 1.1.0
+  - org.openrewrite.gradle.UpdateGradleWrapper:
+      version: ^7.4
+      addIfMissing: false
+  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
+  - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
+  - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
+  - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
+  - org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
+  - org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
+  - org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
+  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
+  - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
+  - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
+  - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization

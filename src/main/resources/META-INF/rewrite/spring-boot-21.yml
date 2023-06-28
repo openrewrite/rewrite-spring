@@ -39,7 +39,15 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.1.x
-
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 2.1.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: io.spring.dependency-management
+      newVersion: 1.0.10.RELEASE
+  - org.openrewrite.gradle.UpdateGradleWrapper:
+      version: ^4.4
+      addIfMissing: false
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateRestTemplateBuilderBasicAuthorization
   - org.openrewrite.java.spring.boot2.MigrateRestTemplateBuilderTimeoutByInt

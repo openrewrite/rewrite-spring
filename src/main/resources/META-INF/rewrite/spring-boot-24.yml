@@ -41,6 +41,9 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.4.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 2.4.x
   - org.openrewrite.maven.RemoveExclusion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-test
