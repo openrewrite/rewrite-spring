@@ -60,6 +60,8 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
   - org.openrewrite.java.spring.boot2.MigrateLoggingSystemPropertyConstants
   - org.openrewrite.java.spring.boot2.MigrateHsqlEmbeddedDatabaseConnection
+  - org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl
+  - org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
