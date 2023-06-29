@@ -30,24 +30,27 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.6.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
+      newVersion: 2.6.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
       newVersion: 2.6.x
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
 
   # Upgrade spring-cloud-dependencies release train
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: "spring-cloud-dependencies"
       newVersion: 2021.0.X
-      overrideManagedVersion: true
+      overrideManagedVersion: false
 ---
 ########################################################################################################################
 # SpringBoot 2.6 Configuration Changes
@@ -56,6 +59,10 @@ name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
 displayName: Migrate Spring Boot properties to 2.6
 description: Migrate properties found in `application.properties` and `application.yml`.
 recipeList:
+
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.server.servlet.context-path
+      newPropertyKey: management.server.base-path
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.mongodb.grid-fs-database
       newPropertyKey: spring.data.mongodb.gridfs.database
@@ -134,6 +141,4 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.resources.static-locations
       newPropertyKey: spring.web.resources.static-locations
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.server.servlet.context-path
-      newPropertyKey: management.server.base-path
+

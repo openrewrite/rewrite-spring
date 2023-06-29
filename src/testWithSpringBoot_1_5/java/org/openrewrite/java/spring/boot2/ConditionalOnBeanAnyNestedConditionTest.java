@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -63,6 +64,8 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void conditionalAnnotationMultipleClassCandidates() {
         //language=java
         rewriteRun(
+          // FIXME type validation for identifiers disabled, as the `Aa.class` reference and others are not type attributed
+          spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
           java(
             """
               class Aa {}
@@ -165,6 +168,7 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
         );
     }
 
+    @DocumentExample
     @Test
     void twoConditionalAnnotationsWithSameMultipleClassCandidatesReversed() {
         //language=java

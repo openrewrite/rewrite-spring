@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.framework.MigrateHandlerInterceptor;
 import org.openrewrite.test.RecipeSpec;
@@ -32,6 +33,7 @@ public class MigrateHandlerInterceptorTest implements RewriteTest {
           .recipe(new MigrateHandlerInterceptor());
     }
 
+    @DocumentExample
     @Test
     void migrateHandlerInterceptorAdapter() {
         //language=java

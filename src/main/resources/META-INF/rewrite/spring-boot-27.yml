@@ -23,11 +23,11 @@ displayName: Migrate to Spring Boot 2.7
 description: 'Upgrade to Spring Boot 2.7'
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.7.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
       retainVersions:
         - mysql:mysql-connector-java
   - org.openrewrite.maven.UpgradeParentVersion:
@@ -36,8 +36,10 @@ recipeList:
       newVersion: 2.7.x
       retainVersions:
         - mysql:mysql-connector-java
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 2.7.x
   # Use recommended replacements for deprecated APIs
-  - org.openrewrite.java.spring.boot2.WebSecurityConfigurerAdapter
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.server.LocalServerPort
       newFullyQualifiedTypeName: org.springframework.boot.test.web.server.LocalServerPort
@@ -47,9 +49,12 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.rsocket.context.LocalRSocketServerPort
       newFullyQualifiedTypeName: org.springframework.boot.test.rsocket.server.LocalRSocketServerPort
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+      newFullyQualifiedTypeName: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
   # Switch MySQL driver artifactId
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: mysql
       oldArtifactId: mysql-connector-java
       newGroupId: com.mysql
@@ -129,3 +134,7 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.flyway.check-location
       newPropertyKey: spring.flyway.fail-on-missing-locations
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
+      propertyKey: spring.jpa.hibernate.naming.physical-strategy
+      oldValue: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+      newValue: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy

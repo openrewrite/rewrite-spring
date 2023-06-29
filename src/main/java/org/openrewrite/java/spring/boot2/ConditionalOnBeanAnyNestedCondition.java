@@ -15,11 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -47,15 +43,9 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         return "Migrate multi-condition `@ConditionalOnBean` annotations to `AnyNestedCondition`.";
     }
 
-    @Nullable
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnBean", false);
-    }
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new ConditionalOnBeanAnyNestedConditionVisitor();
+        return Preconditions.check(new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnBean", false), new ConditionalOnBeanAnyNestedConditionVisitor());
     }
 
     private static class ConditionalOnBeanAnyNestedConditionVisitor extends JavaIsoVisitor<ExecutionContext> {
@@ -127,11 +117,15 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                     }
 
                     if (anyConditionClassExists) {
-                        a = a.withTemplate(JavaTemplate.builder(this::getCursor, "@Conditional(#{}.class)")
-                                .imports("org.springframework.context.annotation.Conditional")
-                                .javaParser(JavaParser.fromJavaVersion()
-                                                .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
-                                .build(), a.getCoordinates().replace(), conditionalClassName);
+                        a = JavaTemplate.builder("@Conditional(#{}.class)")
+                            .imports("org.springframework.context.annotation.Conditional")
+                            .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
+                            .build()
+                            .apply(
+                                getCursor(),
+                                a.getCoordinates().replace(), conditionalClassName
+                            );
                         maybeAddImport("org.springframework.context.annotation.Conditional");
                     } else {
                         // add the new conditional class template string to the parent ClassDeclaration Cursor
@@ -154,12 +148,18 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
             Set<String> conditionalTemplates = getCursor().pollMessage(ANY_CONDITION_TEMPLATES);
             if (conditionalTemplates != null && !conditionalTemplates.isEmpty()) {
                 for (String s : conditionalTemplates) {
-                    JavaTemplate t = JavaTemplate.builder(this::getCursor, s)
+                    JavaTemplate t = JavaTemplate.builder(s)
+                            .contextSensitive()
                             .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
                             .build();
-                    c = maybeAutoFormat(c, c.withBody(c.getBody().withTemplate(t, c.getBody().getCoordinates().lastStatement())), ctx);
+
+                    c = maybeAutoFormat(
+                            c,
+                            t.apply(getCursor(), c.getBody().getCoordinates().lastStatement()),
+                            ctx);
+                    updateCursor(c);
                 }
 
                 // Schedule another visit to modify the associated annotations now that the new conditional classes have been added to the AST

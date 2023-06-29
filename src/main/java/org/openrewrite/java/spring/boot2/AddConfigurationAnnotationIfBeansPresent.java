@@ -49,13 +49,8 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<>(FQN_BEAN, false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(FQN_BEAN, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
@@ -67,15 +62,16 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
 
             private J.ClassDeclaration addConfigurationAnnotation(J.ClassDeclaration c) {
                 maybeAddImport(FQN_CONFIGURATION);
-                JavaTemplate template = JavaTemplate.builder(this::getCursor, "@" + CONFIGURATION_SIMPLE_NAME)
-                        .imports(FQN_CONFIGURATION)
-                        .javaParser(JavaParser.fromJavaVersion().dependsOn("package " + CONFIGURATION_PACKAGE
-                                + "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
-                        .build();
-                return c.withTemplate(template,
-                        c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                return JavaTemplate.builder("@" + CONFIGURATION_SIMPLE_NAME)
+                    .imports(FQN_CONFIGURATION)
+                    .javaParser(JavaParser.fromJavaVersion().dependsOn("package " + CONFIGURATION_PACKAGE
+                                                                       + "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
+                    .build().apply(
+                        getCursor(),
+                        c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                    );
             }
-        };
+        });
     }
 
     public static boolean isApplicableClass(J.ClassDeclaration classDecl, Cursor cursor) {

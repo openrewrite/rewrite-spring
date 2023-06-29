@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.data;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -41,15 +41,12 @@ public class MigrateJpaSort extends Recipe {
         return "Equivalent constructors in `JpaSort` were deprecated in Spring Data 2.3.";
     }
 
-    @Nullable
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-
+    private TreeVisitor<?, ExecutionContext> precondition() {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 if (cu.getPackageDeclaration() != null
-                    && "org.springframework.data.jpa.domain".equals(cu.getPackageDeclaration().getPackageName())) {
+                        && "org.springframework.data.jpa.domain".equals(cu.getPackageDeclaration().getPackageName())) {
                     return cu;
                 }
 
@@ -57,34 +54,36 @@ public class MigrateJpaSort extends Recipe {
                 return cu;
             }
         };
-
     }
 
     @Override
-    protected JavaVisitor<ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(precondition(), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), "org.springframework.data.jpa.domain.JpaSort")) {
                     newClass.getArguments();
                     String template = newClass.getArguments().stream()
                             .map(arg -> TypeUtils.asFullyQualified(arg.getType()))
-                            .map(type -> "#{any(" + (type == null? "" :  type.getFullyQualifiedName()) + ")}")
+                            .map(type -> "#{any(" + (type == null ? "" : type.getFullyQualifiedName()) + ")}")
                             .collect(Collectors.joining(",", "JpaSort.of(", ")"));
 
-                    return newClass.withTemplate(
-                            JavaTemplate.builder(this::getCursor, template)
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-data-commons-2.*",
-                                                    "spring-data-jpa-2.3.*", "javax.persistence-api-2.*"))
-                                    .imports("org.springframework.data.jpa.domain.JpaSort")
-                                    .build(),
+                    return JavaTemplate.builder(template)
+                        .contextSensitive()
+                        .javaParser(JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-data-commons-2.*",
+                                "spring-data-jpa-2.3.*", "javax.persistence-api-2.*"))
+                        .imports("org.springframework.data.jpa.domain.JpaSort")
+                        .build()
+                        .apply(
+                            getCursor(),
                             newClass.getCoordinates().replace(),
-                            newClass.getArguments().toArray());
+                            newClass.getArguments().toArray()
+                            );
                 }
 
                 return super.visitNewClass(newClass, ctx);
             }
-        };
+        });
     }
 }

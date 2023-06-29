@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.data;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -42,22 +42,16 @@ public class MigrateQuerydslJpaRepository extends Recipe {
         return "`QuerydslJpaRepository<T, ID extends Serializable>` was deprecated in Spring Data 2.1.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.data.jpa.repository.support.QuerydslJpaRepository", false);
-    }
-
-    @Override
-    protected JavaVisitor<ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.data.jpa.repository.support.QuerydslJpaRepository", false), new JavaVisitor<ExecutionContext>() {
             final String originalFqn = "org.springframework.data.jpa.repository.support.QuerydslJpaRepository";
             final String targetFqn = "org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor";
 
             @Override
             public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                J.CompilationUnit c = (J.CompilationUnit)super.visitCompilationUnit(cu, ctx);
-                doAfterVisit(new ChangeType(originalFqn, targetFqn, false));
+                J.CompilationUnit c = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
+                doAfterVisit(new ChangeType(originalFqn, targetFqn, false).getVisitor());
                 return c;
             }
 
@@ -76,20 +70,20 @@ public class MigrateQuerydslJpaRepository extends Recipe {
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), originalFqn)) {
                     String template = "new QuerydslJpaPredicateExecutor(#{any(org.springframework.data.jpa.repository.support.JpaEntityInformation)}, " +
-                                      "#{any(javax.persistence.EntityManager)}, " +
-                                      "#{any(org.springframework.data.querydsl.EntityPathResolver)}, null)";
+                            "#{any(javax.persistence.EntityManager)}, " +
+                            "#{any(org.springframework.data.querydsl.EntityPathResolver)}, null)";
 
                     J.FieldAccess entityPathResolver = TypeTree.build("SimpleEntityPathResolver.INSTANCE");
-                    return newClass.withTemplate(
-                            JavaTemplate.builder(this::getCursor, template)
-                                    .imports(targetFqn)
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx,
-                                                    "javax.persistence-api-2.*",
-                                                    "spring-data-commons-2.*",
-                                                    "spring-data-jpa-2.*"
-                                            ))
-                                    .build(),
+                    return JavaTemplate.builder(template)
+                        .imports(targetFqn)
+                        .javaParser(JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx,
+                                "javax.persistence-api-2.*",
+                                "spring-data-commons-2.*",
+                                "spring-data-jpa-2.*"
+                            ))
+                        .build().apply(
+                            getCursor(),
                             newClass.getCoordinates().replace(),
                             newClass.getArguments().get(0),
                             newClass.getArguments().get(1),
@@ -97,6 +91,6 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                 }
                 return super.visitNewClass(newClass, ctx);
             }
-        };
+        });
     }
 }

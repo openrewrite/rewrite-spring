@@ -17,19 +17,12 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.properties.ChangePropertyValue;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Option;
-import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
-import org.openrewrite.Validated;
-import org.openrewrite.internal.ListUtils;
+import org.openrewrite.*;
 import org.openrewrite.internal.StringUtils;
 import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.properties.ChangePropertyValue;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
-
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Value
@@ -61,7 +54,7 @@ public class ChangeSpringPropertyValue extends Recipe {
     String oldValue;
 
     @Option(displayName = "Regex",
-            description = "Default false. If enabled, `oldValue` will be interepreted as a Regular Expression, and capture group contents will be available in `newValue`",
+            description = "Default false. If enabled, `oldValue` will be interpreted as a Regular Expression, and capture group contents will be available in `newValue`",
             required = false)
     @Nullable
     Boolean regex;
@@ -81,20 +74,21 @@ public class ChangeSpringPropertyValue extends Recipe {
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-        ChangePropertyValue changeProperties = new ChangePropertyValue(propertyKey, newValue, oldValue, regex,
-                relaxedBinding, null);
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        ChangePropertyValue changeProperties = new ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
         org.openrewrite.yaml.ChangePropertyValue changeYaml =
-                new org.openrewrite.yaml.ChangePropertyValue(propertyKey, newValue, oldValue, regex,
-                        relaxedBinding);
+                new org.openrewrite.yaml.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
 
-        return ListUtils.map(before, s -> {
-            if (s instanceof Properties.File) {
-                s = (Properties.File) changeProperties.getVisitor().visit(s, ctx);
-            } else if (s instanceof Yaml.Documents) {
-                s = (Yaml.Documents) changeYaml.getVisitor().visit(s, ctx);
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof Properties.File) {
+                    tree = changeProperties.getVisitor().visit(tree, ctx);
+                } else if (tree instanceof Yaml.Documents) {
+                    tree = changeYaml.getVisitor().visit(tree, ctx);
+                }
+                return tree;
             }
-            return s;
-        });
+        };
     }
 }

@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -26,6 +23,8 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.NoSuchElementException;
 
 import static java.util.Objects.requireNonNull;
 
@@ -44,18 +43,12 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
     @Override
     public String getDescription() {
         return "Find any classes implementing `EmbeddedServletContainerCustomizer` and change the interface to " +
-               "`WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>`.";
+                "`WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>`.";
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(DEPRECATED_INTERFACE_FQN, false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(DEPRECATED_INTERFACE_FQN, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
@@ -74,7 +67,7 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
 
                 return c;
             }
-        };
+        });
     }
 
     private static J.ParameterizedType getWebFactoryCustomizerIdentifier(ExecutionContext ctx) {
@@ -87,9 +80,12 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
                     .build();
             J.CompilationUnit cu = parser.parse(
                     "import org.springframework.boot.web.server.WebServerFactoryCustomizer;\n" +
-                    "import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;\n" +
-                    "public abstract class Template implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {}"
-            ).get(0);
+                            "import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;\n" +
+                            "public abstract class Template implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {}"
+            )
+                .map(J.CompilationUnit.class::cast)
+                .findFirst()
+                .get();
 
             webFactoryCustomizerIdentifier = (J.ParameterizedType) requireNonNull(cu.getClasses()
                     .get(0).getImplements()).get(0);

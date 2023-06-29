@@ -18,6 +18,7 @@ package org.openrewrite.java.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
+import org.openrewrite.internal.StringUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.properties.AddProperty;
 import org.openrewrite.properties.tree.Properties;
@@ -25,8 +26,6 @@ import org.openrewrite.yaml.MergeYaml;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -88,22 +87,13 @@ public class AddSpringProperty extends Recipe {
             }
 
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                //Short circuit visitor navigation for everything except source file
-                if (tree instanceof SourceFile) {
-                    tree = super.visit(tree, ctx);
+            public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
+                if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile)t).getSourcePath(), ctx)) {
+                    t = createMergeYamlVisitor().getVisitor().visit(t, ctx);
+                } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile)t).getSourcePath(), ctx)) {
+                    t = new AddProperty(property, value, null).getVisitor().visit(t, ctx);
                 }
-                return tree;
-            }
-
-            @Override
-            public @Nullable Tree preVisit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof Yaml.Documents && sourcePathMatches(((SourceFile)tree).getSourcePath(), ctx)) {
-                    doAfterVisit(createMergeYamlVisitor());
-                } else if (tree instanceof Properties.File && sourcePathMatches(((SourceFile)tree).getSourcePath(), ctx)) {
-                    doAfterVisit(new AddProperty(property, value, null));
-                }
-                return tree;
+                return t;
             }
         };
     }
@@ -118,14 +108,7 @@ public class AddSpringProperty extends Recipe {
             return true;
         }
         for (String filePattern : expressions) {
-            if (filePattern.startsWith("**")) {
-                sourcePath = Paths.get(".").resolve(sourcePath.normalize());
-            } else {
-                sourcePath = sourcePath.normalize();
-            }
-
-            PathMatcher pathMatcher = sourcePath.getFileSystem().getPathMatcher("glob:" + filePattern);
-            if (pathMatcher.matches(sourcePath)) {
+            if (PathUtils.matchesGlob(sourcePath, filePattern)) {
                 return true;
             }
         }
@@ -143,7 +126,7 @@ public class AddSpringProperty extends Recipe {
             if (yaml.length() > 0) {
                 yaml.append("\n");
             }
-            if (comment != null) {
+            if (!StringUtils.isBlank(comment)) {
                 //noinspection StringEquality
                 if (part == propertyParts[propertyParts.length - 1]) {
                     yaml.append(indent).append("# ").append(comment).append("\n");
@@ -157,7 +140,7 @@ public class AddSpringProperty extends Recipe {
         } else {
             yaml.append(" ").append(value);
         }
-        return new MergeYaml("$", yaml.toString(), true, null, null);
+        return new MergeYaml("$", yaml.toString(), true, null);
     }
 
     private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");

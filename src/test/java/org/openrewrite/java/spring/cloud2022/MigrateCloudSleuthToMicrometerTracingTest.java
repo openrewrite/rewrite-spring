@@ -18,13 +18,14 @@ package org.openrewrite.java.spring.cloud2022;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.config.Environment;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
+class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -37,6 +38,7 @@ public class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "spring-cloud-sleuth-api"));
     }
 
+    @DocumentExample
     @Test
     void migrateTracer() {
         //language=java
@@ -104,5 +106,4 @@ public class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
           )
         );
     }
-
 }

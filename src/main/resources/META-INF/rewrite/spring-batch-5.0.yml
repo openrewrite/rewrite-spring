@@ -23,7 +23,7 @@ tags:
   - spring
   - batch
 recipeList:
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.batch
       artifactId: "*"
       newVersion: 5.0.x

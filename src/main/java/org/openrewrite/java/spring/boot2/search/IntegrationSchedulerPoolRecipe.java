@@ -15,22 +15,21 @@
  */
 package org.openrewrite.java.spring.boot2.search;
 
+import lombok.Data;
 import lombok.Value;
 import lombok.With;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
-import org.openrewrite.Tree;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaSourceFile;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TextComment;
 import org.openrewrite.marker.Marker;
 import org.openrewrite.marker.Markers;
-import org.openrewrite.marker.SearchResult;
-import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.ResolvedDependency;
 import org.openrewrite.maven.tree.Scope;
@@ -43,6 +42,7 @@ import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 /**
  * @author Alex Boyko
  */
-public class IntegrationSchedulerPoolRecipe extends Recipe {
+public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSchedulerPoolRecipe.JavaProjects> {
 
     private static final Pattern APP_PROPS_FILE_REGEX = Pattern.compile("^application.*\\.properties$");
     private static final Pattern APP_YAML_FILE_REGEX = Pattern.compile("^application.*\\.ya?ml$");
@@ -59,6 +59,7 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
 
     private static final String PROPS_MIGRATION_MESSAGE = " TODO: Consider Scheduler thread pool size for Spring Integration";
     private static final String GENERAL_MIGRATION_MESSAGE = " TODO: Scheduler thread pool size for Spring Integration either in properties or config server\n";
+    private static final String SPRING_BOOT_APPLICATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
 
     @Override
     public String getDisplayName() {
@@ -101,42 +102,89 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
     }
 
     @Override
-    protected MavenVisitor<ExecutionContext> getApplicableTest() {
-        return new MavenVisitor<ExecutionContext>() {
+    public JavaProjects getInitialValue(ExecutionContext ctx) {
+        return new JavaProjects();
+    }
 
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(JavaProjects acc) {
+        return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
-
-                if (isApplicableMavenProject(document)) {
-                    return SearchResult.found(document);
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
+                } else if (tree.getMarkers().findFirst(CommentAdded.class).isPresent()) {
+                    // already processed in a previous cycle
+                    tree.getMarkers().findFirst(JavaProject.class).ifPresent(acc.getProcessedProjects()::add);
+                    tree.getMarkers().findFirst(JavaProject.class).ifPresent(acc.getApplicableProjects()::remove);
+                    return tree;
                 }
-                return document;
+
+                Optional<JavaProject> maybeJavaProject = tree.getMarkers().findFirst(JavaProject.class);
+                if (!maybeJavaProject.isPresent() || acc.getProcessedProjects().contains(maybeJavaProject.get())) {
+                    return tree;
+                }
+
+                SourceFile source = (SourceFile) tree;
+                String fileName = source.getSourcePath().getFileName().toString();
+                JavaProject javaProject = maybeJavaProject.get();
+
+                if (source instanceof Xml.Document) {
+                    Xml.Document xml = (Xml.Document) source;
+                    Optional<MavenResolutionResult> maybeMavenMarker = source.getMarkers().findFirst(MavenResolutionResult.class);
+                    if (maybeMavenMarker.isPresent() && isApplicableMavenProject(xml)) {
+                        acc.getApplicableProjects().add(javaProject);
+                    }
+                } else if (source instanceof Properties && APP_PROPS_FILE_REGEX.matcher(fileName).matches()) {
+                    if (!FindProperties.find((Properties) source, PROPERTY_KEY, false).isEmpty()) {
+                        acc.getSourceToCommentByProject().put(javaProject, source.getSourcePath());
+                    }
+                } else if (source instanceof Yaml.Documents && APP_YAML_FILE_REGEX.matcher(fileName).matches()) {
+                    if (!FindProperty.find((Yaml) source, PROPERTY_KEY, false).isEmpty()) {
+                        acc.getSourceToCommentByProject().put(javaProject, source.getSourcePath());
+                    }
+                } else if (source instanceof JavaSourceFile && acc.getSourceToCommentByProject().get(javaProject) == null) {
+                    JavaSourceFile javaSourceFile = (JavaSourceFile) source;
+                    if (javaSourceFile.getTypesInUse().getTypesInUse().stream().anyMatch(t -> t instanceof
+                            JavaType.Class && ((JavaType.Class) t).getFullyQualifiedName().equals(SPRING_BOOT_APPLICATION))) {
+                        new JavaIsoVisitor<Integer>() {
+                            final AnnotationMatcher annotationMatcher = new AnnotationMatcher('@' + SPRING_BOOT_APPLICATION);
+
+                            @Override
+                            public J.Annotation visitAnnotation(J.Annotation annotation, Integer p) {
+                                if (annotationMatcher.matches(annotation)) {
+                                    acc.getSourceToCommentByProject().put(javaProject, source.getSourcePath());
+                                }
+                                return annotation;
+                            }
+                        }.visit(javaSourceFile, 0);
+                    }
+                }
+                return source;
             }
         };
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-        Set<JavaProject> javaProjects = before.stream()
-                .filter(s -> s.getMarkers().findFirst(MavenResolutionResult.class).isPresent())
-                .map(Xml.Document.class::cast)
-                .filter(this::isApplicableMavenProject)
-                .map(m -> m.getMarkers().findFirst(JavaProject.class))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+    public TreeVisitor<?, ExecutionContext> getVisitor(JavaProjects acc) {
+        Set<Path> sourcesToComment = acc.getSourceToCommentByProject().entrySet().stream()
+                .filter(e -> acc.getApplicableProjects().contains(e.getKey()))
+                .map(Map.Entry::getValue).collect(Collectors.toSet());
+
+        if (sourcesToComment.isEmpty()) {
+            return TreeVisitor.noop();
+        }
 
         // Leave the comment about scheduler pool size next to 'spring.task.scheduling.pool.size' property in the external properties file (props or yaml)
-        List<SourceFile> modified = ListUtils.map(before, source -> {
-            if (source.getMarkers().findFirst(CommentAdded.class).isPresent()) {
-                JavaProject javaProject = source.getMarkers().findFirst(JavaProject.class).orElse(null);
-                javaProjects.remove(javaProject);
-                return source;
-            }
-            String fileName = source.getSourcePath().getFileName().toString();
-            JavaProject javaProject = source.getMarkers().findFirst(JavaProject.class).orElse(null);
-            if (javaProjects.contains(javaProject)) {
-                if (APP_PROPS_FILE_REGEX.matcher(fileName).matches() && source instanceof Properties) {
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (!(tree instanceof SourceFile) || !sourcesToComment.contains(((SourceFile) tree).getSourcePath())) {
+                    return tree;
+                }
+
+                SourceFile source = (SourceFile) tree;
+                if (source instanceof Properties) {
                     Set<Properties.Entry> foundEntries = FindProperties.find((Properties) source, PROPERTY_KEY, false);
                     if (!foundEntries.isEmpty()) {
                         // There should only be one exact match!
@@ -153,13 +201,12 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
                                 }
                             }
                         }.visitNonNull(source, ctx);
-                        javaProjects.remove(javaProject);
                         source = source.withMarkers(source.getMarkers().addIfAbsent(new CommentAdded(Tree.randomId())));
                     }
-                } else if (APP_YAML_FILE_REGEX.matcher(fileName).matches() && source instanceof Yaml) {
+                } else if (source instanceof Yaml) {
                     Set<Yaml.Block> foundEntriesValues = FindProperty.find((Yaml) source, PROPERTY_KEY, false);
                     if (!foundEntriesValues.isEmpty()) {
-                        source = (SourceFile) new YamlIsoVisitor<ExecutionContext>(){
+                        source = (SourceFile) new YamlIsoVisitor<ExecutionContext>() {
                             @Override
                             public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                                 if (foundEntriesValues.contains(entry.getValue())) {
@@ -168,43 +215,35 @@ public class IntegrationSchedulerPoolRecipe extends Recipe {
                                 return super.visitMappingEntry(entry, ctx);
                             }
                         }.visitNonNull(source, ctx);
-                        javaProjects.remove(javaProject);
                         source = source.withMarkers(source.getMarkers().addIfAbsent(new CommentAdded(Tree.randomId())));
                     }
-                }
-            }
-            return source;
-        });
+                } else if (source instanceof JavaSourceFile) {
+                    JavaIsoVisitor<ExecutionContext> commentVisitor = new JavaIsoVisitor<ExecutionContext>() {
+                        final AnnotationMatcher annotationMatcher = new AnnotationMatcher('@' + SPRING_BOOT_APPLICATION);
 
-        if (!javaProjects.isEmpty()) {
-            AnnotationMatcher annotationMatcher = new AnnotationMatcher("@org.springframework.boot.autoconfigure.SpringBootApplication");
-            JavaIsoVisitor<ExecutionContext> commentVisitor = new JavaIsoVisitor<ExecutionContext>() {
-                @Override
-                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                    J.Annotation a = super.visitAnnotation(annotation, ctx);
-                    if (annotationMatcher.matches(a)) {
-                        a = a.withComments(ListUtils.concat(a.getComments(), new TextComment(false, GENERAL_MIGRATION_MESSAGE, "", Markers.EMPTY)));
-                    }
-                    return a;
-                }
-            };
-            modified = ListUtils.map(modified, source -> {
-                if (source.getMarkers().findFirst(CommentAdded.class).isPresent()) {
-                    return source;
-                }
-                JavaProject javaProject = source.getMarkers().findFirst(JavaProject.class).orElse(null);
-                if (javaProjects.contains(javaProject) && source instanceof J.CompilationUnit) {
+                        @Override
+                        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                            if (annotationMatcher.matches(annotation)) {
+                                annotation = annotation.withComments(ListUtils.concat(annotation.getComments(), new TextComment(false, GENERAL_MIGRATION_MESSAGE, "", Markers.EMPTY)));
+                            }
+                            return annotation;
+                        }
+                    };
                     SourceFile after = (SourceFile) commentVisitor.visitNonNull(source, ctx);
                     if (after != source) {
-                        javaProjects.remove(javaProject);
-                        after = after.withMarkers(after.getMarkers().addIfAbsent(new CommentAdded(Tree.randomId())));
-                        return after;
+                        source = after.withMarkers(after.getMarkers().addIfAbsent(new CommentAdded(Tree.randomId())));
                     }
                 }
                 return source;
-            });
-        }
-        return modified;
+            }
+        };
+    }
+
+    @Data
+    static class JavaProjects {
+        Set<JavaProject> applicableProjects = new HashSet<>();
+        Set<JavaProject> processedProjects = new HashSet<>();
+        Map<JavaProject, Path> sourceToCommentByProject = new HashMap<>();
     }
 
     @Value

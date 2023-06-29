@@ -30,23 +30,30 @@ tags:
   - boot
 recipeList:
   # Upgrade 2.0.x from 1.x
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.0.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.0.x
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 2.0.x
+  - org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
+  - org.openrewrite.gradle.UpdateGradleWrapper:
+      version: 4.x
+      addIfMissing: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mockito
       artifactId: "*"
       newVersion: 3.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
-  - org.openrewrite.maven.RemoveDependency:
+  - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.webjars
       artifactId: webjars-locator
   - org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
@@ -54,7 +61,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
-  - org.openrewrite.java.spring.boot2.MigrateHibernateContraintsToJavax
+  - org.openrewrite.java.spring.boot2.MigrateHibernateConstraintsToJavax
   - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
@@ -67,7 +74,7 @@ description: >
   Use `WebServerFactoryCustomizer` instead of the deprecated `EmbeddedServletContainerCustomizer` in
   Spring Boot 2.0 or higher. This recipe will replace look for any classes that implement `EmbeddedServletContainerCustomizer`
   and change the interface to `WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>`. This recipe also adjusts
-  the the types used in the `customize()` method from `*EmbeddedServletContainerFactory` to their `*ServletWebServerFactory`
+  the types used in the `customize()` method from `*EmbeddedServletContainerFactory` to their `*ServletWebServerFactory`
   counterparts.
 
 recipeList:
@@ -118,7 +125,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.MigrateHibernateContraintsToJavax
+name: org.openrewrite.java.spring.boot2.MigrateHibernateConstraintsToJavax
 displayName: Use `javax.validation.constraints`
 description: Use `javax.validation.constraints` instead of the deprecated `org.hibernate.validator.constraints` in Spring Boot 2.0 or higher.
 recipeList:
@@ -128,7 +135,7 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
       newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: javax.validation
       artifactId: validation-api
       version: 2.x
@@ -672,6 +679,5 @@ recipeList:
   - org.openrewrite.java.spring.ImplicitWebAnnotationNames
   - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
   - org.openrewrite.java.spring.NoAutowiredOnConstructor
-  - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
   - org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils

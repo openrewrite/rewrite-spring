@@ -17,11 +17,10 @@ package org.openrewrite.java.spring.security5;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.Applicability;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.NonNull;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
@@ -56,16 +55,11 @@ public class UseNewRequestMatchers extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return Applicability.or(
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(Preconditions.or(
                 new UsesMethod<>(ANT_MATCHERS),
                 new UsesMethod<>(MVC_MATCHERS),
-                new UsesMethod<>(REGEX_MATCHERS));
-    }
-
-    @Override
-    public JavaIsoVisitor<ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+                new UsesMethod<>(REGEX_MATCHERS)), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
@@ -75,7 +69,7 @@ public class UseNewRequestMatchers extends Recipe {
                 }
                 return mi;
             }
-        };
+        });
 
     }
 
@@ -89,7 +83,7 @@ public class UseNewRequestMatchers extends Recipe {
 
     private Optional<JavaType.Method> findRequestMatchersMethodWithMatchingParameterTypes(J.MethodInvocation mi) {
         JavaType.Method methodType = mi.getMethodType();
-        if(methodType == null) {
+        if (methodType == null) {
             return Optional.empty();
         }
         List<JavaType> parameterTypes = methodType.getParameterTypes();

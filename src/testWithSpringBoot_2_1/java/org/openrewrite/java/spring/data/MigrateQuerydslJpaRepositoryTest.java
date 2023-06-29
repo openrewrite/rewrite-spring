@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.data;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -30,6 +31,7 @@ class MigrateQuerydslJpaRepositoryTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("javax.persistence", "spring-data-jpa", "spring-data-commons"));
     }
 
+    @DocumentExample
     @Test
     void newClasses() {
         //language=java

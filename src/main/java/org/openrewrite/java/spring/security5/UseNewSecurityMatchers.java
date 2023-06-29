@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.security5;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -31,7 +32,7 @@ import org.openrewrite.java.tree.J;
 @EqualsAndHashCode(callSuper = false)
 public class UseNewSecurityMatchers extends Recipe {
 
-    public static final String HTTP_SECURITY_CLASS = "org.springframework.security.config.annotation.web.builders.HttpSecurity";
+    private static final String HTTP_SECURITY_CLASS = "org.springframework.security.config.annotation.web.builders.HttpSecurity";
     private static final MethodMatcher HTTP_SECURITY_MATCHER = new MethodMatcher(HTTP_SECURITY_CLASS + " *Matcher(String)");
 
 
@@ -48,29 +49,25 @@ public class UseNewSecurityMatchers extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(HTTP_SECURITY_CLASS, true);
-    }
-
-    @Override
-    public JavaIsoVisitor<ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(HTTP_SECURITY_CLASS, true), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                 if (HTTP_SECURITY_MATCHER.matches(mi) && mi.getMethodType() != null) {
-                    return mi.withTemplate(securityMatcherTemplate(ctx), mi.getCoordinates().replaceMethod(), mi.getArguments().get(0));
+                    return securityMatcherTemplate(ctx).apply(getCursor(), mi.getCoordinates().replaceMethod(), mi.getArguments().get(0));
                 }
                 return mi;
             }
 
             private JavaTemplate securityMatcherTemplate(ExecutionContext ctx) {
-                return JavaTemplate.builder(this::getCursor, "securityMatcher(#{any(String)})")
+                return JavaTemplate.builder("securityMatcher(#{any(String)})")
+                        .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-security-web-5.8.+", "spring-security-config-5.8.+"))
                         .build();
             }
-        };
+        });
     }
 }

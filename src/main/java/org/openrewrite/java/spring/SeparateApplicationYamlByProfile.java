@@ -15,22 +15,18 @@
  */
 package org.openrewrite.java.spring;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
+import lombok.Value;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.yaml.DeleteProperty;
+import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.nio.file.Path;
+import java.util.*;
 
-public class SeparateApplicationYamlByProfile extends Recipe {
+public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApplicationYamlByProfile.ApplicationProfiles> {
 
     @Override
     public String getDisplayName() {
@@ -43,43 +39,68 @@ public class SeparateApplicationYamlByProfile extends Recipe {
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
-        return ListUtils.flatMap(before, s -> {
-            if (s.getSourcePath().getFileSystem().getPathMatcher("glob:application.yml")
-                    .matches(s.getSourcePath().getFileName())) {
-                Yaml.Documents yaml = (Yaml.Documents) s;
+    public ApplicationProfiles getInitialValue(ExecutionContext ctx) {
+        return new ApplicationProfiles();
+    }
 
-                Map<Yaml.Document, String> profiles = new HashMap<>(yaml.getDocuments().size());
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(ApplicationProfiles acc) {
+        return new YamlIsoVisitor<ExecutionContext>() {
+            @Override
+            public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
+                if (PathUtils.matchesGlob(yaml.getSourcePath(), "application.yml")) {
 
-                //noinspection unchecked
-                Yaml.Documents mainYaml = yaml.withDocuments(ListUtils.map(
-                        (List<Yaml.Document>) yaml.getDocuments(),
-                        doc -> {
-                            String profileName = FindProperty.find(doc, "spring.config.activate.on-profile", true).stream()
-                                    .findAny()
-                                    .map(profile -> ((Yaml.Scalar) profile).getValue())
-                                    .orElse(null);
+                    Set<Yaml.Documents> profiles = new HashSet<>(yaml.getDocuments().size());
 
-                            if (profileName != null && profileName.matches("[A-z0-9-]+")) {
-                                profiles.put((Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", true, true, null)
-                                        .getVisitor().visit(doc, ctx, new Cursor(null, yaml)), profileName);
-                                return null;
-                            }
+                    //noinspection unchecked
+                    Yaml.Documents mainYaml = yaml.withDocuments(ListUtils.map(
+                            (List<Yaml.Document>) yaml.getDocuments(),
+                            doc -> {
+                                String profileName = FindProperty.find(doc, "spring.config.activate.on-profile", true).stream()
+                                        .findAny()
+                                        .map(profile -> ((Yaml.Scalar) profile).getValue())
+                                        .orElse(null);
 
-                            return doc;
-                        }));
+                                if (profileName != null && profileName.matches("[A-z0-9-]+")) {
+                                    Yaml.Document profileDoc = (Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", true, true)
+                                            .getVisitor().visit(doc, ctx, new Cursor(null, yaml));
+                                    assert profileDoc != null;
+                                    profiles.add(yaml.withDocuments(Collections.singletonList(profileDoc.withExplicit(false)))
+                                            .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profileName + ".yml")));
+                                    return null;
+                                }
 
-                List<Yaml.Documents> profileYamls = profiles.entrySet().stream()
-                        .map(profile -> yaml
-                                .withDocuments(Collections.singletonList(profile.getKey().withExplicit(false)))
-                                .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profile.getValue() + ".yml"))
-                        )
-                        .collect(Collectors.toList());
+                                return doc;
+                            }));
 
-                return mainYaml.getDocuments().isEmpty() ? profileYamls : ListUtils.concat(mainYaml, profileYamls);
+                    if (!profiles.isEmpty()) {
+                        acc.getModifiedMainProfileFiles().put(yaml.getSourcePath(), mainYaml);
+                        acc.getNewProfileFiles().addAll(profiles);
+                    }
+                }
+                return yaml;
             }
+        };
+    }
 
-            return s;
-        });
+    @Override
+    public Collection<SourceFile> generate(ApplicationProfiles acc, ExecutionContext ctx) {
+        return acc.getNewProfileFiles();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(ApplicationProfiles acc) {
+        return new YamlIsoVisitor<ExecutionContext>() {
+            @Override
+            public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
+                return acc.getModifiedMainProfileFiles().getOrDefault(yaml.getSourcePath(), yaml);
+            }
+        };
+    }
+
+    @Value
+    static class ApplicationProfiles {
+        Map<Path, Yaml.Documents> modifiedMainProfileFiles = new HashMap<>();
+        Set<SourceFile> newProfileFiles = new HashSet<>();
     }
 }

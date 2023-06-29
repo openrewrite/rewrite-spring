@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -31,39 +28,38 @@ import org.openrewrite.java.tree.TypeUtils;
 public class MigrateWebMvcConfigurerAdapter extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Transform classes that extend `WebMvcConfigurerAdapter` to implement the `WebMvcConfigurer` interface instead";
+        return "Replace `WebMvcConfigurerAdapter` with `WebMvcConfigurer`";
     }
 
     @Override
     public String getDescription() {
-        return "As of 5.0 `WebMvcConfigurer` has default methods (made possible by a Java 8 baseline) and can be implemented directly without the need for this adapter.";
+        return "As of 5.0 `WebMvcConfigurer` has default methods (made possible by a Java 8 baseline) and can be " +
+               "implemented directly without the need for this adapter.";
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter", false);
-    }
-
-    @Override
-    protected JavaIsoVisitor<ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>(){
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter", false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter")) {
                     cd = cd.withExtends(null);
+                    updateCursor(cd);
                     // This is an interesting one... WebMvcConfigurerAdapter implements WebMvcConfigurer
                     // remove the super type from the class type to prevent a stack-overflow exception when the JavaTemplate visits class type.
                     JavaType.Class type = (JavaType.Class) cd.getType();
                     if (type != null) {
                         cd = cd.withType(type.withSupertype(null));
+                        updateCursor(cd);
                     }
-                    cd = cd.withTemplate(JavaTemplate.builder(() -> getCursor().dropParentUntil(p -> p instanceof J.ClassDeclaration || p instanceof J.CompilationUnit), "WebMvcConfigurer")
+                    cd = JavaTemplate.builder("WebMvcConfigurer")
+                                    .contextSensitive()
                                     .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
                                     .javaParser(JavaParser.fromJavaVersion()
-                                            .classpath("spring-webmvc"))
-                                    .build(),
-                            cd.getCoordinates().addImplementsClause());
+                                            .classpathFromResources(ctx, "spring-webmvc-5.*"))
+                                    .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
+                    updateCursor(cd);
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());
                     maybeRemoveImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
                     maybeAddImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurer");
@@ -73,6 +69,7 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
 
             class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
                 final MethodMatcher wm = new MethodMatcher("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter *(..)");
+
                 @Override
                 public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                     J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
@@ -82,6 +79,6 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                     return mi;
                 }
             }
-        };
+        });
     }
 }

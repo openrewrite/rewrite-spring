@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.data;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -29,22 +30,23 @@ class UseTlsJdbcConnectionStringTest implements RewriteTest {
         spec.recipe(new UseTlsJdbcConnectionString(null, 5021, 15021, "sslConnection=true;"));
     }
 
+    @DocumentExample
     @Test
     void useTls() {
         rewriteRun(
           //language=yaml
           yaml(
             """
-                spring:
-                    datasource:
-                      url: 'jdbc:db2://10.2.1.101:5021/DB2INST1:currentSchema=DEV;commandTimeout=30;'
+              spring:
+                datasource:
+                  url: 'jdbc:db2://10.2.1.101:5021/DB2INST1:currentSchema=DEV;commandTimeout=30;'
               """,
             """
-                spring:
-                    datasource:
-                      url: 'jdbc:db2://10.2.1.101:15021/DB2INST1:currentSchema=DEV;commandTimeout=30;sslConnection=true;'
+              spring:
+                datasource:
+                  url: 'jdbc:db2://10.2.1.101:15021/DB2INST1:currentSchema=DEV;commandTimeout=30;sslConnection=true;'
               """
-            ),
+          ),
           //language=properties
           properties(
             """
@@ -53,7 +55,7 @@ class UseTlsJdbcConnectionStringTest implements RewriteTest {
             """
               spring.datasource.url=jdbc:db2://10.2.1.101:15021/DB2INST1:currentSchema=DEV;commandTimeout=30;sslConnection=true;
               """
-            )
+          )
         );
     }
 
@@ -75,6 +77,7 @@ class UseTlsJdbcConnectionStringTest implements RewriteTest {
     void allowCustomPropertyKey() {
         rewriteRun(
           spec -> spec.recipe(new UseTlsJdbcConnectionString("my.custom.url", 5021, 15021, "sslConnection=true;")),
+          //language=yaml
           yaml(
             """
               my:

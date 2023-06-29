@@ -16,7 +16,8 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.config.Environment;
+import org.openrewrite.DocumentExample;
+import org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -26,12 +27,10 @@ public class DowngradeServletApiWhenUsingJettyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder()
-          .scanRuntimeClasspath("org.openrewrite.java.spring.boot3")
-          .build()
-          .activateRecipes("org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty"));
+        spec.recipe(new DowngradeServletApiWhenUsingJetty());
     }
 
+    @DocumentExample
     @Test
     void downgradeApiWhenUsingJetty() {
         rewriteRun(

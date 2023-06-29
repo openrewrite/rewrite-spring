@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -38,50 +38,44 @@ public class MigrateMultipartConfigFactory extends Recipe {
         return "Methods to set `DataSize` with primitive arguments were deprecated in 2.1 and removed in 2.2.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.boot.web.servlet.MultipartConfigFactory", true);
-    }
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.boot.web.servlet.MultipartConfigFactory", true),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    final MethodMatcher setMaxFileSizeByLong = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxFileSize(long)");
+                    final MethodMatcher setMaxRequestSizeByLong = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(long)");
+                    final MethodMatcher setFileSizeThresholdByInt = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(int)");
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            final MethodMatcher setMaxFileSizeByLong = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxFileSize(long)");
-            final MethodMatcher setMaxRequestSizeByLong = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(long)");
-            final MethodMatcher setFileSizeThresholdByInt = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(int)");
+                    final MethodMatcher setMaxFileSizeByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxFileSize(java.lang.String)");
+                    final MethodMatcher setMaxRequestSizeByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(java.lang.String)");
+                    final MethodMatcher setFileSizeThresholdByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(java.lang.String)");
 
-            final MethodMatcher setMaxFileSizeByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxFileSize(java.lang.String)");
-            final MethodMatcher setMaxRequestSizeByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(java.lang.String)");
-            final MethodMatcher setFileSizeThresholdByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(java.lang.String)");
-
-            @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                if (setMaxFileSizeByLong.matches(m) || setMaxRequestSizeByLong.matches(m) || setFileSizeThresholdByInt.matches(m)) {
-                    m = m.withTemplate(
-                            JavaTemplate
-                                    .builder(this::getCursor,"DataSize.ofBytes(#{any()})")
-                                    .imports("org.springframework.util.unit.DataSize")
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
-                                    .build(),
-                            m.getCoordinates().replaceArguments(),
-                            m.getArguments().get(0));
-                } else if (setMaxFileSizeByString.matches(m) || setMaxRequestSizeByString.matches(m) || setFileSizeThresholdByString.matches(m)) {
-                    m = m.withTemplate(
-                            JavaTemplate
-                                    .builder(this::getCursor,"DataSize.parse(#{any(java.lang.String)})")
-                                    .imports("org.springframework.util.unit.DataSize")
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
-                                    .build(),
-                            m.getCoordinates().replaceArguments(),
-                            m.getArguments().get(0));
-                }
-                maybeAddImport("org.springframework.util.unit.DataSize");
-                return m;
-            }
-        };
+                    @Override
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
+                        if (setMaxFileSizeByLong.matches(m) || setMaxRequestSizeByLong.matches(m) || setFileSizeThresholdByInt.matches(m)) {
+                            m = JavaTemplate.builder("DataSize.ofBytes(#{any()})")
+                                            .imports("org.springframework.util.unit.DataSize")
+                                            .javaParser(JavaParser.fromJavaVersion()
+                                                    .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
+                                            .build().apply(
+                                    getCursor(),
+                                    m.getCoordinates().replaceArguments(),
+                                    m.getArguments().get(0));
+                        } else if (setMaxFileSizeByString.matches(m) || setMaxRequestSizeByString.matches(m) || setFileSizeThresholdByString.matches(m)) {
+                            m = JavaTemplate
+                                .builder("DataSize.parse(#{any(java.lang.String)})")
+                                .imports("org.springframework.util.unit.DataSize")
+                                .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
+                                .build().apply(
+                                    getCursor(),
+                                    m.getCoordinates().replaceArguments(),
+                                    m.getArguments().get(0));
+                        }
+                        maybeAddImport("org.springframework.util.unit.DataSize");
+                        return m;
+                    }
+                });
     }
 }

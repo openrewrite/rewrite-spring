@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2.search;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -31,6 +32,7 @@ class CustomizingJooqDefaultConfigurationTest implements RewriteTest {
             .classpath("spring-beans", "spring-context", "spring-boot", "spring-jdbc", "spring-orm", "jooq", "bind-api"));
     }
 
+    @DocumentExample
     @Test
     void jooqSettings() {
         //language=java

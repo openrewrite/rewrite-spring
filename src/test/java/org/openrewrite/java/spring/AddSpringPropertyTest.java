@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
@@ -26,157 +27,172 @@ import static org.openrewrite.yaml.Assertions.yaml;
 
 class AddSpringPropertyTest implements RewriteTest {
 
+    @DocumentExample
     @Test
     void addNestedIntoExisting() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("*"))),
-                properties(
-                        """
-                        server.port=8080
-                        """,
-                        """
-                        server.port=8080
-                        server.servlet.path=/tmp/my-server-path
-                        """
-                ),
-                yaml(
-                        """
-                            server:
-                              port: 8080
-                        """,
-                        """
-                            server:
-                              port: 8080
-                              servlet:
-                                path: /tmp/my-server-path
-                        """
-                )
+          spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("*"))),
+          //language=properties
+          properties(
+            """
+              server.port=8080
+              """,
+            """
+              server.port=8080
+              server.servlet.path=/tmp/my-server-path
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              server:
+                port: 8080
+              """,
+            """
+              server:
+                port: 8080
+                servlet:
+                  path: /tmp/my-server-path
+              """
+          )
         );
     }
 
     @Test
     void addPropertyToRoot() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, List.of("*"))),
-                properties(
-                        """
-                        servlet.session.cookie.path=/cookie-monster
-                        """,
-                        """
-                        servlet.session.cookie.path=/cookie-monster
-                        fred=fred
-                        """
-                ),
-                yaml(
-                        """
-                            server:
-                              port: 8888
-                        """,
-                        """
-                        server:
-                          port: 8888
-                        fred: fred
-                        """
-                )
+          spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, List.of("*"))),
+          //language=properties
+          properties(
+            """
+              servlet.session.cookie.path=/cookie-monster
+              """,
+            """
+              servlet.session.cookie.path=/cookie-monster
+              fred=fred
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+                  server:
+                    port: 8888
+              """,
+            """
+              server:
+                port: 8888
+              fred: fred
+              """
+          )
         );
     }
 
     @Test
     void propertyAlreadyExists() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, List.of("*"))),
-                properties(
-                        """
-                        servlet.session.cookie.path=/cookie-monster
-                        fred=doNotChangeThis
-                        """
-                ),
-                yaml(
-                        """
-                        server:
-                          port: 8888
-                        fred: doNotChangeThis
-                        """
-                )
+          spec -> spec.recipe(new AddSpringProperty("fred", "fred", null, List.of("*"))),
+          //language=properties
+          properties(
+            """
+              servlet.session.cookie.path=/cookie-monster
+              fred=doNotChangeThis
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              server:
+                port: 8888
+              fred: doNotChangeThis
+              """
+          )
         );
     }
 
     @Test
     void addPropertyWithComment() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", "This property was added", List.of("*"))),
-                properties(
-                        """
-                        server.port=8080
-                        """,
-                        """
-                        server.port=8080
-                        server.servlet.path=/tmp/my-server-path
-                        """
-                ),
-                yaml(
-                        """
-                            server:
-                              port: 8080
-                        """,
-                        """
-                            server:
-                              port: 8080
-                              servlet:
-                                # This property was added
-                                path: /tmp/my-server-path
-                        """
-                )
+          spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", "This property was added", List.of("*"))),
+          //language=properties
+          properties(
+            """
+              server.port=8080
+              """,
+            """
+              server.port=8080
+              server.servlet.path=/tmp/my-server-path
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              server:
+                port: 8080
+              """,
+            """
+              server:
+                port: 8080
+                servlet:
+                  # This property was added
+                  path: /tmp/my-server-path
+              """
+          )
         );
     }
 
     @Test
     void makeChangeToMatchingFiles() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("**/application.properties", "**/application.yml"))),
-                properties(
-                        """
-                        server.port=8080
-                        """,
-                        """
-                        server.port=8080
-                        server.servlet.path=/tmp/my-server-path
-                        """,
-                        s -> s.path("src/main/resources/application.properties")
-                ),
-                yaml(
-                        """
-                            server:
-                              port: 8080
-                        """,
-                        """
-                            server:
-                              port: 8080
-                              servlet:
-                                path: /tmp/my-server-path
-                        """,
-                        s -> s.path("src/main/resources/application.yml")
-                )
+          spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("**/application.properties", "**/application.yml"))),
+          properties(
+            //language=properties
+            """
+              server.port=8080
+              """,
+            //language=properties
+            """
+              server.port=8080
+              server.servlet.path=/tmp/my-server-path
+              """,
+            s -> s.path("src/main/resources/application.properties")
+          ),
+          yaml(
+            //language=yaml
+            """
+              server:
+                port: 8080
+              """,
+            //language=yaml
+            """
+              server:
+                port: 8080
+                servlet:
+                  path: /tmp/my-server-path
+              """,
+            s -> s.path("src/main/resources/application.yml")
+          )
         );
     }
 
     @Test
     void doNotChangeToFilesThatDoNotMatch() {
         rewriteRun(
-                spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("**/application.properties", "**/application.yml"))),
-                properties(
-                        """
-                        server.port=8080
-                        """,
-                        s -> s.path("src/main/resources/application-test.properties")
-                ),
-                yaml(
-                        """
-                            server:
-                              port: 8080
-                        """,
-                        s -> s.path("src/main/resources/application-dev.yml")
-                )
+          spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("**/application.properties", "**/application.yml"))),
+          properties(
+            //language=properties
+            """
+              server.port=8080
+              """,
+            s -> s.path("src/main/resources/application-test.properties")
+          ),
+          yaml(
+            //language=yaml
+            """
+              server:
+                port: 8080
+              """,
+            s -> s.path("src/main/resources/application-dev.yml")
+          )
         );
     }
 }

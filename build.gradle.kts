@@ -77,6 +77,8 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-web:5.+")
     parserClasspath("org.springframework:spring-web:6.+")
 
+    parserClasspath("org.springframework:spring-webmvc:5.+")
+
     parserClasspath("org.springframework.data:spring-data-commons:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
@@ -99,9 +101,13 @@ recipeDependencies {
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-autoconfigure:3.1.+")
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-instrumentation:3.1.+")
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-brave:3.1.+")
+
+    parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
+    parserClasspath("net.minidev:json-smart")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
+
 var springBoot3Version = "3.0.0-RC1"
 dependencies {
     implementation("org.openrewrite:rewrite-java:${rewriteVersion}")
@@ -110,21 +116,24 @@ dependencies {
     implementation("org.openrewrite:rewrite-yaml:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-gradle:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
+    implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
+    implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
-    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
-    runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
+    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
+    runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
+    testRuntimeOnly(gradleApi())
 
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
     testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
-    testImplementation("org.openrewrite.recipe:rewrite-migrate-java:${rewriteVersion}")
-    testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:${rewriteVersion}")
+    testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
+    testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
@@ -224,6 +233,8 @@ dependencies {
     "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-web:5.8.+")
     "testWithSpringSecurity_5_8RuntimeOnly"("org.springframework.security:spring-security-ldap:5.8.+")
     "testWithSpringSecurity_5_8RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
+    "testWithSpringSecurity_5_8RuntimeOnly"("com.nimbusds:nimbus-jose-jwt:9.13")
+    "testWithSpringSecurity_5_8RuntimeOnly"("net.minidev:json-smart")
 }
 
 

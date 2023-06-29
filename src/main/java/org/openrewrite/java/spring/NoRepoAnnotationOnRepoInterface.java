@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotationVisitor;
@@ -43,17 +43,12 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<>(ANNOTATION_REPOSITORY, false);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(ANNOTATION_REPOSITORY, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
-                if (c.getKind() == J.ClassDeclaration.Kind.Type.Interface ) {
+                if (c.getKind() == J.ClassDeclaration.Kind.Type.Interface) {
                     boolean hasRepoAnnotation = c.getLeadingAnnotations().stream().anyMatch(annotation -> {
                         if (annotation.getArguments() == null || annotation.getArguments().isEmpty()
                                 || annotation.getArguments().get(0) instanceof J.Empty) {
@@ -69,6 +64,6 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
                 }
                 return c;
             }
-        };
+        });
     }
 }

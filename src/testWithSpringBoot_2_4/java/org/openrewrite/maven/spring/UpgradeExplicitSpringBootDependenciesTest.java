@@ -16,6 +16,7 @@
 package org.openrewrite.maven.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.*;
@@ -24,7 +25,7 @@ import static org.openrewrite.maven.Assertions.pomXml;
 class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
 
     @Test
-    void shouldUpdateExplicitDepenciesTo30() {
+    void shouldUpdateExplicitDependenciesTo30() {
         rewriteRun(
           spec -> spec.recipe(new UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3"))
             .expectedCyclesThatMakeChanges(1),
@@ -806,6 +807,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
         );
     }
 
+    @DocumentExample
     @Test
     void shouldBuildCorrectPomModelAfterUpdateTo3x() {
         rewriteRun(

@@ -1,5 +1,12 @@
 rootProject.name = "rewrite-spring"
 
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+
 plugins {
     id("com.gradle.enterprise") version "latest.release"
     id("com.gradle.common-custom-user-data-gradle-plugin") version "latest.release"

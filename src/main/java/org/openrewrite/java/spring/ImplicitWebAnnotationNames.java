@@ -15,12 +15,8 @@
  */
 package org.openrewrite.java.spring;
 
-import org.openrewrite.Cursor;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
@@ -42,27 +38,17 @@ public class ImplicitWebAnnotationNames extends Recipe {
         return "Removes implicit web annotation names.";
     }
 
-    @Nullable
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.PathVariable", false));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestParam", false));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestHeader", false));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.RequestAttribute", false));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.CookieValue", false));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.ModelAttribute", false));
-                doAfterVisit(new UsesType<>("org.springframework.web.bind.annotation.SessionAttribute", false));
-                return cu;
-            }
-        };
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new ImplicitWebAnnotationNamesVisitor();
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(Preconditions.or(
+                new UsesType<>("org.springframework.web.bind.annotation.PathVariable", false),
+                new UsesType<>("org.springframework.web.bind.annotation.RequestParam", false),
+                new UsesType<>("org.springframework.web.bind.annotation.RequestHeader", false),
+                new UsesType<>("org.springframework.web.bind.annotation.RequestAttribute", false),
+                new UsesType<>("org.springframework.web.bind.annotation.CookieValue", false),
+                new UsesType<>("org.springframework.web.bind.annotation.ModelAttribute", false),
+                new UsesType<>("org.springframework.web.bind.annotation.SessionAttribute", false)
+        ), new ImplicitWebAnnotationNamesVisitor());
     }
 
     private static class ImplicitWebAnnotationNamesVisitor extends JavaIsoVisitor<ExecutionContext> {

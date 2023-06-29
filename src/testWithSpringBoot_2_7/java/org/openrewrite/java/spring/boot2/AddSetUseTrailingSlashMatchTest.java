@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.boot3.AddSetUseTrailingSlashMatch;
 import org.openrewrite.test.RecipeSpec;
@@ -75,6 +76,7 @@ public class AddSetUseTrailingSlashMatchTest implements RewriteTest {
         );
     }
 
+    @DocumentExample
     @Test
     void addConfigurePathMatchMethodForWebMvcConfigurer() {
         rewriteRun(

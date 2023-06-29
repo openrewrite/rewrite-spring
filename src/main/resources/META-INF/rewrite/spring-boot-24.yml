@@ -32,14 +32,17 @@ recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
   - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.4.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
+      newVersion: 2.4.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
       newVersion: 2.4.x
   - org.openrewrite.maven.RemoveExclusion:
       groupId: org.springframework.boot
@@ -57,6 +60,8 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
   - org.openrewrite.java.spring.boot2.MigrateLoggingSystemPropertyConstants
   - org.openrewrite.java.spring.boot2.MigrateHsqlEmbeddedDatabaseConnection
+  - org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl
+  - org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
@@ -143,7 +148,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
   - org.openrewrite.java.spring.boot2.ReplaceExtendWithAndContextConfiguration
   - org.openrewrite.java.spring.boot2.RemoveObsoleteSpringRunners
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-tools
       version: 2.x

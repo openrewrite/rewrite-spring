@@ -59,16 +59,8 @@ public class ExpandProperties extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        if (sourceFileMask != null) {
-            return new HasSourcePath<>(sourceFileMask);
-        }
-        return null;
-    }
-
-    @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new YamlVisitor<ExecutionContext>() {
+        YamlVisitor<ExecutionContext> visitor = new YamlVisitor<ExecutionContext>() {
             @Override
             public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                 Yaml docs = super.visitDocuments(documents, ctx);
@@ -79,6 +71,9 @@ public class ExpandProperties extends Recipe {
                 return docs;
             }
         };
+        return sourceFileMask != null ?
+                Preconditions.check(new HasSourcePath<>(sourceFileMask), visitor)
+                : visitor;
     }
 
     private static class ExpandEntriesVisitor extends YamlVisitor<ExecutionContext> {
@@ -87,7 +82,7 @@ public class ExpandProperties extends Recipe {
             Yaml.Mapping.Entry e = entry;
             String key = e.getKey().getValue();
             if (key.contains(".") && e.getKey() instanceof Yaml.Scalar) {
-                e = e.withKey(((Yaml.Scalar)e.getKey()).withValue(key.substring(0, key.indexOf('.'))));
+                e = e.withKey(((Yaml.Scalar) e.getKey()).withValue(key.substring(0, key.indexOf('.'))));
                 e = e.withValue(new Yaml.Mapping(
                         randomId(),
                         Markers.EMPTY,
@@ -123,7 +118,7 @@ public class ExpandProperties extends Recipe {
             Map<String, List<Yaml.Mapping>> mappingsByKey = new HashMap<>();
             for (Yaml.Mapping.Entry entry : mapping.getEntries()) {
                 if (entry.getValue() instanceof Yaml.Mapping) {
-                    mappingsByKey.computeIfAbsent(entry.getKey().getValue(), v -> new ArrayList<>()).add((Yaml.Mapping)entry.getValue());
+                    mappingsByKey.computeIfAbsent(entry.getKey().getValue(), v -> new ArrayList<>()).add((Yaml.Mapping) entry.getValue());
                 }
             }
 

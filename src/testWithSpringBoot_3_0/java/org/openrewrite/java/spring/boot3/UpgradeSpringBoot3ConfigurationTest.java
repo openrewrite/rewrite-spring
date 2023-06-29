@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.config.Environment;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.properties.Assertions.properties;
@@ -24,6 +25,7 @@ import static org.openrewrite.yaml.Assertions.yaml;
 
 class UpgradeSpringBoot3ConfigurationTest implements RewriteTest {
 
+    @DocumentExample
     @Test
     void moveMaxHttpHeaderSize() {
         rewriteRun(

@@ -30,16 +30,24 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.1.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.1.x
-
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 2.1.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: io.spring.dependency-management
+      newVersion: 1.0.10.RELEASE
+  - org.openrewrite.gradle.UpdateGradleWrapper:
+      version: ^4.4
+      addIfMissing: false
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateRestTemplateBuilderBasicAuthorization
   - org.openrewrite.java.spring.boot2.MigrateRestTemplateBuilderTimeoutByInt
@@ -137,3 +145,13 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.resources.chain.gzipped
       newPropertyKey: spring.resources.chain.compressed
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.binders.files.enabled
+      newPropertyKey: management.metrics.enable.process.files
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.binders.jvm.enabled
+      newPropertyKey: management.metrics.enable.jvm
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.binders.logback.enabled
+      newPropertyKey: management.metrics.enable.logback
+

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Tree;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaVisitor;
@@ -41,6 +42,7 @@ class UseNewSecurityMatchersTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),"spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
     }
 
+    @DocumentExample
     @Test
     void migrateAntMatcher() {
         //language=java

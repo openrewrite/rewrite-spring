@@ -32,8 +32,8 @@ import org.openrewrite.yaml.tree.Yaml;
 public class DeleteSpringProperty extends Recipe {
 
     @Option(displayName = "Property key",
-            description = "The property key to delete. Supports glob expressions",
-            example = "management.endpoint.configprops.*")
+        description = "The property key to delete. Supports glob expressions",
+        example = "management.endpoint.configprops.*")
     String propertyKey;
 
     @Override
@@ -55,22 +55,15 @@ public class DeleteSpringProperty extends Recipe {
             }
 
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                //Short circuit visitor navigation for everything except source file
-                if (tree instanceof SourceFile) {
-                    tree = super.visit(tree, ctx);
+            public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
+                if (t instanceof Yaml.Documents) {
+                    t = new org.openrewrite.yaml.DeleteProperty(propertyKey, false, true)
+                        .getVisitor().visitNonNull(t, ctx);
+                } else if (t instanceof Properties.File) {
+                    t = new DeleteProperty(propertyKey, true)
+                        .getVisitor().visitNonNull(t, ctx);
                 }
-                return tree;
-            }
-
-            @Override
-            public @Nullable Tree preVisit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof Yaml.Documents) {
-                    doAfterVisit(new org.openrewrite.yaml.DeleteProperty(propertyKey, false, true, null));
-                } else if (tree instanceof Properties.File) {
-                    doAfterVisit(new DeleteProperty(propertyKey, true, null));
-                }
-                return tree;
+                return t;
             }
         };
     }

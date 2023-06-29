@@ -25,11 +25,11 @@ tags:
   - spring
   - security
 recipeList:
-  - org.openrewrite.maven.UpgradeDependencyVersion:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: "*"
       newVersion: 5.8.x
-      overrideManagedVersion: true
+      overrideManagedVersion: false
   - org.openrewrite.java.spring.security5.UseNewRequestMatchers
   - org.openrewrite.java.spring.security5.UseNewSecurityMatchers
   - org.openrewrite.java.spring.security5.UpdatePbkdf2PasswordEncoder
@@ -37,6 +37,7 @@ recipeList:
   - org.openrewrite.java.spring.security5.UpdateArgon2PasswordEncoder
   - org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurity
   - org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml
+  - org.openrewrite.java.spring.security5.WebSecurityConfigurerAdapter
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -74,3 +75,21 @@ recipeList:
       newValue: null
       oldValue: true
       fileMatcher: null
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.security5.RenameNimbusdsJsonObjectPackageName
+displayName: Rename the package name from `com.nimbusds.jose.shaded.json.JSONObject` to `net.minidev.json.JSONObject`
+description: Rename the package name from `com.nimbusds.jose.shaded.json.JSONObject` to `net.minidev.json.JSONObject`.
+tags:
+  - spring
+  - security
+recipeList:
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: com.nimbusds.jose.shaded.json
+      newPackageName: net.minidev.json
+      recursive: false
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: net.minidev
+      artifactId: json-smart
+      version: 2.x
+      onlyIfUsing: com.nimbusds.jose

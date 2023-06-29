@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.framework;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
@@ -39,11 +40,6 @@ public class MigrateHandlerInterceptor extends Recipe {
         return "Deprecated as of 5.3 in favor of implementing `HandlerInterceptor` and/or `AsyncHandlerInterceptor`.";
     }
 
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>("org.springframework.web.servlet.handler.HandlerInterceptorAdapter", false);
-    }
-
     // It will therefore be necessary to use the interfaces of these classes, respectively org.springframework.web.servlet.HandlerInterceptor and org.springframework.web.servlet.config.annotation.WebMvcConfigurer.
     //In order to replace these Adapter classes with interfaces you would have to:
     //- Edit import
@@ -51,8 +47,8 @@ public class MigrateHandlerInterceptor extends Recipe {
     //- Replace super.<MethodName> calls by <InterfaceName>.super.<MethodName>
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.springframework.web.servlet.handler.HandlerInterceptorAdapter", false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
@@ -85,6 +81,6 @@ public class MigrateHandlerInterceptor extends Recipe {
                 }
                 return super.visitMethodInvocation(method, ctx);
             }
-        };
+        });
     }
 }

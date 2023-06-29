@@ -16,10 +16,10 @@
 package org.openrewrite.java.spring.boot2.search;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
+import org.openrewrite.Preconditions;
+import org.openrewrite.ScanningRecipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.search.FindAnnotations;
-import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.ResolvedDependency;
@@ -28,6 +28,7 @@ import org.openrewrite.semver.DependencyMatcher;
 import org.openrewrite.xml.tree.Xml;
 
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Objects.requireNonNull;
 
@@ -36,7 +37,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Alex Boyko
  */
-public class LoggingShutdownHooks extends Recipe {
+public class LoggingShutdownHooks extends ScanningRecipe<AtomicBoolean> {
 
     @Override
     public String getDisplayName() {
@@ -55,11 +56,18 @@ public class LoggingShutdownHooks extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new MavenVisitor<ExecutionContext>() {
+    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
+        return new AtomicBoolean(false);
+    }
 
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean acc) {
+        return new MavenVisitor<ExecutionContext>() {
             @Override
             public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
+                if (acc.get()) {
+                    return document;
+                }
                 MavenResolutionResult model = getResolutionResult();
                 //Default packaging, if not specified is "jar"
                 if (!"jar".equals(model.getPom().getPackaging())) {
@@ -68,7 +76,7 @@ public class LoggingShutdownHooks extends Recipe {
                 DependencyMatcher matcher = requireNonNull(DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue());
                 for (ResolvedDependency d : getResolutionResult().getDependencies().getOrDefault(Scope.Compile, Collections.emptyList())) {
                     if (matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())) {
-                        return SearchResult.found(document);
+                        acc.set(true);
                     }
                 }
                 return document;
@@ -77,8 +85,10 @@ public class LoggingShutdownHooks extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication", null)
-                .getVisitor();
+    public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean acc) {
+        return Preconditions.firstAcceptable(
+                Preconditions.check(acc.get(),
+                        new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication", null).getVisitor()));
     }
+
 }

@@ -17,8 +17,6 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.search.UsesType;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,11 +25,10 @@ public final class ServerHttpSecurityLambdaDsl extends Recipe {
 
     private static final String FQN_SERVER_HTTP_SECURITY = "org.springframework.security.config.web.server.ServerHttpSecurity";
 
-    private static final Collection<String> APPLICABLE_METHOD_NAMES = Arrays.asList(new String[]{
+    private static final Collection<String> APPLICABLE_METHOD_NAMES = Arrays.asList(
             "anonymous", "authorizeExchange", "cors", "csrf", "exceptionHandling", "formLogin",
             "headers", "httpBasic", "logout", "oauth2Client", "oauth2Login", "oauth2ResourceServer",
-            "redirectToHttps", "requestCache", "x509"
-    });
+            "redirectToHttps", "requestCache", "x509");
 
     @Override
     public String getDisplayName() {
@@ -41,11 +38,6 @@ public final class ServerHttpSecurityLambdaDsl extends Recipe {
     @Override
     public String getDescription() {
         return "Converts `ServerHttpSecurity` chained call from Spring Security pre 5.2.x into new lambda DSL style calls and removes `and()` methods.";
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesType<>(FQN_SERVER_HTTP_SECURITY, true);
     }
 
     @Override

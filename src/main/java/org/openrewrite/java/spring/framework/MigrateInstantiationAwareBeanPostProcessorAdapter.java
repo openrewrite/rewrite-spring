@@ -16,10 +16,10 @@
 package org.openrewrite.java.spring.framework;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -47,14 +47,8 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new UsesType<>(fromExtendingFqn, false);
-    }
-
-
-    @Override
-    protected JavaIsoVisitor<ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>(fromExtendingFqn, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
@@ -72,9 +66,9 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 J.CompilationUnit compilationUnit = super.visitCompilationUnit(cu, ctx);
-                doAfterVisit(new ChangeType(fromExtendingFqn, toImplementsFqn, false));
+                doAfterVisit(new ChangeType(fromExtendingFqn, toImplementsFqn, false).getVisitor());
                 return compilationUnit;
             }
-        };
+        });
     }
 }

@@ -16,23 +16,18 @@
 package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.HasSourcePath;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.properties.PropertiesIsoVisitor;
-import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.YamlIsoVisitor;
-import org.openrewrite.yaml.YamlVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class PropertiesToKebabCase extends Recipe {
-    public PropertiesToKebabCase() {
-        doNext(new PropertiesToKebabCaseYaml());
-        doNext(new PropertiesToKebabCaseProperties());
-    }
+
     @Override
     public String getDisplayName() {
         return "Normalize Spring properties to kebab-case";
@@ -45,7 +40,12 @@ public class PropertiesToKebabCase extends Recipe {
                 "With [Spring's relaxed binding](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding), " +
                 "`kebab-case` may be used in properties files and still be converted to configuration beans. " +
                 "Note, an exception to this is the case of `@Value`, which is match-sensitive. For example, `@Value(\"${anExampleValue}\")` will not match `an-example-value`. " +
-                "[The Spring reference documentation recommends using `kebab-case` for properties where possible.](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding).";
+                "[The Spring reference documentation recommends using `kebab-case` for properties where possible](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding).";
+    }
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return Arrays.asList(new PropertiesToKebabCaseYaml(), new PropertiesToKebabCaseProperties());
     }
 
     @EqualsAndHashCode(callSuper = true)
@@ -56,13 +56,13 @@ public class PropertiesToKebabCase extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-            return new HasSourcePath<>("**/application*.{yml,yaml}");
+        public String getDescription() {
+            return "Normalize Spring `application*.{yml,yaml}` properties to kebab-case.";
         }
 
         @Override
-        public YamlVisitor<ExecutionContext> getVisitor() {
-            return new YamlIsoVisitor<ExecutionContext>() {
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(new HasSourcePath<>("**/application*.{yml,yaml}"), new YamlIsoVisitor<ExecutionContext>() {
                 @Override
                 public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                     Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
@@ -70,12 +70,12 @@ public class PropertiesToKebabCase extends Recipe {
                         String key = e.getKey().getValue();
                         String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
                         if (!key.equals(asKebabCase)) {
-                            return e.withKey(((Yaml.Scalar)e.getKey()).withValue(asKebabCase));
+                            return e.withKey(((Yaml.Scalar) e.getKey()).withValue(asKebabCase));
                         }
                     }
                     return e;
                 }
-            };
+            });
         }
     }
 
@@ -87,13 +87,13 @@ public class PropertiesToKebabCase extends Recipe {
         }
 
         @Override
-        protected TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-            return new HasSourcePath<>("**/application*.properties");
+        public String getDescription() {
+            return "Normalize Spring `application*.properties` properties to kebab-case.";
         }
 
         @Override
-        public PropertiesVisitor<ExecutionContext> getVisitor() {
-            return new PropertiesIsoVisitor<ExecutionContext>() {
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return Preconditions.check(new HasSourcePath<>("**/application*.properties"), new PropertiesIsoVisitor<ExecutionContext>() {
                 @Override
                 public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
                     Properties.Entry e = super.visitEntry(entry, ctx);
@@ -104,7 +104,7 @@ public class PropertiesToKebabCase extends Recipe {
                     }
                     return e;
                 }
-            };
+            });
         }
     }
 }

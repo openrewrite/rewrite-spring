@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.boot3.MaintainTrailingSlashURLMappings;
 import org.openrewrite.test.RecipeSpec;
@@ -34,6 +35,7 @@ public class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
 
     @Test
     void noChangeWithConfigOverriddenByWebMvcConfigurer() {
+        //language=java
         rewriteRun(
           java(
             """
@@ -196,6 +198,7 @@ public class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
         );
     }
 
+    @DocumentExample
     @Test
     void noConfigOverridden() {
         rewriteRun(

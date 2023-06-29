@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
@@ -25,7 +26,6 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
@@ -43,31 +43,15 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
     @Override
     public String getDescription() {
         return "Beans of certain well-known types, such as `JdbcTemplate`, will be ordered so that they are initialized " +
-               "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
-               "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
-               "initialized after the database has been initialized. See the " +
-               "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
-               "for more.";
+                "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
+                "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
+                "initialized after the database has been initialized. See the " +
+                "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
+                "for more.";
     }
 
     @Override
-    protected @Nullable TreeVisitor<?, ExecutionContext> getSingleSourceApplicableTest() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public JavaSourceFile visitJavaSourceFile(JavaSourceFile cu, ExecutionContext ctx) {
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository", false));
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Repository", false));
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Component", false));
-                doAfterVisit(new UsesType<>("org.springframework.stereotype.Service", false));
-                doAfterVisit(new UsesType<>("org.springframework.boot.test.context.TestComponent", false));
-                doAfterVisit(new UsesType<>("org.springframework.context.annotation.Bean", false));
-                return cu;
-            }
-        };
-    }
-
-    @Override
-    protected JavaIsoVisitor<ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         String javaxDataSourceFqn = "javax.sql.DataSource";
         AnnotationMatcher dataSourceAnnotationMatcher = new AnnotationMatcher("@org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
         AnnotationMatcher beanAnnotationMatcher = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
@@ -86,19 +70,29 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 "javax.persistence.EntityManagerFactory"
         );
 
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(
+                new UsesType<>("org.springframework.stereotype.Repository", false),
+                new UsesType<>("org.springframework.stereotype.Repository", false),
+                new UsesType<>("org.springframework.stereotype.Component", false),
+                new UsesType<>("org.springframework.stereotype.Service", false),
+                new UsesType<>("org.springframework.boot.test.context.TestComponent", false),
+                new UsesType<>("org.springframework.context.annotation.Bean", false)
+        ), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
                 if (method.getMethodType() != null) {
                     if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md)
-                        && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
-                        JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
-                                .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                                .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-boot-2.*"))
-                                .build();
-                        md = md.withTemplate(template, md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                            && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
+                        md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
+                            .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
+                            .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-boot-2.*"))
+                            .build()
+                            .apply(
+                                getCursor(),
+                                md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                            );
                         maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
                     }
                 }
@@ -109,13 +103,16 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd)
-                    && requiresInitializationAnnotation(cd.getType())) {
-                    JavaTemplate template = JavaTemplate.builder(this::getCursor, "@DependsOnDatabaseInitialization")
-                            .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*"))
-                            .build();
-                    cd = cd.withTemplate(template, cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                        && requiresInitializationAnnotation(cd.getType())) {
+                    cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
+                        .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
+                        .javaParser(JavaParser.fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-boot-2.*"))
+                        .build()
+                        .apply(
+                            getCursor(),
+                            cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                        );
                     maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
                 }
                 return cd;
@@ -190,6 +187,6 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 }
                 return false;
             }
-        };
+        });
     }
 }
