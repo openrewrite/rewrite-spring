@@ -50,7 +50,7 @@ class AddsStarterValidationTest implements RewriteTest {
               //language=Java
               java("""
                 import javax.validation.constraints.NotNull;
-                                    
+                
                 class Foo {
                     @NotNull
                     String bar = "";
