@@ -23,7 +23,6 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.ArrayList;

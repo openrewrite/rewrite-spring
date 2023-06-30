@@ -64,6 +64,8 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void conditionalAnnotationMultipleClassCandidates() {
         //language=java
         rewriteRun(
+          // FIXME type validation for identifiers disabled, as the `Aa.class` reference and others are not type attributed
+          spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
           java(
             """
               class Aa {}
