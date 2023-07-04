@@ -43,9 +43,9 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.3.x
-  - org.openrewrite.gradle.UpdateGradleWrapper:
-      version: ^6.3
-      addIfMissing: false
+#  - org.openrewrite.gradle.UpdateGradleWrapper:
+#      version: ^6.3
+#      addIfMissing: false
   # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#validation-starter-no-longer-included-in-web-starters
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
