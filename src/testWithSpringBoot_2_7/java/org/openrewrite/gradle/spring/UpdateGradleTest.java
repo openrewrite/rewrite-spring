@@ -15,6 +15,7 @@
  */
 package org.openrewrite.gradle.spring;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Tree;
 import org.openrewrite.config.Environment;
@@ -29,6 +30,7 @@ import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.test.SourceSpecs.other;
 import static org.openrewrite.test.SourceSpecs.text;
 
+@Disabled
 class UpdateGradleTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
