@@ -64,7 +64,7 @@ public class AddSpringProperty extends Recipe {
                           "be modified. If this value is not present, this recipe will query the execution context for " +
                           "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\".",
             required = false,
-            example = "**/application.yml")
+            example = "[**/application.yml]")
     @Nullable
     List<String> pathExpressions;
 
