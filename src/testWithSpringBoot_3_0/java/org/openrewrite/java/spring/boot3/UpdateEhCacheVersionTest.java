@@ -37,7 +37,7 @@ public class UpdateEhCacheVersionTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-          .scanRuntimeClasspath("org.openrewrite.java.spring.boot3")
+          .scanRuntimeClasspath()
           .build()
           .activateRecipes("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0"));
     }
