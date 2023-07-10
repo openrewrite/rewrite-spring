@@ -56,7 +56,7 @@ recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.ehcache
       oldArtifactId: ehcache
-      newVersion: 3.x.x
+      newVersion: 3.x
   - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile

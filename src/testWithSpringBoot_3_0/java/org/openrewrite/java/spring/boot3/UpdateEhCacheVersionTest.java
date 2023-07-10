@@ -48,8 +48,8 @@ public class UpdateEhCacheVersionTest implements RewriteTest {
         @Test
         void addVersionNumber() {
             rewriteRun(
-              //language=xml
               pomXml(
+                //language=xml
                 """
                   <project>
                     <modelVersion>4.0.0</modelVersion>
@@ -97,8 +97,8 @@ public class UpdateEhCacheVersionTest implements RewriteTest {
         @Test
         void addVersionNumber() {
             rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
-              //language=groovy
               Assertions.buildGradle(
+                //language=groovy
                 """
                   plugins {
                     id 'java'
