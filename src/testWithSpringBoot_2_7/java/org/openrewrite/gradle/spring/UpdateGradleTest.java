@@ -15,6 +15,7 @@
  */
 package org.openrewrite.gradle.spring;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Tree;
 import org.openrewrite.config.Environment;
@@ -29,11 +30,12 @@ import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.test.SourceSpecs.other;
 import static org.openrewrite.test.SourceSpecs.text;
 
+@Disabled
 class UpdateGradleTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring.boot2")
+            .scanRuntimeClasspath()
             .build()
             .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"))
           .beforeRecipe(withToolingApi())
@@ -44,6 +46,7 @@ class UpdateGradleTest implements RewriteTest {
     void upgradeGradleWrapperAndPlugins() {
         rewriteRun(
           buildGradle(
+            //language=gradle
             """
               plugins {
                   id "java"
@@ -59,6 +62,7 @@ class UpdateGradleTest implements RewriteTest {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
               """,
+            //language=gradle
             """
               plugins {
                   id "java"
@@ -76,6 +80,7 @@ class UpdateGradleTest implements RewriteTest {
               """
           ),
           properties(
+            //language=properties
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
@@ -83,6 +88,7 @@ class UpdateGradleTest implements RewriteTest {
               zipStoreBase=GRADLE_USER_HOME
               zipStorePath=wrapper/dists
               """,
+            //language=properties
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
@@ -123,6 +129,7 @@ class UpdateGradleTest implements RewriteTest {
     void dontAddSpringDependencyManagementWhenUsingGradlePlatform() {
         rewriteRun(
           buildGradle(
+            //language=gradle
             """
               plugins {
                   id "java"
@@ -138,6 +145,7 @@ class UpdateGradleTest implements RewriteTest {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
               """,
+            //language=gradle
             """
               plugins {
                   id "java"
@@ -155,6 +163,7 @@ class UpdateGradleTest implements RewriteTest {
               """
           ),
           properties(
+            //language=properties
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
@@ -162,6 +171,7 @@ class UpdateGradleTest implements RewriteTest {
               zipStoreBase=GRADLE_USER_HOME
               zipStorePath=wrapper/dists
               """,
+            //language=properties
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists

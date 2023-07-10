@@ -50,9 +50,9 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: io.spring.dependency-management
       newVersion: 1.1.0
-  - org.openrewrite.gradle.UpdateGradleWrapper:
-      version: ^7.4
-      addIfMissing: false
+#  - org.openrewrite.gradle.UpdateGradleWrapper:
+#      version: ^7.4
+#      addIfMissing: false
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.ehcache
       oldArtifactId: ehcache
@@ -104,13 +104,16 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
-displayName: Migrate thymeleaf dependencies to Spring Boot 3.0.x
+displayName: Migrate thymeleaf dependencies to Spring Boot 3.x
 description: Migrate thymeleaf dependencies to the new artifactId, since these are changed with Spring Boot 3.
 tags:
   - spring
   - boot
   - thymeleaf
 recipeList:
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.thymeleaf.spring5
+      newPackageName: org.thymeleaf.spring6
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: org.thymeleaf
       oldArtifactId: thymeleaf-spring5

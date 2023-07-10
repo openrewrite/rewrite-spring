@@ -37,7 +37,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-          .scanRuntimeClasspath("org.openrewrite.java.spring.boot2")
+          .scanRuntimeClasspath()
           .build()
           .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"));
     }

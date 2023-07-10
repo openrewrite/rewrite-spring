@@ -49,7 +49,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
             description = "The Spring property key to perform updates against. " +
                     "If this value is specified, the specified property will be used for searching, otherwise a default of `spring.rabbitmq.addresses` " +
                     "will be used instead.",
-            example = "spring.rabbitmq.addresses")
+            example = "spring.rabbitmq.addresses",
+            required = false)
     @Nullable
     String propertyKey;
 
@@ -69,7 +70,9 @@ public class UseTlsAmqpConnectionString extends Recipe {
     @Option(displayName = "TLS Property Key",
             description = "The Spring property key to enable default TLS mode against. " +
                     "If this value is specified, the specified property will be used when updating the default TLS mode, otherwise a default of " +
-                    "`spring.rabbitmq.ssl.enabled` will be used instead.")
+                    "`spring.rabbitmq.ssl.enabled` will be used instead.",
+            example = "spring.rabbitmq.ssl.enabled",
+            required = false)
     @Nullable
     String tlsPropertyKey;
 
@@ -77,8 +80,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
             description = "Each value in this list represents a glob expression that is used to match which files will " +
                     "be modified. If this value is not present, this recipe will query the execution context for " +
                     "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\".",
-            required = false,
-            example = "**/application.yml")
+            example = "**/application.yml",
+            required = false)
     @Nullable
     List<String> pathExpressions;
 

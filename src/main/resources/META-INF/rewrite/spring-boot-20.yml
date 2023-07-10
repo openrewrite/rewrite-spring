@@ -43,9 +43,9 @@ recipeList:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.0.x
   - org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
-  - org.openrewrite.gradle.UpdateGradleWrapper:
-      version: 4.x
-      addIfMissing: false
+#  - org.openrewrite.gradle.UpdateGradleWrapper:
+#      version: 4.x
+#      addIfMissing: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mockito
       artifactId: "*"
