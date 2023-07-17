@@ -14,3 +14,13 @@
 # limitations under the License.
 #
 ---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0
+displayName: Migrate to Spring Framework 6.0
+description: Migrate applications to the latest Spring Framework 6.0 release.
+recipeList:
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
+  - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
+      newVersion: 6.0.x
+  - org.openrewrite.java.migrate.UpgradeToJava17
+  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta

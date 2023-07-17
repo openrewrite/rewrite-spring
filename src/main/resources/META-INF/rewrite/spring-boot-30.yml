@@ -27,8 +27,8 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
-  - org.openrewrite.java.migrate.UpgradeToJava17
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
@@ -53,7 +53,6 @@ recipeList:
 #  - org.openrewrite.gradle.UpdateGradleWrapper:
 #      version: ^7.4
 #      addIfMissing: false
-  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
   - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
