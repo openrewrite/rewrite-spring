@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,7 +42,7 @@ public final class ServerHttpSecurityLambdaDsl extends Recipe {
     }
 
     @Override
-    public ConvertToSecurityDslVisitor<ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new ConvertToSecurityDslVisitor<>(FQN_SERVER_HTTP_SECURITY, APPLICABLE_METHOD_NAMES);
     }
 
