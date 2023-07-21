@@ -204,7 +204,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                 """
                   plugins {
                     id 'java'
-                    id 'org.springframework.boot' version '2.7.13'
+                    id 'org.springframework.boot' version '2.7.14'
                     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
                   }
                   
