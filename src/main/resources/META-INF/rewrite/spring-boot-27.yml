@@ -39,19 +39,7 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.7.x
-  # Use recommended replacements for deprecated APIs
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.server.LocalServerPort
-      newFullyQualifiedTypeName: org.springframework.boot.test.web.server.LocalServerPort
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.actuate.autoconfigure.web.server.LocalManagementPort
-      newFullyQualifiedTypeName: org.springframework.boot.test.web.server.LocalManagementPort
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.rsocket.context.LocalRSocketServerPort
-      newFullyQualifiedTypeName: org.springframework.boot.test.rsocket.server.LocalRSocketServerPort
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
-      newFullyQualifiedTypeName: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+  - org.openrewrite.java.spring.boot2.SpringBootTypeChanges_2_7
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
   # Switch MySQL driver artifactId
   - org.openrewrite.java.dependencies.ChangeDependency:
@@ -138,3 +126,27 @@ recipeList:
       propertyKey: spring.jpa.hibernate.naming.physical-strategy
       oldValue: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
       newValue: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootTypeChanges_2_7
+displayName: Migrate deprecated APIs to the recommended replacements for Spring Boot 2.7
+description: >
+  Migrate applications to the latest Spring Boot 2.7 release. This recipe will replace APIs deprecated in the previous 
+  version with the recommended replacement for Spring Boot 2.7
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.server.LocalServerPort
+      newFullyQualifiedTypeName: org.springframework.boot.test.web.server.LocalServerPort
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.actuate.autoconfigure.web.server.LocalManagementPort
+      newFullyQualifiedTypeName: org.springframework.boot.test.web.server.LocalManagementPort
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.rsocket.context.LocalRSocketServerPort
+      newFullyQualifiedTypeName: org.springframework.boot.test.rsocket.server.LocalRSocketServerPort
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+      newFullyQualifiedTypeName: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
