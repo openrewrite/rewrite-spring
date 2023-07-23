@@ -120,7 +120,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             if (mv != multiVariable && multiVariable.getTypeExpression() != null) {
                 if (mv.getModifiers().stream().noneMatch(m -> m.getType() == J.Modifier.Type.Final)) {
                     Space prefix = Space.firstPrefix(mv.getVariables());
-                    J.Modifier m = new J.Modifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, J.Modifier.Type.Final, Collections.emptyList());
+                    J.Modifier m = new J.Modifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, J.Modifier.Type.Final, Collections.emptyList());
                     if (mv.getModifiers().isEmpty()) {
                         mv = mv.withTypeExpression(mv.getTypeExpression().withPrefix(prefix));
                     } else {
