@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
     @Override
     public String getDisplayName() {
@@ -65,6 +67,7 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
                             Tree.randomId(),
                             fa.getTarget().getPrefix(),
                             fa.getTarget().getMarkers(),
+                            emptyList(),
                             EMBEDDED_DATABASE_CONNECTION_FNQ.getClassName(),
                             EMBEDDED_DATABASE_CONNECTION_FNQ,
                             null));
@@ -82,6 +85,7 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
                         Tree.randomId(),
                         id.getPrefix(),
                         id.getMarkers(),
+                        emptyList(),
                         updateDeprecatedFields.get(id.getSimpleName()),
                         id.getType(),
                         new JavaType.Variable(
