@@ -27,6 +27,8 @@ import org.openrewrite.marker.Markup;
 
 import java.util.*;
 
+import static java.util.Collections.emptyList;
+
 public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private static final String MSG_FLATTEN_CHAIN = "http-security-dsl-flatten-invocation-chain";
@@ -94,7 +96,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     private J.Identifier createIdentifier(String name, JavaType type) {
-        return new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, name, type, null);
+        return new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), name, type, null);
     }
 
     private J.MethodInvocation unfoldMethodInvocationChain(J.Identifier core, List<J.MethodInvocation> chain) {
@@ -177,7 +179,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         }
         maybeAddImport(methodType.getDeclaringType().getFullyQualifiedName(), methodType.getName());
         return new J.MethodInvocation(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, null,
-                new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, "withDefaults", null, null),
+                new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY,  emptyList(),"withDefaults", null, null),
                 JContainer.empty(), methodType)
                 .withSelect(null);
     }

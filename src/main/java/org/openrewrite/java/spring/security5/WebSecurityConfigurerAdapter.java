@@ -31,6 +31,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
+
 /**
  * @author Alex Boyko
  */
@@ -304,7 +306,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                             }
                             return anno;
                         }))
-                        .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY, inmemoryAuthConfigType.getClassName(), inmemoryAuthConfigType, null))
+                        .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY, emptyList(), inmemoryAuthConfigType.getClassName(), inmemoryAuthConfigType, null))
                         .withName(m.getName().withSimpleName(newMethodName))
                         .withMethodType(type)
                         .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));

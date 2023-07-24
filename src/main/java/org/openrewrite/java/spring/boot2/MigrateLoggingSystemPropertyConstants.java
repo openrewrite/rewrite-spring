@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 public class MigrateLoggingSystemPropertyConstants extends Recipe {
 
     @Override
@@ -86,6 +88,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                             Tree.randomId(),
                             fa.getTarget().getPrefix(),
                             fa.getTarget().getMarkers(),
+                            emptyList(),
                             NEW_FQN.getClassName(),
                             NEW_FQN,
                             null));
@@ -103,6 +106,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                         Tree.randomId(),
                         id.getPrefix(),
                         id.getMarkers(),
+                        emptyList(),
                         updateDeprecatedFields.get(id.getSimpleName()),
                         id.getType(),
                         new JavaType.Variable(
