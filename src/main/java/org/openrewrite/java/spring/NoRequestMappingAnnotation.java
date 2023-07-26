@@ -78,10 +78,13 @@ public class NoRequestMappingAnnotation extends Recipe {
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation a = super.visitAnnotation(annotation, ctx);
             if (REQUEST_MAPPING_ANNOTATION_MATCHER.matches(a) && getCursor().getParentOrThrow().getValue() instanceof J.MethodDeclaration) {
-
                 Optional<J.Assignment> requestMethodArg = requestMethodArgument(a);
-                Optional<String> requestType = requestMethodArg.isPresent() ? requestMethodArg.flatMap(this::requestMethodType) : Optional.of("GET");
+                Optional<String> requestType = requestMethodArg.map(this::requestMethodType);
                 String resolvedRequestMappingAnnotationClassName = requestType.map(this::associatedRequestMapping).orElse(null);
+                if (resolvedRequestMappingAnnotationClassName == null) {
+                    // Without a method argument @RequestMapping matches all request methods, so we can't safely convert
+                    return a;
+                }
 
                 maybeRemoveImport("org.springframework.web.bind.annotation.RequestMapping");
                 maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod");
@@ -138,37 +141,31 @@ public class NoRequestMappingAnnotation extends Recipe {
             return newArray.getInitializer() != null && newArray.getInitializer().size() == 1;
         }
 
-        private Optional<String> requestMethodType(@Nullable J.Assignment assignment) {
-            String method;
-            if (assignment == null) {
-                method = "GET";
-            } else if (assignment.getAssignment() instanceof J.Identifier) {
-                method = ((J.Identifier) assignment.getAssignment()).getSimpleName();
+        private String requestMethodType(@Nullable J.Assignment assignment) {
+            if (assignment.getAssignment() instanceof J.Identifier) {
+                return ((J.Identifier) assignment.getAssignment()).getSimpleName();
             } else if (assignment.getAssignment() instanceof J.FieldAccess) {
-                method = ((J.FieldAccess) assignment.getAssignment()).getSimpleName();
+                return ((J.FieldAccess) assignment.getAssignment()).getSimpleName();
             } else if (methodArgumentHasSingleType(assignment)) {
                 J.NewArray newArray = (J.NewArray) assignment.getAssignment();
                 assert newArray.getInitializer() != null;
-                method = ((J.FieldAccess) newArray.getInitializer().get(0)).getSimpleName();
-            } else {
-                method = null;
+                return ((J.FieldAccess) newArray.getInitializer().get(0)).getSimpleName();
             }
-            return Optional.ofNullable(method);
+            return null;
         }
 
         @Nullable
         private String associatedRequestMapping(String method) {
-            String methodName = null;
             switch (method) {
                 case "POST":
                 case "PUT":
                 case "DELETE":
                 case "PATCH":
                 case "GET":
-                    methodName = method.charAt(0) + method.toLowerCase().substring(1) + "Mapping";
-                    break;
+                    return method.charAt(0) + method.toLowerCase().substring(1) + "Mapping";
             }
-            return methodName;
+            // HEAD, OPTIONS, TRACE do not have associated RequestMapping variant
+            return null;
         }
     }
 }

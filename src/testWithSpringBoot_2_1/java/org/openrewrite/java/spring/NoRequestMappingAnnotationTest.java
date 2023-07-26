@@ -97,7 +97,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
                       return null;
                   }
 
-                  @GetMapping
+                  @RequestMapping
                   public ResponseEntity<List<String>> getUsersNoRequestMethod() {
                       return null;
                   }
@@ -117,6 +117,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.bind.annotation.RequestMapping;
               import org.springframework.web.bind.annotation.RestController;
+              import static org.springframework.web.bind.annotation.RequestMethod.POST;
               
               @RestController
               @RequestMapping("/users")
@@ -157,6 +158,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.bind.annotation.RequestMapping;
               import org.springframework.web.bind.annotation.RestController;
+              import static org.springframework.web.bind.annotation.RequestMethod.POST;
               
               @RestController
               public class UsersController {
@@ -194,6 +196,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
               import java.util.*;
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RequestMethod;
               
               @RestController
               @RequestMapping("/users")
@@ -296,10 +299,11 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
           java(
             """
               import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RequestMethod;
               
               class Test {
                   class Inner {
-                      @RequestMapping("/api")
+                      @RequestMapping(method = RequestMethod.GET, value = "/api")
                       void test() {
                       }
                   }
