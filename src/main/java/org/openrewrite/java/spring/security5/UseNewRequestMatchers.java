@@ -42,6 +42,7 @@ public class UseNewRequestMatchers extends Recipe {
     private static final MethodMatcher ANT_MATCHERS = new MethodMatcher(CLAZZ + " antMatchers(..)");
     private static final MethodMatcher MVC_MATCHERS = new MethodMatcher(CLAZZ + " mvcMatchers(..)", true);
     private static final MethodMatcher REGEX_MATCHERS = new MethodMatcher(CLAZZ + " regexMatchers(..)");
+    private static final MethodMatcher CSRF_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.CsrfConfigurer ignoringAntMatchers(..)");
 
 
     @Override
@@ -66,13 +67,15 @@ public class UseNewRequestMatchers extends Recipe {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                        if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi))
+                        boolean isCsrfMatcher = CSRF_MATCHERS.matches(mi);
+                        if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi) || isCsrfMatcher)
                                 && mi.getSelect() != null) {
                             String parametersTemplate = mi.getArguments().stream().map(arg -> "#{any()}").collect(joining(", "));
                             List<Expression> parameters = new ArrayList<>();
                             parameters.add(mi.getSelect());
                             parameters.addAll(mi.getArguments());
-                            JavaTemplate template = JavaTemplate.builder(String.format("#{any()}\n.requestMatchers(%s)", parametersTemplate))
+                            String replacementMethodName = isCsrfMatcher ? "ignoringRequestMatchers" : "requestMatchers";
+                            JavaTemplate template = JavaTemplate.builder(String.format("#{any()}\n." + replacementMethodName + "(%s)", parametersTemplate))
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-config-5.8"))
                                     .build();
                             return template.apply(getCursor(), mi.getCoordinates().replace(), parameters.toArray());

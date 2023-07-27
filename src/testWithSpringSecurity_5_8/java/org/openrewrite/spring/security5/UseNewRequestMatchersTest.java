@@ -413,8 +413,8 @@ class UseNewRequestMatchersTest implements RewriteTest {
                               .authorizeHttpRequests(authz -> authz.regexMatchers("/api/admin/**").hasRole("ADMIN")
                                       .antMatchers(HttpMethod.GET, "/api/user/**").hasRole("USER")
                                       .mvcMatchers(HttpMethod.PATCH).denyAll()
-                                      .anyRequest().authenticated()
-                              );
+                                      .anyRequest().authenticated())
+                              .csrf().ignoringAntMatchers("/admin/**");
                       return http.build();
                   }
               }
@@ -440,8 +440,9 @@ class UseNewRequestMatchersTest implements RewriteTest {
                                       .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                       .requestMatchers(HttpMethod.GET, "/api/user/**").hasRole("USER")
                                       .requestMatchers(HttpMethod.PATCH).denyAll()
-                                      .anyRequest().authenticated()
-                              );
+                                      .anyRequest().authenticated())
+                              .csrf()
+                              .ignoringRequestMatchers("/admin/**");
                       return http.build();
                   }
               }
