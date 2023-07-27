@@ -22,24 +22,26 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.joining;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class UseNewRequestMatchers extends Recipe {
 
-    private static final MethodMatcher ANT_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry antMatchers(..)");
-    private static final MethodMatcher MVC_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry mvcMatchers(..)", true);
-    private static final MethodMatcher REGEX_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry regexMatchers(..)");
+    private static final String CLAZZ = "org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry";
+    private static final MethodMatcher ANT_MATCHERS = new MethodMatcher(CLAZZ + " antMatchers(..)");
+    private static final MethodMatcher MVC_MATCHERS = new MethodMatcher(CLAZZ + " mvcMatchers(..)", true);
+    private static final MethodMatcher REGEX_MATCHERS = new MethodMatcher(CLAZZ + " regexMatchers(..)");
 
 
     @Override
@@ -57,46 +59,26 @@ public class UseNewRequestMatchers extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(Preconditions.or(
-                new UsesMethod<>(ANT_MATCHERS),
-                new UsesMethod<>(MVC_MATCHERS),
-                new UsesMethod<>(REGEX_MATCHERS)), new JavaIsoVisitor<ExecutionContext>() {
-
-            @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi)) {
-                    mi = maybeChangeMethodInvocation(mi);
-                }
-                return mi;
-            }
-        });
-
-    }
-
-    private J.MethodInvocation maybeChangeMethodInvocation(J.MethodInvocation mi) {
-        return findRequestMatchersMethodWithMatchingParameterTypes(mi)
-                .map(requestMatchersMethod -> mi
-                        .withMethodType(requestMatchersMethod)
-                        .withName(mi.getName().withSimpleName("requestMatchers")))
-                .orElse(mi);
-    }
-
-    private Optional<JavaType.Method> findRequestMatchersMethodWithMatchingParameterTypes(J.MethodInvocation mi) {
-        JavaType.Method methodType = mi.getMethodType();
-        if (methodType == null) {
-            return Optional.empty();
-        }
-        List<JavaType> parameterTypes = methodType.getParameterTypes();
-        List<JavaType.Method> methods;
-        boolean isOverride = TypeUtils.isOverride(mi.getMethodType());
-        if (isOverride) {
-            methods = requireNonNull(methodType.getDeclaringType().getSupertype(), "superType").getMethods();
-        } else {
-            methods = methodType.getDeclaringType().getMethods();
-        }
-        return methods.stream()
-                .filter(m -> m.getName().equals("requestMatchers"))
-                .filter(m -> m.getParameterTypes().equals(parameterTypes))
-                .findFirst();
+                        new UsesMethod<>(ANT_MATCHERS),
+                        new UsesMethod<>(MVC_MATCHERS),
+                        new UsesMethod<>(REGEX_MATCHERS)),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                        if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi))
+                                && mi.getSelect() != null) {
+                            String parametersTemplate = mi.getArguments().stream().map(arg -> "#{any()}").collect(joining(", "));
+                            List<Expression> parameters = new ArrayList<>();
+                            parameters.add(mi.getSelect());
+                            parameters.addAll(mi.getArguments());
+                            JavaTemplate template = JavaTemplate.builder(String.format("#{any()}\n.requestMatchers(%s)", parametersTemplate))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-config-5.8"))
+                                    .build();
+                            return template.apply(getCursor(), mi.getCoordinates().replace(), parameters.toArray());
+                        }
+                        return mi;
+                    }
+                });
     }
 }
