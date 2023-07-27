@@ -131,4 +131,128 @@ public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
         );
     }
 
+    @Test
+    void handleDisableChain() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.csrf().disable();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.csrf(csrf -> csrf.disable());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void retainComments() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      // matcher order matters
+                      http.authorizeRequests()
+                              .antMatchers("/blog/**").permitAll()
+                              .anyRequest().authenticated();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      // matcher order matters
+                      http.authorizeRequests(requests -> requests
+                              .antMatchers("/blog/**").permitAll()
+                              .anyRequest().authenticated());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void retainFormatting() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests()
+                              .antMatchers("/blog/**").permitAll()
+                              .anyRequest().authenticated();
+              
+                      http.csrf().disable();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests(requests -> requests
+                              .antMatchers("/blog/**").permitAll()
+                              .anyRequest().authenticated());
+              
+                      http.csrf(csrf -> csrf.disable());
+                  }
+              }
+              """
+          )
+        );
+    }
 }
