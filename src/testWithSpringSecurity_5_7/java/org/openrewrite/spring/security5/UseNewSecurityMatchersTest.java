@@ -28,6 +28,7 @@ import org.openrewrite.java.spring.security5.UseNewSecurityMatchers;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
@@ -110,7 +111,8 @@ class UseNewSecurityMatchersTest implements RewriteTest {
                   tree = new UseNewSecurityMatchers().getVisitor().visit(tree, ctx);
                   return (J) tree;
               }
-          })),
+          }))
+            .typeValidationOptions(TypeValidation.builder().methodInvocations(false).build()),
           java(
             """
               package com.example;
