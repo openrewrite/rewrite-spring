@@ -50,9 +50,10 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: io.spring.dependency-management
       newVersion: 1.1.0
-#  - org.openrewrite.gradle.UpdateGradleWrapper:
-#      version: ^7.4
-#      addIfMissing: false
+  - org.openrewrite.gradle.UpdateGradleWrapper:
+      version: ^7.4
+      addIfMissing: false
+  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
   - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization

@@ -20,14 +20,19 @@ import org.openrewrite.SourceFile;
 import org.openrewrite.Tree;
 import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.marker.Markup;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
 
 public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
@@ -66,7 +71,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         }
         Boolean msg = getCursor().pollMessage(MSG_FLATTEN_CHAIN);
         if (Boolean.TRUE.equals(msg)) {
-            method = (J.MethodInvocation) method.getSelect();
+            method = requireNonNull(method.getSelect())
+                    .withPrefix(method.getPrefix())
+                    .withComments(method.getComments());
         }
         // Auto-format the top invocation call if anything has changed down the tree
         if (initialMethod != method && (getCursor().getParent(2) == null || !(getCursor().getParent(2).getValue() instanceof J.MethodInvocation))) {
@@ -140,6 +147,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (c != null && c.getValue() instanceof J.MethodInvocation) {
             J.MethodInvocation inv = c.getValue();
             if (!TypeUtils.isOfClassType(inv.getType(), securityFqn)) {
+                return true;
+            }
+            if (new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer disable()").matches(inv)) {
                 return true;
             }
         }
