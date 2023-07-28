@@ -126,6 +126,8 @@ dependencies {
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
+    testRuntimeOnly("org.apache.httpcomponents:httpclient:4.5.14")
+    testRuntimeOnly("org.apache.httpcomponents.client5:httpclient5:5.1.+")
 
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 

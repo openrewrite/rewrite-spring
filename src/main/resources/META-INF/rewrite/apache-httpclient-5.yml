@@ -276,33 +276,6 @@ recipeList:
       newFullyQualifiedTypeName: org.apache.hc.core5.http.impl.nio.DefaultHttpResponseFactory
 
   - org.openrewrite.java.ChangePackage:
-      oldPackageName: org.apache.http.conn
-      newPackageName: org.apache.hc.client5.http
-  # Fixing specific mappings
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.hc.client5.http.ManagedHttpClientConnection
-      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.ManagedHttpClientConnection
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpClientConnectionManager
-      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionManager
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpClientConnectionOperator
-      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionOperator
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.hc.client5.http.EofSensorWatcher
-      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.EofSensorWatcher
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.hc.client5.http.EofSensorInputStream
-      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.EofSensorInputStream
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpConnectionFactory
-      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.HttpConnectionFactory
-  # Fixing Deprecated
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.hc.client5.http.ClientConnectionManager
-      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionManager
-
-  - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.conn.util
       newPackageName: org.apache.hc.client5.http.psl
   # Fixing specific mappings
@@ -381,6 +354,33 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.DefaultHttpResponseParser
       newFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.DefaultHttpResponseParser
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.conn
+      newPackageName: org.apache.hc.client5.http
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.ManagedHttpClientConnection
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.ManagedHttpClientConnection
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpClientConnectionManager
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionManager
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpClientConnectionOperator
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionOperator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.EofSensorWatcher
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.EofSensorWatcher
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.EofSensorInputStream
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.EofSensorInputStream
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpConnectionFactory
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.HttpConnectionFactory
+  # Fixing Deprecated
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.ClientConnectionManager
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionManager
 
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http
