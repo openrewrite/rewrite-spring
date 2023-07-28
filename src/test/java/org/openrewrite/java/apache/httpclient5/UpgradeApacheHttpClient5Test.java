@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class NamespaceChangesTest implements RewriteTest {
+class UpgradeApacheHttpClient5Test implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
