@@ -21,52 +21,96 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static org.openrewrite.java.Assertions.java;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class NamespaceChangesTest implements RewriteTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.maven.Assertions.pomXml;
+
+class NamespaceChangesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(JavaParser.fromJavaVersion()
-            .classpath("httpclient", "httpcore", "httpclient5", "httpcore5")
-          )
+          .parser(JavaParser.fromJavaVersion().classpath(
+            "httpclient", "httpcore",
+            "httpclient5", "httpcore5"))
           .recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite", "org.openrewrite.java", "org.openrewrite.java.dependencies")
+            .scanRuntimeClasspath("org.openrewrite")
             .build()
-            .activateRecipes("org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping")
+            .activateRecipes("org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5")
           );
     }
 
     @Test
-    void testSomeImports() {
+    void migrateDependencies() {
         rewriteRun(
-            //language=java
-            java("""
-                import org.apache.http.HttpEntity;
-                import org.apache.http.client.methods.HttpGet;
-                import org.apache.http.client.methods.HttpUriRequest;
-                import org.apache.http.util.EntityUtils;
-                
-                class A {
-                    void method(HttpEntity entity, String urlStr) {
-                        HttpUriRequest getRequest = new HttpGet(urlStr);
-                        EntityUtils.consume(entity);
-                    }
+          //language=xml
+          pomXml("""
+            <project>
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>org.example</groupId>
+                <artifactId>example</artifactId>
+                <version>1.0.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpclient</artifactId>
+                        <version>4.5.14</version>
+                    </dependency>
+                </dependencies>
+            </project>
+            """, spec -> spec.after(pom -> {
+              Matcher version = Pattern.compile("5\\.1\\.\\d+").matcher(pom);
+              assertThat(version.find()).describedAs("Expected 5.1.x in %s", pom).isTrue();
+              return """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>org.example</groupId>
+                    <artifactId>example</artifactId>
+                    <version>1.0.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.httpcomponents.client5</groupId>
+                            <artifactId>httpclient5</artifactId>
+                            <version>%s</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """.formatted(version.group(0));
+          })));
+    }
+
+    @Test
+    void importReplacementsInGroupsWithSomeSpecificMappings() {
+        rewriteRun(
+          //language=java
+          java("""
+            import org.apache.http.HttpEntity;
+            import org.apache.http.client.methods.HttpGet;
+            import org.apache.http.client.methods.HttpUriRequest;
+            import org.apache.http.util.EntityUtils;
+                          
+            class A {
+                void method(HttpEntity entity, String urlStr) throws Exception {
+                    HttpUriRequest getRequest = new HttpGet(urlStr);
+                    EntityUtils.consume(entity);
                 }
-              ""","""
-                import org.apache.hc.core5.http.io.entity.EntityUtils;
-                import org.apache.hc.core5.http.HttpEntity;
-                import org.apache.hc.client5.http.classic.methods.HttpGet;
-                import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
-                
-                class A {
-                    void method(HttpEntity entity, String urlStr) {
-                        HttpUriRequest getRequest = new HttpGet(urlStr);
-                        EntityUtils.consume(entity);
-                    }
+            }
+            """, """
+            import org.apache.hc.core5.http.io.entity.EntityUtils;
+            import org.apache.hc.core5.http.HttpEntity;
+            import org.apache.hc.client5.http.classic.methods.HttpGet;
+            import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+                          
+            class A {
+                void method(HttpEntity entity, String urlStr) throws Exception {
+                    HttpUriRequest getRequest = new HttpGet(urlStr);
+                    EntityUtils.consume(entity);
                 }
-              """)
+            }
+            """)
         );
     }
 }
