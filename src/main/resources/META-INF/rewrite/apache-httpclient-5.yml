@@ -42,18 +42,9 @@ name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMap
 displayName: Migrate to ApacheHttpClient 5.x Classes Namespace from 4.x
 description: Mapping of all the compatible classes of ApacheHttpClient 5.x from 4.x.
 recipeList:
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.apache.httpcomponents
-      oldArtifactId: httpclient
-      newGroupId: org.apache.httpcomponents.client5
-      newArtifactId: httpclient5
-      newVersion: 5.1.x
-      overrideManagedVersion: true
-
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.client.methods
       newPackageName: org.apache.hc.client5.http.classic.methods
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.classic.methods.CloseableHttpResponse
@@ -62,32 +53,25 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.client.entity
       newPackageName: org.apache.hc.client5.http.entity
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.client.protocol
       newPackageName: org.apache.hc.client5.http.protocol
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.conn.socket
       newPackageName: org.apache.hc.client5.http.socket
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.ssl
       newPackageName: org.apache.hc.core5.ssl
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.concurrent
       newPackageName: org.apache.hc.core5.concurrent
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.impl.auth
       newPackageName: org.apache.hc.client5.http.impl.auth
-      recursive: "False"
 
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.impl.cookie
       newPackageName: org.apache.hc.client5.http.impl.cookie
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.cookie.PublicSuffixListParser
@@ -99,7 +83,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.impl.client
       newPackageName: org.apache.hc.client5.http.impl.classic
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.BasicAuthCache
@@ -148,33 +131,26 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.auth
       newPackageName: org.apache.hc.client5.http.auth
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.cookie
       newPackageName: org.apache.hc.client5.http.cookie
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.cookie
       newPackageName: org.apache.hc.client5.http.cookie
-      recursive: "False"
 
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.annotation
       newPackageName: org.apache.hc.core5.annotation
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.client.config
       newPackageName: org.apache.hc.client5.http.config
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.annotation
       newPackageName: org.apache.hc.core5.annotation
-      recursive: "False"
 
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.entity
       newPackageName: org.apache.hc.core5.http.io.entity
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.core5.http.io.entity.ContentLengthStrategy
@@ -186,12 +162,10 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.impl.bootstrap
       newPackageName: org.apache.hc.core5.http.impl.bootstrap
-      recursive: "False"
 
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.impl.execchain
       newPackageName: org.apache.hc.client5.http.impl.classic
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.TunnelRefusedException
@@ -200,7 +174,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.impl.io
       newPackageName: org.apache.hc.core5.http.impl.io
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.DefaultHttpResponseParserFactory
@@ -209,20 +182,16 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.io
       newPackageName: org.apache.hc.core5.http.io
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.message
       newPackageName: org.apache.hc.core5.http.message
-      recursive: "False"
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.pool
       newPackageName: org.apache.hc.core5.pool
-      recursive: "False"
 
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.protocol
       newPackageName: org.apache.hc.core5.http.protocol
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.core5.http.protocol.HttpService
@@ -237,7 +206,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.util
       newPackageName: org.apache.hc.core5.util
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.core5.util.EntityUtils
@@ -260,7 +228,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.client
       newPackageName: org.apache.hc.client5.http
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.CredentialsProvider
@@ -287,7 +254,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.config
       newPackageName: org.apache.hc.core5.http.config
-      recursive: "False"
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.http.config.SocketConfig
       newFullyQualifiedTypeName: org.apache.hc.core5.http.io.SocketConfig
@@ -295,7 +261,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.impl
       newPackageName: org.apache.hc.core5.http.impl.io
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.EnglishReasonPhraseCatalog
@@ -313,7 +278,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.conn
       newPackageName: org.apache.hc.client5.http
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.ManagedHttpClientConnection
@@ -337,17 +301,10 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.ClientConnectionManager
       newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionManager
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpRoutedConnection
-      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionManager
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.hc.client5.http.ManagedClientConnection
-      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionManager
 
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.conn.util
       newPackageName: org.apache.hc.client5.http.psl
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.psl.DnsUtils
@@ -359,7 +316,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.conn.routing
       newPackageName: org.apache.hc.client5.http
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.BasicRouteDirector
@@ -374,7 +330,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.conn.ssl
       newPackageName: org.apache.hc.core5.ssl
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.core5.ssl.SSLConnectionSocketFactory
@@ -398,7 +353,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.impl.conn
       newPackageName: org.apache.hc.client5.http.impl.io
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.SystemDefaultDnsResolver
@@ -431,7 +385,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http
       newPackageName: org.apache.hc.core5.http
-      recursive: "False"
   # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.core5.http.RequestLine
