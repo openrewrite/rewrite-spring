@@ -26,11 +26,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
@@ -71,14 +67,12 @@ public class UseNewRequestMatchers extends Recipe {
                         if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi) || isCsrfMatcher)
                                 && mi.getSelect() != null) {
                             String parametersTemplate = mi.getArguments().stream().map(arg -> "#{any()}").collect(joining(", "));
-                            List<Expression> parameters = new ArrayList<>();
-                            parameters.add(mi.getSelect());
-                            parameters.addAll(mi.getArguments());
                             String replacementMethodName = isCsrfMatcher ? "ignoringRequestMatchers" : "requestMatchers";
-                            JavaTemplate template = JavaTemplate.builder(String.format("#{any()}\n." + replacementMethodName + "(%s)", parametersTemplate))
+                            JavaTemplate template = JavaTemplate.builder(String.format(replacementMethodName + "(%s)", parametersTemplate))
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-config-5.8"))
                                     .build();
-                            return template.apply(getCursor(), mi.getCoordinates().replace(), parameters.toArray());
+                            J.MethodInvocation apply = template.apply(getCursor(), mi.getCoordinates().replaceMethod(), mi.getArguments().toArray());
+                            return apply.withSelect(mi.getSelect());
                         }
                         return mi;
                     }
