@@ -161,8 +161,7 @@ class UseNewSecurityMatchersTest implements RewriteTest {
                     tree = new UseNewSecurityMatchers().getVisitor().visit(tree, ctx);
                     return (J) tree;
                 }
-            }))
-            .typeValidationOptions(TypeValidation.builder().methodInvocations(false).build()),
+            })),
           java(
             """
               package com.example;

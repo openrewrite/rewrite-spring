@@ -72,7 +72,8 @@ public class UseNewRequestMatchers extends Recipe {
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-config-5.8"))
                                     .build();
                             J.MethodInvocation apply = template.apply(getCursor(), mi.getCoordinates().replaceMethod(), mi.getArguments().toArray());
-                            return apply.withSelect(mi.getSelect());
+                            return apply.withSelect(mi.getSelect())
+                                    .withName(mi.getName().withSimpleName(replacementMethodName));
                         }
                         return mi;
                     }
