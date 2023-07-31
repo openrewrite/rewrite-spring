@@ -39,6 +39,7 @@ recipeList:
   - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
   - org.openrewrite.java.apache.httpclient5.UseTimeout
   - org.openrewrite.java.apache.httpclient5.UseTimeValue
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping
@@ -405,8 +406,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
-displayName: Migrate to ApacheHttpClient 5.x methods from 4.x
-description: TODO
+displayName: Migrate to ApacheHttpClient 5.x deprecated methods from 4.x
+description: Migrates deprecated methods to their equivalent ones in 5.x
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setSocketTimeout(int)
