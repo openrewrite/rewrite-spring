@@ -36,6 +36,9 @@ recipeList:
       newVersion: 5.1.x
       overrideManagedVersion: true
   - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping
+  - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
+  - org.openrewrite.java.apache.httpclient5.UseTimeout
+  - org.openrewrite.java.apache.httpclient5.UseTimeValue
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping
@@ -251,8 +254,11 @@ recipeList:
       oldPackageName: org.apache.http.config
       newPackageName: org.apache.hc.core5.http.config
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.apache.http.config.SocketConfig
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.config.SocketConfig
       newFullyQualifiedTypeName: org.apache.hc.core5.http.io.SocketConfig
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.config.SocketConfig.Builder
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.SocketConfig.Builder
 
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.impl
@@ -396,3 +402,12 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.core5.http.HttpConnectionFactory
       newFullyQualifiedTypeName: org.apache.hc.core5.http.io.HttpConnectionFactory
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
+displayName: Migrate to ApacheHttpClient 5.x methods from 4.x
+description: TODO
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setSocketTimeout(int)
+      newMethodName: setResponseTimeout
