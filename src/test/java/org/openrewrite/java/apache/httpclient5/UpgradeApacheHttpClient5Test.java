@@ -113,4 +113,70 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
             """)
         );
     }
+
+    @Test
+    void useTimeoutClass() {
+        rewriteRun(
+          //language=java
+          java("""
+            import org.apache.http.client.config.RequestConfig;
+            import org.apache.http.config.SocketConfig;
+
+            class A {
+                void method() {
+                    RequestConfig.custom()
+                        .setConnectionRequestTimeout(300)
+                        .setConnectTimeout(500)
+                        .setSocketTimeout(1500);
+                        
+                    SocketConfig.custom()
+                        .setSoTimeout(1000);
+                }
+            }
+            """, """
+            import org.apache.hc.client5.http.config.RequestConfig;
+            import org.apache.hc.core5.http.io.SocketConfig;
+            import org.apache.hc.core5.util.Timeout;
+
+            class A {
+                void method() {
+                    RequestConfig.custom()
+                        .setConnectionRequestTimeout(Timeout.ofMilliseconds(300))
+                        .setConnectTimeout(Timeout.ofMilliseconds(500))
+                        .setResponseTimeout(Timeout.ofMilliseconds(1500));
+                        
+                    SocketConfig.custom()
+                        .setSoTimeout(Timeout.ofMilliseconds(1000));
+                }
+            }
+            """)
+        );
+    }
+
+    @Test
+    void useTimeValueClass() {
+        rewriteRun(
+          //language=java
+          java("""
+            import org.apache.http.config.SocketConfig;
+                        
+            class A {
+                void method() {
+                    SocketConfig.custom()
+                        .setSoLinger(500);
+                }
+            }
+            """, """
+            import org.apache.hc.core5.http.io.SocketConfig;
+            import org.apache.hc.core5.util.TimeValue;
+                        
+            class A {
+                void method() {
+                    SocketConfig.custom()
+                        .setSoLinger(TimeValue.ofMilliseconds(500));
+                }
+            }
+            """)
+        );
+    }
 }
