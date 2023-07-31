@@ -16,12 +16,14 @@
 package org.openrewrite.java.apache.httpclient5;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
 import java.util.Arrays;
@@ -40,7 +42,7 @@ public class UseTimeValue extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>("org.apache.hc..*", true), new JavaIsoVisitor<ExecutionContext>() {
 
             List<MethodMatcher> methodMatchers = Arrays.asList(
                     new MethodMatcher("org.apache.hc.core5.http.io.SocketConfig.Builder setSoLinger(int)")
@@ -66,9 +68,13 @@ public class UseTimeValue extends Recipe {
             }
 
             private boolean methodMatches(J.MethodInvocation method) {
-                return methodMatchers.stream()
-                        .anyMatch(matcher -> matcher.matches(method));
+                for (MethodMatcher matcher : methodMatchers) {
+                    if (matcher.matches(method)) {
+                        return true;
+                    }
+                }
+                return false;
             }
-        };
+        });
     }
 }
