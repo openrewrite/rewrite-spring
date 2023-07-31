@@ -159,7 +159,7 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
           //language=java
           java("""
             import org.apache.http.config.SocketConfig;
-            
+                        
             class A {
                 void method() {
                     SocketConfig.custom()
@@ -169,7 +169,7 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
             """, """
             import org.apache.hc.core5.http.io.SocketConfig;
             import org.apache.hc.core5.util.TimeValue;
-            
+                        
             class A {
                 void method() {
                     SocketConfig.custom()

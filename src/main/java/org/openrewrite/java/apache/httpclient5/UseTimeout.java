@@ -43,8 +43,7 @@ public class UseTimeout extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
 
-
-            final List<MethodMatcher> methodMatchers  = Arrays.asList(
+            final List<MethodMatcher> methodMatchers = Arrays.asList(
                     new MethodMatcher("org.apache.hc.client5.http.config.RequestConfig.Builder setConnectionRequestTimeout(int)"),
                     new MethodMatcher("org.apache.hc.client5.http.config.RequestConfig.Builder setConnectTimeout(int)"),
                     new MethodMatcher("org.apache.hc.client5.http.config.RequestConfig.Builder setResponseTimeout(int)"),
@@ -58,6 +57,7 @@ public class UseTimeout extends Recipe {
                     ))
                     .imports("org.apache.hc.core5.util.Timeout")
                     .build();
+
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, ctx);

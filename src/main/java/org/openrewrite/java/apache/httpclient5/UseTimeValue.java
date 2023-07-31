@@ -42,8 +42,7 @@ public class UseTimeValue extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
 
-
-            List<MethodMatcher> methodMatchers  = Arrays.asList(
+            List<MethodMatcher> methodMatchers = Arrays.asList(
                     new MethodMatcher("org.apache.hc.core5.http.io.SocketConfig.Builder setSoLinger(int)")
             );
 
@@ -54,6 +53,7 @@ public class UseTimeValue extends Recipe {
                     ))
                     .imports("org.apache.hc.core5.util.TimeValue")
                     .build();
+
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
