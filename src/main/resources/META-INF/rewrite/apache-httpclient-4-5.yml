@@ -37,7 +37,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.apache.httpclient4.MappingDeprecatedClasses
-displayName: Maps deprecated classes from ApacheHttpClient 4.5.x to Newer ones
+displayName: Maps deprecated classes from Apache HttpClient 4.5.x to suggested replacements
 description: Uses new classes/methods instead of the deprecated ones
 recipeList:
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
