@@ -150,6 +150,9 @@ dependencies {
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.1.0.RELEASE")
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.data:spring-data-jpa:2.1.0.RELEASE")
     "testWithSpringBoot_2_1RuntimeOnly"("javax.persistence:javax.persistence-api:2.2")
+    "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.security:spring-security-core:5.1.+")
+    "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.security:spring-security-config:5.1.+")
+    "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.security:spring-security-web:5.1.+")
 
     "testWithSpringBoot_2_2RuntimeOnly"("org.springframework.boot:spring-boot:2.2.+")
 
