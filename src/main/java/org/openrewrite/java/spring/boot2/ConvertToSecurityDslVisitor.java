@@ -16,12 +16,10 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.Cursor;
-import org.openrewrite.SourceFile;
 import org.openrewrite.Tree;
 import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.marker.Markup;
@@ -47,11 +45,6 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods) {
         this.securityFqn = securityFqn;
         this.convertableMethods = convertableMethods;
-    }
-
-    @Override
-    public boolean isAcceptable(SourceFile sourceFile, P p) {
-        return new UsesType<>(securityFqn, true).isAcceptable(sourceFile, p);
     }
 
     @Override
