@@ -39,6 +39,7 @@ recipeList:
   - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
   - org.openrewrite.java.apache.httpclient5.UseTimeout
   - org.openrewrite.java.apache.httpclient5.UseTimeValue
+  - org.openrewrite.java.apache.httpclient5.StatusLine
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -412,3 +413,19 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setSocketTimeout(int)
       newMethodName: setResponseTimeout
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.apache.httpclient5.StatusLine
+displayName: Migrate to ApacheHttpClient 5.x deprecated methods from 4.x
+description: Migrates deprecated methods to their equivalent ones in 5.x
+recipeList:
+  - org.openrewrite.java.SimplifyMethodChain:
+      methodPatternChain: ['org.apache.hc.core5.http.HttpResponse getStatusLine()', 'org.apache.hc.core5.http.message.StatusLine getStatusCode()']
+      newMethodName: getCode
+  - org.openrewrite.java.SimplifyMethodChain:
+      methodPatternChain: ['org.apache.hc.core5.http.HttpResponse getStatusLine()', 'org.apache.hc.core5.http.message.StatusLine getReasonPhrase()']
+      newMethodName: getReasonPhrase
+  - org.openrewrite.java.SimplifyMethodChain:
+      methodPatternChain: [ 'org.apache.hc.core5.http.HttpResponse getStatusLine()', 'org.apache.hc.core5.http.message.StatusLine getProtocolVersion()' ]
+      newMethodName: getVersion
+  - org.openrewrite.java.apache.httpclient5.NewStatusLine
