@@ -24,7 +24,7 @@ import org.openrewrite.java.tree.J;
 public class NewStatusLine extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Replaces deprecated HttpResponse::getStatusLine()";
+        return "Replaces deprecated `HttpResponse::getStatusLine()`";
     }
 
     @Override
