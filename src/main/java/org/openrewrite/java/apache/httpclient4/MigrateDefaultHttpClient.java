@@ -26,7 +26,7 @@ import org.openrewrite.java.tree.J;
 public class MigrateDefaultHttpClient extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Migrates Deprecated DefaultHttpClient";
+        return "Migrates deprecated `DefaultHttpClient`";
     }
 
     @Override
