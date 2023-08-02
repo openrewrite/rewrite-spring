@@ -32,7 +32,7 @@ public class MigrateDefaultHttpClient extends Recipe {
     @Override
     public String getDescription() {
         return "Since DefaultHttpClient is deprecated, we need to change it to the CloseableHttpClient. " +
-                "Only covering the default scenario with no custom HttpParams or ConnectionManager.";
+                "It only covers the default scenario with no custom HttpParams or ConnectionManager.";
     }
 
     @Override
