@@ -61,7 +61,7 @@ public class AddTimeUnitArgument extends Recipe {
                 "Previously in 4.x, all this methods were implicitly having the timeout or duration expressed in milliseconds, " +
                 "but in 5.x we explicitly need to indicate the unit of the timeout or duration. So, by default it will add " +
                 "`TimeUnit.MILLISECONDS`, but you can specify this as a parameter too if needed. Since all affected methods of " +
-                "the Apache Http Client 5.x migration only have one integer/long argument, it will only apply with matched method " +
+                "the Apache Http Client 5.x migration only have one integer/long argument, the recipe applies with matched method " +
                 "invocations of exactly one parameter.";
     }
 
