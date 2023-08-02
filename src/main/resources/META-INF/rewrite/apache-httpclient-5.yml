@@ -415,7 +415,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_TimeUnit
 displayName: Adds `TimeUnit` to timeouts and duration methods
-description: Apache HttpClient 5.x Timeout and duration methods needs the TimeUnit argument.
+description: Apache HttpClient 5.x Timeout and duration methods need an extra the TimeUnit argument. This recipe uses milliseconds as a default unit.
 recipeList:
   - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
       methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setConnectionRequestTimeout(int)
