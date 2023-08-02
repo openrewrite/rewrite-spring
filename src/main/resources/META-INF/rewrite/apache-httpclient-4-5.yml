@@ -32,7 +32,6 @@ recipeList:
       groupId: org.apache.httpcomponents
       artifactId: httpclient
       newVersion: 4.5.x
-      overrideManagedVersion: true
   - org.openrewrite.java.apache.httpclient4.MappingDeprecatedClasses
 ---
 type: specs.openrewrite.org/v1beta/recipe

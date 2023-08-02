@@ -35,7 +35,6 @@ recipeList:
       newGroupId: org.apache.httpcomponents.client5
       newArtifactId: httpclient5
       newVersion: 5.1.x
-      overrideManagedVersion: true
   - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping
   - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
   - org.openrewrite.java.apache.httpclient5.UseTimeout
