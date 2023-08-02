@@ -57,7 +57,7 @@ public class AddTimeUnitArgument extends Recipe {
 
     @Override
     public String getDescription() {
-        return "In Apache Http Client 5.x migration, we need to add a TimeUnit argument to the timeout and duration methods. " +
+        return "In Apache Http Client 5.x migration, an extra TimeUnit argument is required in the timeout and duration methods. " +
                 "Previously in 4.x, all this methods were implicitly having the timeout or duration expressed in milliseconds, " +
                 "but in 5.x the unit of the timeout or duration is required. So, by default this recipe adds " +
                 "`TimeUnit.MILLISECONDS`, it is possible to specify this as a parameter. Since all affected methods of " +
