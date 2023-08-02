@@ -15,14 +15,13 @@
  */
 package org.openrewrite.java.apache.httpclient5;
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.StringUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -30,6 +29,8 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
@@ -68,21 +69,25 @@ public class AddTimeUnitArgument extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
             final MethodMatcher matcher = new MethodMatcher(methodPattern);
-            final JavaTemplate template = JavaTemplate.builder("#{any(long)}, TimeUnit.#{}")
-                    .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion().classpath("httpclient5", "httpcore5"))
-                    .imports("java.util.concurrent.TimeUnit")
-                    .build();
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
-                if (matcher.matches(method) && method.getArguments().size() == 1) {
+                if (matcher.matches(m)) {
+                    JavaTemplate template = JavaTemplate
+                            .builder(StringUtils.repeat("#{any()}, ", m.getArguments().size()) + "TimeUnit.#{}")
+                            .contextSensitive()
+                            .javaParser(JavaParser.fromJavaVersion().classpath("httpclient5", "httpcore5"))
+                            .imports("java.util.concurrent.TimeUnit")
+                            .build();
+
+                    List<Object> arguments = new ArrayList<>(m.getArguments());
+                    arguments.add(timeUnit != null ? timeUnit : TimeUnit.MILLISECONDS);
+
                     m = template.apply(
                             updateCursor(m),
                             m.getCoordinates().replaceArguments(),
-                            m.getArguments().get(0),
-                            timeUnit != null ? timeUnit : TimeUnit.MILLISECONDS
+                            arguments.toArray(new Object[0])
                     );
                     maybeAddImport("java.util.concurrent.TimeUnit");
                 }

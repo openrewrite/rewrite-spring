@@ -117,7 +117,7 @@ public class AddTimeUnitArgumentTest implements RewriteTest {
     }
 
     @Test
-    void doesNotModifyMethodsWithMoreThanOneArgument() {
+    void doesModifyMethodsWithMoreThanOneArgument() {
         rewriteRun(
           spec -> spec.recipe(new AddTimeUnitArgument("A method(int, float)", null)),
           //language=java
@@ -126,16 +126,19 @@ public class AddTimeUnitArgumentTest implements RewriteTest {
             
             class A {
                 private long value;
+                private float foo;
                 private TimeUnit timeunit;
                 
                 A method(int value, float foo) {
                     this.value = value;
+                    this.foo = foo;
                     this.timeunit = TimeUnit.MILLISECONDS;
                     return this;
                 }
                 
                 A method(long value, float foo, TimeUnit timeunit) {
                     this.value = value;
+                    this.foo = foo;
                     this.timeunit = timeunit;
                     return this;
                 }
@@ -147,6 +150,15 @@ public class AddTimeUnitArgumentTest implements RewriteTest {
                 void test() {
                     A a = new A();
                     a.method(100, 1.0f);
+                }
+            }
+            """, """
+            import java.util.concurrent.TimeUnit;
+            
+            class B {
+                void test() {
+                    A a = new A();
+                    a.method(100, 1.0f, TimeUnit.MILLISECONDS);
                 }
             }
             """)
