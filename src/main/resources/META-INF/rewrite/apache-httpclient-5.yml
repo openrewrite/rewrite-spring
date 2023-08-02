@@ -37,8 +37,7 @@ recipeList:
       newVersion: 5.1.x
   - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping
   - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
-  - org.openrewrite.java.apache.httpclient5.UseTimeout
-  - org.openrewrite.java.apache.httpclient5.UseTimeValue
+  - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_TimeUnit
   - org.openrewrite.java.apache.httpclient5.StatusLine
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -429,6 +428,22 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setSocketTimeout(int)
       newMethodName: setResponseTimeout
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_TimeUnit
+displayName: Adds `TimeUnit` to timeouts and duration methods
+description: Apache HttpClient 5.x Timeout and duration methods need an extra the TimeUnit argument. This recipe uses milliseconds as a default unit.
+recipeList:
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setConnectionRequestTimeout(int)
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setConnectTimeout(int)
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setResponseTimeout(int)
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.core5.http.io.SocketConfig.Builder setSoLinger(int)
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.core5.http.io.SocketConfig.Builder setSoTimeout(int)
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.apache.httpclient5.StatusLine

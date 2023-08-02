@@ -115,7 +115,7 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
     }
 
     @Test
-    void useTimeoutClass() {
+    void addTimeUnitsToTimeoutAndDurationMethods() {
         rewriteRun(
           //language=java
           java("""
@@ -124,56 +124,36 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
 
             class A {
                 void method() {
+                    int connectTimeout = 500;
                     RequestConfig.custom()
                         .setConnectionRequestTimeout(300)
-                        .setConnectTimeout(500)
-                        .setSocketTimeout(1500);
+                        .setConnectTimeout(connectTimeout)
+                        .setSocketTimeout(connectTimeout * 10);
                         
+                    long linger = 420;
                     SocketConfig.custom()
-                        .setSoTimeout(1000);
+                        .setSoTimeout(1000)
+                        .setSoLinger((int) linger);
                 }
             }
             """, """
             import org.apache.hc.client5.http.config.RequestConfig;
             import org.apache.hc.core5.http.io.SocketConfig;
-            import org.apache.hc.core5.util.Timeout;
+            
+            import java.util.concurrent.TimeUnit;
 
             class A {
                 void method() {
+                    int connectTimeout = 500;
                     RequestConfig.custom()
-                        .setConnectionRequestTimeout(Timeout.ofMilliseconds(300))
-                        .setConnectTimeout(Timeout.ofMilliseconds(500))
-                        .setResponseTimeout(Timeout.ofMilliseconds(1500));
+                        .setConnectionRequestTimeout(300, TimeUnit.MILLISECONDS)
+                        .setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+                        .setResponseTimeout(connectTimeout * 10, TimeUnit.MILLISECONDS);
                         
+                    long linger = 420;
                     SocketConfig.custom()
-                        .setSoTimeout(Timeout.ofMilliseconds(1000));
-                }
-            }
-            """)
-        );
-    }
-
-    @Test
-    void useTimeValueClass() {
-        rewriteRun(
-          //language=java
-          java("""
-            import org.apache.http.config.SocketConfig;
-                        
-            class A {
-                void method() {
-                    SocketConfig.custom()
-                        .setSoLinger(500);
-                }
-            }
-            """, """
-            import org.apache.hc.core5.http.io.SocketConfig;
-            import org.apache.hc.core5.util.TimeValue;
-                        
-            class A {
-                void method() {
-                    SocketConfig.custom()
-                        .setSoLinger(TimeValue.ofMilliseconds(500));
+                        .setSoTimeout(1000, TimeUnit.MILLISECONDS)
+                        .setSoLinger((int) linger, TimeUnit.MILLISECONDS);
                 }
             }
             """)

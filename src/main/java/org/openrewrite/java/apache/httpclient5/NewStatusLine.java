@@ -38,7 +38,6 @@ public class NewStatusLine extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaVisitor<ExecutionContext>() {
-
             final MethodMatcher matcher = new MethodMatcher("org.apache.hc.core5.http.HttpResponse getStatusLine()");
             final JavaTemplate template = JavaTemplate.builder("new StatusLine(#{any(org.apache.hc.core5.http.HttpResponse)})")
                     .javaParser(JavaParser.fromJavaVersion().classpath("httpcore5"))
