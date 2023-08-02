@@ -26,40 +26,41 @@ import static org.openrewrite.java.Assertions.java;
 public class AddTimeUnitArgumentTest implements RewriteTest {
     //language=java
     private static final SourceSpecs stubCode = java("""
-            import java.util.concurrent.TimeUnit;
-            
-            class A {
-                private long value;
-                private float foo;
-                private TimeUnit timeunit;
-                
-                A method(int value) {
-                    this.value = value;
-                    this.timeunit = TimeUnit.MILLISECONDS;
-                    return this;
-                }
-                
-                A method(long value, TimeUnit timeunit) {
-                    this.value = value;
-                    this.timeunit = timeunit;
-                    return this;
-                }
-                
-                A method(int value, float foo) {
-                    this.value = value;
-                    this.foo = foo;
-                    this.timeunit = TimeUnit.MILLISECONDS;
-                    return this;
-                }
-                
-                A method(long value, float foo, TimeUnit timeunit) {
-                    this.value = value;
-                    this.foo = foo;
-                    this.timeunit = timeunit;
-                    return this;
-                }
-            }
-    """);
+              import java.util.concurrent.TimeUnit;
+              
+              class A {
+                  private long value;
+                  private float foo;
+                  private TimeUnit timeunit;
+                  
+                  A method(int value) {
+                      this.value = value;
+                      this.timeunit = TimeUnit.MILLISECONDS;
+                      return this;
+                  }
+                  
+                  A method(long value, TimeUnit timeunit) {
+                      this.value = value;
+                      this.timeunit = timeunit;
+                      return this;
+                  }
+                  
+                  A method(int value, float foo) {
+                      this.value = value;
+                      this.foo = foo;
+                      this.timeunit = TimeUnit.MILLISECONDS;
+                      return this;
+                  }
+                  
+                  A method(long value, float foo, TimeUnit timeunit) {
+                      this.value = value;
+                      this.foo = foo;
+                      this.timeunit = timeunit;
+                      return this;
+                  }
+              }
+      """);
+
     @Test
     void addTimeUnitDefaultMilliseconds() {
         rewriteRun(
@@ -75,7 +76,7 @@ public class AddTimeUnitArgumentTest implements RewriteTest {
             }
             """, """
             import java.util.concurrent.TimeUnit;
-            
+                        
             class B {
                 void test() {
                     A a = new A();
@@ -101,7 +102,7 @@ public class AddTimeUnitArgumentTest implements RewriteTest {
             }
             """, """
             import java.util.concurrent.TimeUnit;
-            
+                        
             class B {
                 void test() {
                     A a = new A();
@@ -128,7 +129,7 @@ public class AddTimeUnitArgumentTest implements RewriteTest {
             }
             """, """
             import java.util.concurrent.TimeUnit;
-            
+                        
             class B {
                 void test() {
                     A a = new A();
