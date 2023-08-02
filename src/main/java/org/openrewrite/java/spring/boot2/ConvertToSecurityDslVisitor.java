@@ -16,20 +16,15 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.Cursor;
-import org.openrewrite.SourceFile;
 import org.openrewrite.Tree;
 import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.marker.Markup;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
@@ -50,19 +45,17 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     @Override
-    public boolean isAcceptable(SourceFile sourceFile, P p) {
-        return new UsesType<>(securityFqn, true).isAcceptable(sourceFile, p);
-    }
-
-    @Override
     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation initialMethod, P executionContext) {
         J.MethodInvocation method = super.visitMethodInvocation(initialMethod, executionContext);
         if (isApplicableMethod(method)) {
+            Optional<JavaType.Method> replacementMethod = findDesiredReplacement(method);
+            if (!replacementMethod.isPresent()) {
+                return method;
+            }
+
             final List<J.MethodInvocation> chain = computeAndMarkChain(method);
-            JavaType.FullyQualified httpSecurityType = method.getMethodType().getDeclaringType();
-            final String methodName = method.getSimpleName();
             final J.MethodInvocation m = method;
-            method = httpSecurityType.getMethods().stream().filter(aMethod -> methodName.equals(aMethod.getName()) && aMethod.getParameterTypes().size() == 1).findFirst().map(newMethodType -> {
+            method = replacementMethod.map(newMethodType -> {
                 String paramName = generateParamNameFromMethodName(m.getSimpleName());
                 return m
                         .withMethodType(newMethodType)
@@ -132,6 +125,20 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             }
         }
         return false;
+    }
+
+    private Optional<JavaType.Method> findDesiredReplacement(J.MethodInvocation m) {
+        JavaType.Method methodType = m.getMethodType();
+        if (methodType == null) {
+            return Optional.empty();
+        }
+        JavaType.FullyQualified httpSecurityType = methodType.getDeclaringType();
+        return httpSecurityType.getMethods().stream()
+                .filter(availableMethod -> availableMethod.getName().equals(m.getSimpleName()) &&
+                        availableMethod.getParameterTypes().size() == 1 &&
+                        availableMethod.getParameterTypes().get(0) instanceof JavaType.FullyQualified &&
+                        "org.springframework.security.config.Customizer".equals(((JavaType.FullyQualified) availableMethod.getParameterTypes().get(0)).getFullyQualifiedName()))
+                .findFirst();
     }
 
     public boolean isApplicableTopLevelMethodInvocation(J.MethodInvocation m) {
