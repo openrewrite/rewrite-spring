@@ -28,19 +28,18 @@ tags:
   - apache
   - httpclient
 recipeList:
+  - org.openrewrite.java.apache.httpclient4.UpgradeApacheHttpClient_4_5
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.apache.httpcomponents
       oldArtifactId: httpclient
       newGroupId: org.apache.httpcomponents.client5
       newArtifactId: httpclient5
       newVersion: 5.1.x
-      overrideManagedVersion: true
   - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping
   - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
   - org.openrewrite.java.apache.httpclient5.UseTimeout
   - org.openrewrite.java.apache.httpclient5.UseTimeValue
   - org.openrewrite.java.apache.httpclient5.StatusLine
-
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping
@@ -132,9 +131,11 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.auth
       newPackageName: org.apache.hc.client5.http.auth
+
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.cookie
       newPackageName: org.apache.hc.client5.http.cookie
+
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.cookie
       newPackageName: org.apache.hc.client5.http.cookie
@@ -142,9 +143,21 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.annotation
       newPackageName: org.apache.hc.core5.annotation
+
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.client.config
       newPackageName: org.apache.hc.client5.http.config
+  # Fixing deprecated constants
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.apache.hc.client5.http.config.CookieSpecs.IGNORE_COOKIES
+      fullyQualifiedConstantName: org.apache.hc.client5.http.cookie.StandardCookieSpec.IGNORE
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.apache.hc.client5.http.config.CookieSpecs.STANDARD
+      fullyQualifiedConstantName: org.apache.hc.client5.http.cookie.StandardCookieSpec.RELAXED
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.apache.hc.client5.http.config.CookieSpecs.STANDARD_STRICT
+      fullyQualifiedConstantName: org.apache.hc.client5.http.cookie.StandardCookieSpec.STRICT
+
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.annotation
       newPackageName: org.apache.hc.core5.annotation
@@ -183,9 +196,11 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.io
       newPackageName: org.apache.hc.core5.http.io
+
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.message
       newPackageName: org.apache.hc.core5.http.message
+
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.pool
       newPackageName: org.apache.hc.core5.pool
@@ -255,6 +270,7 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.apache.http.config
       newPackageName: org.apache.hc.core5.http.config
+  # Fixing specific mappings
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.apache.hc.core5.http.config.SocketConfig
       newFullyQualifiedTypeName: org.apache.hc.core5.http.io.SocketConfig
