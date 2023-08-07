@@ -96,7 +96,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                 //      this method
                 // 2. if it has not `configurePathMatch` method, add it to this class.
                 boolean configMethodExists = classDecl.getBody().getStatements().stream()
-                        .filter(statement -> statement instanceof J.MethodDeclaration)
+                        .filter(org.openrewrite.java.tree.J.MethodDeclaration.class::isInstance)
                         .map(J.MethodDeclaration.class::cast)
                         .anyMatch(methodDeclaration -> isWebMVCConfigurerMatchMethod(methodDeclaration) ||
                                                        isWebFluxconfigurePathMatchingMethod(methodDeclaration));
