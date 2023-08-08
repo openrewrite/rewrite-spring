@@ -75,7 +75,7 @@ public class ImplicitWebAnnotationNames extends Recipe {
             if (PARAM_ANNOTATIONS.stream().anyMatch(annotationClass -> isOfClassType(annotation.getType(), annotationClass)) &&
                     annotation.getArguments() != null && getCursor().getParentOrThrow().getValue() instanceof J.VariableDeclarations) {
 
-                a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> {
+                a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                     Cursor varDecsCursor = getCursor().getParentOrThrow();
                     J.VariableDeclarations.NamedVariable namedVariable = varDecsCursor.<J.VariableDeclarations>getValue().getVariables().get(0);
                     if (arg instanceof J.Assignment) {
@@ -95,7 +95,7 @@ public class ImplicitWebAnnotationNames extends Recipe {
                     }
 
                     return arg;
-                })), ctx);
+                }));
             }
 
             return a;
