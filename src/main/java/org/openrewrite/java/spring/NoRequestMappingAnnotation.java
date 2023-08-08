@@ -26,6 +26,7 @@ import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Space;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -93,7 +94,8 @@ public class NoRequestMappingAnnotation extends Recipe {
                 // Remove the argument
                 if (requestMethodArg.isPresent() && methodArgumentHasSingleType(requestMethodArg.get()) && resolvedRequestMappingAnnotationClassName != null) {
                     if (a.getArguments() != null) {
-                        a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
+                        //a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
+                        a = a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg));
                     }
                 }
 
@@ -107,15 +109,15 @@ public class NoRequestMappingAnnotation extends Recipe {
 
                 // if there is only one remaining argument now, and it is "path" or "value", then we can drop the key name
                 if (a != null && a.getArguments() != null && a.getArguments().size() == 1) {
-                    a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> {
+                    a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                         if (arg instanceof J.Assignment && ((J.Assignment) arg).getVariable() instanceof J.Identifier) {
                             J.Identifier ident = (J.Identifier) ((J.Assignment) arg).getVariable();
                             if ("path".equals(ident.getSimpleName()) || "value".equals(ident.getSimpleName())) {
-                                return ((J.Assignment) arg).getAssignment();
+                                return ((J.Assignment) arg).getAssignment().withPrefix(Space.EMPTY);
                             }
                         }
                         return arg;
-                    })), ctx);
+                    }));
                 }
             }
             return a != null ? a : annotation;
