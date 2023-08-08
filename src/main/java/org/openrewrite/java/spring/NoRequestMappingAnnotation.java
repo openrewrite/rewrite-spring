@@ -94,7 +94,6 @@ public class NoRequestMappingAnnotation extends Recipe {
                 // Remove the argument
                 if (requestMethodArg.isPresent() && methodArgumentHasSingleType(requestMethodArg.get()) && resolvedRequestMappingAnnotationClassName != null) {
                     if (a.getArguments() != null) {
-                        //a = maybeAutoFormat(a, a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg)), ctx);
                         a = a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg));
                     }
                 }
