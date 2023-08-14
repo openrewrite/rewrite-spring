@@ -24,7 +24,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
-import org.openrewrite.marker.SearchResult;
+import org.openrewrite.marker.Markup;
 
 import java.util.List;
 
@@ -65,10 +65,10 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
             if (TypeUtils.isAssignableTo(DEFAULT_BATCH_CONFIGURER, method.getMethodType().getDeclaringType())) {
                 // Strip @Override
                 List<J.Annotation> formerLeadingAnnotations = md.getLeadingAnnotations();
-                md = md.withLeadingAnnotations(ListUtils.map(formerLeadingAnnotations,
-                        a -> (TypeUtils.isAssignableTo("java.lang.Override", a.getType())) ? null : a));
-                if (formerLeadingAnnotations.size() != md.getLeadingAnnotations().size()) {
-                    md = SearchResult.found(md, "TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed");
+                if (TypeUtils.isOverride(md.getMethodType())) {
+                    md = md.withLeadingAnnotations(ListUtils.map(formerLeadingAnnotations,
+                            a -> (TypeUtils.isAssignableTo("java.lang.Override", a.getType())) ? null : a));
+                    md = Markup.info(md, "TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed");
                 }
 
                 // Strip calls to super
