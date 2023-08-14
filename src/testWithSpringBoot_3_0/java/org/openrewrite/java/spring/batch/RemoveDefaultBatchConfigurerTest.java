@@ -62,6 +62,10 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
           java("""
             import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
             class Foo extends DefaultBatchConfigurer {
+                Foo() {
+                    super();
+                }
+            
                 @Override
                 public void setDataSource(javax.sql.DataSource dataSource) {
                     super.setDataSource(dataSource);

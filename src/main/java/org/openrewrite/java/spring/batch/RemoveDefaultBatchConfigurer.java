@@ -63,16 +63,20 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration md = super.visitMethodDeclaration(method, executionContext);
-            if (overridesDefaultBatchConfigurerMethod(md)) {
+            if (overridesDefaultBatchConfigurerMethod(md) || callsDefaultBatchConfigurerSuperConstructor(md)) {
                 // Strip @Override
                 md = md.withLeadingAnnotations(ListUtils.map(md.getLeadingAnnotations(),
                         a -> (TypeUtils.isAssignableTo("java.lang.Override", a.getType())) ? null : a));
                 md = Markup.info(md, "TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed");
 
-                // Strip calls to super
+                // Strip calls to super()
+                md = md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(),
+                        s -> (s instanceof J.MethodInvocation && "super".equals(((J.MethodInvocation) s).getSimpleName())) ? null : s)));
+
+                // Strip calls to super.*()
                 md = md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(),
                         s -> (s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.Identifier &&
-                              ((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName().equals("super")) ? null : s)));
+                              "super".equals(((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName())) ? null : s)));
 
                 // Strip (now) empty methods
                 if (md.getBody().getStatements().isEmpty()) {
@@ -86,8 +90,15 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
             return Optional.ofNullable(md.getMethodType())
                     .map(JavaType.Method::getDeclaringType)
                     .map(JavaType.FullyQualified::getSupertype)
-                    .filter(supertype -> supertype.isAssignableTo(DEFAULT_BATCH_CONFIGURER))
-                    .flatMap(supertype -> TypeUtils.findDeclaredMethod(supertype, md.getSimpleName(), md.getMethodType().getParameterTypes()))
+                    .filter(type -> type.isAssignableTo(DEFAULT_BATCH_CONFIGURER))
+                    .flatMap(type -> TypeUtils.findDeclaredMethod(type, md.getSimpleName(), md.getMethodType().getParameterTypes()))
+                    .isPresent();
+        }
+
+        private static boolean callsDefaultBatchConfigurerSuperConstructor(J.MethodDeclaration md) {
+            return md.isConstructor() && Optional.ofNullable(md.getMethodType())
+                    .map(JavaType.Method::getDeclaringType)
+                    .filter(type -> type.isAssignableTo(DEFAULT_BATCH_CONFIGURER))
                     .isPresent();
         }
     }
