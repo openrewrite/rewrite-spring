@@ -65,7 +65,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                 Foo() {
                     super();
                 }
-            
+                        
                 @Override
                 public void setDataSource(javax.sql.DataSource dataSource) {
                     super.setDataSource(dataSource);
@@ -132,6 +132,25 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                 public void baz() {
                     // Comment only, still retained
                 }
+            }
+            """)
+        );
+    }
+
+    @Test
+    void removeBeanUsage() {
+        // language=java
+        rewriteRun(
+          java("""
+            import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
+            import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+            class FooConfig  {
+                public BatchConfigurer bean(javax.sql.DataSource dataSource) {
+                    return new DefaultBatchConfigurer(dataSource);
+                }
+            }
+            """, """
+            class FooConfig {
             }
             """)
         );

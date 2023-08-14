@@ -21,16 +21,20 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markup;
 
+import java.util.List;
 import java.util.Optional;
 
 public class RemoveDefaultBatchConfigurer extends Recipe {
 
+    private static final String BATCH_CONFIGURER = "org.springframework.batch.core.configuration.annotation.BatchConfigurer";
     private static final String DEFAULT_BATCH_CONFIGURER = "org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer";
 
     @Override
@@ -83,6 +87,18 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
                     return null;
                 }
             }
+
+            // Strip calls to new DefaultBatchConfigurer()
+            List<Statement> statements = md.getBody().getStatements();
+            if (statements.size() == 1
+                && statements.get(0) instanceof J.Return
+                && new MethodMatcher(DEFAULT_BATCH_CONFIGURER + " <constructor>(..)")
+                        .matches(((J.Return) statements.get(0)).getExpression())) {
+                maybeRemoveImport(BATCH_CONFIGURER);
+                maybeRemoveImport(DEFAULT_BATCH_CONFIGURER);
+                return null;
+            }
+
             return md;
         }
 
