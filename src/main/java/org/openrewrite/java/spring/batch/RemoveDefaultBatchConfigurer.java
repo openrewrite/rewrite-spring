@@ -23,10 +23,11 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markup;
 
-import java.util.List;
+import java.util.Optional;
 
 public class RemoveDefaultBatchConfigurer extends Recipe {
 
@@ -62,19 +63,16 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
             J.MethodDeclaration md = super.visitMethodDeclaration(method, executionContext);
-            if (TypeUtils.isAssignableTo(DEFAULT_BATCH_CONFIGURER, method.getMethodType().getDeclaringType())) {
+            if (overridesDefaultBatchConfigurerMethod(md)) {
                 // Strip @Override
-                List<J.Annotation> formerLeadingAnnotations = md.getLeadingAnnotations();
-                if (TypeUtils.isOverride(md.getMethodType())) {
-                    md = md.withLeadingAnnotations(ListUtils.map(formerLeadingAnnotations,
-                            a -> (TypeUtils.isAssignableTo("java.lang.Override", a.getType())) ? null : a));
-                    md = Markup.info(md, "TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed");
-                }
+                md = md.withLeadingAnnotations(ListUtils.map(md.getLeadingAnnotations(),
+                        a -> (TypeUtils.isAssignableTo("java.lang.Override", a.getType())) ? null : a));
+                md = Markup.info(md, "TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed");
 
                 // Strip calls to super
                 md = md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(),
                         s -> (s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.Identifier &&
-                                ((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName().equals("super")) ? null : s)));
+                              ((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName().equals("super")) ? null : s)));
 
                 // Strip (now) empty methods
                 if (md.getBody().getStatements().isEmpty()) {
@@ -82,6 +80,15 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
                 }
             }
             return md;
+        }
+
+        private static boolean overridesDefaultBatchConfigurerMethod(J.MethodDeclaration md) {
+            return Optional.ofNullable(md.getMethodType())
+                    .map(JavaType.Method::getDeclaringType)
+                    .map(JavaType.FullyQualified::getSupertype)
+                    .filter(supertype -> supertype.isAssignableTo(DEFAULT_BATCH_CONFIGURER))
+                    .flatMap(supertype -> TypeUtils.findDeclaredMethod(supertype, md.getSimpleName(), md.getMethodType().getParameterTypes()))
+                    .isPresent();
         }
     }
 }

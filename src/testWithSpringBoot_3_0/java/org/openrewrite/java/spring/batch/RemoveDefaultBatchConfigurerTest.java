@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -100,7 +99,6 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
     }
 
     @Test
-    @Disabled("Not retaining additional interface overrides for now")
     void retainInterfaceOverrides() {
         // language=java
         rewriteRun(
@@ -120,14 +118,15 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                 
                 @Override
                 public void baz() {
-                    super.baz();
+                    // Comment only, still retained
                 }
             }
             """, """
             class Foo implements bar.Bar {
+
                 @Override
                 public void baz() {
-                    super.baz();
+                    // Comment only, still retained
                 }
             }
             """)
