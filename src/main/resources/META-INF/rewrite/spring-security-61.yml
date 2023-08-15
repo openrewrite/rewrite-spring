@@ -33,3 +33,4 @@ recipeList:
       overrideManagedVersion: false
   - org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl
   - org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
+  - org.openrewrite.java.spring.boot2.HeadersConfigurerLambdaDsl
