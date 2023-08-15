@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.boot2;
+package org.openrewrite.java.spring.security5;
 
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
@@ -26,6 +26,7 @@ import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AuthorizeHttpRequests extends Recipe {
 
@@ -33,9 +34,11 @@ public class AuthorizeHttpRequests extends Recipe {
 
     private static final String AUTHORIZE_HTTP_REQUESTS = "authorizeHttpRequests";
 
-    private static final MethodMatcher MATCH_AUTHORIZE_REQUESTS = new MethodMatcher("org.springframework.security.config.annotation.web.builders.HttpSecurity authorizeRequests(..)");
+    private static final MethodMatcher MATCH_AUTHORIZE_REQUESTS = new MethodMatcher(
+            "org.springframework.security.config.annotation.web.builders.HttpSecurity authorizeRequests(..)");
 
-    private static final MethodMatcher MATCH_ACCESS_DECISION_MANAGER = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer$AbstractInterceptUrlRegistry accessDecisionManager(..)");
+    private static final MethodMatcher MATCH_ACCESS_DECISION_MANAGER = new MethodMatcher(
+            "org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer$AbstractInterceptUrlRegistry accessDecisionManager(..)");
 
     @Override
     public String getDisplayName() {
@@ -50,13 +53,20 @@ public class AuthorizeHttpRequests extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaVisitor<ExecutionContext>() {
-            {
-                doAfterVisit(new ChangeType("org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer.ExpressionInterceptUrlRegistry", "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry", false).getVisitor());
-                doAfterVisit(new ChangeType("org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer", "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer", false).getVisitor());
-                doAfterVisit(new ChangeType("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer", "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer", false).getVisitor());
+            private void changeTypesAfterVisit(){
+                doAfterVisit(new ChangeType(
+                        "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer.ExpressionInterceptUrlRegistry",
+                        "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry",
+                        false).getVisitor());
+                doAfterVisit(new ChangeType(
+                        "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer",
+                        "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer",
+                        false).getVisitor());
+                doAfterVisit(new ChangeType(
+                        "org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer",
+                        "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer",
+                        false).getVisitor());
             }
-
-
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
@@ -66,8 +76,10 @@ public class AuthorizeHttpRequests extends Recipe {
                     JavaType.Method methodType = method.getMethodType();
                     if (methodType != null) {
                         if (MATCH_AUTHORIZE_REQUESTS.matches(methodType)) {
+                            changeTypesAfterVisit();
                             return processAuthorizeRequests(m);
                         } else if (MATCH_ACCESS_DECISION_MANAGER.matches(methodType)) {
+                            changeTypesAfterVisit();
                             return processAccessDecisionManager(m, ctx);
                         }
                     }
@@ -81,7 +93,10 @@ public class AuthorizeHttpRequests extends Recipe {
 
             private J.MethodInvocation processAuthorizeRequests(J.MethodInvocation m) {
                 JavaType.Method methodType = m.getMethodType();
-                JavaType.Method newMethodType = methodType.getDeclaringType().getMethods().stream().filter(nm -> AUTHORIZE_HTTP_REQUESTS.equals(nm.getName()) && nm.getParameterTypes().size() == methodType.getParameterTypes().size()).findFirst().orElse(null);
+                JavaType.Method newMethodType = methodType.getDeclaringType().getMethods().stream()
+                        .filter(nm -> AUTHORIZE_HTTP_REQUESTS.equals(nm.getName()))
+                        .filter(nm -> nm.getParameterTypes().size() == methodType.getParameterTypes().size())
+                        .findFirst().orElse(null);
                 if (newMethodType != null) {
                     m = m
                             .withName(m.getName().withSimpleName(AUTHORIZE_HTTP_REQUESTS))
@@ -98,7 +113,7 @@ public class AuthorizeHttpRequests extends Recipe {
                 commentText.append(String.join(", ", m.getArguments().stream().map(a -> a.print(getCursor())).toArray(String[]::new)));
                 commentText.append(");' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.");
 
-                ArrayList<Comment> newComments = new ArrayList<>(m.getComments());
+                List<Comment> newComments = new ArrayList<>(m.getComments());
                 newComments.addAll(m.getSelect().getComments());
 
                 Expression selectExpr = m.getSelect();
@@ -117,7 +132,7 @@ public class AuthorizeHttpRequests extends Recipe {
             private J.MethodInvocation addTextCommentAfterSelect(J.MethodInvocation m, String s) {
                 J.MethodInvocation.Padding padding = m.getPadding();
                 Space afterSelect = padding.getSelect().getAfter();
-                ArrayList<Comment> newComments = new ArrayList<>(afterSelect.getComments());
+                List<Comment> newComments = new ArrayList<>(afterSelect.getComments());
                 newComments.add(new TextComment(true, s, newComments.isEmpty() ? "\n" + afterSelect.getIndent() : newComments.get(0).getSuffix(), Markers.EMPTY));
                 JRightPadded<Expression> paddedSelect = padding.getSelect().withAfter(afterSelect.withComments(newComments));
                 return new J.MethodInvocation(m.getId(), m.getPrefix(), m.getMarkers(), paddedSelect, padding.getTypeParameters(), m.getName(), padding.getArguments(), m.getMethodType());
