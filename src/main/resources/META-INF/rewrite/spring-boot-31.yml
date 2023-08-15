@@ -36,6 +36,7 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 3.1.x
+  - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_1
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
 ---
 type: specs.openrewrite.org/v1beta/recipe
