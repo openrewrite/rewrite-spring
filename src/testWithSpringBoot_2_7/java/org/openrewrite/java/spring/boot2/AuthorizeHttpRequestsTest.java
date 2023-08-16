@@ -60,7 +60,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                           .rememberMe();
                   }
               }
-                            """,
+              """,
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -83,7 +83,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                           .rememberMe();
                   }
               }
-                             """
+              """
           )
         );
     }
@@ -109,7 +109,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                       return http.build();
                   }
               }
-                            """,
+              """,
             """
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
@@ -126,7 +126,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                       return http.build();
                   }
               }
-                             """
+              """
           )
         );
     }
@@ -163,7 +163,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                   }
 
               }
-                            """,
+              """,
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -191,7 +191,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                   }
 
               }
-                          """
+              """
           )
         );
     }
@@ -219,7 +219,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                               .accessDecisionManager(null);
                   }
               }
-                            """,
+              """,
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -237,7 +237,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                               .anyRequest().authenticated();
                   }
               }
-                             """
+              """
           )
         );
     }
@@ -264,7 +264,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                               .anyRequest().authenticated();
                   }
               }
-                            """,
+              """,
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -282,7 +282,7 @@ public class AuthorizeHttpRequestsTest implements RewriteTest {
                               .anyRequest().authenticated();
                   }
               }
-                             """
+              """
           )
         );
     }
