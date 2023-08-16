@@ -34,40 +34,40 @@ public class ServerHttpSecurityLambdaDslTest implements RewriteTest {
     @DocumentExample
     @Test
     void simple() {
-        //language=java
         rewriteRun(
+          //language=java
           java(
             """
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+              import org.springframework.security.config.web.server.ServerHttpSecurity;
+              import org.springframework.security.web.server.SecurityWebFilterChain;
 
-@EnableWebFluxSecurity
-public class SecurityConfig {
+              @EnableWebFluxSecurity
+              public class SecurityConfig {
 
-    @Bean
-    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http.authorizeExchange().pathMatchers("/blog/**").permitAll().anyExchange().authenticated();
-        return http.build();
-    }
-}
+                  @Bean
+                  SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+                      http.authorizeExchange().pathMatchers("/blog/**").permitAll().anyExchange().authenticated();
+                      return http.build();
+                  }
+              }
               """,
             """
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+              import org.springframework.security.config.web.server.ServerHttpSecurity;
+              import org.springframework.security.web.server.SecurityWebFilterChain;
 
-@EnableWebFluxSecurity
-public class SecurityConfig {
+              @EnableWebFluxSecurity
+              public class SecurityConfig {
 
-    @Bean
-    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http.authorizeExchange(exchange -> exchange.pathMatchers("/blog/**").permitAll().anyExchange().authenticated());
-        return http.build();
-    }
-}
+                  @Bean
+                  SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+                      http.authorizeExchange(exchange -> exchange.pathMatchers("/blog/**").permitAll().anyExchange().authenticated());
+                      return http.build();
+                  }
+              }
               """
           )
         );
@@ -75,43 +75,43 @@ public class SecurityConfig {
 
     @Test
     void advanced() {
-        //language=java
         rewriteRun(
+          //language=java
           java(
             """
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+              import org.springframework.security.config.web.server.ServerHttpSecurity;
+              import org.springframework.security.web.server.SecurityWebFilterChain;
 
-@EnableWebFluxSecurity
-public class SecurityConfig {
+              @EnableWebFluxSecurity
+              public class SecurityConfig {
 
-    @Bean
-    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http.authorizeExchange().pathMatchers("/blog/**").permitAll().anyExchange().authenticated().and().httpBasic()
-                .and().formLogin().loginPage("/login");
-        return http.build();
-    }
-}
+                  @Bean
+                  SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+                      http.authorizeExchange().pathMatchers("/blog/**").permitAll().anyExchange().authenticated().and().httpBasic()
+                              .and().formLogin().loginPage("/login");
+                      return http.build();
+                  }
+              }
               """,
             """
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+              import org.springframework.security.config.web.server.ServerHttpSecurity;
+              import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import static org.springframework.security.config.Customizer.withDefaults;
+              import static org.springframework.security.config.Customizer.withDefaults;
 
-@EnableWebFluxSecurity
-public class SecurityConfig {
+              @EnableWebFluxSecurity
+              public class SecurityConfig {
 
-    @Bean
-    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http.authorizeExchange(exchange -> exchange.pathMatchers("/blog/**").permitAll().anyExchange().authenticated()).httpBasic(withDefaults()).formLogin(login -> login.loginPage("/login"));
-        return http.build();
-    }
-}
+                  @Bean
+                  SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+                      http.authorizeExchange(exchange -> exchange.pathMatchers("/blog/**").permitAll().anyExchange().authenticated()).httpBasic(withDefaults()).formLogin(login -> login.loginPage("/login"));
+                      return http.build();
+                  }
+              }
               """
           )
         );
