@@ -48,7 +48,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
-            final Map<String, String> argReplacements) {
+            Map<String, String> argReplacements) {
         this.securityFqn = securityFqn;
         this.convertableMethods = convertableMethods;
         this.argReplacements = argReplacements;
