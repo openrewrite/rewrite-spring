@@ -37,6 +37,7 @@ recipeList:
       pluginIdPattern: org.springframework.boot
       newVersion: 3.1.x
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
+  - org.openrewrite.hibernate.MigrateToHibernate62
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
