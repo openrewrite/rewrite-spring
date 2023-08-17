@@ -120,9 +120,9 @@ dependencies {
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
-    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
+    runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
-    runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
+    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
