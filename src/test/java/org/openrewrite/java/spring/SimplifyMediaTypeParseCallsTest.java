@@ -45,7 +45,7 @@ public class SimplifyMediaTypeParseCallsTest implements RewriteTest {
               import org.springframework.http.MediaType;
               
               class Test {
-                  MediaType mediaType = MediaType.parseMediaType("application/json");
+                  MediaType mediaType = MediaType.parseMediaType(MediaType.APPLICATION_JSON_VALUE);
               }
               """,
             """
@@ -72,7 +72,7 @@ public class SimplifyMediaTypeParseCallsTest implements RewriteTest {
               import org.springframework.http.MediaType;
               
               class Test {
-                  MediaType mediaType = MediaType.valueOf("application/json");
+                  MediaType mediaType = MediaType.valueOf(MediaType.APPLICATION_JSON_VALUE);
               }
               """,
             """
