@@ -26,12 +26,12 @@ import org.openrewrite.java.tree.J;
 public class SimplifyMediaTypeParseCalls extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Simplify Unnecessary `MediaType.parse` calls";
+        return "Simplify Unnecessary `MediaType.parseMediaType` and `MediaType.valueOf` calls";
     }
 
     @Override
     public String getDescription() {
-        return "Replaces `MediaType.parse('application/json')` with `MediaType.APPLICATION_JSON`.";
+        return "Replaces `MediaType.parseMediaType('application/json')` and `MediaType.valueOf('application/json') with `MediaType.APPLICATION_JSON`.";
     }
 
     @Override
@@ -40,22 +40,21 @@ public class SimplifyMediaTypeParseCalls extends Recipe {
     }
 
     private static final class SimplifyParseCallsVisitor extends JavaVisitor<ExecutionContext> {
-        private final MethodMatcher MEDIATYPE_PARSE_MATCHER = new MethodMatcher("org.springframework.http.MediaType parse(..)");
+        private final MethodMatcher MEDIATYPE_PARSE_MEDIA_TYPE_MATCHER = new MethodMatcher("org.springframework.http.MediaType parseMediaType(String)");
+        private final MethodMatcher MEDIATYPE_VALUE_OF_MATCHER = new MethodMatcher("org.springframework.http.MediaType valueOf(String)");
 
         @Override
         public J visitMethodInvocation(J.MethodInvocation mi, ExecutionContext ctx) {
-            if (!MEDIATYPE_PARSE_MATCHER.matches(mi) && !mi.getArguments().isEmpty()) {
-                return mi;
+            if (MEDIATYPE_PARSE_MEDIA_TYPE_MATCHER.matches(mi) || MEDIATYPE_VALUE_OF_MATCHER.matches(mi)) {
+                J.Literal test = (J.Literal) mi.getArguments().get(0);
+                if ("application/json".equals(test.getValue())) {
+                    return JavaTemplate.builder("MediaType.APPLICATION_JSON")
+                            .build()
+                            .apply(getCursor(), mi.getCoordinates().replace());
+                }
             }
 
-            J.Literal test = (J.Literal) mi.getArguments().get(0);
-            if (!test.getValue().equals("application/json")) {
-                return mi;
-            }
-
-            return JavaTemplate.builder("MediaType.APPLICATION_JSON")
-                    .build()
-                    .apply(getCursor(), mi.getCoordinates().replace());
+            return super.visitMethodInvocation(mi, ctx);
         }
     }
 }

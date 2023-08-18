@@ -30,12 +30,12 @@ public class SimplifyMediaTypeParseCallsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .recipe(new SimplifyMediaTypeParseCalls())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.+", "spring-core-6.+"));
     }
 
     @DocumentExample
     @Test
-    void replaceUnnecessaryParseCall() {
+    void replaceUnnecessaryMediaTypeParseMediaTypeCall() {
         //language=java
         rewriteRun(
           java(
@@ -45,9 +45,7 @@ public class SimplifyMediaTypeParseCallsTest implements RewriteTest {
               import org.springframework.http.MediaType;
               
               class Test {
-                  void test() {
-                      MediaType.parse("application/json");
-                  }
+                  MediaType mediaType = MediaType.parseMediaType("application/json");
               }
               """,
             """
@@ -56,9 +54,34 @@ public class SimplifyMediaTypeParseCallsTest implements RewriteTest {
               import org.springframework.http.MediaType;
               
               class Test {
-                  void test() {
-                      MediaType.APPLICATION_JSON;
-                  }
+                  MediaType mediaType = MediaType.APPLICATION_JSON;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replaceUnnecessaryMediaTypeValueOfCall() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package com.mycompany;
+              
+              import org.springframework.http.MediaType;
+              
+              class Test {
+                  MediaType mediaType = MediaType.valueOf("application/json");
+              }
+              """,
+            """
+              package com.mycompany;
+              
+              import org.springframework.http.MediaType;
+              
+              class Test {
+                  MediaType mediaType = MediaType.APPLICATION_JSON;
               }
               """
           )
