@@ -171,6 +171,16 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                 .findFirst();
     }
 
+    // this method is unused in this repo, but, useful in Spring Tool Suite integration
+    public boolean isApplicableTopLevelMethodInvocation(J.MethodInvocation m) {
+        if (isApplicableMethod(m)) {
+            return true;
+        } else if (m.getSelect() instanceof J.MethodInvocation) {
+            return isApplicableTopLevelMethodInvocation((J.MethodInvocation) m.getSelect());
+        }
+        return false;
+    }
+
     private boolean isApplicableCallCursor(Cursor c) {
         if (c != null && c.getValue() instanceof J.MethodInvocation) {
             J.MethodInvocation inv = c.getValue();
