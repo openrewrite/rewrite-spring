@@ -15,7 +15,8 @@
  */
 package org.openrewrite.java.spring;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -25,7 +26,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class SimplifyMediaTypeParseCallsTest implements RewriteTest {
+class SimplifyMediaTypeParseCallsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
@@ -34,56 +35,55 @@ public class SimplifyMediaTypeParseCallsTest implements RewriteTest {
     }
 
     @DocumentExample
-    @Test
-    void replaceUnnecessaryMediaTypeParseMediaTypeCall() {
-        //language=java
+    @ParameterizedTest
+    @ValueSource(strings = {
+      "ALL_VALUE",
+      "APPLICATION_ATOM_XML_VALUE",
+      "APPLICATION_CBOR_VALUE",
+      "APPLICATION_FORM_URLENCODED_VALUE",
+      "APPLICATION_JSON_VALUE",
+      "APPLICATION_JSON_UTF8_VALUE",
+      "APPLICATION_OCTET_STREAM_VALUE",
+      "APPLICATION_PDF_VALUE",
+      "APPLICATION_PROBLEM_JSON_VALUE",
+      "APPLICATION_PROBLEM_JSON_UTF8_VALUE",
+      "APPLICATION_PROBLEM_XML_VALUE",
+      "APPLICATION_RSS_XML_VALUE",
+      "APPLICATION_STREAM_JSON_VALUE",
+      "APPLICATION_XHTML_XML_VALUE",
+      "APPLICATION_XML_VALUE",
+      "IMAGE_GIF_VALUE",
+      "IMAGE_JPEG_VALUE",
+      "IMAGE_PNG_VALUE",
+      "MULTIPART_FORM_DATA_VALUE",
+      "MULTIPART_MIXED_VALUE",
+      "MULTIPART_RELATED_VALUE",
+      "TEXT_EVENT_STREAM_VALUE",
+      "TEXT_HTML_VALUE",
+      "TEXT_MARKDOWN_VALUE",
+      "TEXT_PLAIN_VALUE",
+      "TEXT_XML_VALUE"
+    })
+    void replaceMediaTypes(String value) {
         rewriteRun(
+          //language=java
           java(
             """
-              package com.mycompany;
-              
               import org.springframework.http.MediaType;
               
               class Test {
-                  MediaType mediaType = MediaType.parseMediaType(MediaType.APPLICATION_JSON_VALUE);
+                  MediaType mediaType1 = MediaType.parseMediaType(MediaType.%1$s);
+                  MediaType mediaType2 = MediaType.valueOf(MediaType.%1$s);
               }
-              """,
+              """.formatted(value),
             """
-              package com.mycompany;
-              
               import org.springframework.http.MediaType;
-              
+                            
               class Test {
-                  MediaType mediaType = MediaType.APPLICATION_JSON;
+                  MediaType mediaType1 = MediaType.%1$s;
+                  MediaType mediaType2 = MediaType.%1$s;
               }
-              """
-          )
-        );
-    }
-
-    @Test
-    void replaceUnnecessaryMediaTypeValueOfCall() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              package com.mycompany;
-              
-              import org.springframework.http.MediaType;
-              
-              class Test {
-                  MediaType mediaType = MediaType.valueOf(MediaType.APPLICATION_JSON_VALUE);
-              }
-              """,
-            """
-              package com.mycompany;
-              
-              import org.springframework.http.MediaType;
-              
-              class Test {
-                  MediaType mediaType = MediaType.APPLICATION_JSON;
-              }
-              """
+              """.formatted(value.replace("_VALUE", ""))
           )
         );
     }

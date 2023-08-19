@@ -16,22 +16,19 @@
 package org.openrewrite.java.spring.http;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.TypeMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 public class SimplifyMediaTypeParseCalls extends Recipe {
+
     @Override
     public String getDisplayName() {
         return "Simplify Unnecessary `MediaType.parseMediaType` and `MediaType.valueOf` calls";
@@ -42,45 +39,36 @@ public class SimplifyMediaTypeParseCalls extends Recipe {
         return "Replaces `MediaType.parseMediaType('application/json')` and `MediaType.valueOf('application/json') with `MediaType.APPLICATION_JSON`.";
     }
 
+    static final String MEDIA_TYPE = "org.springframework.http.MediaType";
+    static final String PARSE_MEDIA_TYPE = MEDIA_TYPE + " parseMediaType(String)";
+    static final String VALUE_OF = MEDIA_TYPE + " valueOf(String)";
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new SimplifyParseCallsVisitor();
+        return Preconditions.check(
+                Preconditions.or(new UsesMethod<>(PARSE_MEDIA_TYPE), new UsesMethod<>(VALUE_OF)),
+                new SimplifyParseCallsVisitor());
     }
 
     private static final class SimplifyParseCallsVisitor extends JavaVisitor<ExecutionContext> {
-        private final MethodMatcher MEDIATYPE_PARSE_MEDIA_TYPE_MATCHER = new MethodMatcher("org.springframework.http.MediaType parseMediaType(String)");
-        private final MethodMatcher MEDIATYPE_VALUE_OF_MATCHER = new MethodMatcher("org.springframework.http.MediaType valueOf(String)");
-        private final List<String> MEDIATYPE_VALUES_ARRAY = Arrays.asList(
-                "APPLICATION_ATOM_XML_VALUE", "APPLICATION_CBOR_VALUE",
-                "APPLICATION_FORM_URLENCODED_VALUE", "APPLICATION_GRAPHQL_RESPONSE_VALUE",
-                "APPLICATION_JSON_VALUE", "APPLICATION_NDJSON_VALUE",
-                "APPLICATION_OCTET_STREAM_VALUE", "APPLICATION_PDF_VALUE",
-                "APPLICATION_PROBLEM_JSON_VALUE", "APPLICATION_PROBLEM_XML_VALUE",
-                "APPLICATION_PROTOBUF_VALUE", "APPLICATION_RSS_XML_VALUE",
-                "APPLICATION_XHTML_XML_VALUE", "APPLICATION_XML_VALUE",
-                "IMAGE_GIF_VALUE", "IMAGE_JPEG_VALUE", "IMAGE_PNG_VALUE",
-                "MULTIPART_FORM_DATA_VALUE", "MULTIPART_MIXED_VALUE",
-                "MULTIPART_RELATED_VALUE", "TEXT_EVENT_STREAM_VALUE",
-                "TEXT_HTML_VALUE", "TEXT_MARKDOWN_VALUE", "TEXT_PLAIN_VALUE",
-                "TEXT_XML_VALUE"
-        );
-
         @Override
-        public J visitMethodInvocation(J.MethodInvocation mi, ExecutionContext ctx) {
-            if (MEDIATYPE_PARSE_MEDIA_TYPE_MATCHER.matches(mi) || MEDIATYPE_VALUE_OF_MATCHER.matches(mi)) {
+        public J visitMethodInvocation(J.MethodInvocation methodInvocation, ExecutionContext ctx) {
+            J j = super.visitMethodInvocation(methodInvocation, ctx);
+            J.MethodInvocation mi = (J.MethodInvocation) j;
+            if (new MethodMatcher(PARSE_MEDIA_TYPE).matches(mi) || new MethodMatcher(VALUE_OF).matches(mi)) {
                 Expression methodArg = mi.getArguments().get(0);
-                if (methodArg instanceof J.FieldAccess && TypeUtils.isOfType(methodArg.getType(), JavaType.buildType("java.lang.String"))) {
+                if (methodArg instanceof J.FieldAccess
+                        && TypeUtils.isOfClassType(((J.FieldAccess) methodArg).getTarget().getType(), MEDIA_TYPE)) {
                     J.FieldAccess access = (J.FieldAccess) methodArg;
-                    if (MEDIATYPE_VALUES_ARRAY.contains(access.getSimpleName())) {
-                        String replacement = "MediaType." + access.getSimpleName().replace("_VALUE", "");
-                        return JavaTemplate.builder(replacement)
-                                .build()
-                                .apply(getCursor(), mi.getCoordinates().replace());
-                    }
+                    return access
+                            .withType(JavaType.Primitive.String)
+                            .withName(access.getName().withSimpleName(access.getSimpleName().replace("_VALUE", "")))
+                            .withPrefix(mi.getPrefix())
+                            .withMarkers(mi.getMarkers())
+                            .withComments(mi.getComments());
                 }
             }
-
-            return super.visitMethodInvocation(mi, ctx);
+            return j;
         }
     }
 }
