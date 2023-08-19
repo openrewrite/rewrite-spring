@@ -71,17 +71,24 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
             """
               import org.springframework.http.MediaType;
               
+              import static org.springframework.http.MediaType.parseMediaType;
+              import static org.springframework.http.MediaType.valueOf;
+              
               class Test {
                   MediaType mediaType1 = MediaType.parseMediaType(MediaType.%1$s);
                   MediaType mediaType2 = MediaType.valueOf(MediaType.%1$s);
+                  MediaType mediaType3 = parseMediaType(MediaType.%1$s);
+                  MediaType mediaType4 = valueOf(MediaType.%1$s);
               }
               """.formatted(value),
             """
               import org.springframework.http.MediaType;
-                            
+              
               class Test {
                   MediaType mediaType1 = MediaType.%1$s;
                   MediaType mediaType2 = MediaType.%1$s;
+                  MediaType mediaType3 = MediaType.%1$s;
+                  MediaType mediaType4 = MediaType.%1$s;
               }
               """.formatted(value.replace("_VALUE", ""))
           )

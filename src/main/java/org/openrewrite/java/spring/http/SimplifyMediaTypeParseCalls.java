@@ -59,10 +59,13 @@ public class SimplifyMediaTypeParseCalls extends Recipe {
                 Expression methodArg = mi.getArguments().get(0);
                 if (methodArg instanceof J.FieldAccess
                         && TypeUtils.isOfClassType(((J.FieldAccess) methodArg).getTarget().getType(), MEDIA_TYPE)) {
-                    J.FieldAccess access = (J.FieldAccess) methodArg;
-                    return access
+                    maybeRemoveImport(MEDIA_TYPE + ".parseMediaType");
+                    maybeRemoveImport(MEDIA_TYPE + ".valueOf");
+                    J.FieldAccess fieldAccess = (J.FieldAccess) methodArg;
+                    String replacementConstant = fieldAccess.getSimpleName().replace("_VALUE", "");
+                    return fieldAccess
                             .withType(JavaType.Primitive.String)
-                            .withName(access.getName().withSimpleName(access.getSimpleName().replace("_VALUE", "")))
+                            .withName(fieldAccess.getName().withSimpleName(replacementConstant))
                             .withPrefix(mi.getPrefix())
                             .withMarkers(mi.getMarkers())
                             .withComments(mi.getComments());
