@@ -203,9 +203,14 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                         .withName(initialMethodInvocation.getName().withSimpleName(methodType.getName()))));
         cursor = cursor.getParent(2);
         if (isApplicableCallCursor(cursor)) {
-            for (; cursor != null && isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
+            if (isDisableMethod(cursor.getValue())) {
                 cursor.putMessage(MSG_FLATTEN_CHAIN, true);
                 chain.add(cursor.getValue());
+            } else {
+                for (; cursor != null && isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
+                    cursor.putMessage(MSG_FLATTEN_CHAIN, true);
+                    chain.add(cursor.getValue());
+                }
             }
         }
         if (cursor == null || !(cursor.getValue() instanceof J.MethodInvocation) && !chain.isEmpty()) {
@@ -223,6 +228,10 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private boolean isAndMethod(J.MethodInvocation andMethod) {
         return "and".equals(andMethod.getSimpleName()) && (andMethod.getArguments().isEmpty() || andMethod.getArguments().get(0) instanceof J.Empty);
+    }
+
+    private boolean isDisableMethod(J.MethodInvocation disableMethod) {
+        return "disable".equals(disableMethod.getSimpleName()) && (disableMethod.getArguments().isEmpty() || disableMethod.getArguments().get(0) instanceof J.Empty);
     }
 
     private J.MethodInvocation createDefaultsCall(JavaType type) {

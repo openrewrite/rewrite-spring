@@ -255,4 +255,47 @@ public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
           )
         );
     }
+
+    @Test
+    void disableIsTerminal() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.csrf().disable()
+                              .authorizeRequests()
+                                      .antMatchers("/blog/**").permitAll()
+                                      .anyRequest().authenticated();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.csrf(csrf -> csrf.disable())
+                              .authorizeRequests(requests -> requests
+                                      .antMatchers("/blog/**").permitAll()
+                                      .anyRequest().authenticated());
+                  }
+              }
+              """
+          )
+        );
+    }
 }
