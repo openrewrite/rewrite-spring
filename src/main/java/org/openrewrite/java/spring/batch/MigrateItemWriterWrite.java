@@ -182,7 +182,7 @@ public class MigrateItemWriterWrite extends Recipe {
 
         private boolean notAssignableFromChunk(@Nullable JavaType type) {
             // Iterable is the only common type between List and Chunk
-            return type != null && !type.toString().startsWith(ITERABLE_FQN);
+            return !TypeUtils.isOfClassType(type, ITERABLE_FQN);
         }
 
         private boolean isParameter(J.Identifier maybeParameter) {
