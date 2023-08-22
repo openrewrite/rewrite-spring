@@ -129,7 +129,7 @@ public class MigrateItemWriterWrite extends Recipe {
                     mi = mi.withSelect(newGetItemsMethodInvocation(mi.getPadding().getSelect()));
                 }
             }
-            if (mi.getMethodType() != null && !ITEM_WRITER_MATCHER.matches(mi)) {
+            if (!ITEM_WRITER_MATCHER.matches(mi)) {
                 final List<JavaType> parameterTypes = mi.getMethodType().getParameterTypes();
                 mi = mi.withArguments(ListUtils.map(mi.getArguments(), (i, e) -> {
                     if (e instanceof J.Identifier && isParameter((J.Identifier) e)) {
