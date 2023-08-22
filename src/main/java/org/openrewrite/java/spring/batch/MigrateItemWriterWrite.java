@@ -122,17 +122,17 @@ public class MigrateItemWriterWrite extends Recipe {
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, executionContext);
-            if (LIST_MATCHER.matches(mi) && mi.getSelect() instanceof J.Identifier) {
-                if (isParameter((J.Identifier) mi.getSelect())) {
-                    assert mi.getPadding().getSelect() != null;
-                    // No need to take care of typing here, since it's going to be printed and parsed on the JavaTemplate later on.
-                    mi = mi.withSelect(newGetItemsMethodInvocation(mi.getPadding().getSelect()));
-                }
+            if (LIST_MATCHER.matches(mi) && isParameter(mi.getSelect())) {
+                assert mi.getPadding().getSelect() != null;
+                // No need to take care of typing here, since it's going to be printed and parsed on the JavaTemplate later on.
+                mi = mi.withSelect(newGetItemsMethodInvocation(mi.getPadding().getSelect()));
+
             }
             if (!ITEM_WRITER_MATCHER.matches(mi)) {
+                assert mi.getMethodType() != null;
                 final List<JavaType> parameterTypes = mi.getMethodType().getParameterTypes();
                 mi = mi.withArguments(ListUtils.map(mi.getArguments(), (i, e) -> {
-                    if (e instanceof J.Identifier && isParameter((J.Identifier) e)) {
+                    if (isParameter(e)) {
                         JavaType type = parameterTypes.size() > i ?
                                 parameterTypes.get(i) :
                                 parameterTypes.get(parameterTypes.size() - 1);
@@ -153,12 +153,10 @@ public class MigrateItemWriterWrite extends Recipe {
         public J.VariableDeclarations.NamedVariable visitVariable(J.VariableDeclarations.NamedVariable variable, ExecutionContext executionContext) {
             J.VariableDeclarations.NamedVariable var = super.visitVariable(variable, executionContext);
 
-            if (var.getInitializer() instanceof J.Identifier && notAssignableFromChunk(var)) {
-                if (isParameter((J.Identifier) var.getInitializer())) {
-                    var = var.withInitializer(newGetItemsMethodInvocation(
-                            new JRightPadded<>(var.getInitializer(), Space.EMPTY, Markers.EMPTY)
-                    ));
-                }
+            if (notAssignableFromChunk(var) && isParameter(var.getInitializer())) {
+                var = var.withInitializer(newGetItemsMethodInvocation(
+                        new JRightPadded<>(var.getInitializer(), Space.EMPTY, Markers.EMPTY)
+                ));
             }
             return var;
         }
@@ -166,12 +164,10 @@ public class MigrateItemWriterWrite extends Recipe {
         @Override
         public J.Assignment visitAssignment(J.Assignment assignment, ExecutionContext executionContext) {
             J.Assignment a = super.visitAssignment(assignment, executionContext);
-            if (a.getAssignment() instanceof J.Identifier && notAssignableFromChunk(a.getVariable().getType())) {
-                if (isParameter((J.Identifier) a.getAssignment())) {
-                    a = a.withAssignment(newGetItemsMethodInvocation(
-                            new JRightPadded<>(a.getAssignment(), Space.EMPTY, Markers.EMPTY)
-                    ));
-                }
+            if (notAssignableFromChunk(a.getVariable().getType()) && isParameter(a.getAssignment())) {
+                a = a.withAssignment(newGetItemsMethodInvocation(
+                        new JRightPadded<>(a.getAssignment(), Space.EMPTY, Markers.EMPTY)
+                ));
             }
             return a;
         }
@@ -185,9 +181,10 @@ public class MigrateItemWriterWrite extends Recipe {
             return !TypeUtils.isOfClassType(type, ITERABLE_FQN);
         }
 
-        private boolean isParameter(J.Identifier maybeParameter) {
-            return maybeParameter.getFieldType() != null &&
-                   maybeParameter.getFieldType().getName().equals(parameterName);
+        private boolean isParameter(@Nullable Expression maybeParameter) {
+            return maybeParameter instanceof J.Identifier &&
+                   ((J.Identifier) maybeParameter).getFieldType() != null &&
+                   ((J.Identifier) maybeParameter).getFieldType().getName().equals(parameterName);
         }
 
         private static J.MethodInvocation newGetItemsMethodInvocation(JRightPadded<Expression> select) {
