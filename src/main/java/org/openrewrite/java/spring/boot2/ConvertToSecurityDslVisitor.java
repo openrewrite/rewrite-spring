@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.boot2;
 import org.openrewrite.Cursor;
 import org.openrewrite.Tree;
 import org.openrewrite.internal.StringUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.*;
@@ -181,17 +182,17 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         return false;
     }
 
-    private boolean isApplicableCallCursor(Cursor c) {
-        if (c != null && c.getValue() instanceof J.MethodInvocation) {
-            J.MethodInvocation inv = c.getValue();
-            if (!TypeUtils.isOfClassType(inv.getType(), securityFqn)) {
-                return true;
-            }
-            if (new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer disable()").matches(inv)) {
-                return true;
-            }
+    private boolean isApplicableCallCursor(@Nullable Cursor c) {
+        if (c == null) {
+            return false;
         }
-        return false;
+
+        if (!(c.getValue() instanceof J.MethodInvocation)) {
+            return false;
+        }
+
+        J.MethodInvocation inv = c.getValue();
+        return !(isAndMethod(inv) && TypeUtils.isOfClassType(inv.getType(), securityFqn)) && !isDisableMethod(inv);
     }
 
     private List<J.MethodInvocation> computeAndMarkChain() {
@@ -202,36 +203,40 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                 chain.add(initialMethodInvocation.withMethodType(methodType)
                         .withName(initialMethodInvocation.getName().withSimpleName(methodType.getName()))));
         cursor = cursor.getParent(2);
-        if (isApplicableCallCursor(cursor)) {
-            if (isDisableMethod(cursor.getValue())) {
+        for (; isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
+            cursor.putMessage(MSG_FLATTEN_CHAIN, true);
+            chain.add(cursor.getValue());
+        }
+        if (cursor != null && cursor.getValue() instanceof J.MethodInvocation) {
+            if (isAndMethod(cursor.getValue())) {
+                cursor.putMessage(MSG_FLATTEN_CHAIN, true);
+                cursor = cursor.getParent(2);
+            } else if (isDisableMethod(cursor.getValue())) {
                 cursor.putMessage(MSG_FLATTEN_CHAIN, true);
                 chain.add(cursor.getValue());
-            } else {
-                for (; cursor != null && isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
-                    cursor.putMessage(MSG_FLATTEN_CHAIN, true);
-                    chain.add(cursor.getValue());
-                }
+                cursor = cursor.getParent(2);
             }
         }
-        if (cursor == null || !(cursor.getValue() instanceof J.MethodInvocation) && !chain.isEmpty()) {
+        if (cursor == null || chain.isEmpty()) {
+            return Collections.emptyList();
+        }
+        if (!(cursor.getValue() instanceof J.MethodInvocation)) {
             // top invocation is at the end of the chain - mark it. We'd need to strip off prefix from this invocation later
             J.MethodInvocation topInvocation = chain.remove(chain.size() - 1);
             // removed above, now add it back with the marker
             chain.add(topInvocation.withMarkers(topInvocation.getMarkers().addIfAbsent(new Markup.Info(Tree.randomId(), MSG_TOP_INVOCATION, null))));
         }
-        // mark all and() methods for flattening as well but do not include in the chain
-        for (; cursor != null && cursor.getValue() instanceof J.MethodInvocation && isAndMethod(cursor.getValue()); cursor = cursor.getParent(2)) {
-            cursor.putMessage(MSG_FLATTEN_CHAIN, true);
-        }
         return chain;
     }
 
-    private boolean isAndMethod(J.MethodInvocation andMethod) {
-        return "and".equals(andMethod.getSimpleName()) && (andMethod.getArguments().isEmpty() || andMethod.getArguments().get(0) instanceof J.Empty);
+    private boolean isAndMethod(J.MethodInvocation method) {
+        return "and".equals(method.getSimpleName()) &&
+                (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty) &&
+                TypeUtils.isOfClassType(method.getType(), securityFqn);
     }
 
-    private boolean isDisableMethod(J.MethodInvocation disableMethod) {
-        return "disable".equals(disableMethod.getSimpleName()) && (disableMethod.getArguments().isEmpty() || disableMethod.getArguments().get(0) instanceof J.Empty);
+    private boolean isDisableMethod(J.MethodInvocation method) {
+        return new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer disable()", true).matches(method);
     }
 
     private J.MethodInvocation createDefaultsCall(JavaType type) {
