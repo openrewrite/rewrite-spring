@@ -53,10 +53,6 @@ recipeList:
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: ^7.4
       addIfMissing: false
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.ehcache
-      oldArtifactId: ehcache
-      newVersion: 3.x
   - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
@@ -69,6 +65,7 @@ recipeList:
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
   - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
   - org.openrewrite.hibernate.MigrateToHibernate61
+  - org.openrewrite.java.ehcache.MigrateEhcache
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
@@ -123,6 +120,18 @@ recipeList:
       oldGroupId: org.thymeleaf.extras
       oldArtifactId: thymeleaf-extras-springsecurity5
       newArtifactId: thymeleaf-extras-springsecurity6
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.ehcache.MigrateEhcache
+displayName: Migrate Ehcache to 3.x
+description: Migrate Ehcache to 3.x.
+tags:
+  - ehcache
+recipeList:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.ehcache
+      oldArtifactId: ehcache
+      newVersion: 3.x
 ---
 ########################################################################################################################
 # SpringBoot 3.0 Configuration Changes

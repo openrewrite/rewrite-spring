@@ -32,14 +32,14 @@ import static org.openrewrite.gradle.Assertions.withToolingApi;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 @Issue("https://github.com/openrewrite/rewrite-spring/issues/376")
-public class UpdateEhCacheVersionTest implements RewriteTest {
+class UpdateEhCacheVersionTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-          .scanRuntimeClasspath()
-          .build()
-          .activateRecipes("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0"));
+            .scanRuntimeClasspath("org.openrewrite.java.ehcache")
+            .build()
+            .activateRecipes("org.openrewrite.java.ehcache.MigrateEhcache"));
     }
 
     @Nested
