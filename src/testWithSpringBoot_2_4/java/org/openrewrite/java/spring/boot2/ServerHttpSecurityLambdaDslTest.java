@@ -23,7 +23,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class ServerHttpSecurityLambdaDslTest implements RewriteTest {
+class ServerHttpSecurityLambdaDslTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ServerHttpSecurityLambdaDsl())
@@ -45,10 +45,11 @@ public class ServerHttpSecurityLambdaDslTest implements RewriteTest {
 
               @EnableWebFluxSecurity
               public class SecurityConfig {
-
                   @Bean
                   SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-                      http.authorizeExchange().pathMatchers("/blog/**").permitAll().anyExchange().authenticated();
+                      http.authorizeExchange()
+                              .pathMatchers("/blog/**").permitAll()
+                              .anyExchange().authenticated();
                       return http.build();
                   }
               }
@@ -61,10 +62,11 @@ public class ServerHttpSecurityLambdaDslTest implements RewriteTest {
 
               @EnableWebFluxSecurity
               public class SecurityConfig {
-
                   @Bean
                   SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-                      http.authorizeExchange(exchange -> exchange.pathMatchers("/blog/**").permitAll().anyExchange().authenticated());
+                      http.authorizeExchange(exchange -> exchange
+                              .pathMatchers("/blog/**").permitAll()
+                              .anyExchange().authenticated());
                       return http.build();
                   }
               }
@@ -86,11 +88,17 @@ public class ServerHttpSecurityLambdaDslTest implements RewriteTest {
 
               @EnableWebFluxSecurity
               public class SecurityConfig {
-
                   @Bean
                   SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-                      http.authorizeExchange().pathMatchers("/blog/**").permitAll().anyExchange().authenticated().and().httpBasic()
-                              .and().formLogin().loginPage("/login");
+                      http
+                              .authorizeExchange()
+                                      .pathMatchers("/blog/**").permitAll()
+                                      .anyExchange().authenticated()
+                                      .and()
+                              .httpBasic()
+                                      .and()
+                              .formLogin()
+                                      .loginPage("/login");
                       return http.build();
                   }
               }
@@ -105,10 +113,15 @@ public class ServerHttpSecurityLambdaDslTest implements RewriteTest {
 
               @EnableWebFluxSecurity
               public class SecurityConfig {
-
                   @Bean
                   SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-                      http.authorizeExchange(exchange -> exchange.pathMatchers("/blog/**").permitAll().anyExchange().authenticated()).httpBasic(withDefaults()).formLogin(login -> login.loginPage("/login"));
+                      http
+                              .authorizeExchange(exchange -> exchange
+                                      .pathMatchers("/blog/**").permitAll()
+                                      .anyExchange().authenticated())
+                              .httpBasic(withDefaults())
+                              .formLogin(login -> login
+                                      .loginPage("/login"));
                       return http.build();
                   }
               }

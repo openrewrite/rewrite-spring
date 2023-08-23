@@ -504,7 +504,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     }
 
     private static AuthType getAuthType(J.MethodDeclaration m) {
-        if (m.getBody() == null) {
+        if (m.getBody() == null || m.getBody().getStatements().isEmpty()) {
             return AuthType.NONE;
         }
         Statement lastStatement = m.getBody().getStatements().get(m.getBody().getStatements().size() - 1);

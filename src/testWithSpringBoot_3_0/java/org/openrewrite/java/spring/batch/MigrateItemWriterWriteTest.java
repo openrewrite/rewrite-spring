@@ -16,8 +16,9 @@
 package org.openrewrite.java.spring.batch;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -125,4 +126,293 @@ class MigrateItemWriterWriteTest implements RewriteTest {
             """)
         );
     }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/411")
+    @Test
+    void replaceListMethodInvocations() {
+        // language=java
+        rewriteRun(
+          java("""
+            import java.util.List;
+            import org.springframework.batch.item.ItemWriter;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+            
+                @Override
+                public void write(final List<? extends T> items) throws Exception {
+                    if (items.size() >= 3) {
+                        T item = items.get(2);
+                        System.out.println(item.toString());
+                    }
+                }
+            }
+            """, """
+            import org.springframework.batch.item.Chunk;
+            import org.springframework.batch.item.ItemWriter;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+            
+                @Override
+                public void write(final Chunk<? extends T> items) throws Exception {
+                    if (items.getItems().size() >= 3) {
+                        T item = items.getItems().get(2);
+                        System.out.println(item.toString());
+                    }
+                }
+            }
+            """)
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/411")
+    @Test
+    void updateListInitialization() {
+        // language=java
+        rewriteRun(
+          java("""
+            import org.springframework.batch.item.ItemWriter;
+
+            import java.util.List;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+            
+                @Override
+                public void write(final List<? extends T> items) throws Exception {
+                    List<? extends T> other = items;
+                    if (!other.isEmpty()) {
+                        T item = other.get(0);
+                        System.out.println(item);
+                    }
+                }
+            }
+            """, """            
+            import org.springframework.batch.item.Chunk;
+            import org.springframework.batch.item.ItemWriter;
+            
+            import java.util.List;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+            
+                @Override
+                public void write(final Chunk<? extends T> items) throws Exception {
+                    List<? extends T> other = items.getItems();
+                    if (!other.isEmpty()) {
+                        T item = other.get(0);
+                        System.out.println(item);
+                    }
+                }
+            }
+            """)
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/411")
+    @Test
+    void updateListAssignment() {
+        // language=java
+        rewriteRun(
+          java("""
+            import org.springframework.batch.item.ItemWriter;
+
+            import java.util.List;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+            
+                @Override
+                public void write(final List<? extends T> items) throws Exception {
+                    List<? extends T> other;
+                    other = items;
+                    if (!other.isEmpty()) {
+                        T item = other.get(0);
+                        System.out.println(item);
+                    }
+                }
+            }
+            """, """            
+            import org.springframework.batch.item.Chunk;
+            import org.springframework.batch.item.ItemWriter;
+            
+            import java.util.List;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+            
+                @Override
+                public void write(final Chunk<? extends T> items) throws Exception {
+                    List<? extends T> other;
+                    other = items.getItems();
+                    if (!other.isEmpty()) {
+                        T item = other.get(0);
+                        System.out.println(item);
+                    }
+                }
+            }
+            """)
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/411")
+    @Test
+    void updateListMethodParameter() {
+        // language=java
+        rewriteRun(
+          java("""
+            import org.springframework.batch.item.ItemWriter;
+
+            import java.util.List;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                private void method(List<? extends T> items) {
+                    for (T item : items) {
+                        System.out.println(item.toString());
+                    }
+                }
+            
+                @Override
+                public void write(final List<? extends T> items) throws Exception {
+                    method(items);
+                }
+            }
+            """, """            
+            import org.springframework.batch.item.Chunk;
+            import org.springframework.batch.item.ItemWriter;
+            
+            import java.util.List;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                private void method(List<? extends T> items) {
+                    for (T item : items) {
+                        System.out.println(item.toString());
+                    }
+                }
+                
+                @Override
+                public void write(final Chunk<? extends T> items) throws Exception {
+                    method(items.getItems());
+                }
+            }
+            """)
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/411")
+    @Test
+    void doesNotUpdateIterableAssignment() {
+        // language=java
+        rewriteRun(
+          java("""
+            import org.springframework.batch.item.ItemWriter;
+
+            import java.util.List;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+            
+                @Override
+                public void write(final List<? extends T> items) throws Exception {
+                    Iterable<? extends T> other = items;
+                    for (T item : other) {
+                        System.out.println(item.toString());
+                    }
+                }
+            }
+            """, """
+            import org.springframework.batch.item.Chunk;
+            import org.springframework.batch.item.ItemWriter;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+            
+                @Override
+                public void write(final Chunk<? extends T> items) throws Exception {
+                    Iterable<? extends T> other = items;
+                    for (T item : other) {
+                        System.out.println(item.toString());
+                    }
+                }
+            }
+            """)
+        );
+    }
+
+    @Test
+    void doesNotChangeIterableMethodParameter() {
+        // language=java
+        rewriteRun(
+          java("""
+            import org.springframework.batch.item.ItemWriter;
+
+            import java.util.List;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                private void method(Iterable<? extends T> items) {
+                    for (T item : items) {
+                        System.out.println(item.toString());
+                    }
+                }
+            
+                @Override
+                public void write(final List<? extends T> items) throws Exception {
+                    method(items);
+                }
+            }
+            """, """            
+            import org.springframework.batch.item.Chunk;
+            import org.springframework.batch.item.ItemWriter;
+                        
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                private void method(Iterable<? extends T> items) {
+                    for (T item : items) {
+                        System.out.println(item.toString());
+                    }
+                }
+                
+                @Override
+                public void write(final Chunk<? extends T> items) throws Exception {
+                    method(items);
+                }
+            }
+            """)
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/411")
+    @Test
+    void doesNotChangeOtherLists() {
+        // language=java
+        rewriteRun(
+          java("""
+            import org.springframework.batch.item.ItemWriter;
+
+            import java.util.ArrayList;
+            import java.util.List;
+            
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+            
+                @Override
+                public void write(final List<? extends T> items) throws Exception {
+                    List<? extends T> other = new ArrayList<>();
+                    for (T item : other) {
+                        System.out.println(item.toString());
+                    }
+                }
+            }
+            """, """
+            import org.springframework.batch.item.Chunk;
+            import org.springframework.batch.item.ItemWriter;
+            
+            import java.util.ArrayList;
+            import java.util.List;
+
+            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                @Override
+                public void write(final Chunk<? extends T> items) throws Exception {
+                    List<? extends T> other = new ArrayList<>();
+                    for (T item : other) {
+                        System.out.println(item.toString());
+                    }
+                }
+            }
+            """)
+        );
+    }
+
 }
