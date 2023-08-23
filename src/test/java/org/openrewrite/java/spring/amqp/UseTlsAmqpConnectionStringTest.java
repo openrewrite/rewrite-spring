@@ -62,6 +62,38 @@ class UseTlsAmqpConnectionStringTest implements RewriteTest {
     }
 
     @Test
+    void useTlsEmptyProperties() {
+        rewriteRun(
+          spec ->  spec.recipe(new UseTlsAmqpConnectionString("", 5672, 5671, null, null)),
+          yaml(
+            """
+              spring:
+                rabbitmq:
+                  addresses: host1:5672
+              """,
+            """
+              spring:
+                rabbitmq:
+                  addresses: host1:5671
+                  ssl:
+                    enabled: true
+              """,
+            spec -> spec.path("application.yml")
+          ),
+          properties(
+            """
+              spring.rabbitmq.addresses=host1:5672
+              """,
+            """
+              spring.rabbitmq.addresses=host1:5671
+              spring.rabbitmq.ssl.enabled=true
+              """,
+            spec -> spec.path("application.properties")
+          )
+        );
+    }
+
+    @Test
     void multipleAddresses() {
         rewriteRun(
           yaml(

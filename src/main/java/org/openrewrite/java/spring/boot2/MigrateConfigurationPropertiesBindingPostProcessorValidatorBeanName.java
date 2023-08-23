@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName extends Recipe {
     @Override
     public String getDisplayName() {
@@ -73,6 +75,7 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
                             Tree.randomId(),
                             fa.getTarget().getPrefix(),
                             fa.getTarget().getMarkers(),
+                            emptyList(),
                             NEW_FQN.getClassName(),
                             NEW_FQN,
                             null));
@@ -92,6 +95,7 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
                         Tree.randomId(),
                         id.getPrefix(),
                         id.getMarkers(),
+                        emptyList(),
                         updateDeprecatedFields.get(id.getSimpleName()),
                         id.getType(),
                         new JavaType.Variable(

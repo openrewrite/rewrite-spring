@@ -36,6 +36,7 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
     @DocumentExample
     @Test
     void removeUnnecessaryAnnotationArgument() {
+        //language=java
         rewriteRun(
           java(
             """

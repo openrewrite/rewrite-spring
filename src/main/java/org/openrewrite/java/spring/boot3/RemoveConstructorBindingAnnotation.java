@@ -62,8 +62,8 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
 
                 // Collect the class constructors.
                 List<J.MethodDeclaration> constructors = c.getBody().getStatements().stream()
-                        .filter(o -> o instanceof J.MethodDeclaration)
-                        .map(o -> (J.MethodDeclaration) o)
+                        .filter(org.openrewrite.java.tree.J.MethodDeclaration.class::isInstance)
+                        .map(org.openrewrite.java.tree.J.MethodDeclaration.class::cast)
                         .filter(J.MethodDeclaration::isConstructor)
                         .collect(Collectors.toList());
 
@@ -111,9 +111,9 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
             private List<Comment> maybeAddJavaDoc(List<Comment> comments, String indent) {
                 String message = "You need to remove ConstructorBinding on class level and move it to appropriate";
                 if (comments.isEmpty() || comments.stream()
-                        .filter(o -> o instanceof Javadoc.DocComment)
-                        .map(o -> (Javadoc.DocComment) o)
-                        .flatMap(o -> o.getBody().stream().filter(j -> j instanceof Javadoc.Text))
+                        .filter(org.openrewrite.java.tree.Javadoc.DocComment.class::isInstance)
+                        .map(org.openrewrite.java.tree.Javadoc.DocComment.class::cast)
+                        .flatMap(o -> o.getBody().stream().filter(org.openrewrite.java.tree.Javadoc.Text.class::isInstance))
                         .noneMatch(o -> o.print(getCursor()).equals(message))) {
 
                     List<Javadoc> javadoc = new ArrayList<>();

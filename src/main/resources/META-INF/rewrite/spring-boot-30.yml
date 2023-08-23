@@ -49,10 +49,10 @@ recipeList:
       newVersion: 3.0.x
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: io.spring.dependency-management
-      newVersion: 1.1.0
-#  - org.openrewrite.gradle.UpdateGradleWrapper:
-#      version: ^7.4
-#      addIfMissing: false
+      newVersion: 1.1.x
+  - org.openrewrite.gradle.UpdateGradleWrapper:
+      version: ^7.4
+      addIfMissing: false
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.ehcache
       oldArtifactId: ehcache
@@ -68,6 +68,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
   - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
+  - org.openrewrite.hibernate.MigrateToHibernate61
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization

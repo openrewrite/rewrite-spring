@@ -79,7 +79,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
     @Option(displayName = "Optional list of file path matcher",
             description = "Each value in this list represents a glob expression that is used to match which files will " +
                     "be modified. If this value is not present, this recipe will query the execution context for " +
-                    "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\".",
+                    "reasonable defaults. (\"**/application.yml\", \"**/application.yaml\", and \"**/application.properties\".",
             example = "**/application.yml",
             required = false)
     @Nullable
@@ -97,8 +97,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        String actualPropertyKey = propertyKey == null ? "spring.rabbitmq.addresses" : propertyKey;
-        String actualTlsPropertyKey = tlsPropertyKey == null ? "spring.rabbitmq.ssl.enabled" : tlsPropertyKey;
+        String actualPropertyKey = propertyKey == null || propertyKey.isEmpty() ? "spring.rabbitmq.addresses" : propertyKey;
+        String actualTlsPropertyKey = tlsPropertyKey == null || tlsPropertyKey.isEmpty() ? "spring.rabbitmq.ssl.enabled" : tlsPropertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {

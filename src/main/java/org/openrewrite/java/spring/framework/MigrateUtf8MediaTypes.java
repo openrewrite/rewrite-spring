@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 public class MigrateUtf8MediaTypes extends Recipe {
     private final JavaType.FullyQualified mediaTypeFqn =
             JavaType.ShallowClass.build("org.springframework.http.MediaType");
@@ -63,6 +65,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
                                 Tree.randomId(),
                                 fa.getTarget().getPrefix(),
                                 fa.getTarget().getMarkers(),
+                                emptyList(),
                                 mediaTypeFqn.getClassName(),
                                 mediaTypeFqn,
                                 null));
@@ -80,6 +83,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
                             Tree.randomId(),
                             id.getPrefix(),
                             id.getMarkers(),
+                            emptyList(),
                             updateDeprecatedFields.get(id.getSimpleName()),
                             id.getType(),
                             new JavaType.Variable(

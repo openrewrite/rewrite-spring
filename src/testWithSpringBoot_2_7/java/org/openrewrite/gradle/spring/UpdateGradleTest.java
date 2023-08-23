@@ -30,7 +30,6 @@ import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.test.SourceSpecs.other;
 import static org.openrewrite.test.SourceSpecs.text;
 
-@Disabled
 class UpdateGradleTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
@@ -66,7 +65,7 @@ class UpdateGradleTest implements RewriteTest {
             """
               plugins {
                   id "java"
-                  id "org.springframework.boot" version "2.7.13"
+                  id "org.springframework.boot" version "2.7.14"
                   id "io.spring.dependency-management" version "1.0.15.RELEASE"
               }
               
@@ -149,7 +148,7 @@ class UpdateGradleTest implements RewriteTest {
             """
               plugins {
                   id "java"
-                  id "org.springframework.boot" version "2.7.13"
+                  id "org.springframework.boot" version "2.7.14"
               }
               
               repositories {
@@ -157,7 +156,7 @@ class UpdateGradleTest implements RewriteTest {
               }
               
               dependencies {
-                  implementation platform("org.springframework.boot:spring-boot-dependencies:2.7.13")
+                  implementation platform("org.springframework.boot:spring-boot-dependencies:2.7.14")
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
               """

@@ -97,7 +97,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
                       return null;
                   }
 
-                  @GetMapping
+                  @RequestMapping
                   public ResponseEntity<List<String>> getUsersNoRequestMethod() {
                       return null;
                   }
@@ -117,6 +117,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.bind.annotation.RequestMapping;
               import org.springframework.web.bind.annotation.RestController;
+              import static org.springframework.web.bind.annotation.RequestMethod.POST;
               
               @RestController
               @RequestMapping("/users")
@@ -157,6 +158,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.bind.annotation.RequestMapping;
               import org.springframework.web.bind.annotation.RestController;
+              import static org.springframework.web.bind.annotation.RequestMethod.POST;
               
               @RestController
               public class UsersController {
@@ -194,6 +196,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
               import java.util.*;
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RequestMethod;
               
               @RestController
               @RequestMapping("/users")
@@ -278,7 +281,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
               
               @RestController
               public class UsersController {
-                  @PostMapping(value = "/user/{userId}/edit", produces = {MediaType.APPLICATION_JSON_VALUE})
+                  @PostMapping(value = "/user/{userId}/edit", produces = { MediaType.APPLICATION_JSON_VALUE })
                   public ResponseEntity<List<String>> getUsersPost(String userId) {
                       return null;
                   }
@@ -296,10 +299,11 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
           java(
             """
               import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RequestMethod;
               
               class Test {
                   class Inner {
-                      @RequestMapping("/api")
+                      @RequestMapping(method = RequestMethod.GET, value = "/api")
                       void test() {
                       }
                   }
@@ -313,6 +317,92 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
                       @GetMapping("/api")
                       void test() {
                       }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void multipleAnnotations() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.*;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RestController;
+              import static org.springframework.web.bind.annotation.RequestMethod.POST;
+              
+              @RestController
+              @RequestMapping("/users")
+              public class UsersController {
+                  @Deprecated
+                  @RequestMapping(method = POST)
+                  public ResponseEntity<List<String>> getUsersPost() {
+                      return null;
+                  }
+              }
+              """,
+            """
+              import java.util.*;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.PostMapping;
+              import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RestController;
+              
+              @RestController
+              @RequestMapping("/users")
+              public class UsersController {
+                  @Deprecated
+                  @PostMapping
+                  public ResponseEntity<List<String>> getUsersPost() {
+                      return null;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void multipleAnnotationsWithOneReaminingParameter() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.*;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RestController;
+              import static org.springframework.web.bind.annotation.RequestMethod.POST;
+              
+              @RestController
+              @RequestMapping("/users")
+              public class UsersController {
+                  @Deprecated
+                  @RequestMapping(method = POST, path = "/{id}")
+                  public ResponseEntity<List<String>> getUsersPost() {
+                      return null;
+                  }
+              }
+              """,
+            """
+              import java.util.*;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.PostMapping;
+              import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RestController;
+              
+              @RestController
+              @RequestMapping("/users")
+              public class UsersController {
+                  @Deprecated
+                  @PostMapping("/{id}")
+                  public ResponseEntity<List<String>> getUsersPost() {
+                      return null;
                   }
               }
               """
