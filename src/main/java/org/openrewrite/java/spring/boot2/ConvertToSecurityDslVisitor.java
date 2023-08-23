@@ -130,11 +130,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         JavaType.Method type = m.getMethodType();
         if (type != null) {
             JavaType.FullyQualified declaringType = type.getDeclaringType();
-            if (declaringType != null && securityFqn.equals(declaringType.getFullyQualifiedName())
+            return securityFqn.equals(declaringType.getFullyQualifiedName())
                     && (type.getParameterTypes().isEmpty() || hasMovableArg(m))
-                    && convertableMethods.contains(m.getSimpleName())) {
-                return true;
-            }
+                    && convertableMethods.contains(m.getSimpleName());
         }
         return false;
     }
@@ -173,6 +171,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     // this method is unused in this repo, but, useful in Spring Tool Suite integration
+    @SuppressWarnings("unused")
     public boolean isApplicableTopLevelMethodInvocation(J.MethodInvocation m) {
         if (isApplicableMethod(m)) {
             return true;
@@ -192,7 +191,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         }
 
         J.MethodInvocation inv = c.getValue();
-        return !(isAndMethod(inv) && TypeUtils.isOfClassType(inv.getType(), securityFqn)) && !isDisableMethod(inv);
+        return !isAndMethod(inv) && !isDisableMethod(inv);
     }
 
     private List<J.MethodInvocation> computeAndMarkChain() {
