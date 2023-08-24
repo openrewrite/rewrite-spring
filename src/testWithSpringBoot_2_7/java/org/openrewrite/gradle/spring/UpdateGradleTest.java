@@ -15,13 +15,15 @@
  */
 package org.openrewrite.gradle.spring;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Tree;
 import org.openrewrite.config.Environment;
 import org.openrewrite.marker.BuildTool;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.buildGradle;
@@ -60,12 +62,14 @@ class UpdateGradleTest implements RewriteTest {
               dependencies {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """,
-            //language=gradle
-            """
+              """, spec -> spec.after(gradle -> {
+                Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
+                assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                //language=gradle
+                return """
               plugins {
                   id "java"
-                  id "org.springframework.boot" version "2.7.15"
+                  id "org.springframework.boot" version "%s"
                   id "io.spring.dependency-management" version "1.0.15.RELEASE"
               }
               
@@ -76,7 +80,9 @@ class UpdateGradleTest implements RewriteTest {
               dependencies {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """
+              """.formatted(version.group());
+            })
+            //language=gradle
           ),
           properties(
             //language=properties
@@ -143,12 +149,14 @@ class UpdateGradleTest implements RewriteTest {
                   implementation platform("org.springframework.boot:spring-boot-dependencies:2.6.15")
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """,
-            //language=gradle
-            """
+              """, spec -> spec.after(gradle -> {
+                Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
+                assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                //language=gradle
+                return """
               plugins {
                   id "java"
-                  id "org.springframework.boot" version "2.7.15"
+                  id "org.springframework.boot" version "%s"
               }
               
               repositories {
@@ -156,10 +164,11 @@ class UpdateGradleTest implements RewriteTest {
               }
               
               dependencies {
-                  implementation platform("org.springframework.boot:spring-boot-dependencies:2.7.14")
+                  implementation platform("org.springframework.boot:spring-boot-dependencies:%s")
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """
+              """.formatted(version.group(), version.group());
+            })
           ),
           properties(
             //language=properties
