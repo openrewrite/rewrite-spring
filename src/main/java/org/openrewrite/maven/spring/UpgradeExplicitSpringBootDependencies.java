@@ -17,7 +17,6 @@
 package org.openrewrite.maven.spring;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import org.openrewrite.*;
@@ -32,9 +31,9 @@ import org.openrewrite.maven.tree.*;
 import org.openrewrite.semver.XRange;
 import org.openrewrite.xml.tree.Xml;
 
-import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+
+import static java.util.Collections.emptyMap;
 
 @EqualsAndHashCode(callSuper = true)
 public class UpgradeExplicitSpringBootDependencies extends Recipe {
@@ -42,8 +41,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
     private static final String SPRINGBOOT_GROUP = "org.springframework.boot";
     private static final String SPRING_BOOT_DEPENDENCIES = "spring-boot-dependencies";
 
-    @JsonIgnore
-    private final Map<String, String> springBootDependenciesMap = new ConcurrentHashMap<>();
+    private transient final Map<String, String> springBootDependenciesMap = new HashMap<>();
 
     @Option(displayName = "From Spring Version",
             description = "XRage pattern for spring version used to limit which projects should be updated",
@@ -71,41 +69,6 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
         return "Upgrades un-managed spring-boot project dependencies according to the specified spring-boot version.";
     }
 
-    private synchronized void buildDependencyMap() throws MavenDownloadingException {
-        if (springBootDependenciesMap.isEmpty()) {
-            Map<Path, Pom> poms = new HashMap<>();
-            MavenPomDownloader downloader = new MavenPomDownloader(poms, new InMemoryExecutionContext());
-            GroupArtifactVersion gav = new GroupArtifactVersion(SPRINGBOOT_GROUP, SPRING_BOOT_DEPENDENCIES, toVersion);
-            String relativePath = "";
-            List<MavenRepository> repositories = new ArrayList<>();
-            repositories.add(MavenRepository.builder()
-                    .id("repository.spring.milestone")
-                    .uri("https://repo.spring.io/milestone")
-                    .releases(true)
-                    .snapshots(true)
-                    .build());
-            repositories.add(MavenRepository.builder()
-                    .id("spring-snapshot")
-                    .uri("https://repo.spring.io/snapshote")
-                    .releases(false)
-                    .snapshots(true)
-                    .build());
-            repositories.add(MavenRepository.builder()
-                    .id("spring-release")
-                    .uri("https://repo.spring.io/release")
-                    .releases(true)
-                    .snapshots(false)
-                    .build());
-            Pom pom = downloader.download(gav, relativePath, null, repositories);
-            ResolvedPom resolvedPom = pom.resolve(Collections.emptyList(), downloader, repositories, new InMemoryExecutionContext());
-            List<ResolvedManagedDependency> dependencyManagement = resolvedPom.getDependencyManagement();
-            dependencyManagement
-                    .stream()
-                    .filter(d -> d.getVersion() != null)
-                    .forEach(d -> springBootDependenciesMap.put(d.getGroupId() + ":" + d.getArtifactId().toLowerCase(), d.getVersion()));
-        }
-    }
-
     private TreeVisitor<?, ExecutionContext> precondition() {
         return new MavenIsoVisitor<ExecutionContext>() {
             @Override
@@ -114,7 +77,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                 if (isManagedDependencyTag()) {
                     ResolvedManagedDependency managedDependency = findManagedDependency(resultTag);
                     if (managedDependency != null && managedDependency.getGroupId().equals(SPRINGBOOT_GROUP)
-                            && satisfiesOldVersionPattern(managedDependency.getVersion())) {
+                        && satisfiesOldVersionPattern(managedDependency.getVersion())) {
                         return applyThisRecipe(resultTag);
                     }
                 }
@@ -122,7 +85,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                 if (isDependencyTag()) {
                     ResolvedDependency dependency = findDependency(resultTag);
                     if ((dependency != null) && dependency.getGroupId().equals(SPRINGBOOT_GROUP)
-                            && satisfiesOldVersionPattern(dependency.getVersion())) {
+                        && satisfiesOldVersionPattern(dependency.getVersion())) {
                         return applyThisRecipe(resultTag);
                     }
                 }
@@ -146,7 +109,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
                 try {
-                    buildDependencyMap();
+                    buildDependencyMap(ctx);
                 } catch (MavenDownloadingException e) {
                     return e.warn(document);
                 }
@@ -188,6 +151,42 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                     }
                 }
             }
+
+            private void buildDependencyMap(ExecutionContext ctx) throws MavenDownloadingException {
+                if (springBootDependenciesMap.isEmpty()) {
+                    MavenPomDownloader downloader = new MavenPomDownloader(emptyMap(), ctx,
+                            getResolutionResult().getMavenSettings(), getResolutionResult().getActiveProfiles());
+                    GroupArtifactVersion gav = new GroupArtifactVersion(SPRINGBOOT_GROUP, SPRING_BOOT_DEPENDENCIES, toVersion);
+                    String relativePath = "";
+                    List<MavenRepository> repositories = new ArrayList<>();
+                    repositories.add(MavenRepository.builder()
+                            .id("repository.spring.milestone")
+                            .uri("https://repo.spring.io/milestone")
+                            .releases(true)
+                            .snapshots(true)
+                            .build());
+                    repositories.add(MavenRepository.builder()
+                            .id("spring-snapshot")
+                            .uri("https://repo.spring.io/snapshote")
+                            .releases(false)
+                            .snapshots(true)
+                            .build());
+                    repositories.add(MavenRepository.builder()
+                            .id("spring-release")
+                            .uri("https://repo.spring.io/release")
+                            .releases(true)
+                            .snapshots(false)
+                            .build());
+                    Pom pom = downloader.download(gav, relativePath, null, repositories);
+                    ResolvedPom resolvedPom = pom.resolve(Collections.emptyList(), downloader, repositories, ctx);
+                    List<ResolvedManagedDependency> dependencyManagement = resolvedPom.getDependencyManagement();
+                    dependencyManagement
+                            .stream()
+                            .filter(d -> d.getVersion() != null)
+                            .forEach(d -> springBootDependenciesMap.put(d.getGroupId() + ":" + d.getArtifactId().toLowerCase(), d.getVersion()));
+                }
+            }
+
         });
     }
 }
