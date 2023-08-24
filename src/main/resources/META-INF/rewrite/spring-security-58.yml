@@ -31,6 +31,7 @@ recipeList:
       artifactId: "*"
       newVersion: 5.8.x
       overrideManagedVersion: false
+  - org.openrewrite.java.spring.security5.AuthorizeHttpRequests
   - org.openrewrite.java.spring.security5.UseNewRequestMatchers
   - org.openrewrite.java.spring.security5.UseNewSecurityMatchers
   - org.openrewrite.java.spring.security5.UpdatePbkdf2PasswordEncoder
