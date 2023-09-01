@@ -32,12 +32,12 @@ import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 @Issue("https://github.com/openrewrite/rewrite-spring/issues/274")
-public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
+class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-          .scanRuntimeClasspath()
+          .scanRuntimeClasspath("org.openrewrite.java.spring.boot2")
           .build()
           .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"));
     }
