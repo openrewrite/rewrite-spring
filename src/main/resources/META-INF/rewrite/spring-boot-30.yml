@@ -865,9 +865,8 @@ recipeList:
       newPropertyKey: management.httpexchanges.recording.include
 ---
 type: specs.openrewrite.org/v1beta/recipe
-
 name: org.openrewrite.java.spring.boot3.UpgradeSpringDoc_2
-displayName: Upgrade to springodc-openapi 2
+displayName: Upgrade to springdoc-openapi 2
 description: >
   Migrate applications to the latest spring-doc 2 release. This recipe will modify an
   application's build files and make changes code changes for removed/updated APIs.
