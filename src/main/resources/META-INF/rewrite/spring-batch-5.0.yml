@@ -35,6 +35,7 @@ recipeList:
   - org.openrewrite.java.spring.batch.ImplementChunkListenerDirectly
   - org.openrewrite.java.spring.batch.MigrateJobBuilderFactory
   - org.openrewrite.java.spring.batch.MigrateItemWriterWrite
+  - org.openrewrite.java.spring.batch.RemoveDefaultBatchConfigurer
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.metrics.BatchMetrics
       newFullyQualifiedTypeName: org.springframework.batch.core.observability.BatchMetrics

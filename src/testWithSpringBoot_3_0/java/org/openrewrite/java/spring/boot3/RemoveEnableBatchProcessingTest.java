@@ -23,7 +23,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class RemoveEnableBatchProcessingTest implements RewriteTest {
+class RemoveEnableBatchProcessingTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -47,7 +47,6 @@ public class RemoveEnableBatchProcessingTest implements RewriteTest {
               }
               """,
             """
-              import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
               import org.springframework.boot.autoconfigure.SpringBootApplication;
                             
               @SpringBootApplication

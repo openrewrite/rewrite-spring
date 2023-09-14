@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.Issue;
 import org.openrewrite.config.Environment;
-import org.openrewrite.gradle.Assertions;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -29,6 +28,7 @@ import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.withToolingApi;
+import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 @Issue("https://github.com/openrewrite/rewrite-spring/issues/274")
@@ -37,7 +37,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-          .scanRuntimeClasspath("org.openrewrite.java.spring.boot2")
+          .scanRuntimeClasspath("org.openrewrite.java.spring")
           .build()
           .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"));
     }
@@ -151,7 +151,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
         void switchArtifactIdAndUpdateVersionNumber() {
             rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
               //language=groovy
-              Assertions.buildGradle(
+              buildGradle(
                 """
                   plugins {
                     id 'java'
@@ -184,8 +184,8 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
         @Test
         void doNotPinWhenNotVersioned() {
             rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
-              //language=groovy
-              Assertions.buildGradle(
+              buildGradle(
+                //language=gradle
                 """
                   plugins {
                     id 'java'
@@ -200,11 +200,14 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   dependencies {
                       runtimeOnly 'mysql:mysql-connector-java'
                   }
-                  """,
-                """
+                  """, spec -> spec.after(gradle -> {
+                    Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
+                    assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                    //language=gradle
+                    return """
                   plugins {
                     id 'java'
-                    id 'org.springframework.boot' version '2.7.13'
+                    id 'org.springframework.boot' version '%s'
                     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
                   }
                   
@@ -215,7 +218,9 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   dependencies {
                       runtimeOnly 'com.mysql:mysql-connector-j'
                   }
-                  """)
+                  """.formatted(version.group());
+                  })
+              )
             );
         }
     }

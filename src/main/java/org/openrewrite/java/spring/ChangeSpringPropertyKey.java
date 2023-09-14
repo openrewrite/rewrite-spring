@@ -56,7 +56,7 @@ public class ChangeSpringPropertyKey extends Recipe {
     String newPropertyKey;
 
     @Option(displayName = "Except",
-            description = "If any of these property keys exist as direct children of `oldPropertyKey`, then they will not be moved to `newPropertyKey`.",
+            description = "Regex. If any of these property keys exist as direct children of `oldPropertyKey`, then they will not be moved to `newPropertyKey`.",
             required = false)
     @Nullable
     List<String> except;
@@ -68,7 +68,7 @@ public class ChangeSpringPropertyKey extends Recipe {
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(Pattern.quote(oldPropertyKey + ".") + exceptRegex() + "(.*)", newPropertyKey + ".$1", true, true);
+                new org.openrewrite.properties.ChangePropertyKey(Pattern.quote(oldPropertyKey + ".") + exceptRegex() + "(.+)", newPropertyKey + ".$1", true, true);
 
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
@@ -80,7 +80,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                         Tree newTree = propertiesChangePropertyKey.getVisitor().visit(tree, ctx);
                         // for compatibility with yaml syntax, a spring property key will never have both a (scalar) value and also subproperties
                         if (newTree == tree) {
-                            newTree = (Properties.File) subpropertiesChangePropertyKey.getVisitor().visit(tree, ctx);
+                            newTree = subpropertiesChangePropertyKey.getVisitor().visit(tree, ctx);
                         }
                         tree = newTree;
                     }

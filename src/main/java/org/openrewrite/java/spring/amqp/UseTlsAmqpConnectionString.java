@@ -49,7 +49,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
             description = "The Spring property key to perform updates against. " +
                     "If this value is specified, the specified property will be used for searching, otherwise a default of `spring.rabbitmq.addresses` " +
                     "will be used instead.",
-            example = "spring.rabbitmq.addresses")
+            example = "spring.rabbitmq.addresses",
+            required = false)
     @Nullable
     String propertyKey;
 
@@ -69,16 +70,18 @@ public class UseTlsAmqpConnectionString extends Recipe {
     @Option(displayName = "TLS Property Key",
             description = "The Spring property key to enable default TLS mode against. " +
                     "If this value is specified, the specified property will be used when updating the default TLS mode, otherwise a default of " +
-                    "`spring.rabbitmq.ssl.enabled` will be used instead.")
+                    "`spring.rabbitmq.ssl.enabled` will be used instead.",
+            example = "spring.rabbitmq.ssl.enabled",
+            required = false)
     @Nullable
     String tlsPropertyKey;
 
     @Option(displayName = "Optional list of file path matcher",
             description = "Each value in this list represents a glob expression that is used to match which files will " +
                     "be modified. If this value is not present, this recipe will query the execution context for " +
-                    "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\".",
-            required = false,
-            example = "**/application.yml")
+                    "reasonable defaults. (\"**/application.yml\", \"**/application.yaml\", and \"**/application.properties\".",
+            example = "**/application.yml",
+            required = false)
     @Nullable
     List<String> pathExpressions;
 
@@ -94,8 +97,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        String actualPropertyKey = propertyKey == null ? "spring.rabbitmq.addresses" : propertyKey;
-        String actualTlsPropertyKey = tlsPropertyKey == null ? "spring.rabbitmq.ssl.enabled" : tlsPropertyKey;
+        String actualPropertyKey = propertyKey == null || propertyKey.isEmpty() ? "spring.rabbitmq.addresses" : propertyKey;
+        String actualTlsPropertyKey = tlsPropertyKey == null || tlsPropertyKey.isEmpty() ? "spring.rabbitmq.ssl.enabled" : tlsPropertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {

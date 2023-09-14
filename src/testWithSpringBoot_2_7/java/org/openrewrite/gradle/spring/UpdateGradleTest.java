@@ -22,6 +22,9 @@ import org.openrewrite.marker.BuildTool;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.gradle.Assertions.withToolingApi;
@@ -33,7 +36,7 @@ class UpdateGradleTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring.boot2")
+            .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
             .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"))
           .beforeRecipe(withToolingApi())
@@ -44,6 +47,7 @@ class UpdateGradleTest implements RewriteTest {
     void upgradeGradleWrapperAndPlugins() {
         rewriteRun(
           buildGradle(
+            //language=gradle
             """
               plugins {
                   id "java"
@@ -58,11 +62,14 @@ class UpdateGradleTest implements RewriteTest {
               dependencies {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """,
-            """
+              """, spec -> spec.after(gradle -> {
+                Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
+                assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                //language=gradle
+                return """
               plugins {
                   id "java"
-                  id "org.springframework.boot" version "2.7.13"
+                  id "org.springframework.boot" version "%s"
                   id "io.spring.dependency-management" version "1.0.15.RELEASE"
               }
               
@@ -73,9 +80,12 @@ class UpdateGradleTest implements RewriteTest {
               dependencies {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """
+              """.formatted(version.group());
+            })
+            //language=gradle
           ),
           properties(
+            //language=properties
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
@@ -83,6 +93,7 @@ class UpdateGradleTest implements RewriteTest {
               zipStoreBase=GRADLE_USER_HOME
               zipStorePath=wrapper/dists
               """,
+            //language=properties
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
@@ -123,6 +134,7 @@ class UpdateGradleTest implements RewriteTest {
     void dontAddSpringDependencyManagementWhenUsingGradlePlatform() {
         rewriteRun(
           buildGradle(
+            //language=gradle
             """
               plugins {
                   id "java"
@@ -137,11 +149,14 @@ class UpdateGradleTest implements RewriteTest {
                   implementation platform("org.springframework.boot:spring-boot-dependencies:2.6.15")
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """,
-            """
+              """, spec -> spec.after(gradle -> {
+                Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
+                assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                //language=gradle
+                return """
               plugins {
                   id "java"
-                  id "org.springframework.boot" version "2.7.13"
+                  id "org.springframework.boot" version "%s"
               }
               
               repositories {
@@ -149,12 +164,14 @@ class UpdateGradleTest implements RewriteTest {
               }
               
               dependencies {
-                  implementation platform("org.springframework.boot:spring-boot-dependencies:2.7.13")
+                  implementation platform("org.springframework.boot:spring-boot-dependencies:%s")
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """
+              """.formatted(version.group(), version.group());
+            })
           ),
           properties(
+            //language=properties
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
@@ -162,6 +179,7 @@ class UpdateGradleTest implements RewriteTest {
               zipStoreBase=GRADLE_USER_HOME
               zipStorePath=wrapper/dists
               """,
+            //language=properties
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists

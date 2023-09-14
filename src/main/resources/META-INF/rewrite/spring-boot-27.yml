@@ -39,6 +39,7 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.7.x
+  - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_7
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.server.LocalServerPort

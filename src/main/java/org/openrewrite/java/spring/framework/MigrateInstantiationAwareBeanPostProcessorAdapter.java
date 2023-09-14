@@ -32,6 +32,8 @@ import org.openrewrite.marker.Markers;
 import java.util.Collections;
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
+
 public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
     private final String fromExtendingFqn = "org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter";
     private final String toImplementsFqn = "org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor";
@@ -54,10 +56,10 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), fromExtendingFqn)) {
                     cd = cd.withExtends(null);
-                    J.Identifier ident = new J.Identifier(UUID.randomUUID(), Space.format(" "), Markers.EMPTY,
+                    J.Identifier ident = new J.Identifier(UUID.randomUUID(), Space.format(" "), Markers.EMPTY, emptyList(),
                             "SmartInstantiationAwareBeanPostProcessor", JavaType.buildType(toImplementsFqn), null);
                     J.Block body = cd.getBody();
-                    cd = maybeAutoFormat(cd, cd.withBody(cd.getBody().withStatements(Collections.emptyList())).withImplements(ListUtils.concat(cd.getImplements(), ident)), ctx, getCursor());
+                    cd = maybeAutoFormat(cd, cd.withBody(cd.getBody().withStatements(emptyList())).withImplements(ListUtils.concat(cd.getImplements(), ident)), ctx, getCursor());
                     cd = cd.withBody(body);
                 }
                 return cd;

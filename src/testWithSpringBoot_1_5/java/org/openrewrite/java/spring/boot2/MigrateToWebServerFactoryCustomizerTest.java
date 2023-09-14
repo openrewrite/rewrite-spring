@@ -24,12 +24,12 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MigrateToWebServerFactoryCustomizerTest implements RewriteTest {
+class MigrateToWebServerFactoryCustomizerTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-            .scanRuntimeClasspath()
+            .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
             .activateRecipes("org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer"))
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-context", "spring-beans"));

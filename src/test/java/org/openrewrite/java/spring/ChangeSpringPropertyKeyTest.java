@@ -17,6 +17,7 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
 import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
@@ -195,6 +196,24 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
           yaml("""
             logging.file.name: foo.txt
             """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/432")
+    @Test
+    void loggingFileSubproperties() {
+        rewriteRun(
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot2.SpringBootProperties_2_2"),
+          properties("""
+            logging.file.max-size=10MB
+            logging.file.max-history=10
+            logging.path=${user.home}/some-folder
+              ""","""
+            logging.file.max-size=10MB
+            logging.file.max-history=10
+            logging.file.path=${user.home}/some-folder
+              """
           )
         );
     }

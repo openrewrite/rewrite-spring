@@ -16,10 +16,10 @@
 package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Tree;
-import org.openrewrite.DocumentExample;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaVisitor;
@@ -39,7 +39,7 @@ class UseNewSecurityMatchersTest implements RewriteTest {
         spec.recipe(new UseNewSecurityMatchers())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(),"spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
     }
 
     @DocumentExample
@@ -100,17 +100,67 @@ class UseNewSecurityMatchersTest implements RewriteTest {
     }
 
     @Test
+    void chainedCalls() {
+        rewriteRun(
+          //language=java
+          java("""
+            package com.example.demo;
+                        
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.http.HttpMethod;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.web.SecurityFilterChain;
+                        
+            @Configuration
+            @EnableWebSecurity
+            class SecurityConfig {
+                @Bean
+                SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                    http.antMatcher("/**").authorizeRequests()
+                            .antMatchers(HttpMethod.POST, "/verify").access("hasRole('ROLE_USER')")
+                            .anyRequest().authenticated();
+                    return http.build();
+                }
+            }
+            ""","""
+            package com.example.demo;
+                        
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+            import org.springframework.http.HttpMethod;
+            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+            import org.springframework.security.web.SecurityFilterChain;
+                        
+            @Configuration
+            @EnableWebSecurity
+            class SecurityConfig {
+                @Bean
+                SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                    http.securityMatcher("/**").authorizeRequests()
+                            .antMatchers(HttpMethod.POST, "/verify").access("hasRole('ROLE_USER')")
+                            .anyRequest().authenticated();
+                    return http.build();
+                }
+            }
+            """)
+        );
+    }
+
+    @Test
     void togetherWithRequestMatchers() {
         //language=java
         rewriteRun(
           spec -> spec.recipe(toRecipe(() -> new JavaVisitor<>() {
-              @Override
-              public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
-                  tree = new UseNewRequestMatchers().getVisitor().visit(tree, ctx);
-                  tree = new UseNewSecurityMatchers().getVisitor().visit(tree, ctx);
-                  return (J) tree;
-              }
-          })),
+                @Override
+                public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
+                    tree = new UseNewRequestMatchers().getVisitor().visit(tree, ctx);
+                    tree = new UseNewSecurityMatchers().getVisitor().visit(tree, ctx);
+                    return (J) tree;
+                }
+            })),
           java(
             """
               package com.example;

@@ -1,0 +1,468 @@
+#
+# Copyright 2023 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+########################################################################################################################
+# Apache HttpClient 5.x
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5
+displayName: Migrate to ApacheHttpClient 5.x
+description: >
+  Migrate applications to the latest Apache HttpClient 5.x release. This recipe will modify an
+  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
+  changes between versions.
+tags:
+  - apache
+  - httpclient
+recipeList:
+  - org.openrewrite.java.apache.httpclient4.UpgradeApacheHttpClient_4_5
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.apache.httpcomponents
+      oldArtifactId: httpclient
+      newGroupId: org.apache.httpcomponents.client5
+      newArtifactId: httpclient5
+      newVersion: 5.1.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.apache.httpcomponents
+      oldArtifactId: httpcore
+      newGroupId: org.apache.httpcomponents.core5
+      newArtifactId: httpcore5
+      newVersion: 5.1.x
+  - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping
+  - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
+  - org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_TimeUnit
+  - org.openrewrite.java.apache.httpclient5.StatusLine
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_ClassMapping
+displayName: Migrate to ApacheHttpClient 5.x Classes Namespace from 4.x
+description: Mapping of all the compatible classes of ApacheHttpClient 5.x from 4.x.
+recipeList:
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.client.methods
+      newPackageName: org.apache.hc.client5.http.classic.methods
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.classic.methods.CloseableHttpResponse
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.CloseableHttpResponse
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.client.entity
+      newPackageName: org.apache.hc.client5.http.entity
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.client.protocol
+      newPackageName: org.apache.hc.client5.http.protocol
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.conn.socket
+      newPackageName: org.apache.hc.client5.http.socket
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.ssl
+      newPackageName: org.apache.hc.core5.ssl
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.concurrent
+      newPackageName: org.apache.hc.core5.concurrent
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.impl.auth
+      newPackageName: org.apache.hc.client5.http.impl.auth
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.impl.cookie
+      newPackageName: org.apache.hc.client5.http.impl.cookie
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.cookie.PublicSuffixListParser
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.psl.PublicSuffixListParser
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.cookie.DateUtils
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.utils.DateUtils
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.impl.client
+      newPackageName: org.apache.hc.client5.http.impl.classic
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.BasicAuthCache
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.auth.BasicAuthCache
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.HttpAuthenticator
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.auth.HttpAuthenticator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.SystemDefaultCredentialsProvider
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.DefaultClientConnectionReuseStrategy
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.DefaultRedirectStrategy
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.DefaultRedirectStrategy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.RedirectLocations
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.protocol.RedirectLocations
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.BasicCookieStore
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.cookie.BasicCookieStore
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.DefaultConnectionKeepAliveStrategy
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.IdleConnectionEvictor
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.IdleConnectionEvictor
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.TunnelRefusedException
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.TunnelRefusedException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.NoopUserTokenHandler
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.NoopUserTokenHandler
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.DefaultUserTokenHandler
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.DefaultUserTokenHandler
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.BasicCredentialsProvider
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.auth
+      newPackageName: org.apache.hc.client5.http.auth
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.cookie
+      newPackageName: org.apache.hc.client5.http.cookie
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.cookie
+      newPackageName: org.apache.hc.client5.http.cookie
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.annotation
+      newPackageName: org.apache.hc.core5.annotation
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.client.config
+      newPackageName: org.apache.hc.client5.http.config
+  # Fixing deprecated constants
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.apache.hc.client5.http.config.CookieSpecs.IGNORE_COOKIES
+      fullyQualifiedConstantName: org.apache.hc.client5.http.cookie.StandardCookieSpec.IGNORE
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.apache.hc.client5.http.config.CookieSpecs.STANDARD
+      fullyQualifiedConstantName: org.apache.hc.client5.http.cookie.StandardCookieSpec.RELAXED
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.apache.hc.client5.http.config.CookieSpecs.STANDARD_STRICT
+      fullyQualifiedConstantName: org.apache.hc.client5.http.cookie.StandardCookieSpec.STRICT
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.annotation
+      newPackageName: org.apache.hc.core5.annotation
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.entity
+      newPackageName: org.apache.hc.core5.http.io.entity
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.io.entity.ContentLengthStrategy
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.ContentLengthStrategy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.io.entity.ContentType
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.ContentType
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.impl.bootstrap
+      newPackageName: org.apache.hc.core5.http.impl.bootstrap
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.impl.execchain
+      newPackageName: org.apache.hc.client5.http.impl.classic
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.classic.TunnelRefusedException
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.TunnelRefusedException
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.impl.io
+      newPackageName: org.apache.hc.core5.http.impl.io
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.DefaultHttpResponseParserFactory
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.DefaultHttpResponseParserFactory
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.io
+      newPackageName: org.apache.hc.core5.http.io
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.message
+      newPackageName: org.apache.hc.core5.http.message
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.pool
+      newPackageName: org.apache.hc.core5.pool
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.protocol
+      newPackageName: org.apache.hc.core5.http.protocol
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.protocol.HttpService
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.HttpService
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.protocol.HttpRequestExecutor
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.HttpRequestExecutor
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.protocol.HttpRequestHandler
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.HttpRequestHandler
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.util
+      newPackageName: org.apache.hc.core5.util
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.util.EntityUtils
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.entity.EntityUtils
+
+  # Not worth do a ChangePackage here
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.http.client.utils.URIBuilder
+      newFullyQualifiedTypeName: org.apache.hc.core5.net.URIBuilder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.http.client.utils.URLEncodedUtils
+      newFullyQualifiedTypeName: org.apache.hc.core5.net.URLEncodedUtils
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.http.client.utils.URIUtils
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.utils.URIUtils
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.http.client.utils.DateUtils
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.utils.DateUtils
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.client
+      newPackageName: org.apache.hc.client5.http
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.CredentialsProvider
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.auth.CredentialsProvider
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.AuthCache
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.auth.AuthCache
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.BackoffManager
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.classic.BackoffManager
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpClient
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.classic.HttpClient
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.ConnectionBackoffStrategy
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.classic.ConnectionBackoffStrategy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.CookieStore
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.cookie.CookieStore
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.RedirectStrategy
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.protocol.RedirectStrategy
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.config
+      newPackageName: org.apache.hc.core5.http.config
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.config.SocketConfig
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.SocketConfig
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.config.SocketConfig.Builder
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.SocketConfig.Builder
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.impl
+      newPackageName: org.apache.hc.core5.http.impl.io
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.EnglishReasonPhraseCatalog
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.impl.EnglishReasonPhraseCatalog
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.DefaultConnectionReuseStrategy
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.DefaultHttpRequestFactory
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.impl.nio.DefaultHttpRequestFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.DefaultHttpResponseFactory
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.impl.nio.DefaultHttpResponseFactory
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.conn.util
+      newPackageName: org.apache.hc.client5.http.psl
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.psl.DnsUtils
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.utils.DnsUtils
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.psl.InetAddressUtils
+      newFullyQualifiedTypeName: org.apache.hc.core5.net.InetAddressUtils
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.conn.routing
+      newPackageName: org.apache.hc.client5.http
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.BasicRouteDirector
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.routing.BasicRouteDirector
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpRouteDirector
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.routing.HttpRouteDirector
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpRoutePlanner
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.routing.HttpRoutePlanner
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.conn.ssl
+      newPackageName: org.apache.hc.core5.ssl
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.ssl.SSLConnectionSocketFactory
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.ssl.NoopHostnameVerifier
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.ssl.NoopHostnameVerifier
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.ssl.DefaultHostnameVerifier
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.ssl.DefaultHostnameVerifier
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.ssl.TrustSelfSignedStrategy
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.ssl.TrustAllStrategy
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.ssl.TrustAllStrategy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.ssl.SubjectName
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.ssl.SubjectName
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.impl.conn
+      newPackageName: org.apache.hc.client5.http.impl.io
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.SystemDefaultDnsResolver
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.SystemDefaultDnsResolver
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.Wire
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.Wire
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.InMemoryDnsResolver
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.InMemoryDnsResolver
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.ConnectionShutdownException
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.ConnectionShutdownException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.DefaultSchemePortResolver
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.DefaultSchemePortResolver
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.DefaultProxyRoutePlanner
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.DefaultRoutePlanner
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.SystemDefaultRoutePlanner
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.impl.io.DefaultHttpResponseParser
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.impl.io.DefaultHttpResponseParser
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http.conn
+      newPackageName: org.apache.hc.client5.http
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.ManagedHttpClientConnection
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.ManagedHttpClientConnection
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpClientConnectionManager
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionManager
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpClientConnectionOperator
+      newFullyQualifiedTypeName: org.apache.hc.client5.http.io.HttpClientConnectionOperator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.EofSensorWatcher
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.EofSensorWatcher
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.EofSensorInputStream
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.EofSensorInputStream
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.client5.http.HttpConnectionFactory
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.HttpConnectionFactory
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.apache.http
+      newPackageName: org.apache.hc.core5.http
+  # Fixing specific mappings
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.RequestLine
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.message.RequestLine
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.RequestLine
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.message.RequestLine
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.HttpClientConnection
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.HttpClientConnection
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.StatusLine
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.message.StatusLine
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.HttpServerConnection
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.HttpServerConnection
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.hc.core5.http.HttpConnectionFactory
+      newFullyQualifiedTypeName: org.apache.hc.core5.http.io.HttpConnectionFactory
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_DeprecatedMethods
+displayName: Migrate to ApacheHttpClient 5.x deprecated methods from 4.x
+description: Migrates deprecated methods to their equivalent ones in 5.x
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setSocketTimeout(int)
+      newMethodName: setResponseTimeout
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.apache.httpclient5.UpgradeApacheHttpClient_5_TimeUnit
+displayName: Adds `TimeUnit` to timeouts and duration methods
+description: Apache HttpClient 5.x Timeout and duration methods need an extra the TimeUnit argument. This recipe uses milliseconds as a default unit.
+recipeList:
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setConnectionRequestTimeout(int)
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setConnectTimeout(int)
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.client5.http.config.RequestConfig.Builder setResponseTimeout(int)
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.core5.http.io.SocketConfig.Builder setSoLinger(int)
+  - org.openrewrite.java.apache.httpclient5.AddTimeUnitArgument:
+      methodPattern: org.apache.hc.core5.http.io.SocketConfig.Builder setSoTimeout(int)
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.apache.httpclient5.StatusLine
+displayName: Migrate to ApacheHttpClient 5.x deprecated methods from 4.x
+description: Migrates deprecated methods to their equivalent ones in 5.x
+recipeList:
+  - org.openrewrite.java.SimplifyMethodChain:
+      methodPatternChain: ['org.apache.hc.core5.http.HttpResponse getStatusLine()', 'org.apache.hc.core5.http.message.StatusLine getStatusCode()']
+      newMethodName: getCode
+  - org.openrewrite.java.SimplifyMethodChain:
+      methodPatternChain: ['org.apache.hc.core5.http.HttpResponse getStatusLine()', 'org.apache.hc.core5.http.message.StatusLine getReasonPhrase()']
+      newMethodName: getReasonPhrase
+  - org.openrewrite.java.SimplifyMethodChain:
+      methodPatternChain: [ 'org.apache.hc.core5.http.HttpResponse getStatusLine()', 'org.apache.hc.core5.http.message.StatusLine getProtocolVersion()' ]
+      newMethodName: getVersion
+  - org.openrewrite.java.apache.httpclient5.NewStatusLine

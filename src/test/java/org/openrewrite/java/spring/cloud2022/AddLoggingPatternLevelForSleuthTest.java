@@ -54,12 +54,11 @@ class AddLoggingPatternLevelForSleuthTest implements RewriteTest {
                 """),
             //language=properties
             properties(
-              "",
+              "foo=bar",
               """
-                                
-                                
-                logging.pattern.level="%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
-                """,
+                    foo=bar
+                    logging.pattern.level="%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+                    """,
               s -> s.path("src/main/resources/application.properties")
             ),
             //language=yaml

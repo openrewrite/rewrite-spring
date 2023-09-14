@@ -15,6 +15,11 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/category
+name: Spring
+packageName: org.openrewrite.java.spring
+description: Recipes for upgrading and patching [Spring](https://spring.io/) applications.
+---
+type: specs.openrewrite.org/v1beta/category
 name: Spring Boot 2.x
 packageName: org.openrewrite.java.spring.boot2
 ---

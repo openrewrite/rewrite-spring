@@ -45,8 +45,8 @@ public class UpgradeSpringFrameworkDependencies extends Recipe {
     String newVersion;
 
     @Override
-    public Validated validate() {
-        Validated validated = super.validate();
+    public Validated<Object> validate() {
+        Validated<Object> validated = super.validate();
         validated = validated.and(Semver.validate(newVersion, null));
         return validated;
     }
@@ -81,7 +81,7 @@ public class UpgradeSpringFrameworkDependencies extends Recipe {
         for (String artifact : artifacts51) {
             result.add(new UpgradeDependencyVersion("org.springframework", artifact, newVersion, null, false, null));
         }
-        if (newVersion.startsWith("5.3")) {
+        if (newVersion != null && newVersion.startsWith("5.3")) {
             result.add(new UpgradeDependencyVersion("org.springframework", "spring-r2dbc", newVersion, null, false, null));
         }
 

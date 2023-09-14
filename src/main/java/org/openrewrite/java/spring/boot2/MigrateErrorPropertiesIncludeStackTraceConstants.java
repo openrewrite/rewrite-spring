@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
     @Override
     public String getDisplayName() {
@@ -94,6 +96,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
                         Tree.randomId(),
                         fa.getTarget().getPrefix(),
                         fa.getTarget().getMarkers(),
+                        emptyList(),
                         className,
                         ORIGINAL_FQN,
                         null));
@@ -110,6 +113,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
                         Tree.randomId(),
                         id.getPrefix(),
                         id.getMarkers(),
+                        emptyList(),
                         updateDeprecatedFields.get(id.getSimpleName()),
                         id.getType(),
                         fieldType == null ? null : new JavaType.Variable(

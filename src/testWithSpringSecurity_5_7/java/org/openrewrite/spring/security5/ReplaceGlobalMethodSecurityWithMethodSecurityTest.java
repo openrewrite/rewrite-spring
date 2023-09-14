@@ -86,7 +86,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements Rewrit
         rewriteRun(
           spec -> spec.recipe(
             Environment.builder()
-              .scanRuntimeClasspath()
+              .scanRuntimeClasspath("org.openrewrite.java.spring")
               .build()
               .activateRecipes("org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml")
           ),
