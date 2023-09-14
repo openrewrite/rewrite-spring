@@ -129,9 +129,9 @@ description: Migrate Ehcache to 3.x.
 tags:
   - ehcache
 recipeList:
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.ehcache
-      oldArtifactId: ehcache
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.ehcache
+      artifactId: ehcache
       newVersion: 3.x
 ---
 ########################################################################################################################
