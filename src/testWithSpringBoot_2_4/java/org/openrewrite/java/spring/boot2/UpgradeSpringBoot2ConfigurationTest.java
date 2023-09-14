@@ -16,64 +16,64 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.config.Environment;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-public class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
+class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
-                .recipe(Environment.builder()
-                        .scanRuntimeClasspath()
-                        .build()
-                        .activateRecipes(
-                                "org.openrewrite.java.spring.boot2.SpringBootProperties_2_4"
-                        )
-                );
+          .recipe(Environment.builder()
+            .scanRuntimeClasspath("org.openrewrite.java.spring")
+            .build()
+            .activateRecipes(
+              "org.openrewrite.java.spring.boot2.SpringBootProperties_2_4"
+            )
+          );
     }
 
     @DocumentExample
     @Test
     void activateOnProfileDoNotMoveActivate() {
         rewriteRun(
-                properties(
-                        """
-                        # application.properties
-                        spring.profiles.active=production
-                        spring.profiles=dev
-                        """,
-                        """
-                        # application.properties
-                        spring.profiles.active=production
-                        spring.config.activate.on-profile=dev
-                        """,
-                        s -> s.path("src/main/resources/application.properties")
-                ),
-                yaml(
-                        """
-                            ---
-                            spring:
-                              profiles:
-                                active: dev
-                            ---
-                            spring:
-                              profiles: prod
-                        """,
-                        """
-                            ---
-                            spring:
-                              profiles:
-                                active: dev
-                            ---
-                            spring:
-                              config.activate.on-profile: prod
-                        """,
-                        s -> s.path("src/main/resources/application.yml")
-                )
+          properties(
+            """
+              # application.properties
+              spring.profiles.active=production
+              spring.profiles=dev
+              """,
+            """
+              # application.properties
+              spring.profiles.active=production
+              spring.config.activate.on-profile=dev
+              """,
+            s -> s.path("src/main/resources/application.properties")
+          ),
+          yaml(
+            """
+                  ---
+                  spring:
+                    profiles:
+                      active: dev
+                  ---
+                  spring:
+                    profiles: prod
+              """,
+            """
+                  ---
+                  spring:
+                    profiles:
+                      active: dev
+                  ---
+                  spring:
+                    config.activate.on-profile: prod
+              """,
+            s -> s.path("src/main/resources/application.yml")
+          )
         );
     }
 }

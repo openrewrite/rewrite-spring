@@ -32,7 +32,7 @@ class AddsStarterValidationTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .recipe(Environment.builder()
-            .scanRuntimeClasspath()
+            .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
             .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3")
           ).parser(
