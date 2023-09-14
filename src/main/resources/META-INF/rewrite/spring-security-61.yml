@@ -25,7 +25,7 @@ tags:
   - spring
   - security
 recipeList:
-  - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_6_0
+  - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: "*"
@@ -34,3 +34,6 @@ recipeList:
   - org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl
   - org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
   - org.openrewrite.java.spring.boot2.HeadersConfigurerLambdaDsl
+  - org.openrewrite.java.spring.security6.oauth2.client.OAuth2LoginLambdaDsl
+  - org.openrewrite.java.spring.security6.oauth2.client.OAuth2ClientLambdaDsl
+  - org.openrewrite.java.spring.security6.oauth2.server.resource.OAuth2ResourceServerLambdaDsl

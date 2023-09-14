@@ -36,7 +36,7 @@ public class SimplifyMediaTypeParseCalls extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Replaces `MediaType.parseMediaType('application/json')` and `MediaType.valueOf('application/json') with `MediaType.APPLICATION_JSON`.";
+        return "Replaces `MediaType.parseMediaType('application/json')` and `MediaType.valueOf('application/json')` with `MediaType.APPLICATION_JSON`.";
     }
 
     static final String MEDIA_TYPE = "org.springframework.http.MediaType";

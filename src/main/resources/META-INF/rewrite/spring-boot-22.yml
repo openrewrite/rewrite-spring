@@ -90,7 +90,7 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: logging.file
       newPropertyKey: logging.file.name
-      except: [ path ]
+      except: [ .+ ]
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: logging.path
       newPropertyKey: logging.file.path
@@ -130,12 +130,6 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.reactor.stacktrace-mode.enabled
       newPropertyKey: spring.reactor.debug-agent.enabled
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: logging.file
-      newPropertyKey: logging.file.name
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: logging.path
-      newPropertyKey: logging.file.path
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.endpoints.jmx.unique-names
       newPropertyKey: spring.jmx.unique-names
