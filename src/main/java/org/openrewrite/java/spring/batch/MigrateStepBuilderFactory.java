@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
@@ -56,43 +57,35 @@ public class MigrateStepBuilderFactory extends Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getApplicableTest() {
-        return new UsesMethod<>(STEP_BUILDER_FACTORY);
-    }
-
-    @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
-
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 if (STEP_BUILDER_FACTORY.matches(method)) {
 
-                    J.ClassDeclaration clazz = getCursor().firstEnclosingOrThrow(J.ClassDeclaration.class);
-                    J.MethodDeclaration enclosingMethod = getCursor().firstEnclosingOrThrow(J.MethodDeclaration.class);
+                    ClassDeclaration clazz = getCursor().firstEnclosingOrThrow(ClassDeclaration.class);
+                    MethodDeclaration enclosingMethod = getCursor().firstEnclosingOrThrow(MethodDeclaration.class);
 
                     maybeAddImport("org.springframework.batch.core.step.builder.StepBuilder", false);
                     maybeRemoveImport("org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
                     maybeAddImport("org.springframework.batch.core.repository.JobRepository");
 
-                    doAfterVisit(new MigrateStepBuilderFactory.RemoveStepBuilderFactoryVisitor(clazz, enclosingMethod));
+                    doAfterVisit(new RemoveStepBuilderFactoryVisitor(clazz, enclosingMethod));
 
-                    return (method.withTemplate(
-                            JavaTemplate
-                                    .builder(() -> getCursor().getParentTreeCursor(),
-                                            "new StepBuilder(#{any(java.lang.String)}, jobRepository)")
-                                    .javaParser(() -> JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-batch-core-5.0.0",
-                                                    "spring-batch-infrastructure-5.0.0")
-                                            .build())
-                                    .imports("org.springframework.batch.core.repository.JobRepository",
-                                            "org.springframework.batch.core.step.builder.StepBuilder")
-                                    .build(),
-                            method.getCoordinates().replace(), method.getArguments().get(0)));
+                    JavaTemplate template = JavaTemplate
+                            .builder("new StepBuilder(#{any(java.lang.String)}, jobRepository)")
+                            .contextSensitive()
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                            .imports("org.springframework.batch.core.repository.JobRepository",
+                                    "org.springframework.batch.core.step.builder.StepBuilder")
+                            .build();
+                    return template.apply(getCursor(), method.getCoordinates().replace(), method.getArguments().get(0));
                 }
                 return super.visitMethodInvocation(method, ctx);
             }
         };
+        return Preconditions.check(new UsesMethod<>(STEP_BUILDER_FACTORY), javaVisitor);
     }
 
     private static class RemoveStepBuilderFactoryVisitor extends JavaIsoVisitor<ExecutionContext> {
@@ -149,19 +142,16 @@ public class MigrateStepBuilderFactory extends Recipe {
             }
 
             JavaTemplate paramsTemplate = JavaTemplate
-                    .builder(this::getCursor, params.stream().map(p -> "#{}").collect(Collectors.joining(", ")))
+                    .builder(params.stream().map(p -> "#{}").collect(Collectors.joining(", ")))
+                    .contextSensitive()
                     .imports("org.springframework.batch.core.repository.JobRepository",
                             "org.springframework.batch.core.step.builder.StepBuilder",
                             "org.springframework.batch.core.Step")
-                    .javaParser(
-                            () -> JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-batch-core-5.0.0",
-                                            "spring-batch-infrastructure-5.0.0")
-                                    .build())
-                    //.doBeforeParseTemplate(System.out::println)
+                    .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                     .build();
 
-            md = md.withTemplate(paramsTemplate, md.getCoordinates().replaceParameters(), params.toArray());
+            md = paramsTemplate.apply(getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
 
             maybeRemoveImport("org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
             maybeAddImport("org.springframework.batch.core.repository.JobRepository");
