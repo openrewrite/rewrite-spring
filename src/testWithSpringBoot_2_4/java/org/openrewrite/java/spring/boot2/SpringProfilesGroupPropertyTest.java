@@ -27,7 +27,9 @@ class SpringProfilesGroupPropertyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder().scanRuntimeClasspath().build()
+        spec.recipe(Environment.builder()
+          .scanRuntimeClasspath("org.openrewrite.java.spring")
+          .build()
           .activateRecipes("org.openrewrite.java.spring.boot2.SpringBootProperties_2_4"));
     }
 

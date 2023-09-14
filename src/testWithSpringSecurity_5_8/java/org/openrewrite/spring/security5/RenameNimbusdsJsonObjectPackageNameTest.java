@@ -27,7 +27,7 @@ public class RenameNimbusdsJsonObjectPackageNameTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-            .scanRuntimeClasspath()
+            .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
             .activateRecipes("org.openrewrite.java.spring.security5.RenameNimbusdsJsonObjectPackageName"))
           .parser(JavaParser.fromJavaVersion().classpath("nimbus-jose-jwt"));

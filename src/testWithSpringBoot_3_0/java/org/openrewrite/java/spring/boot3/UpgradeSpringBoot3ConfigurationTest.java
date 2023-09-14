@@ -30,7 +30,7 @@ class UpgradeSpringBoot3ConfigurationTest implements RewriteTest {
     void moveMaxHttpHeaderSize() {
         rewriteRun(
           spec -> spec.recipe(Environment.builder()
-            .scanRuntimeClasspath()
+            .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
             .activateRecipes("org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize")
           ),

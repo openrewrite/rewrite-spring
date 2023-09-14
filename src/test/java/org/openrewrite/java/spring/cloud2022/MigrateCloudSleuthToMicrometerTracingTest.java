@@ -30,7 +30,7 @@ class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
-            .scanRuntimeClasspath()
+            .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
             .activateRecipes("org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing"))
           .parser(JavaParser.fromJavaVersion()
