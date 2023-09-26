@@ -79,7 +79,7 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
                 int domainTypeIndex = 0;
                 int idTypeIndex = 1;
                 int idTypeIndexInChain = repoTypeChain.size() - 1;
-                for (int i = repoTypeChain.size() - 1; i >=0 && (idType == null || idType instanceof JavaType.GenericTypeVariable || domainType == null || domainType instanceof JavaType.GenericTypeVariable); i--) {
+                for (int i = repoTypeChain.size() - 1; i >= 0 && (idType == null || idType instanceof JavaType.GenericTypeVariable || domainType == null || domainType instanceof JavaType.GenericTypeVariable); i--) {
                     JavaType.FullyQualified repoType = repoTypeChain.get(i);
                     List<JavaType> typeParams = repoType.getTypeParameters();
                     boolean domainTypeChanged = false;

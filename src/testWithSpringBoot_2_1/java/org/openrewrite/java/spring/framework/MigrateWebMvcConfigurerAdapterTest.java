@@ -49,7 +49,7 @@ public class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
                     this.someArg = someArg;
                 }
             }
-            ""","""
+            """, """
             package a.b.c;
             
             import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

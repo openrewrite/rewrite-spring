@@ -31,7 +31,7 @@ public class UpdateSCryptPasswordEncoderTest implements RewriteTest {
         spec.recipe(new UpdateSCryptPasswordEncoder())
                 .parser(JavaParser.fromJavaVersion()
                         .logCompilationWarningsAndErrors(true)
-                        .classpathFromResources(new InMemoryExecutionContext(),"spring-security-crypto-5.8.+"));
+                        .classpathFromResources(new InMemoryExecutionContext(), "spring-security-crypto-5.8.+"));
     }
 
     @DocumentExample

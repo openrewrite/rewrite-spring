@@ -209,7 +209,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
             logging.file.max-size=10MB
             logging.file.max-history=10
             logging.path=${user.home}/some-folder
-              ""","""
+              """, """
             logging.file.max-size=10MB
             logging.file.max-history=10
             logging.file.path=${user.home}/some-folder

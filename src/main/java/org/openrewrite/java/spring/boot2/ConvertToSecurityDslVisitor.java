@@ -245,7 +245,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         }
         maybeAddImport(methodType.getDeclaringType().getFullyQualifiedName(), methodType.getName());
         return new J.MethodInvocation(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, null,
-                new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY,  emptyList(),"withDefaults", null, null),
+                new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), "withDefaults", null, null),
                 JContainer.empty(), methodType)
                 .withSelect(null);
     }

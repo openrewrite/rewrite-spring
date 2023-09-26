@@ -64,7 +64,7 @@ class UseTlsAmqpConnectionStringTest implements RewriteTest {
     @Test
     void useTlsEmptyProperties() {
         rewriteRun(
-          spec ->  spec.recipe(new UseTlsAmqpConnectionString("", 5672, 5671, null, null)),
+          spec -> spec.recipe(new UseTlsAmqpConnectionString("", 5672, 5671, null, null)),
           yaml(
             """
               spring:

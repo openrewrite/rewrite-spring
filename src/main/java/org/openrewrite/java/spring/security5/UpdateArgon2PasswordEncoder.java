@@ -100,7 +100,7 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
                                     && resolvedValueMatchesLiteral(parallelism, DEFAULT_V52_PARALLELISM)
                                     && resolvedValueMatchesLiteral(memory, DEFAULT_V52_MEMORY)
                                     && resolvedValueMatchesLiteral(iterations, DEFAULT_V52_ITERATIONS)) {
-                                return newV52FactoryMethodTemplate(ctx).apply(getCursor(),newClass.getCoordinates().replace());
+                                return newV52FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                             }
                         }
                     }

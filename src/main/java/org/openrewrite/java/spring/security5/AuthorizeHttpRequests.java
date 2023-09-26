@@ -53,7 +53,7 @@ public class AuthorizeHttpRequests extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaVisitor<ExecutionContext>() {
-            private void changeTypesAfterVisit(){
+            private void changeTypesAfterVisit() {
                 doAfterVisit(new ChangeType(
                         "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer.ExpressionInterceptUrlRegistry",
                         "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry",

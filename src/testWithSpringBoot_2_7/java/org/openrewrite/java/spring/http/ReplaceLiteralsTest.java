@@ -56,7 +56,7 @@ class ReplaceLiteralsTest implements RewriteTest {
                         return Map.of("foo", "bar");
                     }
                 }
-                ""","""
+                """, """
                 import java.util.Map;
                 
                 import org.springframework.http.MediaType;
@@ -113,7 +113,7 @@ class ReplaceLiteralsTest implements RewriteTest {
                         return Map.of("foo", "bar");
                     }
                 }
-                ""","""
+                """, """
                 import java.util.Map;
                 
                 import org.springframework.http.MediaType;

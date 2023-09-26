@@ -124,7 +124,7 @@ class UseNewSecurityMatchersTest implements RewriteTest {
                     return http.build();
                 }
             }
-            ""","""
+            """, """
             package com.example.demo;
                         
             import org.springframework.context.annotation.Bean;

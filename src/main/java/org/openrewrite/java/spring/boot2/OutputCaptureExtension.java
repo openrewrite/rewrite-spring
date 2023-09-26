@@ -175,7 +175,7 @@ public class OutputCaptureExtension extends Recipe {
                                 new J.VariableDeclarations.NamedVariable(Tree.randomId(),
                                         Space.format(" "),
                                         Markers.EMPTY,
-                                        new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY,  emptyList(), variableName, CAPTURED_OUTPUT_TYPE, null),
+                                        new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), variableName, CAPTURED_OUTPUT_TYPE, null),
                                         emptyList(),
                                         null,
                                         null),
