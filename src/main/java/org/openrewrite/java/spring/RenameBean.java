@@ -143,7 +143,7 @@ public class RenameBean extends Recipe {
 
     private static boolean anyAnnotationMatches(J.Annotation type, Set<String> types) {
         for (String it : types) {
-            if (!FindAnnotations.find(type, it, true).isEmpty()) {
+            if (!FindAnnotations.find(type, '@' + it, true).isEmpty()) {
                 return true;
             }
         }

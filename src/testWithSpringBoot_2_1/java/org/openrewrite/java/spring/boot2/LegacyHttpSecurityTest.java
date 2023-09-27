@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -34,6 +35,7 @@ class LegacyHttpSecurityTest implements RewriteTest {
     void dontUseUnavailableMethods() {
         //language=java
         rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
