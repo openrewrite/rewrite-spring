@@ -15,6 +15,8 @@
  */
 package org.openrewrite.java.spring.search;
 
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.SourceFile;
@@ -28,8 +30,11 @@ import org.openrewrite.marker.SearchResult;
 
 import java.util.Objects;
 
+
+@Value
+@EqualsAndHashCode(callSuper = true)
 public class FindApiCalls extends Recipe {
-    final transient ApiCalls calls = new ApiCalls(this);
+    transient ApiCalls calls = new ApiCalls(this);
 
     @Override
     public String getDisplayName() {
@@ -38,7 +43,8 @@ public class FindApiCalls extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Find outbound API calls that this application is making.";
+        //language=markdown
+        return "Find outbound HTTP API calls made via Spring's `RestTemplate` class.";
     }
 
     @Override
