@@ -30,9 +30,9 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateJobBuilderFactory())
-          .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4.3.+",
-              "spring-batch-infrastructure-4.3.+", "spring-beans-4.3.30.RELEASE", "spring-context-4.3.30.RELEASE"));
+          .parser(JavaParser.fromJavaVersion().logCompilationWarningsAndErrors(true)
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-5.+",
+              "spring-batch-infrastructure-5.+", "spring-beans-5.+", "spring-context-5.+"));
     }
 
     @Test
