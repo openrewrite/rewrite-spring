@@ -61,6 +61,7 @@ class GeneratePropertiesMigratorConfiguration {
 
         var alreadyDefined = new HashSet<>();
         for (String version : latestPatchReleases) {
+            // Should retain 2.0+, such that we do not end up with duplicate property migrations in 2.7
             if (!version.startsWith("2") && !version.startsWith("3")) {
                 continue;
             }
