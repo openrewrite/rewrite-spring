@@ -27,16 +27,18 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.Optional;
+
 public class SimplifyMediaTypeParseCalls extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Simplify Unnecessary `MediaType.parseMediaType` and `MediaType.valueOf` calls";
+        return "Simplify unnecessary `MediaType.parseMediaType()` and `MediaType.valueOf()` calls";
     }
 
     @Override
     public String getDescription() {
-        return "Replaces `MediaType.parseMediaType('application/json')` and `MediaType.valueOf('application/json')` with `MediaType.APPLICATION_JSON`.";
+        return "Replaces `MediaType.parseMediaType(\"application/json\")` and `MediaType.valueOf(\"application/json\")` with `MediaType.APPLICATION_JSON`.";
     }
 
     static final String MEDIA_TYPE = "org.springframework.http.MediaType";
@@ -63,9 +65,15 @@ public class SimplifyMediaTypeParseCalls extends Recipe {
                     maybeRemoveImport(MEDIA_TYPE + ".valueOf");
                     J.FieldAccess fieldAccess = (J.FieldAccess) methodArg;
                     String replacementConstant = fieldAccess.getSimpleName().replace("_VALUE", "");
+                    Optional<JavaType.Variable> first = fieldAccess.getName().getFieldType() != null ?
+                            ((JavaType.Class) fieldAccess.getName().getFieldType().getOwner()).getMembers().stream().filter(v -> v.getName().equals(replacementConstant)).findFirst() :
+                            Optional.empty();
                     return fieldAccess
                             .withType(JavaType.Primitive.String)
-                            .withName(fieldAccess.getName().withSimpleName(replacementConstant))
+                            .withName(fieldAccess.getName()
+                                    .withSimpleName(replacementConstant)
+                                    .withFieldType(first.orElse(null))
+                            )
                             .withPrefix(mi.getPrefix())
                             .withMarkers(mi.getMarkers())
                             .withComments(mi.getComments());

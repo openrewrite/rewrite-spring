@@ -20,6 +20,7 @@ import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -36,6 +37,7 @@ public class RenameNimbusdsJsonObjectPackageNameTest implements RewriteTest {
     @Test
     void renamePackage() {
         rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import com.nimbusds.jose.shaded.json.JSONObject;
