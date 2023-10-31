@@ -31,7 +31,7 @@ public class RemoveOauth2LoginConfigTest implements RewriteTest {
         spec.recipe(new RemoveOauth2LoginConfig())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+", "spring-security-oauth2-client-5.8.+"));
     }
 
     @DocumentExample
