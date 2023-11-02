@@ -54,16 +54,21 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>(
-                "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity", false), new JavaIsoVisitor<ExecutionContext>() {
+                "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity", false
+        ), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 annotation = super.visitAnnotation(annotation, ctx);
                 if (ENABLE_GLOBAL_METHOD_SECURITY_MATCHER.matches(annotation)) {
                     List<Expression> args = annotation.getArguments();
-                    boolean hasPrePostEnabled = args != null && args.stream().anyMatch(this::hasPrePostEnabled);
                     List<Expression> newArgs;
-                    if (hasPrePostEnabled) {
-                        newArgs = args.stream().filter(arg -> !hasPrePostEnabled(arg)).collect(Collectors.toList());
+                    if (args != null && !args.isEmpty()) {
+                        newArgs = args;
+                        if (args.stream().noneMatch(this::hasPrePostEnabled)) {
+                            newArgs.add(buildPrePostEnabledAssignedToFalse());
+                        } else {
+                            newArgs = args.stream().filter(arg -> !hasPrePostEnabled(arg)).collect(Collectors.toList());
+                        }
                     } else {
                         newArgs = Collections.singletonList(buildPrePostEnabledAssignedToFalse());
                     }
@@ -87,7 +92,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
             private boolean hasPrePostEnabled(Expression arg) {
                 if (arg instanceof J.Assignment) {
                     J.Assignment assignment = (J.Assignment) arg;
-                    return assignment.getVariable().toString().equals("prePostEnabled") &&
+                    return ((J.Identifier) assignment.getVariable()).getSimpleName().equals("prePostEnabled") &&
                             RemoveMethodInvocationsVisitor.isTrue(assignment.getAssignment());
                 }
                 return false;
