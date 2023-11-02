@@ -26,6 +26,7 @@ import org.openrewrite.java.spring.RemoveMethodInvocationsVisitor;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,13 +60,12 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                 annotation = super.visitAnnotation(annotation, ctx);
                 if (ENABLE_GLOBAL_METHOD_SECURITY_MATCHER.matches(annotation)) {
                     List<Expression> args = annotation.getArguments();
-                    boolean hasPrePostEnabled = args.stream().anyMatch(this::hasPrePostEnabled);
+                    boolean hasPrePostEnabled = args != null && args.stream().anyMatch(this::hasPrePostEnabled);
                     List<Expression> newArgs;
                     if (hasPrePostEnabled) {
                         newArgs = args.stream().filter(arg -> !hasPrePostEnabled(arg)).collect(Collectors.toList());
                     } else {
-                        newArgs = args;
-                        newArgs.add(buildPrePostEnabledAssignedToFalse());
+                        newArgs = Collections.singletonList(buildPrePostEnabledAssignedToFalse());
                     }
 
                     maybeAddImport(EnableMethodSecurityFqn);

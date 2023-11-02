@@ -60,6 +60,28 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements Rewrit
     }
 
     @Test
+    void emptyAnnotation() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity
+              public class config {
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(prePostEnabled = false)
+              public class config {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void replaceWithNotPrePostEnabled() {
         rewriteRun(
           java(
