@@ -134,11 +134,11 @@ public class ReplaceStringLiteralsWithMediaTypeConstants extends ScanningRecipe<
     }
 
     static boolean declaresSpringWebDependency(SourceFile sourceFile, ExecutionContext ctx) {
-        TreeVisitor<?, ExecutionContext> visitor = new DependencyInsight("org.springframework", "spring-web", "compile", null).getVisitor();
+        TreeVisitor<?, ExecutionContext> visitor = new DependencyInsight("org.springframework", "spring-web", "compile", null, null).getVisitor();
         if (visitor.isAcceptable(sourceFile, ctx) && visitor.visit(sourceFile, ctx) != sourceFile) {
             return true;
         }
-        visitor = new org.openrewrite.gradle.search.DependencyInsight("org.springframework", "spring-web", "compileClasspath").getVisitor();
+        visitor = new org.openrewrite.gradle.search.DependencyInsight("org.springframework", "spring-web", "compileClasspath", null).getVisitor();
         return visitor.isAcceptable(sourceFile, ctx) && visitor.visit(sourceFile, ctx) != sourceFile;
     }
 }
