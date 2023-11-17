@@ -87,7 +87,7 @@ class GeneratePropertiesMigratorConfiguration {
               .acceptPaths("META-INF")
               .enableMemoryMapping()
               .scan()) {
-                var replacements = scanResult.getResourcesWithLeafName("additional-spring-configuration-metadata.json").stream()
+                var replacements = scanResult.getResourcesMatchingWildcard("**/*spring-configuration-metadata.json").stream()
                   .flatMap(res -> {
                       try (InputStream inputStream = res.open()) {
                           var metadata = objectMapper.readValue(inputStream, SpringConfigurationMetadata.class);
@@ -103,7 +103,7 @@ class GeneratePropertiesMigratorConfiguration {
                 if (!replacements.isEmpty()) {
                     var majorMinor = version.split("\\.");
 
-                    var config = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s.yml".formatted(majorMinor[0], majorMinor[1]));
+                    var config = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s-properties.yml".formatted(majorMinor[0], majorMinor[1]));
                     Files.writeString(config, "#\n" +
                       Files.readAllLines(Paths.get("gradle/licenseHeader.txt"))
                         .stream().map(str -> str.replaceAll("^", "# "))
@@ -115,6 +115,9 @@ class GeneratePropertiesMigratorConfiguration {
                         name: org.openrewrite.java.spring.boot%1$s.SpringBootProperties_%1$s_%2$s
                         displayName: Migrate Spring Boot properties to %1$s.%2$s
                         description: Migrate properties found in `application.properties` and `application.yml`.
+                        tags:
+                          - spring
+                          - boot
                         recipeList:""".formatted(majorMinor[0], majorMinor[1]),
                       StandardOpenOption.APPEND);
 
