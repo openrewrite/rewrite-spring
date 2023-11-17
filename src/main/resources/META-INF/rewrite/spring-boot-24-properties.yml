@@ -43,6 +43,7 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.profiles
       newPropertyKey: spring.config.activate.on-profile
+      except: [ active, default, group, include ]
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.mongodb.grid-fs-database
       newPropertyKey: spring.data.mongodb.gridfs.database
