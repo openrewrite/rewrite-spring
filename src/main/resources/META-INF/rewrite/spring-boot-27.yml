@@ -61,80 +61,11 @@ recipeList:
       newGroupId: com.mysql
       newArtifactId: mysql-connector-j
       newVersion: 8.0.x
----
-########################################################################################################################
-# SpringBoot 2.7 Configuration Changes
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
-displayName: Migrate Spring Boot properties to 2.7
-description: >
-  Migrate applications to the latest Spring Boot 2.7 release. This recipe will modify an
-  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
-  changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
-  etc) that are required as part of the migration to Spring Boot 2.7
-tags:
-  - spring
-  - boot
-recipeList:
   # Change: spring.security.saml2.relyingparty.registration.{id}.identityprovider To: spring.security.saml2.relyingparty.registration.{id}.assertingparty
   - org.openrewrite.java.spring.boot2.SamlRelyingPartyPropertyApplicationPropertiesMove # Property files.
   - org.openrewrite.yaml.ChangeKey: # Yaml files
       oldKeyPath: $.spring.security.saml2.relyingparty.registration.*[?(@.identityprovider)]
       newKey: assertingparty
-  #############################################################
-  # Generated property key changes
-  #############################################################
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.artemis.host
-      newPropertyKey: spring.artemis.broker-url
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.artemis.port
-      newPropertyKey: spring.artemis.broker-url
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.batch.initialize-schema
-      newPropertyKey: spring.batch.jdbc.initialize-schema
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.batch.schema
-      newPropertyKey: spring.batch.jdbc.schema
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.batch.table-prefix
-      newPropertyKey: spring.batch.jdbc.table-prefix
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.continue-on-error
-      newPropertyKey: spring.sql.init.continue-on-error
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.data
-      newPropertyKey: spring.sql.init.data-locations
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.data-password
-      newPropertyKey: spring.sql.init.password
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.data-username
-      newPropertyKey: spring.sql.init.username
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.initialization-mode
-      newPropertyKey: spring.sql.init.mode
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.platform
-      newPropertyKey: spring.sql.init.platform
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.schema
-      newPropertyKey: spring.sql.init.schema-locations
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.schema-password
-      newPropertyKey: spring.sql.init.password
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.schema-username
-      newPropertyKey: spring.sql.init.username
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.separator
-      newPropertyKey: spring.sql.init.separator
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.datasource.sql-script-encoding
-      newPropertyKey: spring.sql.init.encoding
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.flyway.check-location
-      newPropertyKey: spring.flyway.fail-on-missing-locations
   - org.openrewrite.java.spring.ChangeSpringPropertyValue:
       propertyKey: spring.jpa.hibernate.naming.physical-strategy
       oldValue: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
