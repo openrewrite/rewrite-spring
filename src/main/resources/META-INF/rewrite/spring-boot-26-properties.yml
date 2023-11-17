@@ -1,0 +1,91 @@
+#
+# Copyright 2023 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
+displayName: Migrate Spring Boot properties to 2.6
+description: Migrate properties found in `application.properties` and `application.yml`.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.dynatrace.device-id
+      newPropertyKey: management.metrics.export.dynatrace.v1.device-id
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.dynatrace.group
+      newPropertyKey: management.metrics.export.dynatrace.v1.group
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.dynatrace.technology-type
+      newPropertyKey: management.metrics.export.dynatrace.v1.technology-type
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.elasticsearch.client.reactive.connection-timeout
+      newPropertyKey: spring.elasticsearch.connection-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.elasticsearch.client.reactive.endpoints
+      newPropertyKey: spring.elasticsearch.uris
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.elasticsearch.client.reactive.max-in-memory-size
+      newPropertyKey: spring.elasticsearch.webclient.max-in-memory-size
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.elasticsearch.client.reactive.password
+      newPropertyKey: spring.elasticsearch.password
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.elasticsearch.client.reactive.socket-timeout
+      newPropertyKey: spring.elasticsearch.socket-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.elasticsearch.client.reactive.username
+      newPropertyKey: spring.elasticsearch.username
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.elasticsearch.rest.connection-timeout
+      newPropertyKey: spring.elasticsearch.connection-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.elasticsearch.rest.password
+      newPropertyKey: spring.elasticsearch.password
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.elasticsearch.rest.read-timeout
+      newPropertyKey: spring.elasticsearch.socket-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.elasticsearch.rest.sniffer.delay-after-failure
+      newPropertyKey: spring.elasticsearch.restclient.sniffer.delay-after-failure
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.elasticsearch.rest.sniffer.interval
+      newPropertyKey: spring.elasticsearch.restclient.sniffer.interval
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.elasticsearch.rest.uris
+      newPropertyKey: spring.elasticsearch.uris
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.elasticsearch.rest.username
+      newPropertyKey: spring.elasticsearch.username
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.flyway.ignore-future-migrations
+      newPropertyKey: spring.flyway.ignore-migration-patterns
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.flyway.ignore-ignored-migrations
+      newPropertyKey: spring.flyway.ignore-migration-patterns
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.flyway.ignore-missing-migrations
+      newPropertyKey: spring.flyway.ignore-migration-patterns
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.flyway.ignore-pending-migrations
+      newPropertyKey: spring.flyway.ignore-migration-patterns
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.flyway.oracle-kerberos-config-file
+      newPropertyKey: spring.flyway.kerberos-config-file
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.webflux.session.cookie.same-site
+      newPropertyKey: server.reactive.session.cookie.same-site
+
