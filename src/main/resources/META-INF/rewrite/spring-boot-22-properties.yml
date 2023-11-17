@@ -1,0 +1,86 @@
+#
+# Copyright 2023 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
+displayName: Migrate Spring Boot properties to 2.2
+description: Migrate properties found in `application.properties` and `application.yml`.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.jetty.accesslog.date-format
+      newPropertyKey: server.jetty.accesslog.custom-format
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.jetty.accesslog.extended-format
+      newPropertyKey: server.jetty.accesslog.format
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.jetty.accesslog.locale
+      newPropertyKey: server.jetty.accesslog.custom-format
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.jetty.accesslog.log-cookies
+      newPropertyKey: server.jetty.accesslog.custom-format
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.jetty.accesslog.log-latency
+      newPropertyKey: server.jetty.accesslog.custom-format
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.jetty.accesslog.log-server
+      newPropertyKey: server.jetty.accesslog.custom-format
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.jetty.accesslog.time-zone
+      newPropertyKey: server.jetty.accesslog.custom-format
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.jmx-enabled
+      newPropertyKey: spring.datasource.tomcat.jmx-enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.reactor.stacktrace-mode.enabled
+      newPropertyKey: spring.reactor.debug-agent.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.use-forward-headers
+      newPropertyKey: server.forward-headers-strategy
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.jackson.joda-date-time-format
+      newPropertyKey: dateFormat
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.rabbitmq.listener.simple.transaction-size
+      newPropertyKey: spring.rabbitmq.listener.simple.batch-size
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.rabbitmq.publisher-confirms
+      newPropertyKey: spring.rabbitmq.publisher-confirm-type
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: logging.file
+      newPropertyKey: logging.file.name
+      except: [ .+ ]
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: logging.path
+      newPropertyKey: logging.file.path
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.health.status.http-mapping
+      newPropertyKey: management.endpoint.health.status.http-mapping
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.health.status.order
+      newPropertyKey: management.endpoint.health.status.order
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.web.client.requests-metric-name
+      newPropertyKey: management.metrics.web.client.request.metric-name
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.web.server.auto-time-requests
+      newPropertyKey: management.metrics.web.server.request.autotime.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.web.server.requests-metric-name
+      newPropertyKey: management.metrics.web.server.request.metric-name
+
