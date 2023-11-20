@@ -41,13 +41,13 @@ recipeList:
       newVersion: 3.2.x
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_2
-  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_2_Java21
+  - org.openrewrite.java.spring.boot3.EnableVirtualThreads
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_2_Java21
-displayName: Migrate Spring Boot properties to 3.2 for Java 21
-description: Migrate properties found in `application.properties` and `application.yml`.
+name: org.openrewrite.java.spring.boot3.EnableVirtualThreads
+displayName: Enable Virtual Threads on Java 21
+description: Set `spring.threads.virtual.enabled` to `true` in `application.properties` or `application.yml`.
 preconditions:
   - org.openrewrite.java.search.HasJavaVersion:
       version: 21.X
