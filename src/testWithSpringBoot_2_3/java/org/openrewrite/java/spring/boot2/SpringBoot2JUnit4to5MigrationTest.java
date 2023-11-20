@@ -71,7 +71,7 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
               class ProductionConfigurationTests {
                             
                   @Test
-                  void testFindAll() {
+                  void findAll() {
                   }
               }
               """
@@ -118,7 +118,7 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
               class ProductionConfigurationTests {
 
                   @Test
-                  void testFindAll() {
+                  void findAll() {
                   }
 
                   @Configuration

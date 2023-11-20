@@ -46,7 +46,7 @@ class SpringBootReleases {
                 "maven", "tests", "spring-boot-versions");
         HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
 
-        HttpSender.Request request = HttpSender.Request.build((version.contains("-RC") ? milestoneRepositoryUrl :  repositoryUrl) + "/org/springframework/boot", httpSender)
+        HttpSender.Request request = HttpSender.Request.build((version.contains("-RC") ? milestoneRepositoryUrl : repositoryUrl) + "/org/springframework/boot", httpSender)
                 .withMethod(HttpSender.Method.GET)
                 .build();
 
@@ -71,12 +71,12 @@ class SpringBootReleases {
                 return modules.stream()
                         .map(module -> {
                             HttpSender.Request moduleRequest = HttpSender.Request
-                                    .build((version.contains("-RC") ? milestoneRepositoryUrl :  repositoryUrl) + "/org/springframework/boot/" + module + "/" + version +
+                                    .build((version.contains("-RC") ? milestoneRepositoryUrl : repositoryUrl) + "/org/springframework/boot/" + module + "/" + version +
                                             "/" + module + "-" + version + ".jar", httpSender)
                                     .withMethod(HttpSender.Method.GET)
                                     .build();
 
-                            try(HttpSender.Response moduleResponse = httpSender.send(moduleRequest)) {
+                            try (HttpSender.Response moduleResponse = httpSender.send(moduleRequest)) {
                                 if (!moduleResponse.isSuccessful()) {
                                     if (moduleResponse.getCode() == 404) {
                                         return null;
@@ -84,7 +84,7 @@ class SpringBootReleases {
                                     throw new IOException("Unexpected code " + moduleResponse);
                                 }
                                 byte[] body = moduleResponse.getBodyAsBytes();
-                                if(body.length == 0) {
+                                if (body.length == 0) {
                                     return null;
                                 }
                                 return new ModuleDownload(module, body);

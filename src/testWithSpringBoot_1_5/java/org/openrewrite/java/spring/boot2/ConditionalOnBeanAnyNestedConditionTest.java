@@ -37,6 +37,11 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void conditionalAnnotationSingleClassCandidateNoChange() {
         //language=java
         rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.builder()
+            .methodDeclarations(false)
+            .constructorInvocations(false)
+            .identifiers(false)
+            .build()),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

@@ -64,7 +64,7 @@ class MigrateJpaSortTest implements RewriteTest {
         );
     }
 
-    @Disabled ("see an error: AST contains missing or invalid type information")
+    @Disabled("see an error: AST contains missing or invalid type information")
     @Test
     void constructorWithAttributeArray() {
         rewriteRun(

@@ -18,7 +18,11 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_1
 displayName: Migrate to Spring Boot 3.1
-description: 'Upgrade to Spring Boot 3.1'
+description: >
+  Migrate applications to the latest Spring Boot 3.1 release. This recipe will modify an
+  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
+  changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
+  etc) that are required as part of the migration to Spring Boot 3.0.
 tags:
   - spring
   - boot
@@ -39,15 +43,3 @@ recipeList:
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_1
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
   - org.openrewrite.hibernate.MigrateToHibernate62
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
-displayName: Migrate Spring Boot properties to 3.1
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.cassandra.ssl
-      newPropertyKey: spring.cassandra.ssl.enabled
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.data.redis.ssl
-      newPropertyKey: spring.data.redis.ssl.enabled

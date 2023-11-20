@@ -29,7 +29,7 @@ public final class HttpSecurityLambdaDsl extends Recipe {
     private static final String FQN_HTTP_SECURITY = "org.springframework.security.config.annotation.web.builders.HttpSecurity";
 
     private static final Collection<String> APPLICABLE_METHOD_NAMES = Arrays.asList(
-            "anonymous", "authorizeRequests", "cors", "csrf", "exceptionHandling", "formLogin",
+            "anonymous", "authorizeHttpRequests", "authorizeRequests", "cors", "csrf", "exceptionHandling", "formLogin",
             "headers", "httpBasic", "jee", "logout", "oauth2Client", "oauth2Login", "oauth2ResourceServer",
             "openidLogin", "portMapper", "rememberMe", "requestCache", "requestMatchers", "requiresChannel",
             "saml2Login", "securityContext", "servletApi", "sessionManagement", "x509");

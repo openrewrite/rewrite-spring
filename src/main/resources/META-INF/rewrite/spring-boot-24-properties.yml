@@ -1,0 +1,137 @@
+#
+# Copyright 2023 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
+displayName: Migrate Spring Boot properties to 2.4
+description: Migrate properties found in `application.properties` and `application.yml`.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.server.servlet.context-path
+      newPropertyKey: management.server.base-path
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: logging.file.clean-history-on-start
+      newPropertyKey: logging.logback.rollingpolicy.clean-history-on-start
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: logging.file.max-history
+      newPropertyKey: logging.logback.rollingpolicy.max-history
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: logging.file.max-size
+      newPropertyKey: logging.logback.rollingpolicy.max-file-size
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: logging.file.total-size-cap
+      newPropertyKey: logging.logback.rollingpolicy.total-size-cap
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: logging.pattern.rolling-file-name
+      newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.profiles
+      newPropertyKey: spring.config.activate.on-profile
+      except: [ active, default, group, include ]
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.grid-fs-database
+      newPropertyKey: spring.data.mongodb.gridfs.database
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.neo4j.password
+      newPropertyKey: spring.neo4j.authentication.password
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.neo4j.repositories.enabled
+      newPropertyKey: spring.data.neo4j.repositories.type
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.neo4j.uri
+      newPropertyKey: spring.neo4j.uri
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.neo4j.username
+      newPropertyKey: spring.neo4j.authentication.password
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.mvc.locale
+      newPropertyKey: spring.web.locale
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.mvc.locale-resolver
+      newPropertyKey: spring.web.locale-resolver
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.add-mappings
+      newPropertyKey: spring.web.resources.add-mappings
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.cache-private
+      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-private
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.cache-public
+      newPropertyKey: spring.web.resources.cache.cachecontrol.cache-public
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.max-age
+      newPropertyKey: spring.web.resources.cache.cachecontrol.max-age
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.must-revalidate
+      newPropertyKey: spring.web.resources.cache.cachecontrol.must-revalidate
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.no-cache
+      newPropertyKey: spring.web.resources.cache.cachecontrol.no-cache
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.no-store
+      newPropertyKey: spring.web.resources.cache.cachecontrol.no-store
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.no-transform
+      newPropertyKey: spring.web.resources.cache.cachecontrol.no-transform
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.proxy-revalidate
+      newPropertyKey: spring.web.resources.cache.cachecontrol.proxy-revalidate
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.s-max-age
+      newPropertyKey: spring.web.resources.cache.cachecontrol.s-max-age
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.stale-if-error
+      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-if-error
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.cachecontrol.stale-while-revalidate
+      newPropertyKey: spring.web.resources.cache.cachecontrol.stale-while-revalidate
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.period
+      newPropertyKey: spring.web.resources.cache.period
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.cache.use-last-modified
+      newPropertyKey: spring.web.resources.cache.use-last-modified
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.chain.cache
+      newPropertyKey: spring.web.resources.chain.cache
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.chain.compressed
+      newPropertyKey: spring.web.resources.chain.compressed
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.chain.enabled
+      newPropertyKey: spring.web.resources.chain.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.content.enabled
+      newPropertyKey: spring.web.resources.chain.strategy.content.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.content.paths
+      newPropertyKey: spring.web.resources.chain.strategy.content.paths
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.fixed.enabled
+      newPropertyKey: spring.web.resources.chain.strategy.fixed.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.fixed.paths
+      newPropertyKey: spring.web.resources.chain.strategy.fixed.paths
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.chain.strategy.fixed.version
+      newPropertyKey: spring.web.resources.chain.strategy.fixed.version
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.resources.static-locations
+      newPropertyKey: spring.web.resources.static-locations
+

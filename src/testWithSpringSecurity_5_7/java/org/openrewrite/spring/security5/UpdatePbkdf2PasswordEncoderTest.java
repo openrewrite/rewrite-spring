@@ -31,7 +31,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
         spec.recipe(new UpdatePbkdf2PasswordEncoder())
                 .parser(JavaParser.fromJavaVersion()
                         .logCompilationWarningsAndErrors(true)
-                        .classpathFromResources(new InMemoryExecutionContext(),"spring-security-crypto-5.8.+"));
+                        .classpathFromResources(new InMemoryExecutionContext(), "spring-security-crypto-5.8.+"));
     }
 
     @DocumentExample

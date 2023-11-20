@@ -33,7 +33,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements Rewrit
         spec.recipe(new ReplaceGlobalMethodSecurityWithMethodSecurity())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(),"spring-security-config-5.8.+"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-security-config-5.8.+"));
     }
 
     @DocumentExample
@@ -52,6 +52,28 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements Rewrit
               import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
               @EnableMethodSecurity
+              public class config {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void emptyAnnotation() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity
+              public class config {
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(prePostEnabled = false)
               public class config {
               }
               """

@@ -83,46 +83,6 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory setEagerInitFilters(boolean)
       newMethodName: setEagerFilterInit
-
----
-########################################################################################################################
-# SpringBoot 2.4 Configuration Changes
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
-displayName: Migrate Spring Boot properties to 2.4
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: logging.pattern.rolling-file-name
-      newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: logging.file.clean-history-on-start
-      newPropertyKey: logging.logback.rollingpolicy.clean-history-on-start
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: logging.file.max-size
-      newPropertyKey: logging.logback.rollingpolicy.max-file-size
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: logging.file.total-size-cap
-      newPropertyKey: logging.logback.rollingpolicy.total-size-cap
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: logging.file.max-history
-      newPropertyKey: logging.logback.rollingpolicy.max-history
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.profiles
-      newPropertyKey: spring.config.activate.on-profile
-      except: [ active, default, group, include ]
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.data.neo4j.password
-      newPropertyKey: spring.neo4j.authentication.password
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.data.neo4j.repositories.enabled
-      newPropertyKey: spring.data.neo4j.repositories.type
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.data.neo4j.uri
-      newPropertyKey: spring.neo4j.uri
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.data.neo4j.username
-      newPropertyKey: spring.neo4j.authentication.password
 ---
 ########################################################################################################################
 # SpringBoot 2.x JUnit 4 to Junit 5 Migration

@@ -88,9 +88,9 @@ public class AddSpringProperty extends Recipe {
 
             @Override
             public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
-                if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile)t).getSourcePath(), ctx)) {
+                if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
                     t = createMergeYamlVisitor().getVisitor().visit(t, ctx);
-                } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile)t).getSourcePath(), ctx)) {
+                } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
                     t = new AddProperty(property, value, null).getVisitor().visit(t, ctx);
                 }
                 return t;

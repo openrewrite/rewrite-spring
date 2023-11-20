@@ -15,6 +15,8 @@
  */
 package org.openrewrite.java.spring.search;
 
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -31,21 +33,26 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
+@Value
+@EqualsAndHashCode(callSuper = true)
 public class FindApiEndpoints extends Recipe {
     private static final List<AnnotationMatcher> REST_ENDPOINTS = Stream.of("Request", "Get", "Post", "Put", "Delete", "Patch")
             .map(method -> new AnnotationMatcher("@org.springframework.web.bind.annotation." + method + "Mapping"))
             .collect(toList());
 
-    final transient ApiEndpoints apis = new ApiEndpoints(this);
+    transient ApiEndpoints apis = new ApiEndpoints(this);
 
     @Override
     public String getDisplayName() {
-        return "Find API endpoints";
+        return "Find Spring API endpoints";
     }
 
     @Override
     public String getDescription() {
-        return "Find all API endpoints that this application exposes.";
+        //language=markdown
+        return "Find all HTTP API endpoints exposed by Spring applications. " +
+               "More specifically, this marks method declarations annotated with `@RequestMapping`, `@GetMapping`, " +
+               "`@PostMapping`, `@PutMapping`, `@DeleteMapping`, and `@PatchMapping` as search results.";
     }
 
     @Override
