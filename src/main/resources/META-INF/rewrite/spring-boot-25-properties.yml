@@ -1,0 +1,76 @@
+#
+# Copyright 2023 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
+displayName: Migrate Spring Boot properties to 2.5
+description: Migrate properties found in `application.properties` and `application.yml`.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.artemis.host
+      newPropertyKey: spring.artemis.broker-url
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.artemis.port
+      newPropertyKey: spring.artemis.broker-url
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.batch.initialize-schema
+      newPropertyKey: spring.batch.jdbc.initialize-schema
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.batch.schema
+      newPropertyKey: spring.batch.jdbc.schema
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.batch.table-prefix
+      newPropertyKey: spring.batch.jdbc.table-prefix
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.continue-on-error
+      newPropertyKey: spring.sql.init.continue-on-error
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.data
+      newPropertyKey: spring.sql.init.data-locations
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.data-password
+      newPropertyKey: spring.sql.init.password
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.data-username
+      newPropertyKey: spring.sql.init.username
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.initialization-mode
+      newPropertyKey: spring.sql.init.mode
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.platform
+      newPropertyKey: spring.sql.init.platform
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.schema
+      newPropertyKey: spring.sql.init.schema-locations
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.schema-password
+      newPropertyKey: spring.sql.init.password
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.schema-username
+      newPropertyKey: spring.sql.init.username
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.separator
+      newPropertyKey: spring.sql.init.separator
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.datasource.sql-script-encoding
+      newPropertyKey: spring.sql.init.encoding
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sql.init.enabled
+      newPropertyKey: spring.sql.init.mode
+

@@ -15,20 +15,20 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_2
-displayName: Migrate Spring Boot properties to 3.2
+name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
+displayName: Migrate Spring Boot properties to 3.1
 description: Migrate properties found in `application.properties` and `application.yml`.
+tags:
+  - spring
+  - boot
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.metrics.web.client.request.metric-name
-      newPropertyKey: management.observations.http.client.requests.name
+      oldPropertyKey: spring.cassandra.ssl
+      newPropertyKey: spring.cassandra.ssl.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.metrics.web.server.request.metric-name
-      newPropertyKey: management.observations.http.server.requests.name
+      oldPropertyKey: spring.data.redis.ssl
+      newPropertyKey: spring.data.redis.ssl.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: server.max-http-header-size
-      newPropertyKey: server.max-http-request-header-size
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.liquibase.labels
-      newPropertyKey: spring.liquibase.label-filter
+      oldPropertyKey: spring.kafka.streams.cache-max-size-buffering
+      newPropertyKey: spring.kafka.streams.state-store-cache-max-size
 

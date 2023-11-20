@@ -58,21 +58,6 @@ recipeList:
 
   # Initialization ordering
   - org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering
-
----
-########################################################################################################################
-# SpringBoot 2.5 Configuration Changes
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
-displayName: Migrate Spring Boot properties to 2.5
-description: Migrate properties found in `application.properties` and `application.yml`.
-recipeList:
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.sql.init.enabled
-      newPropertyKey: spring.sql.init.mode
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: server.tomcat.internal-proxies
-      newPropertyKey: server.tomcat.remoteip.internal-proxies
 ---
 ########################################################################################################################
 # SpringBoot 2.5 Search Recipes
