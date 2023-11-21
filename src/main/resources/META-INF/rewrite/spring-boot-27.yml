@@ -28,14 +28,10 @@ recipeList:
       artifactId: "*"
       newVersion: 2.7.x
       overrideManagedVersion: false
-      retainVersions:
-        - mysql:mysql-connector-java
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 2.7.x
-      retainVersions:
-        - mysql:mysql-connector-java
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.7.x
@@ -54,13 +50,6 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
       newFullyQualifiedTypeName: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_7
-  # Switch MySQL driver artifactId
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: mysql
-      oldArtifactId: mysql-connector-java
-      newGroupId: com.mysql
-      newArtifactId: mysql-connector-j
-      newVersion: 8.0.x
   # Change: spring.security.saml2.relyingparty.registration.{id}.identityprovider To: spring.security.saml2.relyingparty.registration.{id}.assertingparty
   - org.openrewrite.java.spring.boot2.SamlRelyingPartyPropertyApplicationPropertiesMove # Property files.
   - org.openrewrite.yaml.ChangeKey: # Yaml files
