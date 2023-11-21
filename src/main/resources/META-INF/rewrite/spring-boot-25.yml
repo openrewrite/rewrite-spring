@@ -44,6 +44,15 @@ recipeList:
       addIfMissing: false
   - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentials
 
+  # Replace relocated dependency
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: mysql
+      newGroupId: com.mysql
+      oldArtifactId: mysql-connector-java
+      newArtifactId: mysql-connector-j
+      newVersion: 8.0.*
+      overrideManagedVersion: true
+
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateActuatorMediaTypeToApiVersion
   - org.openrewrite.java.ChangeType:
