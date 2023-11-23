@@ -23,6 +23,12 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.tags
+      newPropertyKey: management.observations.key-values
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.otlp.metrics.export.resource-attributes
+      newPropertyKey: management.opentelemetry.resource-attributes
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.max-http-header-size
       newPropertyKey: server.max-http-request-header-size
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -46,10 +52,4 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.jms.listener.concurrency
       newPropertyKey: spring.jms.listener.min-concurrency
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.metrics.tags
-      newPropertyKey: management.observations.key-values
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.otlp.metrics.export.resource-attributes
-      newPropertyKey: management.opentelemetry.resource-attributes
 

@@ -28,10 +28,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
@@ -44,7 +41,7 @@ import static java.util.stream.Collectors.toSet;
  */
 class GeneratePropertiesMigratorConfiguration {
     public static void main(String[] args) throws IOException {
-        var springBootReleases = new SpringBootReleases(true);
+        var springBootReleases = new SpringBootReleases(false); // `true` for release candidates
 
         var objectMapper = new ObjectMapper()
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -98,10 +95,15 @@ class GeneratePropertiesMigratorConfiguration {
                       }
                   })
                   .filter(p -> alreadyDefined.add(p.name()))
+                  .sorted(Comparator.comparing(SpringConfigurationMetadata.ConfigurationProperty::name))
                   .toList();
 
                 if (!replacements.isEmpty()) {
                     var majorMinor = version.split("\\.");
+                    if ("2".equals(majorMinor[0]) || "3".equals(majorMinor[0]) && "0".equals(majorMinor[1])) {
+                        // Don't override manual fixes to the unsupported 2.x and 3.0 versions
+                        continue;
+                    }
 
                     var config = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s-properties.yml".formatted(majorMinor[0], majorMinor[1]));
                     Files.writeString(config, "#\n" +
