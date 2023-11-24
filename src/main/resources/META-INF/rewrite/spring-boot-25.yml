@@ -44,6 +44,15 @@ recipeList:
       addIfMissing: false
   - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentials
 
+  # Spring Boot 2.5 mismanages a pom-only redirect pom of mysql:mysql-connector-java:8.0.33
+  # From 2.6 onwards the managed dependency is com.mysql:mysql-connector-j:8.0.33
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: mysql
+      newGroupId: com.mysql
+      oldArtifactId: mysql-connector-java
+      newArtifactId: mysql-connector-j
+      newVersion: 8.0.x
+
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateActuatorMediaTypeToApiVersion
   - org.openrewrite.java.ChangeType:
