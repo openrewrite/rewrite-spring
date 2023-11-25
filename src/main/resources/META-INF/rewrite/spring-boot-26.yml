@@ -43,14 +43,6 @@ recipeList:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.6.x
 
-  # From 2.6 onwards the managed dependency is com.mysql:mysql-connector-j:8.0.33
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: mysql
-      newGroupId: com.mysql
-      oldArtifactId: mysql-connector-java
-      newArtifactId: mysql-connector-j
-      newVersion: 8.0.x
-
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
 
