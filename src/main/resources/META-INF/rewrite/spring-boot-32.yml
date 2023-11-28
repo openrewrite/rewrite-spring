@@ -42,6 +42,7 @@ recipeList:
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_2
   - org.openrewrite.java.spring.boot3.EnableVirtualThreads
+  - org.openrewrite.java.spring.cloud2023.UpgradeSpringCloud_2023
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
