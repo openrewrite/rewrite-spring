@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.Issue;
@@ -27,7 +28,6 @@ import static org.openrewrite.properties.Assertions.properties;
 
 
 class ChangeSpringPropertyKeyTest implements RewriteTest {
-
     @DocumentExample
     @Test
     void changeLastKey() {
@@ -159,43 +159,48 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void avoidRegenerativeChanges() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("logging.file", "logging.file.name", null)),
-          properties("""
-            logging.file = foo.txt
-            """,
+          properties(
             """
-            logging.file.name = foo.txt
+              logging.file = foo.txt
+              """,
             """
+              logging.file.name = foo.txt
+              """
           ),
           properties(
             """
-            logging.file.name = foo.txt
-            """
+              logging.file.name = foo.txt
+              """
           ),
-          yaml("""
-            logging:
-              file: foo.txt
-            """,
+          yaml(
             """
-            logging:
-              file.name: foo.txt
+              logging:
+                file: foo.txt
+              """,
             """
+              logging:
+                file.name: foo.txt
+              """
           ),
-          yaml("""
-            logging.file: foo.txt
-            """,
+          yaml(
             """
-            logging.file.name: foo.txt
+              logging.file: foo.txt
+              """,
             """
+              logging.file.name: foo.txt
+              """
           ),
-          yaml("""
-            logging:
-              file:
-                name: foo.txt
+          yaml(
             """
+              logging:
+                file:
+                  name: foo.txt
+              """
           ),
-          yaml("""
-            logging.file.name: foo.txt
+          yaml(
             """
+              logging.file.name: foo.txt
+              """
           )
         );
     }
@@ -204,7 +209,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     @Test
     void loggingFileSubproperties() {
         rewriteRun(
-          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot2.SpringBootProperties_2_2"),
+          spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-22-properties.yml", "org.openrewrite.java.spring.boot2.SpringBootProperties_2_2"),
           properties("""
             logging.file.max-size=10MB
             logging.file.max-history=10
@@ -218,4 +223,32 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
+    @Test
+    @Disabled
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/436")
+    void loggingFileSubpropertiesYaml() {
+        rewriteRun(
+          spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-22-properties.yml", "org.openrewrite.java.spring.boot2.SpringBootProperties_2_2"),
+          yaml(
+            """
+              logging:
+                file:
+                  max-history: 10
+                  max-size: 10MB
+                level:
+                  org: INFO
+                path: ${user.home}/some-folder
+                """,
+            """
+              logging:
+                file:
+                  max-history: 10
+                  max-size: 10MB
+                  path: ${user.home}/some-folder
+                level:
+                  org: INFO
+                """
+          )
+        );
+    }
 }
