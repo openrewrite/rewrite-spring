@@ -72,7 +72,7 @@ public class ExpandProperties extends Recipe {
             }
         };
         return sourceFileMask != null ?
-                Preconditions.check(new HasSourcePath<>(sourceFileMask), visitor)
+                Preconditions.check(new HasSourcePath(sourceFileMask), visitor)
                 : visitor;
     }
 
