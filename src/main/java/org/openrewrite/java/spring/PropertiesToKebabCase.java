@@ -62,7 +62,7 @@ public class PropertiesToKebabCase extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return Preconditions.check(new HasSourcePath("**/application*.{yml,yaml}"), new YamlIsoVisitor<ExecutionContext>() {
+            return Preconditions.check(new FindSourceFiles("**/application*.{yml,yaml}"), new YamlIsoVisitor<ExecutionContext>() {
                 @Override
                 public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                     Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
@@ -93,7 +93,7 @@ public class PropertiesToKebabCase extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return Preconditions.check(new HasSourcePath("**/application*.properties"), new PropertiesIsoVisitor<ExecutionContext>() {
+            return Preconditions.check(new FindSourceFiles("**/application*.properties"), new PropertiesIsoVisitor<ExecutionContext>() {
                 @Override
                 public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
                     Properties.Entry e = super.visitEntry(entry, ctx);
