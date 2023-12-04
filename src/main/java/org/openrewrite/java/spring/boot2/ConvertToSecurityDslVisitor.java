@@ -78,29 +78,24 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation initialMethod, P executionContext) {
         J.MethodInvocation method = super.visitMethodInvocation(initialMethod, executionContext);
         if (isApplicableMethod(method)) {
-            Optional<JavaType.Method> replacementMethod = findDesiredReplacement(method);
-            if (!replacementMethod.isPresent()) {
-                return method;
-            }
-
-            final List<J.MethodInvocation> chain = computeAndMarkChain();
-            final J.MethodInvocation m = method;
-            method = replacementMethod.map(newMethodType -> {
-                final boolean keepArg = keepArg(m.getSimpleName());
-                String paramName = keepArg
-                        ? "configurer"
-                        : generateParamNameFromMethodName(m.getSimpleName());
-                return m
-                        .withMethodType(newMethodType)
-                        .withName(m.getName().withSimpleName(newMethodType.getName()))
-                        .withArguments(ListUtils.concat(
-                                        keepArg ? m.getArguments().get(0) : null,
-                                        Collections.singletonList(chain.isEmpty()
-                                                ? createDefaultsCall(newMethodType.getParameterTypes().get(keepArg ? 1 : 0))
-                                                : createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
-                                )
-                        );
-            }).orElse(method);
+            J.MethodInvocation m = method;
+            method = findDesiredReplacement(method)
+                    .map(newMethodType -> {
+                        List<J.MethodInvocation> chain = computeAndMarkChain();
+                        boolean keepArg = keepArg(m.getSimpleName());
+                        String paramName = keepArg ? "configurer" : generateParamNameFromMethodName(m.getSimpleName());
+                        return m
+                                .withMethodType(newMethodType)
+                                .withName(m.getName().withSimpleName(newMethodType.getName()))
+                                .withArguments(ListUtils.concat(
+                                                keepArg ? m.getArguments().get(0) : null,
+                                                Collections.singletonList(chain.isEmpty()
+                                                        ? createDefaultsCall(newMethodType.getParameterTypes().get(keepArg ? 1 : 0))
+                                                        : createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
+                                        )
+                                );
+                    })
+                    .orElse(method);
         }
         Boolean msg = getCursor().pollMessage(MSG_FLATTEN_CHAIN);
         if (Boolean.TRUE.equals(msg)) {
@@ -109,7 +104,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                     .withComments(method.getComments());
         }
         // Auto-format the top invocation call if anything has changed down the tree
-        if (initialMethod != method && (getCursor().getParent(2) == null || !(getCursor().getParent(2).getValue() instanceof J.MethodInvocation))) {
+        Cursor grandParent = getCursor().getParent(2);
+        if (initialMethod != method && (grandParent == null || !(grandParent.getValue() instanceof J.MethodInvocation))) {
             method = autoFormat(method, executionContext);
         }
         return method;
@@ -117,6 +113,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private static String generateParamNameFromMethodName(String n) {
         int i = n.length() - 1;
+        //noinspection StatementWithEmptyBody
         for (; i >= 0 && Character.isLowerCase(n.charAt(i)); i--) {}
         if (i >= 0) {
             return StringUtils.uncapitalize(i == 0 ? n : n.substring(i));
@@ -147,6 +144,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             select = invocation;
         }
         // Check if top-level invocation to remove the prefix as the prefix is space before the root call, i.e. before httpSecurity identifier. We don't want to have inside the lambda
+        assert invocation != null;
         if (invocation.getMarkers().getMarkers().stream().filter(Markup.Info.class::isInstance).map(Markup.Info.class::cast).anyMatch(marker -> MSG_TOP_INVOCATION.equals(marker.getMessage()))) {
             invocation = invocation
                     .withMarkers(invocation.getMarkers().removeByType(Markup.Info.class))
@@ -275,7 +273,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     private J.MethodInvocation createDefaultsCall(JavaType type) {
-        JavaType.Method methodType = TypeUtils.asFullyQualified(type).getMethods().stream().filter(m -> "withDefaults".equals(m.getName()) && m.getParameterTypes().isEmpty() && m.getFlags().contains(Flag.Static)).findFirst().orElse(null);
+        JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(type);
+        assert fullyQualified != null;
+        JavaType.Method methodType = fullyQualified.getMethods().stream().filter(m -> "withDefaults".equals(m.getName()) && m.getParameterTypes().isEmpty() && m.getFlags().contains(Flag.Static)).findFirst().orElse(null);
         if (methodType == null) {
             throw new IllegalStateException();
         }
