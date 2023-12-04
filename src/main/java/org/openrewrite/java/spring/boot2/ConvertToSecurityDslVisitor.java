@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.openrewrite.Cursor;
 import org.openrewrite.Tree;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.StringUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -42,7 +43,19 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private final Collection<String> convertableMethods;
 
+    /**
+     * Optionally used to determine the behavior for any convertableMethods which have an argument.
+     * Each key should be a method name from convertableMethods.
+     * A non-null value will be used to create a new methodInvocation with that name,
+     * and the existing arg will be moved to that new methodInvocation.
+     * A null value will keep the existing argument in the converted method.
+     */
     private final Map<String, String> argReplacements;
+
+    /**
+     * Optionally used to specify replacement method names if they do not match the original method names
+     */
+    private final Map<String, String> methodRenames;
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods) {
         this(securityFqn, convertableMethods, new HashMap<>());
@@ -50,9 +63,15 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
             Map<String, String> argReplacements) {
+        this(securityFqn, convertableMethods, argReplacements, new HashMap<>());
+    }
+
+    public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
+            Map<String, String> argReplacements, Map<String, String> methodRenames) {
         this.securityFqn = securityFqn;
         this.convertableMethods = convertableMethods;
         this.argReplacements = argReplacements;
+        this.methodRenames = methodRenames;
     }
 
     @Override
@@ -67,10 +86,20 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             final List<J.MethodInvocation> chain = computeAndMarkChain();
             final J.MethodInvocation m = method;
             method = replacementMethod.map(newMethodType -> {
-                String paramName = generateParamNameFromMethodName(m.getSimpleName());
+                final boolean keepArg = keepArg(m.getSimpleName());
+                String paramName = keepArg
+                        ? "configurer"
+                        : generateParamNameFromMethodName(m.getSimpleName());
                 return m
                         .withMethodType(newMethodType)
-                        .withArguments(Collections.singletonList(chain.isEmpty() ? createDefaultsCall(newMethodType.getParameterTypes().get(0)) : createLambdaParam(paramName, newMethodType.getParameterTypes().get(0), chain)));
+                        .withName(m.getName().withSimpleName(newMethodType.getName()))
+                        .withArguments(ListUtils.concat(
+                                        keepArg ? m.getArguments().get(0) : null,
+                                        Collections.singletonList(chain.isEmpty()
+                                                ? createDefaultsCall(newMethodType.getParameterTypes().get(keepArg ? 1 : 0))
+                                                : createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
+                                )
+                        );
             }).orElse(method);
         }
         Boolean msg = getCursor().pollMessage(MSG_FLATTEN_CHAIN);
@@ -131,13 +160,13 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (type != null) {
             JavaType.FullyQualified declaringType = type.getDeclaringType();
             return securityFqn.equals(declaringType.getFullyQualifiedName())
-                    && (type.getParameterTypes().isEmpty() || hasMovableArg(m))
+                    && (type.getParameterTypes().isEmpty() || hasHandleableArg(m))
                     && convertableMethods.contains(m.getSimpleName());
         }
         return false;
     }
 
-    private boolean hasMovableArg(J.MethodInvocation m) {
+    private boolean hasHandleableArg(J.MethodInvocation m) {
         return argReplacements.containsKey(m.getSimpleName())
                 && m.getMethodType() != null
                 && m.getMethodType().getParameterTypes().size() == 1
@@ -150,17 +179,24 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             return Optional.empty();
         }
         JavaType.FullyQualified httpSecurityType = methodType.getDeclaringType();
+        boolean keepArg = keepArg(m.getSimpleName());
+        int expectedParamCount = keepArg ? 2 : 1;
+        int customizerParamIndex = keepArg ? 1 : 0;
         return httpSecurityType.getMethods().stream()
-                .filter(availableMethod -> availableMethod.getName().equals(m.getSimpleName()) &&
-                        availableMethod.getParameterTypes().size() == 1 &&
-                        availableMethod.getParameterTypes().get(0) instanceof JavaType.FullyQualified &&
-                        FQN_CUSTOMIZER.equals(((JavaType.FullyQualified) availableMethod.getParameterTypes().get(0)).getFullyQualifiedName()))
+                .filter(availableMethod -> availableMethod.getName().equals(methodRenames.getOrDefault(m.getSimpleName(), m.getSimpleName())) &&
+                        availableMethod.getParameterTypes().size() == expectedParamCount &&
+                        availableMethod.getParameterTypes().get(customizerParamIndex) instanceof JavaType.FullyQualified &&
+                        FQN_CUSTOMIZER.equals(((JavaType.FullyQualified) availableMethod.getParameterTypes().get(customizerParamIndex)).getFullyQualifiedName()))
                 .findFirst();
+    }
+
+    private boolean keepArg(String methodName) {
+        return argReplacements.containsKey(methodName) && argReplacements.get(methodName) == null;
     }
 
     private Optional<JavaType.Method> findDesiredReplacementForArg(J.MethodInvocation m) {
         JavaType.Method methodType = m.getMethodType();
-        if (methodType == null || !hasMovableArg(m) || !(methodType.getReturnType() instanceof JavaType.Class)) {
+        if (methodType == null || !hasHandleableArg(m) || !(methodType.getReturnType() instanceof JavaType.Class)) {
             return Optional.empty();
         }
         JavaType.Class returnType = (JavaType.Class) methodType.getReturnType();
@@ -231,7 +267,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private boolean isAndMethod(J.MethodInvocation method) {
         return "and".equals(method.getSimpleName()) &&
                 (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty) &&
-                TypeUtils.isOfClassType(method.getType(), securityFqn);
+                TypeUtils.isAssignableTo(securityFqn, method.getType());
     }
 
     private boolean isDisableMethod(J.MethodInvocation method) {
