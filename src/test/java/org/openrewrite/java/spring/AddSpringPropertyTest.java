@@ -120,6 +120,7 @@ class AddSpringPropertyTest implements RewriteTest {
               """,
             """
               server.port=8080
+              # This property was added
               server.servlet.path=/tmp/my-server-path
               """
           ),
