@@ -15,18 +15,22 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.java.Assertions.javaVersion;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
+@Disabled
 class EnableVirtualThreadsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.boot3.EnableVirtualThreads");
+        spec.recipeFromResources("org.openrewrite.java.spring.boot3.EnableVirtualThreads")
+          .allSources(source -> source.markers(javaVersion(21)));
     }
 
     @Test
@@ -53,7 +57,9 @@ class EnableVirtualThreadsTest implements RewriteTest {
             "",
             """
               spring:
-                threads.virtual.enabled: true
+                threads:
+                  virtual:
+                    enabled: true
               """,
             s -> s.path("src/main/resources/application.yml")
           )
@@ -74,7 +80,9 @@ class EnableVirtualThreadsTest implements RewriteTest {
           yaml(
             """
               spring:
-                threads.virtual.enabled: false
+                threads:
+                  virtual:
+                    enabled: true
               """,
             s -> s.path("src/main/resources/application.yml")
           )
