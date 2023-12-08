@@ -204,8 +204,8 @@ dependencies {
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-ldap:5.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
 
-    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.0+")
-    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.0+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-core:5.+")
@@ -215,8 +215,8 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
 
-    "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.2+")
-    "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2+")
+    "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.2.+")
+    "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")
 
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
