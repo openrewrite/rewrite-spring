@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
@@ -25,7 +24,6 @@ import static org.openrewrite.java.Assertions.javaVersion;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-@Disabled
 class EnableVirtualThreadsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
