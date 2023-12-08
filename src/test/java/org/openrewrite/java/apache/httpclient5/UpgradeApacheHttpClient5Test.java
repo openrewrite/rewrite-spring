@@ -47,7 +47,8 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
     void migrateDependencies() {
         rewriteRun(
           //language=xml
-          pomXml("""
+          pomXml(
+                """
             <project>
                 <modelVersion>4.0.0</modelVersion>
                 <groupId>org.example</groupId>
@@ -86,7 +87,8 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
     void importReplacementsInGroupsWithSomeSpecificMappings() {
         rewriteRun(
           //language=java
-          java("""
+          java(
+                """
             import org.apache.http.HttpEntity;
             import org.apache.http.client.methods.HttpGet;
             import org.apache.http.client.methods.HttpUriRequest;
@@ -118,7 +120,8 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
     void addTimeUnitsToTimeoutAndDurationMethods() {
         rewriteRun(
           //language=java
-          java("""
+          java(
+                """
             import org.apache.http.client.config.RequestConfig;
             import org.apache.http.config.SocketConfig;
 
@@ -164,52 +167,53 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
     void removeStatusLineHttpResponse() {
         rewriteRun(
           //language=java
-          java("""
-                import org.apache.http.HttpStatus;
-                import org.apache.http.client.methods.CloseableHttpResponse;
-                import org.apache.http.client.methods.HttpGet;
-                import org.apache.http.impl.client.CloseableHttpClient;
-                import org.apache.http.impl.client.HttpClientBuilder;
-                import org.apache.http.ProtocolVersion;
-                
-                import java.io.IOException;
-                
-                class A {
-                    void method() throws IOException {
-                        HttpGet httpGet = new HttpGet("https://moderne.io");
-                        CloseableHttpClient instance = HttpClientBuilder.create().build();
-                        CloseableHttpResponse response = instance.execute(httpGet);
-                        
-                        System.out.println("response.getStatusLine() :: " + response.getStatusLine());
-                        int statusCode = response.getStatusLine().getStatusCode();
-                        String reason = response.getStatusLine().getReasonPhrase();
-                        ProtocolVersion version = response.getStatusLine().getProtocolVersion();
-                    }
+          java(
+                """
+            import org.apache.http.HttpStatus;
+            import org.apache.http.client.methods.CloseableHttpResponse;
+            import org.apache.http.client.methods.HttpGet;
+            import org.apache.http.impl.client.CloseableHttpClient;
+            import org.apache.http.impl.client.HttpClientBuilder;
+            import org.apache.http.ProtocolVersion;
+            
+            import java.io.IOException;
+            
+            class A {
+                void method() throws IOException {
+                    HttpGet httpGet = new HttpGet("https://moderne.io");
+                    CloseableHttpClient instance = HttpClientBuilder.create().build();
+                    CloseableHttpResponse response = instance.execute(httpGet);
+                    
+                    System.out.println("response.getStatusLine() :: " + response.getStatusLine());
+                    int statusCode = response.getStatusLine().getStatusCode();
+                    String reason = response.getStatusLine().getReasonPhrase();
+                    ProtocolVersion version = response.getStatusLine().getProtocolVersion();
                 }
+            }
             """,
             """
-                import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-                import org.apache.hc.core5.http.HttpStatus;
-                import org.apache.hc.client5.http.classic.methods.HttpGet;
-                import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-                import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-                import org.apache.hc.core5.http.ProtocolVersion;
-                import org.apache.hc.core5.http.message.StatusLine;
-                
-                import java.io.IOException;
-                
-                class A {
-                    void method() throws IOException {
-                        HttpGet httpGet = new HttpGet("https://moderne.io");
-                        CloseableHttpClient instance = HttpClientBuilder.create().build();
-                        CloseableHttpResponse response = instance.execute(httpGet);
-                        
-                        System.out.println("response.getStatusLine() :: " + new StatusLine(response));
-                        int statusCode = response.getCode();
-                        String reason = response.getReasonPhrase();
-                        ProtocolVersion version = response.getVersion();
-                    }
+            import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+            import org.apache.hc.core5.http.HttpStatus;
+            import org.apache.hc.client5.http.classic.methods.HttpGet;
+            import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+            import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+            import org.apache.hc.core5.http.ProtocolVersion;
+            import org.apache.hc.core5.http.message.StatusLine;
+            
+            import java.io.IOException;
+            
+            class A {
+                void method() throws IOException {
+                    HttpGet httpGet = new HttpGet("https://moderne.io");
+                    CloseableHttpClient instance = HttpClientBuilder.create().build();
+                    CloseableHttpResponse response = instance.execute(httpGet);
+                    
+                    System.out.println("response.getStatusLine() :: " + new StatusLine(response));
+                    int statusCode = response.getCode();
+                    String reason = response.getReasonPhrase();
+                    ProtocolVersion version = response.getVersion();
                 }
+            }
             """)
         );
     }

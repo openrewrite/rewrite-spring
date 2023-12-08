@@ -103,7 +103,8 @@ class UseNewSecurityMatchersTest implements RewriteTest {
     void chainedCalls() {
         rewriteRun(
           //language=java
-          java("""
+          java(
+                """
             package com.example.demo;
                         
             import org.springframework.context.annotation.Bean;

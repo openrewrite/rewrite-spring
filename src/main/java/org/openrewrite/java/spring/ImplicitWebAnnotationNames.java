@@ -65,8 +65,8 @@ public class ImplicitWebAnnotationNames extends Recipe {
 
 
         @Override
-        public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext executionContext) {
-            J.VariableDeclarations varDecls = super.visitVariableDeclarations(multiVariable, executionContext);
+        public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
+            J.VariableDeclarations varDecls = super.visitVariableDeclarations(multiVariable, ctx);
             // Fix when the annotation looses all it's arguments, and there is no prefix between the annotation and the type expression
             // i.e: @Annotation(argument)Type is valid but @AnnotationType it's not
             if (!varDecls.getLeadingAnnotations().isEmpty()) {

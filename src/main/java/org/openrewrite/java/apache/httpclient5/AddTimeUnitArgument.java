@@ -71,8 +71,8 @@ public class AddTimeUnitArgument extends Recipe {
             final MethodMatcher matcher = new MethodMatcher(methodPattern);
 
             @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-                J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (matcher.matches(m)) {
                     JavaTemplate template = JavaTemplate
                             .builder(StringUtils.repeat("#{any()}, ", m.getArguments().size()) + "TimeUnit.#{}")

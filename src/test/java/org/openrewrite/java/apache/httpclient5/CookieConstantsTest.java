@@ -41,25 +41,25 @@ public class CookieConstantsTest implements RewriteTest {
           //language=java
           java(
             """
-                import org.apache.http.client.config.CookieSpecs;
-                
-                class A {
-                    void method() {
-                        String c1 = CookieSpecs.IGNORE_COOKIES;
-                        String c2 = CookieSpecs.STANDARD;
-                        String c3 = CookieSpecs.STANDARD_STRICT;
-                    }
+            import org.apache.http.client.config.CookieSpecs;
+            
+            class A {
+                void method() {
+                    String c1 = CookieSpecs.IGNORE_COOKIES;
+                    String c2 = CookieSpecs.STANDARD;
+                    String c3 = CookieSpecs.STANDARD_STRICT;
                 }
+            }
             """, """
-                import org.apache.hc.client5.http.cookie.StandardCookieSpec;
-                
-                class A {
-                    void method() {
-                        String c1 = StandardCookieSpec.IGNORE;
-                        String c2 = StandardCookieSpec.RELAXED;
-                        String c3 = StandardCookieSpec.STRICT;
-                    }
+            import org.apache.hc.client5.http.cookie.StandardCookieSpec;
+            
+            class A {
+                void method() {
+                    String c1 = StandardCookieSpec.IGNORE;
+                    String c2 = StandardCookieSpec.RELAXED;
+                    String c3 = StandardCookieSpec.STRICT;
                 }
+            }
             """
           )
         );

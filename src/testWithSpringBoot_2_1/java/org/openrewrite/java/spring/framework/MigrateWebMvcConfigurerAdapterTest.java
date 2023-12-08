@@ -37,7 +37,8 @@ public class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
     void transformSimple() {
         rewriteRun(
           //language=java
-          java("""
+          java(
+                """
             package a.b.c;
             
             import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;

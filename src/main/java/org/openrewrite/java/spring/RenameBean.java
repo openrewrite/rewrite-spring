@@ -210,8 +210,8 @@ public class RenameBean extends Recipe {
         return Preconditions.check(precondition(), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method,
-                                                              ExecutionContext executionContext) {
-                J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
+                                                              ExecutionContext ctx) {
+                J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
                 // handle bean declarations
                 if (m.getMethodType() != null && isRelevantType(m.getMethodType().getReturnType())) {
@@ -232,8 +232,8 @@ public class RenameBean extends Recipe {
 
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl,
-                                                            ExecutionContext executionContext) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
+                                                            ExecutionContext ctx) {
+                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
                 // handle bean declarations
                 if (cd.getType() != null && isRelevantType(cd.getType())) {
@@ -330,8 +330,8 @@ public class RenameBean extends Recipe {
                                                                        J.Assignment beanNameAssignment) {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
-                J.Annotation a = super.visitAnnotation(annotation, executionContext);
+            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                J.Annotation a = super.visitAnnotation(annotation, ctx);
                 if (a == beanAnnotation) {
                     a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                         if (arg == beanNameAssignment) {
@@ -349,8 +349,8 @@ public class RenameBean extends Recipe {
     private TreeVisitor<J, ExecutionContext> renameBeanAnnotationValue(J.Annotation beanAnnotation) {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
-                J.Annotation a = super.visitAnnotation(annotation, executionContext);
+            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                J.Annotation a = super.visitAnnotation(annotation, ctx);
                 if (a == beanAnnotation) {
                     a = a.withArguments(ListUtils.map(a.getArguments(), arg -> replace(arg, oldName, newName)));
                 }
