@@ -39,7 +39,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     public static final String FQN_CUSTOMIZER = "org.springframework.security.config.Customizer";
 
-    private static final JavaType.ShallowClass CUSTOMIZER_SHALLOW_TYPE =
+    private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE =
             (JavaType.ShallowClass) JavaType.buildType(FQN_CUSTOMIZER);
 
     private final String securityFqn;
@@ -82,7 +82,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         J.MethodInvocation method = super.visitMethodInvocation(initialMethod, executionContext);
         if (isApplicableMethod(method)) {
             J.MethodInvocation m = method;
-            method = findDesiredReplacement(method)
+            method = createDesiredReplacement(method)
                     .map(newMethodType -> {
                         List<J.MethodInvocation> chain = computeAndMarkChain();
                         boolean keepArg = keepArg(m.getSimpleName());
@@ -92,9 +92,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                                 .withName(m.getName().withSimpleName(newMethodType.getName()))
                                 .withArguments(ListUtils.concat(
                                                 keepArg ? m.getArguments().get(0) : null,
-                                                Collections.singletonList(chain.isEmpty()
-                                                        ? createDefaultsCall()
-                                                        : createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
+                                                Collections.singletonList(chain.isEmpty() ?
+                                                        createDefaultsCall() :
+                                                        createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
                                         )
                                 );
                     })
@@ -174,7 +174,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                 && !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
     }
 
-    private Optional<JavaType.Method> findDesiredReplacement(J.MethodInvocation m) {
+    private Optional<JavaType.Method> createDesiredReplacement(J.MethodInvocation m) {
         JavaType.Method methodType = m.getMethodType();
         if (methodType == null) {
             return Optional.empty();
@@ -197,7 +197,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         return argReplacements.containsKey(methodName) && argReplacements.get(methodName) == null;
     }
 
-    private Optional<JavaType.Method> findDesiredReplacementForArg(J.MethodInvocation m) {
+    private Optional<JavaType.Method> createDesiredReplacementForArg(J.MethodInvocation m) {
         JavaType.Method methodType = m.getMethodType();
         if (methodType == null || !hasHandleableArg(m) || !(methodType.getReturnType() instanceof JavaType.Class)) {
             return Optional.empty();
@@ -236,7 +236,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         List<J.MethodInvocation> chain = new ArrayList<>();
         Cursor cursor = getCursor();
         J.MethodInvocation initialMethodInvocation = cursor.getValue();
-        findDesiredReplacementForArg(initialMethodInvocation).ifPresent(methodType ->
+        createDesiredReplacementForArg(initialMethodInvocation).ifPresent(methodType ->
                 chain.add(initialMethodInvocation.withMethodType(methodType)
                         .withName(initialMethodInvocation.getName().withSimpleName(methodType.getName()))));
         cursor = cursor.getParent(2);
