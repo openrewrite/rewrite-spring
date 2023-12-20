@@ -20,7 +20,6 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.PartProvider;
 import org.openrewrite.java.tree.*;
 
 import java.util.Collections;
@@ -107,7 +106,12 @@ public class AddRouteTrailingSlash extends Recipe {
     private J.NewArray buildTwoStringsArray(J.Literal path) {
         String oriPath = path.getValue().toString();
         String pathWithTrailingSlash = oriPath + '/';
-        J.NewArray twoPaths = getTwoStringsArrayTemplate();
+        //J.NewArray twoPaths = 
+
+        //private final JavaTemplate template =
+        //    JavaTemplate.builder("{ \"a\", \"b\"}")
+        //        .build();
+
         List<Expression> exps = twoPaths.getInitializer();
         exps.set(0, path.withPrefix(EMPTY));
         exps.set(1, path.withValue(pathWithTrailingSlash)
@@ -118,9 +122,12 @@ public class AddRouteTrailingSlash extends Recipe {
 
     private J.Assignment buildAssignment(J.Literal path) {
         J.NewArray twoPaths = buildTwoStringsArray(path);
-        return getAssignmentTemplate()
-            .withPrefix(Space.EMPTY)
-            .withAssignment(twoPaths.withPrefix(Space.build(" ", emptyList())));
+        //return getAssignmentTemplate()
+        //    .withPrefix(Space.EMPTY)
+        //    .withAssignment(twoPaths.withPrefix(Space.build(" ", emptyList())));
+        
+        //return JavaTemplate.builder("null")
+        //    .build();
     }
 
     private static boolean isHttpVerbMappingAnnotation(String fqn) {
@@ -130,31 +137,6 @@ public class AddRouteTrailingSlash extends Recipe {
                PUT_ANNOTATION_TYPE.equals(fqn) ||
                PATCH_ANNOTATION_TYPE.equals(fqn) ||
                DELETE_ANNOTATION_TYPE.equals(fqn);
-    }
-
-    private static J.NewArray getTwoStringsArrayTemplate() {
-        if (twoStringsArrayTemplate == null) {
-            twoStringsArrayTemplate = PartProvider.buildPart(
-                "class Test {\n" +
-                "    String[] value = { \"a\", \"b\"};\n" +
-                "}",
-                J.NewArray.class);
-        }
-        return twoStringsArrayTemplate;
-    }
-
-    private static J.Assignment getAssignmentTemplate() {
-        if (valueAssignmentTemplate == null) {
-            valueAssignmentTemplate = PartProvider.buildPart(
-                "class Test {\n" +
-                "    void method() {\n" +
-                "        String[] value;\n" +
-                "        value = null;\n" +
-                "    }\n" +
-                "}",
-                J.Assignment.class);
-        }
-        return valueAssignmentTemplate;
     }
 
     private static boolean isStringLiteral(Expression expression) {

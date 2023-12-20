@@ -59,18 +59,25 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 annotation = super.visitAnnotation(annotation, ctx);
+
+                private final JavaTemplate template =
+                    JavaTemplate.builder("@EnableMethodSecurity(prePostEnabled = false)")
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-config-5.8.+"))
+                        .staticImports("org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity")
+                        .build();
+
                 if (ENABLE_GLOBAL_METHOD_SECURITY_MATCHER.matches(annotation)) {
                     List<Expression> args = annotation.getArguments();
                     List<Expression> newArgs;
                     if (args != null && !args.isEmpty()) {
                         newArgs = args;
                         if (args.stream().noneMatch(this::hasPrePostEnabled)) {
-                            newArgs.add(buildPrePostEnabledAssignedToFalse());
+                            newArgs.add(template);
                         } else {
                             newArgs = args.stream().filter(arg -> !hasPrePostEnabled(arg)).collect(Collectors.toList());
                         }
                     } else {
-                        newArgs = Collections.singletonList(buildPrePostEnabledAssignedToFalse());
+                        newArgs = Collections.singletonList(template);
                     }
 
                     maybeAddImport(EnableMethodSecurityFqn);
@@ -98,18 +105,5 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                 return false;
             }
         });
-    }
-
-    private static J.Assignment buildPrePostEnabledAssignedToFalse() {
-        if (prePostEnabledToFalseAssignment == null) {
-            prePostEnabledToFalseAssignment = PartProvider.buildPart(
-                    "import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;\n" +
-                            "@EnableMethodSecurity(prePostEnabled = false)\n" +
-                            "public class config {}",
-                    J.Assignment.class,
-                    "spring-security-config-5.8.+"
-            );
-        }
-        return prePostEnabledToFalseAssignment;
     }
 }
