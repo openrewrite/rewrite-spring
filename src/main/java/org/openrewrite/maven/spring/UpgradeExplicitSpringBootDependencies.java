@@ -167,7 +167,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                             .build());
                     repositories.add(MavenRepository.builder()
                             .id("spring-snapshot")
-                            .uri("https://repo.spring.io/snapshote")
+                            .uri("https://repo.spring.io/snapshot")
                             .releases(false)
                             .snapshots(true)
                             .build());

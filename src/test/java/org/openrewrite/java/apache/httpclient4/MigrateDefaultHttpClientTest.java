@@ -37,34 +37,34 @@ public class MigrateDefaultHttpClientTest implements RewriteTest {
           //language=java
           java(
             """
-                import org.apache.http.HttpResponse;
-                import org.apache.http.client.methods.HttpPost;
-                import org.apache.http.impl.client.DefaultHttpClient;
-                
-                import java.io.IOException;
-                                     
-                class A {
-                    void method() throws IOException {
-                        DefaultHttpClient httpClient = new DefaultHttpClient();
-                        HttpPost httpPost = new HttpPost("https://moderne.io");
-                        HttpResponse httpResponse = httpClient.execute(httpPost);
-                    }
-                }
+              import org.apache.http.HttpResponse;
+              import org.apache.http.client.methods.HttpPost;
+              import org.apache.http.impl.client.DefaultHttpClient;
+              
+              import java.io.IOException;
+                                   
+              class A {
+                  void method() throws IOException {
+                      DefaultHttpClient httpClient = new DefaultHttpClient();
+                      HttpPost httpPost = new HttpPost("https://moderne.io");
+                      HttpResponse httpResponse = httpClient.execute(httpPost);
+                  }
+              }
               """, """
-                import org.apache.http.HttpResponse;
-                import org.apache.http.client.methods.HttpPost;
-                import org.apache.http.impl.client.CloseableHttpClient;
-                import org.apache.http.impl.client.HttpClients;
-                
-                import java.io.IOException;
-                                                                                                       
-                class A {
-                    void method() throws IOException {
-                        CloseableHttpClient httpClient = HttpClients.createDefault();
-                        HttpPost httpPost = new HttpPost("https://moderne.io");
-                        HttpResponse httpResponse = httpClient.execute(httpPost);
-                    }
-                }
+              import org.apache.http.HttpResponse;
+              import org.apache.http.client.methods.HttpPost;
+              import org.apache.http.impl.client.CloseableHttpClient;
+              import org.apache.http.impl.client.HttpClients;
+              
+              import java.io.IOException;
+                                                                                                     
+              class A {
+                  void method() throws IOException {
+                      CloseableHttpClient httpClient = HttpClients.createDefault();
+                      HttpPost httpPost = new HttpPost("https://moderne.io");
+                      HttpResponse httpResponse = httpClient.execute(httpPost);
+                  }
+              }
               """
           )
         );

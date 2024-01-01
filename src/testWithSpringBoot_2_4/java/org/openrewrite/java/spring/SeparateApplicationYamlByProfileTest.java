@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -23,9 +22,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-@Disabled
 class SeparateApplicationYamlByProfileTest implements RewriteTest {
-
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SeparateApplicationYamlByProfile());
@@ -46,13 +43,15 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                       on-profile: test
                 name: test
                 """,
-              "name: main",
-              spec -> spec.path("application.yaml")
+              """
+              name: main
+              """,
+              spec -> spec.path("application.yml").noTrim()
             ),
             yaml(
               null,
               "name: test",
-              spec -> spec.path("application-test.yaml")
+              spec -> spec.path("application-test.yml")
             )
           )
         );
@@ -71,7 +70,7 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                       on-profile: !test
                 name: test
                 """,
-              spec -> spec.path("application.yaml")
+              spec -> spec.path("application.yml")
             )
           )
         );

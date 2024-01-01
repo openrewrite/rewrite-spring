@@ -31,3 +31,4 @@ recipeList:
       artifactId: "*"
       newVersion: 6.2.x
       overrideManagedVersion: false
+  - org.openrewrite.java.spring.security6.ApplyToWithLambdaDsl

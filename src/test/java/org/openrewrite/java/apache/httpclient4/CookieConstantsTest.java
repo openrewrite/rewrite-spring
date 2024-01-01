@@ -41,31 +41,31 @@ public class CookieConstantsTest implements RewriteTest {
           //language=java
           java(
             """
-                import org.apache.http.client.params.CookiePolicy;
-                
-                class A {
-                    void method() {
-                        String c1 = CookiePolicy.BROWSER_COMPATIBILITY;
-                        String c2 = CookiePolicy.NETSCAPE;
-                        String c3 = CookiePolicy.RFC_2109;
-                        String c4 = CookiePolicy.RFC_2965;
-                        String c5 = CookiePolicy.BEST_MATCH;
-                        String c6 = CookiePolicy.IGNORE_COOKIES;
-                    }
+            import org.apache.http.client.params.CookiePolicy;
+            
+            class A {
+                void method() {
+                    String c1 = CookiePolicy.BROWSER_COMPATIBILITY;
+                    String c2 = CookiePolicy.NETSCAPE;
+                    String c3 = CookiePolicy.RFC_2109;
+                    String c4 = CookiePolicy.RFC_2965;
+                    String c5 = CookiePolicy.BEST_MATCH;
+                    String c6 = CookiePolicy.IGNORE_COOKIES;
                 }
+            }
             """, """
-                import org.apache.http.client.config.CookieSpecs;
-                
-                class A {
-                    void method() {
-                        String c1 = CookieSpecs.BROWSER_COMPATIBILITY;
-                        String c2 = CookieSpecs.NETSCAPE;
-                        String c3 = CookieSpecs.STANDARD;
-                        String c4 = CookieSpecs.STANDARD_STRICT;
-                        String c5 = CookieSpecs.BEST_MATCH;
-                        String c6 = CookieSpecs.IGNORE_COOKIES;
-                    }
+            import org.apache.http.client.config.CookieSpecs;
+            
+            class A {
+                void method() {
+                    String c1 = CookieSpecs.BROWSER_COMPATIBILITY;
+                    String c2 = CookieSpecs.NETSCAPE;
+                    String c3 = CookieSpecs.STANDARD;
+                    String c4 = CookieSpecs.STANDARD_STRICT;
+                    String c5 = CookieSpecs.BEST_MATCH;
+                    String c6 = CookieSpecs.IGNORE_COOKIES;
                 }
+            }
             """
           )
         );

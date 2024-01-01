@@ -39,7 +39,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     void doNotChangeCurrentApi() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.core.Job;
             import org.springframework.batch.core.Step;
             import org.springframework.batch.core.job.builder.JobBuilder;
@@ -65,7 +66,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         // language=java
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
-          java("""
+          java(
+                """
             import org.springframework.batch.core.Job;
             import org.springframework.batch.core.Step;
             import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -109,7 +111,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         // language=java
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
-          java("""
+          java(
+                """
             import org.springframework.batch.core.Job;
             import org.springframework.batch.core.Step;
             import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -149,7 +152,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         // language=java
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
-          java("""
+          java(
+                """
             import org.springframework.batch.core.Job;
             import org.springframework.batch.core.Step;
             import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;

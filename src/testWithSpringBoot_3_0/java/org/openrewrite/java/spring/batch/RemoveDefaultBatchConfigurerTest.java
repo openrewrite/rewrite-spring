@@ -40,7 +40,8 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
     void removeSetDataSourceWithCommentOnly() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
             class Foo extends DefaultBatchConfigurer {
                 @Override
@@ -59,7 +60,8 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
     void removeSetDatasourceWithSuperCallOnly() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
             class Foo extends DefaultBatchConfigurer {
                 Foo() {
@@ -82,7 +84,8 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
     void retainSetDataSourceWithAdditionalStatements() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
             class Foo extends DefaultBatchConfigurer {
                 @Override
@@ -106,13 +109,15 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
     void retainInterfaceOverrides() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             package bar;
             public interface Bar {
                 void baz();
             }
             """),
-          java("""
+          java(
+                """
             import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
             class Foo extends DefaultBatchConfigurer implements bar.Bar {
                 @Override
@@ -141,7 +146,8 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
     void removeBeanUsage() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
             import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
             class FooConfig  {

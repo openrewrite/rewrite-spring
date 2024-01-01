@@ -39,7 +39,8 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
             "org.springframework.batch.core.listener.ChunkListenerSupport",
             "org.springframework.batch.core.ChunkListener")),
           // language=java
-          java("""
+          java(
+                """
             import org.springframework.batch.core.listener.ChunkListenerSupport;
             
             public class MyClass extends ChunkListenerSupport {
@@ -62,7 +63,8 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
             "org.springframework.batch.core.listener.JobExecutionListenerSupport",
             "org.springframework.batch.core.JobExecutionListener")),
           // language=java
-          java("""
+          java(
+                """
             import org.springframework.batch.core.listener.JobExecutionListenerSupport;
             
             public class MyClass extends JobExecutionListenerSupport {
@@ -85,7 +87,8 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
             "org.springframework.batch.core.listener.StepExecutionListenerSupport",
             "org.springframework.batch.core.StepExecutionListener")),
           // language=java
-          java("""
+          java(
+                """
             import org.springframework.batch.core.listener.StepExecutionListenerSupport;
             
             public class MyClass extends StepExecutionListenerSupport {
@@ -108,7 +111,8 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
             "org.springframework.batch.repeat.listener.RepeatListenerSupport",
             "org.springframework.batch.repeat.RepeatListener")),
           // language=java
-          java("""
+          java(
+                """
             import org.springframework.batch.repeat.listener.RepeatListenerSupport;
             
             public class MyClass extends RepeatListenerSupport {
@@ -131,7 +135,8 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
             "org.springframework.batch.core.listener.SkipListenerSupport",
             "org.springframework.batch.core.SkipListener")),
           // language=java
-          java("""
+          java(
+                """
             import org.springframework.batch.core.listener.SkipListenerSupport;
             
             public class MyClass extends SkipListenerSupport {

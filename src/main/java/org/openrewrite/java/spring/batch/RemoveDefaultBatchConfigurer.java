@@ -54,8 +54,8 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
 
     static final class RemoveDefaultBatchConfigurerVisitor extends JavaIsoVisitor<ExecutionContext> {
         @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-            J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
+        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+            J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
             if (TypeUtils.isAssignableTo(DEFAULT_BATCH_CONFIGURER, cd.getType())) {
                 // Strip extends DefaultBatchConfigurer
                 maybeRemoveImport(DEFAULT_BATCH_CONFIGURER);
@@ -65,8 +65,8 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-            J.MethodDeclaration md = super.visitMethodDeclaration(method, executionContext);
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
             if (overridesDefaultBatchConfigurerMethod(md) || callsDefaultBatchConfigurerSuperConstructor(md)) {
                 // Strip @Override
                 md = md.withLeadingAnnotations(ListUtils.map(md.getLeadingAnnotations(),

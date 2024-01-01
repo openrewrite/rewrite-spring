@@ -45,7 +45,7 @@ public class MigrateDefaultHttpClient extends Recipe {
                     .build();
 
             @Override
-            public J visitNewClass(J.NewClass newClass, ExecutionContext executionContext) {
+            public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 if (noArgsMatcher.matches(newClass.getConstructorType())) {
                     maybeAddImport("org.apache.http.impl.client.HttpClients");
                     doAfterVisit(new ChangeType(
@@ -54,7 +54,7 @@ public class MigrateDefaultHttpClient extends Recipe {
                     ).getVisitor());
                     return noArgsTemplate.apply(getCursor(), newClass.getCoordinates().replace());
                 }
-                return super.visitNewClass(newClass, executionContext);
+                return super.visitNewClass(newClass, ctx);
             }
         });
     }

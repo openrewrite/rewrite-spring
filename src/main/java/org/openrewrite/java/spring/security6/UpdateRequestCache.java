@@ -60,8 +60,8 @@ public class UpdateRequestCache extends Recipe {
         return Preconditions.check(new UsesMethod<>(REQUEST_CACHE_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
-            public J.Block visitBlock(J.Block block, ExecutionContext executionContext) {
-                block = super.visitBlock(block, executionContext);
+            public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
+                block = super.visitBlock(block, ctx);
                 List<Statement> statements = block.getStatements();
 
                 boolean hasContinueParameterStatement = findContinueParameterStatement(statements);
@@ -94,7 +94,7 @@ public class UpdateRequestCache extends Recipe {
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method,
-                                                            ExecutionContext executionContext) {
+                                                            ExecutionContext ctx) {
                 if (REQUEST_CACHE_MATCHER.matches(method)) {
                     Expression arg = method.getArguments().get(0);
                     if (isNewHttpSessionRequestCacheExpression(arg)) {
@@ -115,7 +115,7 @@ public class UpdateRequestCache extends Recipe {
                     return method;
                 }
 
-                return super.visitMethodInvocation(method, executionContext);
+                return super.visitMethodInvocation(method, ctx);
             }
         });
     }

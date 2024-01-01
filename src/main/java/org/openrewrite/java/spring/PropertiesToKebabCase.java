@@ -36,11 +36,11 @@ public class PropertiesToKebabCase extends Recipe {
     @Override
     public String getDescription() {
         return "Normalize Spring properties to use lowercase and hyphen-separated syntax. " +
-                "For example, changing `spring.main.showBanner` to `spring.main.show-banner`. " +
-                "With [Spring's relaxed binding](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding), " +
-                "`kebab-case` may be used in properties files and still be converted to configuration beans. " +
-                "Note, an exception to this is the case of `@Value`, which is match-sensitive. For example, `@Value(\"${anExampleValue}\")` will not match `an-example-value`. " +
-                "[The Spring reference documentation recommends using `kebab-case` for properties where possible](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding).";
+               "For example, changing `spring.main.showBanner` to `spring.main.show-banner`. " +
+               "With [Spring's relaxed binding](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding), " +
+               "`kebab-case` may be used in properties files and still be converted to configuration beans. " +
+               "Note, an exception to this is the case of `@Value`, which is match-sensitive. For example, `@Value(\"${anExampleValue}\")` will not match `an-example-value`. " +
+               "[The Spring reference documentation recommends using `kebab-case` for properties where possible](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding).";
     }
 
     @Override
@@ -62,20 +62,23 @@ public class PropertiesToKebabCase extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return Preconditions.check(new HasSourcePath("**/application*.{yml,yaml}"), new YamlIsoVisitor<ExecutionContext>() {
-                @Override
-                public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
-                    Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
-                    if (e.getKey() instanceof Yaml.Scalar) {
-                        String key = e.getKey().getValue();
-                        String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
-                        if (!key.equals(asKebabCase)) {
-                            return e.withKey(((Yaml.Scalar) e.getKey()).withValue(asKebabCase));
+            return Preconditions.check(Preconditions.or(
+                            new FindSourceFiles("**/application*.yml").getVisitor(),
+                            new FindSourceFiles("**/application*.yaml").getVisitor()),
+                    new YamlIsoVisitor<ExecutionContext>() {
+                        @Override
+                        public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
+                            Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
+                            if (e.getKey() instanceof Yaml.Scalar) {
+                                String key = e.getKey().getValue();
+                                String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
+                                if (!key.equals(asKebabCase)) {
+                                    return e.withKey(((Yaml.Scalar) e.getKey()).withValue(asKebabCase));
+                                }
+                            }
+                            return e;
                         }
-                    }
-                    return e;
-                }
-            });
+                    });
         }
     }
 
@@ -93,7 +96,7 @@ public class PropertiesToKebabCase extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return Preconditions.check(new HasSourcePath("**/application*.properties"), new PropertiesIsoVisitor<ExecutionContext>() {
+            return Preconditions.check(new FindSourceFiles("**/application*.properties"), new PropertiesIsoVisitor<ExecutionContext>() {
                 @Override
                 public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
                     Properties.Entry e = super.visitEntry(entry, ctx);
