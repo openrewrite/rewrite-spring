@@ -90,10 +90,11 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                             maybeRemoveImport(FQN_CONTEXT_CONFIGURATION);
                             maybeAddImport(FQN_SPRING_JUNIT_CONFIG);
                             a = (J.Annotation) new ChangeType(FQN_CONTEXT_CONFIGURATION, FQN_SPRING_JUNIT_CONFIG, false)
-                                    .getVisitor().visit(a, ctx, getCursor());
+                                    .getVisitor().visitNonNull(a, ctx, getCursor());
+                            a = autoFormat(a, ctx);
                         }
 
-                        return a != null ? autoFormat(a, ctx) : annotation;
+                        return a;
                     }
 
                     private void replaceValueArgumentWithLocations(J.Annotation a, List<Expression> newArgs) {
