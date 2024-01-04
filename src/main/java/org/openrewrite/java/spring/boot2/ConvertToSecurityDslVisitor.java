@@ -237,8 +237,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         Cursor cursor = getCursor();
         J.MethodInvocation initialMethodInvocation = cursor.getValue();
         createDesiredReplacementForArg(initialMethodInvocation).ifPresent(methodType ->
-                chain.add(initialMethodInvocation.withMethodType(methodType)
-                        .withName(initialMethodInvocation.getName().withSimpleName(methodType.getName()))));
+                chain.add(initialMethodInvocation.withName(
+                        initialMethodInvocation.getName().withType(methodType).withSimpleName(methodType.getName()))));
         cursor = cursor.getParent(2);
         for (; isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
             cursor.putMessage(MSG_FLATTEN_CHAIN, true);
