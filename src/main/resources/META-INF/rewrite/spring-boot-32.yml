@@ -71,3 +71,16 @@ recipeList:
   - org.openrewrite.java.spring.AddSpringProperty:
       property: spring.threads.virtual.enabled
       value: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.SpringBoot3BestPractices
+displayName: Spring Boot 3.x best practices
+description: Applies best practices to Spring Boot 3 applications.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
+  - org.openrewrite.java.migrate.UpgradeToJava21 # Allows for virtual threads
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2
