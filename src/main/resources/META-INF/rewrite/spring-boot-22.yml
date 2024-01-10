@@ -60,6 +60,10 @@ recipeList:
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
 
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.rule.OutputCapture
+      newFullyQualifiedTypeName: org.springframework.boot.test.system.OutputCaptureRule
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateApplicationHealthIndicatorToPingHealthIndicator
