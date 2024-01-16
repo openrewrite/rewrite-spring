@@ -135,4 +135,3 @@ recipeList:
         # There is a third variant of this class in spring-cloud-commons and there is not yet a suitable migration
         # path. Once one exists, this can likely be added for removal as well.
         #- org.springframework.cloud.test.ModifiedClassPathRunner
-  - org.openrewrite.java.testing.junit5.JUnit5BestPractices
