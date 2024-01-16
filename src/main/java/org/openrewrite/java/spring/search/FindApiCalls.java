@@ -38,7 +38,7 @@ public class FindApiCalls extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Find API calls";
+        return "Find outbound HTTP API calls";
     }
 
     @Override
