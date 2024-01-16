@@ -30,7 +30,6 @@ import org.openrewrite.marker.SearchResult;
 
 import java.util.Objects;
 
-
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class FindApiCalls extends Recipe {
@@ -38,7 +37,7 @@ public class FindApiCalls extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Find outbound HTTP API calls";
+        return "Find HTTP API calls via `RestTemplate`";
     }
 
     @Override
