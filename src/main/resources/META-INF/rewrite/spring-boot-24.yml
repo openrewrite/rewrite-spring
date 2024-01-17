@@ -54,6 +54,12 @@ recipeList:
       artifactId: spring-boot-starter-test
       exclusionGroupId: junit
       exclusionArtifactId: junit
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: com.google.guava
+      artifactId: guava
+      version: "28.2"
+      versionPattern: -jre
+      onlyIfUsing: com.google.common.*
 
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
