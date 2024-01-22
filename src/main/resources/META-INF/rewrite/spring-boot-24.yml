@@ -54,6 +54,12 @@ recipeList:
       artifactId: spring-boot-starter-test
       exclusionGroupId: junit
       exclusionArtifactId: junit
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: com.google.guava
+      artifactId: guava
+      version: "28.2"
+      versionPattern: -jre
+      onlyIfUsing: com.google.common.*
 
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
@@ -135,4 +141,3 @@ recipeList:
         # There is a third variant of this class in spring-cloud-commons and there is not yet a suitable migration
         # path. Once one exists, this can likely be added for removal as well.
         #- org.springframework.cloud.test.ModifiedClassPathRunner
-  - org.openrewrite.java.testing.junit5.JUnit5BestPractices

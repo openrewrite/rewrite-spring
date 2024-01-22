@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -48,17 +45,18 @@ public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                        if (connectionTimeout.matches(method) || readTimeout.matches(method)) {
+                        updateCursor(m);
+                        if (connectionTimeout.matches(m) || readTimeout.matches(m)) {
                             m = JavaTemplate
-                                .builder("Duration.ofMillis(#{any(int)})")
-                                .imports("java.time.Duration")
-                                .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*"))
-                                .build()
-                                .apply(
-                                    getCursor(),
-                                    m.getCoordinates().replaceArguments(),
-                                    m.getArguments().get(0));
+                                    .builder("Duration.ofMillis(#{any(int)})")
+                                    .imports("java.time.Duration")
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-boot-2.*"))
+                                    .build()
+                                    .apply(
+                                            getCursor(),
+                                            m.getCoordinates().replaceArguments(),
+                                            m.getArguments().get(0));
                             maybeAddImport("java.time.Duration");
                         }
                         return m;

@@ -29,7 +29,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new NoAutowiredOnConstructor())
-          .parser(JavaParser.fromJavaVersion().classpath("spring-beans", "spring-context", "spring-core"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-beans", "spring-boot", "spring-context", "spring-core"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -532,6 +532,28 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
                   @Primary
                   public DatabaseConfiguration(DataSource dataSource) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void ignoreConfigurationProperties() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.core.env.Environment;
+              @ConfigurationProperties
+              public class ArchivingWorkflowListenerProperties {
+                  private final Environment environment;
+                  @Autowired
+                  public ArchivingWorkflowListenerProperties(Environment environment) {
+                      this.environment = environment;
                   }
               }
               """

@@ -68,10 +68,10 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
               import org.springframework.boot.test.context.SpringBootTest;
                             
               @SpringBootTest
-              class ProductionConfigurationTests {
+              public class ProductionConfigurationTests {
                             
                   @Test
-                  void findAll() {
+                  public void testFindAll() {
                   }
               }
               """
@@ -115,10 +115,10 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
               import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
               @SpringJUnitConfig(classes = ProductionConfigurationTests.CustomConfiguration.class)
-              class ProductionConfigurationTests {
+              public class ProductionConfigurationTests {
 
                   @Test
-                  void findAll() {
+                  public void testFindAll() {
                   }
 
                   @Configuration

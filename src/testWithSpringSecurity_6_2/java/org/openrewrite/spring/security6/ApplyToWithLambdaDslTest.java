@@ -16,6 +16,7 @@
 package org.openrewrite.spring.security6;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security6.ApplyToWithLambdaDsl;
 import org.openrewrite.test.RecipeSpec;
@@ -29,7 +30,8 @@ class ApplyToWithLambdaDslTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ApplyToWithLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-security-config", "spring-security-web"));
+            .logCompilationWarningsAndErrors(true)
+            .classpath("spring-security-config", "spring-security-web", "spring-context", "slf4j-api"));
     }
 
     @Test
@@ -177,6 +179,134 @@ class ApplyToWithLambdaDslTest implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/468")
+    void customDslWithStaticFactoryMethod() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+                import org.slf4j.Logger;
+                import org.slf4j.LoggerFactory;
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+                import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+                import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+                import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+                import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+                import org.springframework.security.web.SecurityFilterChain;
+                
+                import static org.springframework.security.config.Customizer.withDefaults;
+                
+                public class MyCustomDsl extends AbstractHttpConfigurer<MyCustomDsl, HttpSecurity> {
+                    private static final Logger log = LoggerFactory.getLogger(MyCustomDsl.class);
+                    
+                    private boolean flag;
+                
+                    @Override
+                    public void init(HttpSecurity http) throws Exception {
+                        // do nothing
+                        log.info("Entering MyCustomDsl.init");
+                    }
+                
+                    @Override
+                    public void configure(HttpSecurity http) throws Exception {
+                        // do nothing
+                        log.info("Entering MyCustomDsl.configure");
+                    }
+                
+                    public MyCustomDsl flag(boolean value) {
+                        this.flag = value;
+                        return this;
+                    }
+                
+                    public boolean isFlag() {
+                        return flag;
+                    }
+                
+                    public static MyCustomDsl customDsl() {
+                        return new MyCustomDsl();
+                    }
+                
+                }
+                
+                @Configuration
+                @EnableWebSecurity
+                public class SecurityConfig {
+                
+                    @Bean
+                    public SecurityFilterChain filterChain(HttpSecurity http) {
+                        http
+                                .apply(MyCustomDsl.customDsl())
+                                .and()
+                                .formLogin(withDefaults());
+                        return http.build();
+                    }
+                
+                }
+              """, """
+                import org.slf4j.Logger;
+                import org.slf4j.LoggerFactory;
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+                import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+                import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+                import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+                import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+                import org.springframework.security.web.SecurityFilterChain;
+                
+                import static org.springframework.security.config.Customizer.withDefaults;
+                
+                public class MyCustomDsl extends AbstractHttpConfigurer<MyCustomDsl, HttpSecurity> {
+                    private static final Logger log = LoggerFactory.getLogger(MyCustomDsl.class);
+                    
+                    private boolean flag;
+                
+                    @Override
+                    public void init(HttpSecurity http) throws Exception {
+                        // do nothing
+                        log.info("Entering MyCustomDsl.init");
+                    }
+                
+                    @Override
+                    public void configure(HttpSecurity http) throws Exception {
+                        // do nothing
+                        log.info("Entering MyCustomDsl.configure");
+                    }
+                
+                    public MyCustomDsl flag(boolean value) {
+                        this.flag = value;
+                        return this;
+                    }
+                
+                    public boolean isFlag() {
+                        return flag;
+                    }
+                
+                    public static MyCustomDsl customDsl() {
+                        return new MyCustomDsl();
+                    }
+                
+                }
+                
+                @Configuration
+                @EnableWebSecurity
+                public class SecurityConfig {
+                
+                    @Bean
+                    public SecurityFilterChain filterChain(HttpSecurity http) {
+                        http
+                                .with(MyCustomDsl.customDsl(), withDefaults())
+                                .formLogin(withDefaults());
+                        return http.build();
+                    }
+                
+                }
+                """
           )
         );
     }
