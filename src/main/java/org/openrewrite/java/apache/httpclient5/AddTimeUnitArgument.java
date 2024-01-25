@@ -77,7 +77,7 @@ public class AddTimeUnitArgument extends Recipe {
                     JavaTemplate template = JavaTemplate
                             .builder(StringUtils.repeat("#{any()}, ", m.getArguments().size()) + "TimeUnit.#{}")
                             .contextSensitive()
-                            .javaParser(JavaParser.fromJavaVersion().classpath("httpclient5", "httpcore5"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpclient5", "httpcore5"))
                             .imports("java.util.concurrent.TimeUnit")
                             .build();
 
