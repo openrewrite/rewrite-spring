@@ -39,17 +39,17 @@ public class NewStatusLine extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaVisitor<ExecutionContext>() {
             final MethodMatcher matcher = new MethodMatcher("org.apache.hc.core5.http.HttpResponse getStatusLine()");
-            final JavaTemplate template = JavaTemplate.builder("new StatusLine(#{any(org.apache.hc.core5.http.HttpResponse)})")
-                    .javaParser(JavaParser.fromJavaVersion().classpath("httpcore5"))
-                    .imports("org.apache.hc.core5.http.message.StatusLine")
-                    .build();
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (matcher.matches(m)) {
                     maybeAddImport("org.apache.hc.core5.http.message.StatusLine");
-                    return template.apply(updateCursor(m), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("new StatusLine(#{any(org.apache.hc.core5.http.HttpResponse)})")
+                            .imports("org.apache.hc.core5.http.message.StatusLine")
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5"))
+                            .build()
+                            .apply(updateCursor(m), m.getCoordinates().replace(), m.getSelect());
                 }
                 return m;
             }
