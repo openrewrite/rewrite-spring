@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.maven.tree.Version;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,9 +38,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
-/*
- * TODO move this to buildSrc or somewhere else where it can be run automatically
- */
 class GeneratePropertiesMigratorConfiguration {
     public static void main(String[] args) throws IOException {
         var springBootReleases = new SpringBootReleases(false); // `true` for release candidates
@@ -58,8 +57,9 @@ class GeneratePropertiesMigratorConfiguration {
 
         var alreadyDefined = new HashSet<>();
         for (String version : latestPatchReleases) {
-            // Should retain 2.0+, such that we do not end up with duplicate property migrations in 2.7
-            if (!version.startsWith("2") && !version.startsWith("3")) {
+            Version semanticVersion = new Version(version);
+            // We only need to scan one outdated version to prevent duplicate migration recipes
+            if (semanticVersion.compareTo(new Version("3.0")) < 0) {
                 continue;
             }
             var versionDir = new File(releasesDir, version);
@@ -100,15 +100,17 @@ class GeneratePropertiesMigratorConfiguration {
 
                 if (!replacements.isEmpty()) {
                     var majorMinor = version.split("\\.");
-                    if ("2".equals(majorMinor[0]) || "3".equals(majorMinor[0]) && "0".equals(majorMinor[1])) {
-                        // Don't override manual fixes to the unsupported 2.x and 3.0 versions
+                    if (semanticVersion.compareTo(new Version("3.1")) < 0) {
+                        // Don't override manual fixes to the unsupported 2.x and 3.0 versions anymore
                         continue;
                     }
 
                     var config = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s-properties.yml".formatted(majorMinor[0], majorMinor[1]));
                     Files.writeString(config, "#\n" +
                       Files.readAllLines(Paths.get("gradle/licenseHeader.txt"))
-                        .stream().map(str -> str.replaceAll("^", "# "))
+                        .stream()
+                        .map(str -> str.replaceAll("^", "# "))
+                        .map(str -> str.replace("${year}", LocalDate.now().getYear() + ""))
                         .collect(Collectors.joining("\n")) + "\n#\n");
 
                     Files.writeString(config, """
