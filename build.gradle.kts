@@ -9,8 +9,8 @@ val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4",
 val springSecurityVersions: List<String> = listOf("5_7", "5_8", "6_2")
 
 val sourceSetNames: Map<String, List<String>> = mapOf(
-        Pair("testWithSpringBoot_", springBootVersions),
-        Pair("testWithSpringSecurity_", springSecurityVersions)
+    Pair("testWithSpringBoot_", springBootVersions),
+    Pair("testWithSpringSecurity_", springSecurityVersions)
 )
 
 sourceSets {
@@ -271,5 +271,14 @@ sourceSetNames.forEach { sourceSet, versions ->
         tasks.check {
             dependsOn(testTask)
         }
+    }
+}
+
+tasks {
+    val generatePropertyMigrationRecipes by registering(JavaExec::class) {
+        group = "generate"
+        description = "Generate Spring Boot property migration recipes."
+        mainClass = "org.openrewrite.java.spring.internal.GeneratePropertiesMigratorConfiguration"
+        classpath = sourceSets.getByName("test").runtimeClasspath
     }
 }
