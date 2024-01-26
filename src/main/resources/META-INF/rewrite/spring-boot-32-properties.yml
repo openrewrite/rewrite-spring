@@ -1,5 +1,5 @@
 #
-# Copyright 2023 the original author or authors.
+# Copyright 2024 the original author or authors.
 # <p>
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,9 +22,6 @@ tags:
   - spring
   - boot
 recipeList:
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.metrics.tags
-      newPropertyKey: management.observations.key-values
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.metrics.export.resource-attributes
       newPropertyKey: management.opentelemetry.resource-attributes
