@@ -60,9 +60,9 @@ class MigrateDatabaseCredentialsTest implements RewriteTest {
               spring.liquibase.url=host
               """,
             """
+              spring.liquibase.password=${spring.datasource.password}
               spring.liquibase.url=host
               spring.liquibase.username=${spring.datasource.username}
-              spring.liquibase.password=${spring.datasource.password}
               """
           )
         );
