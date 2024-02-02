@@ -28,7 +28,7 @@ import org.openrewrite.yaml.tree.Yaml;
  * ".properties" and YAML files.
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class DeleteSpringProperty extends Recipe {
 
     @Option(displayName = "Property key",

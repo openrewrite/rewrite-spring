@@ -42,7 +42,7 @@ import java.util.*;
 
 import static org.openrewrite.java.MethodMatcher.methodPattern;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Value
 public class RenameBean extends Recipe {
 

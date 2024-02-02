@@ -48,7 +48,7 @@ public class PropertiesToKebabCase extends Recipe {
         return Arrays.asList(new PropertiesToKebabCaseYaml(), new PropertiesToKebabCaseProperties());
     }
 
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class PropertiesToKebabCaseYaml extends Recipe {
         @Override
         public String getDisplayName() {
@@ -82,7 +82,7 @@ public class PropertiesToKebabCase extends Recipe {
         }
     }
 
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class PropertiesToKebabCaseProperties extends Recipe {
         @Override
         public String getDisplayName() {
