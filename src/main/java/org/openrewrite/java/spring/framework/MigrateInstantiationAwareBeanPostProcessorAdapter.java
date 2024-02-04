@@ -15,10 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -30,7 +27,6 @@ import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 
 import java.util.Collections;
-import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 
@@ -56,7 +52,7 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), fromExtendingFqn)) {
                     cd = cd.withExtends(null);
-                    J.Identifier ident = new J.Identifier(UUID.randomUUID(), Space.format(" "), Markers.EMPTY, emptyList(),
+                    J.Identifier ident = new J.Identifier(Tree.randomId(), Space.format(" "), Markers.EMPTY, emptyList(),
                             "SmartInstantiationAwareBeanPostProcessor", JavaType.buildType(toImplementsFqn), null);
                     J.Block body = cd.getBody();
                     cd = maybeAutoFormat(cd, cd.withBody(cd.getBody().withStatements(emptyList())).withImplements(ListUtils.concat(cd.getImplements(), ident)), ctx, getCursor());
