@@ -713,7 +713,7 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             
             import org.springframework.data.annotation.Id;
             
-            public record Employee(@Id String id) {};
+            public record Employee(@Id String id) {}
             """
           ),
           java(
@@ -747,7 +747,7 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             
             import org.springframework.data.annotation.Id;
             
-            public record Employee(@Id String id) {};
+            public record Employee(@Id String id) {}
             """
           ),
           java(
