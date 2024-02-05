@@ -36,7 +36,7 @@ public class CookieConstantsTest implements RewriteTest {
     }
 
     @Test
-    void testCookieConstantsMapping() {
+    void cookieConstantsMapping() {
         rewriteRun(
           //language=java
           java(
