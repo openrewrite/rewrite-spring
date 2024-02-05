@@ -24,8 +24,6 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.NoSuchElementException;
-
 import static java.util.Objects.requireNonNull;
 
 public class ChangeEmbeddedServletContainerCustomizer extends Recipe {

@@ -26,8 +26,6 @@ import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 
-import java.util.Collections;
-
 import static java.util.Collections.emptyList;
 
 public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
