@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.amqp;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,6 +31,7 @@ class UseTlsAmqpConnectionStringTest implements RewriteTest {
         spec.recipe(new UseTlsAmqpConnectionString(null, 5672, 5671, null, null));
     }
 
+    @DocumentExample
     @Test
     void useTls() {
         rewriteRun(

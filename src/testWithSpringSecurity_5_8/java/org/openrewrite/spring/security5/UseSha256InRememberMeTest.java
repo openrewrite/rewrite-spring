@@ -16,8 +16,8 @@
 package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security6.UseSha256InRememberMe;
 import org.openrewrite.test.RecipeSpec;

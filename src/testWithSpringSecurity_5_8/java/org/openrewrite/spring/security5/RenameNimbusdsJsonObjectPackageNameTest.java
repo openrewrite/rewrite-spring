@@ -16,6 +16,7 @@
 package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -34,6 +35,7 @@ public class RenameNimbusdsJsonObjectPackageNameTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("nimbus-jose-jwt"));
     }
 
+    @DocumentExample
     @Test
     void renamePackage() {
         rewriteRun(

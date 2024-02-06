@@ -23,8 +23,8 @@ import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
 
-import static org.openrewrite.yaml.Assertions.yaml;
 import static org.openrewrite.properties.Assertions.properties;
+import static org.openrewrite.yaml.Assertions.yaml;
 
 
 class ChangeSpringPropertyKeyTest implements RewriteTest {
