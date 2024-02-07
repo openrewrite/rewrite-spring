@@ -77,11 +77,11 @@ public class MigrateJobBuilderFactory extends Recipe {
 
     private static class RemoveJobBuilderFactoryVisitor extends JavaIsoVisitor<ExecutionContext> {
 
-        private final ClassDeclaration scope;
+        private final J.ClassDeclaration scope;
 
-        private final MethodDeclaration enclosingMethod;
+        private final J.MethodDeclaration enclosingMethod;
 
-        public RemoveJobBuilderFactoryVisitor(ClassDeclaration scope, MethodDeclaration enclosingMethod) {
+        public RemoveJobBuilderFactoryVisitor(J.ClassDeclaration scope, J.MethodDeclaration enclosingMethod) {
             this.scope = scope;
             this.enclosingMethod = enclosingMethod;
         }
