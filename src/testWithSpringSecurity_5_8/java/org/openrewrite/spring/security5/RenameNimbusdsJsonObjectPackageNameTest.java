@@ -25,7 +25,7 @@ import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class RenameNimbusdsJsonObjectPackageNameTest implements RewriteTest {
+class RenameNimbusdsJsonObjectPackageNameTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()

@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
+class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

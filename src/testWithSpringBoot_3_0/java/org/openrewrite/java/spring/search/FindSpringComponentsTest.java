@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class FindSpringComponentsTest implements RewriteTest {
+class FindSpringComponentsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

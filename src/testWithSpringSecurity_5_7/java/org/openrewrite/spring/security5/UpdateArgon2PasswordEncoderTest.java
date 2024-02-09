@@ -25,7 +25,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class UpdateArgon2PasswordEncoderTest implements RewriteTest {
+class UpdateArgon2PasswordEncoderTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UpdateArgon2PasswordEncoder())

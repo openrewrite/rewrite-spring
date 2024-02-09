@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MigrateHandlerInterceptorTest implements RewriteTest {
+class MigrateHandlerInterceptorTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

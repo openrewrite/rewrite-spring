@@ -25,7 +25,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class RemoveFilterSecurityInterceptorOncePerRequestTest implements RewriteTest {
+class RemoveFilterSecurityInterceptorOncePerRequestTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

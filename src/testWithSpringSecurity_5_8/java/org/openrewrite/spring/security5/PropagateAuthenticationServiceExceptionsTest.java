@@ -25,7 +25,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
+class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new PropagateAuthenticationServiceExceptions())
