@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package org.openrewrite.java.springdoc;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -25,14 +24,10 @@ import java.util.regex.Pattern;
 
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class UpgradeOpenAPI3Test implements RewriteTest {
-
+class SwaggerToSpringDocTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.openapi.UpgradeOpenAPI3")
-          .parser(JavaParser.fromJavaVersion()
-//            .classpathFromResources(new InMemoryExecutionContext(),"todo")
-          );
+        spec.recipeFromResources("org.openrewrite.java.springdoc.SwaggerToSpringDoc");
     }
 
     @Test
@@ -57,7 +52,7 @@ class UpgradeOpenAPI3Test implements RewriteTest {
               </project>
               """,
             after -> after.after(actual -> {
-                String version = Pattern.compile("<version>(1\\.7\\..*)</version>")
+                String version = Pattern.compile("<version>(2\\.3\\..*)</version>")
                   .matcher(actual)
                   .results()
                   .map(m -> m.group(1))

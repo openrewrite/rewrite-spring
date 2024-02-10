@@ -15,7 +15,7 @@
 #
 
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.openapi.SwaggerToSpringDoc
+name: org.openrewrite.java.springdoc.SwaggerToSpringDoc
 displayName: Migrate from Swagger to SpringDoc and OpenAPI
 description: Migrate from Swagger to SpringDoc and OpenAPI.
 tags:
@@ -23,7 +23,7 @@ tags:
   - springdoc
   - openapi
 recipeList:
-  - org.openrewrite.openapi.SwaggerToOpenAPI
+  - org.openrewrite.openapi.swagger.SwaggerToOpenAPI
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: swagger.title
@@ -45,7 +45,7 @@ tags:
 recipeList:
   # https://springdoc.org/#migrating-from-springdoc-v1
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
-      groupId: org.
+      groupId: org.springdoc
       artifactId: "*"
       newVersion: 2.3.x
   # "classes/annotations changes"
