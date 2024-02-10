@@ -30,15 +30,14 @@ import org.openrewrite.marker.SearchResult;
 
 import java.util.Objects;
 
-
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class FindApiCalls extends Recipe {
     transient ApiCalls calls = new ApiCalls(this);
 
     @Override
     public String getDisplayName() {
-        return "Find API calls";
+        return "Find HTTP API calls via `RestTemplate`";
     }
 
     @Override

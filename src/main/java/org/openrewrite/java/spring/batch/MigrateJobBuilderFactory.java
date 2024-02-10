@@ -22,11 +22,7 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.J.ClassDeclaration;
-import org.openrewrite.java.tree.J.MethodDeclaration;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,11 +77,11 @@ public class MigrateJobBuilderFactory extends Recipe {
 
     private static class RemoveJobBuilderFactoryVisitor extends JavaIsoVisitor<ExecutionContext> {
 
-        private final ClassDeclaration scope;
+        private final J.ClassDeclaration scope;
 
-        private final MethodDeclaration enclosingMethod;
+        private final J.MethodDeclaration enclosingMethod;
 
-        public RemoveJobBuilderFactoryVisitor(ClassDeclaration scope, MethodDeclaration enclosingMethod) {
+        public RemoveJobBuilderFactoryVisitor(J.ClassDeclaration scope, J.MethodDeclaration enclosingMethod) {
             this.scope = scope;
             this.enclosingMethod = enclosingMethod;
         }

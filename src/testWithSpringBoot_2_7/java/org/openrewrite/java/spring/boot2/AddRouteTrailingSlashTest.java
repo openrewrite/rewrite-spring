@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class AddRouteTrailingSlashTest implements RewriteTest {
+class AddRouteTrailingSlashTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

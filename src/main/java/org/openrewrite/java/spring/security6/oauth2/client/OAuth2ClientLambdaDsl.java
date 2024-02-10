@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class OAuth2ClientLambdaDsl extends Recipe {
     private static final String FQN_OAUTH2_CLIENT_CONFIGURER = "org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2ClientConfigurer";
 

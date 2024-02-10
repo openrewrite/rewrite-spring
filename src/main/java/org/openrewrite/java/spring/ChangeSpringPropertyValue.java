@@ -24,7 +24,7 @@ import org.openrewrite.properties.ChangePropertyValue;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Value
 public class ChangeSpringPropertyValue extends Recipe {
 

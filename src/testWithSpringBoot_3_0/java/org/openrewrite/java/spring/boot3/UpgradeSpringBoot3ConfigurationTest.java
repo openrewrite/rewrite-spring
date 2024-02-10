@@ -16,8 +16,8 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.config.Environment;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.config.Environment;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.properties.Assertions.properties;
