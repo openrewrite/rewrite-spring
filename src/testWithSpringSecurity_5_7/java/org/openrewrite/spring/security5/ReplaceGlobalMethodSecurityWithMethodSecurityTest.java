@@ -27,7 +27,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.xml.Assertions.xml;
 
-public class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
+class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ReplaceGlobalMethodSecurityWithMethodSecurity())
@@ -40,6 +40,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements Rewrit
     @Test
     void replaceWithPrePostEnabled() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -62,6 +63,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements Rewrit
     @Test
     void emptyAnnotation() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -84,6 +86,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements Rewrit
     @Test
     void replaceWithNotPrePostEnabled() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
