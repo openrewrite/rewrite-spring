@@ -28,7 +28,6 @@ import org.openrewrite.java.spring.RemoveMethodInvocationsVisitor;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,61 +52,48 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(
-                "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity", false
-        ), new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                annotation = super.visitAnnotation(annotation, ctx);
-                if (ENABLE_GLOBAL_METHOD_SECURITY_MATCHER.matches(annotation)) {
-                    List<Expression> args = annotation.getArguments();
-                    List<Expression> newArgs;
-                    if (args != null && !args.isEmpty()) {
-                        newArgs = args;
-                        if (args.stream().noneMatch(this::hasPrePostEnabled)) {
-                            newArgs.add(buildPrePostEnabledAssignedToFalse(annotation, ctx));
-                        } else {
-                            newArgs = args.stream().filter(arg -> !hasPrePostEnabled(arg)).collect(Collectors.toList());
+        return Preconditions.check(
+                new UsesType<>("org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity", false),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                        annotation = super.visitAnnotation(annotation, ctx);
+                        if (ENABLE_GLOBAL_METHOD_SECURITY_MATCHER.matches(annotation)) {
+                            maybeAddImport(EnableMethodSecurityFqn);
+                            maybeRemoveImport(EnableGlobalMethodSecurityFqn);
+                            J.Annotation replacementAnnotation = JavaTemplate.builder("@EnableMethodSecurity(prePostEnabled = false)")
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-security-config-5.8.+"))
+                                    .imports(EnableMethodSecurityFqn)
+                                    .build()
+                                    .apply(getCursor(), annotation.getCoordinates().replace());
+
+                            List<Expression> oldArgs = annotation.getArguments();
+                            if (oldArgs == null || oldArgs.isEmpty()) {
+                                return replacementAnnotation;
+                            }
+
+                            List<Expression> newArgs = oldArgs;
+                            if (oldArgs.stream().noneMatch(this::hasPrePostEnabled)) {
+                                newArgs.add(replacementAnnotation.getArguments().get(0));
+                            } else {
+                                newArgs = oldArgs.stream().filter(arg -> !hasPrePostEnabled(arg)).collect(Collectors.toList());
+                            }
+                            return autoFormat(replacementAnnotation.withArguments(newArgs), ctx);
                         }
-                    } else {
-                        newArgs = Collections.singletonList(buildPrePostEnabledAssignedToFalse(annotation, ctx));
+                        return annotation;
                     }
 
-                    maybeAddImport(EnableMethodSecurityFqn);
-                    maybeRemoveImport(EnableGlobalMethodSecurityFqn);
-                    annotation = JavaTemplate.builder("@EnableMethodSecurity")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-security-config-5.8.+"))
-                            .imports(EnableMethodSecurityFqn)
-                            .build()
-                            .apply(
-                                    getCursor(),
-                                    annotation.getCoordinates().replace()
-                            );
-                    return autoFormat(annotation.withArguments(newArgs), ctx);
+                    private boolean hasPrePostEnabled(Expression arg) {
+                        if (arg instanceof J.Assignment) {
+                            J.Assignment assignment = (J.Assignment) arg;
+                            return ((J.Identifier) assignment.getVariable()).getSimpleName().equals("prePostEnabled") &&
+                                   RemoveMethodInvocationsVisitor.isTrue(assignment.getAssignment());
+                        }
+                        return false;
+                    }
                 }
-                return annotation;
-            }
-
-            private boolean hasPrePostEnabled(Expression arg) {
-                if (arg instanceof J.Assignment) {
-                    J.Assignment assignment = (J.Assignment) arg;
-                    return ((J.Identifier) assignment.getVariable()).getSimpleName().equals("prePostEnabled") &&
-                           RemoveMethodInvocationsVisitor.isTrue(assignment.getAssignment());
-                }
-                return false;
-            }
-
-            private Expression buildPrePostEnabledAssignedToFalse(J.Annotation annotation, ExecutionContext ctx) {
-                return ((J.Annotation) JavaTemplate.builder("@EnableMethodSecurity(prePostEnabled = false)")
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-config-5.8.+"))
-                        .imports(EnableMethodSecurityFqn)
-                        .build()
-                        .apply(getCursor(), annotation.getCoordinates().replace()))
-                        .getArguments().get(0);
-            }
-        });
+        );
     }
 
 }
