@@ -68,15 +68,15 @@ class AddSpringPropertyTest implements RewriteTest {
               servlet.session.cookie.path=/cookie-monster
               """,
             """
-              servlet.session.cookie.path=/cookie-monster
               fred=fred
+              servlet.session.cookie.path=/cookie-monster
               """
           ),
           //language=yaml
           yaml(
             """
-                  server:
-                    port: 8888
+              server:
+                port: 8888
               """,
             """
               server:

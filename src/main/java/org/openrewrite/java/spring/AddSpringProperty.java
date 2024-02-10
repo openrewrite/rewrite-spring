@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
  *       the recipe is configured without pathExpressions, it will query the execution context for reasonable defaults.
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class AddSpringProperty extends Recipe {
 
     @Option(displayName = "Property key",

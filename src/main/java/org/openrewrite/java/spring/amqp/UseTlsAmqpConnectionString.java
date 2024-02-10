@@ -40,7 +40,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class UseTlsAmqpConnectionString extends Recipe {
     private static final String PREFIX_AMQP = "amqp";
     private static final String PREFIX_AMQP_SECURE = "amqps";
@@ -138,7 +138,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class UseTlsAmqpConnectionStringYaml extends Recipe {
         String propertyKey;
 
@@ -238,7 +238,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class UseTlsAmqpConnectionStringProperties extends Recipe {
         String propertyKey;
 

@@ -60,6 +60,11 @@ public class NoAutowiredOnConstructor extends Recipe {
                     }
                 }
 
+                // Lombok can also provide a constructor, so keep `@Autowired` on constructors if found
+                if (!FindAnnotations.find(cd, "@lombok.*Constructor").isEmpty()) {
+                    return cd;
+                }
+
                 // `@ConfigurationProperties` classes usually use field injection, so keep `@Autowired` on constructors
                 if (!FindAnnotations.find(cd, "@org.springframework.boot.context.properties.ConfigurationProperties").isEmpty()) {
                     return cd;

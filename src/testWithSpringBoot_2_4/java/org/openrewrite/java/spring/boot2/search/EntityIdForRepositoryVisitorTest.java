@@ -27,7 +27,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
 
-public class EntityIdForRepositoryVisitorTest implements RewriteTest {
+class EntityIdForRepositoryVisitorTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -713,7 +713,7 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             
             import org.springframework.data.annotation.Id;
             
-            public record Employee(@Id String id) {};
+            public record Employee(@Id String id) {}
             """
           ),
           java(
@@ -747,7 +747,7 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             
             import org.springframework.data.annotation.Id;
             
-            public record Employee(@Id String id) {};
+            public record Employee(@Id String id) {}
             """
           ),
           java(

@@ -16,6 +16,7 @@
 package org.openrewrite.java.apache.httpclient5;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -83,6 +84,7 @@ class UpgradeApacheHttpClient5Test implements RewriteTest {
           })));
     }
 
+    @DocumentExample
     @Test
     void importReplacementsInGroupsWithSomeSpecificMappings() {
         rewriteRun(

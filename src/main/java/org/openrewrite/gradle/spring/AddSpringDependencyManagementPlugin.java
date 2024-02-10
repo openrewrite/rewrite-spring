@@ -30,7 +30,7 @@ import org.openrewrite.marker.SearchResult;
 import java.util.Optional;
 
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class AddSpringDependencyManagementPlugin extends Recipe {
     @Override
     public String getDisplayName() {

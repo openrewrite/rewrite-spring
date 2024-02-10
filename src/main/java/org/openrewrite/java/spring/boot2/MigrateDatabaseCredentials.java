@@ -61,7 +61,7 @@ public class MigrateDatabaseCredentials extends Recipe {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class MigrateDatabaseCredentialsForToolYaml extends Recipe {
         @Language("markdown")
         String tool;
@@ -100,7 +100,7 @@ public class MigrateDatabaseCredentials extends Recipe {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class MigrateDatabaseCredentialsForToolProperties extends Recipe {
         @Language("markdown")
         String tool;

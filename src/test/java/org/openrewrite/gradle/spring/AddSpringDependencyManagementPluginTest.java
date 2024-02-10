@@ -16,6 +16,7 @@
 package org.openrewrite.gradle.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.Tree;
 import org.openrewrite.gradle.marker.GradlePluginDescriptor;
 import org.openrewrite.gradle.marker.GradleProject;
@@ -28,6 +29,7 @@ import java.util.List;
 import static org.openrewrite.gradle.Assertions.buildGradle;
 
 class AddSpringDependencyManagementPluginTest implements RewriteTest {
+    @DocumentExample
     @Test
     void addIfPresent() {
         GradleProject gp = gradleProject(springBootPlugin(), springDependencyManagementPlugin());

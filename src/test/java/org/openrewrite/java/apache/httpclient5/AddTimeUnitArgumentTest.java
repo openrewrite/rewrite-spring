@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class AddTimeUnitArgumentTest implements RewriteTest {
+class AddTimeUnitArgumentTest implements RewriteTest {
     //language=java
     private static final SourceSpecs stubCode = java(
             """

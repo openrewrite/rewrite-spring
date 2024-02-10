@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  * TODO: Add a java visitor to this recipe that will change property keys in @Value, @PropertySource and @TestPropertySource
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class ChangeSpringPropertyKey extends Recipe {
 
     @Override
