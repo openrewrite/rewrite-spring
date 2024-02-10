@@ -40,6 +40,7 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     @Test
     void replaceWithPrePostEnabled() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -62,6 +63,7 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     @Test
     void emptyAnnotation() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -84,6 +86,7 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     @Test
     void replaceWithNotPrePostEnabled() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;

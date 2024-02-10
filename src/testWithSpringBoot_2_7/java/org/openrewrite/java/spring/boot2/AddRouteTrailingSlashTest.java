@@ -36,6 +36,7 @@ class AddRouteTrailingSlashTest implements RewriteTest {
     @Test
     void simpleCase() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.web.bind.annotation.*;
@@ -68,6 +69,7 @@ class AddRouteTrailingSlashTest implements RewriteTest {
     @Test
     void doNotChangeIfWithTrailingSlash() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.web.bind.annotation.*;
@@ -93,6 +95,7 @@ class AddRouteTrailingSlashTest implements RewriteTest {
     @Test
     void doNotChangeWithWildcard() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.web.bind.annotation.*;
@@ -113,6 +116,7 @@ class AddRouteTrailingSlashTest implements RewriteTest {
     @Test
     void allSixKindHttpVerbMappings() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.web.bind.annotation.*;
@@ -187,6 +191,7 @@ class AddRouteTrailingSlashTest implements RewriteTest {
     @Test
     void mappingHasValue() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.web.bind.annotation.*;
