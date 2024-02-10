@@ -22,11 +22,7 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.J.ClassDeclaration;
-import org.openrewrite.java.tree.J.MethodDeclaration;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
