@@ -67,32 +67,43 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.SwaggerUiConfigParameters
       newFullyQualifiedTypeName: org.springdoc.core.properties.SwaggerUiConfigParameters
-  # "The following modules are not anymore needed and can be removed"
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-javadoc
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-kotlin
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-data-rest
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-security
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-webmvc-core
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-webflux-core
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-hateoas
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-groovy
-  # "In addition replace"
+  # "The following table describes the main modules changes"
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springdoc
+      oldArtifactId: springdoc-openapi-common
+      newArtifactId: springdoc-openapi-starter-common
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springdoc
+      oldArtifactId: springdoc-openapi-data-rest
+      newArtifactId: springdoc-openapi-starter-common
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springdoc
+      oldArtifactId: springdoc-openapi-groovy
+      newArtifactId: springdoc-openapi-starter-common
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springdoc
+      oldArtifactId: springdoc-openapi-hateoas
+      newArtifactId: springdoc-openapi-starter-common
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springdoc
+      oldArtifactId: springdoc-openapi-javadoc
+      newArtifactId: springdoc-openapi-starter-common
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springdoc
+      oldArtifactId: springdoc-openapi-kotlin
+      newArtifactId: springdoc-openapi-starter-common
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springdoc
+      oldArtifactId: springdoc-openapi-security
+      newArtifactId: springdoc-openapi-starter-common
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springdoc
+      oldArtifactId: springdoc-openapi-webmvc-core
+      newArtifactId: springdoc-openapi-starter-webmvc-api
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springdoc
+      oldArtifactId: springdoc-openapi-webflux-core
+      newArtifactId: springdoc-openapi-starter-webflux-api
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-ui
