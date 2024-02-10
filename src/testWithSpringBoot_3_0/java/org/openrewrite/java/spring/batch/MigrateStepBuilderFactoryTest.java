@@ -29,189 +29,203 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateStepBuilderFactory())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch-core-4.3.+", "spring-batch-infrastructure-4.3.+", "spring-beans-4.3.30.RELEASE"
-            //,"spring-core-4.3.30.RELEASE", "spring-context-4.3.30.RELEASE"
+            "spring-batch-core-4.3.+",
+            "spring-batch-infrastructure-4.3.+",
+            "spring-beans-4.3.30.RELEASE",
+//            "spring-core-4.3.30.RELEASE",
+            "spring-context-4.3.30.RELEASE"
           ));
     }
 
-    // @Disabled("Disabled until fixed!")
     @Test
     void replaceStepBuilderFactoryWithTasket() {
         // language=java
-        rewriteRun(java("""
-          import org.springframework.batch.core.Step;
-          import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-          import org.springframework.batch.core.step.tasklet.Tasklet;
-          import org.springframework.beans.factory.annotation.Autowired;
-          import org.springframework.context.annotation.Bean;
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
 
-          public class MyJobConfig {
+              public class MyJobConfig {
 
-              @Autowired
-              private StepBuilderFactory stepBuilderFactory;
+                  @Autowired
+                  private StepBuilderFactory stepBuilderFactory;
 
-              @Bean
-              Step myStep(Tasklet myTasklet) {
-                  return this.stepBuilderFactory.get("myStep")
-                          .tasklet(myTasklet)
-                          .build();
+                  @Bean
+                  Step myStep(Tasklet myTasklet) {
+                      return this.stepBuilderFactory.get("myStep")
+                              .tasklet(myTasklet)
+                              .build();
+                  }
               }
-          }
-          """, """
-          import org.springframework.batch.core.Step;
-          import org.springframework.batch.core.repository.JobRepository;
-          import org.springframework.batch.core.step.builder.StepBuilder;
-          import org.springframework.batch.core.step.tasklet.Tasklet;
-          import org.springframework.context.annotation.Bean;
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
 
-          public class MyJobConfig {
+              public class MyJobConfig {
 
-              @Bean
-              Step myStep(Tasklet myTasklet, JobRepository jobRepository) {
-                  return new StepBuilder("myStep", jobRepository)
-                          .tasklet(myTasklet)
-                          .build();
+                  @Bean
+                  Step myStep(Tasklet myTasklet, JobRepository jobRepository) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .tasklet(myTasklet)
+                              .build();
+                  }
               }
-          }
-          """));
+              """
+          )
+        );
     }
 
-    // @Disabled("Disabled until fixed!")
     @Test
     void replaceStepBuilderFactoryWithChunk() {
         // language=java
-        rewriteRun(java("""
-          import org.springframework.batch.core.Step;
-          import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-          import org.springframework.batch.item.ItemReader;
-          import org.springframework.batch.item.ItemWriter;
-          import org.springframework.beans.factory.annotation.Autowired;
-          import org.springframework.context.annotation.Bean;
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.item.ItemReader;
+              import org.springframework.batch.item.ItemWriter;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
 
-          public class MyJobConfig {
+              public class MyJobConfig {
 
-              @Autowired
-              private StepBuilderFactory stepBuilderFactory;
+                  @Autowired
+                  private StepBuilderFactory stepBuilderFactory;
 
-              @Bean
-              Step myStep() {
-                  return this.stepBuilderFactory.get("myStep")
-                          .<String, String> chunk(10)
-                          .reader(reader())
-                          .writer(writer())
-                          .build();
+                  @Bean
+                  Step myStep() {
+                      return this.stepBuilderFactory.get("myStep")
+                              .<String, String> chunk(10)
+                              .reader(reader())
+                              .writer(writer())
+                              .build();
+                  }
+
+                  private ItemWriter<String> writer() {
+                      return null;
+                  }
+
+                  private ItemReader<String> reader() {
+                      return null;
+                  }
               }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.item.ItemReader;
+              import org.springframework.batch.item.ItemWriter;
+              import org.springframework.context.annotation.Bean;
 
-              private ItemWriter<String> writer() {
-                  return null;
+              public class MyJobConfig {
+
+                  @Bean
+                  Step myStep(JobRepository jobRepository) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .<String, String> chunk(10)
+                              .reader(reader())
+                              .writer(writer())
+                              .build();
+                  }
+
+                  private ItemWriter<String> writer() {
+                      return null;
+                  }
+
+                  private ItemReader<String> reader() {
+                      return null;
+                  }
               }
-
-              private ItemReader<String> reader() {
-                  return null;
-              }
-          }
-          """, """
-          import org.springframework.batch.core.Step;
-          import org.springframework.batch.core.repository.JobRepository;
-          import org.springframework.batch.core.step.builder.StepBuilder;
-          import org.springframework.batch.item.ItemReader;
-          import org.springframework.batch.item.ItemWriter;
-          import org.springframework.context.annotation.Bean;
-
-          public class MyJobConfig {
-
-              @Bean
-              Step myStep(JobRepository jobRepository) {
-                  return new StepBuilder("myStep", jobRepository)
-                          .<String, String> chunk(10)
-                          .reader(reader())
-                          .writer(writer())
-                          .build();
-              }
-
-              private ItemWriter<String> writer() {
-                  return null;
-              }
-
-              private ItemReader<String> reader() {
-                  return null;
-              }
-          }
-          """));
+              """
+          )
+        );
     }
 
-    // @Disabled("Disabled until fixed!")
     @Test
     void replaceStepBuilderFactoryWithCompletionPolicyChunk() {
         // language=java
-        rewriteRun(java("""
-          import org.springframework.batch.core.Step;
-          import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-          import org.springframework.batch.item.ItemReader;
-          import org.springframework.batch.item.ItemWriter;
-          import org.springframework.batch.repeat.CompletionPolicy;
-          import org.springframework.beans.factory.annotation.Autowired;
-          import org.springframework.context.annotation.Bean;
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.item.ItemReader;
+              import org.springframework.batch.item.ItemWriter;
+              import org.springframework.batch.repeat.CompletionPolicy;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
 
-          public class MyJobConfig {
+              public class MyJobConfig {
 
-              @Autowired
-              private StepBuilderFactory stepBuilderFactory;
+                  @Autowired
+                  private StepBuilderFactory stepBuilderFactory;
 
-              @Bean
-              Step myStep() {
-                  return this.stepBuilderFactory.get("myStep")
-                          .<String, String> chunk(completionPolicy())
-                          .reader(reader())
-                          .writer(writer())
-                          .build();
+                  @Bean
+                  Step myStep() {
+                      return this.stepBuilderFactory.get("myStep")
+                              .<String, String> chunk(completionPolicy())
+                              .reader(reader())
+                              .writer(writer())
+                              .build();
+                  }
+
+                  private CompletionPolicy completionPolicy() {
+                      return null;
+                  }
+
+                  private ItemWriter<String> writer() {
+                      return null;
+                  }
+
+                  private ItemReader<String> reader() {
+                      return null;
+                  }
               }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.item.ItemReader;
+              import org.springframework.batch.item.ItemWriter;
+              import org.springframework.batch.repeat.CompletionPolicy;
+              import org.springframework.context.annotation.Bean;
 
-              private CompletionPolicy completionPolicy() {
-                  return null;
+              public class MyJobConfig {
+
+                  @Bean
+                  Step myStep(JobRepository jobRepository) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .<String, String> chunk(completionPolicy())
+                              .reader(reader())
+                              .writer(writer())
+                              .build();
+                  }
+
+                  private CompletionPolicy completionPolicy() {
+                      return null;
+                  }
+
+                  private ItemWriter<String> writer() {
+                      return null;
+                  }
+
+                  private ItemReader<String> reader() {
+                      return null;
+                  }
               }
-
-              private ItemWriter<String> writer() {
-                  return null;
-              }
-
-              private ItemReader<String> reader() {
-                  return null;
-              }
-          }
-          """, """
-          import org.springframework.batch.core.Step;
-          import org.springframework.batch.core.repository.JobRepository;
-          import org.springframework.batch.core.step.builder.StepBuilder;
-          import org.springframework.batch.item.ItemReader;
-          import org.springframework.batch.item.ItemWriter;
-          import org.springframework.batch.repeat.CompletionPolicy;
-          import org.springframework.context.annotation.Bean;
-
-          public class MyJobConfig {
-
-              @Bean
-              Step myStep(JobRepository jobRepository) {
-                  return new StepBuilder("myStep", jobRepository)
-                          .<String, String> chunk(completionPolicy())
-                          .reader(reader())
-                          .writer(writer())
-                          .build();
-              }
-
-              private CompletionPolicy completionPolicy() {
-                  return null;
-              }
-
-              private ItemWriter<String> writer() {
-                  return null;
-              }
-
-              private ItemReader<String> reader() {
-                  return null;
-              }
-          }
-          """));
+              """
+          )
+        );
     }
-
 }

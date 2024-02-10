@@ -15,26 +15,21 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.J.ClassDeclaration;
 import org.openrewrite.java.tree.J.MethodDeclaration;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class MigrateStepBuilderFactory extends Recipe {
 
@@ -52,17 +47,11 @@ public class MigrateStepBuilderFactory extends Recipe {
     }
 
     @Override
-    public Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(5);
-    }
-
-    @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 if (STEP_BUILDER_FACTORY.matches(method)) {
-
                     ClassDeclaration clazz = getCursor().firstEnclosingOrThrow(ClassDeclaration.class);
                     MethodDeclaration enclosingMethod = getCursor().firstEnclosingOrThrow(MethodDeclaration.class);
 
@@ -108,7 +97,7 @@ public class MigrateStepBuilderFactory extends Recipe {
             }
             cd = cd.withBody(cd.getBody().withStatements(ListUtils.map(cd.getBody().getStatements(), statement -> {
                 if (statement instanceof J.VariableDeclarations
-                        && ((J.VariableDeclarations) statement).getTypeExpression() != null) {
+                    && ((J.VariableDeclarations) statement).getTypeExpression() != null) {
                     if (TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getTypeExpression().getType(),
                             "org.springframework.batch.core.configuration.annotation.StepBuilderFactory")) {
                         return null;
@@ -148,7 +137,7 @@ public class MigrateStepBuilderFactory extends Recipe {
                             "org.springframework.batch.core.step.builder.StepBuilder",
                             "org.springframework.batch.core.Step")
                     .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                            .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                     .build();
 
             md = paramsTemplate.apply(getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
@@ -161,14 +150,14 @@ public class MigrateStepBuilderFactory extends Recipe {
 
         private boolean isJobRepositoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations
-                    && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                            "org.springframework.batch.core.repository.JobRepository");
+                   && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                    "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations
-                    && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                            "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
+                   && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                    "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
         }
     }
 }
