@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class UpgradeSpringFrameworkDependencies extends Recipe {
     @Override
     public String getDisplayName() {

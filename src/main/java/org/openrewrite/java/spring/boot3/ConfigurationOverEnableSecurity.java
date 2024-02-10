@@ -34,7 +34,7 @@ import java.util.Set;
 import static java.util.Collections.singletonList;
 
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class ConfigurationOverEnableSecurity extends Recipe {
 
     @Option(displayName = "Force add `@Configuration`",

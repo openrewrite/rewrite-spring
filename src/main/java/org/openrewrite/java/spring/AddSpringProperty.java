@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
  *       the recipe is configured without pathExpressions, it will query the execution context for reasonable defaults.
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class AddSpringProperty extends Recipe {
 
     @Option(displayName = "Property key",
@@ -91,7 +91,7 @@ public class AddSpringProperty extends Recipe {
                 if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
                     t = createMergeYamlVisitor().getVisitor().visit(t, ctx);
                 } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
-                    t = new AddProperty(property, value, null).getVisitor().visit(t, ctx);
+                    t = new AddProperty(property, value, comment, null).getVisitor().visit(t, ctx);
                 }
                 return t;
             }

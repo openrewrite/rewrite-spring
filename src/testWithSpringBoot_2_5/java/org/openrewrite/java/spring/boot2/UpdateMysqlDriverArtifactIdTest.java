@@ -27,19 +27,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.openrewrite.gradle.Assertions.withToolingApi;
 import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.Assertions.withToolingApi;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 @Issue("https://github.com/openrewrite/rewrite-spring/issues/274")
-public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
-
+class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(Environment.builder()
           .scanRuntimeClasspath("org.openrewrite.java.spring")
           .build()
-          .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"));
+          .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5"));
     }
 
     @Nested
@@ -189,7 +188,7 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                 """
                   plugins {
                     id 'java'
-                    id 'org.springframework.boot' version '2.6.1'
+                    id 'org.springframework.boot' version '2.5.14'
                     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
                   }
                   
@@ -201,8 +200,8 @@ public class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                       runtimeOnly 'mysql:mysql-connector-java'
                   }
                   """, spec -> spec.after(gradle -> {
-                    Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
-                    assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                    Matcher version = Pattern.compile("2\\.5\\.\\d+").matcher(gradle);
+                    assertThat(version.find()).describedAs("Expected 2.5.x in %s", gradle).isTrue();
                     //language=gradle
                     return """
                   plugins {

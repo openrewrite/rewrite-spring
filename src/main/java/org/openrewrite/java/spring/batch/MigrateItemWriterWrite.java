@@ -120,8 +120,8 @@ public class MigrateItemWriterWrite extends Recipe {
         private static final MethodMatcher LIST_MATCHER = new MethodMatcher("java.util.List *(..)", true);
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            J.MethodInvocation mi = super.visitMethodInvocation(method, executionContext);
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
             if (LIST_MATCHER.matches(mi) && isParameter(mi.getSelect())) {
                 assert mi.getPadding().getSelect() != null;
                 // No need to take care of typing here, since it's going to be printed and parsed on the JavaTemplate later on.
@@ -149,8 +149,8 @@ public class MigrateItemWriterWrite extends Recipe {
         }
 
         @Override
-        public J.VariableDeclarations.NamedVariable visitVariable(J.VariableDeclarations.NamedVariable variable, ExecutionContext executionContext) {
-            J.VariableDeclarations.NamedVariable var = super.visitVariable(variable, executionContext);
+        public J.VariableDeclarations.NamedVariable visitVariable(J.VariableDeclarations.NamedVariable variable, ExecutionContext ctx) {
+            J.VariableDeclarations.NamedVariable var = super.visitVariable(variable, ctx);
 
             if (notAssignableFromChunk(var) && isParameter(var.getInitializer())) {
                 var = var.withInitializer(newGetItemsMethodInvocation(
@@ -161,8 +161,8 @@ public class MigrateItemWriterWrite extends Recipe {
         }
 
         @Override
-        public J.Assignment visitAssignment(J.Assignment assignment, ExecutionContext executionContext) {
-            J.Assignment a = super.visitAssignment(assignment, executionContext);
+        public J.Assignment visitAssignment(J.Assignment assignment, ExecutionContext ctx) {
+            J.Assignment a = super.visitAssignment(assignment, ctx);
             if (notAssignableFromChunk(a.getVariable().getType()) && isParameter(a.getAssignment())) {
                 a = a.withAssignment(newGetItemsMethodInvocation(
                         new JRightPadded<>(a.getAssignment(), Space.EMPTY, Markers.EMPTY)

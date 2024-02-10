@@ -35,7 +35,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyMap;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class UpgradeExplicitSpringBootDependencies extends Recipe {
 
     private static final String SPRINGBOOT_GROUP = "org.springframework.boot";
@@ -167,7 +167,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                             .build());
                     repositories.add(MavenRepository.builder()
                             .id("spring-snapshot")
-                            .uri("https://repo.spring.io/snapshote")
+                            .uri("https://repo.spring.io/snapshot")
                             .releases(false)
                             .snapshots(true)
                             .build());

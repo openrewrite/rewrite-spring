@@ -16,6 +16,7 @@
 package org.openrewrite.java.apache.httpclient4;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -23,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class CookieConstantsTest implements RewriteTest {
+class CookieConstantsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
@@ -35,37 +36,38 @@ public class CookieConstantsTest implements RewriteTest {
           );
     }
 
+    @DocumentExample
     @Test
-    void testCookieConstantsMapping() {
+    void cookieConstantsMapping() {
         rewriteRun(
           //language=java
           java(
             """
-                import org.apache.http.client.params.CookiePolicy;
-                
-                class A {
-                    void method() {
-                        String c1 = CookiePolicy.BROWSER_COMPATIBILITY;
-                        String c2 = CookiePolicy.NETSCAPE;
-                        String c3 = CookiePolicy.RFC_2109;
-                        String c4 = CookiePolicy.RFC_2965;
-                        String c5 = CookiePolicy.BEST_MATCH;
-                        String c6 = CookiePolicy.IGNORE_COOKIES;
-                    }
+            import org.apache.http.client.params.CookiePolicy;
+            
+            class A {
+                void method() {
+                    String c1 = CookiePolicy.BROWSER_COMPATIBILITY;
+                    String c2 = CookiePolicy.NETSCAPE;
+                    String c3 = CookiePolicy.RFC_2109;
+                    String c4 = CookiePolicy.RFC_2965;
+                    String c5 = CookiePolicy.BEST_MATCH;
+                    String c6 = CookiePolicy.IGNORE_COOKIES;
                 }
+            }
             """, """
-                import org.apache.http.client.config.CookieSpecs;
-                
-                class A {
-                    void method() {
-                        String c1 = CookieSpecs.BROWSER_COMPATIBILITY;
-                        String c2 = CookieSpecs.NETSCAPE;
-                        String c3 = CookieSpecs.STANDARD;
-                        String c4 = CookieSpecs.STANDARD_STRICT;
-                        String c5 = CookieSpecs.BEST_MATCH;
-                        String c6 = CookieSpecs.IGNORE_COOKIES;
-                    }
+            import org.apache.http.client.config.CookieSpecs;
+            
+            class A {
+                void method() {
+                    String c1 = CookieSpecs.BROWSER_COMPATIBILITY;
+                    String c2 = CookieSpecs.NETSCAPE;
+                    String c3 = CookieSpecs.STANDARD;
+                    String c4 = CookieSpecs.STANDARD_STRICT;
+                    String c5 = CookieSpecs.BEST_MATCH;
+                    String c6 = CookieSpecs.IGNORE_COOKIES;
                 }
+            }
             """
           )
         );

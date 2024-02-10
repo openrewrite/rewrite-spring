@@ -75,7 +75,7 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
     public TreeVisitor<?, ExecutionContext> getVisitor(ApiManifest acc) {
         return Preconditions.check(!acc.isGenerate(), new PlainTextVisitor<ExecutionContext>() {
             @Override
-            public PlainText visitText(PlainText text, ExecutionContext executionContext) {
+            public PlainText visitText(PlainText text, ExecutionContext ctx) {
                 if (text.getSourcePath().equals(Paths.get("META-INF/api-manifest.txt"))) {
                     return text.withText(generateManifest(acc.getApis()).getText());
                 }

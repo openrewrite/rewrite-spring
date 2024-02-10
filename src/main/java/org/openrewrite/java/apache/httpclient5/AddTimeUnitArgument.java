@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class AddTimeUnitArgument extends Recipe {
 
     @Option(displayName = "Method pattern",
@@ -71,13 +71,13 @@ public class AddTimeUnitArgument extends Recipe {
             final MethodMatcher matcher = new MethodMatcher(methodPattern);
 
             @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-                J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (matcher.matches(m)) {
                     JavaTemplate template = JavaTemplate
                             .builder(StringUtils.repeat("#{any()}, ", m.getArguments().size()) + "TimeUnit.#{}")
                             .contextSensitive()
-                            .javaParser(JavaParser.fromJavaVersion().classpath("httpclient5", "httpcore5"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpclient5", "httpcore5"))
                             .imports("java.util.concurrent.TimeUnit")
                             .build();
 

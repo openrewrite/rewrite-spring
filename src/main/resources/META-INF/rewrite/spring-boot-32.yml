@@ -42,6 +42,22 @@ recipeList:
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_2
   - org.openrewrite.java.spring.boot3.EnableVirtualThreads
+  - org.openrewrite.java.spring.cloud2023.UpgradeSpringCloud_2023
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.task.TaskSchedulerBuilder
+      newFullyQualifiedTypeName: org.springframework.boot.task.ThreadPoolTaskExecutorBuilder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.task.TaskSchedulerCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.task.ThreadPoolTaskSchedulerCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.task.TaskExecutorBuilder
+      newFullyQualifiedTypeName: org.springframework.boot.task.ThreadPoolTaskExecutorBuilder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.task.TaskExecutorCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.task.ThreadPoolTaskExecutorCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.transaction.PlatformTransactionManagerCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizer
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -55,3 +71,16 @@ recipeList:
   - org.openrewrite.java.spring.AddSpringProperty:
       property: spring.threads.virtual.enabled
       value: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.SpringBoot3BestPractices
+displayName: Spring Boot 3.x best practices
+description: Applies best practices to Spring Boot 3 applications.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
+  - org.openrewrite.java.migrate.UpgradeToJava21 # Allows for virtual threads
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2

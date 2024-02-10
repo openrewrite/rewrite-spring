@@ -48,8 +48,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
         return new YamlIsoVisitor<ExecutionContext>() {
             @Override
             public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
-                if (PathUtils.matchesGlob(yaml.getSourcePath(), "application.yml")) {
-
+                if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application.yml")) {
                     Set<Yaml.Documents> profiles = new HashSet<>(yaml.getDocuments().size());
 
                     //noinspection unchecked
@@ -65,7 +64,9 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                                     Yaml.Document profileDoc = (Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", true, true)
                                             .getVisitor().visit(doc, ctx, new Cursor(null, yaml));
                                     assert profileDoc != null;
-                                    profiles.add(yaml.withDocuments(Collections.singletonList(profileDoc.withExplicit(false)))
+                                    profiles.add(yaml
+                                            .withId(Tree.randomId())
+                                            .withDocuments(Collections.singletonList(profileDoc.withExplicit(false)))
                                             .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profileName + ".yml")));
                                     return null;
                                 }
@@ -99,7 +100,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
     }
 
     @Value
-    static class ApplicationProfiles {
+    public static class ApplicationProfiles {
         Map<Path, Yaml.Documents> modifiedMainProfileFiles = new HashMap<>();
         Set<SourceFile> newProfileFiles = new HashSet<>();
     }

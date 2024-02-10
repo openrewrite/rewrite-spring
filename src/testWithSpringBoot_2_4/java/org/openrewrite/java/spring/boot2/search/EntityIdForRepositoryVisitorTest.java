@@ -27,7 +27,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
 
-public class EntityIdForRepositoryVisitorTest implements RewriteTest {
+class EntityIdForRepositoryVisitorTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -366,7 +366,8 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             }
             """
           ),
-          java("""
+          java(
+                """
             package demo;
             
             import org.springframework.data.repository.NoRepositoryBean;
@@ -406,7 +407,8 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             }
             """
           ),
-          java("""
+          java(
+                """
             package demo;
             
             import org.springframework.data.repository.NoRepositoryBean;
@@ -446,7 +448,8 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             }
             """
           ),
-          java("""
+          java(
+                """
             package demo;
             
             import org.springframework.data.repository.NoRepositoryBean;
@@ -486,7 +489,8 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             }
             """
           ),
-          java("""
+          java(
+                """
             package demo;
             
             import org.springframework.data.repository.NoRepositoryBean;
@@ -527,7 +531,8 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             }
             """
           ),
-          java("""
+          java(
+                """
             package demo;
             
             import org.springframework.data.repository.NoRepositoryBean;
@@ -537,7 +542,8 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             interface MyOtherIntermediateRepository1<ID extends Number, T> extends Repository<T, ID>{}
             """
           ),
-          java("""
+          java(
+                """
             package demo;
             
             import org.springframework.data.repository.NoRepositoryBean;
@@ -577,7 +583,8 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             }
             """
           ),
-          java("""
+          java(
+                """
             package demo;
             
             import org.springframework.data.repository.NoRepositoryBean;
@@ -617,7 +624,8 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             }
             """
           ),
-          java("""
+          java(
+                """
             package demo;
             
             import org.springframework.data.repository.NoRepositoryBean;
@@ -657,7 +665,8 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             }
             """
           ),
-          java("""
+          java(
+                """
             package demo;
             
             import org.springframework.data.repository.NoRepositoryBean;
@@ -667,15 +676,16 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             interface MyOtherIntermediateRepository1<S, T, ID, D> extends Repository<D, ID>, Iterator<T>, List<S>{}
             """
           ),
-          java("""
-              package demo;
-              
-              interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, Long, Customer>{}
+          java(
+                """
+            package demo;
+            
+            interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, Long, Customer>{}
             """,
             """
-              package demo;
-                
-              interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
+            package demo;
+              
+            interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
             """
           ),
           java(
@@ -703,7 +713,7 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             
             import org.springframework.data.annotation.Id;
             
-            public record Employee(@Id String id) {};
+            public record Employee(@Id String id) {}
             """
           ),
           java(
@@ -737,7 +747,7 @@ public class EntityIdForRepositoryVisitorTest implements RewriteTest {
             
             import org.springframework.data.annotation.Id;
             
-            public record Employee(@Id String id) {};
+            public record Employee(@Id String id) {}
             """
           ),
           java(

@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class ConfigurationOverEnableSecurityTest implements RewriteTest {
+class ConfigurationOverEnableSecurityTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

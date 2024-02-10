@@ -42,6 +42,7 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.6.x
+
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_6
 

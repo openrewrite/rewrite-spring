@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
+class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion()
@@ -37,7 +37,8 @@ public class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
     void transformSimple() {
         rewriteRun(
           //language=java
-          java("""
+          java(
+                """
             package a.b.c;
             
             import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;

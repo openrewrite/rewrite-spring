@@ -17,8 +17,8 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -57,6 +57,40 @@ class RenameBeanTest implements RewriteTest {
             @Test
             void impliedName() {
                 rewriteRun(
+                  java(
+                    """
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean
+                        public MyType foo() {
+                            return new MyType();
+                        }
+                    }
+                    """, """
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean
+                        public MyType bar() {
+                            return new MyType();
+                        }
+                    }
+                    """
+                  )
+                );
+            }
+
+            @Test
+            void impliedNameNullType() {
+                rewriteRun(
+                  spec -> spec.recipe(new RenameBean(null, "foo", "bar")),
                   java(
                     """
                     package sample;
@@ -257,6 +291,44 @@ class RenameBeanTest implements RewriteTest {
             }
 
             @Test
+            void qualifierNameNullType() {
+                rewriteRun(
+                  spec -> spec.recipe(new RenameBean(null, "foo", "bar")),
+                  java(
+                    """
+                    package sample;
+                    
+                    import org.springframework.beans.factory.annotation.Qualifier;
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean
+                        @Qualifier("foo")
+                        public MyType myType() {
+                            return new MyType();
+                        }
+                    }
+                    """, """
+                    package sample;
+                    
+                    import org.springframework.beans.factory.annotation.Qualifier;
+                    import org.springframework.context.annotation.Bean;
+                    import sample.MyType;
+                    
+                    class A {
+                        @Bean
+                        @Qualifier("bar")
+                        public MyType myType() {
+                            return new MyType();
+                        }
+                    }
+                    """
+                  )
+                );
+            }
+
+            @Test
             void wrongQualifierName() {
                 rewriteRun(
                   java(
@@ -418,9 +490,65 @@ class RenameBeanTest implements RewriteTest {
             }
 
             @Test
+            void impliedNameNullType() {
+                rewriteRun(
+                  spec -> spec.recipe(new RenameBean(null, "foo", "bar")),
+                  java(
+                    """
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Configuration;
+                    import sample.MyType;
+                    
+                    @Configuration
+                    class Foo {
+                    }
+                    """, """
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Configuration;
+                    import sample.MyType;
+                    
+                    @Configuration
+                    class Bar {
+                    }
+                    """
+                  )
+                );
+            }
+
+            @Test
             void explicitName() {
                 rewriteRun(
                   spec -> spec.recipe(new RenameBean("sample.Foo", "foo", "bar")),
+                  java(
+                    """
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Configuration;
+                    import sample.MyType;
+                    
+                    @Configuration("foo")
+                    class Foo {
+                    }
+                    """, """
+                    package sample;
+                    
+                    import org.springframework.context.annotation.Configuration;
+                    import sample.MyType;
+                    
+                    @Configuration("bar")
+                    class Foo {
+                    }
+                    """
+                  )
+                );
+            }
+
+            @Test
+            void explicitNameNullType() {
+                rewriteRun(
+                  spec -> spec.recipe(new RenameBean(null, "foo", "bar")),
                   java(
                     """
                     package sample;
@@ -547,6 +675,46 @@ class RenameBeanTest implements RewriteTest {
         @Test
         void parameterUsage() {
             rewriteRun(
+              java(
+                """
+                package sample;
+                
+                import org.springframework.beans.factory.annotation.Qualifier;
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+                import sample.MyType;
+                
+                @Configuration
+                class A {
+                    @Bean
+                    public String myBean(@Qualifier("foo") MyType myType) {
+                        return "";
+                    }
+                }
+                """, """
+                package sample;
+                
+                import org.springframework.beans.factory.annotation.Qualifier;
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+                import sample.MyType;
+                
+                @Configuration
+                class A {
+                    @Bean
+                    public String myBean(@Qualifier("bar") MyType myType) {
+                        return "";
+                    }
+                }
+                """
+              )
+            );
+        }
+
+        @Test
+        void parameterUsageNullType() {
+            rewriteRun(
+              spec -> spec.recipe(new RenameBean(null, "foo", "bar")),
               java(
                 """
                 package sample;

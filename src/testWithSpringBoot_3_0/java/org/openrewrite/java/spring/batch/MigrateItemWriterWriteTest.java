@@ -41,7 +41,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void replaceItemWriterWriteMethod() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import java.util.List;
             import org.springframework.batch.item.ItemWriter;
             
@@ -75,7 +76,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void replaceExtendedItemWriterWriteMethod() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import java.util.List;
             
             import org.springframework.batch.item.database.JdbcBatchItemWriter;
@@ -105,7 +107,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void abstractClass() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import java.util.List;
             import org.springframework.batch.item.ItemWriter;
             
@@ -132,7 +135,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void replaceListMethodInvocations() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import java.util.List;
             import org.springframework.batch.item.ItemWriter;
             
@@ -169,7 +173,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void updateListInitialization() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.item.ItemWriter;
 
             import java.util.List;
@@ -211,7 +216,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void updateListAssignment() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.item.ItemWriter;
 
             import java.util.List;
@@ -255,7 +261,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void updateListMethodParameter() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.item.ItemWriter;
 
             import java.util.List;
@@ -299,7 +306,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void doesNotUpdateIterableAssignment() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.item.ItemWriter;
 
             import java.util.List;
@@ -336,7 +344,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void doesNotChangeIterableMethodParameter() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.item.ItemWriter;
 
             import java.util.List;
@@ -378,7 +387,8 @@ class MigrateItemWriterWriteTest implements RewriteTest {
     void doesNotChangeOtherLists() {
         // language=java
         rewriteRun(
-          java("""
+          java(
+                """
             import org.springframework.batch.item.ItemWriter;
 
             import java.util.ArrayList;

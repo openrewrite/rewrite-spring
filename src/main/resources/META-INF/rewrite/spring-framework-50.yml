@@ -23,3 +23,8 @@ displayName: Migrate to Spring Framework 5.0
 description: Migrate applications to the latest Spring Framework 5.0 release.
 recipeList:
   - org.openrewrite.java.spring.framework.MigrateWebMvcConfigurerAdapter
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.security
+      artifactId: "*"
+      newVersion: 5.0.x
+      overrideManagedVersion: false

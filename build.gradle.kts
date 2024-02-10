@@ -5,12 +5,12 @@ plugins {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0")
-val springSecurityVersions: List<String> = listOf("5_7", "5_8")
+val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0", "3_2")
+val springSecurityVersions: List<String> = listOf("5_7", "5_8", "6_2")
 
 val sourceSetNames: Map<String, List<String>> = mapOf(
-        Pair("testWithSpringBoot_", springBootVersions),
-        Pair("testWithSpringSecurity_", springSecurityVersions)
+    Pair("testWithSpringBoot_", springBootVersions),
+    Pair("testWithSpringSecurity_", springSecurityVersions)
 )
 
 sourceSets {
@@ -105,24 +105,28 @@ recipeDependencies {
 
     parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     parserClasspath("net.minidev:json-smart:2.4.+")
+
+    parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.1.+")
+    parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
 
-var springBoot3Version = "3.0.0-RC1"
 dependencies {
-    implementation("org.openrewrite:rewrite-java:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-xml:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-properties:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-yaml:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-gradle:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
+    implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
+    implementation("org.openrewrite:rewrite-java")
+    implementation("org.openrewrite:rewrite-xml")
+    implementation("org.openrewrite:rewrite-properties")
+    implementation("org.openrewrite:rewrite-yaml")
+    implementation("org.openrewrite:rewrite-gradle")
+    implementation("org.openrewrite:rewrite-maven")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
-    runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
+    runtimeOnly("org.openrewrite:rewrite-java-17")
     runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
+    runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
@@ -134,7 +138,7 @@ dependencies {
 
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
-    testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
+    testImplementation("org.openrewrite:rewrite-java-17")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
@@ -205,8 +209,8 @@ dependencies {
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.security:spring-security-ldap:5.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
 
-    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:${springBoot3Version}")
-    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:${springBoot3Version}")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-core:5.+")
@@ -215,6 +219,9 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-config:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
+
+    "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.2.+")
+    "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")
 
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
@@ -244,6 +251,9 @@ dependencies {
     "testWithSpringSecurity_5_8RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
     "testWithSpringSecurity_5_8RuntimeOnly"("com.nimbusds:nimbus-jose-jwt:9.13")
     "testWithSpringSecurity_5_8RuntimeOnly"("net.minidev:json-smart")
+
+    "testWithSpringSecurity_6_2RuntimeOnly"("org.springframework.security:spring-security-config:6.2.+")
+    "testWithSpringSecurity_6_2RuntimeOnly"("org.springframework.security:spring-security-web:6.2.+")
 }
 
 
@@ -263,5 +273,14 @@ sourceSetNames.forEach { sourceSet, versions ->
         tasks.check {
             dependsOn(testTask)
         }
+    }
+}
+
+tasks {
+    val generatePropertyMigrationRecipes by registering(JavaExec::class) {
+        group = "generate"
+        description = "Generate Spring Boot property migration recipes."
+        mainClass = "org.openrewrite.java.spring.internal.GeneratePropertiesMigratorConfiguration"
+        classpath = sourceSets.getByName("test").runtimeClasspath
     }
 }

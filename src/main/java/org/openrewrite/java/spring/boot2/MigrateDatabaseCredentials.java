@@ -61,7 +61,7 @@ public class MigrateDatabaseCredentials extends Recipe {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class MigrateDatabaseCredentialsForToolYaml extends Recipe {
         @Language("markdown")
         String tool;
@@ -100,7 +100,7 @@ public class MigrateDatabaseCredentials extends Recipe {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class MigrateDatabaseCredentialsForToolProperties extends Recipe {
         @Language("markdown")
         String tool;
@@ -129,8 +129,8 @@ public class MigrateDatabaseCredentials extends Recipe {
             }, new PropertiesVisitor<ExecutionContext>() {
                 @Override
                 public Properties visitFile(Properties.File file, ExecutionContext ctx) {
-                    doAfterVisit(new AddProperty("spring." + tool + ".username", "${spring.datasource.username}", null).getVisitor());
-                    doAfterVisit(new AddProperty("spring." + tool + ".password", "${spring.datasource.password}", null).getVisitor());
+                    doAfterVisit(new AddProperty("spring." + tool + ".username", "${spring.datasource.username}", null, null).getVisitor());
+                    doAfterVisit(new AddProperty("spring." + tool + ".password", "${spring.datasource.password}", null, null).getVisitor());
                     return file;
                 }
             });

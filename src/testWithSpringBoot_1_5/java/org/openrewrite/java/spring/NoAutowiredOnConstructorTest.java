@@ -29,7 +29,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new NoAutowiredOnConstructor())
-          .parser(JavaParser.fromJavaVersion().classpath("spring-beans", "spring-context", "spring-core"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-beans", "spring-boot", "spring-context", "spring-core"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -355,7 +355,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
               public class DatabaseConfiguration {
                   private final DataSource dataSource;
-                  
+              
                   public @Autowired DatabaseConfiguration(DataSource dataSource) {
                   }
               }
@@ -365,7 +365,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
               public class DatabaseConfiguration {
                   private final DataSource dataSource;
-                  
+              
                   public DatabaseConfiguration(DataSource dataSource) {
                   }
               }
@@ -386,7 +386,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
               public class DatabaseConfiguration {
                   private final DataSource dataSource;
-                  
+              
                   public @Autowired @Deprecated DatabaseConfiguration(DataSource dataSource) {
                   }
               }
@@ -396,7 +396,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
               public class DatabaseConfiguration {
                   private final DataSource dataSource;
-                  
+              
                   public @Deprecated DatabaseConfiguration(DataSource dataSource) {
                   }
               }
@@ -417,7 +417,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
               public class DatabaseConfiguration {
                   private final DataSource dataSource;
-                  
+              
                   public @SuppressWarnings("") @Autowired @Deprecated DatabaseConfiguration(DataSource dataSource) {
                   }
               }
@@ -427,7 +427,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
               public class DatabaseConfiguration {
                   private final DataSource dataSource;
-                  
+              
                   public @SuppressWarnings("") @Deprecated DatabaseConfiguration(DataSource dataSource) {
                   }
               }
@@ -448,7 +448,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
               public class DatabaseConfiguration {
                   private final DataSource dataSource;
-                  
+              
                   public @SuppressWarnings("") @Deprecated @Autowired DatabaseConfiguration(DataSource dataSource) {
                   }
               }
@@ -458,7 +458,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
               public class DatabaseConfiguration {
                   private final DataSource dataSource;
-                  
+              
                   public @SuppressWarnings("") @Deprecated DatabaseConfiguration(DataSource dataSource) {
                   }
               }
@@ -532,6 +532,66 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
               
                   @Primary
                   public DatabaseConfiguration(DataSource dataSource) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void ignoreConfigurationProperties() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.core.env.Environment;
+              @ConfigurationProperties
+              public class ArchivingWorkflowListenerProperties {
+                  private final Environment environment;
+                  @Autowired
+                  public ArchivingWorkflowListenerProperties(Environment environment) {
+                      this.environment = environment;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/479")
+    void ignoreLombokConstructors() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package lombok;
+
+              import java.lang.annotation.ElementType;
+              import java.lang.annotation.Retention;
+              import java.lang.annotation.RetentionPolicy;
+              import java.lang.annotation.Target;
+
+              @Target({ElementType.TYPE})
+              @Retention(RetentionPolicy.SOURCE)
+              public @interface NoArgsConstructor {
+              }
+              """
+          ),
+          java(
+            """
+              import lombok.NoArgsConstructor;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.core.env.Environment;
+              @NoArgsConstructor
+              public class ArchivingWorkflowListenerProperties {
+                  private final Environment environment;
+                  @Autowired
+                  public ArchivingWorkflowListenerProperties(Environment environment) {
+                      this.environment = environment;
                   }
               }
               """

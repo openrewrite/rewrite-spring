@@ -25,4 +25,8 @@ recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
       newVersion: 5.1.x
   - org.openrewrite.java.spring.framework.EnvironmentAcceptsProfiles
-
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.security
+      artifactId: "*"
+      newVersion: 5.1.x
+      overrideManagedVersion: false
