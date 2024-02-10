@@ -38,14 +38,14 @@ import static org.openrewrite.java.MethodMatcher.methodPattern;
 @Value
 public class RenameBean extends Recipe {
 
-    @Option(required = false)
+    @Option(required = false, example = "foo.MyType")
     @Nullable
     String type;
 
-    @Option
+    @Option(example = "fooBean")
     String oldName;
 
-    @Option
+    @Option(example = "barBean")
     String newName;
 
     private static final String FQN_QUALIFIER = "org.springframework.beans.factory.annotation.Qualifier";

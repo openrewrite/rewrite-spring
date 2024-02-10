@@ -57,7 +57,8 @@ public class ChangeSpringPropertyKey extends Recipe {
 
     @Option(displayName = "Except",
             description = "Regex. If any of these property keys exist as direct children of `oldPropertyKey`, then they will not be moved to `newPropertyKey`.",
-            required = false)
+            required = false,
+            example = "jvm")
     @Nullable
     List<String> except;
 
