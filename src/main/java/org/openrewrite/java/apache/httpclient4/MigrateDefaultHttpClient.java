@@ -23,6 +23,9 @@ import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class MigrateDefaultHttpClient extends Recipe {
     @Override
     public String getDisplayName() {
@@ -31,8 +34,18 @@ public class MigrateDefaultHttpClient extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Since DefaultHttpClient is deprecated, we need to change it to the CloseableHttpClient. " +
-                "It only covers the default scenario with no custom HttpParams or ConnectionManager.";
+        return "Since `DefaultHttpClient` is deprecated, we need to change it to the `CloseableHttpClient`. " +
+               "It only covers the default scenario with no custom `HttpParams` or `ConnectionManager`.\n\n" +
+               "Of note: the `DefaultHttpClient` [does not support TLS 1.2](https://find-sec-bugs.github.io/bugs.htm#DEFAULT_HTTP_CLIENT).\n" +
+               "\n" +
+               "References:\n" +
+               " - [Find Sec Bugs](https://find-sec-bugs.github.io/bugs.htm#DEFAULT_HTTP_CLIENT)" +
+               " - [IBM Support Pages](https://www.ibm.com/support/pages/im-using-apache-httpclient-make-outbound-call-my-web-application-running-websphere-application-server-traditional-and-im-getting-ssl-handshake-error-how-can-i-debug)";
+    }
+
+    @Override
+    public Set<String> getTags() {
+        return Collections.singleton("CWE-326");
     }
 
     @Override
@@ -46,7 +59,7 @@ public class MigrateDefaultHttpClient extends Recipe {
 
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
-                if (noArgsMatcher.matches(newClass.getConstructorType())) {
+                if (noArgsMatcher.matches(newClass)) {
                     maybeAddImport("org.apache.http.impl.client.HttpClients");
                     doAfterVisit(new ChangeType(
                             "org.apache.http.impl.client.DefaultHttpClient",
