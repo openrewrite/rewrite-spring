@@ -60,12 +60,12 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                 new FindEnvironmentTestUtilsVisitor());
     }
 
-    private static final class ReplaceEnvironmentUtilsMarker implements Marker {
+    static final class ReplaceEnvironmentUtilsMarker implements Marker {
         private final String templateString;
         private final List<Expression> parameters;
         private final UUID id;
 
-        private ReplaceEnvironmentUtilsMarker(String templateString, List<Expression> parameters, UUID id) {
+        ReplaceEnvironmentUtilsMarker(String templateString, List<Expression> parameters, UUID id) {
             this.templateString = templateString;
             this.parameters = parameters;
             this.id = id;

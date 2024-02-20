@@ -248,7 +248,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
 
     @Value
     @With
-    private static class CommentAdded implements Marker {
+    static class CommentAdded implements Marker {
         UUID id;
     }
 }
