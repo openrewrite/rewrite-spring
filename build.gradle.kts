@@ -136,6 +136,8 @@ dependencies {
 
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
+    testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
+
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
     testImplementation("org.openrewrite:rewrite-java-17")
