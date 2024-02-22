@@ -37,6 +37,12 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 3.1.x
+  - org.openrewrite.maven.RenamePropertyKey:
+      oldKey: maven.compiler.source
+      newKey: java.version
+  - org.openrewrite.maven.RenamePropertyKey:
+      oldKey: maven.compiler.target
+      newKey: maven.compiler.release
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 3.1.x
