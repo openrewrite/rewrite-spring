@@ -46,7 +46,7 @@ public class ConfigurationOverEnableSecurity extends Recipe {
 
     private static final List<String> EXCLUSIONS = singletonList("org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity");
 
-    private static final String ENABLE_SECURITY_ANNOTATION_PATTERN = "@org.springframework.security.config.annotation..*.Enable.*Security";
+    private static final String ENABLE_SECURITY_ANNOTATION_PATTERN = "@org.springframework.security.config.annotation..*.Enable*Security";
 
     private static final AnnotationMatcher SECURITY_ANNOTATION_MATCHER = new AnnotationMatcher(ENABLE_SECURITY_ANNOTATION_PATTERN, true);
 
