@@ -113,18 +113,20 @@ recipeDependencies {
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
 
 dependencies {
-    implementation("org.openrewrite:rewrite-java:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-xml:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-properties:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-yaml:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-gradle:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-maven:${rewriteVersion}")
+    implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
+    implementation("org.openrewrite:rewrite-java")
+    implementation("org.openrewrite:rewrite-xml")
+    implementation("org.openrewrite:rewrite-properties")
+    implementation("org.openrewrite:rewrite-yaml")
+    implementation("org.openrewrite:rewrite-gradle")
+    implementation("org.openrewrite:rewrite-maven")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
-    runtimeOnly("org.openrewrite:rewrite-java-17:$rewriteVersion")
+    runtimeOnly("org.openrewrite:rewrite-java-17")
     runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
+    runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
@@ -134,9 +136,11 @@ dependencies {
 
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
+    testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
+
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
-    testImplementation("org.openrewrite:rewrite-java-17:${rewriteVersion}")
+    testImplementation("org.openrewrite:rewrite-java-17")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 

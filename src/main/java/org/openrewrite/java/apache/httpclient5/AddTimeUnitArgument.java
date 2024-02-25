@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Value
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 public class AddTimeUnitArgument extends Recipe {
 
     @Option(displayName = "Method pattern",

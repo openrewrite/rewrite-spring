@@ -23,7 +23,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class NoRepoAnnotationOnRepoInterfaceTest implements RewriteTest {
+class NoRepoAnnotationOnRepoInterfaceTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

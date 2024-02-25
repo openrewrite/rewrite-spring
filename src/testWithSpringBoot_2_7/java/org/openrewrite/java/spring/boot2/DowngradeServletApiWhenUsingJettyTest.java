@@ -23,7 +23,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.maven.Assertions.pomXml;
 
-public class DowngradeServletApiWhenUsingJettyTest implements RewriteTest {
+class DowngradeServletApiWhenUsingJettyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

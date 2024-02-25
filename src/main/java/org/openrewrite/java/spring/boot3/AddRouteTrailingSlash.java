@@ -17,16 +17,16 @@ package org.openrewrite.java.spring.boot3;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.PartProvider;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Space;
+import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.Collections;
-import java.util.List;
-
-import static java.util.Collections.emptyList;
 import static org.openrewrite.java.tree.Space.EMPTY;
 
 public class AddRouteTrailingSlash extends Recipe {
@@ -36,8 +36,6 @@ public class AddRouteTrailingSlash extends Recipe {
     private static final String PUT_ANNOTATION_TYPE = "org.springframework.web.bind.annotation.PutMapping";
     private static final String PATCH_ANNOTATION_TYPE = "org.springframework.web.bind.annotation.PatchMapping";
     private static final String DELETE_ANNOTATION_TYPE = "org.springframework.web.bind.annotation.DeleteMapping";
-    @Nullable private static J.NewArray twoStringsArrayTemplate;
-    @Nullable private static J.Assignment valueAssignmentTemplate;
 
     @Override
     public String getDisplayName() {
@@ -57,7 +55,6 @@ public class AddRouteTrailingSlash extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 J.Annotation anno = super.visitAnnotation(annotation, ctx);
@@ -67,18 +64,19 @@ public class AddRouteTrailingSlash extends Recipe {
                     return anno;
                 }
 
-                if (anno.getArguments().size() == 1 &&
-                    isStringLiteral(anno.getArguments().get(0))) {
-
+                if (anno.getArguments().size() == 1 && isStringLiteral(anno.getArguments().get(0))) {
                     J.Literal str = (J.Literal) anno.getArguments().get(0);
-                    if (!matchTrailingSlash(str.getValue().toString())) {
-                        return annotation.withArguments(Collections.singletonList(buildTwoStringsArray(str)));
+                    if (shouldAddTrailingSlashArgument(str.getValue().toString())) {
+                        J.Annotation replacement = JavaTemplate.builder("{#{any(String)}, #{any(String)}}")
+                                .build()
+                                .apply(getCursor(),
+                                        anno.getCoordinates().replaceArguments(),
+                                        (Object[]) buildTwoStringsArray(str));
+                        return autoFormat(replacement, ctx);
                     }
                 } else {
-                    // search for value
-                    List<Expression> args = anno.getArguments();
-                    for (int i = 0; i < args.size(); i++) {
-                        Expression exp = args.get(i);
+                    // replace value
+                    J.Annotation replacement = anno.withArguments(ListUtils.map(anno.getArguments(), exp -> {
                         if (exp instanceof J.Assignment) {
                             J.Assignment assignment = (J.Assignment) exp;
                             if (assignment.getVariable() instanceof J.Identifier &&
@@ -86,13 +84,19 @@ public class AddRouteTrailingSlash extends Recipe {
                                 isStringLiteral(assignment.getAssignment())) {
 
                                 J.Literal str = (J.Literal) assignment.getAssignment();
-                                if (!matchTrailingSlash(str.getValue().toString())) {
-                                    args.set(i, buildAssignment(str));
-                                    return annotation.withArguments(args);
+                                if (shouldAddTrailingSlashArgument(str.getValue().toString())) {
+                                    return JavaTemplate.builder("value = {#{any(String)}, #{any(String)}}")
+                                            .contextSensitive()
+                                            .build()
+                                            .<J.Annotation>apply(getCursor(),
+                                                    anno.getCoordinates().replaceArguments(),
+                                                    (Object[]) buildTwoStringsArray(str)).getArguments().get(0);
                                 }
                             }
                         }
-                    }
+                        return exp;
+                    }));
+                    return maybeAutoFormat(annotation, replacement, ctx);
                 }
 
                 return anno;
@@ -100,27 +104,21 @@ public class AddRouteTrailingSlash extends Recipe {
         };
     }
 
-    private boolean matchTrailingSlash(String str) {
-        return str.endsWith("/") || str.endsWith("*");
+    private boolean shouldAddTrailingSlashArgument(String str) {
+        return !str.endsWith("/") && !str.endsWith("*");
     }
 
-    private J.NewArray buildTwoStringsArray(J.Literal path) {
+    private J[] buildTwoStringsArray(J.Literal path) {
         String oriPath = path.getValue().toString();
         String pathWithTrailingSlash = oriPath + '/';
-        J.NewArray twoPaths = getTwoStringsArrayTemplate();
-        List<Expression> exps = twoPaths.getInitializer();
-        exps.set(0, path.withPrefix(EMPTY));
-        exps.set(1, path.withValue(pathWithTrailingSlash)
-            .withValueSource("\"" + pathWithTrailingSlash + "\"")
-            .withPrefix(Space.build(" ", emptyList())));
-        return twoPaths.withInitializer(exps).withPrefix(EMPTY);
-    }
-
-    private J.Assignment buildAssignment(J.Literal path) {
-        J.NewArray twoPaths = buildTwoStringsArray(path);
-        return getAssignmentTemplate()
-            .withPrefix(Space.EMPTY)
-            .withAssignment(twoPaths.withPrefix(Space.build(" ", emptyList())));
+        return new J[]{
+                path.withId(Tree.randomId())
+                        .withPrefix(EMPTY),
+                path.withId(Tree.randomId())
+                        .withPrefix(Space.SINGLE_SPACE)
+                        .withValue(pathWithTrailingSlash)
+                        .withValueSource("\"" + pathWithTrailingSlash + "\"")
+        };
     }
 
     private static boolean isHttpVerbMappingAnnotation(String fqn) {
@@ -132,30 +130,6 @@ public class AddRouteTrailingSlash extends Recipe {
                DELETE_ANNOTATION_TYPE.equals(fqn);
     }
 
-    private static J.NewArray getTwoStringsArrayTemplate() {
-        if (twoStringsArrayTemplate == null) {
-            twoStringsArrayTemplate = PartProvider.buildPart(
-                "class Test {\n" +
-                "    String[] value = { \"a\", \"b\"};\n" +
-                "}",
-                J.NewArray.class);
-        }
-        return twoStringsArrayTemplate;
-    }
-
-    private static J.Assignment getAssignmentTemplate() {
-        if (valueAssignmentTemplate == null) {
-            valueAssignmentTemplate = PartProvider.buildPart(
-                "class Test {\n" +
-                "    void method() {\n" +
-                "        String[] value;\n" +
-                "        value = null;\n" +
-                "    }\n" +
-                "}",
-                J.Assignment.class);
-        }
-        return valueAssignmentTemplate;
-    }
 
     private static boolean isStringLiteral(Expression expression) {
         return expression instanceof J.Literal && TypeUtils.isString(((J.Literal) expression).getType());

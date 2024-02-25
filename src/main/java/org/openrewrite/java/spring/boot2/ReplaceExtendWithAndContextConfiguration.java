@@ -90,7 +90,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                             maybeRemoveImport(FQN_CONTEXT_CONFIGURATION);
                             maybeAddImport(FQN_SPRING_JUNIT_CONFIG);
                             a = (J.Annotation) new ChangeType(FQN_CONTEXT_CONFIGURATION, FQN_SPRING_JUNIT_CONFIG, false)
-                                    .getVisitor().visitNonNull(a, ctx, getCursor());
+                                    .getVisitor().visitNonNull(a, ctx, getCursor().getParentOrThrow());
                             a = autoFormat(a, ctx);
                         }
 

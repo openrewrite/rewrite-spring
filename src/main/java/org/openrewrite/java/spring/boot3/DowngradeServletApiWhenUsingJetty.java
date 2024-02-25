@@ -47,7 +47,7 @@ public class DowngradeServletApiWhenUsingJetty extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new FindDependency("org.springframework.boot", "spring-boot-starter-jetty"), new MavenVisitor<ExecutionContext>() {
+        return Preconditions.check(new FindDependency("org.springframework.boot", "spring-boot-starter-jetty", null, null), new MavenVisitor<ExecutionContext>() {
             @Override
             public @Nullable Xml visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree == null) {

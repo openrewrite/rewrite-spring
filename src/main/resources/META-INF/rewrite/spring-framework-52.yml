@@ -26,3 +26,8 @@ recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
       newVersion: 5.2.x
   - org.openrewrite.java.spring.framework.MigrateUtf8MediaTypes
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.security
+      artifactId: "*"
+      newVersion: 5.2.x
+      overrideManagedVersion: false

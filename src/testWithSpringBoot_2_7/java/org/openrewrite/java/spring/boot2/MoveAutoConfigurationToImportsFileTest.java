@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.SourceSpecs.text;
 
-public class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
+class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

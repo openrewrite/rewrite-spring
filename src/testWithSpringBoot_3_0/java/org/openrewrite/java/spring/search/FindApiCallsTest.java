@@ -26,7 +26,7 @@ import static org.openrewrite.java.Assertions.java;
 
 @Disabled
 // TODO work in progress
-public class FindApiCallsTest implements RewriteTest {
+class FindApiCallsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

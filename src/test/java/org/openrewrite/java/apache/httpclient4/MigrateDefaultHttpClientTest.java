@@ -16,13 +16,14 @@
 package org.openrewrite.java.apache.httpclient4;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MigrateDefaultHttpClientTest implements RewriteTest {
+class MigrateDefaultHttpClientTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -31,6 +32,7 @@ public class MigrateDefaultHttpClientTest implements RewriteTest {
           .recipe(new MigrateDefaultHttpClient());
     }
 
+    @DocumentExample
     @Test
     void noArgsDefaultHttpClient() {
         rewriteRun(

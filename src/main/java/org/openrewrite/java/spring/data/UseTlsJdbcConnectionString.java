@@ -110,7 +110,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class UseTlsJdbcConnectionStringYaml extends Recipe {
         String propertyKey;
 
@@ -177,7 +177,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
     static class UseTlsJdbcConnectionStringProperties extends Recipe {
         String propertyKey;
 

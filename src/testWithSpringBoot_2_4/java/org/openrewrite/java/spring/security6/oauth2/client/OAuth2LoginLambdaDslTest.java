@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.security6.oauth2.client;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -30,6 +31,7 @@ class OAuth2LoginLambdaDslTest implements RewriteTest {
             .classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "tomcat-embed", "spring-core"));
     }
 
+    @DocumentExample
     @Test
     void advanced() {
         rewriteRun(

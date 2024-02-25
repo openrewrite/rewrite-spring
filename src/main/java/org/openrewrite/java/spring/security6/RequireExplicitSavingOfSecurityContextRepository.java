@@ -115,7 +115,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
 
     @Value
     @With
-    private static class ToBeRemoved implements Marker {
+    static class ToBeRemoved implements Marker {
         UUID id;
 
         static <J2 extends J> J2 withMarker(J2 j) {

@@ -9,6 +9,7 @@ on:
 jobs:
   update-migrations:
     runs-on: ubuntu-latest
+    if: github.event_name != 'schedule' || github.repository_owner == 'openrewrite'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,7 +21,7 @@ jobs:
 
       # Generate Spring Boot property migrations recipes
       - name: Create jar and copy dependencies
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         with:
           arguments: generatePropertyMigrationRecipes
 
@@ -29,7 +30,7 @@ jobs:
         run: echo "NOW=$(date +'%Y-%m-%dT%H%M')" >> $GITHUB_ENV
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
           base: main
           branch: migrations/${{ env.NOW }}

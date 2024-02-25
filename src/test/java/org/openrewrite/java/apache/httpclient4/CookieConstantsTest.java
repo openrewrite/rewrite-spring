@@ -16,6 +16,7 @@
 package org.openrewrite.java.apache.httpclient4;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -23,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class CookieConstantsTest implements RewriteTest {
+class CookieConstantsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
@@ -35,8 +36,9 @@ public class CookieConstantsTest implements RewriteTest {
           );
     }
 
+    @DocumentExample
     @Test
-    void testCookieConstantsMapping() {
+    void cookieConstantsMapping() {
         rewriteRun(
           //language=java
           java(
