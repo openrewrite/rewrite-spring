@@ -28,8 +28,6 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.marker.SearchResult;
 
-import java.util.Objects;
-
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class FindApiCalls extends Recipe {
@@ -60,7 +58,7 @@ public class FindApiCalls extends Recipe {
                     String httpMethod = method.getSimpleName().substring(0, method.getSimpleName().indexOf("For")).toUpperCase();
                     Expression uri = method.getArguments().get(0);
                     String uriValue = uri instanceof J.Literal ?
-                            Objects.toString(((J.Literal) uri).getValue()) :
+                            String.valueOf(((J.Literal) uri).getValue()) :
                             uri.printTrimmed(getCursor());
                     m = SearchResult.found(m, httpMethod + " " + uriValue);
                     calls.insertRow(ctx, new ApiCalls.Row(

@@ -84,7 +84,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                             getCursor(),
                             cd.getCoordinates().addImplementsClause()
                         );
-                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor());
+                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor().getParentOrThrow());
                     maybeRemoveImport(fullyQualifiedClassName);
                     maybeAddImport(fullyQualifiedInterfaceName);
                 }

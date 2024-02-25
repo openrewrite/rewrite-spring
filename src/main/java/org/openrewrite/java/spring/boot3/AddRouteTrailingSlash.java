@@ -71,7 +71,7 @@ public class AddRouteTrailingSlash extends Recipe {
                                 .build()
                                 .apply(getCursor(),
                                         anno.getCoordinates().replaceArguments(),
-                                        buildTwoStringsArray(str));
+                                        (Object[]) buildTwoStringsArray(str));
                         return autoFormat(replacement, ctx);
                     }
                 } else {
@@ -90,7 +90,7 @@ public class AddRouteTrailingSlash extends Recipe {
                                             .build()
                                             .<J.Annotation>apply(getCursor(),
                                                     anno.getCoordinates().replaceArguments(),
-                                                    buildTwoStringsArray(str)).getArguments().get(0);
+                                                    (Object[]) buildTwoStringsArray(str)).getArguments().get(0);
                                 }
                             }
                         }
