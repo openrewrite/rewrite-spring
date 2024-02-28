@@ -17,7 +17,6 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.jetbrains.annotations.NotNull;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.StringUtils;
@@ -187,7 +186,6 @@ public class RenameBean extends Recipe {
         }
     }
 
-    @NotNull
     private TreeVisitor<?, ExecutionContext> precondition() {
         return type == null
                 ? Preconditions.or(
