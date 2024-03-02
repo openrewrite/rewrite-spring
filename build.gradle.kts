@@ -105,9 +105,6 @@ recipeDependencies {
 
     parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     parserClasspath("net.minidev:json-smart:2.4.+")
-
-    parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.1.+")
-    parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -131,8 +128,6 @@ dependencies {
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
-    testRuntimeOnly("org.apache.httpcomponents:httpclient:4.5.14")
-    testRuntimeOnly("org.apache.httpcomponents.client5:httpclient5:5.1.+")
 
     testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
