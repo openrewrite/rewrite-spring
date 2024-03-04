@@ -53,9 +53,12 @@ recipeList:
       overrideManagedVersion: false
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.webjars
-      artifactId: webjars-locator
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.webjars
+      oldArtifactId: webjars-locator
+      newGroupId: org.webjars
+      newArtifactId: webjars-locator-core
+      newVersion: ^0.35
   - org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_0
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
