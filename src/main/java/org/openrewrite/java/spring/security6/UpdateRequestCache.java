@@ -143,7 +143,7 @@ public class UpdateRequestCache extends Recipe {
 
             if (CONTINUE_PARAMETER_MATCHER.matches(m)) {
                 if (m.getArguments().get(0) instanceof J.Literal) {
-                    return ((J.Literal) m.getArguments().get(0)).getValue().equals("continue");
+                    return "continue".equals(((J.Literal) m.getArguments().get(0)).getValue());
                 }
             }
         }
