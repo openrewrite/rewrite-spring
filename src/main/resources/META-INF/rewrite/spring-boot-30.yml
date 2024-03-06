@@ -37,6 +37,10 @@ recipeList:
       retainVersions:
         - org.thymeleaf:thymeleaf-spring5
         - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework
+      artifactId: "*"
+      newVersion: 6.0.x
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
