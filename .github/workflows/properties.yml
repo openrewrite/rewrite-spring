@@ -4,7 +4,7 @@ name: Generate Spring Boot property migration recipes
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: 0 11 * * WED
+    - cron: 0 11 * * MON
 
 jobs:
   update-migrations:
