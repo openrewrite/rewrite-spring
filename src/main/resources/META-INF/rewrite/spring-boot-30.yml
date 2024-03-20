@@ -213,16 +213,18 @@ tags:
 recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: com.codahale.metrics.servlet
-      newPackageName: com.codahale.metrics.servlets
+      newPackageName: io.dropwizard.metrics.servlet
   - org.openrewrite.java.ChangePackage:
-      oldPackageName: io.dropwizard.metrics.servlet
+      oldPackageName: com.codahale.metrics.servlets
       newPackageName: io.dropwizard.metrics.servlets
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: io.dropwizard.metrics
       oldArtifactId: metrics-servlet
-      newArtifactId: metrics-servlets
+      newArtifactId: metrics-jakarta-servlet
+      newVersion: 4.2.xx
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: io.dropwizard.metrics
-      oldArtifactId: metrics-jakarta-servlet
+      oldArtifactId: metrics-servlets
       newArtifactId: metrics-jakarta-servlets
+      newVersion: 4.2.xx
 ---
