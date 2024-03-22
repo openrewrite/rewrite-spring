@@ -67,6 +67,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
   - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
   - org.openrewrite.java.spring.boot3.UpgradeSpringDoc_2
+  - org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
   - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
   - org.openrewrite.hibernate.MigrateToHibernate61
@@ -200,3 +201,30 @@ recipeList:
       methodPattern: org.springdoc.core.models.GroupedOpenApi.Builder addOpenApiCustomiser(..)
       newMethodName: addOpenApiCustomizer
       matchOverrides: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
+displayName: Migrate dropWizard dependencies to Spring Boot 3.x
+description: Migrate dropWizard dependencies to the new artifactId, since these are changed with Spring Boot 3.
+tags:
+  - spring
+  - boot
+  - dropwizard
+recipeList:
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: com.codahale.metrics.servlet
+      newPackageName: io.dropwizard.metrics.servlet
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: com.codahale.metrics.servlets
+      newPackageName: io.dropwizard.metrics.servlets
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: io.dropwizard.metrics
+      oldArtifactId: metrics-servlet
+      newArtifactId: metrics-jakarta-servlet
+      newVersion: 4.2.xx
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: io.dropwizard.metrics
+      oldArtifactId: metrics-servlets
+      newArtifactId: metrics-jakarta-servlets
+      newVersion: 4.2.xx
+---
