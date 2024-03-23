@@ -221,10 +221,10 @@ recipeList:
       oldGroupId: io.dropwizard.metrics
       oldArtifactId: metrics-servlet
       newArtifactId: metrics-jakarta-servlet
-      newVersion: 4.2.xx
+      newVersion: 4.2.x
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: io.dropwizard.metrics
       oldArtifactId: metrics-servlets
       newArtifactId: metrics-jakarta-servlets
-      newVersion: 4.2.xx
+      newVersion: 4.2.x
 ---
