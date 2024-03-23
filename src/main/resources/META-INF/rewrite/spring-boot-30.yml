@@ -45,9 +45,6 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 3.0.x
-      retainVersions:
-        - org.thymeleaf:thymeleaf-spring5
-        - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 3.0.x

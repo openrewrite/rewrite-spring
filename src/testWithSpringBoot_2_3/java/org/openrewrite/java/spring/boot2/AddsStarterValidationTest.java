@@ -64,7 +64,7 @@ class AddsStarterValidationTest implements RewriteTest {
                           <groupId>org.springframework.boot</groupId>
                           <artifactId>spring-boot-starter-parent</artifactId>
                           <version>2.2.13.RELEASE</version>
-                          <relativePath/> <!-- lookup parent from repository -->
+                          <relativePath/>
                       </parent>
                       <groupId>com.example</groupId>
                       <artifactId>acme</artifactId>
@@ -88,7 +88,7 @@ class AddsStarterValidationTest implements RewriteTest {
                           <groupId>org.springframework.boot</groupId>
                           <artifactId>spring-boot-starter-parent</artifactId>
                           <version>2.3.12.RELEASE</version>
-                          <relativePath/> <!-- lookup parent from repository -->
+                          <relativePath/>
                       </parent>
                       <groupId>com.example</groupId>
                       <artifactId>acme</artifactId>
@@ -135,7 +135,7 @@ class AddsStarterValidationTest implements RewriteTest {
                           <groupId>org.springframework.boot</groupId>
                           <artifactId>spring-boot-starter-parent</artifactId>
                           <version>2.2.13.RELEASE</version>
-                          <relativePath/> <!-- lookup parent from repository -->
+                          <relativePath/>
                       </parent>
                       <groupId>com.example</groupId>
                       <artifactId>acme</artifactId>
@@ -155,7 +155,7 @@ class AddsStarterValidationTest implements RewriteTest {
                           <groupId>org.springframework.boot</groupId>
                           <artifactId>spring-boot-starter-parent</artifactId>
                           <version>2.3.12.RELEASE</version>
-                          <relativePath/> <!-- lookup parent from repository -->
+                          <relativePath/>
                       </parent>
                       <groupId>com.example</groupId>
                       <artifactId>acme</artifactId>
