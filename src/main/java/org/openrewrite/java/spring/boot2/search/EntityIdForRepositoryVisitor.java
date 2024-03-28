@@ -43,7 +43,7 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
     private static final AnnotationMatcher ID_ANNOTATION_MATCHER = new AnnotationMatcher("@" + ID, true);
     public static final String ID_CLASS = "idClass";
 
-    final private boolean considerIdField;
+    private final boolean considerIdField;
 
     public EntityIdForRepositoryVisitor(boolean considerIdField) {
         this.considerIdField = considerIdField;

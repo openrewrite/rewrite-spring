@@ -129,8 +129,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
 
         private boolean isTargetClass() {
             Cursor parentCursor = getCursor().dropParentUntil(
-                    is -> is instanceof SourceFile ||
-                            is instanceof J.ClassDeclaration);
+                    is -> is instanceof SourceFile);
             return parentCursor.getValue() instanceof J.ClassDeclaration &&
                     !((J.ClassDeclaration) parentCursor.getValue()).getName().getSimpleName().equals(ORIGINAL_FQN.getClassName());
         }

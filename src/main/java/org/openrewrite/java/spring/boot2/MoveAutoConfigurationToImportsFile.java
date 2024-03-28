@@ -68,7 +68,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof PlainText) {
-                    PlainText source = ((PlainText) tree);
+                    PlainText source = (PlainText) tree;
                     Path sourcePath = source.getSourcePath();
                     if (sourcePath.endsWith("spring.factories")) {
                         Set<String> configs = new HashSet<>();

@@ -41,7 +41,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
     private static final String SPRINGBOOT_GROUP = "org.springframework.boot";
     private static final String SPRING_BOOT_DEPENDENCIES = "spring-boot-dependencies";
 
-    private transient final Map<String, String> springBootDependenciesMap = new HashMap<>();
+    private final transient Map<String, String> springBootDependenciesMap = new HashMap<>();
 
     @Option(displayName = "From Spring Version",
             description = "XRage pattern for spring version used to limit which projects should be updated",

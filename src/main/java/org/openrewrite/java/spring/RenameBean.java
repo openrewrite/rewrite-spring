@@ -54,15 +54,19 @@ public class RenameBean extends Recipe {
     private static final String FQN_COMPONENT = "org.springframework.stereotype.Component";
 
     private static final Set<String> JUST_QUALIFIER = Collections.singleton(FQN_QUALIFIER);
-    private static final Set<String> BEAN_METHOD_ANNOTATIONS = new HashSet<String>() {{
-        add(FQN_QUALIFIER);
-        add(FQN_BEAN);
-    }};
+    private static final Set<String> BEAN_METHOD_ANNOTATIONS;
+    static {
+        BEAN_METHOD_ANNOTATIONS = new HashSet<>();
+        BEAN_METHOD_ANNOTATIONS.add(FQN_QUALIFIER);
+        BEAN_METHOD_ANNOTATIONS.add(FQN_BEAN);
+    }
 
-    private static final Set<String> BEAN_TYPE_ANNOTATIONS = new HashSet<String>() {{
-        add(FQN_QUALIFIER);
-        add(FQN_COMPONENT);
-    }};
+    private static final Set<String> BEAN_TYPE_ANNOTATIONS;
+    static {
+        BEAN_TYPE_ANNOTATIONS = new HashSet<>();
+        BEAN_TYPE_ANNOTATIONS.add(FQN_QUALIFIER);
+        BEAN_TYPE_ANNOTATIONS.add(FQN_COMPONENT);
+    }
 
     @Override
     public String getDisplayName() {
@@ -308,7 +312,7 @@ public class RenameBean extends Recipe {
             Expression variable = ((J.Assignment) argumentExpression).getVariable();
             if (variable instanceof J.Identifier) {
                 String variableName = ((J.Identifier) variable).getSimpleName();
-                if (variableName.equals("name") || variableName.equals("value")) {
+                if ("name".equals(variableName) || "value".equals(variableName)) {
                     return (J.Assignment) argumentExpression;
                 }
             }

@@ -80,7 +80,7 @@ public class AddRouteTrailingSlash extends Recipe {
                         if (exp instanceof J.Assignment) {
                             J.Assignment assignment = (J.Assignment) exp;
                             if (assignment.getVariable() instanceof J.Identifier &&
-                                ((J.Identifier) assignment.getVariable()).getSimpleName().equals("value") &&
+                                "value".equals(((J.Identifier) assignment.getVariable()).getSimpleName()) &&
                                 isStringLiteral(assignment.getAssignment())) {
 
                                 J.Literal str = (J.Literal) assignment.getAssignment();

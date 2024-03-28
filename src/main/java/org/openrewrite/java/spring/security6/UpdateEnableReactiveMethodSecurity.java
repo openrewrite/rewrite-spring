@@ -74,7 +74,7 @@ public class UpdateEnableReactiveMethodSecurity extends Recipe {
     private static boolean isUseAuthorizationManagerArgSetToTrue(Expression arg) {
         if (arg instanceof J.Assignment) {
             J.Assignment assignment = (J.Assignment) arg;
-            return assignment.getVariable().toString().equals("useAuthorizationManager") &&
+            return "useAuthorizationManager".equals(assignment.getVariable().toString()) &&
                     RequireExplicitSavingOfSecurityContextRepository.isTrue(assignment.getAssignment());
         }
         return false;

@@ -70,17 +70,17 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
             if (overridesDefaultBatchConfigurerMethod(md) || callsDefaultBatchConfigurerSuperConstructor(md)) {
                 // Strip @Override
                 md = md.withLeadingAnnotations(ListUtils.map(md.getLeadingAnnotations(),
-                        a -> (TypeUtils.isAssignableTo("java.lang.Override", a.getType())) ? null : a));
+                        a -> TypeUtils.isAssignableTo("java.lang.Override", a.getType()) ? null : a));
                 md = Markup.info(md, "TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed");
 
                 // Strip calls to super()
                 md = md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(),
-                        s -> (s instanceof J.MethodInvocation && "super".equals(((J.MethodInvocation) s).getSimpleName())) ? null : s)));
+                        s -> s instanceof J.MethodInvocation && "super".equals(((J.MethodInvocation) s).getSimpleName()) ? null : s)));
 
                 // Strip calls to super.*()
                 md = md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(),
-                        s -> (s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.Identifier &&
-                              "super".equals(((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName())) ? null : s)));
+                        s -> s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.Identifier &&
+                              "super".equals(((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName()) ? null : s)));
 
                 // Strip (now) empty methods
                 if (md.getBody().getStatements().isEmpty()) {

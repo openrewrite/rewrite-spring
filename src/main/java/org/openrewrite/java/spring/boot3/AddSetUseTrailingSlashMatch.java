@@ -182,13 +182,13 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
     }
 
     private static boolean isWebMVCConfigurerMatchMethod(J.MethodDeclaration method) {
-        return method.getName().getSimpleName().equals("configurePathMatch") &&
+        return "configurePathMatch".equals(method.getName().getSimpleName()) &&
                method.getMethodType().getParameterTypes().size() == 1 &&
                method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_MVC_PATH_MATCH_CONFIGURER);
     }
 
     private static boolean isWebFluxconfigurePathMatchingMethod(J.MethodDeclaration method) {
-        return method.getName().getSimpleName().equals("configurePathMatching") &&
+        return "configurePathMatching".equals(method.getName().getSimpleName()) &&
                method.getMethodType().getParameterTypes().size() == 1 &&
                method.getMethodType().getParameterTypes().get(0).toString().equals(WEB_FLUX_PATH_MATCH_CONFIGURER);
     }
