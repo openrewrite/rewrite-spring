@@ -60,7 +60,7 @@ public class NoRequestMappingAnnotation extends Recipe {
 
     @Override
     public Set<String> getTags() {
-        return Collections.singleton("RSPEC-4488");
+        return Collections.singleton("RSPEC-S4488");
     }
 
     @Override
