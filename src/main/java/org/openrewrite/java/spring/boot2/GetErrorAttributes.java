@@ -113,4 +113,3 @@ public class GetErrorAttributes extends Recipe {
         }
     }
 }
-
