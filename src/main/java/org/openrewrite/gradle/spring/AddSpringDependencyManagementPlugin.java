@@ -49,7 +49,7 @@ public class AddSpringDependencyManagementPlugin extends Recipe {
                         new IsBuildGradle<>(),
                         new UsesSpringDependencyManagement()
                 ),
-                new AddBuildPlugin("io.spring.dependency-management", "1.0.6.RELEASE", null).getVisitor()
+                new AddBuildPlugin("io.spring.dependency-management", "1.0.6.RELEASE", null, null).getVisitor()
         );
     }
 
