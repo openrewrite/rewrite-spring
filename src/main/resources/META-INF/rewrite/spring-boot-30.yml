@@ -62,6 +62,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
   - org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
+  - org.openrewrite.java.spring.boot3.AdditionalSpringBootProperties_3_0
   - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
   - org.openrewrite.java.spring.boot3.UpgradeSpringDoc_2
   - org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
@@ -225,3 +226,15 @@ recipeList:
       newArtifactId: metrics-jakarta-servlets
       newVersion: 4.2.x
 ---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.AdditionalSpringBootProperties_3_0
+displayName: Migrate additional Spring Boot properties to 3.0 not covered by Spring property metadata
+description: >
+  Rename `management.metrics.export.atlas.aggrConfig` to `management.atlas.metrics.export.aggrConfig`.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.atlas.aggrConfig
+      newPropertyKey: management.atlas.metrics.export.aggrConfig
