@@ -28,11 +28,13 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UseJpaRepositoryGetReferenceById
 displayName: Use `JpaRepository#getReferenceById(ID id)`
-description: 'JpaRepository#getOne(ID) was deprecated in 2.5 and JpaRepository#getById(ID) was deprecated in 2.7'
+description: '`JpaRepository#getOne(ID)` was deprecated in 2.5 and `JpaRepository#getById(ID)` was deprecated in 2.7.'
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
-        methodPattern: org.springframework.data.jpa.repository.JpaRepository getById(..)
-        newMethodName: getReferenceById
+      methodPattern: org.springframework.data.jpa.repository.JpaRepository getById(..)
+      newMethodName: getReferenceById
+      matchOverrides: true
   - org.openrewrite.java.ChangeMethodName:
-        methodPattern: org.springframework.data.jpa.repository.JpaRepository getOne(..)
-        newMethodName: getReferenceById
+      methodPattern: org.springframework.data.jpa.repository.JpaRepository getOne(..)
+      newMethodName: getReferenceById
+      matchOverrides: true
