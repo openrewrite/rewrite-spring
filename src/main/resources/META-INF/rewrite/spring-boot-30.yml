@@ -115,6 +115,7 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.thymeleaf.spring5
       newPackageName: org.thymeleaf.spring6
+      recursive: true
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: org.thymeleaf
       oldArtifactId: thymeleaf-spring5
