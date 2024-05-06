@@ -115,11 +115,11 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.thymeleaf.spring5
       newPackageName: org.thymeleaf.spring6
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.thymeleaf
       oldArtifactId: thymeleaf-spring5
       newArtifactId: thymeleaf-spring6
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.thymeleaf.extras
       oldArtifactId: thymeleaf-extras-springsecurity5
       newArtifactId: thymeleaf-extras-springsecurity6
@@ -215,12 +215,12 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: com.codahale.metrics.servlets
       newPackageName: io.dropwizard.metrics.servlets
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: io.dropwizard.metrics
       oldArtifactId: metrics-servlet
       newArtifactId: metrics-jakarta-servlet
       newVersion: 4.2.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: io.dropwizard.metrics
       oldArtifactId: metrics-servlets
       newArtifactId: metrics-jakarta-servlets
