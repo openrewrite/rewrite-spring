@@ -1,0 +1,81 @@
+#
+# Copyright 2023 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+########################################################################################################################
+# Spring Framework 6.0
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0
+displayName: Migrate to Spring Framework 6.0
+description: Migrate applications to the latest Spring Framework 6.0 release.
+recipeList:
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework
+      artifactId: "*"
+      newVersion: 6.0.x
+  - org.openrewrite.java.spring.framework.MigrateSpringAssert
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.MigrateSpringAssert
+displayName: Migrate removed Spring `Assert` methods
+description: Assert methods without a message argument have been removed in Spring Framework 6.0.
+recipeList:
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert state(boolean)
+      argumentIndex: 1
+      literal: must be true
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert isTrue(boolean)
+      argumentIndex: 1
+      literal: must be true
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert isNull(java.lang.Object)
+      argumentIndex: 1
+      literal: must be null
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert notNull(java.lang.Object)
+      argumentIndex: 1
+      literal: must not be null
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert hasLength(java.lang.String)
+      argumentIndex: 1
+      literal: must have length; it must not be null or empty
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert hasText(java.lang.String)
+      argumentIndex: 1
+      literal: must have text; it must not be null, empty, or blank
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert doesNotContain(java.lang.String, java.lang.String)
+      argumentIndex: 2
+      literal: must not contain the substring
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert notEmpty(java.lang.Object[])
+      argumentIndex: 1
+      literal: must not be empty
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert noNullElements(java.lang.Object[])
+      argumentIndex: 1
+      literal: must not contain any null elements
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert noNullElements(java.util.Collection)
+      argumentIndex: 1
+      literal: must not be empty
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert notEmpty(java.util.Map)
+      argumentIndex: 1
+      literal: must not be empty
