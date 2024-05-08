@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.framework;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -32,6 +33,7 @@ class MigrateSpringAssertTest implements RewriteTest {
     }
 
     @Test
+    @DocumentExample
     void migrateSpringAssert() {
         rewriteRun(
           //language=java
