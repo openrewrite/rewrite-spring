@@ -1,0 +1,68 @@
+#
+# Copyright 2024 the original author or authors.
+# <p>
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://www.apache.org/licenses/LICENSE-2.0
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
+displayName: Migrate to Spring Boot 3.3
+description: >
+  Migrate applications to the latest Spring Boot 3.3 release. This recipe will modify an
+  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
+  changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
+  etc) that are required as part of the migration to Spring Boot 3.2.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2
+  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_3
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.boot
+      artifactId: "*"
+      newVersion: 3.3.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework
+      artifactId: "*"
+      newVersion: 6.1.x
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-parent
+      newVersion: 3.3.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 3.3.x
+
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.graalvm.buildtools.native
+      newVersion: 0.10.x
+
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      newGroupId: org.apache.cassandra
+      oldArtifactId: "*"
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.SpringBoot3BestPractices
+displayName: Spring Boot 3.x best practices
+description: Applies best practices to Spring Boot 3 applications.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
+  - org.openrewrite.java.migrate.UpgradeToJava21 # Allows for virtual threads
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
