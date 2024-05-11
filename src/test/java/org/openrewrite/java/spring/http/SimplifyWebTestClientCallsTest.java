@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.http;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -33,6 +34,7 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6", "spring-test-6"));
     }
 
+    @DocumentExample
     @Test
     void usesIsOkForIntStatus200() {
         rewriteRun(

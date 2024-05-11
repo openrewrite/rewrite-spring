@@ -48,7 +48,7 @@ public class SimplifyWebTestClientCalls extends Recipe {
                     = JavaTemplate.builder("isOk()").build();
 
             @Override
-            public MethodInvocation visitMethodInvocation(MethodInvocation method, ExecutionContext p) {
+            public MethodInvocation visitMethodInvocation(MethodInvocation method, ExecutionContext ctx) {
                 if (!methodMatcher.matches(method.getMethodType())) {
                     return method;
                 }
@@ -59,9 +59,8 @@ public class SimplifyWebTestClientCalls extends Recipe {
                         if (literal.getValue() instanceof Integer) {
                             if ((int) literal.getValue() == 200) {
                                 // https://docs.openrewrite.org/concepts-explanations/javatemplate#usage
-                                MethodInvocation m = isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
-                                return m;
-                            }
+                                return isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
+                return super.visitMethodInvocation(method, ctx);
                         }
                         return method;
                     }
