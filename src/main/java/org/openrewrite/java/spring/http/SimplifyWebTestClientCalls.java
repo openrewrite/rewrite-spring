@@ -37,39 +37,38 @@ public class SimplifyWebTestClientCalls extends Recipe {
         return "Simplifies various types of WebTestClient expressions to improve code readability.";
     }
 
-@Override
-public JavaIsoVisitor<ExecutionContext> getVisitor() {
-    return new JavaIsoVisitor<ExecutionContext>() {
+    @Override
+    public JavaIsoVisitor<ExecutionContext> getVisitor() {
+        return new JavaIsoVisitor<ExecutionContext>() {
 
-        private final MethodMatcher methodMatcher
-            = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(..)");
-        private final JavaType JAVA_TYPE_INT = JavaType.buildType("int");
-        private final JavaTemplate isOkTemplate 
-            = JavaTemplate.builder("isOk()").build();
+            private final MethodMatcher methodMatcher
+                    = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(..)");
+            private final JavaType JAVA_TYPE_INT = JavaType.buildType("int");
+            private final JavaTemplate isOkTemplate
+                    = JavaTemplate.builder("isOk()").build();
 
-        @Override
-        public MethodInvocation visitMethodInvocation(MethodInvocation method, ExecutionContext p) {
-            if (!methodMatcher.matches(method.getMethodType())) {
-                return method;
-            }
-            Expression expression = method.getArguments().get(0);
-            if(expression instanceof Literal) {
-                if(JAVA_TYPE_INT.equals(expression.getType())) {
-                    Literal literal = (Literal) expression;
-                    if(literal.getValue() instanceof Integer) {
-                        if ((int) literal.getValue() == 200) {
-                            // https://docs.openrewrite.org/concepts-explanations/javatemplate#usage
-                            MethodInvocation m = isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
-                            return m;
+            @Override
+            public MethodInvocation visitMethodInvocation(MethodInvocation method, ExecutionContext p) {
+                if (!methodMatcher.matches(method.getMethodType())) {
+                    return method;
+                }
+                Expression expression = method.getArguments().get(0);
+                if (expression instanceof Literal) {
+                    if (JAVA_TYPE_INT.equals(expression.getType())) {
+                        Literal literal = (Literal) expression;
+                        if (literal.getValue() instanceof Integer) {
+                            if ((int) literal.getValue() == 200) {
+                                // https://docs.openrewrite.org/concepts-explanations/javatemplate#usage
+                                MethodInvocation m = isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
+                                return m;
+                            }
                         }
+                        return method;
                     }
                     return method;
                 }
-                return method;
+                return super.visitMethodInvocation(method, p);
             }
-            return super.visitMethodInvocation(method, p);
-        }
-    };
-}
-
+        };
+    }
 }
