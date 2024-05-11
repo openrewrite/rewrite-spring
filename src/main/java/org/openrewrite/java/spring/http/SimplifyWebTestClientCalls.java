@@ -60,13 +60,13 @@ public class SimplifyWebTestClientCalls extends Recipe {
                             if ((int) literal.getValue() == 200) {
                                 // https://docs.openrewrite.org/concepts-explanations/javatemplate#usage
                                 return isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
-                return super.visitMethodInvocation(method, ctx);
+                            }
                         }
                         return method;
                     }
                     return method;
                 }
-                return super.visitMethodInvocation(method, p);
+                return super.visitMethodInvocation(method, ctx);
             }
         };
     }
