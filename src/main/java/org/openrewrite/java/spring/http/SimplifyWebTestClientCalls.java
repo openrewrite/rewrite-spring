@@ -23,7 +23,7 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J.Literal;
 import org.openrewrite.java.tree.J.MethodInvocation;
-import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 
 public class SimplifyWebTestClientCalls extends Recipe {
 
@@ -41,32 +41,42 @@ public class SimplifyWebTestClientCalls extends Recipe {
     public JavaIsoVisitor<ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
 
-            private final MethodMatcher methodMatcher
+            private static final String HTTP_STATUS = "org.springframework.http.HttpStatus";
+            private static final String INT = "int";
+            private final MethodMatcher isEqualToMatcher
                     = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(..)");
-            private final JavaType JAVA_TYPE_INT = JavaType.buildType("int");
             private final JavaTemplate isOkTemplate
                     = JavaTemplate.builder("isOk()").build();
 
             @Override
             public MethodInvocation visitMethodInvocation(MethodInvocation method, ExecutionContext ctx) {
-                if (!methodMatcher.matches(method.getMethodType())) {
+                if (!isEqualToMatcher.matches(method.getMethodType())) {
                     return method;
                 }
-                Expression expression = method.getArguments().get(0);
-                if (expression instanceof Literal) {
-                    if (JAVA_TYPE_INT.equals(expression.getType())) {
-                        Literal literal = (Literal) expression;
-                        if (literal.getValue() instanceof Integer) {
-                            if ((int) literal.getValue() == 200) {
-                                // https://docs.openrewrite.org/concepts-explanations/javatemplate#usage
-                                return isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
-                            }
-                        }
-                        return method;
-                    }
-                    return method;
+                Expression argument = method.getArguments().get(0);
+                if (TypeUtils.isOfClassType(argument.getType(), INT)) {
+                    return replaceInt(method, argument);
+                } else if (TypeUtils.isOfClassType(argument.getType(), HTTP_STATUS)) {
+                    return replaceHttpStatus(method, argument);
                 }
                 return super.visitMethodInvocation(method, ctx);
+            }
+
+            private MethodInvocation replaceInt(MethodInvocation method, Expression expression) {
+                if ((int) ((Literal) expression).getValue() == 200) {
+                    return isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
+                }
+                return method;
+            }
+
+            private MethodInvocation replaceHttpStatus(MethodInvocation method, Expression expression) {
+                // TODO: Check if value of HttpStatus == 200
+                if (true) {
+                    MethodInvocation methodInvocation = isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
+                    maybeRemoveImport(HTTP_STATUS);
+                    return methodInvocation;
+                }
+                return method;
             }
         };
     }

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.http;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -76,6 +77,32 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
         );
     }
 
+    @DocumentExample
+    @Test
+    void doesNotUseIsOkForIntStatus300() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient;
+
+              class Test {
+                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
+                  void someMethod() {
+                    webClient
+                        .post()
+                        .uri("/some/url")
+                        .bodyValue("someValue")
+                        .exchange()
+                        .expectStatus()
+                        .isEqualTo(300);
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void usesIsOkForHttpStatus200() {
         rewriteRun(
@@ -83,32 +110,55 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
           java(
             """
               import org.springframework.test.web.reactive.server.WebTestClient;
-              import org.springframework.http.HttpStatusCode;
+              import org.springframework.http.HttpStatus;
               class Test {
                   private final WebTestClient webClient = WebTestClient.bindToServer().build();
                   void someMethod() {
-                    webClient
-                        .post()
-                        .uri("/some/value")
-                        .bodyValue("someValue")
-                        .exchange()
-                        .expectStatus()
-                        .isEqualTo(HttpStatusCode.valueOf(200));
+                      webClient
+                          .post()
+                          .uri("/some/value")
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.valueOf(200));
                   }
               }
               """,
             """
-                import org.springframework.test.web.reactive.server.WebTestClient;
-                class Test {
+              import org.springframework.test.web.reactive.server.WebTestClient;
+              class Test {
                   private final WebTestClient webClient = WebTestClient.bindToServer().build();
                   void someMethod() {
-                    webClient
-                        .post()
-                        .uri("/some/value")
-                        .accept("someValue")
-                        .exchange()
-                        .expectStatus()
-                        .isOk();
+                      webClient
+                          .post()
+                          .uri("/some/value")
+                          .exchange()
+                          .expectStatus()
+                          .isOk();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    @Disabled("Yet to be implemented")
+    void doesNotUseIsOkForHttpStatus300() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient;
+              import org.springframework.http.HttpStatus;
+              class Test {
+                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
+                  void someMethod() {
+                      webClient
+                          .post()
+                          .uri("/some/value")
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.valueOf(300));
                   }
               }
               """
