@@ -17,6 +17,8 @@ package org.openrewrite.java.spring.http;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -36,8 +38,23 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
     }
 
     @DocumentExample
-    @Test
-    void usesIsOkForIntStatus200() {
+    @ParameterizedTest
+    @CsvSource({
+        "200,isOk()",
+        "201,isCreated()",
+        "202,isAccepted()",
+        "204,isNoContent()",
+        "302,isFound()",
+        "303,isSeeOther()",
+        "304,isNotModified()",
+        "307,isTemporaryRedirect()",
+        "308,isPermanentRedirect()",
+        "400,isBadRequest()",
+        "401,isUnauthorized()",
+        "403,isForbidden()",
+        "404,isNotFound()"
+    })
+    void replacesAllIntStatusCodes(String httpStatus, String method) {
         rewriteRun(
           //language=java
           java(
@@ -53,10 +70,10 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
                         .bodyValue("someValue")
                         .exchange()
                         .expectStatus()
-                        .isEqualTo(200);
+                        .isEqualTo(%s);
                   }
               }
-              """,
+              """.formatted(httpStatus),
             """
               import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -69,17 +86,17 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
                         .bodyValue("someValue")
                         .exchange()
                         .expectStatus()
-                        .isOk();
+                        .%s;
                   }
               }
-              """
+              """.formatted(method)
           )
         );
     }
 
     @DocumentExample
     @Test
-    void doesNotUseIsOkForIntStatus300() {
+    void doesNotReplaceUnspecificStatusCode() {
         rewriteRun(
           //language=java
           java(
