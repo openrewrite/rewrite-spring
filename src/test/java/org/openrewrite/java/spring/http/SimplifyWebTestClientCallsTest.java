@@ -104,6 +104,7 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
     }
 
     @Test
+    @Disabled("Yet to be implemented")
     void usesIsOkForHttpStatus200() {
         rewriteRun(
           //language=java

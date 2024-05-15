@@ -16,16 +16,22 @@
 package org.openrewrite.java.spring.http;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J.Literal;
 import org.openrewrite.java.tree.J.MethodInvocation;
 import org.openrewrite.java.tree.TypeUtils;
 
 public class SimplifyWebTestClientCalls extends Recipe {
+
+    private static final String IS_EQUAL_TO =
+            "org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(int)";
 
     @Override
     public String getDisplayName() {
@@ -38,46 +44,60 @@ public class SimplifyWebTestClientCalls extends Recipe {
     }
 
     @Override
-    public JavaIsoVisitor<ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesMethod<>(IS_EQUAL_TO),
+                new SimplifyWebTestClientVisitor());
+    }
 
-            private static final String HTTP_STATUS = "org.springframework.http.HttpStatus";
-            private static final String INT = "int";
-            private final MethodMatcher isEqualToMatcher
-                    = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(..)");
-            private final JavaTemplate isOkTemplate
-                    = JavaTemplate.builder("isOk()").build();
+    private final class SimplifyWebTestClientVisitor extends JavaIsoVisitor<ExecutionContext> {
+        private final MethodMatcher isEqualToMatcher = new MethodMatcher(IS_EQUAL_TO);
 
-            @Override
-            public MethodInvocation visitMethodInvocation(MethodInvocation method, ExecutionContext ctx) {
-                if (!isEqualToMatcher.matches(method.getMethodType())) {
-                    return method;
-                }
-                Expression argument = method.getArguments().get(0);
-                if (TypeUtils.isOfClassType(argument.getType(), INT)) {
-                    return replaceInt(method, argument);
-                } else if (TypeUtils.isOfClassType(argument.getType(), HTTP_STATUS)) {
-                    return replaceHttpStatus(method, argument);
-                }
-                return super.visitMethodInvocation(method, ctx);
-            }
-
-            private MethodInvocation replaceInt(MethodInvocation method, Expression expression) {
-                if ((int) ((Literal) expression).getValue() == 200) {
-                    return isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
-                }
+        @Override
+        public MethodInvocation visitMethodInvocation(MethodInvocation method,
+                ExecutionContext ctx) {
+            if (!isEqualToMatcher.matches(method.getMethodType())) {
                 return method;
             }
-
-            private MethodInvocation replaceHttpStatus(MethodInvocation method, Expression expression) {
-                // TODO: Check if value of HttpStatus == 200
-                if (true) {
-                    MethodInvocation methodInvocation = isOkTemplate.apply(getCursor(), method.getCoordinates().replaceMethod());
-                    maybeRemoveImport(HTTP_STATUS);
-                    return methodInvocation;
+            Expression argument = method.getArguments().get(0);
+            if (TypeUtils.isOfClassType(argument.getType(), "int")) {
+                int statusCode = (int) ((Literal) argument).getValue();
+                switch (statusCode) {
+                    case 200:
+                        return replaceMethod(method, "isOk()");
+                    case 201:
+                        return replaceMethod(method, "isCreated()");
+                    case 202:
+                        return replaceMethod(method, "isAccepted()");
+                    case 204:
+                        return replaceMethod(method, "isNoContent()");
+                    case 302:
+                        return replaceMethod(method, "isFound()");
+                    case 303:
+                        return replaceMethod(method, "isSeeOther()");
+                    case 304:
+                        return replaceMethod(method, "isNotModified()");
+                    case 307:
+                        return replaceMethod(method, "isTemporaryRedirect()");
+                    case 308:
+                        return replaceMethod(method, "isPermanentRedirect()");
+                    case 400:
+                        return replaceMethod(method, "isBadRequest()");
+                    case 401:
+                        return replaceMethod(method, "isUnauthorized()");
+                    case 403:
+                        return replaceMethod(method, "isForbidden()");
+                    case 404:
+                        return replaceMethod(method, "isNotFound()");
+                    default:
+                        return method;
                 }
-                return method;
             }
-        };
+            return super.visitMethodInvocation(method, ctx);
+        }
+
+        private MethodInvocation replaceMethod(MethodInvocation method, String methodName) {
+            JavaTemplate template = JavaTemplate.builder(methodName).build();
+            return template.apply(getCursor(), method.getCoordinates().replaceMethod());
+        }
     }
 }
