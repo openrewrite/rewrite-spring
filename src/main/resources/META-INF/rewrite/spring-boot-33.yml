@@ -70,3 +70,4 @@ recipeList:
   - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithHttpHeadersConstants
   - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants
   - org.openrewrite.java.spring.http.SimplifyMediaTypeParseCalls
+  - org.openrewrite.java.spring.http.SimplifyWebTestClientCalls
