@@ -26,11 +26,10 @@ import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J.Literal;
 import org.openrewrite.java.tree.J.MethodInvocation;
-import org.openrewrite.java.tree.TypeUtils;
 
 public class SimplifyWebTestClientCalls extends Recipe {
 
-    private static final MethodMatcher IS_EQUAL_TO_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(int)");
+    private static final MethodMatcher IS_EQUAL_TO_INT_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(int)");
 
     @Override
     public String getDisplayName() {
@@ -44,16 +43,12 @@ public class SimplifyWebTestClientCalls extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>(IS_EQUAL_TO_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(IS_EQUAL_TO_INT_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public MethodInvocation visitMethodInvocation(MethodInvocation method, ExecutionContext ctx) {
                 MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                if (!IS_EQUAL_TO_MATCHER.matches(m.getMethodType())) {
-                    return m;
-                }
-                Expression argument = m.getArguments().get(0);
-                if (TypeUtils.isOfClassType(argument.getType(), "int")) {
-                    int statusCode = (int) ((Literal) argument).getValue();
+                if (IS_EQUAL_TO_INT_MATCHER.matches(m.getMethodType())) {
+                    int statusCode = (int) ((Literal) m.getArguments().get(0)).getValue();
                     switch (statusCode) {
                         case 200:
                             return replaceMethod(m, "isOk()");
@@ -81,8 +76,6 @@ public class SimplifyWebTestClientCalls extends Recipe {
                             return replaceMethod(m, "isForbidden()");
                         case 404:
                             return replaceMethod(m, "isNotFound()");
-                        default:
-                            return m;
                     }
                 }
                 return m;
