@@ -94,7 +94,6 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
         );
     }
 
-    @DocumentExample
     @Test
     void doesNotReplaceUnspecificStatusCode() {
         rewriteRun(
