@@ -43,7 +43,7 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-parent
       newVersion: 2022.0.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-starter-feign
       newArtifactId: spring-cloud-starter-openfeign
@@ -96,35 +96,35 @@ tags:
   - micrometer
 recipeList:
   - org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-starter-sleuth
       newGroupId: io.micrometer
       newArtifactId: micrometer-tracing-bridge-brave
       newVersion: 1.0.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-otel-dependencies
       newGroupId: io.micrometer
       newArtifactId: micrometer-tracing-bridge-otel
       newVersion: 1.0.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-api
       newGroupId: io.micrometer
       newArtifactId: micrometer-tracing
       newVersion: 1.0.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-autoconfigure
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-actuator-autoconfigure
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-otel-autoconfigure
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-actuator-autoconfigure
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-zipkin
       newGroupId: io.zipkin.reporter2

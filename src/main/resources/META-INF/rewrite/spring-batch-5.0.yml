@@ -32,7 +32,6 @@ recipeList:
   - org.openrewrite.java.spring.batch.ImplementStepExecutionListenerDirectly
   - org.openrewrite.java.spring.batch.ImplementChunkListenerDirectly
   - org.openrewrite.java.spring.batch.ImplementSkipListenerSupportDirectly
-  - org.openrewrite.java.spring.batch.ImplementChunkListenerDirectly
   - org.openrewrite.java.spring.batch.MigrateJobBuilderFactory
   - org.openrewrite.java.spring.batch.MigrateItemWriterWrite
   - org.openrewrite.java.spring.batch.RemoveDefaultBatchConfigurer
