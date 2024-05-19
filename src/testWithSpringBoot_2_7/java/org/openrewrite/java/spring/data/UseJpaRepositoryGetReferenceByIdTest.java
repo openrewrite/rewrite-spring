@@ -29,7 +29,7 @@ class UseJpaRepositoryGetReferenceByIdTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-jpa-2.7"))
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-2.7", "spring-data-jpa-2.7"))
           .recipeFromResource("/META-INF/rewrite/spring-data-27.yml", "org.openrewrite.java.spring.data.UseJpaRepositoryGetReferenceById");
     }
 
