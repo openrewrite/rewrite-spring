@@ -75,7 +75,7 @@ public class UpdateRequestCache extends Recipe {
                         statement = JavaTemplate.builder("#{any()}.setMatchingRequestParameterName(\"continue\");")
                             .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion()
-                                .classpath("spring-security-web"))
+                                    .classpathFromResources(ctx, "spring-security-web-6"))
                             .imports(
                                 "org.springframework.security.web.savedrequest.HttpSessionRequestCache")
                             .build()
@@ -100,7 +100,7 @@ public class UpdateRequestCache extends Recipe {
                     if (isNewHttpSessionRequestCacheExpression(arg)) {
                         JavaTemplate template = JavaTemplate.builder("new NullRequestCache()")
                                 .javaParser(JavaParser.fromJavaVersion()
-                                        .classpath("spring-security-web"))
+                                        .classpathFromResources(ctx, "spring-security-web-6"))
                                 .imports(
                                         "org.springframework.security.web.savedrequest.NullRequestCache")
                                 .build();

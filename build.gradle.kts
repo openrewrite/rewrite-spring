@@ -79,6 +79,7 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-web:5.+")
     parserClasspath("org.springframework:spring-web:6.+")
 
+    parserClasspath("org.springframework:spring-webflux:5.+")
     parserClasspath("org.springframework:spring-webmvc:5.+")
 
     parserClasspath("org.springframework.data:spring-data-commons:2.+")
@@ -87,8 +88,6 @@ recipeDependencies {
 
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
-
-    parserClasspath("org.springframework.batch:spring-batch-infrastructure:4.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
 
     parserClasspath("org.springframework.security:spring-security-config:5.8.+")
@@ -212,7 +211,9 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-web:6.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-core:4.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-core:5.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-infrastructure:4.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.batch:spring-batch-infrastructure:5.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-core:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-config:6.0.+")
