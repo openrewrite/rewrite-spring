@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-public class Boot3UpgradeTest implements RewriteTest {
+class Boot3UpgradeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
