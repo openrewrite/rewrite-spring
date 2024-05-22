@@ -25,11 +25,13 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Space;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -58,7 +60,7 @@ public class NoRequestMappingAnnotation extends Recipe {
 
     @Override
     public Set<String> getTags() {
-        return Collections.singleton("RSPEC-4488");
+        return Collections.singleton("RSPEC-S4488");
     }
 
     @Override
@@ -92,19 +94,17 @@ public class NoRequestMappingAnnotation extends Recipe {
                 requestType.ifPresent(requestMethod -> maybeRemoveImport("org.springframework.web.bind.annotation.RequestMethod." + requestMethod));
 
                 // Remove the argument
-                if (requestMethodArg.isPresent() && methodArgumentHasSingleType(requestMethodArg.get()) && resolvedRequestMappingAnnotationClassName != null) {
+                if (methodArgumentHasSingleType(requestMethodArg.get())) {
                     if (a.getArguments() != null) {
                         a = a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg));
                     }
                 }
 
                 // Change the Annotation Type
-                if (resolvedRequestMappingAnnotationClassName != null) {
-                    maybeAddImport("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName);
-                    a = (J.Annotation) new ChangeType("org.springframework.web.bind.annotation.RequestMapping",
-                            "org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName, false)
-                            .getVisitor().visit(a, ctx, getCursor());
-                }
+                maybeAddImport("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName);
+                a = (J.Annotation) new ChangeType("org.springframework.web.bind.annotation.RequestMapping",
+                        "org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName, false)
+                        .getVisitor().visit(a, ctx, getCursor());
 
                 // if there is only one remaining argument now, and it is "path" or "value", then we can drop the key name
                 if (a != null && a.getArguments() != null && a.getArguments().size() == 1) {
@@ -142,15 +142,31 @@ public class NoRequestMappingAnnotation extends Recipe {
             return newArray.getInitializer() != null && newArray.getInitializer().size() == 1;
         }
 
+        @Nullable
         private String requestMethodType(@Nullable J.Assignment assignment) {
+            if(assignment == null) {
+                return null;
+            }
             if (assignment.getAssignment() instanceof J.Identifier) {
                 return ((J.Identifier) assignment.getAssignment()).getSimpleName();
             } else if (assignment.getAssignment() instanceof J.FieldAccess) {
                 return ((J.FieldAccess) assignment.getAssignment()).getSimpleName();
             } else if (methodArgumentHasSingleType(assignment)) {
-                J.NewArray newArray = (J.NewArray) assignment.getAssignment();
-                assert newArray.getInitializer() != null;
-                return ((J.FieldAccess) newArray.getInitializer().get(0)).getSimpleName();
+                if(assignment.getAssignment() instanceof J.NewArray) {
+                    J.NewArray newArray = (J.NewArray) assignment.getAssignment();
+                    List<Expression> initializer = newArray.getInitializer();
+                    if(initializer == null || initializer.size() != 1) {
+                        return null;
+                    }
+                    Expression methodName = initializer.get(0);
+                    if(methodName instanceof J.Identifier) {
+                        return ((J.Identifier)methodName).getSimpleName();
+                    } else if(methodName instanceof J.FieldAccess) {
+                        return ((J.FieldAccess) methodName).getSimpleName();
+                    }
+                } else if(assignment.getAssignment() instanceof J.Identifier) {
+                    return ((J.Identifier) assignment.getAssignment()).getSimpleName();
+                }
             }
             return null;
         }

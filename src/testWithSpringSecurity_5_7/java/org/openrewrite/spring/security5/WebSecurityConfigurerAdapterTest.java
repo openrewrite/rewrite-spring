@@ -734,5 +734,3 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
 }
-
-

@@ -155,26 +155,32 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   plugins {
                     id 'java'
                   }
-                                       
+                  
                   repositories {
                      mavenCentral()
                   }
-                                       
+                  
                   dependencies {
                       runtimeOnly 'mysql:mysql-connector-java:8.0.30'
+                  }
+                  tasks.withType(Test).configureEach {
+                      useJUnitPlatform()
                   }
                   """,
                 """
                   plugins {
                     id 'java'
                   }
-                                       
+                  
                   repositories {
                      mavenCentral()
                   }
-                                       
+                  
                   dependencies {
                       runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
+                  }
+                  tasks.withType(Test).configureEach {
+                      useJUnitPlatform()
                   }
                   """)
             );
@@ -199,6 +205,9 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   dependencies {
                       runtimeOnly 'mysql:mysql-connector-java'
                   }
+                  tasks.withType(Test).configureEach {
+                      useJUnitPlatform()
+                  }
                   """, spec -> spec.after(gradle -> {
                     Matcher version = Pattern.compile("2\\.5\\.\\d+").matcher(gradle);
                     assertThat(version.find()).describedAs("Expected 2.5.x in %s", gradle).isTrue();
@@ -216,6 +225,9 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   
                   dependencies {
                       runtimeOnly 'com.mysql:mysql-connector-j'
+                  }
+                  tasks.withType(Test).configureEach {
+                      useJUnitPlatform()
                   }
                   """.formatted(version.group());
                   })

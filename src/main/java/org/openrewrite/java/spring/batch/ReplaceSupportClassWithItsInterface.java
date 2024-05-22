@@ -78,7 +78,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                     cd = JavaTemplate
                         .builder(JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
                         .imports(fullyQualifiedInterfaceName)
-                        .javaParser(JavaParser.fromJavaVersion().classpath("spring-batch"))
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5", "spring-batch-infrastructure-5"))
                         .build()
                         .apply(
                             getCursor(),

@@ -62,12 +62,13 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 new AnnotationMatcher("@org.springframework.boot.test.context.TestComponent"));
 
         List<String> wellKnowDataSourceTypes = Arrays.asList(
-                "org.springframework.jdbc.core.JdbcTemplate",
+                "javax.persistence.EntityManagerFactory",
+                "liquibase.integration.spring.SpringLiquibase",
                 "org.jooq.DSLContext",
+                "org.springframework.jdbc.core.JdbcTemplate",
                 "org.springframework.jdbc.core.JdbcOperations",
                 "org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations",
-                "org.springframework.orm.jpa.AbstractEntityManagerFactoryBean",
-                "javax.persistence.EntityManagerFactory"
+                "org.springframework.orm.jpa.AbstractEntityManagerFactoryBean"
         );
 
         return Preconditions.check(Preconditions.or(

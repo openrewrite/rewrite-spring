@@ -25,6 +25,7 @@ import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
 class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
+    @Override
     public void defaults(RecipeSpec spec) {
         spec
           .recipe(Environment.builder()

@@ -23,7 +23,9 @@ displayName: Migrate to Spring Framework 5.3
 description: Migrate applications to the latest Spring Framework 5.3 release.
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_2
-  - org.openrewrite.java.spring.framework.UpgradeSpringFrameworkDependencies:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework
+      artifactId: "*"
       newVersion: 5.3.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security

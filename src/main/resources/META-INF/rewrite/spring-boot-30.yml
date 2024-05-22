@@ -37,13 +37,14 @@ recipeList:
       retainVersions:
         - org.thymeleaf:thymeleaf-spring5
         - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework
+      artifactId: "*"
+      newVersion: 6.0.x
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 3.0.x
-      retainVersions:
-        - org.thymeleaf:thymeleaf-spring5
-        - org.thymeleaf.extras:thymeleaf-extras-springsecurity5
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 3.0.x
@@ -61,8 +62,11 @@ recipeList:
   - org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
   - org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
+  - org.openrewrite.java.spring.boot3.AdditionalSpringBootProperties_3_0
   - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
   - org.openrewrite.java.spring.boot3.UpgradeSpringDoc_2
+  - org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
   - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
   - org.openrewrite.hibernate.MigrateToHibernate61
@@ -112,11 +116,12 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.thymeleaf.spring5
       newPackageName: org.thymeleaf.spring6
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      recursive: true
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.thymeleaf
       oldArtifactId: thymeleaf-spring5
       newArtifactId: thymeleaf-spring6
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.thymeleaf.extras
       oldArtifactId: thymeleaf-extras-springsecurity5
       newArtifactId: thymeleaf-extras-springsecurity6
@@ -196,3 +201,42 @@ recipeList:
       methodPattern: org.springdoc.core.models.GroupedOpenApi.Builder addOpenApiCustomiser(..)
       newMethodName: addOpenApiCustomizer
       matchOverrides: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
+displayName: Migrate dropWizard dependencies to Spring Boot 3.x
+description: Migrate dropWizard dependencies to the new artifactId, since these are changed with Spring Boot 3.
+tags:
+  - spring
+  - boot
+  - dropwizard
+recipeList:
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: com.codahale.metrics.servlet
+      newPackageName: io.dropwizard.metrics.servlet
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: com.codahale.metrics.servlets
+      newPackageName: io.dropwizard.metrics.servlets
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: io.dropwizard.metrics
+      oldArtifactId: metrics-servlet
+      newArtifactId: metrics-jakarta-servlet
+      newVersion: 4.2.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: io.dropwizard.metrics
+      oldArtifactId: metrics-servlets
+      newArtifactId: metrics-jakarta-servlets
+      newVersion: 4.2.x
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.AdditionalSpringBootProperties_3_0
+displayName: Migrate additional Spring Boot properties to 3.0 not covered by Spring property metadata
+description: >
+  Rename `management.metrics.export.atlas.aggrConfig` to `management.atlas.metrics.export.aggrConfig`.
+tags:
+  - spring
+  - boot
+recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.atlas.aggrConfig
+      newPropertyKey: management.atlas.metrics.export.aggrConfig
