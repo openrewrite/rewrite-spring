@@ -891,4 +891,3 @@ class Boot3UpgradeTest implements RewriteTest {
 
 }
 
-
