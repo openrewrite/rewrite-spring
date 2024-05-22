@@ -410,4 +410,41 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void methodInArray() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.*;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.RequestMapping;
+              import static org.springframework.web.bind.annotation.RequestMethod.POST;
+              import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+              
+              public class UsersController {
+                  @RequestMapping(value = { "/users" }, method = { POST }, produces = APPLICATION_JSON_VALUE)
+                  public ResponseEntity<List<String>> getUsersPost() {
+                      return null;
+                  }
+              }
+              """,
+            """
+              import java.util.*;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.PostMapping;
+              
+              import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+              
+              public class UsersController {
+                  @PostMapping(value = { "/users" }, produces = APPLICATION_JSON_VALUE)
+                  public ResponseEntity<List<String>> getUsersPost() {
+                      return null;
+                  }
+              }
+              """
+          )
+        );
+    }
 }

@@ -34,6 +34,7 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.data.jpa.repository.JpaRepository getOne(..)
       newMethodName: getById
+      matchOverrides: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UseJpaRepositoryDeleteAllInBatch
@@ -43,3 +44,4 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.data.jpa.repository.JpaRepository deleteInBatch(..)
       newMethodName: deleteAllInBatch
+      matchOverrides: true

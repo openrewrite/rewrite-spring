@@ -62,9 +62,8 @@ public class PropertiesToKebabCase extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return Preconditions.check(Preconditions.or(
-                            new FindSourceFiles("**/application*.yml").getVisitor(),
-                            new FindSourceFiles("**/application*.yaml").getVisitor()),
+            return Preconditions.check(
+                    new FindSourceFiles("**/application*.{yml,yaml}").getVisitor(),
                     new YamlIsoVisitor<ExecutionContext>() {
                         @Override
                         public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {

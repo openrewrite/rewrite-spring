@@ -110,7 +110,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                                     ".setUseTrailingSlashMatch(true); }")
                             .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpath("spring-webmvc", "spring-context", "spring-web"))
+                                    .classpathFromResources(ctx, "spring-webmvc-5", "spring-context-5", "spring-web-5"))
                             .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
                                     "org.springframework.web.servlet.config.annotation.WebMvcConfigurer",
                                     "org.springframework.context.annotation.Configuration")
@@ -122,7 +122,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                                             ".setUseTrailingSlashMatch(true); }")
                                     .contextSensitive()
                                     .javaParser(JavaParser.fromJavaVersion()
-                                            .classpath("spring-webflux", "spring-context", "spring-web"))
+                                            .classpathFromResources(ctx, "spring-webflux-5", "spring-context-5", "spring-web-5"))
                                     .imports(WEB_FLUX_PATH_MATCH_CONFIGURER,
                                             "org.springframework.web.reactive.config.WebFluxConfigurer",
                                             "org.springframework.context.annotation.Configuration")
@@ -152,7 +152,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                         JavaTemplate webMvcTemplate = JavaTemplate.builder("#{any()}.setUseTrailingSlashMatch(true);")
                                 .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion()
-                                        .classpath("spring-webmvc", "spring-context", "spring-web"))
+                                        .classpathFromResources(ctx, "spring-webmvc-5", "spring-context-5", "spring-web-5"))
                                 .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
                                         "org.springframework.web.servlet.config.annotation.WebMvcConfigurer",
                                         "org.springframework.context.annotation.Configuration")

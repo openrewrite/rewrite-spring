@@ -19,9 +19,9 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
-displayName: Migrate to Spring Boot 2.0
+displayName: Migrate from Spring Boot 1.x to 2.0
 description: >
-  Migrate applications to the latest Spring Boot 2.0 release. This recipe will modify an
+  Migrate Spring Boot 1.x applications to the latest Spring Boot 2.0 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
   etc) that are required as part of the migration to Spring Boot 2.0.
@@ -53,9 +53,12 @@ recipeList:
       overrideManagedVersion: false
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.webjars
-      artifactId: webjars-locator
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.webjars
+      oldArtifactId: webjars-locator
+      newGroupId: org.webjars
+      newArtifactId: webjars-locator-core
+      newVersion: ^0.35
   - org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_0
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName

@@ -16,6 +16,7 @@
 package org.openrewrite.gradle.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.FileAttributes;
 import org.openrewrite.Tree;
 import org.openrewrite.config.Environment;
 import org.openrewrite.marker.BuildTool;
@@ -80,6 +81,9 @@ class UpdateGradleTest implements RewriteTest {
               dependencies {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
+              tasks.withType(Test).configureEach {
+                  useJUnitPlatform()
+              }
               """.formatted(version.group());
             })
             //language=gradle
@@ -111,7 +115,9 @@ class UpdateGradleTest implements RewriteTest {
                   assertThat(after).isNotBlank();
                   return after + "\n";
               }).afterRecipe(gradlew -> {
-                  assertThat(gradlew.getFileAttributes().isReadable()).isTrue();
+                  assertThat(gradlew.getFileAttributes())
+                    .isNotNull()
+                    .matches(FileAttributes::isReadable);
                   assertThat(gradlew.getFileAttributes().isExecutable()).isTrue();
               })
           ),
@@ -167,6 +173,9 @@ class UpdateGradleTest implements RewriteTest {
                   implementation platform("org.springframework.boot:spring-boot-dependencies:%s")
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
+              tasks.withType(Test).configureEach {
+                  useJUnitPlatform()
+              }
               """.formatted(version.group(), version.group());
             })
           ),
@@ -197,7 +206,8 @@ class UpdateGradleTest implements RewriteTest {
                   assertThat(after).isNotBlank();
                   return after + "\n";
               }).afterRecipe(gradlew -> {
-                  assertThat(gradlew.getFileAttributes().isReadable()).isTrue();
+                  assertThat(gradlew.getFileAttributes()).isNotNull()
+                      .matches(FileAttributes::isReadable);
                   assertThat(gradlew.getFileAttributes().isExecutable()).isTrue();
               })
           ),
