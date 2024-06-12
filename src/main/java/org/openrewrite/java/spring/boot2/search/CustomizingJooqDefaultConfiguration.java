@@ -45,6 +45,7 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
             "org.jooq.VisitListenerProvider",
             "org.jooq.TransactionListenerProvider"
     );
+
     @SuppressWarnings("unchecked")
     private static final TreeVisitor<?, ExecutionContext> precondition =
             Preconditions.or(jooqTypes.stream().map(t -> new UsesType<>(t, false)).toArray(UsesType[]::new));
