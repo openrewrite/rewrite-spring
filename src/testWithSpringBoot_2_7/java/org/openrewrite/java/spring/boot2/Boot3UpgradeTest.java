@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.boot2;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.Issue;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -31,11 +30,7 @@ class Boot3UpgradeTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0")
-          )
+          .recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0")
           .parser(JavaParser.fromJavaVersion()
             .classpath("spring-context", "spring-data-jpa", "spring-web",
               "spring-boot", "spring-core", "persistence-api", "validation-api", "xml.bind-api"));
@@ -81,7 +76,6 @@ class Boot3UpgradeTest implements RewriteTest {
                       <artifactId>ehcache</artifactId>
                     </dependency>
                   </dependencies>
-
                 </project>
                 """,
               """
@@ -139,7 +133,6 @@ class Boot3UpgradeTest implements RewriteTest {
                       <classifier>jakarta</classifier>
                     </dependency>
                   </dependencies>
-
                 </project>
                 """
             ),
@@ -301,7 +294,6 @@ class Boot3UpgradeTest implements RewriteTest {
                           return this.id == null;
                       }
                   
-                  
                       public String getName() {
                           return this.name;
                       }
@@ -309,7 +301,6 @@ class Boot3UpgradeTest implements RewriteTest {
                       public void setName(String name) {
                           this.name = name;
                       }
-                  
                   
                       protected Set<Specialty> getSpecialtiesInternal() {
                           if (this.specialties == null) {
@@ -412,7 +403,6 @@ class Boot3UpgradeTest implements RewriteTest {
                           return this.id == null;
                       }
                   
-                  
                       public String getName() {
                           return this.name;
                       }
@@ -420,7 +410,6 @@ class Boot3UpgradeTest implements RewriteTest {
                       public void setName(String name) {
                           this.name = name;
                       }
-                  
                   
                       protected Set<Specialty> getSpecialtiesInternal() {
                           if (this.specialties == null) {
