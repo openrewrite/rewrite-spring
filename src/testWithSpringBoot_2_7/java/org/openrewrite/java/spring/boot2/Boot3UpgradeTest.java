@@ -156,14 +156,14 @@ class Boot3UpgradeTest implements RewriteTest {
         @Entity
         @Table(name = "specialties")
         public class Specialty implements Serializable {
-            
+        
             @Id
             @GeneratedValue(strategy = GenerationType.IDENTITY)
             private Integer id;
         
             @Column(name = "name")
             private String name;
-            
+        
             public Integer getId() {
                 return id;
             }
@@ -187,7 +187,7 @@ class Boot3UpgradeTest implements RewriteTest {
         
         
         }
-                      """,
+        """,
                 """
     package org.springframework.samples.petclinic.vet;
     
@@ -203,14 +203,14 @@ class Boot3UpgradeTest implements RewriteTest {
     @Entity
     @Table(name = "specialties")
     public class Specialty implements Serializable {
-        
+    
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Integer id;
     
         @Column(name = "name")
         private String name;
-        
+    
         public Integer getId() {
             return id;
         }
@@ -234,7 +234,7 @@ class Boot3UpgradeTest implements RewriteTest {
     
     
     }
-                  """
+    """
               ),
               java(
                 """
@@ -263,14 +263,14 @@ class Boot3UpgradeTest implements RewriteTest {
     @Entity
     @Table(name = "vets")
     public class Vet implements Serializable {
-        
+    
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Integer id;
     
         @Column(name = "name")
         private String name;
-        
+    
         @Column(name = "first_name")
         @NotEmpty
         private String firstName;
@@ -283,7 +283,7 @@ class Boot3UpgradeTest implements RewriteTest {
         @JoinTable(name = "vet_specialties", joinColumns = @JoinColumn(name = "vet_id"),
                 inverseJoinColumns = @JoinColumn(name = "specialty_id"))
         private Set<Specialty> specialties;
-        
+    
         public Integer getId() {
             return id;
         }
@@ -347,7 +347,7 @@ class Boot3UpgradeTest implements RewriteTest {
             this.lastName = lastName;
         }
     }
-                """,
+    """,
                 """
     package org.springframework.samples.petclinic.vet;
     
@@ -374,14 +374,14 @@ class Boot3UpgradeTest implements RewriteTest {
     @Entity
     @Table(name = "vets")
     public class Vet implements Serializable {
-        
+    
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Integer id;
     
         @Column(name = "name")
         private String name;
-        
+    
         @Column(name = "first_name")
         @NotEmpty
         private String firstName;
@@ -394,7 +394,7 @@ class Boot3UpgradeTest implements RewriteTest {
         @JoinTable(name = "vet_specialties", joinColumns = @JoinColumn(name = "vet_id"),
                 inverseJoinColumns = @JoinColumn(name = "specialty_id"))
         private Set<Specialty> specialties;
-        
+    
         public Integer getId() {
             return id;
         }
@@ -458,13 +458,11 @@ class Boot3UpgradeTest implements RewriteTest {
             this.lastName = lastName;
         }
     }
-                """
+    """
               )
             )//language=properties
           )
         );
 
     }
-
 }
-
