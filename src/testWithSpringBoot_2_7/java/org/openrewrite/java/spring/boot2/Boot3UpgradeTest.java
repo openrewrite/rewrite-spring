@@ -123,11 +123,6 @@ class Boot3UpgradeTest implements RewriteTest {
                       <artifactId>spring-boot-starter-validation</artifactId>
                     </dependency>
                     <dependency>
-                      <groupId>org.glassfish.jaxb</groupId>
-                      <artifactId>jaxb-runtime</artifactId>
-                      <scope>runtime</scope>
-                    </dependency>
-                    <dependency>
                       <groupId>org.ehcache</groupId>
                       <artifactId>ehcache</artifactId>
                       <classifier>jakarta</classifier>
