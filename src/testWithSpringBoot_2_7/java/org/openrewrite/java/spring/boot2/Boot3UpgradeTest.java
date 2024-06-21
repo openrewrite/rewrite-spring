@@ -95,21 +95,8 @@ class Boot3UpgradeTest implements RewriteTest {
                   <properties>
                     <java.version>17</java.version>
                   </properties>
-                  <dependencyManagement>
-                    <dependencies>
-                      <dependency>
-                        <groupId>jakarta.validation</groupId>
-                        <artifactId>jakarta.validation-api</artifactId>
-                        <version>3.1.0</version>
-                      </dependency>
-                    </dependencies>
-                  </dependencyManagement>
 
                   <dependencies>
-                    <dependency>
-                      <groupId>jakarta.validation</groupId>
-                      <artifactId>jakarta.validation-api</artifactId>
-                    </dependency>
                     <dependency>
                       <groupId>jakarta.xml.bind</groupId>
                       <artifactId>jakarta.xml.bind-api</artifactId>
