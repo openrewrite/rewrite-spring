@@ -68,7 +68,7 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
             "2.0.x",
             null,
             "org.springframework.boot.web.server.LocalServerPort",
-            "org.springframework.boot.web.server.LocalServerPort",
+            null,
             null,
             null, null, null, null, null, null, null));
     }
