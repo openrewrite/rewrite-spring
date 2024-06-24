@@ -87,9 +87,12 @@ recipeList:
   - org.openrewrite.text.FindAndReplace:
       find: org.springframework.boot.loader.JarLauncher
       replace: org.springframework.boot.loader.launch.JarLauncher
+      plaintextOnly: true
   - org.openrewrite.text.FindAndReplace:
       find: org.springframework.boot.loader.PropertiesLauncher
       replace: org.springframework.boot.loader.launch.PropertiesLauncher
+      plaintextOnly: true
   - org.openrewrite.text.FindAndReplace:
       find: org.springframework.boot.loader.WarLauncher
       replace: org.springframework.boot.loader.launch.WarLauncher
+      plaintextOnly: true
