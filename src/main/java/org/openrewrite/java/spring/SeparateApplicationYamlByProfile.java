@@ -61,7 +61,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                                         .orElse(null);
 
                                 if (profileName != null && profileName.matches("[A-z0-9-]+")) {
-                                    Yaml.Document profileDoc = (Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", true, true)
+                                    Yaml.Document profileDoc = (Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", true, true, null)
                                             .getVisitor().visit(doc, ctx, new Cursor(null, yaml));
                                     assert profileDoc != null;
                                     profiles.add(yaml
