@@ -79,7 +79,7 @@ public class ChangeSpringPropertyValue extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         ChangePropertyValue changeProperties = new ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
         org.openrewrite.yaml.ChangePropertyValue changeYaml =
-                new org.openrewrite.yaml.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
+                new org.openrewrite.yaml.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding, null);
 
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
