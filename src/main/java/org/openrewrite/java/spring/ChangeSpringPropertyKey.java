@@ -65,7 +65,7 @@ public class ChangeSpringPropertyKey extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         org.openrewrite.yaml.ChangePropertyKey yamlChangePropertyKey =
-                new org.openrewrite.yaml.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except);
+                new org.openrewrite.yaml.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except, null);
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
