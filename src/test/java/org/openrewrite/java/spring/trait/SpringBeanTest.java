@@ -16,13 +16,14 @@
 package org.openrewrite.java.spring.trait;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.marker.SearchResult;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.xml.Assertions.xml;
 
-public class SpringBeanTest implements RewriteTest {
+class SpringBeanTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -32,6 +33,7 @@ public class SpringBeanTest implements RewriteTest {
 
     @SuppressWarnings("SpringXmlModelInspection")
     @Test
+    @DocumentExample
     void xmlConfiguration() {
         rewriteRun(
           xml(
