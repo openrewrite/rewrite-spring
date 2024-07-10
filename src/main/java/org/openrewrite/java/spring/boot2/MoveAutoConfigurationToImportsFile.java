@@ -17,25 +17,50 @@ package org.openrewrite.java.spring.boot2;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Option;
+import org.openrewrite.ScanningRecipe;
+import org.openrewrite.SourceFile;
+import org.openrewrite.Tree;
+import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.marker.Marker;
 import org.openrewrite.text.PlainText;
 import org.openrewrite.text.PlainTextParser;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
+
+@Value
+@EqualsAndHashCode(callSuper = false)
 public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoConfigurationToImportsFile.Accumulator> {
     private static final String AUTOCONFIGURATION_FILE = "org.springframework.boot.autoconfigure.AutoConfiguration.imports";
     private static final String ENABLE_AUTO_CONFIG_KEY = "org.springframework.boot.autoconfigure.EnableAutoConfiguration";
+
+    @Option(displayName = "Preserve `spring.factories` files",
+        description = "Don't delete the `spring.factories` for backward compatibility.",
+        required = false)
+    boolean preserveFactoriesFile;
 
     @Override
     public String getDisplayName() {
@@ -148,7 +173,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
     }
 
     @Nullable
-    private static PlainText extractAutoConfigsFromSpringFactory(PlainText springFactory, Set<String> configs) {
+    private PlainText extractAutoConfigsFromSpringFactory(PlainText springFactory, Set<String> configs) {
         String contents = springFactory.getText();
         int state = 0;
         int index = 0;
@@ -216,8 +241,12 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
 
         if (ENABLE_AUTO_CONFIG_KEY.contentEquals(currentKey)) {
             Stream.of(currentValue.toString().split(",")).map(String::trim).forEach(configs::add);
-            String newContent = contents.substring(0, keyIndexStart) + contents.substring(valueIndexEnd == 0 ? contents.length() : valueIndexEnd);
-            return newContent.isEmpty() ? null : springFactory.withText(newContent);
+            if (preserveFactoriesFile) {
+                return springFactory;
+            } else {
+                String newContent = contents.substring(0, keyIndexStart) + contents.substring(valueIndexEnd == 0 ? contents.length() : valueIndexEnd);
+                return newContent.isEmpty() ? null : springFactory.withText(newContent);
+            }
         } else {
             return springFactory;
         }
@@ -267,6 +296,9 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
     @Value
     @EqualsAndHashCode(callSuper = false)
     private static class AddAutoConfigurationAnnotation extends JavaIsoVisitor<ExecutionContext> {
+        private static final String CONFIGURATION_FQN = "org.springframework.context.annotation.Configuration";
+        private static final String AUTO_CONFIGURATION_FQN = "org.springframework.boot.autoconfigure.AutoConfiguration";
+
         Set<String> fullyQualifiedConfigClasses;
 
         @Override
@@ -274,17 +306,44 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
             J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
             if (c.getType() != null && fullyQualifiedConfigClasses.contains(c.getType().getFullyQualifiedName())) {
+                c = maybeAddAutoconfiguration(c, ctx);
+                c = maybeRemoveConfiguration(c);
+            }
+            return c;
+        }
+
+        private J.ClassDeclaration maybeRemoveConfiguration(J.ClassDeclaration c) {
+            if (isAnnotatedWith(c, CONFIGURATION_FQN)) {
+                List<J.Annotation> withoutConfiguration = ListUtils.map(c.getLeadingAnnotations(), annotation -> {
+                    if (isOfClassType(annotation.getAnnotationType().getType(), CONFIGURATION_FQN)) {
+                        return null;
+                    }
+                    return annotation;
+                });
+
+                c = c.withLeadingAnnotations(withoutConfiguration);
+                maybeRemoveImport(CONFIGURATION_FQN);
+            }
+            return c;
+        }
+
+        private J.ClassDeclaration maybeAddAutoconfiguration(J.ClassDeclaration c, ExecutionContext ctx) {
+            if (!isAnnotatedWith(c, AUTO_CONFIGURATION_FQN)) {
                 JavaTemplate addAnnotationTemplate = JavaTemplate.builder("@AutoConfiguration")
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-boot-autoconfigure-2.7.*"))
-                        .imports("org.springframework.boot.autoconfigure.AutoConfiguration")
+                        .imports(AUTO_CONFIGURATION_FQN)
                         .build();
 
-                doAfterVisit(new RemoveAnnotation("@org.springframework.context.annotation.Configuration").getVisitor());
-                c = addAnnotationTemplate.apply(getCursor(), c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
-                maybeAddImport("org.springframework.boot.autoconfigure.AutoConfiguration");
+                c = addAnnotationTemplate.apply(getCursor(), c.getCoordinates().addAnnotation(comparing(J.Annotation::getSimpleName)));
+                maybeAddImport(AUTO_CONFIGURATION_FQN);
             }
             return c;
+        }
+
+        private boolean isAnnotatedWith(J.ClassDeclaration c, String annotationFqn) {
+            return c.getLeadingAnnotations().stream()
+                .anyMatch(annotation -> isOfClassType(annotation.getAnnotationType().getType(), annotationFqn));
         }
     }
 

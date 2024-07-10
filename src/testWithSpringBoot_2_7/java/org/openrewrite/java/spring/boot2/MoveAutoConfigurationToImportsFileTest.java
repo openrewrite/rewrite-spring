@@ -28,7 +28,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MoveAutoConfigurationToImportsFile())
+        spec.recipe(new MoveAutoConfigurationToImportsFile(false))
           .parser(JavaParser.fromJavaVersion().classpath("spring-context"));
     }
 
@@ -128,6 +128,49 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
     }
 
     @Test
+    void deleteFactoriesFileWhenNoOtherEntries() {
+        rewriteRun(
+          text(
+            """
+              org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+            """,
+            null,
+            spec -> spec.path("src/main/resources/META-INF/spring.factories")
+          ),
+          text(
+            null,
+            """
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+              """,
+            spec -> spec.path("src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports")
+          )
+        );
+    }
+
+    @Test
+    void preserveFactoriesFileWhenRequested() {
+        rewriteRun(
+            spec -> spec.recipe(new MoveAutoConfigurationToImportsFile(true))
+                .parser(JavaParser.fromJavaVersion().classpath("spring-context")),
+          text(
+            """
+              org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+            """,
+            spec -> spec.path("src/main/resources/META-INF/spring.factories")
+          ),
+          text(
+            null,
+            """
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+              """,
+            spec -> spec.path("src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports")
+          )
+        );
+    }
+
+    @Test
     void onlyAutoConfigInSpringFactoriesShouldDeleteFile() {
         rewriteRun(
           text(
@@ -199,6 +242,53 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
 
               @AutoConfiguration
               public class RabbitAutoConfiguration {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    //todo: fix for inner class
+    void dontChangeAnnotationsOnAutoConfigurationClasses() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpath("spring-boot-autoconfigure", "spring-context")),
+          text(
+            """
+              org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration,\\
+              org.springframework.boot.autoconfigure.aop.AopAutoConfiguration,\\
+              org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+              key1=value1
+              """,
+            """
+              key1=value1
+              """,
+            spec -> spec.path("src/main/resources/META-INF/spring.factories")
+          ),
+          text(
+            null,
+            """
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+              org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+              org.springframework.boot.autoconfigure.aop.AopAutoConfiguration
+              """,
+            spec -> spec.path("src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports")
+          ),
+          //language=java
+          java(
+            """
+              package org.springframework.boot.autoconfigure.amqp;
+              
+              import org.springframework.boot.autoconfigure.AutoConfiguration;
+              import org.springframework.context.annotation.Configuration;
+
+              @AutoConfiguration
+              public class RabbitAutoConfiguration {
+              
+                @Configuration
+                public static class InnerConfig {
+                }
               }
               """
           )
