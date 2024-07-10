@@ -123,6 +123,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
     @Data
     static class Accumulator {
         @Nullable Yaml.Documents bootstrapYaml;
+
         @Nullable Yaml.Documents applicationYaml;
     }
 }

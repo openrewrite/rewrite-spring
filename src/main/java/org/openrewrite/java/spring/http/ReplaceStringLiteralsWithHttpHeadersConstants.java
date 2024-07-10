@@ -20,55 +20,85 @@ import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.ReplaceStringLiteralWithConstant;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.maven.search.DependencyInsight;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants.declaresSpringWebDependency;
-
 public class ReplaceStringLiteralsWithHttpHeadersConstants extends ScanningRecipe<AtomicBoolean> {
 
-    private static final List<String> MEDIA_TYPES = Arrays.asList(
-            "ALL_VALUE",
-            "APPLICATION_ATOM_XML_VALUE",
-            "APPLICATION_CBOR_VALUE",
-            "APPLICATION_FORM_URLENCODED_VALUE",
-            "APPLICATION_GRAPHQL_VALUE",
-            "APPLICATION_GRAPHQL_RESPONSE_VALUE",
-            "APPLICATION_JSON_VALUE",
-            "APPLICATION_JSON_UTF8_VALUE",
-            "APPLICATION_OCTET_STREAM_VALUE",
-            "APPLICATION_PDF_VALUE",
-            "APPLICATION_PROBLEM_JSON_VALUE",
-            "APPLICATION_PROBLEM_JSON_UTF8_VALUE",
-            "APPLICATION_PROBLEM_XML_VALUE",
-            "APPLICATION_PROTOBUF_VALUE",
-            "APPLICATION_RSS_XML_VALUE",
-            "APPLICATION_NDJSON_VALUE",
-            "APPLICATION_STREAM_JSON_VALUE",
-            "APPLICATION_XHTML_XML_VALUE",
-            "APPLICATION_XML_VALUE",
-            "IMAGE_GIF_VALUE",
-            "IMAGE_JPEG_VALUE",
-            "IMAGE_PNG_VALUE",
-            "MULTIPART_FORM_DATA_VALUE",
-            "MULTIPART_MIXED_VALUE",
-            "MULTIPART_RELATED_VALUE",
-            "TEXT_EVENT_STREAM_VALUE",
-            "TEXT_HTML_VALUE",
-            "TEXT_MARKDOWN_VALUE",
-            "TEXT_PLAIN_VALUE",
-            "TEXT_XML_VALUE");
+    private static final List<String> HEADERS = Arrays.asList(
+            "ACCEPT",
+            "ACCEPT_CHARSET",
+            "ACCEPT_ENCODING",
+            "ACCEPT_LANGUAGE",
+            "ACCEPT_PATCH",
+            "ACCEPT_RANGES",
+            "ACCESS_CONTROL_ALLOW_CREDENTIALS",
+            "ACCESS_CONTROL_ALLOW_HEADERS",
+            "ACCESS_CONTROL_ALLOW_METHODS",
+            "ACCESS_CONTROL_ALLOW_ORIGIN",
+            "ACCESS_CONTROL_EXPOSE_HEADERS",
+            "ACCESS_CONTROL_MAX_AGE",
+            "ACCESS_CONTROL_REQUEST_HEADERS",
+            "ACCESS_CONTROL_REQUEST_METHOD",
+            "AGE",
+            "ALLOW",
+            "AUTHORIZATION",
+            "CACHE_CONTROL",
+            "CONNECTION",
+            "CONTENT_ENCODING",
+            "CONTENT_DISPOSITION",
+            "CONTENT_LANGUAGE",
+            "CONTENT_LENGTH",
+            "CONTENT_LOCATION",
+            "CONTENT_RANGE",
+            "CONTENT_TYPE",
+            "COOKIE",
+            "DATE",
+            "ETAG",
+            "EXPECT",
+            "EXPIRES",
+            "FROM",
+            "HOST",
+            "IF_MATCH",
+            "IF_MODIFIED_SINCE",
+            "IF_NONE_MATCH",
+            "IF_RANGE",
+            "IF_UNMODIFIED_SINCE",
+            "LAST_MODIFIED",
+            "LINK",
+            "LOCATION",
+            "MAX_FORWARDS",
+            "ORIGIN",
+            "PRAGMA",
+            "PROXY_AUTHENTICATE",
+            "PROXY_AUTHORIZATION",
+            "RANGE",
+            "REFERER",
+            "RETRY_AFTER",
+            "SERVER",
+            "SET_COOKIE",
+            "SET_COOKIE2",
+            "TE",
+            "TRAILER",
+            "TRANSFER_ENCODING",
+            "UPGRADE",
+            "USER_AGENT",
+            "VARY",
+            "VIA",
+            "WARNING",
+            "WWW_AUTHENTICATE");
 
     @Override
     public String getDisplayName() {
-        return "Replace String literals with `MediaType` constants";
+        return "Replace String literals with `HttpHeaders` constants";
     }
 
     @Override
     public String getDescription() {
-        return "Replace String literals with `org.springframework.http.MediaType` constants.";
+        return "Replace String literals with `org.springframework.http.HttpHeaders` constants.";
     }
 
     @Override
@@ -95,15 +125,20 @@ public class ReplaceStringLiteralsWithHttpHeadersConstants extends ScanningRecip
             @Override
             public J preVisit(J tree, ExecutionContext ctx) {
                 stopAfterPreVisit();
-                for (String mediaType : MEDIA_TYPES) {
-                    try {
-                        doAfterVisit(new ReplaceStringLiteralWithConstant("org.springframework.http.MediaType." + mediaType).getVisitor());
-                    } catch (IllegalArgumentException ignore) {
-                        // this is typically a NoSuchFieldException when an older version of Spring is used
-                    }
+                for (String header : HEADERS) {
+                    doAfterVisit(new ReplaceStringLiteralWithConstant("org.springframework.http.HttpHeaders." + header).getVisitor());
                 }
                 return tree;
             }
         });
+    }
+
+    static boolean declaresSpringWebDependency(SourceFile sourceFile, ExecutionContext ctx) {
+        TreeVisitor<?, ExecutionContext> visitor = new DependencyInsight("org.springframework", "spring-web", "compile", null, null).getVisitor();
+        if (visitor.isAcceptable(sourceFile, ctx) && visitor.visit(sourceFile, ctx) != sourceFile) {
+            return true;
+        }
+        visitor = new org.openrewrite.gradle.search.DependencyInsight("org.springframework", "spring-web", "compileClasspath", null).getVisitor();
+        return visitor.isAcceptable(sourceFile, ctx) && visitor.visit(sourceFile, ctx) != sourceFile;
     }
 }
