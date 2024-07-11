@@ -132,8 +132,8 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
         rewriteRun(
           text(
             """
-              org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
-              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+            org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
+            org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
             """,
             null,
             spec -> spec.path("src/main/resources/META-INF/spring.factories")
