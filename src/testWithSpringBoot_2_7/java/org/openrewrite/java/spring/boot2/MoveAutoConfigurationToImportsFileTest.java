@@ -249,7 +249,6 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
     }
 
     @Test
-    //todo: fix for inner class
     void dontChangeAnnotationsOnAutoConfigurationClasses() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion().classpath("spring-boot-autoconfigure", "spring-context")),
