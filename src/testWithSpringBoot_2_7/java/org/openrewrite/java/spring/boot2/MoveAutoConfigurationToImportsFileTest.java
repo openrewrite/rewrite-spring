@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -28,7 +29,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MoveAutoConfigurationToImportsFile())
+        spec.recipe(new MoveAutoConfigurationToImportsFile(false))
           .parser(JavaParser.fromJavaVersion().classpath("spring-context"));
     }
 
@@ -41,20 +42,20 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
               org.springframework.context.ApplicationContextInitializer=\\
               org.springframework.boot.autoconfigure.SharedMetadataReaderFactoryContextInitializer,\\
               org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener
-                               
+
               #Sprinkle in some comments
               org.springframework.context.ApplicationListener=\\
               org.springframework.boot.autoconfigure.BackgroundPreinitializer
-                                      
+
               #Sprinkle in some comments
               org.springframework.boot.autoconfigure.AutoConfigurationImportListener=\\
               org.springframework.boot.autoconfigure.condition.ConditionEvaluationReportAutoConfigurationImportListener
-                                      
+
               org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=\\
               org.springframework.boot.autoconfigure.condition.OnBeanCondition,\\
               org.springframework.boot.autoconfigure.condition.OnClassCondition,\\
               org.springframework.boot.autoconfigure.condition.OnWebApplicationCondition
-                                      
+
               org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
               org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration,\\
               org.springframework.boot.autoconfigure.aop.AopAutoConfiguration,\\
@@ -69,7 +70,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
               org.springframework.boot.autoconfigure.jooq.NoDslContextBeanFailureAnalyzer,\\
               org.springframework.boot.autoconfigure.r2dbc.ConnectionFactoryBeanCreationFailureAnalyzer,\\
               org.springframework.boot.autoconfigure.session.NonUniqueSessionRepositoryFailureAnalyzer
-                                      
+
               org.springframework.boot.autoconfigure.template.TemplateAvailabilityProvider=\\
               org.springframework.boot.autoconfigure.freemarker.FreeMarkerTemplateAvailabilityProvider,\\
               org.springframework.boot.autoconfigure.mustache.MustacheTemplateAvailabilityProvider,\\
@@ -81,20 +82,20 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
               org.springframework.context.ApplicationContextInitializer=\\
               org.springframework.boot.autoconfigure.SharedMetadataReaderFactoryContextInitializer,\\
               org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener
-                               
+
               #Sprinkle in some comments
               org.springframework.context.ApplicationListener=\\
               org.springframework.boot.autoconfigure.BackgroundPreinitializer
-                                      
+
               #Sprinkle in some comments
               org.springframework.boot.autoconfigure.AutoConfigurationImportListener=\\
               org.springframework.boot.autoconfigure.condition.ConditionEvaluationReportAutoConfigurationImportListener
-                                      
+
               org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=\\
               org.springframework.boot.autoconfigure.condition.OnBeanCondition,\\
               org.springframework.boot.autoconfigure.condition.OnClassCondition,\\
               org.springframework.boot.autoconfigure.condition.OnWebApplicationCondition
-                                      
+
               #Sprinkle in some comments
               org.springframework.boot.diagnostics.FailureAnalyzer=\\
               org.springframework.boot.autoconfigure.data.redis.RedisUrlSyntaxFailureAnalyzer,\\
@@ -105,7 +106,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
               org.springframework.boot.autoconfigure.jooq.NoDslContextBeanFailureAnalyzer,\\
               org.springframework.boot.autoconfigure.r2dbc.ConnectionFactoryBeanCreationFailureAnalyzer,\\
               org.springframework.boot.autoconfigure.session.NonUniqueSessionRepositoryFailureAnalyzer
-                                      
+
               org.springframework.boot.autoconfigure.template.TemplateAvailabilityProvider=\\
               org.springframework.boot.autoconfigure.freemarker.FreeMarkerTemplateAvailabilityProvider,\\
               org.springframework.boot.autoconfigure.mustache.MustacheTemplateAvailabilityProvider,\\
@@ -121,6 +122,49 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
               org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
               org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
               org.springframework.boot.autoconfigure.aop.AopAutoConfiguration
+              """,
+            spec -> spec.path("src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports")
+          )
+        );
+    }
+
+    @Test
+    void deleteFactoriesFileWhenNoOtherEntries() {
+        rewriteRun(
+          text(
+            """
+            org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
+            org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+            """,
+            null,
+            spec -> spec.path("src/main/resources/META-INF/spring.factories")
+          ),
+          text(
+            null,
+            """
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+              """,
+            spec -> spec.path("src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports")
+          )
+        );
+    }
+
+    @Test
+    void preserveFactoriesFileWhenRequested() {
+        rewriteRun(
+            spec -> spec.recipe(new MoveAutoConfigurationToImportsFile(true))
+                .parser(JavaParser.fromJavaVersion().classpath("spring-context")),
+          text(
+            """
+            org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
+            org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+            """,
+            spec -> spec.path("src/main/resources/META-INF/spring.factories")
+          ),
+          text(
+            null,
+            """
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
               """,
             spec -> spec.path("src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports")
           )
@@ -185,7 +229,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
           java(
             """
               package org.springframework.boot.autoconfigure.amqp;
-              
+
               import org.springframework.context.annotation.Configuration;
 
               @Configuration
@@ -194,11 +238,58 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
               """,
             """
               package org.springframework.boot.autoconfigure.amqp;
-              
+
               import org.springframework.boot.autoconfigure.AutoConfiguration;
 
               @AutoConfiguration
               public class RabbitAutoConfiguration {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/548")
+    void dontChangeAnnotationsOnAutoConfigurationClasses() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpath("spring-boot-autoconfigure", "spring-context")),
+          text(
+            """
+              org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration,\\
+              org.springframework.boot.autoconfigure.aop.AopAutoConfiguration,\\
+              org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+              key1=value1
+              """,
+            """
+              key1=value1
+              """,
+            spec -> spec.path("src/main/resources/META-INF/spring.factories")
+          ),
+          text(
+            null,
+            """
+              org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+              org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+              org.springframework.boot.autoconfigure.aop.AopAutoConfiguration
+              """,
+            spec -> spec.path("src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports")
+          ),
+          //language=java
+          java(
+            """
+              package org.springframework.boot.autoconfigure.amqp;
+
+              import org.springframework.boot.autoconfigure.AutoConfiguration;
+              import org.springframework.context.annotation.Configuration;
+
+              @AutoConfiguration
+              public class RabbitAutoConfiguration {
+
+                @Configuration
+                public static class InnerConfig {
+                }
               }
               """
           )
