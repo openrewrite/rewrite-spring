@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.search;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -33,6 +34,7 @@ class FindApiEndpointsTest implements RewriteTest {
     }
 
     @Test
+    @DocumentExample
     void webClient() {
         rewriteRun(
           //language=java
