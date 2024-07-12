@@ -54,7 +54,6 @@ recipeList:
       newGroupId: org.apache.cassandra
       oldArtifactId: "*"
 
-  # https://github.com/openrewrite/rewrite-micrometer/pull/11#issuecomment-2225187584
   - org.openrewrite.micrometer.UpgradeMicrometer13
 ---
 type: specs.openrewrite.org/v1beta/recipe
