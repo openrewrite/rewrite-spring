@@ -39,12 +39,11 @@ public class SpringBean implements Trait<Tree> {
         if (getTree() instanceof Xml.Tag) {
             Xml.Tag tag = (Xml.Tag) getTree();
             return tag.getAttributes().stream()
-                    .filter(a -> "id".equals(a.getName()))
+                    .filter(a -> "id".equals(a.getKey().getName()))
                     .findFirst()
                     .map(Xml.Attribute::getValueAsString)
                     .orElse(null);
         } else if (getTree() instanceof J.Annotation) {
-            J.Annotation annotation = (J.Annotation) getTree();
             return annotated("org.springframework.context.annotation.Bean")
                     .get(cursor)
                     .flatMap(a -> a.getDefaultAttribute("name"))
