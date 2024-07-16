@@ -142,8 +142,7 @@ public class NoRequestMappingAnnotation extends Recipe {
             return newArray.getInitializer() != null && newArray.getInitializer().size() == 1;
         }
 
-        @Nullable
-        private String requestMethodType(@Nullable J.Assignment assignment) {
+        private @Nullable String requestMethodType(@Nullable J.Assignment assignment) {
             if(assignment == null) {
                 return null;
             }
@@ -171,8 +170,7 @@ public class NoRequestMappingAnnotation extends Recipe {
             return null;
         }
 
-        @Nullable
-        private String associatedRequestMapping(String method) {
+        private @Nullable String associatedRequestMapping(String method) {
             switch (method) {
                 case "POST":
                 case "PUT":

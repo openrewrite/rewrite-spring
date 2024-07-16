@@ -34,8 +34,7 @@ import static org.openrewrite.java.trait.Traits.annotated;
 public class SpringBean implements Trait<Tree> {
     Cursor cursor;
 
-    @Nullable
-    public String getName() {
+    public @Nullable String getName() {
         if (getTree() instanceof Xml.Tag) {
             Xml.Tag tag = (Xml.Tag) getTree();
             return tag.getAttributes().stream()

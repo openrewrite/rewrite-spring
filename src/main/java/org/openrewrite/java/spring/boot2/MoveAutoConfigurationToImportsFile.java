@@ -159,8 +159,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
         };
     }
 
-    @Nullable
-    private PlainText extractAutoConfigsFromSpringFactory(PlainText springFactory, Set<String> configs) {
+    private @Nullable PlainText extractAutoConfigsFromSpringFactory(PlainText springFactory, Set<String> configs) {
         String contents = springFactory.getText();
         int state = 0;
         int index = 0;

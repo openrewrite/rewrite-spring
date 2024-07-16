@@ -74,14 +74,12 @@ public class RenameBean extends Recipe {
         return "Renames a Spring bean, both declaration and references.";
     }
 
-
     /**
      * @param methodDeclaration, which may or may not declare a bean
      * @param newName,           for the potential bean
      * @return a recipe for this methodDeclaration if it declares a bean, or null if it does not declare a bean
      */
-    @Nullable
-    public static RenameBean fromDeclaration(J.MethodDeclaration methodDeclaration, String newName) {
+    public static @Nullable RenameBean fromDeclaration(J.MethodDeclaration methodDeclaration, String newName) {
         return methodDeclaration.getMethodType() == null ? null
                 : fromDeclaration(methodDeclaration, newName, methodDeclaration.getMethodType().getReturnType().toString());
     }
@@ -92,8 +90,7 @@ public class RenameBean extends Recipe {
      * @param type,              to override the type field on the returned RenameBean instance
      * @return a recipe for this methodDeclaration if it declares a bean, or null if it does not declare a bean
      */
-    @Nullable
-    public static RenameBean fromDeclaration(J.MethodDeclaration methodDeclaration, String newName, @Nullable String type) {
+    public static @Nullable RenameBean fromDeclaration(J.MethodDeclaration methodDeclaration, String newName, @Nullable String type) {
         BeanSearchResult beanSearchResult = isBean(methodDeclaration.getAllAnnotations(), BEAN_METHOD_ANNOTATIONS);
         if (!beanSearchResult.isBean || methodDeclaration.getMethodType() == null) {
             return null;
@@ -108,8 +105,7 @@ public class RenameBean extends Recipe {
      * @param newName,          for the potential bean
      * @return a recipe for this classDeclaration if it declares a bean, or null if it does not declare a bean
      */
-    @Nullable
-    public static RenameBean fromDeclaration(J.ClassDeclaration classDeclaration, String newName) {
+    public static @Nullable RenameBean fromDeclaration(J.ClassDeclaration classDeclaration, String newName) {
         return classDeclaration.getType() == null ? null
                 : fromDeclaration(classDeclaration, newName, classDeclaration.getType().toString());
     }
@@ -120,8 +116,7 @@ public class RenameBean extends Recipe {
      * @param type,             to override the type field on the returned RenameBean instance
      * @return a recipe for this classDeclaration if it declares a bean, or null if it does not declare a bean
      */
-    @Nullable
-    public static RenameBean fromDeclaration(J.ClassDeclaration classDeclaration, String newName, @Nullable String type) {
+    public static @Nullable RenameBean fromDeclaration(J.ClassDeclaration classDeclaration, String newName, @Nullable String type) {
         BeanSearchResult beanSearchResult = isBean(classDeclaration.getAllAnnotations(), BEAN_TYPE_ANNOTATIONS);
         if (!beanSearchResult.isBean || classDeclaration.getType() == null) {
             return null;
@@ -302,8 +297,7 @@ public class RenameBean extends Recipe {
         });
     }
 
-    @Nullable
-    private static J.Assignment asBeanNameAssignment(Expression argumentExpression) {
+    private static @Nullable J.Assignment asBeanNameAssignment(Expression argumentExpression) {
         if (argumentExpression instanceof J.Assignment) {
             Expression variable = ((J.Assignment) argumentExpression).getVariable();
             if (variable instanceof J.Identifier) {

@@ -156,8 +156,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                     && SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
         }
 
-        @Nullable
-        private Expression getEnvironmentNameArgument(J.MethodInvocation methodInvocation) {
+        private @Nullable Expression getEnvironmentNameArgument(J.MethodInvocation methodInvocation) {
             if (methodInvocation.getArguments().size() < MINIMUM_ARGUMENT_COUNT_WITH_NAME) {
                 return null;
             }
