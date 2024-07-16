@@ -123,7 +123,6 @@ dependencies {
 
     runtimeOnly("org.openrewrite:rewrite-java-17")
     runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
-    runtimeOnly("org.openrewrite.recipe:rewrite-micrometer:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
