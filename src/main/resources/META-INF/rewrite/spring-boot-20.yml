@@ -68,6 +68,14 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
+      propertyKey: spring.main.banner-mode
+      oldValue: true
+      newValue: console
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
+      propertyKey: spring.main.banner-mode
+      oldValue: false
+      newValue: "off"
   - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -133,14 +141,6 @@ recipeList:
       oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
       newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
   - org.openrewrite.java.spring.boot2.MaybeAddJavaxValidationApi
-  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
-      propertyKey: spring.main.banner-mode
-      oldValue: true
-      newValue: console
-  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
-      propertyKey: spring.main.banner-mode
-      oldValue: false
-      newValue: "off"
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MaybeAddJavaxValidationApi
