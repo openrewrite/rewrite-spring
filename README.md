@@ -32,7 +32,7 @@ OpenRewrite exercises the Java compiler internally to compile code patterns that
 
 Using a library in compilation in this way does not trigger class initialization in the way that reflection might, for example. In other words, code paths in libraries used in compilation are never executed.
 
-The jar has libraries bundled inside of the [META-INF/rewrite/classpath directory](https://github.com/openrewrite/rewrite-spring/tree/main/src/main/resources/META-INF/rewrite). However, those JARs are not made into a Fat Jar or a shaded library in the traditional sense. It is not possible that by using rewrite-spring that one of those libraries gets called.
+The jar has libraries bundled inside of the [META-INF/rewrite/classpath directory](https://github.com/openrewrite/rewrite-spring/tree/main/src/main/resources/META-INF/rewrite/classpath). However, those JARs are not made into a Fat Jar or a shaded library in the traditional sense. It is not possible that by using rewrite-spring that one of those libraries gets called.
 
 ## Contributing
 
