@@ -144,6 +144,7 @@ dependencies {
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
+    "testWithSpringBoot_1_5RuntimeOnly"("org.hibernate.validation:hibernate-validator:1.5.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.hamcrest:hamcrest:2.2")
     "testWithSpringBoot_1_5RuntimeOnly"("junit:junit:latest.release")
 
@@ -158,6 +159,7 @@ dependencies {
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.security:spring-security-web:5.1.+")
 
     "testWithSpringBoot_2_2RuntimeOnly"("org.springframework.boot:spring-boot:2.2.+")
+    "testWithSpringBoot_2_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-validation:2.2.+")
 
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:5.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("junit:junit:latest.release")
