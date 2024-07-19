@@ -28,11 +28,6 @@ description: >
 tags:
   - spring
   - boot
-preconditions:
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.springframework
-      artifactIdPattern: spring-core
-      version: 4.x
 recipeList:
   # Upgrade 2.0.x from 1.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -137,11 +132,7 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
       newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: javax.validation
-      artifactId: validation-api
-      version: 2.x
-      onlyIfUsing: javax.validation.constraints.*
+  - org.openrewrite.java.spring.boot2.MaybeAddJavaxValidationApi
   - org.openrewrite.java.spring.ChangeSpringPropertyValue:
       propertyKey: spring.main.banner-mode
       oldValue: true
@@ -150,6 +141,27 @@ recipeList:
       propertyKey: spring.main.banner-mode
       oldValue: false
       newValue: "off"
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MaybeAddJavaxValidationApi
+displayName: Add `javax.validation-api` dependency
+description: Conditional on the application using a version of Spring Boot which uses javax but provides a hibernate-validator version which exports the jakarta.validation-api instead
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter
+      version: "[2.2,2.7)"
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: javax.validation
+      artifactId: validation-api
+      version: 2.x
+      onlyIfUsing: javax.validation.constraints.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: javax.validation
+      artifactId: validation-api
+      version: 2.x
+      onlyIfUsing: org.hibernate.validator.constraints.*
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
