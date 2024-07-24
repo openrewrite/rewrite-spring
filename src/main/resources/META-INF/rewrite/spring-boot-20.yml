@@ -81,7 +81,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
 displayName: Use `WebServerFactoryCustomizer`
-description: >
+description: >-
   Use `WebServerFactoryCustomizer` instead of the deprecated `EmbeddedServletContainerCustomizer` in
   Spring Boot 2.0 or higher. This recipe will replace look for any classes that implement `EmbeddedServletContainerCustomizer`
   and change the interface to `WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>`. This recipe also adjusts
