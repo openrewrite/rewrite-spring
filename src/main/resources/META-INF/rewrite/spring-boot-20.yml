@@ -20,7 +20,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
 displayName: Migrate from Spring Boot 1.x to 2.0
-description: >
+description: >-
   Migrate Spring Boot 1.x applications to the latest Spring Boot 2.0 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,

@@ -17,7 +17,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
 displayName: Migrate to Spring Security 5.8
-description: >
+description: >-
   Migrate applications to the latest Spring Security 5.8 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions.
@@ -58,7 +58,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml
 displayName: Replace global method security with method security
-description: >
+description: >-
   `@EnableGlobalMethodSecurity` and `<global-method-security>` are deprecated in favor of `@EnableMethodSecurity` 
   and `<method-security>`, respectively. The new annotation and XML element activate Spring’s pre-post annotations 
   by default and use AuthorizationManager internally.

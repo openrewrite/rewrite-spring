@@ -73,7 +73,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.search.FindUpgradeRequirementsSpringBoot_2_5
 displayName: Find patterns that require updating for Spring Boot 2.5
-description: >
+description: >-
   Looks for a series of patterns that have not yet had auto-remediation recipes developed for.
 tags:
   - spring
