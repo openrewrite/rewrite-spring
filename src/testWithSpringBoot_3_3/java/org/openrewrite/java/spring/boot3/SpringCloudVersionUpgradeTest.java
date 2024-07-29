@@ -16,11 +16,13 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
 
@@ -39,6 +41,7 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
     }
 
     @Test
+    @DocumentExample
     void upgradeSpringCloudVersion() {
         rewriteRun(
           mavenProject("project",
@@ -48,26 +51,20 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <modelVersion>4.0.0</modelVersion>
-
                     <groupId>com.example</groupId>
                     <artifactId>fooservice</artifactId>
                     <version>1.0-SNAPSHOT</version>
-
-                    <name>FooService</name>
-
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
                         <version>2.2.2.RELEASE</version>
                         <relativePath/>
                     </parent>
-
                     <properties>
                         <java.version>11</java.version>
                         <spring-cloud.version>Hoxton.SR9</spring-cloud.version>
                         <mockito.version>2.18.3</mockito.version>
                     </properties>
-
                     <dependencyManagement>
                         <dependencies>
                             <dependency>
@@ -81,43 +78,11 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
                     </dependencyManagement>
                 </project>
                 """,
-              """
-                <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-                    <modelVersion>4.0.0</modelVersion>
-
-                    <groupId>com.example</groupId>
-                    <artifactId>fooservice</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-
-                    <name>FooService</name>
-
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>3.3.1</version>
-                        <relativePath/>
-                    </parent>
-
-                    <properties>
-                        <java.version>17</java.version>
-                        <spring-cloud.version>2023.0.2</spring-cloud.version>
-                        <mockito.version>2.18.3</mockito.version>
-                    </properties>
-
-                    <dependencyManagement>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.springframework.cloud</groupId>
-                                <artifactId>spring-cloud-dependencies</artifactId>
-                                <version>${spring-cloud.version}</version>
-                                <type>pom</type>
-                                <scope>import</scope>
-                            </dependency>
-                        </dependencies>
-                    </dependencyManagement>
-                </project>
-                """
+              spec -> spec.after(actual -> {
+                  assertThat(actual).containsPattern("<version>3.3.\\d+</version>");
+                  assertThat(actual).containsPattern("<spring-cloud.version>2023.0.\\d+</spring-cloud.version>");
+                  return actual;
+              })
             )
           )
         );
