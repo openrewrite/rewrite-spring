@@ -33,6 +33,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
             srcMainJava(
               java("class A{}")
             ),
+            //language=xml
             pomXml(
               """
                     <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -57,7 +58,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-                                
+                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -101,7 +102,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-                                
+                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -151,7 +152,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <maven.compiler.source>17</maven.compiler.source>
                         <maven.compiler.target>17</maven.compiler.target>
                     </properties>
-
+                
                     <repositories>
                         <repository>
                             <id>spring-milestone</id>
@@ -161,7 +162,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-
+                
                     <dependencies>
                         <dependency>
                             <groupId>io.dropwizard.metrics</groupId>
@@ -200,7 +201,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <maven.compiler.source>17</maven.compiler.source>
                         <maven.compiler.target>17</maven.compiler.target>
                     </properties>
-
+                
                     <repositories>
                         <repository>
                             <id>spring-milestone</id>
@@ -210,7 +211,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-
+                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -223,7 +224,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             <version>4.2.8</version>
                         </dependency>
                     </dependencies>
-
+                
                     <build>
                         <plugins>
                             <plugin>
@@ -259,7 +260,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <version>2.7.1</version>
                         <relativePath/> <!-- lookup parent from repository -->
                     </parent>
-                                    
+                
                     <groupId>com.example</groupId>
                     <artifactId>explicit-deps-app</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
@@ -270,7 +271,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <maven.compiler.source>17</maven.compiler.source>
                         <maven.compiler.target>17</maven.compiler.target>
                     </properties>
-
+                
                     <repositories>
                         <repository>
                             <id>spring-milestone</id>
@@ -280,7 +281,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-
+                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -291,7 +292,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             <artifactId>metrics-annotation</artifactId>
                         </dependency>
                     </dependencies>
-
+                
                     <build>
                         <plugins>
                             <plugin>
@@ -317,8 +318,8 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
             srcMainJava(
               java("class A{}")
             ),
+            //language=xml
             pomXml(
-              //language=xml
               """
                 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -329,7 +330,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <version>2.7.1</version>
                         <relativePath/> <!-- lookup parent from repository -->
                     </parent>
-                                
+                
                     <groupId>com.example</groupId>
                     <artifactId>explicit-deps-app</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
@@ -341,7 +342,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <maven.compiler.target>17</maven.compiler.target>
                         <springboot.version>2.7.3</springboot.version>
                     </properties>
-                                
+                
                     <repositories>
                         <repository>
                             <id>spring-milestone</id>
@@ -351,7 +352,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-                                
+                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -375,7 +376,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <version>2.7.1</version>
                         <relativePath/> <!-- lookup parent from repository -->
                     </parent>
-                                
+                
                     <groupId>com.example</groupId>
                     <artifactId>explicit-deps-app</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
@@ -387,7 +388,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <maven.compiler.target>17</maven.compiler.target>
                         <springboot.version>3.0.0-M3</springboot.version>
                     </properties>
-                                
+                
                     <repositories>
                         <repository>
                             <id>spring-milestone</id>
@@ -397,7 +398,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-                                
+                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -614,7 +615,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <springboot.version>2.7.3</springboot.version>
                         <metrics-annotation.version>4.2.8</metrics-annotation.version>
                     </properties>
-                                
                     <repositories>
                         <repository>
                             <id>spring-milestone</id>
@@ -624,7 +624,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-                                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -661,7 +660,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <springboot.version>3.0.0-M3</springboot.version>
                         <metrics-annotation.version>4.2.9</metrics-annotation.version>
                     </properties>
-                                
                     <repositories>
                         <repository>
                             <id>spring-milestone</id>
@@ -671,7 +669,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-                                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -724,7 +721,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <springboot.version>2.7.3</springboot.version>
                         <metrix.annotation.version>4.2.12</metrix.annotation.version>
                     </properties>
-                    
                     <repositories>
                         <repository>
                             <id>spring-milestone</id>
@@ -734,7 +730,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-                    
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
@@ -771,7 +766,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                         <springboot.version>3.0.0-M3</springboot.version>
                         <metrix.annotation.version>4.2.12</metrix.annotation.version>
                     </properties>
-                    
                     <repositories>
                         <repository>
                             <id>spring-milestone</id>
@@ -781,7 +775,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             </snapshots>
                         </repository>
                     </repositories>
-                    
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
