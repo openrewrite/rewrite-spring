@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.batch;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.search.UsesMethod;
@@ -26,6 +25,7 @@ import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,12 +46,11 @@ public class MigrateStepBuilderFactory extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesMethod<>(STEP_BUILDER_FACTORY_GET),
-                new JavaIsoVisitor<ExecutionContext>() {
+                new TreeVisitor<Tree, ExecutionContext>() {
                     @Override
-                    public @Nullable J visit(@Nullable Tree tree, ExecutionContext executionContext) {
-                        tree = new AddJobRepositoryVisitor().visit(tree, executionContext);
-                        tree = new NewStepBuilderVisitor().visit(tree, executionContext);
-                        return (J) tree;
+                    public Tree visit(Tree tree, ExecutionContext ctx) {
+                        tree = new AddJobRepositoryVisitor().visit(tree, ctx);
+                        return new NewStepBuilderVisitor().visit(tree, ctx);
                     }
                 }
         );
@@ -94,17 +93,23 @@ public class MigrateStepBuilderFactory extends Recipe {
 
                 if (md.getParameters().stream().noneMatch(this::isJobRepositoryParameter) && !md.isConstructor()) {
                     maybeAddImport("org.springframework.batch.core.repository.JobRepository");
+                    boolean parametersEmpty = md.getParameters().isEmpty() || md.getParameters().get(0) instanceof J.Empty;
                     J.VariableDeclarations vdd = JavaTemplate.builder("JobRepository jobRepository")
                             .contextSensitive()
                             .imports("org.springframework.batch.core.repository.JobRepository")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+"))
                             .build()
                             .<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
-                            .getParameters().get(0).withPrefix(Space.SINGLE_SPACE);
-                    md = md.withParameters(ListUtils.concat(md.getParameters(), vdd))
-                            .withMethodType(md.getMethodType()
-                                    .withParameterTypes(ListUtils.concat(md.getMethodType().getParameterTypes(), vdd.getType())));
-
+                            .getParameters().get(0).withPrefix(parametersEmpty ? Space.EMPTY : Space.SINGLE_SPACE);
+                    if (parametersEmpty) {
+                        md = md.withParameters(Collections.singletonList(vdd))
+                                .withMethodType(md.getMethodType()
+                                        .withParameterTypes(Collections.singletonList(vdd.getType())));
+                    } else {
+                        md = md.withParameters(ListUtils.concat(md.getParameters(), vdd))
+                                .withMethodType(md.getMethodType()
+                                        .withParameterTypes(ListUtils.concat(md.getMethodType().getParameterTypes(), vdd.getType())));
+                    }
                 }
             }
 
