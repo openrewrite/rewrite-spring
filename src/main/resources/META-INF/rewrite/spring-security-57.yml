@@ -17,7 +17,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_7
 displayName: Migrate to Spring Security 5.7
-description: >
+description: >-
   Migrate applications to the latest Spring Security 5.7 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions.

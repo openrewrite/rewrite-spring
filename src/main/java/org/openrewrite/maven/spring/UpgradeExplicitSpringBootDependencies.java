@@ -16,13 +16,13 @@
 
 package org.openrewrite.maven.spring;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Value;
 import org.openrewrite.*;
-import org.openrewrite.groovy.tree.G;
-import org.openrewrite.internal.lang.NonNull;
+import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.java.dependencies.UpgradeDependencyVersion;
 import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.MavenDownloadingException;
 import org.openrewrite.maven.MavenIsoVisitor;
@@ -33,40 +33,48 @@ import org.openrewrite.xml.tree.Xml;
 
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
+@Value
 @EqualsAndHashCode(callSuper = false)
-public class UpgradeExplicitSpringBootDependencies extends Recipe {
+public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<UpgradeExplicitSpringBootDependencies.Accumulator> {
 
     private static final String SPRINGBOOT_GROUP = "org.springframework.boot";
     private static final String SPRING_BOOT_DEPENDENCIES = "spring-boot-dependencies";
 
-    private transient final Map<String, String> springBootDependenciesMap = new HashMap<>();
-
-    @Option(displayName = "From Spring Version",
+    @Option(displayName = "From Spring version",
             description = "XRage pattern for spring version used to limit which projects should be updated",
             example = " 2.7.+")
-    private final String fromVersion;
+    String fromVersion;
 
-    @Option(displayName = "To Spring Version",
+    @Option(displayName = "To Spring version",
             description = "Upgrade version of `org.springframework.boot`",
             example = "3.0.0-M3")
-    private final String toVersion;
-
-    @JsonCreator
-    public UpgradeExplicitSpringBootDependencies(@JsonProperty("fromVersion") String fromVersion, @JsonProperty("toVersion") String toVersion) {
-        this.fromVersion = fromVersion;
-        this.toVersion = toVersion;
-    }
+    String toVersion;
 
     @Override
     public String getDisplayName() {
-        return "Upgrade un-managed spring project dependencies";
+        return "Upgrade Spring dependencies";
     }
 
     @Override
     public String getDescription() {
-        return "Upgrades un-managed spring-boot project dependencies according to the specified spring-boot version.";
+        return "Upgrades dependencies according to the specified version of spring boot. " +
+               "Spring boot has many direct and transitive dependencies. When a module has an explicit dependency on " +
+               "one of these it may also need to be upgraded to match the version used by spring boot.";
+    }
+
+    @Data
+    public static class Accumulator {
+        UpgradeDependencyVersion.Accumulator udvAcc = new UpgradeDependencyVersion.Accumulator(
+                new org.openrewrite.maven.UpgradeDependencyVersion.Accumulator(),
+                new org.openrewrite.gradle.UpgradeDependencyVersion.DependencyVersionState()
+        );
+        List<MavenRepository> repositories = new ArrayList<>();
+        Map<String, String> springBootDependenciesMap = new HashMap<>();
+        @Nullable
+        MavenDownloadingException mavenDownloadingException = null;
     }
 
     private TreeVisitor<?, ExecutionContext> precondition() {
@@ -78,7 +86,7 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                     ResolvedManagedDependency managedDependency = findManagedDependency(resultTag);
                     if (managedDependency != null && managedDependency.getGroupId().equals(SPRINGBOOT_GROUP)
                         && satisfiesOldVersionPattern(managedDependency.getVersion())) {
-                        return applyThisRecipe(resultTag);
+                        return SearchResult.found(resultTag);
                     }
                 }
 
@@ -86,15 +94,10 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                     ResolvedDependency dependency = findDependency(resultTag);
                     if ((dependency != null) && dependency.getGroupId().equals(SPRINGBOOT_GROUP)
                         && satisfiesOldVersionPattern(dependency.getVersion())) {
-                        return applyThisRecipe(resultTag);
+                        return SearchResult.found(resultTag);
                     }
                 }
                 return resultTag;
-            }
-
-            @NonNull
-            private Xml.Tag applyThisRecipe(Xml.Tag resultTag) {
-                return resultTag.withMarkers(resultTag.getMarkers().addIfAbsent(new SearchResult(UUID.randomUUID(), "SpringBoot dependency")));
             }
 
             private boolean satisfiesOldVersionPattern(@Nullable String version) {
@@ -104,14 +107,92 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
+    public Accumulator getInitialValue(ExecutionContext ctx) {
+        return new Accumulator();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
+        //noinspection NullableProblems
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public Tree visit(Tree tree, ExecutionContext ctx) {
+                TreeVisitor<?, ExecutionContext> udvScanner = new UpgradeDependencyVersion("", "", "", null, null, null)
+                        .getScanner(acc.getUdvAcc());
+                if (udvScanner.isAcceptable((SourceFile) tree, ctx)) {
+                    udvScanner.visit(tree, ctx);
+                }
+
+                Optional<GradleProject> maybeGp = tree.getMarkers()
+                        .findFirst(GradleProject.class);
+                if (maybeGp.isPresent()) {
+                    GradleProject gp = maybeGp.get();
+                    acc.repositories.addAll(gp.getMavenRepositories());
+                }
+                Optional<MavenResolutionResult> maybeMrr = tree.getMarkers()
+                        .findFirst(MavenResolutionResult.class);
+                if (maybeMrr.isPresent()) {
+                    MavenResolutionResult mrr = maybeMrr.get();
+                    acc.repositories.addAll(mrr.getPom().getRepositories());
+                }
+
+                return tree;
+            }
+        };
+    }
+
+    @Override
+    public Collection<? extends SourceFile> generate(Accumulator acc, Collection<SourceFile> generatedInThisCycle, ExecutionContext ctx) {
+        List<MavenRepository> repositories = acc.getRepositories();
+        repositories.add(MavenRepository.builder()
+                .id("repository.spring.milestone")
+                .uri("https://repo.spring.io/milestone")
+                .releases(true)
+                .snapshots(true)
+                .build());
+        repositories.add(MavenRepository.builder()
+                .id("spring-snapshot")
+                .uri("https://repo.spring.io/snapshot")
+                .releases(false)
+                .snapshots(true)
+                .build());
+        repositories.add(MavenRepository.builder()
+                .id("spring-release")
+                .uri("https://repo.spring.io/release")
+                .releases(true)
+                .snapshots(false)
+                .build());
+
+        MavenPomDownloader downloader = new MavenPomDownloader(emptyMap(), ctx);
+        GroupArtifactVersion gav = new GroupArtifactVersion(SPRINGBOOT_GROUP, SPRING_BOOT_DEPENDENCIES, toVersion);
+        String relativePath = "";
+
+        try {
+            Pom pom = downloader.download(gav, relativePath, null, repositories);
+            ResolvedPom resolvedPom = pom.resolve(emptyList(), downloader, repositories, ctx);
+            List<ResolvedManagedDependency> dependencyManagement = resolvedPom.getDependencyManagement();
+            dependencyManagement
+                    .stream()
+                    .filter(d -> d.getVersion() != null)
+                    .forEach(d -> acc.getSpringBootDependenciesMap().put(d.getGroupId() + ":" + d.getArtifactId().toLowerCase(), d.getVersion()));
+        } catch (MavenDownloadingException e) {
+            acc.mavenDownloadingException = e;
+        }
+        return emptyList();
+    }
+
+    @Override
+    public Collection<? extends SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
+        return super.generate(acc, ctx);
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
         return Preconditions.check(precondition(), new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
-                try {
-                    buildDependencyMap(ctx);
-                } catch (MavenDownloadingException e) {
-                    return e.warn(document);
+                if(acc.mavenDownloadingException != null) {
+                    return acc.mavenDownloadingException.warn(document);
                 }
                 return super.visitDocument(document, ctx);
             }
@@ -122,71 +203,29 @@ public class UpgradeExplicitSpringBootDependencies extends Recipe {
                 if (isManagedDependencyTag()) {
                     ResolvedManagedDependency managedDependency = findManagedDependency(resultTag);
                     if (managedDependency != null) {
-                        mayBeUpdateVersion(managedDependency.getGroupId(), managedDependency.getArtifactId(), resultTag);
+                        mayBeUpdateVersion(acc, managedDependency.getGroupId(), managedDependency.getArtifactId(), resultTag);
                     }
                 }
                 if (isDependencyTag()) {
                     ResolvedDependency dependency = findDependency(resultTag);
                     if (dependency != null) {
-                        mayBeUpdateVersion(dependency.getGroupId(), dependency.getArtifactId(), resultTag);
+                        mayBeUpdateVersion(acc, dependency.getGroupId(), dependency.getArtifactId(), resultTag);
                     }
                 }
                 return resultTag;
             }
 
-            private void mayBeUpdateVersion(String groupId, String artifactId, Xml.Tag tag) {
-                String dependencyVersion = springBootDependenciesMap.get(groupId + ":" + artifactId);
+            private void mayBeUpdateVersion(Accumulator acc, String groupId, String artifactId, Xml.Tag tag) {
+                String dependencyVersion = acc.springBootDependenciesMap.get(groupId + ":" + artifactId);
                 if (dependencyVersion != null) {
                     Optional<Xml.Tag> version = tag.getChild("version");
                     if (!version.isPresent() || !version.get().getValue().isPresent()) {
                         return;
                     }
-                    // TODO: we could use the org.openrewrite.java.dependencies.UpgradeDependencyVersion if we implement there a getVisitor with a similar logic than here,
-                    //  but right now it's just a list of recipes, and the getVisitor is the default from Recipe and does nothing
-                    SourceFile sourceFile = getCursor().firstEnclosing(SourceFile.class);
-                    if (sourceFile instanceof Xml.Document) {
-                        doAfterVisit(new org.openrewrite.maven.UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, null, null).getVisitor());
-                    } else if (sourceFile instanceof G.CompilationUnit) {
-                        doAfterVisit(new org.openrewrite.gradle.UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null).getVisitor());
-                    }
+                    doAfterVisit(new org.openrewrite.java.dependencies.UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, true, null)
+                            .getVisitor(acc.getUdvAcc()));
                 }
             }
-
-            private void buildDependencyMap(ExecutionContext ctx) throws MavenDownloadingException {
-                if (springBootDependenciesMap.isEmpty()) {
-                    MavenPomDownloader downloader = new MavenPomDownloader(emptyMap(), ctx,
-                            getResolutionResult().getMavenSettings(), getResolutionResult().getActiveProfiles());
-                    GroupArtifactVersion gav = new GroupArtifactVersion(SPRINGBOOT_GROUP, SPRING_BOOT_DEPENDENCIES, toVersion);
-                    String relativePath = "";
-                    List<MavenRepository> repositories = new ArrayList<>();
-                    repositories.add(MavenRepository.builder()
-                            .id("repository.spring.milestone")
-                            .uri("https://repo.spring.io/milestone")
-                            .releases(true)
-                            .snapshots(true)
-                            .build());
-                    repositories.add(MavenRepository.builder()
-                            .id("spring-snapshot")
-                            .uri("https://repo.spring.io/snapshot")
-                            .releases(false)
-                            .snapshots(true)
-                            .build());
-                    repositories.add(MavenRepository.builder()
-                            .id("spring-release")
-                            .uri("https://repo.spring.io/release")
-                            .releases(true)
-                            .snapshots(false)
-                            .build());
-                    Pom pom = downloader.download(gav, relativePath, null, repositories);
-                    ResolvedPom resolvedPom = pom.resolve(Collections.emptyList(), downloader, repositories, ctx);
-                    List<ResolvedManagedDependency> dependencyManagement = resolvedPom.getDependencyManagement();
-                    dependencyManagement
-                            .stream()
-                            .filter(d -> d.getVersion() != null)
-                            .forEach(d -> springBootDependenciesMap.put(d.getGroupId() + ":" + d.getArtifactId().toLowerCase(), d.getVersion()));
-                }
-            }
-
         });
     }
 }

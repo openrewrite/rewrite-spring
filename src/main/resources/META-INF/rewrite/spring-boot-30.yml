@@ -17,7 +17,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
 displayName: Migrate to Spring Boot 3.0
-description: >
+description: >-
   Migrate applications to the latest Spring Boot 3.0 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
@@ -88,7 +88,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
 displayName: Rename `server.max-http-header-size` to `server.max-http-request-header-size`
-description: >
+description: >-
   Previously, the server.max-http-header-size was treated inconsistently across the four supported embedded web servers.
   When using Jetty, Netty, or Undertow it would configure the max HTTP request header size. When using Tomcat it would
   configure the max HTTP request and response header sizes. The renamed property is used to configure the http request
@@ -128,7 +128,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeSpringDoc_2
 displayName: Upgrade to springdoc-openapi 2
-description: >
+description: >-
   Migrate applications to the latest spring-doc 2 release. This recipe will modify an
   application's build files and make changes code changes for removed/updated APIs.
   See the [upgrade guide](https://springdoc.org/#migrating-from-springdoc-v1)

@@ -23,12 +23,12 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.spring.table.ApiEndpoints;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.spring.trait.SpringRequestMapping;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.marker.SearchResult;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -62,26 +62,11 @@ public class FindApiEndpoints extends Recipe {
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
+                SpringRequestMapping.Matcher matcher = new SpringRequestMapping.Matcher();
                 for (J.Annotation annotation : m.getAllAnnotations()) {
-                    if (hasRequestMapping(annotation)) {
-                        String path =
-                                getCursor().getPathAsStream()
-                                        .filter(J.ClassDeclaration.class::isInstance)
-                                        .map(classDecl -> ((J.ClassDeclaration) classDecl).getAllAnnotations().stream()
-                                                .filter(this::hasRequestMapping)
-                                                .findAny()
-                                                .map(classMapping -> getArg(classMapping, "value", ""))
-                                                .orElse(null))
-                                        .filter(Objects::nonNull)
-                                        .collect(Collectors.joining("/")) +
-                                getArg(annotation, "value", "");
-                        path = path.replace("//", "/");
-
-                        JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
-                        assert type != null;
-                        String httpMethod = type.getClassName().startsWith("Request") ?
-                                getArg(annotation, "method", "GET") :
-                                type.getClassName().replace("Mapping", "").toUpperCase();
+                    m = matcher.get(annotation, getCursor()).map(requestMapping -> {
+                        String path = requestMapping.getPath();
+                        String httpMethod = requestMapping.getHttpMethod();
 
                         apis.insertRow(ctx, new ApiEndpoints.Row(
                                 getCursor().firstEnclosingOrThrow(JavaSourceFile.class).getSourcePath().toString(),
@@ -90,45 +75,11 @@ public class FindApiEndpoints extends Recipe {
                                 path
                         ));
 
-                        m = SearchResult.found(m, httpMethod + " " + path);
-                        break;
-                    }
+                        return SearchResult.found(method, httpMethod + " " + path);
+                    }).orElse(m);
                 }
                 return m;
             }
-
-            private boolean hasRequestMapping(J.Annotation ann) {
-                for (AnnotationMatcher restEndpoint : REST_ENDPOINTS) {
-                    if (restEndpoint.matches(ann)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
         };
-    }
-
-    private String getArg(J.Annotation annotation, String key, String defaultValue) {
-        if (annotation.getArguments() != null) {
-            for (Expression argument : annotation.getArguments()) {
-                if (argument instanceof J.Literal) {
-                    //noinspection ConstantConditions
-                    return (String) ((J.Literal) argument).getValue();
-                } else if (argument instanceof J.Assignment) {
-                    J.Assignment arg = (J.Assignment) argument;
-                    if (((J.Identifier) arg.getVariable()).getSimpleName().equals(key)) {
-                        if (arg.getAssignment() instanceof J.FieldAccess) {
-                            return ((J.FieldAccess) arg.getAssignment()).getSimpleName();
-                        } else if (arg.getAssignment() instanceof J.Identifier) {
-                            return ((J.Identifier) arg.getAssignment()).getSimpleName();
-                        } else if (arg.getAssignment() instanceof J.Literal) {
-                            //noinspection ConstantConditions
-                            return (String) ((J.Literal) arg.getAssignment()).getValue();
-                        }
-                    }
-                }
-            }
-        }
-        return defaultValue;
     }
 }

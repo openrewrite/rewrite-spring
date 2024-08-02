@@ -17,7 +17,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
 displayName: Migrate to Spring Security 6.0
-description: >
+description: >-
   Migrate applications to the latest Spring Security 6.0 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions.
@@ -45,7 +45,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security6.RemoveUseAuthorizationManager
 displayName: Remove unnecessary `use-authorization-manager` for message security in Spring security 6
-description: >
+description: >-
   In Spring Security 6, <websocket-message-broker> defaults use-authorization-manager to true. 
   So, the 'use-authorization-manager' attribute for message security is no longer needed and can be removed.
 tags:

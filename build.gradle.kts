@@ -5,7 +5,7 @@ plugins {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0", "3_2")
+val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0", "3_2", "3_3")
 val springSecurityVersions: List<String> = listOf("5_7", "5_8", "6_2")
 
 val sourceSetNames: Map<String, List<String>> = mapOf(
@@ -144,6 +144,7 @@ dependencies {
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-test:1.5.+")
+    "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot-starter-validation:1.5.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.hamcrest:hamcrest:2.2")
     "testWithSpringBoot_1_5RuntimeOnly"("junit:junit:latest.release")
 
@@ -158,6 +159,7 @@ dependencies {
     "testWithSpringBoot_2_1RuntimeOnly"("org.springframework.security:spring-security-web:5.1.+")
 
     "testWithSpringBoot_2_2RuntimeOnly"("org.springframework.boot:spring-boot:2.2.+")
+    "testWithSpringBoot_2_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-validation:2.2.+")
 
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-test:5.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("junit:junit:latest.release")

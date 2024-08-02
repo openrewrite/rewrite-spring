@@ -53,8 +53,7 @@ public class LocalVariableUtils {
         }
     }
 
-    @Nullable
-    private static JavaType getRootOwner(Cursor cursor) {
+    private static @Nullable JavaType getRootOwner(Cursor cursor) {
         Cursor parent = cursor.dropParentUntil(is -> is instanceof J.MethodDeclaration || is instanceof J.ClassDeclaration || is instanceof SourceFile);
         Object parentValue = parent.getValue();
         if (parentValue instanceof SourceFile) {
@@ -83,13 +82,11 @@ public class LocalVariableUtils {
      * Resolves a variable reference (by name) to the initializer expression of the corresponding declaration, provided that the
      * variable is declared as `final`. In all other cases `null` will be returned.
      */
-    @Nullable
-    private static Expression resolveVariable(String name, Cursor cursor) {
+    private static @Nullable Expression resolveVariable(String name, Cursor cursor) {
         return resolveVariable0(name, cursor.getValue(), cursor.getParentTreeCursor());
     }
 
-    @Nullable
-    private static Expression resolveVariable0(String name, J prior, Cursor cursor) {
+    private static @Nullable Expression resolveVariable0(String name, J prior, Cursor cursor) {
         Optional<VariableMatch> found = Optional.empty();
         J value = cursor.getValue();
         if (value instanceof SourceFile) {

@@ -98,9 +98,9 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
-            @Nullable
+
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+            public @Nullable J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
                         && isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION);
                 boolean hasConflict = false;
@@ -126,8 +126,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return classDecl;
             }
 
-            @Nullable
-            private J.ClassDeclaration processSecurityAdapterClass(J.ClassDeclaration classDecl) {
+            private @Nullable J.ClassDeclaration processSecurityAdapterClass(J.ClassDeclaration classDecl) {
                 classDecl = classDecl.withExtends(null);
                 // Flatten configuration classes if applicable
                 Cursor enclosingClassCursor = getCursor().getParent();
@@ -535,8 +534,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         return AuthType.NONE;
     }
 
-    @Nullable
-    private Expression findUserParameterExpression(Statement s) {
+    private @Nullable Expression findUserParameterExpression(Statement s) {
         AtomicReference<Expression> context = new AtomicReference<>();
         new JavaIsoVisitor<AtomicReference<Expression>>() {
             @Override

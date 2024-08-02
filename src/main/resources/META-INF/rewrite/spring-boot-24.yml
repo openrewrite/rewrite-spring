@@ -20,7 +20,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
 displayName: Migrate to Spring Boot 2.4
-description: >
+description: >-
   Migrate applications to the latest Spring Boot 2.4 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
@@ -94,8 +94,8 @@ recipeList:
 # SpringBoot 2.x JUnit 4 to Junit 5 Migration
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
-displayName: Migrate Spring Boot 2.x projects to JUnit 5 from JUnit 4.
-description: >
+displayName: Migrate Spring Boot 2.x projects to JUnit 5 from JUnit 4
+description: >-
   This recipe will migrate a Spring Boot application's tests from JUnit 4 to JUnit 5. This spring-specific migration
   includes conversion of Spring Test runners to Spring Test extensions and awareness of the composable Spring Test
   annotations.
