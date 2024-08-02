@@ -73,6 +73,7 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
         );
         List<MavenRepository> repositories = new ArrayList<>();
         Map<String, String> springBootDependenciesMap = new HashMap<>();
+
         @Nullable
         MavenDownloadingException mavenDownloadingException = null;
     }
