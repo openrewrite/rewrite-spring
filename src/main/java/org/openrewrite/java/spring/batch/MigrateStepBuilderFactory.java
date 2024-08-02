@@ -15,18 +15,16 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Space;
+import org.openrewrite.java.tree.Statement;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,13 +45,22 @@ public class MigrateStepBuilderFactory extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>(STEP_BUILDER_FACTORY_GET), new NewStepBuilderVisitor());
+        return Preconditions.check(new UsesMethod<>(STEP_BUILDER_FACTORY_GET),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public @Nullable J visit(@Nullable Tree tree, ExecutionContext executionContext) {
+                        tree = new AddJobRepositoryVisitor().visit(tree, executionContext);
+                        tree = new NewStepBuilderVisitor().visit(tree, executionContext);
+                        return (J) tree;
+                    }
+                }
+        );
     }
 
-    private static class NewStepBuilderVisitor extends JavaVisitor<ExecutionContext> {
+    private static class AddJobRepositoryVisitor extends JavaIsoVisitor<ExecutionContext> {
         @Override
-        public J visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext ctx) {
-            J.ClassDeclaration cd = (J.ClassDeclaration) super.visitClassDeclaration(classDeclaration, ctx);
+        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext ctx) {
+            J.ClassDeclaration cd = super.visitClassDeclaration(classDeclaration, ctx);
 
             // Remove StepBuilderFactory field if StepBuilderFactory.get(..) is used further down
             if (!FindMethods.find(classDeclaration, STEP_BUILDER_FACTORY_GET).isEmpty()) {
@@ -62,8 +69,6 @@ public class MigrateStepBuilderFactory extends Recipe {
                         && ((J.VariableDeclarations) statement).getTypeExpression() != null) {
                         if (TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getTypeExpression().getType(),
                                 "org.springframework.batch.core.configuration.annotation.StepBuilderFactory")) {
-                            maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
-                            maybeRemoveImport("org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
                             return null;
                         }
                     }
@@ -75,7 +80,7 @@ public class MigrateStepBuilderFactory extends Recipe {
         }
 
         @Override
-        public J visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
             // Add JobRepository parameter to method if StepBuilderFactory.get(..) is used further down
             if (!FindMethods.find(md, STEP_BUILDER_FACTORY_GET).isEmpty()) {
                 List<Object> params = md.getParameters().stream()
@@ -99,6 +104,7 @@ public class MigrateStepBuilderFactory extends Recipe {
                     md = md.withParameters(ListUtils.concat(md.getParameters(), vdd))
                             .withMethodType(md.getMethodType()
                                     .withParameterTypes(ListUtils.concat(md.getMethodType().getParameterTypes(), vdd.getType())));
+
                 }
             }
 
@@ -116,24 +122,26 @@ public class MigrateStepBuilderFactory extends Recipe {
                    && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
                     "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
         }
+    }
 
-        private static final MethodMatcher STEP_BUILDER_FACTORY_MATCHER = new MethodMatcher(STEP_BUILDER_FACTORY_GET);
+    private static class NewStepBuilderVisitor extends JavaVisitor<ExecutionContext> {
+        final MethodMatcher STEP_BUILDER_FACTORY_MATCHER = new MethodMatcher(STEP_BUILDER_FACTORY_GET);
 
         @Override
-        public J visitMethodInvocation(J.MethodInvocation methodInvocation, ExecutionContext ctx) {
-            J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(methodInvocation, ctx);
+        public J visitMethodInvocation(J.MethodInvocation mi, ExecutionContext ctx) {
             if (STEP_BUILDER_FACTORY_MATCHER.matches(mi)) {
                 maybeAddImport("org.springframework.batch.core.step.builder.StepBuilder", false);
+                maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
+                maybeRemoveImport("org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
                 return JavaTemplate.builder("new StepBuilder(#{any(java.lang.String)}, jobRepository)")
-                        //.doBeforeParseTemplate(System.out::println)
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                         .imports("org.springframework.batch.core.step.builder.StepBuilder")
                         .build()
-                        .<Expression>apply(getCursor(), mi.getCoordinates().replace(), mi.getArguments().get(0));
+                        .apply(getCursor(), mi.getCoordinates().replace(), mi.getArguments().get(0));
             }
-            return mi;
+            return super.visitMethodInvocation(mi, ctx);
         }
     }
 }
