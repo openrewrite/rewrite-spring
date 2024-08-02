@@ -26,14 +26,10 @@ import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class MigrateStepBuilderFactory extends Recipe {
 
@@ -91,20 +87,19 @@ public class MigrateStepBuilderFactory extends Recipe {
                     return null;
                 }
 
-                Stream<String> paramTemplates = params.stream().map(p -> "#{}");
                 if (md.getParameters().stream().noneMatch(this::isJobRepositoryParameter) && !md.isConstructor()) {
-                    paramTemplates = Stream.concat(paramTemplates, Stream.of("JobRepository jobRepository"));
+                    maybeAddImport("org.springframework.batch.core.repository.JobRepository");
+                    J.VariableDeclarations vdd = JavaTemplate.builder("JobRepository jobRepository")
+                            .contextSensitive()
+                            .imports("org.springframework.batch.core.repository.JobRepository")
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+"))
+                            .build()
+                            .<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
+                            .getParameters().get(0).withPrefix(Space.SINGLE_SPACE);
+                    md = md.withParameters(ListUtils.concat(md.getParameters(), vdd))
+                            .withMethodType(md.getMethodType()
+                                    .withParameterTypes(ListUtils.concat(md.getMethodType().getParameterTypes(), vdd.getType())));
                 }
-
-                md = JavaTemplate.builder(paramTemplates.collect(Collectors.joining(", ")))
-                        .contextSensitive()
-                        .imports("org.springframework.batch.core.repository.JobRepository")
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
-                        .build()
-                        .apply(getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
-
-                maybeAddImport("org.springframework.batch.core.repository.JobRepository");
             }
 
             return super.visitMethodDeclaration(md, ctx);
@@ -130,6 +125,7 @@ public class MigrateStepBuilderFactory extends Recipe {
             if (STEP_BUILDER_FACTORY_MATCHER.matches(mi)) {
                 maybeAddImport("org.springframework.batch.core.step.builder.StepBuilder", false);
                 return JavaTemplate.builder("new StepBuilder(#{any(java.lang.String)}, jobRepository)")
+                        //.doBeforeParseTemplate(System.out::println)
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
