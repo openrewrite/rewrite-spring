@@ -23,6 +23,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.DeclaresMethod;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
@@ -40,7 +41,7 @@ public class MigrateItemWriterWrite extends Recipe {
 
     @Override
     public String getDescription() {
-        return "`JobBuilderFactory` was deprecated in Springbatch 5.x : replaced by `JobBuilder`.";
+        return "`JobBuilderFactory` was deprecated in spring-batch 5.x: replaced by `JobBuilder`.";
     }
 
     private static final MethodMatcher ITEM_WRITER_MATCHER = new MethodMatcher("org.springframework.batch.item.ItemWriter write(java.util.List)", true);
@@ -66,8 +67,11 @@ public class MigrateItemWriterWrite extends Recipe {
                 String paramName = parameter.getVariables().get(0).getSimpleName();
 
                 // @Override may or may not already be present
+
                 String annotationsWithOverride = Stream.concat(
-                                m.getAllAnnotations().stream().map(it -> it.print(getCursor())),
+                                service(AnnotationService.class)
+                                        .getAllAnnotations(getCursor()).stream()
+                                        .map(it -> it.print(getCursor())),
                                 Stream.of("@Override"))
                         .distinct()
                         .collect(Collectors.joining("\n"));
