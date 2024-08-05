@@ -21,7 +21,7 @@ jobs:
 
       # Generate Spring Boot property migrations recipes
       - name: Create jar and copy dependencies
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           arguments: generatePropertyMigrationRecipes
 
