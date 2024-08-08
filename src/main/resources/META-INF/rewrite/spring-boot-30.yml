@@ -41,6 +41,10 @@ recipeList:
       groupId: org.springframework
       artifactId: "*"
       newVersion: 6.0.x
+  - org.openrewrite.maven.UpgradePluginVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-maven-plugin
+      newVersion: 3.0.x
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent

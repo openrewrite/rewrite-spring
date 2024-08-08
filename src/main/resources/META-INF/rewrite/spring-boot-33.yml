@@ -33,6 +33,10 @@ recipeList:
       artifactId: "*"
       newVersion: 3.3.x
       overrideManagedVersion: false
+  - org.openrewrite.maven.UpgradePluginVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-maven-plugin
+      newVersion: 3.3.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework
       artifactId: "*"

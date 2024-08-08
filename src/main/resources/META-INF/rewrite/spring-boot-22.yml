@@ -36,6 +36,10 @@ recipeList:
       artifactId: "*"
       newVersion: 2.2.x
       overrideManagedVersion: false
+  - org.openrewrite.maven.UpgradePluginVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-maven-plugin
+      newVersion: 2.2.x
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
