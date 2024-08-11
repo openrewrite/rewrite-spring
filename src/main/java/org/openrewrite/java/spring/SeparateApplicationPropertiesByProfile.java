@@ -126,11 +126,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
         while (index < arr.length && !arr[index].equals("#---") && !arr[index].equals("!---")) {
             if (arr[index].startsWith("spring.config.activate.on-profile="))
-                list.add(0,
-                        "application-" +
-                                arr[index].split("=")[1] +
-                                ".properties"
-                );
+                list.add(0, "application-" + arr[index].split("=")[1] + ".properties");
 
             else if (!arr[index].isEmpty()) list.add(arr[index]);
 
