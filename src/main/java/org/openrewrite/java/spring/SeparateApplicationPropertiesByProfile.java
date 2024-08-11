@@ -1,4 +1,5 @@
 package org.openrewrite.java.spring;
+
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.intellij.lang.annotations.Language;
@@ -7,6 +8,7 @@ import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.properties.CreatePropertiesFile;
 import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.tree.Properties;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -89,7 +91,8 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
             if (c instanceof Properties.Comment &&
                     ((Properties.Comment) c).getMessage().equals("---") &&
                     ((((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("HASH_TAG"))) ||
-                            ((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("EXCLAMATION_MARK")))) break;
+                            ((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("EXCLAMATION_MARK"))))
+                break;
 
             newContent.add(c);
         }
@@ -137,7 +140,8 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
     }
 
     public static class Accumulator {
-        @Nullable SourceFile existingApplicationProperties;
+        @Nullable
+        SourceFile existingApplicationProperties;
         Set<SourceFile> newApplicationPropertyFiles = new HashSet<>();
     }
 }
