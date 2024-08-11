@@ -12,6 +12,22 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
     }
 
     @Test
+    void noSeparateProfile() {
+        rewriteRun(
+          org.openrewrite.properties.Assertions.properties("""
+            spring.application.name=Openrewrite-PR-Service
+            #PR-Service
+            
+            base-url.PR-services=http://my.url.com
+            exchange-token=1234567890
+            exchange-tokens=${base-url.PR-services}/exchange-token
+            
+            """,
+            sourceSpecs -> sourceSpecs.path("application.properties"))
+        );
+    }
+
+    @Test
     void separateProfile() {
         rewriteRun(
           org.openrewrite.properties.Assertions.properties(
