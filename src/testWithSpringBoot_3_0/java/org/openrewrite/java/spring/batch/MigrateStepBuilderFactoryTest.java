@@ -33,7 +33,6 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
             "spring-batch-core-4.3.+",
             "spring-batch-infrastructure-4.3.+",
             "spring-beans-4.3.30.RELEASE",
-//            "spring-core-4.3.30.RELEASE",
             "spring-context-4.3.30.RELEASE"
           ));
     }
@@ -51,7 +50,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
               import org.springframework.beans.factory.annotation.Autowired;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Autowired
                   private StepBuilderFactory stepBuilderFactory;
@@ -71,7 +70,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
               import org.springframework.batch.core.step.tasklet.Tasklet;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Bean
                   Step myStep(Tasklet myTasklet, JobRepository jobRepository) {
@@ -98,7 +97,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
               import org.springframework.beans.factory.annotation.Autowired;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Autowired
                   private StepBuilderFactory stepBuilderFactory;
@@ -129,7 +128,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
               import org.springframework.batch.item.ItemWriter;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Bean
                   Step myStep(JobRepository jobRepository) {
@@ -167,7 +166,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
               import org.springframework.beans.factory.annotation.Autowired;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Autowired
                   private StepBuilderFactory stepBuilderFactory;
@@ -203,7 +202,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
               import org.springframework.batch.repeat.CompletionPolicy;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Bean
                   Step myStep(JobRepository jobRepository) {

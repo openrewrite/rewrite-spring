@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.batch;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.search.UsesMethod;
@@ -46,9 +47,9 @@ public class MigrateStepBuilderFactory extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesMethod<>(STEP_BUILDER_FACTORY_GET),
-                new TreeVisitor<Tree, ExecutionContext>() {
+                new JavaVisitor<ExecutionContext>() {
                     @Override
-                    public Tree visit(Tree tree, ExecutionContext ctx) {
+                    public J visit(@Nullable Tree tree, ExecutionContext ctx) {
                         tree = new AddJobRepositoryVisitor().visit(tree, ctx);
                         return new NewStepBuilderVisitor().visit(tree, ctx);
                     }
