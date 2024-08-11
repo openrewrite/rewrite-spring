@@ -41,6 +41,10 @@ recipeList:
       groupId: org.springframework
       artifactId: "*"
       newVersion: 6.0.x
+  - org.openrewrite.maven.UpgradePluginVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-maven-plugin
+      newVersion: 3.0.x
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
@@ -65,6 +69,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
   - org.openrewrite.java.spring.boot3.UpgradeSpringDoc_2
   - org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
+  - org.openrewrite.java.spring.boot3.SpringBatch4To5Migration
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
   - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022

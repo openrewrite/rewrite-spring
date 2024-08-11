@@ -38,16 +38,16 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
 
     @Override
     public String getDescription() {
-        return "As of Spring-Batch 5.0 Listeners has default methods (made possible by a Java 8 baseline) and can be " +
+        return "As of spring-batch 5.x Listeners has default methods (made possible by a Java 8 baseline) and can be " +
                 "implemented directly without the need for this adapter.";
     }
 
-    @Option(displayName = "Fully Qualified Class Name",
+    @Option(displayName = "Fully qualified class name",
             description = "A fully-qualified class name to be replaced.",
             example = "org.springframework.batch.core.listener.JobExecutionListenerSupport")
     String fullyQualifiedClassName;
 
-    @Option(displayName = "Fully Qualified Interface Name",
+    @Option(displayName = "Fully qualified interface name",
             description = "A fully-qualified Interface name to replace by.",
             example = "org.springframework.batch.core.JobExecutionListener")
     String fullyQualifiedInterfaceName;
