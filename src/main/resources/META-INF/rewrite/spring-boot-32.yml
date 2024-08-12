@@ -68,6 +68,7 @@ recipeList:
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizer
   - org.openrewrite.hibernate.MigrateToHibernate63
   - org.openrewrite.java.spring.boot3.RelocateLauncherClasses
+  - org.openrewrite.reactive.reactor.UpgradeReactor_3_5
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
