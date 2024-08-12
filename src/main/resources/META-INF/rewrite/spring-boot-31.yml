@@ -47,3 +47,4 @@ recipeList:
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_1
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
   - org.openrewrite.hibernate.MigrateToHibernate62
+  - org.openrewrite.reactive.reactor.UpgradeReactor_3_5

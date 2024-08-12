@@ -125,6 +125,7 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
+    runtimeOnly("org.openrewrite.recipe:rewrite-reactive-streams:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
