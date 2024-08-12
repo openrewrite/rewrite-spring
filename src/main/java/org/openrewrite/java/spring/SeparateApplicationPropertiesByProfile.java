@@ -34,38 +34,67 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
-        return Preconditions.check(
-                new FindSourceFiles("**/application.properties"),
-                new TreeVisitor<Tree, ExecutionContext>() {
-                    @Override
-                    public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext executionContext) {
-                        if (!(tree instanceof SourceFile)) return tree;
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext executionContext) {
+                if (!(tree instanceof Properties.File)) return tree;
 
-                        SourceFile sourceFile = (SourceFile) tree;
-                        String sourcePath = PathUtils.separatorsToUnix(sourceFile.getSourcePath().toString());
+                Properties.File propertyFile = (Properties.File) tree;
+                String sourcePath = PathUtils.separatorsToUnix(propertyFile.getSourcePath().toString());
 
-                        if (sourcePath.endsWith("application.properties"))
-                            acc.existingApplicationProperties = sourceFile;
+                if (sourcePath.matches("application.properties"))
+                    acc.existingApplicationProperties = propertyFile;
 
-                        return tree;
-                    }
-                });
+                if (sourcePath.matches("application-.+\\.properties")) {
+                    String s = getNewFileContentString(propertyFile.getContent());
+                    acc.existingApplicationEnvProperties.put(sourcePath, s);
+                    return null;
+                }
+
+                return tree;
+            }
+        };
+    }
+
+    private String getNewFileContentString(List<Properties.Content> content) {
+        String fileContent = "";
+        for (Properties.Content c : content) {
+            if (c instanceof Properties.Entry)
+                fileContent += ((Properties.Entry) c).getKey() + "=" + ((Properties.Entry) c).getValue().getText() + "\n";
+
+            else if (c instanceof Properties.Comment)
+                fileContent += ((Properties.Comment) c).getMessage() + "\n";
+
+        }
+        return fileContent;
     }
 
     @Override
     public Collection<? extends SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
         if (acc.existingApplicationProperties == null) return Collections.emptyList();
 
-        for (Map.Entry<String, List<String>> entry : this.getNewApplicationPropertyFileInfo(acc).entrySet()) {
+        for (Map.Entry<String, List<Properties.Content>> entry : this.getNewApplicationPropertyFileInfo(acc).entrySet()) {
             String fileName = entry.getKey();
-            @Language("properties") String fileContent = String.join("\n", entry.getValue());
+            @Language("properties") String fileContent = getNewFileContentString(entry.getValue());
 
-            acc.newApplicationPropertyFiles.
-                    add(new CreatePropertiesFile(fileName, fileContent, null).
-                            generate(new AtomicBoolean(true), ctx).
-                            iterator().
-                            next()
-                    );
+            if (acc.existingApplicationEnvProperties.containsKey(fileName)) {
+                fileContent += acc.existingApplicationEnvProperties.get(fileName) + "\n";
+                System.out.println(fileContent);
+                acc.newApplicationPropertyFiles.
+                        add((Properties.File) new CreatePropertiesFile(fileName, fileContent, true).
+                                generate(new AtomicBoolean(true), ctx).
+                                iterator().
+                                next()
+                        );
+            }
+            else {
+                acc.newApplicationPropertyFiles.
+                        add((Properties.File) new CreatePropertiesFile(fileName, fileContent, null).
+                                generate(new AtomicBoolean(true), ctx).
+                                iterator().
+                                next()
+                        );
+            }
         }
 
         return acc.newApplicationPropertyFiles;
@@ -87,11 +116,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         List<Properties.Content> newContent = new ArrayList<>();
 
         for (Properties.Content c : applicationProperties.getContent()) {
-
-            if (c instanceof Properties.Comment &&
-                    ((Properties.Comment) c).getMessage().equals("---") &&
-                    ((((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("HASH_TAG"))) ||
-                            ((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("EXCLAMATION_MARK"))))
+            if (isSeparator(c))
                 break;
 
             newContent.add(c);
@@ -102,18 +127,19 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         return applicationProperties.withContent(newContent);
     }
 
-    private Map<String, List<String>> getNewApplicationPropertyFileInfo(Accumulator acc) {
+    private Map<String, List<Properties.Content>> getNewApplicationPropertyFileInfo(Accumulator acc) {
         if (acc.existingApplicationProperties == null) return new HashMap<>();
 
-        Map<String, List<String>> map = new HashMap<>();
-        String[] arr = acc.existingApplicationProperties.printAll().split("\n");
+        Map<String, List<Properties.Content>> map = new HashMap<>();
+        List<Properties.Content> contentList = acc.existingApplicationProperties.getContent();
         int index = 0;
 
-        while (index < arr.length) {
-            if (arr[index].equals("#---") || arr[index].equals("!---")) {
-                index++;
-                List<String> list = this.getLinesForNewFile(arr, index);
-                map.put(list.get(0), list.subList(1, list.size()));
+        while (index < contentList.size()) {
+            if (isSeparator(contentList.get(index))) {
+                // index++;
+                List<Properties.Content> newContent = getContentForNewFile(contentList, ++index);
+                map.put("application-" + ((Properties.Entry)newContent.get(0)).getValue().getText() + ".properties",
+                        newContent.subList(1, newContent.size()));
             }
             index++;
         }
@@ -121,14 +147,17 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         return map;
     }
 
-    private List<String> getLinesForNewFile(String[] arr, int index) {
-        List<String> list = new ArrayList<>();
+    private List<Properties.Content> getContentForNewFile(List<Properties.Content> contentList, int index) {
+        List<Properties.Content> list = new ArrayList<>();
 
-        while (index < arr.length && !arr[index].equals("#---") && !arr[index].equals("!---")) {
-            if (arr[index].startsWith("spring.config.activate.on-profile="))
-                list.add(0, "application-" + arr[index].split("=")[1] + ".properties");
+        while (index < contentList.size() && !isSeparator(contentList.get(index))) {
 
-            else if (!arr[index].isEmpty()) list.add(arr[index]);
+            if (contentList.get(index) instanceof Properties.Entry &&
+                    ((Properties.Entry) contentList.get(index)).getKey().equals("spring.config.activate.on-profile"))
+                list.add(0, contentList.get(index));
+
+            else
+                list.add(contentList.get(index));
 
             index++;
         }
@@ -136,10 +165,20 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         return list;
     }
 
+    private boolean isSeparator(Properties.Content c) {
+        return c instanceof Properties.Comment &&
+                ((Properties.Comment) c).getMessage().equals("---") &&
+                ((((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("HASH_TAG"))) ||
+                ((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("EXCLAMATION_MARK")));
+    }
+
     public static class Accumulator {
         @Nullable
-        SourceFile existingApplicationProperties;
-        Set<SourceFile> newApplicationPropertyFiles = new HashSet<>();
+        Properties.File existingApplicationProperties;
+
+        Set<Properties.File> newApplicationPropertyFiles = new HashSet<>();
+        Map<String, String> existingApplicationEnvProperties = new HashMap<>();
     }
 }
+
 

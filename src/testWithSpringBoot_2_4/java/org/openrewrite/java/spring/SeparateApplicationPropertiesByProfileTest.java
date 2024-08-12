@@ -32,6 +32,20 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
         rewriteRun(
                 org.openrewrite.properties.Assertions.properties(
                         """
+                                line1=line1
+                                line2=line2
+                                """,
+                        """
+                                oauth2.clientId=9999999999999999999999
+                                service.domainUrl=https://this.is.my.dev.url.com
+                                app.config.currentEnvironment=DEV
+                                line1=line1
+                                line2=line2
+                                """,
+                        sourceSpecs -> sourceSpecs.path("application-dev.properties")
+                ),
+                org.openrewrite.properties.Assertions.properties(
+                        """
                                 spring.application.name=Openrewrite-PR-Service
                                 #PR-Service
                                 base-url.PR-services=http://my.url.com
@@ -65,15 +79,6 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                 org.openrewrite.properties.Assertions.properties(
                         null,
                         """
-                                oauth2.clientId=9999999999999999999999
-                                service.domainUrl= https://this.is.my.dev.url.com
-                                app.config.currentEnvironment=DEV
-                                """,
-                        sourceSpecs -> sourceSpecs.path("application-dev.properties")
-                ),
-                org.openrewrite.properties.Assertions.properties(
-                        null,
-                        """
                                 app.config.currentEnvironment=LOCAL
                                 """,
                         sourceSpecs -> sourceSpecs.path("application-local.properties")
@@ -81,7 +86,7 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                 org.openrewrite.properties.Assertions.properties(
                         null,
                         """
-                                #### XX Configuration ####
+                                ### XX Configuration ####
                                 oauth2.clientId=77777777777777
                                 service.domainUrl=https://this.is.my.prod.url.com
                                 """,
