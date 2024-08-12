@@ -46,13 +46,9 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
     @Test
     void separateProfile() {
         rewriteRun(
-          recipeSpec -> recipeSpec.cycles(3).expectedCyclesThatMakeChanges(1),
           org.openrewrite.properties.Assertions.properties(
+            null,
             """
-              line1=line1
-              """,
-            """
-              line1=line1
               oauth2.clientId=9999999999999999999999
               service.domainUrl=https://this.is.my.dev.url.com
               app.config.currentEnvironment=DEV
