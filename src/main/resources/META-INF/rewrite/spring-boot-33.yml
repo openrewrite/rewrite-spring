@@ -48,6 +48,7 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 3.3.x
+  - org.openrewrite.micrometer.UpgradeMicrometer_1_13
 
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.graalvm.buildtools.native
