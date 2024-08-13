@@ -1,8 +1,8 @@
 package org.openrewrite.java.spring;
 
-import org.openrewrite.test.RewriteTest;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
+import org.openrewrite.test.RewriteTest;
 
 
 public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
