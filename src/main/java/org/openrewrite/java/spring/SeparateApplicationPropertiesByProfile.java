@@ -2,7 +2,6 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.intellij.lang.annotations.Language;
 import org.openrewrite.*;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.properties.CreatePropertiesFile;
@@ -63,18 +62,13 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
         Set<SourceFile> newApplicationPropertiesFiles = new HashSet<>();
 
-        for (Map.Entry<String, List<Properties.Content>> entry : acc.propertyFileContent.entrySet()) {
-            String fileName = entry.getKey();
-            @Language("properties") String fileContent = getNewFileContentString(entry.getValue());
-
-            // generate new application-profile.properties file if it does NOT already exist
-            if (!acc.existingPropertiesFiles.containsKey(fileName))
+        for (Map.Entry<String, List<Properties.Content>> entry : acc.propertyFileContent.entrySet())
+            if (!acc.existingPropertiesFiles.containsKey(entry.getKey()))
                 newApplicationPropertiesFiles.
-                        add(new CreatePropertiesFile(fileName, fileContent, null).
+                        add(new CreatePropertiesFile(entry.getKey(), "", null).
                                 generate(new AtomicBoolean(true), ctx).
                                 iterator().
                                 next());
-        }
 
         return newApplicationPropertiesFiles;
     }
@@ -84,17 +78,12 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         return new PropertiesVisitor<ExecutionContext>() {
             @Override
             public Properties visitFile(Properties.File file, ExecutionContext ctx) {
+                if (acc.propertyFileContent.isEmpty())
+                    return file;
+
                 String fileName = file.getSourcePath().toString();
-
-                if (fileName.equals("application.properties"))
-                    return deleteFromApplicationProperties(file);
-
-                // append new content if the application-profile.properties file exists AND
-                // it has profile configurations set in application.properties
-                if (acc.existingPropertiesFiles.containsKey(fileName) && acc.propertyFileContent.containsKey(fileName))
-                    return appendToExistingPropertiesFile(file, acc.propertyFileContent.get(fileName));
-
-                return file;
+                return fileName.equals("application.properties") ? deleteFromApplicationProperties(file) :
+                        appendToExistingPropertiesFile(file, acc.propertyFileContent.get(fileName));
             }
         };
     }
@@ -105,77 +94,42 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                         collect(Collectors.toList()));
     }
 
-    private String getNewFileContentString(List<Properties.Content> content) {
-        StringBuilder fileContent = new StringBuilder();
-
-        for (Properties.Content c : content) {
-            if (c instanceof Properties.Entry)
-                fileContent.
-                        append(((Properties.Entry) c).getKey()).
-                        append("=").
-                        append(((Properties.Entry) c).getValue().getPrefix()).
-                        append(((Properties.Entry) c).getValue().getText()).
-                        append("\n");
-
-            else if (c instanceof Properties.Comment)
-                fileContent.
-                        append(((Properties.Comment) c).getMessage()).
-                        append("\n");
-        }
-
-        return fileContent.toString();
-    }
-
     private Properties deleteFromApplicationProperties(Properties.File applicationProperties) {
         List<Properties.Content> newContent = new ArrayList<>();
-
         for (Properties.Content c : applicationProperties.getContent()) {
             if (isSeparator(c))
                 break;
-
             newContent.add(c);
         }
-
-        if (applicationProperties.getContent().equals(newContent))
-            return applicationProperties;
-
-        return applicationProperties.withContent(newContent);
+        return applicationProperties.getContent().equals(newContent) ? applicationProperties :
+                applicationProperties.withContent(newContent);
     }
 
     private Map<String, List<Properties.Content>> getNewApplicationPropertyFileInfo(List<Properties.Content> contentList) {
         Map<String, List<Properties.Content>> map = new HashMap<>();
         int index = 0;
-
         while (index < contentList.size()) {
-
             if (isSeparator(contentList.get(index))) {
                 List<Properties.Content> newContent = getContentForNewFile(contentList, ++index);
-
                 map.put("application-" + ((Properties.Entry) newContent.get(0)).getValue().getText() + ".properties",
                         newContent.subList(1, newContent.size()));
             }
             index++;
         }
-
         return map;
     }
 
     private List<Properties.Content> getContentForNewFile(List<Properties.Content> contentList, int index) {
         List<Properties.Content> list = new ArrayList<>();
-
         while (index < contentList.size() && !isSeparator(contentList.get(index))) {
-
             if (contentList.get(index) instanceof Properties.Entry &&
                     ((Properties.Entry) contentList.get(index)).getKey().equals
                             ("spring.config.activate.on-profile"))
                 list.add(0, contentList.get(index));
-
             else
                 list.add(contentList.get(index));
-
             index++;
         }
-
         return list;
     }
 
@@ -191,5 +145,3 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         Map<String, List<Properties.Content>> propertyFileContent = new HashMap<>();
     }
 }
-
-

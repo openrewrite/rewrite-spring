@@ -101,7 +101,7 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
           org.openrewrite.properties.Assertions.properties(
             null,
             """
-              ### XX Configuration ####
+              #### XX Configuration ####
               oauth2.clientId=77777777777777
               service.domainUrl=https://this.is.my.prod.url.com
               """,
@@ -165,7 +165,7 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
           org.openrewrite.properties.Assertions.properties(
             null,
             """
-              ### XX Configuration ####
+              #### XX Configuration ####
               oauth2.clientId=77777777777777
               service.domainUrl=https://this.is.my.prod.url.com
               """,
