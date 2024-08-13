@@ -103,6 +103,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 fileContent.
                         append(((Properties.Entry) c).getKey()).
                         append("=").
+                        append(((Properties.Entry) c).getValue().getPrefix()).
                         append(((Properties.Entry) c).getValue().getText()).
                         append("\n");
 

@@ -118,7 +118,7 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
             null,
             """
               oauth2.clientId=9999999999999999999999
-              service.domainUrl=https://this.is.my.dev.url.com
+              service.domainUrl= https://this.is.my.dev.url.com
               app.config.currentEnvironment=DEV
               """,
             sourceSpecs -> sourceSpecs.path("application-dev.properties")
