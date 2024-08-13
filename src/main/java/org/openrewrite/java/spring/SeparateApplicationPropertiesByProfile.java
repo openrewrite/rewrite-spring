@@ -11,6 +11,8 @@ import org.openrewrite.properties.tree.Properties;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Value
@@ -24,24 +26,12 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
     @Override
     public String getDescription() {
-        return "Separating application.properties into separate files based on profiles.";
+        return "Separating application.properties into separate files based on profiles while appending to any existing application-profile.properties.";
     }
 
     @Override
     public Accumulator getInitialValue(ExecutionContext ctx) {
         return new Accumulator();
-    }
-
-    @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
-        return new PropertiesVisitor<ExecutionContext>() {
-            @Override
-            public Properties visitFile(Properties.File file, ExecutionContext ctx) {
-                if (!file.getSourcePath().toString().equals("application.properties")) return file;
-
-                return deleteFromApplicationProperties(file);
-            }
-        };
     }
 
     @Override
@@ -54,13 +44,13 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 Properties.File propertyFile = (Properties.File) tree;
                 String sourcePath = PathUtils.separatorsToUnix(propertyFile.getSourcePath().toString());
 
-                if (sourcePath.matches("application.properties"))
+                if (sourcePath.matches("application.properties")) {
                     acc.existingApplicationProperties = propertyFile;
-
-                if (sourcePath.matches("application-.+\\.properties")) {
-                    String s = getNewFileContentString(propertyFile.getContent());
-                    acc.existingApplicationEnvProperties.put(sourcePath, s);
+                    acc.propertyFileContent = getNewApplicationPropertyFileInfo(acc);
                 }
+
+                if (sourcePath.matches("application-.+\\.properties"))
+                    acc.existingPropertiesFiles.put(sourcePath, propertyFile);
 
                 return tree;
             }
@@ -71,36 +61,66 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
     public Collection<? extends SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
         if (acc.existingApplicationProperties == null) return Collections.emptyList();
 
-        for (Map.Entry<String, List<Properties.Content>> entry : this.getNewApplicationPropertyFileInfo(acc).entrySet()) {
+        for (Map.Entry<String, List<Properties.Content>> entry : acc.propertyFileContent.entrySet()) {
             String fileName = entry.getKey();
-            @Language("properties") String fileContent = getNewFileContentString(entry.getValue());
 
-            if (acc.existingApplicationEnvProperties.containsKey(fileName))
-                fileContent += acc.existingApplicationEnvProperties.get(fileName) + "\n";
+            @Language("properties")
+            String fileContent = getNewFileContentString(entry.getValue());
 
-            acc.newApplicationPropertyFiles.
-                    add(new CreatePropertiesFile(fileName, fileContent, true).
-                            generate(new AtomicBoolean(true), ctx).
-                            iterator().
-                            next()
-                    );
-
+            if (!acc.existingPropertiesFiles.containsKey(fileName)) {
+                acc.newApplicationPropertyFiles.
+                        add(new CreatePropertiesFile(fileName, fileContent, null).
+                                generate(new AtomicBoolean(true), ctx).
+                                iterator().
+                                next()
+                        );
+            }
         }
-
         return acc.newApplicationPropertyFiles;
     }
 
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
+        return new PropertiesVisitor<ExecutionContext>() {
+            @Override
+            public Properties visitFile(Properties.File file, ExecutionContext ctx) {
+                String fileName = file.getSourcePath().toString();
+
+                if (fileName.equals("application.properties"))
+                    return deleteFromApplicationProperties(file);
+
+                if (acc.existingPropertiesFiles.containsKey(fileName) && acc.propertyFileContent.containsKey(fileName))
+                    return appendToExistingPropertiesFile(file, acc.propertyFileContent.get(fileName));
+
+                return file;
+            }
+        };
+    }
+
     private String getNewFileContentString(List<Properties.Content> content) {
-        String fileContent = "";
+        StringBuilder fileContent = new StringBuilder();
+
         for (Properties.Content c : content) {
             if (c instanceof Properties.Entry)
-                fileContent += ((Properties.Entry) c).getKey() + "=" + ((Properties.Entry) c).getValue().getText() + "\n";
+                fileContent.
+                        append(((Properties.Entry) c).getKey()).
+                        append("=").
+                        append(((Properties.Entry) c).getValue().getText()).
+                        append("\n");
 
             else if (c instanceof Properties.Comment)
-                fileContent += ((Properties.Comment) c).getMessage() + "\n";
-
+                fileContent.
+                        append(((Properties.Comment) c).getMessage()).
+                        append("\n");
         }
-        return fileContent;
+
+        return fileContent.toString();
+    }
+
+    private Properties appendToExistingPropertiesFile(Properties.File propertyFile, List<Properties.Content> contentToAppend) {
+        return propertyFile.withContent(
+                Stream.concat(propertyFile.getContent().stream(), contentToAppend.stream()).
+                        collect(Collectors.toList()));
     }
 
     private Properties deleteFromApplicationProperties(Properties.File applicationProperties) {
@@ -122,13 +142,14 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         if (acc.existingApplicationProperties == null) return new HashMap<>();
 
         Map<String, List<Properties.Content>> map = new HashMap<>();
-        List<Properties.Content> contentList = acc.existingApplicationProperties.getContent();
+        List<Properties.Content> applicationPropertiesContentList = acc.existingApplicationProperties.getContent();
         int index = 0;
 
-        while (index < contentList.size()) {
-            if (isSeparator(contentList.get(index))) {
-                // index++;
-                List<Properties.Content> newContent = getContentForNewFile(contentList, ++index);
+        while (index < applicationPropertiesContentList.size()) {
+
+            if (isSeparator(applicationPropertiesContentList.get(index))) {
+                List<Properties.Content> newContent = getContentForNewFile(applicationPropertiesContentList, ++index);
+
                 map.put("application-" + ((Properties.Entry) newContent.get(0)).getValue().getText() + ".properties",
                         newContent.subList(1, newContent.size()));
             }
@@ -168,7 +189,8 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         Properties.File existingApplicationProperties;
 
         Set<SourceFile> newApplicationPropertyFiles = new HashSet<>();
-        Map<String, String> existingApplicationEnvProperties = new HashMap<>();
+        Map<String, Properties.File> existingPropertiesFiles = new HashMap<>();
+        Map<String, List<Properties.Content>> propertyFileContent = new HashMap<>();
     }
 }
 
