@@ -67,14 +67,12 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
             @Language("properties")
             String fileContent = getNewFileContentString(entry.getValue());
 
-            if (!acc.existingPropertiesFiles.containsKey(fileName)) {
+            if (!acc.existingPropertiesFiles.containsKey(fileName))
                 acc.newApplicationPropertyFiles.
                         add(new CreatePropertiesFile(fileName, fileContent, null).
                                 generate(new AtomicBoolean(true), ctx).
                                 iterator().
-                                next()
-                        );
-            }
+                                next());
         }
         return acc.newApplicationPropertyFiles;
     }
@@ -165,7 +163,8 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         while (index < contentList.size() && !isSeparator(contentList.get(index))) {
 
             if (contentList.get(index) instanceof Properties.Entry &&
-                    ((Properties.Entry) contentList.get(index)).getKey().equals("spring.config.activate.on-profile"))
+                    ((Properties.Entry) contentList.get(index)).getKey().equals
+                            ("spring.config.activate.on-profile"))
                 list.add(0, contentList.get(index));
 
             else
