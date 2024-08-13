@@ -48,7 +48,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                     acc.propertyFileContent = getNewApplicationPropertyFileInfo(propertyFile.getContent());
 
                 if (sourcePath.matches("application-.+\\.properties"))
-                    acc.existingPropertiesFiles.put(sourcePath, propertyFile);
+                    acc.existingPropertyFilePaths.add(sourcePath);
 
                 return tree;
             }
@@ -63,7 +63,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         Set<SourceFile> newApplicationPropertiesFiles = new HashSet<>();
 
         for (Map.Entry<String, List<Properties.Content>> entry : acc.propertyFileContent.entrySet())
-            if (!acc.existingPropertiesFiles.containsKey(entry.getKey()))
+            if (!acc.existingPropertyFilePaths.contains(entry.getKey()))
                 newApplicationPropertiesFiles.
                         add(new CreatePropertiesFile(entry.getKey(), "", null).
                                 generate(new AtomicBoolean(true), ctx).
@@ -141,7 +141,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
     }
 
     public static class Accumulator {
-        Map<String, Properties.File> existingPropertiesFiles = new HashMap<>();
+        Set<String> existingPropertyFilePaths = new HashSet<>();
         Map<String, List<Properties.Content>> propertyFileContent = new HashMap<>();
     }
 }
