@@ -15,15 +15,13 @@ jobs:
         uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          cache: 'gradle'
           distribution: 'temurin'
           java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
 
       # Generate Spring Boot property migrations recipes
       - name: Create jar and copy dependencies
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          arguments: generatePropertyMigrationRecipes
+        run: ./gradlew generatePropertyMigrationRecipes
 
       # Create pull request
       - name: Timestamp
