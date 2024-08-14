@@ -39,7 +39,7 @@ public class SpringRulesToJUnitExtension extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(Preconditions.and(new UsesType<>("org.springframework.test.context.junit4.rules.SpringClassRule", true), new UsesType<>("org.springframework.test.context.junit4.rules.SpringMethodRule", true)), new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext executionContext) {
+            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
                 if (multiVariable.getTypeExpression() instanceof J.Identifier) {
                     J.Identifier id = (J.Identifier) multiVariable.getTypeExpression();
                     if (id.getSimpleName().equals("SpringClassRule") || id.getSimpleName().equals("SpringMethodRule")) {
@@ -49,22 +49,22 @@ public class SpringRulesToJUnitExtension extends Recipe {
                         maybeRemoveImport("org.junit.Rule");
                         doAfterVisit(new JavaIsoVisitor<ExecutionContext>() {
                             @Override
-                            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
+                            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                                 if (classDecl.getLeadingAnnotations().stream().noneMatch(ann -> ann.getSimpleName().equals("SpringBootTest") || ann.getSimpleName().equals("ExtendWith"))) {
                                     maybeAddImport("org.junit.jupiter.api.extension.ExtendWith");
                                     maybeAddImport("org.springframework.test.context.junit.jupiter.SpringExtension");
                                     return JavaTemplate.builder("@ExtendWith(SpringExtension.class)")
-                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(executionContext, "junit-jupiter-api", "spring-test"))
+                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "junit-jupiter-api", "spring-test"))
                                             .imports("org.junit.jupiter.api.extension.ExtendWith", "org.springframework.test.context.junit.jupiter.SpringExtension")
                                             .build().apply(getCursor(), classDecl.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                                 }
-                                return super.visitClassDeclaration(classDecl, executionContext);
+                                return super.visitClassDeclaration(classDecl, ctx);
                             }
                         });
                         return null;
                     }
                 }
-                return super.visitVariableDeclarations(multiVariable, executionContext);
+                return super.visitVariableDeclarations(multiVariable, ctx);
             }
         });
     }
