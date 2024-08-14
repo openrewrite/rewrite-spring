@@ -27,6 +27,7 @@ import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.stream.Collectors;
@@ -68,7 +69,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                                                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
                                                         .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
                                                         .build().apply(getCursor(), statement.getCoordinates().after(),
-                                                                varDecl.getVariables().get(0).getName(),
+                                                                varDecl.getVariables().get(0).getName().withPrefix(Space.EMPTY),
                                                                 expression);
                                             }
                                         }

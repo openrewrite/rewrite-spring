@@ -28,7 +28,12 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0")
-                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5", "spring-boot-3.1", "httpclient-4", "httpcore-4", "spring-beans-5"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-beans-5",
+            "spring-boot-3.1",
+            "spring-web-5",
+            "httpclient-4",
+            "httpcore-4"));
     }
 
     @Test
@@ -44,41 +49,21 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-              import org.springframework.web.client.RestClientException;
               import org.springframework.web.client.RestTemplate;
 
-              import java.security.KeyManagementException;
-              import java.security.KeyStoreException;
-              import java.security.NoSuchAlgorithmException;
-              import java.time.Duration;
+              class RestContextInitializer {
+                  RestTemplate getRestTemplate() throws Exception {
+                      Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().build();
+                      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
 
-              public class RestContextInitializer {
-                  private final Duration readTimeout = Duration.ofSeconds(30);
-                  private final int maxConnections = 1;
-
-                  public RestTemplate getRestTemplate() {
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-                                  clientHttpRequestFactory.setReadTimeout((int) readTimeout.toMillis());
-                                  // createConnectionManager()
+                                  clientHttpRequestFactory.setReadTimeout(30000);
+                                  // ... set poolingConnectionManager on HttpClient
                                   return clientHttpRequestFactory;
                               })
                               .build();
-                  }
-
-                  private PoolingHttpClientConnectionManager createConnectionManager() {
-                      try {
-                          Registry<ConnectionSocketFactory> socketFactoryRegistry =
-                                  RegistryBuilder.<ConnectionSocketFactory>create()
-                                          .build();
-
-                          PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-                          poolingConnectionManager.setMaxTotal(maxConnections);
-                          return poolingConnectionManager;
-                      } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-                          throw new RestClientException(e.getMessage(), e);
-                      }
                   }
               }
               """,
@@ -90,43 +75,23 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-              import org.springframework.web.client.RestClientException;
               import org.springframework.web.client.RestTemplate;
 
-              import java.security.KeyManagementException;
-              import java.security.KeyStoreException;
-              import java.security.NoSuchAlgorithmException;
-              import java.time.Duration;
               import java.util.concurrent.TimeUnit;
 
-              public class RestContextInitializer {
-                  private final Duration readTimeout = Duration.ofSeconds(30);
-                  private final int maxConnections = 1;
+              class RestContextInitializer {
+                  RestTemplate getRestTemplate() throws Exception {
+                      Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().build();
+                      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+                      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(30000, TimeUnit.MILLISECONDS).build());
 
-                  public RestTemplate getRestTemplate() {
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-                                  // createConnectionManager()
+                                  // ... set poolingConnectionManager on HttpClient
                                   return clientHttpRequestFactory;
                               })
                               .build();
-                  }
-
-                  private PoolingHttpClientConnectionManager createConnectionManager() {
-                      try {
-                          Registry<ConnectionSocketFactory> socketFactoryRegistry =
-                                  RegistryBuilder.<ConnectionSocketFactory>create()
-                                          .build();
-
-                          PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-
-                          poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout((int) readTimeout.toMillis(), TimeUnit.MILLISECONDS).build());
-                          poolingConnectionManager.setMaxTotal(maxConnections);
-                          return poolingConnectionManager;
-                      } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-                          throw new RestClientException(e.getMessage(), e);
-                      }
                   }
               }
               """
@@ -138,5 +103,6 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
     // - Using BasicHttpClientConnectionManager
     // - Using PoolingHttpClientConnectionManagerBuilder
     // - No HttpClientConnectionManager at all
+    // - No intermediate variable for connectionManager
 
 }
