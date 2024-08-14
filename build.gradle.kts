@@ -112,7 +112,6 @@ val rewriteVersion = rewriteRecipe.rewriteVersion.get()
 
 dependencies {
     implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
-    implementation("org.openrewrite:rewrite-apache")
     implementation("org.openrewrite:rewrite-java")
     implementation("org.openrewrite:rewrite-xml")
     implementation("org.openrewrite:rewrite-properties")
@@ -123,6 +122,7 @@ dependencies {
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite:rewrite-java-17")
+    runtimeOnly("org.openrewrite.recipe:rewrite-apache:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-micrometer:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
