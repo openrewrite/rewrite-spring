@@ -28,6 +28,7 @@ recipeList:
       artifactId: "*"
       newVersion: 6.0.x
   - org.openrewrite.java.spring.framework.MigrateSpringAssert
+  - org.openrewrite.apache.httpclient5.UpgradeApacheHttpClient_5
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
