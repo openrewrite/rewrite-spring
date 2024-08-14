@@ -32,7 +32,7 @@ import org.openrewrite.java.tree.Statement;
 import java.util.stream.Collectors;
 
 public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
-    private static final MethodMatcher MATCHER = new MethodMatcher("org.springframework.http.client.HttpComponentsClientHttpRequestFactory setReadTimeout(..)");
+    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher("org.springframework.http.client.HttpComponentsClientHttpRequestFactory setReadTimeout(..)");
 
     @Override
     public String getDisplayName() {
@@ -48,12 +48,12 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
                 Preconditions.and(
-                        new UsesMethod<>(MATCHER),
+                        new UsesMethod<>(METHOD_MATCHER),
                         new UsesType<>("org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager", false)
                 ), new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                        if (MATCHER.matches(method)) {
+                        if (METHOD_MATCHER.matches(method)) {
                             Expression expression = method.getArguments().get(0);
                             doAfterVisit(new JavaIsoVisitor<ExecutionContext>() {
                                 @Override
@@ -64,16 +64,19 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                                             if (varDecl.getTypeExpression() instanceof J.Identifier && ((J.Identifier) varDecl.getTypeExpression()).getSimpleName().equals("PoolingHttpClientConnectionManager")) {
                                                 maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
                                                 maybeAddImport("java.util.concurrent.TimeUnit");
-                                                return JavaTemplate.builder(varDecl.getVariables().get(0).getSimpleName() + ".setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
+                                                return JavaTemplate.builder("#{any()}.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
                                                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
                                                         .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
-                                                        .build().apply(getCursor(), statement.getCoordinates().after(), expression);
+                                                        .build().apply(getCursor(), statement.getCoordinates().after(),
+                                                                varDecl.getVariables().get(0).getName(),
+                                                                expression);
                                             }
                                         }
                                     }
                                     return super.visitBlock(block, ctx);
                                 }
                             });
+                            //noinspection DataFlowIssue
                             return null;
                         }
                         return super.visitMethodInvocation(method, ctx);

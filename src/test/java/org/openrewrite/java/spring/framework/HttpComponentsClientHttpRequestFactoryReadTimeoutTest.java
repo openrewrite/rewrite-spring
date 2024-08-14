@@ -28,7 +28,7 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0")
-                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context-5", "spring-web-5", "spring-boot-3.1", "httpclient-4", "httpcore-4", "spring-beans-5"));
+                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5", "spring-boot-3.1", "httpclient-4", "httpcore-4", "spring-beans-5"));
     }
 
     @Test
@@ -43,8 +43,6 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.apache.http.conn.socket.ConnectionSocketFactory;
               import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
               import org.springframework.boot.web.client.RestTemplateBuilder;
-              import org.springframework.context.annotation.Bean;
-              import org.springframework.context.annotation.Configuration;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
               import org.springframework.web.client.RestClientException;
               import org.springframework.web.client.RestTemplate;
@@ -54,17 +52,16 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import java.security.NoSuchAlgorithmException;
               import java.time.Duration;
 
-              @Configuration
               public class RestContextInitializer {
                   private final Duration readTimeout = Duration.ofSeconds(30);
                   private final int maxConnections = 1;
 
-                  @Bean
                   public RestTemplate getRestTemplate() {
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
                                   clientHttpRequestFactory.setReadTimeout((int) readTimeout.toMillis());
+                                  // createConnectionManager()
                                   return clientHttpRequestFactory;
                               })
                               .build();
@@ -92,8 +89,6 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
               import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
               import org.springframework.boot.web.client.RestTemplateBuilder;
-              import org.springframework.context.annotation.Bean;
-              import org.springframework.context.annotation.Configuration;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
               import org.springframework.web.client.RestClientException;
               import org.springframework.web.client.RestTemplate;
@@ -104,16 +99,15 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import java.time.Duration;
               import java.util.concurrent.TimeUnit;
 
-              @Configuration
               public class RestContextInitializer {
                   private final Duration readTimeout = Duration.ofSeconds(30);
                   private final int maxConnections = 1;
 
-                  @Bean
                   public RestTemplate getRestTemplate() {
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+                                  // createConnectionManager()
                                   return clientHttpRequestFactory;
                               })
                               .build();
@@ -139,5 +133,10 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
           )
         );
     }
+
+    // TODO Additional scenarios
+    // - Using BasicHttpClientConnectionManager
+    // - Using PoolingHttpClientConnectionManagerBuilder
+    // - No HttpClientConnectionManager at all
 
 }
