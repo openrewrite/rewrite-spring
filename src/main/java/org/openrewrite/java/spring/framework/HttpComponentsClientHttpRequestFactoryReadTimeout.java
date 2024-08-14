@@ -57,7 +57,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                             Expression expression = method.getArguments().get(0);
                             doAfterVisit(new JavaIsoVisitor<ExecutionContext>() {
                                 @Override
-                                public J.Block visitBlock(J.Block block, ExecutionContext executionContext) {
+                                public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
                                     if (block.getStatements().stream().anyMatch(statement -> statement instanceof J.VariableDeclarations)) {
                                         for (Statement statement : block.getStatements().stream().filter(statement -> statement instanceof J.VariableDeclarations).collect(Collectors.toList())) {
                                             J.VariableDeclarations varDecl = (J.VariableDeclarations) statement;
@@ -65,13 +65,13 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                                                 maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
                                                 maybeAddImport("java.util.concurrent.TimeUnit");
                                                 return JavaTemplate.builder(varDecl.getVariables().get(0).getSimpleName() + ".setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
-                                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5"))
+                                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
                                                         .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
                                                         .build().apply(getCursor(), statement.getCoordinates().after(), expression);
                                             }
                                         }
                                     }
-                                    return super.visitBlock(block, executionContext);
+                                    return super.visitBlock(block, ctx);
                                 }
                             });
                             return null;
