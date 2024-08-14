@@ -121,6 +121,7 @@ recipeList:
       artifactId: spring-boot-tools
       version: 2.x
       onlyIfUsing: org.springframework.boot.testsupport.runner.classpath.ModifiedClassPathExtension
+  - org.openrewrite.java.spring.test.SpringRulesToJUnitExtension
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UnnecessarySpringRunWith

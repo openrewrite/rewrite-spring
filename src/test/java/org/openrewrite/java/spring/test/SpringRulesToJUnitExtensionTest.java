@@ -45,24 +45,24 @@ class SpringRulesToJUnitExtensionTest implements RewriteTest {
                                 import org.springframework.test.context.junit4.rules.SpringMethodRule;
                                 import org.junit.ClassRule;
                                 import org.junit.Rule;
-                                
+
                                 @SpringBootTest
                                 class SomeTest {
-                                
+
                                     @ClassRule
                                     public static final SpringClassRule springClassRule = new SpringClassRule();
-                                
+
                                     @Rule
                                     public final SpringMethodRule springMethodRule = new SpringMethodRule();
-                                
+
                                 }
                                 """,
                         """
                                 import org.springframework.boot.test.context.SpringBootTest;
-                                
+
                                 @SpringBootTest
                                 class SomeTest {
-                                
+
                                 }
                                 """
                 )
@@ -79,24 +79,24 @@ class SpringRulesToJUnitExtensionTest implements RewriteTest {
                                 import org.springframework.test.context.junit4.rules.SpringMethodRule;
                                 import org.junit.ClassRule;
                                 import org.junit.Rule;
-                                
+
                                 class SomeTest {
-                                
+
                                     @ClassRule
                                     public static final SpringClassRule springClassRule = new SpringClassRule();
-                                
+
                                     @Rule
                                     public final SpringMethodRule springMethodRule = new SpringMethodRule();
-                                
+
                                 }
                                 """,
                         """
                                 import org.junit.jupiter.api.extension.ExtendWith;
                                 import org.springframework.test.context.junit.jupiter.SpringExtension;
-                                
+
                                 @ExtendWith(SpringExtension.class)
                                 class SomeTest {
-                                
+
                                 }
                                 """
                 )
