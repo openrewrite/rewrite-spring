@@ -72,6 +72,36 @@ class SpringRulesToJUnitExtensionTest implements RewriteTest {
     }
 
     @Test
+    void migrateSingleAnnotation() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+              import org.springframework.test.context.junit4.rules.SpringMethodRule;
+              import org.junit.Rule;
+
+              @SpringBootTest
+              class SomeTest {
+
+                  @Rule
+                  public final SpringMethodRule springMethodRule = new SpringMethodRule();
+
+              }
+              """,
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest
+              class SomeTest {
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void migrateAndAddSpringExtension() {
         rewriteRun(
           //language=java

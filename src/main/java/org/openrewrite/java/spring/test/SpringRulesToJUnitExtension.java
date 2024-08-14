@@ -37,7 +37,10 @@ public class SpringRulesToJUnitExtension extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(Preconditions.and(new UsesType<>("org.springframework.test.context.junit4.rules.SpringClassRule", true), new UsesType<>("org.springframework.test.context.junit4.rules.SpringMethodRule", true)), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(
+                new UsesType<>("org.springframework.test.context.junit4.rules.SpringClassRule", true),
+                        new UsesType<>("org.springframework.test.context.junit4.rules.SpringMethodRule", true)),
+                new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
                 if (multiVariable.getTypeExpression() instanceof J.Identifier) {
