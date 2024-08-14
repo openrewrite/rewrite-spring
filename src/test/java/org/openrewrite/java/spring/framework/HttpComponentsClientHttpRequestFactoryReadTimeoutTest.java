@@ -12,15 +12,7 @@ import static org.openrewrite.java.Assertions.java;
 class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromYaml("""
-                        ---
-                        type: specs.openrewrite.org/v1beta/recipe
-                        name: org.openrewrite.java.spring.test-recipe
-                        description: .
-                        recipeList:
-                          - org.openrewrite.apache.httpclient5.UpgradeApacheHttpClient_5
-                          - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryReadTimeout
-                        """, "org.openrewrite.java.spring.test-recipe")
+        spec.recipeFromResources("org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0")
                 .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context-5", "spring-web-5", "spring-boot-3.1", "httpclient-4", "httpcore-4", "spring-beans-5"));
     }
 
