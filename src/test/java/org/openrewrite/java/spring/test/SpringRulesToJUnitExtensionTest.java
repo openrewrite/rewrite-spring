@@ -26,81 +26,82 @@ import static org.openrewrite.java.Assertions.java;
 
 class SpringRulesToJUnitExtensionTest implements RewriteTest {
 
-
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SpringRulesToJUnitExtension())
-                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test", "spring-test", "junit-4"));
+          .parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test", "spring-test")
+            .dependsOn("package org.junit; public @interface ClassRule {}", "package org.junit; public @interface Rule {}")
+          );
     }
 
     @Test
     @DocumentExample
-    void migrateSpringRulesToJUnit() {
+    void migrateWithSpringBootTestPresent() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.boot.test.context.SpringBootTest;
-                                import org.springframework.test.context.junit4.rules.SpringClassRule;
-                                import org.springframework.test.context.junit4.rules.SpringMethodRule;
-                                import org.junit.ClassRule;
-                                import org.junit.Rule;
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+              import org.springframework.test.context.junit4.rules.SpringClassRule;
+              import org.springframework.test.context.junit4.rules.SpringMethodRule;
+              import org.junit.ClassRule;
+              import org.junit.Rule;
 
-                                @SpringBootTest
-                                class SomeTest {
+              @SpringBootTest
+              class SomeTest {
 
-                                    @ClassRule
-                                    public static final SpringClassRule springClassRule = new SpringClassRule();
+                  @ClassRule
+                  public static final SpringClassRule springClassRule = new SpringClassRule();
 
-                                    @Rule
-                                    public final SpringMethodRule springMethodRule = new SpringMethodRule();
+                  @Rule
+                  public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
-                                }
-                                """,
-                        """
-                                import org.springframework.boot.test.context.SpringBootTest;
+              }
+              """,
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
 
-                                @SpringBootTest
-                                class SomeTest {
+              @SpringBootTest
+              class SomeTest {
 
-                                }
-                                """
-                )
+              }
+              """
+          )
         );
     }
 
     @Test
-    void migrateSpringRulesToJUnit_2() {
+    void migrateAndAddSpringExtension() {
         rewriteRun(
-                //language=java
-                java(
-                        """
-                                import org.springframework.test.context.junit4.rules.SpringClassRule;
-                                import org.springframework.test.context.junit4.rules.SpringMethodRule;
-                                import org.junit.ClassRule;
-                                import org.junit.Rule;
+          //language=java
+          java(
+            """
+              import org.springframework.test.context.junit4.rules.SpringClassRule;
+              import org.springframework.test.context.junit4.rules.SpringMethodRule;
+              import org.junit.ClassRule;
+              import org.junit.Rule;
 
-                                class SomeTest {
+              class SomeTest {
 
-                                    @ClassRule
-                                    public static final SpringClassRule springClassRule = new SpringClassRule();
+                  @ClassRule
+                  public static final SpringClassRule springClassRule = new SpringClassRule();
 
-                                    @Rule
-                                    public final SpringMethodRule springMethodRule = new SpringMethodRule();
+                  @Rule
+                  public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
-                                }
-                                """,
-                        """
-                                import org.junit.jupiter.api.extension.ExtendWith;
-                                import org.springframework.test.context.junit.jupiter.SpringExtension;
+              }
+              """,
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-                                @ExtendWith(SpringExtension.class)
-                                class SomeTest {
+              @ExtendWith(SpringExtension.class)
+              class SomeTest {
 
-                                }
-                                """
-                )
+              }
+              """
+          )
         );
     }
-
 }
