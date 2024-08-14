@@ -25,15 +25,11 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Space;
-import org.openrewrite.java.tree.Statement;
-
-import java.util.stream.Collectors;
+import org.openrewrite.java.tree.*;
 
 public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
     private static final MethodMatcher METHOD_MATCHER = new MethodMatcher("org.springframework.http.client.HttpComponentsClientHttpRequestFactory setReadTimeout(..)");
+    private static final String POOLING_HTTP_CLIENT_CONNECTION_MANAGER = "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager";
 
     @Override
     public String getDisplayName() {
@@ -50,7 +46,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
         return Preconditions.check(
                 Preconditions.and(
                         new UsesMethod<>(METHOD_MATCHER),
-                        new UsesType<>("org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager", false)
+                        new UsesType<>(POOLING_HTTP_CLIENT_CONNECTION_MANAGER, false)
                 ), new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
@@ -59,19 +55,19 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                             doAfterVisit(new JavaIsoVisitor<ExecutionContext>() {
                                 @Override
                                 public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
-                                    if (block.getStatements().stream().anyMatch(statement -> statement instanceof J.VariableDeclarations)) {
-                                        for (Statement statement : block.getStatements().stream().filter(statement -> statement instanceof J.VariableDeclarations).collect(Collectors.toList())) {
+                                    for (Statement statement : block.getStatements()) {
+                                        if (statement instanceof J.VariableDeclarations &&
+                                            TypeUtils.isAssignableTo(POOLING_HTTP_CLIENT_CONNECTION_MANAGER,
+                                                    ((J.VariableDeclarations) statement).getTypeAsFullyQualified())) {
                                             J.VariableDeclarations varDecl = (J.VariableDeclarations) statement;
-                                            if (varDecl.getTypeExpression() instanceof J.Identifier && ((J.Identifier) varDecl.getTypeExpression()).getSimpleName().equals("PoolingHttpClientConnectionManager")) {
-                                                maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
-                                                maybeAddImport("java.util.concurrent.TimeUnit");
-                                                return JavaTemplate.builder("#{any()}.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
-                                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
-                                                        .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
-                                                        .build().apply(getCursor(), statement.getCoordinates().after(),
-                                                                varDecl.getVariables().get(0).getName().withPrefix(Space.EMPTY),
-                                                                expression);
-                                            }
+                                            maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
+                                            maybeAddImport("java.util.concurrent.TimeUnit");
+                                            return JavaTemplate.builder("#{any()}.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
+                                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
+                                                    .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
+                                                    .build().apply(getCursor(), varDecl.getCoordinates().after(),
+                                                            varDecl.getVariables().get(0).getName().withPrefix(Space.EMPTY),
+                                                            expression);
                                         }
                                     }
                                     return super.visitBlock(block, ctx);

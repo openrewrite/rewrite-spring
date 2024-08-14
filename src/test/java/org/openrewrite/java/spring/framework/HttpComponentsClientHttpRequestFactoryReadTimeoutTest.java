@@ -99,10 +99,12 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
         );
     }
 
-    // TODO Additional scenarios
+    // TODO Additional scenarios not yet covered
     // - Using BasicHttpClientConnectionManager
     // - Using PoolingHttpClientConnectionManagerBuilder
     // - No HttpClientConnectionManager at all
     // - No intermediate variable for connectionManager
+    // - setReadTimeout called with local variable not accessible near connection manager
+    // - there already is a setDefaultSocketConfig call
 
 }
