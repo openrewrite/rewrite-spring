@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,16 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Statement;
+
+import java.util.stream.Collectors;
 
 public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
     private static final MethodMatcher MATCHER = new MethodMatcher("org.springframework.http.client.HttpComponentsClientHttpRequestFactory setReadTimeout(..)");
@@ -41,20 +46,38 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>(MATCHER), new HttpComponentsClientHttpRequestFactoryReadTimeoutVisitor());
-    }
-
-    private static class HttpComponentsClientHttpRequestFactoryReadTimeoutVisitor extends JavaIsoVisitor<ExecutionContext> {
-        @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-            if (MATCHER.matches(method)) {
-                Expression expression = method.getArguments().get(0);
-                doAfterVisit(new JavaIsoVisitor<ExecutionContext>(){
-
+        return Preconditions.check(
+                Preconditions.and(
+                        new UsesMethod<>(MATCHER),
+                        new UsesType<>("org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager", false)
+                ), new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        if (MATCHER.matches(method)) {
+                            Expression expression = method.getArguments().get(0);
+                            doAfterVisit(new JavaIsoVisitor<ExecutionContext>() {
+                                @Override
+                                public J.Block visitBlock(J.Block block, ExecutionContext executionContext) {
+                                    if (block.getStatements().stream().anyMatch(statement -> statement instanceof J.VariableDeclarations)) {
+                                        for (Statement statement : block.getStatements().stream().filter(statement -> statement instanceof J.VariableDeclarations).collect(Collectors.toList())) {
+                                            J.VariableDeclarations varDecl = (J.VariableDeclarations) statement;
+                                            if (varDecl.getTypeExpression() instanceof J.Identifier && ((J.Identifier) varDecl.getTypeExpression()).getSimpleName().equals("PoolingHttpClientConnectionManager")) {
+                                                maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
+                                                maybeAddImport("java.util.concurrent.TimeUnit");
+                                                return JavaTemplate.builder(varDecl.getVariables().get(0).getSimpleName() + ".setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
+                                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5"))
+                                                        .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
+                                                        .build().apply(getCursor(), statement.getCoordinates().after(), expression);
+                                            }
+                                        }
+                                    }
+                                    return super.visitBlock(block, executionContext);
+                                }
+                            });
+                            return null;
+                        }
+                        return super.visitMethodInvocation(method, ctx);
+                    }
                 });
-                return null;
-            }
-            return super.visitMethodInvocation(method, ctx);
-        }
     }
 }
