@@ -15,12 +15,12 @@
  */
 package org.openrewrite.java.spring;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -142,7 +142,7 @@ public class NoRequestMappingAnnotation extends Recipe {
             return newArray.getInitializer() != null && newArray.getInitializer().size() == 1;
         }
 
-        private @Nullable String requestMethodType(@Nullable J.Assignment assignment) {
+        private @Nullable String requestMethodType(J.@Nullable Assignment assignment) {
             if(assignment == null) {
                 return null;
             }
