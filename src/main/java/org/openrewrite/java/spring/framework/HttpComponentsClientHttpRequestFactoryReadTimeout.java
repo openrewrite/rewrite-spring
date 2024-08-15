@@ -19,11 +19,17 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.*;
+import org.openrewrite.internal.ListUtils;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
@@ -55,13 +61,21 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                     public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
                         // Extract the argument to `setReadTimeout`
                         AtomicReference<Expression> readTimeout = new AtomicReference<>();
-                        new JavaIsoVisitor<ExecutionContext>() {
+                        J.CompilationUnit cuWithComment = (J.CompilationUnit) new JavaIsoVisitor<ExecutionContext>() {
                             @Override
                             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                                 if (SET_READ_TIMEOUT_METHOD_MATCHER.matches(method)) {
                                     Expression expression = method.getArguments().get(0);
                                     if (expression instanceof J.Literal || expression instanceof J.FieldAccess) {
                                         readTimeout.set(expression);
+                                    }
+
+                                    String message = " Manual migration to `SocketConfig.Builder.setSoTimeout(Timeout)` necessary; see: " +
+                                                     "https://docs.spring.io/spring-framework/docs/6.0.0/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html#setReadTimeout(int)";
+                                    if (method.getComments().stream().noneMatch(c -> c.printComment(getCursor()).contains(message))){
+                                        return method.withPrefix(method.getPrefix().withComments(ListUtils.concat(method.getComments(),
+                                                new TextComment(false, message, "\n" + method.getPrefix().getIndent(), Markers.EMPTY)
+                                        )));
                                     }
                                 }
                                 return super.visitMethodInvocation(method, ctx);
@@ -70,7 +84,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
 
                         //noinspection ConstantValue
                         if (readTimeout.get() == null) {
-                            return compilationUnit;
+                            return cuWithComment;
                         }
 
                         // Attempt to use expression in replacement
@@ -102,7 +116,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                         }
 
                         // No replacement time out could be set; make no change at all to prevent time out being lost
-                        return compilationUnit;
+                        return cuWithComment;
                     }
 
                     @Override
