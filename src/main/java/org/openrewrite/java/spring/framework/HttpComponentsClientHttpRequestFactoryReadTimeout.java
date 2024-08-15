@@ -52,27 +52,32 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         if (METHOD_MATCHER.matches(method)) {
                             Expression expression = method.getArguments().get(0);
-                            doAfterVisit(new JavaIsoVisitor<ExecutionContext>() {
-                                @Override
-                                public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
-                                    for (Statement statement : block.getStatements()) {
-                                        if (statement instanceof J.VariableDeclarations &&
-                                            TypeUtils.isAssignableTo(POOLING_HTTP_CLIENT_CONNECTION_MANAGER,
-                                                    ((J.VariableDeclarations) statement).getTypeAsFullyQualified())) {
-                                            J.VariableDeclarations varDecl = (J.VariableDeclarations) statement;
-                                            maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
-                                            maybeAddImport("java.util.concurrent.TimeUnit");
-                                            return JavaTemplate.builder("#{any()}.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
-                                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
-                                                    .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
-                                                    .build().apply(getCursor(), varDecl.getCoordinates().after(),
-                                                            varDecl.getVariables().get(0).getName().withPrefix(Space.EMPTY),
-                                                            expression);
-                                        }
-                                    }
-                                    return super.visitBlock(block, ctx);
-                                }
-                            });
+                            doAfterVisit(
+                                    Preconditions.check(
+                                            // Perhaps this should not be a precondition but a check, if this already gets called we place a comment
+                                            // to inform the user we've removed the `HttpComponentsClientHttpRequestFactory.setReadTimeout`
+                                            Preconditions.not(new UsesMethod<>(POOLING_HTTP_CLIENT_CONNECTION_MANAGER + " setDefaultSocketConfig(..)")
+                                            ), new JavaIsoVisitor<ExecutionContext>() {
+                                                @Override
+                                                public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
+                                                    for (Statement statement : block.getStatements()) {
+                                                        if (statement instanceof J.VariableDeclarations &&
+                                                            TypeUtils.isAssignableTo(POOLING_HTTP_CLIENT_CONNECTION_MANAGER,
+                                                                    ((J.VariableDeclarations) statement).getTypeAsFullyQualified())) {
+                                                            J.VariableDeclarations varDecl = (J.VariableDeclarations) statement;
+                                                            maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
+                                                            maybeAddImport("java.util.concurrent.TimeUnit");
+                                                            return JavaTemplate.builder("#{any()}.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
+                                                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
+                                                                    .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
+                                                                    .build().apply(getCursor(), varDecl.getCoordinates().after(),
+                                                                            varDecl.getVariables().get(0).getName().withPrefix(Space.EMPTY),
+                                                                            expression);
+                                                        }
+                                                    }
+                                                    return super.visitBlock(block, ctx);
+                                                }
+                                            }));
                             //noinspection DataFlowIssue
                             return null;
                         }
