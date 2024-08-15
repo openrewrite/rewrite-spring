@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
@@ -34,8 +35,7 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
 
     @Test
     @DocumentExample
-        // Padding doesn't stay (array initializer loses empty space at the end) intact so test fails
-    void removeSolrAutoConfigurationExcludeList() {
+    void removeFromArray() {
         rewriteRun(
           //language=java
           java(
@@ -61,7 +61,7 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
     }
 
     @Test
-    void removeSolrAutoConfigurationExcludeListSingleElement() {
+    void removeEntireArray() {
         rewriteRun(
           //language=java
           java(
@@ -70,14 +70,14 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
               import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 
               @SpringBootApplication(exclude = { SolrAutoConfiguration.class })
-              public class Application {
+              class Application {
               }
               """,
             """
               import org.springframework.boot.autoconfigure.SpringBootApplication;
 
               @SpringBootApplication
-              public class Application {
+              class Application {
               }
               """
           )
@@ -85,7 +85,7 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
     }
 
     @Test
-    void removeSolrAutoConfigurationExclude() {
+    void removeArgument() {
         rewriteRun(
           //language=java
           java(
@@ -94,14 +94,14 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
               import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 
               @SpringBootApplication(exclude = SolrAutoConfiguration.class)
-              public class Application {
+              class Application {
               }
               """,
             """
               import org.springframework.boot.autoconfigure.SpringBootApplication;
 
               @SpringBootApplication
-              public class Application {
+              class Application {
               }
               """
           )
@@ -109,37 +109,63 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
     }
 
     @Test
-    void shouldRemain() {
+    void removeFrom() {
         rewriteRun(
           //language=java
           java(
             """
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
-              import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+              import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+              import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 
-              @SpringBootApplication(exclude = SecurityAutoConfiguration.class)
-              public class Application {
+              @EnableAutoConfiguration(exclude = SolrAutoConfiguration.class)
+              class Application {
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+
+              @EnableAutoConfiguration
+              class Application {
               }
               """
           )
         );
     }
 
-    @Test
-    void shouldRemainList() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
-              import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+    @Nested
+    class NoChange {
+        @Test
+        void retainOtherAutoConfigurationClasses() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+                  import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
-              @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
-              public class Application {
-              }
-              """
-          )
-        );
+                  @SpringBootApplication(exclude = SecurityAutoConfiguration.class)
+                  public class Application {
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void retainOtherAutoConfigurationClassesInArray() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+                  import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+
+                  @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
+                  public class Application {
+                  }
+                  """
+              )
+            );
+        }
     }
-
 }

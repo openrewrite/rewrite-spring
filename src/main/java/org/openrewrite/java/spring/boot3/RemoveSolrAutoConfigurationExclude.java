@@ -44,7 +44,7 @@ public class RemoveSolrAutoConfigurationExclude extends Recipe {
 
     private static final String SPRING_BOOT_APPLICATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
     private static final String SOLR_AUTOCONFIGURATION = "SolrAutoConfiguration";
-    private static final String SOLR_AUTOCONFIGURATION_FQ = "org.springframework.boot.autoconfigure.solr." + SOLR_AUTOCONFIGURATION;
+    private static final String SOLR_AUTOCONFIGURATION_FQN = "org.springframework.boot.autoconfigure.solr." + SOLR_AUTOCONFIGURATION;
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -57,7 +57,7 @@ public class RemoveSolrAutoConfigurationExclude extends Recipe {
 
                 AtomicBoolean changedAnnotation = new AtomicBoolean(false);
                 List<Expression> currentArgs = a.getArguments();
-                if (currentArgs == null || currentArgs.isEmpty() || currentArgs.stream().anyMatch(arg -> arg instanceof J.Empty)) {
+                if (currentArgs == null || currentArgs.isEmpty() || currentArgs.get(0) instanceof J.Empty) {
                     return a;
                 }
                 List<Expression> newArgs = ListUtils.map(currentArgs, it -> {
@@ -75,21 +75,19 @@ public class RemoveSolrAutoConfigurationExclude extends Recipe {
                                 } else {
                                     List<Expression> values = value.getPadding().getInitializer().getElements().stream().filter(expr -> expr instanceof J.FieldAccess && !((J.Identifier) ((J.FieldAccess) expr).getTarget()).getSimpleName().equals(SOLR_AUTOCONFIGURATION)).collect(Collectors.toList());
                                     if (values.isEmpty()) {
-                                        maybeRemoveImport(SOLR_AUTOCONFIGURATION_FQ);
+                                        maybeRemoveImport(SOLR_AUTOCONFIGURATION_FQN);
                                         changedAnnotation.set(true);
                                         return null;
                                     } else {
-                                        maybeRemoveImport(SOLR_AUTOCONFIGURATION_FQ);
+                                        maybeRemoveImport(SOLR_AUTOCONFIGURATION_FQN);
                                         changedAnnotation.set(true);
                                         return as.withAssignment(((J.NewArray) as.getAssignment()).withInitializer(values));
                                     }
                                 }
-
-
                             } else if (as.getAssignment() instanceof J.FieldAccess) {
                                 J.FieldAccess value = (J.FieldAccess) as.getAssignment();
                                 if (value.getTarget() instanceof J.Identifier && ((J.Identifier) value.getTarget()).getSimpleName().equals(SOLR_AUTOCONFIGURATION)) {
-                                    maybeRemoveImport(SOLR_AUTOCONFIGURATION_FQ);
+                                    maybeRemoveImport(SOLR_AUTOCONFIGURATION_FQN);
                                     changedAnnotation.set(true);
                                     return null;
                                 }
