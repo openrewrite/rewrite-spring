@@ -25,9 +25,9 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class RemoveSolrAutoConfigurationExclude extends Recipe {
 
@@ -69,32 +69,26 @@ public class RemoveSolrAutoConfigurationExclude extends Recipe {
                                 if (as.getAssignment() == null || !"exclude".equals(((J.Identifier) as.getVariable()).getSimpleName())) {
                                     return it;
                                 }
-                                if (as.getAssignment() instanceof J.FieldAccess) {
-                                    J.FieldAccess fieldAccess = (J.FieldAccess) as.getAssignment();
-                                    if (fieldAccess.getTarget() instanceof J.Identifier &&
-                                        SOLR_AUTO_CONFIGURATION.equals(((J.Identifier) fieldAccess.getTarget()).getSimpleName())) {
-                                        return null;
-                                    }
+                                if (isSolrAutoConfigurationClassReference(as.getAssignment())) {
+                                    return null;
                                 } else if (as.getAssignment() instanceof J.NewArray) {
                                     J.NewArray array = (J.NewArray) as.getAssignment();
-                                    if (array.getInitializer().stream()
-                                            .noneMatch(expr -> expr instanceof J.FieldAccess &&
-                                                               SOLR_AUTO_CONFIGURATION.equals(((J.Identifier) ((J.FieldAccess) expr).getTarget()).getSimpleName()))) {
-                                        return it;
-                                    } else {
-                                        List<Expression> values = array.getPadding().getInitializer().getElements().stream()
-                                                .filter(expr -> expr instanceof J.FieldAccess &&
-                                                                !SOLR_AUTO_CONFIGURATION.equals(((J.Identifier) ((J.FieldAccess) expr).getTarget()).getSimpleName())).collect(Collectors.toList());
-                                        if (values.isEmpty()) {
-                                            return null;
-                                        } else {
-                                            return as.withAssignment(((J.NewArray) as.getAssignment()).withInitializer(values));
-                                        }
+                                    List<Expression> newInitializer = ListUtils.map(array.getInitializer(),
+                                            expr -> isSolrAutoConfigurationClassReference(expr) ? null : expr);
+                                    //noinspection DataFlowIssue
+                                    if (newInitializer.isEmpty()) {
+                                        return null;
                                     }
+                                    return maybeAutoFormat(it, as.withAssignment(array.withInitializer(newInitializer)), ctx);
                                 }
                             }
                             return it;
                         }));
+                    }
+
+                    private boolean isSolrAutoConfigurationClassReference(Expression expr) {
+                        return expr instanceof J.FieldAccess &&
+                               TypeUtils.isAssignableTo(SOLR_AUTOCONFIGURATION_FQN, ((J.FieldAccess) expr).getTarget().getType());
                     }
                 });
     }
