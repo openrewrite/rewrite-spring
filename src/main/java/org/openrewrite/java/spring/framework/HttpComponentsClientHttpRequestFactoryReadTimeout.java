@@ -30,11 +30,16 @@ import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
     private static final MethodMatcher SET_READ_TIMEOUT_METHOD_MATCHER = new MethodMatcher("org.springframework.http.client.HttpComponentsClientHttpRequestFactory setReadTimeout(..)");
     private static final String POOLING_CONNECTION_MANAGER = "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager";
+
+    // Known cases we do not handle yet
+    private static final MethodMatcher BUILDER_CREATE = new MethodMatcher(POOLING_CONNECTION_MANAGER + "Builder create()");
+    private static final MethodMatcher SET_DEFAULT_SOCKET_CONFIG = new MethodMatcher(POOLING_CONNECTION_MANAGER + " setDefaultSocketConfig(org.apache.hc.core5.http.io.SocketConfig)");
 
     @Override
     public String getDisplayName() {
@@ -48,19 +53,12 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(
-                Preconditions.and(
-                        new UsesMethod<>(SET_READ_TIMEOUT_METHOD_MATCHER),
-                        new UsesType<>(POOLING_CONNECTION_MANAGER, false),
-                        // Not yet handled
-                        Preconditions.not(new UsesMethod<>(POOLING_CONNECTION_MANAGER + " setDefaultSocketConfig(org.apache.hc.core5.http.io.SocketConfig)")),
-                        Preconditions.not(new UsesMethod<>(POOLING_CONNECTION_MANAGER + "Builder create()"))
-                ), new JavaIsoVisitor<ExecutionContext>() {
-
+        return Preconditions.check(new UsesMethod<>(SET_READ_TIMEOUT_METHOD_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
                         // Extract the argument to `setReadTimeout`
                         AtomicReference<Expression> readTimeout = new AtomicReference<>();
+                        AtomicBoolean incompatibilityFound = new AtomicBoolean(false);
                         J.CompilationUnit cuWithComment = (J.CompilationUnit) new JavaIsoVisitor<ExecutionContext>() {
                             @Override
                             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
@@ -77,13 +75,17 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                                                 new TextComment(false, message, "\n" + method.getPrefix().getIndent(), Markers.EMPTY)
                                         )));
                                     }
+                                } else if (SET_DEFAULT_SOCKET_CONFIG.matches(method)) {
+                                    incompatibilityFound.set(true);
+                                } else if (BUILDER_CREATE.matches(method)) {
+                                    incompatibilityFound.set(true);
                                 }
                                 return super.visitMethodInvocation(method, ctx);
                             }
                         }.visitNonNull(compilationUnit, ctx);
 
                         //noinspection ConstantValue
-                        if (readTimeout.get() == null) {
+                        if (readTimeout.get() == null || incompatibilityFound.get()) {
                             return cuWithComment;
                         }
 
