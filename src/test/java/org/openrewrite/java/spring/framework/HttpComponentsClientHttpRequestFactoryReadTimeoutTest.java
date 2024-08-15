@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -25,6 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
+@SuppressWarnings({"RedundantThrows", "UnnecessaryLocalVariable"})
 class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
@@ -124,7 +124,7 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
                       SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, (cert, authType) -> true).build();
                       SSLConnectionSocketFactory socketFactoryRegistry = new SSLConnectionSocketFactory(sslContext,NoopHostnameVerifier.INSTANCE);
                       PoolingHttpClientConnectionManager poolingConnectionManager = PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactoryRegistry).build();
-              
+
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
