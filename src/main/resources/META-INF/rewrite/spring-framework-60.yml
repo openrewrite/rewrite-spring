@@ -29,6 +29,7 @@ recipeList:
       newVersion: 6.0.x
   - org.openrewrite.java.spring.framework.MigrateSpringAssert
   - org.openrewrite.apache.httpclient5.UpgradeApacheHttpClient_5
+  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryReadTimeout
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
