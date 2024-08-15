@@ -109,7 +109,30 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
     }
 
     @Test
-    void removeFrom() {
+    void removeFullyQualifiedArgument() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication(exclude = org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration.class)
+              class Application {
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication
+              class Application {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void removeFromEnableAutoConfiguration() {
         rewriteRun(
           //language=java
           java(
