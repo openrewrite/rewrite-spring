@@ -116,6 +116,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
   - org.openrewrite.java.spring.boot2.ReplaceExtendWithAndContextConfiguration
   - org.openrewrite.java.spring.boot2.RemoveObsoleteSpringRunners
+  - org.openrewrite.java.spring.test.SpringRulesToJUnitExtension
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-tools

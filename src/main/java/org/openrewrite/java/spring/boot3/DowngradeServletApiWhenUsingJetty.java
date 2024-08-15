@@ -15,8 +15,8 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.maven.AddProperty;
 import org.openrewrite.maven.MavenVisitor;
 import org.openrewrite.maven.search.FindDependency;

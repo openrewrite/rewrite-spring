@@ -15,11 +15,11 @@
  */
 package org.openrewrite.java.spring.search;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.SourceFile;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.spring.table.SpringComponentRelationships;
@@ -105,7 +105,7 @@ public class FindSpringComponents extends Recipe {
                 }
             }
 
-            private void recordDependencies(@Nullable JavaType.FullyQualified dependentType, J.MethodDeclaration m, ExecutionContext ctx) {
+            private void recordDependencies(JavaType.@Nullable FullyQualified dependentType, J.MethodDeclaration m, ExecutionContext ctx) {
                 if (dependentType == null) {
                     return;
                 }
