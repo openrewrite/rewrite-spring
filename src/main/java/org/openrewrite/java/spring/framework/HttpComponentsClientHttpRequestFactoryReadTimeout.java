@@ -19,17 +19,16 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
-    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher("org.springframework.http.client.HttpComponentsClientHttpRequestFactory setReadTimeout(..)");
-    private static final String POOLING_HTTP_CLIENT_CONNECTION_MANAGER = "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager";
+    private static final MethodMatcher SET_READ_TIMEOUT_METHOD_MATCHER = new MethodMatcher("org.springframework.http.client.HttpComponentsClientHttpRequestFactory setReadTimeout(..)");
+    private static final String POOLING_CONNECTION_MANAGER = "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager";
 
     @Override
     public String getDisplayName() {
@@ -45,39 +44,70 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
                 Preconditions.and(
-                        new UsesMethod<>(METHOD_MATCHER),
-                        new UsesType<>(POOLING_HTTP_CLIENT_CONNECTION_MANAGER, false)
+                        new UsesMethod<>(SET_READ_TIMEOUT_METHOD_MATCHER),
+                        new UsesType<>(POOLING_CONNECTION_MANAGER, false),
+                        // Not yet handled
+                        Preconditions.not(new UsesMethod<>(POOLING_CONNECTION_MANAGER + " setDefaultSocketConfig(org.apache.hc.core5.http.io.SocketConfig)")),
+                        Preconditions.not(new UsesMethod<>(POOLING_CONNECTION_MANAGER + "Builder create()"))
                 ), new JavaIsoVisitor<ExecutionContext>() {
+
+                    @Override
+                    public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
+                        // Extract the argument to `setReadTimeout`
+                        AtomicReference<Expression> readTimeout = new AtomicReference<>();
+                        new JavaIsoVisitor<ExecutionContext>() {
+                            @Override
+                            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                                if (SET_READ_TIMEOUT_METHOD_MATCHER.matches(method)) {
+                                    Expression expression = method.getArguments().get(0);
+                                    if (expression instanceof J.Literal || expression instanceof J.FieldAccess) {
+                                        readTimeout.set(expression);
+                                    }
+                                }
+                                return super.visitMethodInvocation(method, ctx);
+                            }
+                        }.visitNonNull(compilationUnit, ctx);
+
+                        //noinspection ConstantValue
+                        if (readTimeout.get() == null) {
+                            return compilationUnit;
+                        }
+
+                        // Attempt to use expression in replacement
+                        J.CompilationUnit cu = (J.CompilationUnit) new JavaIsoVisitor<ExecutionContext>() {
+                            @Override
+                            public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
+                                for (Statement statement : block.getStatements()) {
+                                    if (statement instanceof J.VariableDeclarations &&
+                                        TypeUtils.isAssignableTo(POOLING_CONNECTION_MANAGER,
+                                                ((J.VariableDeclarations) statement).getTypeAsFullyQualified())) {
+                                        J.VariableDeclarations varDecl = (J.VariableDeclarations) statement;
+                                        maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
+                                        maybeAddImport("java.util.concurrent.TimeUnit");
+                                        return JavaTemplate.builder("#{any()}.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
+                                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
+                                                .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
+                                                .build().apply(getCursor(), varDecl.getCoordinates().after(),
+                                                        varDecl.getVariables().get(0).getName().withPrefix(Space.EMPTY),
+                                                        readTimeout.get());
+                                    }
+                                }
+                                return super.visitBlock(block, ctx);
+                            }
+                        }.visitNonNull(compilationUnit, ctx);
+
+                        if (cu != compilationUnit) {
+                            // Clear out the `setReadTimeout` method invocation
+                            return super.visitCompilationUnit(cu, ctx);
+                        }
+
+                        // No replacement time out could be set; make no change at all to prevent time out being lost
+                        return compilationUnit;
+                    }
+
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                        if (METHOD_MATCHER.matches(method)) {
-                            Expression expression = method.getArguments().get(0);
-                            doAfterVisit(
-                                    Preconditions.check(
-                                            // Perhaps this should not be a precondition but a check, if this already gets called we place a comment
-                                            // to inform the user we've removed the `HttpComponentsClientHttpRequestFactory.setReadTimeout`
-                                            Preconditions.not(new UsesMethod<>(POOLING_HTTP_CLIENT_CONNECTION_MANAGER + " setDefaultSocketConfig(..)")
-                                            ), new JavaIsoVisitor<ExecutionContext>() {
-                                                @Override
-                                                public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
-                                                    for (Statement statement : block.getStatements()) {
-                                                        if (statement instanceof J.VariableDeclarations &&
-                                                            TypeUtils.isAssignableTo(POOLING_HTTP_CLIENT_CONNECTION_MANAGER,
-                                                                    ((J.VariableDeclarations) statement).getTypeAsFullyQualified())) {
-                                                            J.VariableDeclarations varDecl = (J.VariableDeclarations) statement;
-                                                            maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
-                                                            maybeAddImport("java.util.concurrent.TimeUnit");
-                                                            return JavaTemplate.builder("#{any()}.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
-                                                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
-                                                                    .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
-                                                                    .build().apply(getCursor(), varDecl.getCoordinates().after(),
-                                                                            varDecl.getVariables().get(0).getName().withPrefix(Space.EMPTY),
-                                                                            expression);
-                                                        }
-                                                    }
-                                                    return super.visitBlock(block, ctx);
-                                                }
-                                            }));
+                        if (SET_READ_TIMEOUT_METHOD_MATCHER.matches(method)) {
                             //noinspection DataFlowIssue
                             return null;
                         }
