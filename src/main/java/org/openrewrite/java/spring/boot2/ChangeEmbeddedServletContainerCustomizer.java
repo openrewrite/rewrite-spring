@@ -15,9 +15,9 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.search.UsesType;
@@ -28,8 +28,8 @@ import static java.util.Objects.requireNonNull;
 
 public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
 
-    @Nullable
-    private static J.ParameterizedType webFactoryCustomizerIdentifier;
+
+    private static J.@Nullable ParameterizedType webFactoryCustomizerIdentifier;
 
     private static final String DEPRECATED_INTERFACE_FQN = "org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer";
 

@@ -17,9 +17,9 @@ package org.openrewrite.java.spring.amqp;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.NameCaseConvention;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.spring.ChangeSpringPropertyValue;
 import org.openrewrite.java.spring.SpringExecutionContextView;

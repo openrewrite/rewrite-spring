@@ -16,9 +16,9 @@
 package org.openrewrite.java.spring.boot2;
 
 import lombok.Data;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.spring.ExpandProperties;
 import org.openrewrite.yaml.CoalescePropertiesVisitor;
 import org.openrewrite.yaml.MergeYamlVisitor;
@@ -122,8 +122,8 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
 
     @Data
     static class Accumulator {
-        @Nullable Yaml.Documents bootstrapYaml;
+        Yaml.@Nullable Documents bootstrapYaml;
 
-        @Nullable Yaml.Documents applicationYaml;
+        Yaml.@Nullable Documents applicationYaml;
     }
 }

@@ -17,9 +17,9 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.StringUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.properties.AddProperty;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.MergeYaml;

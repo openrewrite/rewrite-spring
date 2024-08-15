@@ -15,10 +15,10 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.jspecify.annotations.NonNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.NonNull;
 import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.tree.Properties;
 
@@ -51,8 +51,8 @@ public class SamlRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
                 return super.visitEntry(entry, ctx);
             }
 
-            @NonNull
-            private Properties.Entry updateEntry(Properties.Entry entry) {
+
+            private Properties.@NonNull Entry updateEntry(Properties.Entry entry) {
                 return entry.withKey(entry.getKey().replaceAll(REGEX_PATTERN, "$1.assertingparty$3"));
             }
         };

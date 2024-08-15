@@ -17,10 +17,10 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.StringUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.ChangeMethodName;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -297,7 +297,7 @@ public class RenameBean extends Recipe {
         });
     }
 
-    private static @Nullable J.Assignment asBeanNameAssignment(Expression argumentExpression) {
+    private static J.@Nullable Assignment asBeanNameAssignment(Expression argumentExpression) {
         if (argumentExpression instanceof J.Assignment) {
             Expression variable = ((J.Assignment) argumentExpression).getVariable();
             if (variable instanceof J.Identifier) {
