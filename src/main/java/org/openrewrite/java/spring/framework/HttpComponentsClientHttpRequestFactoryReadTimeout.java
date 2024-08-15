@@ -37,8 +37,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
     private static final MethodMatcher SET_READ_TIMEOUT_METHOD_MATCHER = new MethodMatcher("org.springframework.http.client.HttpComponentsClientHttpRequestFactory setReadTimeout(..)");
     private static final String POOLING_CONNECTION_MANAGER = "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager";
 
-    // Known cases we do not handle yet
-    private static final MethodMatcher BUILDER_CREATE = new MethodMatcher(POOLING_CONNECTION_MANAGER + "Builder create()");
+    // Known case we do not handle yet
     private static final MethodMatcher SET_DEFAULT_SOCKET_CONFIG = new MethodMatcher(POOLING_CONNECTION_MANAGER + " setDefaultSocketConfig(org.apache.hc.core5.http.io.SocketConfig)");
 
     @Override
@@ -76,8 +75,6 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                                         )));
                                     }
                                 } else if (SET_DEFAULT_SOCKET_CONFIG.matches(method)) {
-                                    incompatibilityFound.set(true);
-                                } else if (BUILDER_CREATE.matches(method)) {
                                     incompatibilityFound.set(true);
                                 }
                                 return super.visitMethodInvocation(method, ctx);

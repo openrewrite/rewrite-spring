@@ -101,7 +101,7 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
     }
 
     @Test
-    void doMigrateWhenUsingPoolingHttpClientConnectionManagerBuilderToVariable() {
+    void migratePoolingHttpClientConnectionManagerBuilderToVariable() {
         rewriteRun(
           //language=java
           java(
@@ -139,6 +139,7 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
               import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
               import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+              import org.apache.hc.core5.http.io.SocketConfig;
               import org.apache.hc.core5.ssl.SSLContexts;
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -146,17 +147,18 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
 
               import javax.net.ssl.SSLContext;
 
+              import java.util.concurrent.TimeUnit;
+
               class RestContextInitializer {
                   RestTemplate getRestTemplate() throws Exception {
                       SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, (cert, authType) -> true).build();
                       SSLConnectionSocketFactory socketFactoryRegistry = new SSLConnectionSocketFactory(sslContext,NoopHostnameVerifier.INSTANCE);
                       PoolingHttpClientConnectionManager poolingConnectionManager = PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactoryRegistry).build();
+                      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(30000, TimeUnit.MILLISECONDS).build());
 
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-                                  // Manual migration to `SocketConfig.Builder.setSoTimeout(Timeout)` necessary; see: https://docs.spring.io/spring-framework/docs/6.0.0/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html#setReadTimeout(int)
-                                  clientHttpRequestFactory.setReadTimeout(30000);
                                   // ... set poolingConnectionManager on HttpClient
                                   return clientHttpRequestFactory;
                               })
