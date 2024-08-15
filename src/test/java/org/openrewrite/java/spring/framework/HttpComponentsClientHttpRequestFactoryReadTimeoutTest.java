@@ -33,8 +33,6 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
             "spring-beans-5",
             "spring-boot-3.1",
             "spring-web-5",
-            "httpclient-4",
-            "httpcore-4",
             "httpclient5",
             "httpcore5"));
     }
