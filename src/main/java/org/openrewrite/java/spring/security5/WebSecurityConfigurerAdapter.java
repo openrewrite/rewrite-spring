@@ -15,9 +15,9 @@
  */
 package org.openrewrite.java.spring.security5;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -100,7 +100,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         return Preconditions.check(new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
-            public @Nullable J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+            public J.@Nullable ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
                         && isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION);
                 boolean hasConflict = false;
@@ -126,7 +126,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return classDecl;
             }
 
-            private @Nullable J.ClassDeclaration processSecurityAdapterClass(J.ClassDeclaration classDecl) {
+            private J.@Nullable ClassDeclaration processSecurityAdapterClass(J.ClassDeclaration classDecl) {
                 classDecl = classDecl.withExtends(null);
                 // Flatten configuration classes if applicable
                 Cursor enclosingClassCursor = getCursor().getParent();
