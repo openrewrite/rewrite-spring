@@ -91,9 +91,9 @@ class UpgradeSpringSecurity61Test implements RewriteTest {
                 Collection<List<Recipe>> recipes = recipesThatMadeChanges.getRecipes();
                 for (List<Recipe> recipeList : recipes) {
                     for (Recipe recipe : recipeList) {
-                        System.out.println(recipe.getName());
+                        System.out.printf(recipe.getName() + "\n");
                     }
-                    System.out.println();
+                    System.out.printf("\n");
                 }
             })
           )
