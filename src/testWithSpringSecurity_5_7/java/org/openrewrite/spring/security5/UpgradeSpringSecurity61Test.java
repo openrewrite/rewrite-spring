@@ -16,13 +16,14 @@
 package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MigrateTo6_1Test implements RewriteTest {
+class UpgradeSpringSecurity61Test implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -31,10 +32,12 @@ public class MigrateTo6_1Test implements RewriteTest {
             .classpath("spring-security", "spring-web", "tomcat-embed", "spring-context", "spring-beans"));
     }
 
+    @DocumentExample
     @Test
-    void test_1() {
+    void shouldRetainAntMatchers() {
         //language=java
         rewriteRun(
+          spec -> spec.expectedCyclesThatMakeChanges(2),
           java(
             """
               import org.springframework.http.HttpMethod;
@@ -44,8 +47,7 @@ public class MigrateTo6_1Test implements RewriteTest {
               import org.springframework.security.web.SecurityFilterChain;
 
               @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
+              class SecurityConfig extends WebSecurityConfigurerAdapter {
                   @Override
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http
@@ -56,7 +58,8 @@ public class MigrateTo6_1Test implements RewriteTest {
                       return http.build();
                   }
               }
-              """, """
+              """,
+            """
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -64,8 +67,7 @@ public class MigrateTo6_1Test implements RewriteTest {
               import org.springframework.security.web.SecurityFilterChain;
 
               @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
+              class SecurityConfig extends WebSecurityConfigurerAdapter {
                   @Override
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http
@@ -81,9 +83,10 @@ public class MigrateTo6_1Test implements RewriteTest {
     }
 
     @Test
-    void test_2() {
+    void shouldRetainChainOfAntMatchers() {
         //language=java
         rewriteRun(
+          spec -> spec.expectedCyclesThatMakeChanges(2),
           java(
             """
               import org.springframework.http.HttpMethod;
@@ -93,8 +96,7 @@ public class MigrateTo6_1Test implements RewriteTest {
               import org.springframework.security.web.SecurityFilterChain;
 
               @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
+              class SecurityConfig extends WebSecurityConfigurerAdapter {
                   @Override
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http
@@ -110,18 +112,18 @@ public class MigrateTo6_1Test implements RewriteTest {
                       return http.build();
                   }
               }
-              """, """
+              """,
+            """
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.web.SecurityFilterChain;
-              
+
               import static org.springframework.security.config.Customizer.withDefaults;
-              
+
               @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-              
+              class SecurityConfig extends WebSecurityConfigurerAdapter {
                   @Override
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http
