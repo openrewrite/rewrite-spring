@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.spring.security5.AuthorizeHttpRequests;
 import org.openrewrite.java.spring.security5.UseNewRequestMatchers;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -431,6 +432,84 @@ class UseNewRequestMatchersTest implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void shouldUseCorrectTypeAfterSecurityLambdaDslAndAuthorizeHttpRequests() {
+        //language=java
+        rewriteRun(
+          recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
+          java(
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeRequests()
+                          .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll();
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeHttpRequests()
+                          .requestMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll();
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldUseCorrectTypeAfterSecurityLambdaDslAndAuthorizeHttpRequestsChain() {
+        //language=java
+        rewriteRun(
+          recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
+          java(
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeRequests()
+                          .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                          .antMatchers("/openapi").permitAll();
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeHttpRequests()
+                          .requestMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                          .requestMatchers("/openapi").permitAll();
+                      return http.build();
+                  }
+              }
+             """
           )
         );
     }
