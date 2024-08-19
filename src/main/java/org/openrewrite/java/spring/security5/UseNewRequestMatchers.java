@@ -68,12 +68,14 @@ public class UseNewRequestMatchers extends Recipe {
                                 && mi.getSelect() != null) {
                             String parametersTemplate = mi.getArguments().stream().map(arg -> "#{any()}").collect(joining(", "));
                             String replacementMethodName = isCsrfMatcher ? "ignoringRequestMatchers" : "requestMatchers";
-                            JavaTemplate template = JavaTemplate.builder(String.format(replacementMethodName + "(%s)", parametersTemplate))
+                            J.MethodInvocation applied = JavaTemplate.builder(String.format("%s(%s)", replacementMethodName, parametersTemplate))
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-config-5.8"))
-                                    .build();
-                            J.MethodInvocation apply = template.apply(getCursor(), mi.getCoordinates().replaceMethod(), mi.getArguments().toArray());
-                            return apply.withSelect(mi.getSelect())
-                                    .withName(mi.getName().withSimpleName(replacementMethodName).withType(JavaType.buildType(CLAZZ)));
+                                    .build().apply(getCursor(), mi.getCoordinates().replaceMethod(), mi.getArguments().toArray());
+                            JavaType.Method newMethodType = mi.getMethodType().withName(replacementMethodName);
+                            return applied
+                                    .withSelect(mi.getSelect())
+                                    .withName(mi.getName().withSimpleName(replacementMethodName).withType(newMethodType))
+                                    .withMethodType(newMethodType);
                         }
                         return mi;
                     }
