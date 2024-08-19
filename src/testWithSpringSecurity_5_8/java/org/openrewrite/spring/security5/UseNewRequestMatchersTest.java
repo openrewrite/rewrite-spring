@@ -481,18 +481,18 @@ class UseNewRequestMatchersTest implements RewriteTest {
           recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
           java(
             """
-             import org.springframework.http.HttpMethod;
-             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-             import org.springframework.security.web.SecurityFilterChain;
-             class SecurityConfig {
-                 public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                     http
-                         .authorizeRequests(requests -> requests
-                         .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll());
-                     return http.build();
-                 }
-             }
-             """,
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeRequests(requests -> requests
+                          .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll());
+                      return http.build();
+                  }
+              }
+              """,
             """
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -557,23 +557,25 @@ class UseNewRequestMatchersTest implements RewriteTest {
           recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
           java(
             """
-             import org.springframework.http.HttpMethod;
-             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-             import org.springframework.security.web.SecurityFilterChain;
-             class SecurityConfig {
-                 public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                     http
-                         .authorizeRequests(requests -> requests
-                         .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
-                         .antMatchers("/openapi").permitAll());
-                     return http.build();
-                 }
-             }
-             """,
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeRequests(requests -> requests
+                          .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                          .antMatchers("/openapi").permitAll());
+                      return http.build();
+                  }
+              }
+              """,
             """
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.web.SecurityFilterChain;
+              
               class SecurityConfig {
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http
