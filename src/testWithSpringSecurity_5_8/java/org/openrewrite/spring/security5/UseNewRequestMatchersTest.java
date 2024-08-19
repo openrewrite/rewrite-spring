@@ -437,7 +437,7 @@ class UseNewRequestMatchersTest implements RewriteTest {
     }
 
     @Test
-    void shouldUseCorrectTypeAfterSecurityLambdaDslAndAuthorizeHttpRequests() {
+    void shouldUseCorrectTypeAfterAuthorizeHttpRequests() {
         //language=java
         rewriteRun(
           recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
@@ -475,7 +475,45 @@ class UseNewRequestMatchersTest implements RewriteTest {
     }
 
     @Test
-    void shouldUseCorrectTypeAfterSecurityLambdaDslAndAuthorizeHttpRequestsChain() {
+    void shouldUseCorrectTypeAfterAuthorizeHttpRequestsDsl() {
+        //language=java
+        rewriteRun(
+          recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
+          java(
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeRequests(requests -> requests
+                          .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll());
+                      return http.build();
+                  }
+              }
+             """,
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeHttpRequests(requests -> requests
+                          .requestMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll());
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldUseCorrectTypeAfterAuthorizeHttpRequestsChain() {
         //language=java
         rewriteRun(
           recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
@@ -510,6 +548,46 @@ class UseNewRequestMatchersTest implements RewriteTest {
                  }
              }
              """
+          )
+        );
+    }
+
+    @Test
+    void shouldUseCorrectTypeAfterAuthorizeHttpRequestsChainDsl() {
+        //language=java
+        rewriteRun(
+          recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
+          java(
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeRequests(requests -> requests
+                          .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                          .antMatchers("/openapi").permitAll());
+                      return http.build();
+                  }
+              }
+             """,
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeHttpRequests(requests -> requests
+                          .requestMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                          .requestMatchers("/openapi").permitAll());
+                      return http.build();
+                  }
+              }
+              """
           )
         );
     }
