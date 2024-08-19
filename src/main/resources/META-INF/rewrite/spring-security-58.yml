@@ -31,6 +31,9 @@ recipeList:
       artifactId: "*"
       newVersion: 5.8.x
       overrideManagedVersion: false
+  - org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl
+  - org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
+  - org.openrewrite.java.spring.boot2.HeadersConfigurerLambdaDsl
   - org.openrewrite.java.spring.security5.AuthorizeHttpRequests
   - org.openrewrite.java.spring.security5.UseNewRequestMatchers
   - org.openrewrite.java.spring.security5.UseNewSecurityMatchers

@@ -29,11 +29,11 @@ import java.util.List;
 
 import static org.openrewrite.java.Assertions.java;
 
-class UpgradeSpringSecurity61Test implements RewriteTest {
+class UpgradeSpringSecurity58Test implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_1")
+        spec.recipeFromResources("org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8")
           .parser(JavaParser.fromJavaVersion()
             .classpath("spring-security", "spring-web", "tomcat-embed", "spring-context", "spring-beans"));
     }
@@ -85,7 +85,6 @@ class UpgradeSpringSecurity61Test implements RewriteTest {
                   }
               }
               """,
-            // TODO Remove this diagnostic
             spec -> spec.afterRecipe(cu -> {
                 RecipesThatMadeChanges recipesThatMadeChanges = cu.getMarkers().findFirst(RecipesThatMadeChanges.class).get();
                 Collection<List<Recipe>> recipes = recipesThatMadeChanges.getRecipes();
@@ -138,8 +137,6 @@ class UpgradeSpringSecurity61Test implements RewriteTest {
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.web.SecurityFilterChain;
 
-              import static org.springframework.security.config.Customizer.withDefaults;
-
               @EnableWebSecurity
               class SecurityConfig extends WebSecurityConfigurerAdapter {
                   @Override
@@ -152,11 +149,11 @@ class UpgradeSpringSecurity61Test implements RewriteTest {
                                       .requestMatchers("/openapi/**").permitAll()
                                       .requestMatchers("/rest/hello").permitAll()
                                       .requestMatchers("/actuator/**").permitAll()
-                                      .anyRequest().authenticated()).oauth2ResourceServer(server -> server.jwt(withDefaults()));
+                                      .anyRequest().authenticated()).oauth2ResourceServer(server -> server.jwt());
                       return http.build();
                   }
               }
-              """
+             """
           )
         );
     }
