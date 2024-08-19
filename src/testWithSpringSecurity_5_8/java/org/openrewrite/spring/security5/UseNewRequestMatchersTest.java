@@ -489,7 +489,7 @@ class UseNewRequestMatchersTest implements RewriteTest {
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+
               class SecurityConfig {
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http
@@ -504,7 +504,7 @@ class UseNewRequestMatchersTest implements RewriteTest {
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+
               class SecurityConfig {
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http
@@ -518,5 +518,4 @@ class UseNewRequestMatchersTest implements RewriteTest {
           )
         );
     }
-
 }
