@@ -496,19 +496,19 @@ class UseNewRequestMatchersTest implements RewriteTest {
               }
               """,
             """
-              import org.springframework.http.HttpMethod;
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.web.SecurityFilterChain;
+             import org.springframework.http.HttpMethod;
+             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+             import org.springframework.security.web.SecurityFilterChain;
 
-              class SecurityConfig {
-                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeHttpRequests()
-                          .requestMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
-                          .requestMatchers("/openapi").permitAll();
-                      return http.build();
-                  }
-              }
+             class SecurityConfig {
+                 public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                     http
+                         .authorizeHttpRequests()
+                         .requestMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                         .requestMatchers("/openapi").permitAll();
+                     return http.build();
+                 }
+             }
              """
           )
         );
