@@ -14,6 +14,21 @@
 # limitations under the License.
 #
 
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.SpringFoxToSpringDoc
+displayName: Migrate from SpringFox Swagger to SpringDoc and OpenAPI
+description: Migrate from SpringFox Swagger to SpringDoc and OpenAPI.
+tags:
+  - swagger
+  - openapi
+  - springfox
+  - springdoc
+recipeList:
+  - org.openrewrite.java.springdoc.SwaggerToSpringDoc
+  - org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
+
+---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.springdoc.SwaggerToSpringDoc
 displayName: Migrate from Swagger to SpringDoc and OpenAPI
@@ -24,16 +39,36 @@ tags:
   - openapi
 recipeList:
   - org.openrewrite.openapi.swagger.SwaggerToOpenAPI
-  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: swagger.title
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: swagger.description
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: swagger.contact
-  - org.openrewrite.maven.RemoveDependency:
+  - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: io.swagger.core.v3
       artifactId: swagger-annotations
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
+displayName: Replace SpringFox Dependencies
+description: Replace SpringFox Dependencies.
+tags:
+  - springfox
+  - springdoc
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: io.springfox
+      artifactIdPattern: "*"
+recipeList:
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: io.springfox
+      artifactId: "*"
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-starter-webmvc-ui
+      version: 1.5.x # aligns with spring boot 2.6
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -43,11 +78,8 @@ description: Upgrade to SpringDoc v2.
 tags:
   - springdoc
 recipeList:
+  - org.openrewrite.openapi.swagger.UseJakartaSwaggerArtifacts
   # https://springdoc.org/#migrating-from-springdoc-v1
-  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
-      groupId: org.springdoc
-      artifactId: "*"
-      newVersion: 2.3.x
   # "classes/annotations changes"
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.SpringDocUtils
@@ -72,43 +104,59 @@ recipeList:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-common
       newArtifactId: springdoc-openapi-starter-common
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-data-rest
       newArtifactId: springdoc-openapi-starter-common
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-groovy
       newArtifactId: springdoc-openapi-starter-common
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-hateoas
       newArtifactId: springdoc-openapi-starter-common
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-javadoc
       newArtifactId: springdoc-openapi-starter-common
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-kotlin
       newArtifactId: springdoc-openapi-starter-common
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-security
       newArtifactId: springdoc-openapi-starter-common
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-webmvc-core
       newArtifactId: springdoc-openapi-starter-webmvc-api
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-webflux-core
       newArtifactId: springdoc-openapi-starter-webflux-api
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-ui
       newArtifactId: springdoc-openapi-starter-webmvc-ui
+      newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-webflux-ui
       newArtifactId: springdoc-openapi-starter-webflux-ui
+      newVersion: 2.1.x
+  # upgrade all remaining non-renamed modules
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 2.1.x

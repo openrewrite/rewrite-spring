@@ -49,15 +49,17 @@ recipeList:
       pluginIdPattern: org.springframework.boot
       newVersion: 3.3.x
   - org.openrewrite.micrometer.UpgradeMicrometer_1_13
-
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.graalvm.buildtools.native
       newVersion: 0.10.x
-
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.datastax.oss
       newGroupId: org.apache.cassandra
       oldArtifactId: "*"
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 2.6.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe

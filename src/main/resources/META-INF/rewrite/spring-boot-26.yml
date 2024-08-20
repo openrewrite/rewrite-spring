@@ -46,6 +46,11 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.6.x
+  - org.openrewrite.java.springdoc.SpringFoxToSpringDoc
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 1.5.x
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_6

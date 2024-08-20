@@ -24,10 +24,10 @@ import java.util.regex.Pattern;
 
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class SwaggerToSpringDocTest implements RewriteTest {
+class UpgradeSpringDoc2Test implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.springdoc.SwaggerToSpringDoc");
+        spec.recipeFromResources("org.openrewrite.java.springdoc.UpgradeSpringDoc_2");
     }
 
     @Test
@@ -48,11 +48,16 @@ class SwaggerToSpringDocTest implements RewriteTest {
                           <artifactId>springdoc-openapi</artifactId>
                           <version>1.5.13</version>
                       </dependency>
+                      <dependency>
+                          <groupId>org.springdoc</groupId>
+                          <artifactId>springdoc-openapi-common</artifactId>
+                          <version>1.5.13</version>
+                      </dependency>
                   </dependencies>
               </project>
               """,
             after -> after.after(actual -> {
-                String version = Pattern.compile("<version>(2\\.3\\..*)</version>")
+                String version = Pattern.compile("<version>(2\\.1\\..*)</version>")
                   .matcher(actual)
                   .results()
                   .map(m -> m.group(1))
@@ -68,7 +73,12 @@ class SwaggerToSpringDocTest implements RewriteTest {
                           <dependency>
                               <groupId>org.springdoc</groupId>
                               <artifactId>springdoc-openapi</artifactId>
-                              <version>%s</version>
+                              <version>%1$s</version>
+                          </dependency>
+                          <dependency>
+                              <groupId>org.springdoc</groupId>
+                              <artifactId>springdoc-openapi-starter-common</artifactId>
+                              <version>%1$s</version>
                           </dependency>
                       </dependencies>
                   </project>
