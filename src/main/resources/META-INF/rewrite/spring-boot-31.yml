@@ -46,5 +46,9 @@ recipeList:
       newVersion: 3.1.x
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_1
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_1
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 2.2.x
   - org.openrewrite.hibernate.MigrateToHibernate62
   - org.openrewrite.reactive.reactor.UpgradeReactor_3_5

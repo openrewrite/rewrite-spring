@@ -53,6 +53,10 @@ recipeList:
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: ^4.10
       addIfMissing: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 1.3.x
 
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateApplicationHealthIndicatorToPingHealthIndicator

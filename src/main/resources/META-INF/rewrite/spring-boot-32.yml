@@ -66,6 +66,10 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.transaction.PlatformTransactionManagerCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizer
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 2.5.x
   - org.openrewrite.hibernate.MigrateToHibernate63
   - org.openrewrite.java.spring.boot3.RelocateLauncherClasses
 
