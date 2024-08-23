@@ -43,12 +43,15 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
                 Properties.File propertyFile = (Properties.File) tree;
                 String sourcePath = PathUtils.separatorsToUnix(propertyFile.getSourcePath().toString());
+                String[] pathArray = sourcePath.split("/");
 
-                if (sourcePath.matches("application.properties"))
+                if (sourcePath.matches("(?:.*/)?application.properties")) {
+                    acc.pathToApplicationProperties = getPathToApplicationProperties(pathArray);
                     acc.propertyFileContent = getNewApplicationPropertyFileInfo(propertyFile.getContent());
+                }
 
-                if (sourcePath.matches("application-.+\\.properties"))
-                    acc.existingPropertyFilePaths.add(sourcePath);
+                if (sourcePath.matches("(?:.*/)?application-[^/]+\\.properties"))
+                    acc.fileNameToFilePath.put(pathArray[pathArray.length - 1], sourcePath);
 
                 return tree;
             }
@@ -63,9 +66,9 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         Set<SourceFile> newApplicationPropertiesFiles = new HashSet<>();
 
         for (Map.Entry<String, List<Properties.Content>> entry : acc.propertyFileContent.entrySet())
-            if (!acc.existingPropertyFilePaths.contains(entry.getKey()))
+            if (!acc.fileNameToFilePath.containsKey(entry.getKey()))
                 newApplicationPropertiesFiles.
-                        add(new CreatePropertiesFile(entry.getKey(), "", null).
+                        add(new CreatePropertiesFile(acc.pathToApplicationProperties + entry.getKey(), "", null).
                                 generate(new AtomicBoolean(true), ctx).
                                 iterator().
                                 next());
@@ -81,8 +84,10 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 if (acc.propertyFileContent.isEmpty())
                     return file;
 
-                String fileName = file.getSourcePath().toString();
-                return fileName.equals("application.properties") ? deleteFromApplicationProperties(file) :
+                String[] filePathArray = file.getSourcePath().toString().split("/");
+                String fileName = filePathArray[filePathArray.length - 1];
+
+                return fileName.matches("application.properties") ? deleteFromApplicationProperties(file) :
                         appendToExistingPropertiesFile(file, acc.propertyFileContent.get(fileName));
             }
         };
@@ -133,6 +138,10 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         return list;
     }
 
+    private String getPathToApplicationProperties(String[] pathArray) {
+        return pathArray.length == 1 ? "" : String.join("/", Arrays.copyOfRange(pathArray, 0, pathArray.length - 1)) + "/";
+    }
+
     private boolean isSeparator(Properties.Content c) {
         return c instanceof Properties.Comment &&
                 ((Properties.Comment) c).getMessage().equals("---") &&
@@ -141,7 +150,8 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
     }
 
     public static class Accumulator {
-        Set<String> existingPropertyFilePaths = new HashSet<>();
+        String pathToApplicationProperties = "";
+        Map<String, String> fileNameToFilePath = new HashMap<>();
         Map<String, List<Properties.Content>> propertyFileContent = new HashMap<>();
     }
 }
