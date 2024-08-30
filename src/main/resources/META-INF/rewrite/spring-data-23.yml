@@ -26,7 +26,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.mongodb
       artifactId: mongodb-driver-legacy
-      version: "5.1.x"
+      version: 5.1.x
       onlyIfUsing: com.mongodb.MongoClientURI
   - org.openrewrite.java.spring.data.RefactorSimpleMongoDbFactoryRecipe
   - org.openrewrite.java.ChangeType:

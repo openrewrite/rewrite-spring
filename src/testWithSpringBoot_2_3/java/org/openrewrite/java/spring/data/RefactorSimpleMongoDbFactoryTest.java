@@ -43,10 +43,10 @@ class RefactorSimpleMongoDbFactoryTest implements RewriteTest {
               import com.mongodb.MongoClientURI;
 
               class Test {
-                  private MongoDbFactory factory;
-                  private SimpleMongoDbFactory factory2;
+                  MongoDbFactory factory;
+                  SimpleMongoDbFactory factory2;
 
-                  public void setupUri(String uri) {
+                  void setupUri(String uri) {
                       factory2 = new SimpleMongoDbFactory(new MongoClientURI(uri));
                   }
               }
@@ -56,10 +56,10 @@ class RefactorSimpleMongoDbFactoryTest implements RewriteTest {
               import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 
               class Test {
-                  private MongoDatabaseFactory factory;
-                  private SimpleMongoClientDatabaseFactory factory2;
+                  MongoDatabaseFactory factory;
+                  SimpleMongoClientDatabaseFactory factory2;
 
-                  public void setupUri(String uri) {
+                  void setupUri(String uri) {
                       factory2 = new SimpleMongoClientDatabaseFactory(uri);
                   }
               }
