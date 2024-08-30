@@ -23,7 +23,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class RefactorSimpleMongoDbFactoryTest implements RewriteTest {
+class RefactorSimpleMongoDbFactoryTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
