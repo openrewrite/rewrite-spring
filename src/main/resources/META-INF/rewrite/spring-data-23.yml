@@ -23,3 +23,18 @@ displayName: Migrate to Spring Data 2.3
 description: Migrate applications to the latest Spring Data 2.3 release.
 recipeList:
   - org.openrewrite.java.spring.data.MigrateJpaSort
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.mongodb
+      artifactId: mongodb-driver-legacy
+      version: "5.1.x"
+      onlyIfUsing: com.mongodb.MongoClientURI
+  - org.openrewrite.java.spring.data.RefactorSimpleMongoDbFactoryRecipe
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.MongoDbFactory
+      newFullyQualifiedTypeName: org.springframework.data.mongodb.MongoDatabaseFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.core.SimpleMongoDbFactory
+      newFullyQualifiedTypeName: org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.core.SimpleMongoClientDbFactory
+      newFullyQualifiedTypeName: org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory
