@@ -19,7 +19,7 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
-displayName: Migrate to Spring Data 2.3
+displayName: Migrate to Spring Data 2.3 local
 description: Migrate applications to the latest Spring Data 2.3 release.
 recipeList:
   - org.openrewrite.java.spring.data.MigrateJpaSort
@@ -38,3 +38,6 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.data.mongodb.core.SimpleMongoClientDbFactory
       newFullyQualifiedTypeName: org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.mongodb.async.client.MongoClientSettings
+      newFullyQualifiedTypeName: com.mongodb.MongoClientSettings
