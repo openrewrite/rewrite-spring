@@ -19,22 +19,23 @@ import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.mongodb.MongoClientURI;
 import org.openrewrite.java.template.RecipeDescriptor;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 
 @RecipeDescriptor(
-        name = "Refactor `SimpleMongoDbFactory(new MongoClientURI(String))` to `SimpleMongoClientDbFactory(String)`",
-        description = "As part of spring-data-mongodb 2.3 migration the deprecated usage of `SimpleMongoDbFactory(new MongoClientURI(String))` has to be refactored to use `SimpleMongoClientDbFactory`"
-)
+        name = "Use `new SimpleMongoClientDbFactory(String)`",
+        description = "Replace usage of deprecated `new SimpleMongoDbFactory(new MongoClientURI(String))` with `new SimpleMongoClientDbFactory(String)`.")
+@SuppressWarnings("deprecation")
 public class RefactorSimpleMongoDbFactory {
 
     @BeforeTemplate
-    public SimpleMongoDbFactory before(String uri) {
+    public MongoDbFactory before(String uri) {
         return new SimpleMongoDbFactory(new MongoClientURI(uri));
     }
 
     @AfterTemplate
-    public SimpleMongoClientDbFactory after(String uri) {
+    public MongoDbFactory after(String uri) {
         return new SimpleMongoClientDbFactory(uri);
     }
 }

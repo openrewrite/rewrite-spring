@@ -33,6 +33,7 @@ class RefactorSimpleMongoDbFactoryTest implements RewriteTest {
 
     @DocumentExample
     @Test
+    @SuppressWarnings("deprecation")
     void constructorWithAttribute() {
         //language=java
         rewriteRun(
@@ -43,11 +44,8 @@ class RefactorSimpleMongoDbFactoryTest implements RewriteTest {
               import com.mongodb.MongoClientURI;
 
               class Test {
-                  MongoDbFactory factory;
-                  SimpleMongoDbFactory factory2;
-
-                  void setupUri(String uri) {
-                      factory2 = new SimpleMongoDbFactory(new MongoClientURI(uri));
+                  MongoDbFactory setupUri(String uri) {
+                      return new SimpleMongoDbFactory(new MongoClientURI(uri));
                   }
               }
               """,
@@ -56,11 +54,8 @@ class RefactorSimpleMongoDbFactoryTest implements RewriteTest {
               import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 
               class Test {
-                  MongoDatabaseFactory factory;
-                  SimpleMongoClientDatabaseFactory factory2;
-
-                  void setupUri(String uri) {
-                      factory2 = new SimpleMongoClientDatabaseFactory(uri);
+                  MongoDatabaseFactory setupUri(String uri) {
+                      return new SimpleMongoClientDatabaseFactory(uri);
                   }
               }
               """
