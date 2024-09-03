@@ -121,6 +121,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-yaml")
     implementation("org.openrewrite:rewrite-gradle")
     implementation("org.openrewrite:rewrite-maven")
+    implementation("org.openrewrite:rewrite-templating:$rewriteVersion")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
@@ -132,6 +133,13 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-reactive-streams:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
+
+    annotationProcessor("org.openrewrite:rewrite-templating:$rewriteVersion")
+    compileOnly("com.google.errorprone:error_prone_core:2.19.1") {
+        exclude("com.google.auto.service", "auto-service-annotations")
+    }
+    implementation("org.mongodb:mongo-java-driver:3.12.+")
+    implementation("org.springframework.data:spring-data-mongodb:2.2.+")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
@@ -174,6 +182,8 @@ dependencies {
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-web:5.2.+")
     "testWithSpringBoot_2_3Implementation"("org.springframework.data:spring-data-jpa:2.3.+")
+    "testWithSpringBoot_2_3Implementation"("org.springframework.data:spring-data-mongodb:2.2.+")
+    "testWithSpringBoot_2_3Implementation"("org.mongodb:mongo-java-driver:3.12.+")
     "testWithSpringBoot_2_3Implementation"("javax.persistence:javax.persistence-api:2.2")
 
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
