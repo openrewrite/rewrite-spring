@@ -138,8 +138,8 @@ dependencies {
     compileOnly("com.google.errorprone:error_prone_core:2.19.1") {
         exclude("com.google.auto.service", "auto-service-annotations")
     }
-    compileOnly("org.mongodb:mongo-java-driver:3.12.+")
-    compileOnly("org.springframework.data:spring-data-mongodb:2.2.+")
+    implementation("org.mongodb:mongo-java-driver:3.12.+")
+    implementation("org.springframework.data:spring-data-mongodb:2.2.+")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
