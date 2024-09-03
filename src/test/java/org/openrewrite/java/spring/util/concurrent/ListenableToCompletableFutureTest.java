@@ -89,7 +89,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
                   void test(ListenableFuture<String> future) {
                       future.addCallback(new ListenableFutureCallback<String>() {
 
-                         private final String field = "value";
+                          private final String field = "value";
 
                           @Override
                           public void onSuccess(String result) {

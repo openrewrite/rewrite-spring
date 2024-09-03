@@ -15,18 +15,41 @@
  */
 package org.openrewrite.java.spring.util.concurrent;
 
-import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.TreeVisitor;
+import org.openrewrite.java.ChangeType;
+import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
 
-public class ListenableToCompletableFuture<P> extends JavaIsoVisitor<P> {
+public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext> {
+
+    private static final MethodMatcher COMPLETABLE_METHOD_MATCHER = new MethodMatcher("org.springframework.util.concurrent.ListenableFuture completable()");
 
     @Override
-    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, P p) {
-        return super.visitMethodDeclaration(method, p);
+    public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
+        TreeVisitor<?, ExecutionContext> visitor = new ChangeType(
+                "org.springframework.util.concurrent.ListenableFuture",
+                "java.util.concurrent.CompletableFuture",
+                null).getVisitor();
+        J.CompilationUnit cu = (J.CompilationUnit) super.visitCompilationUnit(compilationUnit, ctx);
+        cu = (J.CompilationUnit) visitor.visit(cu, ctx, getCursor().getParent());
+        return cu;
     }
 
     @Override
-    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, P p) {
-        return super.visitMethodInvocation(method, p);
+    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+        return (J.MethodDeclaration) super.visitMethodDeclaration(method, ctx);
+    }
+
+    @Override
+    public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+        J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+
+        if (COMPLETABLE_METHOD_MATCHER.matches(mi)) {
+            return mi.getSelect().withPrefix(mi.getPrefix());
+        }
+
+        return mi;
     }
 }
