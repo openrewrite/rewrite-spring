@@ -230,6 +230,7 @@ dependencies {
     "testWithSpringBoot_2_7RuntimeOnly"("jakarta.xml.bind:jakarta.xml.bind-api:2.3.3")
 
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-actuator:3.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-web:6.0.+")
@@ -241,6 +242,7 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-config:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:10.1.+")
 
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.2.+")
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")
