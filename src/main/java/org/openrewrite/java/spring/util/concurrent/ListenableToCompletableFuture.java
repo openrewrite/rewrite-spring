@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.util.concurrent;
 
-import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaTemplate;
@@ -70,13 +69,14 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
         return mi;
     }
 
-    private J.@NotNull MethodInvocation replaceListenableFutureCallback(J.MethodInvocation mi) {
+    private J.MethodInvocation replaceListenableFutureCallback(J.MethodInvocation mi) {
         if (!(mi.getArguments().get(0) instanceof J.NewClass)) {
             return mi;
         }
         J.NewClass newClass = (J.NewClass) mi.getArguments().get(0);
 
 
+        // TODO build up template from newClass argument
         return JavaTemplate.builder("whenComplete(new BiConsumer<String, Throwable>() {\n" +
                                     "            @Override\n" +
                                     "            public void accept(String string, Throwable ex) {\n" +
@@ -92,10 +92,11 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
                 .apply(getCursor(), mi.getCoordinates().replaceMethod());
     }
 
-    private J.@NotNull MethodInvocation replaceSuccessFailureCallback(J.MethodInvocation mi) {
+    private J.MethodInvocation replaceSuccessFailureCallback(J.MethodInvocation mi) {
         Expression successCallback = mi.getArguments().get(0);
         Expression failureCallback = mi.getArguments().get(1);
 
+        // TODO build up template from success/failureCallback arguments
         return JavaTemplate.builder("whenComplete(new BiConsumer<String, Throwable>() {\n" +
                                     "            @Override\n" +
                                     "            public void accept(String string, Throwable ex) {\n" +
