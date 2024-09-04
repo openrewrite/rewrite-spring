@@ -16,10 +16,8 @@
 package org.openrewrite.java.spring.util.concurrent;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.java.ChangeType;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.java.*;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.staticanalysis.RemoveRedundantTypeCast;
@@ -27,15 +25,18 @@ import org.openrewrite.staticanalysis.UseLambdaForFunctionalInterface;
 
 public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext> {
 
-    private static final MethodMatcher COMPLETABLE_METHOD_MATCHER =
+    // These matcher patterns assume that ChangeType has already ran first; hence the use of CompletableFuture
+    private static final MethodMatcher COMPLETABLE_MATCHER =
             new MethodMatcher("java.util.concurrent.CompletableFuture completable()");
-    private static final MethodMatcher SUCCESS_FAILURE_METHOD_MATCHER =
+    private static final MethodMatcher ADD_CALLBACK_SUCCESS_FAILURE_MATCHER =
             new MethodMatcher("java.util.concurrent.CompletableFuture addCallback(" +
                               "org.springframework.util.concurrent.SuccessCallback, " +
                               "org.springframework.util.concurrent.FailureCallback)");
-    private static final MethodMatcher CALLBACK_METHOD_MATCHER =
+    private static final MethodMatcher ADD_CALLBACK_LISTENABLE_FUTURE_CALLBACK_MATCHER =
             new MethodMatcher("java.util.concurrent.CompletableFuture addCallback(" +
                               "org.springframework.util.concurrent.ListenableFutureCallback)");
+
+
 
     @Override
     public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
@@ -56,40 +57,16 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
     public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
         J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
 
-        if (COMPLETABLE_METHOD_MATCHER.matches(mi)) {
+        if (COMPLETABLE_MATCHER.matches(mi)) {
             return mi.getSelect().withPrefix(mi.getPrefix());
         }
-        if (CALLBACK_METHOD_MATCHER.matches(mi)) {
-            return replaceListenableFutureCallback(mi);
+        if (ADD_CALLBACK_LISTENABLE_FUTURE_CALLBACK_MATCHER.matches(mi)) {
+            return new ListenableFutureCallbackToBiConsumerVisitor().visitNonNull(mi, new InMemoryExecutionContext());
         }
-        if (SUCCESS_FAILURE_METHOD_MATCHER.matches(mi)) {
+        if (ADD_CALLBACK_SUCCESS_FAILURE_MATCHER.matches(mi)) {
             return replaceSuccessFailureCallback(mi);
         }
-
         return mi;
-    }
-
-    private J.MethodInvocation replaceListenableFutureCallback(J.MethodInvocation mi) {
-        if (!(mi.getArguments().get(0) instanceof J.NewClass)) {
-            return mi;
-        }
-        J.NewClass newClass = (J.NewClass) mi.getArguments().get(0);
-
-
-        // TODO build up template from newClass argument
-        return JavaTemplate.builder("whenComplete(new BiConsumer<String, Throwable>() {\n" +
-                                    "            @Override\n" +
-                                    "            public void accept(String string, Throwable ex) {\n" +
-                                    "                if (ex == null) {\n" +
-                                    "                    System.out.println(string);\n" +
-                                    "                } else {\n" +
-                                    "                    System.err.println(ex.getMessage());\n" +
-                                    "                }\n" +
-                                    "            }\n" +
-                                    "        })")
-                .contextSensitive()
-                .build()
-                .apply(getCursor(), mi.getCoordinates().replaceMethod());
     }
 
     private J.MethodInvocation replaceSuccessFailureCallback(J.MethodInvocation mi) {
@@ -107,10 +84,12 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
                                     "                }\n" +
                                     "            }\n" +
                                     "        })")
-                .doBeforeParseTemplate(System.out::println)
+                .doBeforeParseTemplate(System.out::println) // XXX remove
                 .contextSensitive()
                 .imports("java.util.function.BiConsumer")
                 .build()
                 .apply(getCursor(), mi.getCoordinates().replaceMethod());
     }
+
+
 }

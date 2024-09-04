@@ -60,7 +60,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               """,
             """
               import java.util.concurrent.CompletableFuture;
-
+              
               class A {
                   void test(CompletableFuture<String> future) {
                       future.whenComplete((result, ex) -> {
@@ -88,9 +88,9 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               class A {
                   void test(ListenableFuture<String> future) {
                       future.addCallback(new ListenableFutureCallback<String>() {
-
+              
                           private final String field = "value";
-
+              
                           @Override
                           public void onSuccess(String result) {
                               System.out.println(result);
@@ -131,6 +131,53 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     }
 
     @Test
+    void addListenableFutureCallbackFromClass() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+              class MyCallback implements ListenableFutureCallback<String> {
+                  @Override
+                  public void onSuccess(String result) {
+                      System.out.println(result);
+                  }
+              
+                  @Override
+                  public void onFailure(Throwable ex) {
+                      System.err.println(ex.getMessage());
+                  }
+              }
+              """,
+            """
+              import java.util.function.BiConsumer;
+              class MyCallback implements BiConsumer<String, Throwable> {
+                  @Override
+                  public void accept(String result, Throwable ex) {
+                      if (ex == null) {
+                          System.out.println(result);
+                      } else {
+                          System.err.println(ex.getMessage());
+                      }
+                  }
+              }
+              """
+          ),
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFuture;
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+              class A {
+                  void test(ListenableFuture<String> future) {
+                      future.addCallback(new MyCallback());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void addSuccessFailureCallback() {
         //language=java
         rewriteRun(
@@ -147,7 +194,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               """,
             """
               import java.util.concurrent.CompletableFuture;
-
+              
               class A {
                   void test(CompletableFuture<String> future) {
                       future.whenComplete((string, ex) -> {
@@ -172,7 +219,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
             """
               import java.util.concurrent.CompletableFuture;
               import org.springframework.util.concurrent.ListenableFuture;
-
+              
               class A {
                   CompletableFuture<String> test(ListenableFuture<String> future) {
                       return future.completable();
@@ -181,7 +228,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               """,
             """
               import java.util.concurrent.CompletableFuture;
-
+              
               class A {
                   CompletableFuture<String> test(CompletableFuture<String> future) {
                       return future;
