@@ -90,6 +90,8 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
 
+    parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
+
     parserClasspath("org.springframework.security:spring-security-config:5.8.+")
     parserClasspath("org.springframework.security:spring-security-crypto:5.8.+")
     parserClasspath("org.springframework.security:spring-security-oauth2-client:5.8.+")
