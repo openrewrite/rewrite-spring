@@ -17,7 +17,10 @@ package org.openrewrite.java.spring.util.concurrent;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.InMemoryExecutionContext;
-import org.openrewrite.java.*;
+import org.openrewrite.java.ChangeType;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.staticanalysis.RemoveRedundantTypeCast;
@@ -35,7 +38,6 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
     private static final MethodMatcher ADD_CALLBACK_LISTENABLE_FUTURE_CALLBACK_MATCHER =
             new MethodMatcher("java.util.concurrent.CompletableFuture addCallback(" +
                               "org.springframework.util.concurrent.ListenableFutureCallback)");
-
 
 
     @Override
@@ -90,6 +92,4 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
                 .build()
                 .apply(getCursor(), mi.getCoordinates().replaceMethod());
     }
-
-
 }

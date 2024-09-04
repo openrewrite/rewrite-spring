@@ -30,7 +30,7 @@ class ListenableFutureCallbackToBiConsumerVisitorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(toRecipe(ListenableFutureCallbackToBiConsumerVisitor::new))
-                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6"));
     }
 
     @Test
@@ -38,36 +38,74 @@ class ListenableFutureCallbackToBiConsumerVisitorTest implements RewriteTest {
     void addListenableFutureCallbackFromClass() {
         //language=java
         rewriteRun(
-                java(
-                        """
-                                import org.springframework.util.concurrent.ListenableFutureCallback;
-                                class MyCallback implements ListenableFutureCallback<String> {
-                                    @Override
-                                    public void onSuccess(String result) {
-                                        System.out.println(result);
-                                    }
-                                
-                                    @Override
-                                    public void onFailure(Throwable ex) {
-                                        System.err.println(ex.getMessage());
-                                    }
-                                }
-                                """,
-                        """
-                                import java.util.function.BiConsumer;
-                                class MyCallback implements BiConsumer<String, Throwable> {
-                                    @Override
-                                    public void accept(String result, Throwable ex) {
-                                        if (ex == null) {
-                                            System.out.println(result);
-                                        } else {
-                                            System.err.println(ex.getMessage());
-                                        }
-                                    }
-                                }
-                                """
-                )
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+              class MyCallback implements ListenableFutureCallback<String> {
+                  @Override
+                  public void onSuccess(String result) {
+                      System.out.println(result);
+                  }
+              
+                  @Override
+                  public void onFailure(Throwable ex) {
+                      System.err.println(ex.getMessage());
+                  }
+              }
+              """,
+            """
+              import java.util.function.BiConsumer;
+              class MyCallback implements BiConsumer<String, Throwable> {
+                  @Override
+                  public void accept(String result, Throwable ex) {
+                      if (ex == null) {
+                          System.out.println(result);
+                      } else {
+                          System.err.println(ex.getMessage());
+                      }
+                  }
+              }
+              """
+          )
         );
     }
 
+    @Test
+    void newInlineCallback() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+              class Holder {
+                  ListenableFutureCallback callback = new ListenableFutureCallback<String>() {
+                      @Override
+                      public void onSuccess(String result) {
+                          System.out.println(result);
+                      }
+                      @Override
+                      public void onFailure(Throwable ex) {
+                          System.err.println(ex.getMessage());
+                      }
+                  };
+              }
+              """,
+            """
+              import java.util.function.BiConsumer;
+              class Holder {
+                  BiConsumer<String, Throwable> callback = new BiConsumer<String, Throwable>() {
+                      @Override
+                      public void accept(String result, Throwable ex) {
+                          if (ex == null) {
+                              System.out.println(result);
+                          } else {
+                              System.err.println(ex.getMessage());
+                          }
+                      }
+                  };
+              }
+              """
+          )
+        );
+    }
 }

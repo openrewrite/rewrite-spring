@@ -23,10 +23,14 @@ import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<ExecutionContext> {
+
+    private static final String LISTENABLE_FUTURE_CALLBACK = "org.springframework.util.concurrent.ListenableFutureCallback";
+
 
     private static final MethodMatcher SUCCESS_CALLBACK_MATCHER = new MethodMatcher("org.springframework.util.concurrent.SuccessCallback onSuccess(..)", true);
     private static final MethodMatcher FAILURE_CALLBACK_MATCHER = new MethodMatcher("org.springframework.util.concurrent.FailureCallback onFailure(java.lang.Throwable)", true);
@@ -34,13 +38,15 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
     @Override
     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
         J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
+        if (!TypeUtils.isAssignableTo(LISTENABLE_FUTURE_CALLBACK, cd.getType())) {
+            return cd;
+        }
 
         J.MethodDeclaration successCallbackMethodDeclaration = extract(SUCCESS_CALLBACK_MATCHER, cd);
         J.MethodDeclaration failureCallbackMethodDeclaration = extract(FAILURE_CALLBACK_MATCHER, cd);
         if (successCallbackMethodDeclaration == null || failureCallbackMethodDeclaration == null) {
             return cd;
         }
-
 
         cd = cd.withBody(cd.getBody().withStatements(ListUtils.map(cd.getBody().getStatements(), s -> {
             if (s == successCallbackMethodDeclaration) {
@@ -53,7 +59,7 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
         })));
 
         cd = (J.ClassDeclaration) new ChangeType(
-                "org.springframework.util.concurrent.ListenableFutureCallback",
+                LISTENABLE_FUTURE_CALLBACK,
                 "java.util.function.BiConsumer",
                 null).getVisitor()
                 .visit(cd, ctx, getCursor().getParent());
@@ -68,6 +74,9 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
     @Override
     public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
         J.NewClass nc = super.visitNewClass(newClass, ctx);
+        if (!TypeUtils.isAssignableTo(LISTENABLE_FUTURE_CALLBACK, nc.getType())) {
+            return nc;
+        }
 
         J.MethodDeclaration successCallbackMethodDeclaration = extract(SUCCESS_CALLBACK_MATCHER, nc);
         J.MethodDeclaration failureCallbackMethodDeclaration = extract(FAILURE_CALLBACK_MATCHER, nc);
@@ -88,7 +97,7 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
 
 
         nc = (J.NewClass) new ChangeType(
-                "org.springframework.util.concurrent.ListenableFutureCallback",
+                LISTENABLE_FUTURE_CALLBACK,
                 "java.util.function.BiConsumer",
                 null).getVisitor()
                 .visit(nc, ctx, getCursor().getParent());
