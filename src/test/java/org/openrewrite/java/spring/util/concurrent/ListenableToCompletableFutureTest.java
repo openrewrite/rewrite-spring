@@ -35,7 +35,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
 
     @Test
     @DocumentExample
-    void addCallbackListenableFutureCallback() {
+    void addListenableFutureCallback() {
         //language=java
         rewriteRun(
           java(
@@ -78,7 +78,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     }
 
     @Test
-    void addCallbackListenableFutureCallbackWithLocalField() {
+    void addListenableFutureCallbackWithLocalField() {
         //language=java
         rewriteRun(
           java(
@@ -131,7 +131,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     }
 
     @Test
-    void addCallbackSuccessCallbackFailureCallback() {
+    void addSuccessFailureCallback() {
         //language=java
         rewriteRun(
           java(
