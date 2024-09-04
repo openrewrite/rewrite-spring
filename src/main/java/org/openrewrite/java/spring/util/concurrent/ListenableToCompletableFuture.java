@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.util.concurrent;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
@@ -24,16 +23,19 @@ import org.openrewrite.java.tree.J;
 
 public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext> {
 
-    private static final MethodMatcher COMPLETABLE_METHOD_MATCHER = new MethodMatcher("org.springframework.util.concurrent.ListenableFuture completable()");
+    private static final MethodMatcher COMPLETABLE_METHOD_MATCHER =
+            new MethodMatcher("org.springframework.util.concurrent.ListenableFuture completable()");
 
     @Override
     public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
-        TreeVisitor<?, ExecutionContext> visitor = new ChangeType(
+        J.CompilationUnit cu = compilationUnit;
+        cu = (J.CompilationUnit) new MemberReferenceToMethodInvocation().visit(cu, ctx);
+        cu = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
+        cu = (J.CompilationUnit) new ChangeType(
                 "org.springframework.util.concurrent.ListenableFuture",
                 "java.util.concurrent.CompletableFuture",
-                null).getVisitor();
-        J.CompilationUnit cu = (J.CompilationUnit) super.visitCompilationUnit(compilationUnit, ctx);
-        cu = (J.CompilationUnit) visitor.visit(cu, ctx, getCursor().getParent());
+                null).getVisitor()
+                .visit(cu, ctx, getCursor().getParent());
         return cu;
     }
 
