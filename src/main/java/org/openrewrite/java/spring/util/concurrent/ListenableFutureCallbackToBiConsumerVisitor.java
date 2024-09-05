@@ -45,38 +45,40 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
             return cd;
         }
 
-        J.MethodDeclaration successCallbackMethodDeclaration = extract(SUCCESS_CALLBACK_MATCHER, cd);
-        J.MethodDeclaration failureCallbackMethodDeclaration = extract(FAILURE_CALLBACK_MATCHER, cd);
-        if (successCallbackMethodDeclaration == null || failureCallbackMethodDeclaration == null) {
+        J.MethodDeclaration successCallback = extract(SUCCESS_CALLBACK_MATCHER, cd);
+        J.MethodDeclaration failureCallback = extract(FAILURE_CALLBACK_MATCHER, cd);
+        if (successCallback == null || failureCallback == null) {
             return cd;
         }
+        J.Identifier failureParam = ((J.VariableDeclarations) failureCallback.getParameters().get(0)).getVariables().get(0).getName();
 
         String template = String.format("class %s implements BiConsumer<%s, Throwable> {\n" +
                                         "    @Override\n" +
                                         "    public void accept(%s, %s) {\n" +
-                                        "        if (ex == null) #{}\n" +
+                                        "        if (#{any(java.lang.Throwable)} == null) #{}\n" +
                                         "        else #{}\n" +
                                         "    }\n" +
                                         "}",
                 cd.getSimpleName(),
-                ((J.VariableDeclarations) successCallbackMethodDeclaration.getParameters().get(0)).getTypeExpression(),
-                successCallbackMethodDeclaration.getParameters().get(0),
-                failureCallbackMethodDeclaration.getParameters().get(0));
+                ((J.VariableDeclarations) successCallback.getParameters().get(0)).getTypeExpression(),
+                successCallback.getParameters().get(0),
+                failureCallback.getParameters().get(0));
         //noinspection DataFlowIssue
         J.ClassDeclaration newClassDeclaration = JavaTemplate.builder(template)
                 .contextSensitive()
                 .imports(BI_CONSUMER)
                 .build()
                 .apply(updateCursor(cd), cd.getCoordinates().replace(),
-                        successCallbackMethodDeclaration.getBody(),
-                        failureCallbackMethodDeclaration.getBody());
+                        failureParam,
+                        successCallback.getBody(),
+                        failureCallback.getBody());
 
         if (cd.getBody().getStatements().size() > 2) {
             //noinspection DataFlowIssue
             List<Statement> additionalStatements = ListUtils.map(cd.getBody().getStatements(), s ->
-                    s == successCallbackMethodDeclaration || s == failureCallbackMethodDeclaration ? null : s);
+                    s == successCallback || s == failureCallback ? null : s);
             Statement acceptMethodWithPrefix = newClassDeclaration.getBody().getStatements().get(0)
-                    .withPrefix(successCallbackMethodDeclaration.getPrefix());
+                    .withPrefix(successCallback.getPrefix());
             newClassDeclaration = newClassDeclaration.withBody(cd.getBody()
                     .withStatements(ListUtils.concat(additionalStatements, acceptMethodWithPrefix)));
         }
@@ -97,37 +99,39 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
             return nc;
         }
 
-        J.MethodDeclaration successCallbackMethodDeclaration = extract(SUCCESS_CALLBACK_MATCHER, nc);
-        J.MethodDeclaration failureCallbackMethodDeclaration = extract(FAILURE_CALLBACK_MATCHER, nc);
-        if (successCallbackMethodDeclaration == null || failureCallbackMethodDeclaration == null) {
+        J.MethodDeclaration successCallback = extract(SUCCESS_CALLBACK_MATCHER, nc);
+        J.MethodDeclaration failureCallback = extract(FAILURE_CALLBACK_MATCHER, nc);
+        if (successCallback == null || failureCallback == null) {
             return nc;
         }
+        J.Identifier failureParam = ((J.VariableDeclarations) failureCallback.getParameters().get(0)).getVariables().get(0).getName();
 
         maybeRemoveImport(LISTENABLE_FUTURE_CALLBACK);
         if (nc.getBody().getStatements().size() > 2) {
             String template = String.format("new BiConsumer<%s, Throwable>() {\n" +
                                             "    @Override\n" +
                                             "    public void accept(%s, %s) {\n" +
-                                            "        if (ex == null) #{}\n" +
+                                            "        if (#{any(java.lang.Throwable)} == null) #{}\n" +
                                             "        else #{}\n" +
                                             "    }\n" +
                                             "}",
-                    ((J.VariableDeclarations) successCallbackMethodDeclaration.getParameters().get(0)).getTypeExpression(),
-                    successCallbackMethodDeclaration.getParameters().get(0),
-                    failureCallbackMethodDeclaration.getParameters().get(0)
+                    ((J.VariableDeclarations) successCallback.getParameters().get(0)).getTypeExpression(),
+                    successCallback.getParameters().get(0),
+                    failureCallback.getParameters().get(0)
             );
             J.NewClass newClassDeclaration = JavaTemplate.builder(template)
                     .contextSensitive()
                     .imports(BI_CONSUMER)
                     .build()
                     .apply(updateCursor(nc), nc.getCoordinates().replace(),
-                            successCallbackMethodDeclaration.getBody(),
-                            failureCallbackMethodDeclaration.getBody());
+                            failureParam,
+                            successCallback.getBody(),
+                            failureCallback.getBody());
 
             List<Statement> additionalStatements = ListUtils.map(nc.getBody().getStatements(), s ->
-                    s == successCallbackMethodDeclaration || s == failureCallbackMethodDeclaration ? null : s);
+                    s == successCallback || s == failureCallback ? null : s);
             Statement acceptMethodWithPrefix = newClassDeclaration.getBody().getStatements().get(0)
-                    .withPrefix(successCallbackMethodDeclaration.getPrefix());
+                    .withPrefix(successCallback.getPrefix());
             newClassDeclaration = newClassDeclaration.withBody(nc.getBody().
                     withStatements(ListUtils.concat(additionalStatements, acceptMethodWithPrefix)));
 
@@ -136,19 +140,20 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
         }
 
         String template = String.format("(%s, %s) -> {\n" +
-                                        "    if (ex == null) #{}\n" +
+                                        "    if (#{any(java.lang.Throwable)} == null) #{}\n" +
                                         "    else #{}\n" +
                                         "}",
-                successCallbackMethodDeclaration.getParameters().get(0),
-                failureCallbackMethodDeclaration.getParameters().get(0)
+                successCallback.getParameters().get(0),
+                failureCallback.getParameters().get(0)
         );
         J.Lambda newClassDeclaration = JavaTemplate.builder(template)
                 .contextSensitive()
                 .imports(BI_CONSUMER)
                 .build()
                 .apply(updateCursor(nc), nc.getCoordinates().replace(),
-                        successCallbackMethodDeclaration.getBody(),
-                        failureCallbackMethodDeclaration.getBody());
+                        failureParam,
+                        successCallback.getBody(),
+                        failureCallback.getBody());
         return newClassDeclaration.withPrefix(nc.getPrefix());
     }
 
