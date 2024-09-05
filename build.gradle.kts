@@ -149,8 +149,6 @@ dependencies {
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
 
-    testImplementation("org.springframework.kafka:spring-kafka:2.9.+")
-
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
 
     // for generating properties migration configurations
@@ -158,7 +156,6 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-java-17")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
-
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
