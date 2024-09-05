@@ -24,10 +24,11 @@ tags:
   - kafka
 recipeList:
   - org.openrewrite.java.spring.kafka.KafkaOperationsSendReturnType
+  - org.openrewrite.java.spring.kafka.KafkaTestUtilsDuration
+  - org.openrewrite.java.spring.kafka.RemoveUsingCompletableFuture
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.kafka.core.KafkaOperations2
       newFullyQualifiedTypeName: org.springframework.kafka.core.KafkaOperations
-  - org.openrewrite.java.spring.kafka.RemoveUsingCompletableFuture
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.MESSAGE_KEY
       fullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.KEY

@@ -92,6 +92,7 @@ recipeDependencies {
 
     parserClasspath("org.springframework:spring-messaging:5.+")
     parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
+    parserClasspath("org.springframework.kafka:spring-kafka-test:2.9.+")
     parserClasspath("org.apache.kafka:kafka-clients:3.2.+")
 
     parserClasspath("org.springframework.security:spring-security-config:5.8.+")

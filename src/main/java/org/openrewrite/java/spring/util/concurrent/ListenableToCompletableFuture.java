@@ -18,7 +18,7 @@ package org.openrewrite.java.spring.util.concurrent;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.ChangeMethodName;
 import org.openrewrite.java.ChangeType;
-import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
 
 public class ListenableToCompletableFuture extends JavaIsoVisitor<ExecutionContext> {
