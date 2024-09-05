@@ -19,15 +19,15 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.*;
 import org.openrewrite.java.tree.J;
 
-public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext> {
+public class ListenableToCompletableFuture extends JavaIsoVisitor<ExecutionContext> {
     @Override
     public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
-        J.CompilationUnit cu = (J.CompilationUnit) super.visitCompilationUnit(compilationUnit, ctx);
-        cu = (J.CompilationUnit) new ListenableFutureCallbackToBiConsumerVisitor().visit(cu, ctx);
-        cu = (J.CompilationUnit) new SuccessFailureCallbackToBiConsumerVisitor().visit(cu, ctx);
+        J.CompilationUnit cu = super.visitCompilationUnit(compilationUnit, ctx);
+        cu = (J.CompilationUnit) new ListenableFutureCallbackToBiConsumerVisitor().visitNonNull(cu, ctx);
+        cu = (J.CompilationUnit) new SuccessFailureCallbackToBiConsumerVisitor().visitNonNull(cu, ctx);
         cu = (J.CompilationUnit) new ChangeMethodName(
                 "org.springframework.util.concurrent.ListenableFuture addCallback(..)", "whenComplete", true, true)
-                .getVisitor().visit(cu, ctx);
+                .getVisitor().visit(cu, ctx, getCursor().getParent());
         cu = (J.CompilationUnit) new ChangeType(
                 "org.springframework.util.concurrent.ListenableFuture",
                 "java.util.concurrent.CompletableFuture", null)

@@ -16,13 +16,13 @@
 package org.openrewrite.java.spring.util.concurrent;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.staticanalysis.RemoveUnneededBlock;
 
-class SuccessFailureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionContext> {
+class SuccessFailureCallbackToBiConsumerVisitor extends JavaIsoVisitor<ExecutionContext> {
 
     private static final MethodMatcher ADD_CALLBACK_SUCCESS_FAILURE_MATCHER = new MethodMatcher(
             "org.springframework.util.concurrent.ListenableFuture addCallback(" +
@@ -30,8 +30,8 @@ class SuccessFailureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionCon
             "org.springframework.util.concurrent.FailureCallback)");
 
     @Override
-    public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-        J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+        J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
         if (ADD_CALLBACK_SUCCESS_FAILURE_MATCHER.matches(mi)) {
             mi = (J.MethodInvocation) new MemberReferenceToMethodInvocation().visitNonNull(mi, ctx, getCursor().getParent());
 

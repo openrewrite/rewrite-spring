@@ -30,7 +30,7 @@ public class KafkaOperationsSendReturnType extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Send operations used to return a `ListenableFuture` but as of 3.x return a `CompletableFuture`. " +
+        return "Send operations used to return a `ListenableFuture` but as of 3.0 return a `CompletableFuture`. " +
                "Adjust the usage to use `CompletableFuture` instead.";
     }
 
