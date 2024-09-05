@@ -19,7 +19,6 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
@@ -54,8 +53,8 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
         String template = String.format("class %s implements BiConsumer<%s, Throwable> {\n" +
                                         "    @Override\n" +
                                         "    public void accept(%s, %s) {\n" +
-                                        "        if (ex == null) #{any()}\n" +
-                                        "        else #{any()}\n" +
+                                        "        if (ex == null) #{}\n" +
+                                        "        else #{}\n" +
                                         "    }\n" +
                                         "}",
                 cd.getSimpleName(),
@@ -72,12 +71,13 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
                         failureCallbackMethodDeclaration.getBody());
 
         if (cd.getBody().getStatements().size() > 2) {
+            //noinspection DataFlowIssue
+            List<Statement> additionalStatements = ListUtils.map(cd.getBody().getStatements(), s ->
+                    s == successCallbackMethodDeclaration || s == failureCallbackMethodDeclaration ? null : s);
             Statement acceptMethodWithPrefix = newClassDeclaration.getBody().getStatements().get(0)
                     .withPrefix(successCallbackMethodDeclaration.getPrefix());
-            List<Statement> mergedStatements = ListUtils.concat(
-                    ListUtils.map(cd.getBody().getStatements(), s -> s == successCallbackMethodDeclaration || s == failureCallbackMethodDeclaration ? null : s),
-                    acceptMethodWithPrefix);
-            newClassDeclaration = newClassDeclaration.withBody(cd.getBody().withStatements(mergedStatements));
+            newClassDeclaration = newClassDeclaration.withBody(cd.getBody()
+                    .withStatements(ListUtils.concat(additionalStatements, acceptMethodWithPrefix)));
         }
 
         maybeAddImport(BI_CONSUMER);
@@ -89,6 +89,7 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
     }
 
     @Override
+    @SuppressWarnings("DataFlowIssue")
     public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
         J.NewClass nc = super.visitNewClass(newClass, ctx);
         if (!TypeUtils.isAssignableTo(LISTENABLE_FUTURE_CALLBACK, nc.getType())) {
@@ -101,31 +102,40 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
             return nc;
         }
 
-        //noinspection DataFlowIssue
-        nc = nc.withBody(nc.getBody().withStatements(ListUtils.map(nc.getBody().getStatements(), s -> {
-            if (s == successCallbackMethodDeclaration) {
-                return null;
-            }
-            if (s == failureCallbackMethodDeclaration) {
-                return null;
-            }
-            return s;
-        })));
+        String template = String.format("new BiConsumer<%s, Throwable>() {\n" +
+                                        "    @Override\n" +
+                                        "    public void accept(%s, %s) {\n" +
+                                        "        if (ex == null) #{}\n" +
+                                        "        else #{}\n" +
+                                        "    }\n" +
+                                        "}",
+                ((J.VariableDeclarations) successCallbackMethodDeclaration.getParameters().get(0)).getTypeExpression(),
+                successCallbackMethodDeclaration.getParameters().get(0),
+                failureCallbackMethodDeclaration.getParameters().get(0)
+        );
+        J.NewClass newClassDeclaration = JavaTemplate.builder(template)
+                .contextSensitive()
+                .imports(BI_CONSUMER)
+                .build()
+                .apply(updateCursor(nc), nc.getCoordinates().replace(),
+                        successCallbackMethodDeclaration.getBody(),
+                        failureCallbackMethodDeclaration.getBody());
 
+        if (nc.getBody().getStatements().size() > 2) {
+            List<Statement> additionalStatements = ListUtils.map(nc.getBody().getStatements(), s ->
+                    s == successCallbackMethodDeclaration || s == failureCallbackMethodDeclaration ? null : s);
+            Statement acceptMethodWithPrefix = newClassDeclaration.getBody().getStatements().get(0)
+                    .withPrefix(successCallbackMethodDeclaration.getPrefix());
+            newClassDeclaration = newClassDeclaration.withBody(nc.getBody().
+                    withStatements(ListUtils.concat(additionalStatements, acceptMethodWithPrefix)));
+        }
 
-        nc = (J.NewClass) new ChangeType(
-                LISTENABLE_FUTURE_CALLBACK,
-                BI_CONSUMER,
-                null).getVisitor()
-                .visit(nc, ctx, getCursor().getParent());
-
-        // TODO Add Throwable to type parameters
-
-        // TODO accept method with `if` statement switching between success and failure
-
-        return nc;
+        maybeAddImport(BI_CONSUMER);
+        maybeRemoveImport(LISTENABLE_FUTURE_CALLBACK);
+        return newClassDeclaration.withPrefix(nc.getPrefix());
     }
 
+    @SuppressWarnings("DataFlowIssue")
     private static J.@Nullable MethodDeclaration extract(MethodMatcher matcher, J j) {
         AtomicReference<J.MethodDeclaration> methodDecl = new AtomicReference<>();
         new JavaIsoVisitor<ExecutionContext>() {

@@ -33,47 +33,9 @@ class ListenableFutureCallbackToBiConsumerVisitorTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6"));
     }
 
-    @Test
     @DocumentExample
-    void addListenableFutureCallbackFromClass() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.util.concurrent.ListenableFutureCallback;
-
-              class MyCallback implements ListenableFutureCallback<String> {
-                  @Override
-                  public void onSuccess(String result) {
-                      System.out.println(result);
-                  }
-              
-                  @Override
-                  public void onFailure(Throwable ex) {
-                      System.err.println(ex.getMessage());
-                  }
-              }
-              """,
-            """
-              import java.util.function.BiConsumer;
-
-              class MyCallback implements BiConsumer<String, Throwable> {
-                  @Override
-                  public void accept(String result, Throwable ex) {
-                      if (ex == null) {
-                          System.out.println(result);
-                      } else {
-                          System.err.println(ex.getMessage());
-                      }
-                  }
-              }
-              """
-          )
-        );
-    }
-
     @Test
-    void addListenableFutureCallbackFromClassWithAdditionalStatements() {
+    void classThatImplementsListenableFutureCallback() {
         //language=java
         rewriteRun(
           java(
@@ -117,17 +79,21 @@ class ListenableFutureCallbackToBiConsumerVisitorTest implements RewriteTest {
     }
 
     @Test
-    void newInlineCallback() {
+    void anonymousClass() {
         //language=java
         rewriteRun(
           java(
             """
               import org.springframework.util.concurrent.ListenableFutureCallback;
+              
               class Holder {
-                  ListenableFutureCallback callback = new ListenableFutureCallback<String>() {
+                  Object callback = new ListenableFutureCallback<String>() {
+              
+                      private String greeting = "Hi ";
+              
                       @Override
                       public void onSuccess(String result) {
-                          System.out.println(result);
+                          System.out.println(greeting + result);
                       }
                       @Override
                       public void onFailure(Throwable ex) {
@@ -138,12 +104,16 @@ class ListenableFutureCallbackToBiConsumerVisitorTest implements RewriteTest {
               """,
             """
               import java.util.function.BiConsumer;
+              
               class Holder {
-                  BiConsumer<String, Throwable> callback = new BiConsumer<String, Throwable>() {
+                  Object callback = new BiConsumer<String, Throwable>() {
+              
+                      private String greeting = "Hi ";
+              
                       @Override
                       public void accept(String result, Throwable ex) {
                           if (ex == null) {
-                              System.out.println(result);
+                              System.out.println(greeting + result);
                           } else {
                               System.err.println(ex.getMessage());
                           }
