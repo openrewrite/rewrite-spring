@@ -69,7 +69,7 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
             import org.springframework.stereotype.Component;
             
             @Component
-            class ServerRequestObservationConvention extends DefaultServerRequestObservationConvention {
+            class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
 
                 @Override
                 public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {
@@ -81,7 +81,7 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                         values.and(KeyValue.of("custom.header", customHeader));
                     }
 
-                    return super.getLowCardinalityKeyValues(context).and(values);
+                    return values;
                 }
             }
             """));
