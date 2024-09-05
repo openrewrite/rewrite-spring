@@ -67,11 +67,9 @@ public class KafkaTestUtilsDuration extends Recipe {
                         }
 
                         JavaType durationType = JavaType.buildType(JAVA_TIME_DURATION);
-                        List<String> newParameterNames = new ArrayList<>(mi.getMethodType().getParameterNames());
                         List<JavaType> newParameterTypes = new ArrayList<>(mi.getMethodType().getParameterTypes());
                         List<Expression> newArguments = ListUtils.map(originalArguments, (index, arg) -> {
                             if (arg == millis) {
-                                newParameterNames.set(index, "duration");
                                 newParameterTypes.set(index, durationType);
                                 maybeAddImport(JAVA_TIME_DURATION);
                                 return JavaTemplate.builder("Duration.ofMillis(#{})")
@@ -83,9 +81,7 @@ public class KafkaTestUtilsDuration extends Recipe {
                         });
 
                         return mi.withArguments(newArguments)
-                                .withMethodType(mi.getMethodType()
-                                        .withParameterNames(newParameterNames)
-                                        .withParameterTypes(newParameterTypes));
+                                .withMethodType(mi.getMethodType().withParameterTypes(newParameterTypes));
                     }
                 }
         );
