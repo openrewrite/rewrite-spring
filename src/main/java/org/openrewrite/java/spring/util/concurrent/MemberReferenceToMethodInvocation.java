@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.util.concurrent;
 
+import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -22,11 +23,11 @@ import org.openrewrite.java.VariableNameUtils;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.joining;
 
 class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionContext> {
     @Override
@@ -36,37 +37,42 @@ class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionContext> {
             return mr;
         }
 
-        List<String> args = getLambdaArgNames(mr.getMethodType());
-        String commaSeparatedArgs = String.join(", ", args);
-        String templateCode = String.format("%s -> %s.%s(%s)",
-                args.isEmpty() ? "()" : args.size() == 1 ? args.get(0) : String.format("(%s)", commaSeparatedArgs),
+        List<Param> args = getLambdaArgNames(mr.getMethodType());
+        String templateCode = String.format("(%s) -> %s.%s(%s)",
+                args.stream().map(Param::toString).collect(joining(", ")),
                 mr.getContaining(),
                 mr.getReference().getSimpleName(),
-                args.isEmpty() ? "" : commaSeparatedArgs);
+                args.stream().map(Param::getName).collect(joining(", ")));
         return JavaTemplate.builder(templateCode)
                 .contextSensitive()
                 .build().apply(getCursor(), mr.getCoordinates().replace())
                 .withPrefix(mr.getPrefix());
     }
 
-    private List<String> getLambdaArgNames(JavaType.Method methodType) {
-        List<String> parameterNames = methodType.getParameterNames();
-        if (parameterNames.isEmpty()) {
-            return Collections.emptyList();
+    private List<Param> getLambdaArgNames(JavaType.Method methodType) {
+        List<Param> params = new ArrayList<>();
+        for (int i = 0; i < methodType.getParameterTypes().size(); i++) {
+            JavaType type = methodType.getParameterTypes().get(i);
+            String name = methodType.getParameterNames().get(i);
+            if (name.startsWith("arg")) {
+                String typeString = type.toString();
+                name = typeString.substring(typeString.lastIndexOf('.') + 1).toLowerCase();
+            }
+            String uniqueVariableName = VariableNameUtils.generateVariableName(name, getCursor(), VariableNameUtils.GenerationStrategy.INCREMENT_NUMBER);
+
+            params.add(new Param(type, uniqueVariableName));
         }
-        if (!"arg0".equals(parameterNames.get(0))) {
-            return parameterNames.stream()
-                    .map(this::getUniqueVariableName)
-                    .collect(toList());
-        }
-        return methodType.getParameterTypes().stream()
-                .map(JavaType::toString)
-                .map(type -> type.substring(type.lastIndexOf('.') + 1).toLowerCase())
-                .map(this::getUniqueVariableName)
-                .collect(Collectors.toList());
+        return params;
     }
 
-    private String getUniqueVariableName(String name) {
-        return VariableNameUtils.generateVariableName(name, getCursor(), VariableNameUtils.GenerationStrategy.INCREMENT_NUMBER);
+    @Value
+    class Param {
+        JavaType type;
+        String name;
+
+        @Override
+        public String toString() {
+            return String.format("%s %s", type.toString().replaceFirst("^java.lang.", ""), name);
+        }
     }
 }

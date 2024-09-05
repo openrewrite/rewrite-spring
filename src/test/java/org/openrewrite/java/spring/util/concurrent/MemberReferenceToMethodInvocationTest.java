@@ -25,7 +25,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
 
-class MethodReferenceToMethodInvocationTest implements RewriteTest {
+class MemberReferenceToMethodInvocationTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -54,8 +54,8 @@ class MethodReferenceToMethodInvocationTest implements RewriteTest {
               class A {
                   void test(ListenableFuture<String> future) {
                       future.addCallback(
-                          string -> System.out.println(string),
-                          object -> System.err.println(object));
+                          (String string) -> System.out.println(string),
+                          (Object object) -> System.err.println(object));
                   }
               }
               """
