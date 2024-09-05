@@ -31,6 +31,8 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
         spec.recipeFromResource("/META-INF/rewrite/spring-kafka-30.yml", "org.openrewrite.java.spring.kafka.UpgradeSpringKafka_3_0")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "kafka-clients-3",
+            "spring-beans-5",
+            "spring-context-5",
             "spring-core-5",
             "spring-kafka-2",
             "spring-messaging-5"
@@ -58,7 +60,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
                           public void onSuccess(SendResult<String, String> result) {
                               System.out.println(result.getRecordMetadata());
                           }
-          
+              
                           @Override
                           public void onFailure(Throwable ex) {
                               System.err.println(ex.getMessage());
@@ -91,6 +93,58 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
     }
 
     @Test
+    void changeKafkaTemplate() {
+        //noinspection deprecation
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.kafka.core.KafkaTemplate;
+              import org.springframework.kafka.support.SendResult;
+              import org.springframework.util.concurrent.ListenableFuture;
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+              
+              class Foo {
+                  void bar(KafkaTemplate<String, String> kafkaTemplate) {
+                      ListenableFuture<SendResult<String,String>> future = kafkaTemplate.send("topic", "key", "value");
+                      future.addCallback(new ListenableFutureCallback<>() {
+                          @Override
+                          public void onSuccess(SendResult<String, String> result) {
+                              System.out.println(result.getRecordMetadata());
+                          }
+              
+                          @Override
+                          public void onFailure(Throwable ex) {
+                              System.err.println(ex.getMessage());
+                          }
+                      });
+                  }
+              }
+              """,
+            """
+              import org.springframework.kafka.core.KafkaTemplate;
+              import org.springframework.kafka.support.SendResult;
+              
+              import java.util.concurrent.CompletableFuture;
+              
+              class Foo {
+                  void bar(KafkaTemplate<String, String> kafkaTemplate) {
+                      CompletableFuture<SendResult<String,String>> future = kafkaTemplate.send("topic", "key", "value");
+                      future.whenComplete((SendResult<String, String> result, Throwable ex) -> {
+                          if (ex == null) {
+                              System.out.println(result.getRecordMetadata());
+                          } else {
+                              System.err.println(ex.getMessage());
+                          }
+                      });
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void noReplacementElsewhereYet() {
         //noinspection NullableProblems
         rewriteRun(
@@ -107,7 +161,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
                           public void onSuccess(String result) {
                               System.out.println(result);
                           }
-          
+              
                           @Override
                           public void onFailure(Throwable ex) {
                               System.err.println(ex.getMessage());
