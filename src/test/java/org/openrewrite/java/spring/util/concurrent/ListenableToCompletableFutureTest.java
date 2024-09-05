@@ -225,6 +225,44 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     }
 
     @Test
+    void addSuccessFailureCallbackWithBlock() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFuture;
+              class A {
+                  void test(ListenableFuture<String> future) {
+                      future.addCallback(
+                          string -> {
+                              System.out.print("success: ");
+                              System.out.println(string);
+                          },
+                          ex -> System.err.println(ex.getMessage()));
+                  }
+              }
+              """,
+            """
+              import java.util.concurrent.CompletableFuture;
+              
+              class A {
+                  void test(CompletableFuture<String> future) {
+                      future.whenComplete((string, ex) -> {
+                          if (ex == null) {
+                              System.out.print("success: ");
+                              System.out.println(string);
+                          } else {
+                              System.err.println(ex.getMessage());
+                          }
+                      });
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void completable() {
         //language=java
         rewriteRun(
