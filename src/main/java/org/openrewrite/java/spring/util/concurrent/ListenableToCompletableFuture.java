@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.util.concurrent;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.*;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.staticanalysis.RemoveUnneededBlock;
 
 public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext> {
@@ -73,28 +72,23 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
         J.Lambda successCallback = (J.Lambda) mi.getArguments().get(0);
         J.Lambda failureCallback = (J.Lambda) mi.getArguments().get(1);
 
-        JavaType typeExpression = ((JavaType.Parameterized) successCallback.getType()).getTypeParameters().get(0);
-        J.MethodInvocation whenComplete = JavaTemplate.builder(
-                        String.format(
-                                "new BiConsumer<%s, Throwable>() {\n" +
-                                "    @Override\n" +
-                                "    public void accept(%1$s %s, Throwable %s) {\n" +
-                                "        if (ex == null) { #{any()}; }" +
-                                "        else { #{any()}; }\n" +
-                                "    }\n" +
-                                "}",
-                                typeExpression,
-                                successCallback.getParameters().getParameters().get(0),
-                                failureCallback.getParameters().getParameters().get(0)
-                        ))
+        J.Identifier successParam = ((J.VariableDeclarations) successCallback.getParameters().getParameters().get(0)).getVariables().get(0).getName();
+        J.Identifier failureParam = ((J.VariableDeclarations) failureCallback.getParameters().getParameters().get(0)).getVariables().get(0).getName();
+        J.MethodInvocation whenComplete = JavaTemplate.builder(String.format(
+                        "(%s, %s) -> {\n" +
+                        "    if (#{any()} == null) { #{any()}; }" +
+                        "    else { #{any()}; }\n" +
+                        "}",
+                        successParam,
+                        failureParam
+                ))
                 .contextSensitive()
-                .imports("java.util.function.BiConsumer")
                 .build()
                 .apply(getCursor(), mi.getCoordinates().replaceArguments(),
+                        failureParam,
                         successCallback.getBody(),
                         failureCallback.getBody());
 
-        whenComplete = (J.MethodInvocation) new RemoveUnneededBlock().getVisitor().visitNonNull(whenComplete, ctx, getCursor().getParent());
-        return whenComplete;
+        return (J.MethodInvocation) new RemoveUnneededBlock().getVisitor().visitNonNull(whenComplete, ctx, getCursor().getParent());
     }
 }
