@@ -72,6 +72,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.RemoveSolrAutoConfigurationExclude
   - org.openrewrite.java.spring.batch.SpringBatch4To5Migration
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0
+  - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_3_0
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_0
   - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2
