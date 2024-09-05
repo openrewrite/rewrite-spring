@@ -18,9 +18,8 @@ package org.openrewrite.java.spring.util.concurrent;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.*;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.staticanalysis.RemoveRedundantTypeCast;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.staticanalysis.RemoveUnneededBlock;
-import org.openrewrite.staticanalysis.UseLambdaForFunctionalInterface;
 
 public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext> {
 
@@ -49,10 +48,6 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
 
         // Only now replace method invocations below
         cu = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
-
-        // Simplify constructs where possible
-        cu = (J.CompilationUnit) new UseLambdaForFunctionalInterface().getVisitor().visit(cu, ctx);
-        cu = (J.CompilationUnit) new RemoveRedundantTypeCast().getVisitor().visit(cu, ctx); // XXX Should not necessary & fails
         return cu;
     }
 
@@ -78,20 +73,24 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
         J.Lambda successCallback = (J.Lambda) mi.getArguments().get(0);
         J.Lambda failureCallback = (J.Lambda) mi.getArguments().get(1);
 
-        // TODO build up template from success/failureCallback arguments
+        JavaType typeExpression = ((JavaType.Parameterized) successCallback.getType()).getTypeParameters().get(0);
         J.MethodInvocation whenComplete = JavaTemplate.builder(
-                        "whenComplete(new BiConsumer<String, Throwable>() {\n" +
-                        "        @Override\n" +
-                        "        public void accept(String string, Throwable ex) {\n" +
-                        "            if (ex == null) { #{any()}; }" +
-                        "            else { #{any()}; }\n" +
-                        "        }\n" +
-                        "    })")
-                .doBeforeParseTemplate(System.out::println) // XXX remove
+                        String.format(
+                                "new BiConsumer<%s, Throwable>() {\n" +
+                                "    @Override\n" +
+                                "    public void accept(%1$s %s, Throwable %s) {\n" +
+                                "        if (ex == null) { #{any()}; }" +
+                                "        else { #{any()}; }\n" +
+                                "    }\n" +
+                                "}",
+                                typeExpression,
+                                successCallback.getParameters().getParameters().get(0),
+                                failureCallback.getParameters().getParameters().get(0)
+                        ))
                 .contextSensitive()
                 .imports("java.util.function.BiConsumer")
                 .build()
-                .apply(getCursor(), mi.getCoordinates().replaceMethod(),
+                .apply(getCursor(), mi.getCoordinates().replaceArguments(),
                         successCallback.getBody(),
                         failureCallback.getBody());
 
