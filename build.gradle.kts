@@ -90,7 +90,9 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
 
+    parserClasspath("org.springframework:spring-messaging:5.+")
     parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
+    parserClasspath("org.apache.kafka:kafka-clients:3.2.+")
 
     parserClasspath("org.springframework.security:spring-security-config:5.8.+")
     parserClasspath("org.springframework.security:spring-security-crypto:5.8.+")
@@ -147,7 +149,7 @@ dependencies {
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
 
-    testImplementation("com.github.marschall:memoryfilesystem:latest.release")
+    testImplementation("org.springframework.kafka:spring-kafka:2.9.+")
 
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
 
@@ -156,6 +158,7 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-java-17")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
+
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")

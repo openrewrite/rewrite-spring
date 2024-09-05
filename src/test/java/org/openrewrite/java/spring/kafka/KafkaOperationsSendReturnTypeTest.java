@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class UpgradeSpringKafka30Test implements RewriteTest {
+class KafkaOperationsSendReturnTypeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -33,7 +33,8 @@ class UpgradeSpringKafka30Test implements RewriteTest {
             "kafka-clients-3",
             "spring-core-5",
             "spring-kafka-2",
-            "spring-messaging-5"));
+            "spring-messaging-5"
+          ));
     }
 
     @Test
@@ -52,18 +53,17 @@ class UpgradeSpringKafka30Test implements RewriteTest {
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
                       ListenableFuture<SendResult<String,String>> future = kafkaOperations.send("topic", "key", "value");
-                      future.addCallback(
-                          new ListenableFutureCallback<SendResult<String, String>>() {
-                              @Override
-                              public void onSuccess(SendResult<String, String> result) {
-                                  System.out.println(result.getRecordMetadata());
-                              }
-              
-                              @Override
-                              public void onFailure(Throwable ex) {
-                                  System.err.println(ex.getMessage());
-                              }
-                          });
+                      future.addCallback(new ListenableFutureCallback<>() {
+                          @Override
+                          public void onSuccess(SendResult<String, String> result) {
+                              System.out.println(result.getRecordMetadata());
+                          }
+          
+                          @Override
+                          public void onFailure(Throwable ex) {
+                              System.err.println(ex.getMessage());
+                          }
+                      });
                   }
               }
               """,
@@ -75,11 +75,41 @@ class UpgradeSpringKafka30Test implements RewriteTest {
               
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
-                      ListenableFuture<SendResult<String,String>> future = kafkaOperations.send("topic", "key", "value");
-                      future.whenComplete((result, ex) -> {
+                      CompletableFuture<SendResult<String,String>> future = kafkaOperations.send("topic", "key", "value");
+                      future.whenComplete((SendResult<String, String> result, Throwable ex) -> {
                           if (ex == null) {
                               System.out.println(result.getRecordMetadata());
                           } else {
+                              System.err.println(ex.getMessage());
+                          }
+                      });
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noReplacementElsewhereYet() {
+        //noinspection NullableProblems
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFuture;
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+              
+              class Foo {
+                  void bar(ListenableFuture<String> future) {
+                      future.addCallback(new ListenableFutureCallback<>() {
+                          @Override
+                          public void onSuccess(String result) {
+                              System.out.println(result);
+                          }
+          
+                          @Override
+                          public void onFailure(Throwable ex) {
                               System.err.println(ex.getMessage());
                           }
                       });

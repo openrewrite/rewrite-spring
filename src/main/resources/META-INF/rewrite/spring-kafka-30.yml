@@ -23,6 +23,7 @@ tags:
   - spring
   - kafka
 recipeList:
+  - org.openrewrite.java.spring.kafka.KafkaOperationsSendReturnType
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.kafka.core.KafkaOperations2
       newFullyQualifiedTypeName: org.springframework.kafka.core.KafkaOperations
