@@ -63,7 +63,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               
               class A {
                   void test(CompletableFuture<String> future) {
-                      future.whenComplete((result, ex) -> {
+                      future.whenComplete((String result, Throwable ex) -> {
                           if (ex == null) {
                               System.out.println(result);
                           } else {

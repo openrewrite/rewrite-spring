@@ -21,6 +21,7 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
@@ -29,7 +30,7 @@ import org.openrewrite.java.tree.TypeUtils;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<ExecutionContext> {
+class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionContext> {
 
     private static final String BI_CONSUMER = "java.util.function.BiConsumer";
     private static final String LISTENABLE_FUTURE_CALLBACK = "org.springframework.util.concurrent.ListenableFutureCallback";
@@ -39,7 +40,7 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
 
     @Override
     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-        J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
+        J.ClassDeclaration cd = (J.ClassDeclaration) super.visitClassDeclaration(classDecl, ctx);
         if (!TypeUtils.isAssignableTo(LISTENABLE_FUTURE_CALLBACK, cd.getType())) {
             return cd;
         }
@@ -90,8 +91,8 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
 
     @Override
     @SuppressWarnings("DataFlowIssue")
-    public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
-        J.NewClass nc = super.visitNewClass(newClass, ctx);
+    public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
+        J.NewClass nc = (J.NewClass) super.visitNewClass(newClass, ctx);
         if (!TypeUtils.isAssignableTo(LISTENABLE_FUTURE_CALLBACK, nc.getType())) {
             return nc;
         }
@@ -102,36 +103,52 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Executi
             return nc;
         }
 
-        String template = String.format("new BiConsumer<%s, Throwable>() {\n" +
-                                        "    @Override\n" +
-                                        "    public void accept(%s, %s) {\n" +
-                                        "        if (ex == null) #{}\n" +
-                                        "        else #{}\n" +
-                                        "    }\n" +
-                                        "}",
-                ((J.VariableDeclarations) successCallbackMethodDeclaration.getParameters().get(0)).getTypeExpression(),
-                successCallbackMethodDeclaration.getParameters().get(0),
-                failureCallbackMethodDeclaration.getParameters().get(0)
-        );
-        J.NewClass newClassDeclaration = JavaTemplate.builder(template)
-                .contextSensitive()
-                .imports(BI_CONSUMER)
-                .build()
-                .apply(updateCursor(nc), nc.getCoordinates().replace(),
-                        successCallbackMethodDeclaration.getBody(),
-                        failureCallbackMethodDeclaration.getBody());
-
+        maybeRemoveImport(LISTENABLE_FUTURE_CALLBACK);
         if (nc.getBody().getStatements().size() > 2) {
+            String template = String.format("new BiConsumer<%s, Throwable>() {\n" +
+                                            "    @Override\n" +
+                                            "    public void accept(%s, %s) {\n" +
+                                            "        if (ex == null) #{}\n" +
+                                            "        else #{}\n" +
+                                            "    }\n" +
+                                            "}",
+                    ((J.VariableDeclarations) successCallbackMethodDeclaration.getParameters().get(0)).getTypeExpression(),
+                    successCallbackMethodDeclaration.getParameters().get(0),
+                    failureCallbackMethodDeclaration.getParameters().get(0)
+            );
+            J.NewClass newClassDeclaration = JavaTemplate.builder(template)
+                    .contextSensitive()
+                    .imports(BI_CONSUMER)
+                    .build()
+                    .apply(updateCursor(nc), nc.getCoordinates().replace(),
+                            successCallbackMethodDeclaration.getBody(),
+                            failureCallbackMethodDeclaration.getBody());
+
             List<Statement> additionalStatements = ListUtils.map(nc.getBody().getStatements(), s ->
                     s == successCallbackMethodDeclaration || s == failureCallbackMethodDeclaration ? null : s);
             Statement acceptMethodWithPrefix = newClassDeclaration.getBody().getStatements().get(0)
                     .withPrefix(successCallbackMethodDeclaration.getPrefix());
             newClassDeclaration = newClassDeclaration.withBody(nc.getBody().
                     withStatements(ListUtils.concat(additionalStatements, acceptMethodWithPrefix)));
+
+            maybeAddImport(BI_CONSUMER);
+            return newClassDeclaration.withPrefix(nc.getPrefix());
         }
 
-        maybeAddImport(BI_CONSUMER);
-        maybeRemoveImport(LISTENABLE_FUTURE_CALLBACK);
+        String template = String.format("(%s, %s) -> {\n" +
+                                        "    if (ex == null) #{}\n" +
+                                        "    else #{}\n" +
+                                        "}",
+                successCallbackMethodDeclaration.getParameters().get(0),
+                failureCallbackMethodDeclaration.getParameters().get(0)
+        );
+        J.Lambda newClassDeclaration = JavaTemplate.builder(template)
+                .contextSensitive()
+                .imports(BI_CONSUMER)
+                .build()
+                .apply(updateCursor(nc), nc.getCoordinates().replace(),
+                        successCallbackMethodDeclaration.getBody(),
+                        failureCallbackMethodDeclaration.getBody());
         return newClassDeclaration.withPrefix(nc.getPrefix());
     }
 

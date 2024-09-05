@@ -79,6 +79,42 @@ class ListenableFutureCallbackToBiConsumerVisitorTest implements RewriteTest {
     }
 
     @Test
+    void anonymousClassToLambda() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+              
+              class Holder {
+                  Object callback = new ListenableFutureCallback<String>() {
+                      @Override
+                      public void onSuccess(String result) {
+                          System.out.println(result);
+                      }
+                      @Override
+                      public void onFailure(Throwable ex) {
+                          System.err.println(ex.getMessage());
+                      }
+                  };
+              }
+              """,
+            """
+              class Holder {
+                  Object callback = (String result, Throwable ex) -> {
+                      if (ex == null) {
+                          System.out.println(result);
+                      } else {
+                          System.err.println(ex.getMessage());
+                      }
+                  };
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void anonymousClass() {
         //language=java
         rewriteRun(
