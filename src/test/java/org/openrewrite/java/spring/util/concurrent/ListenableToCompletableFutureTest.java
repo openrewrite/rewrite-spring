@@ -137,6 +137,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
           java(
             """
               import org.springframework.util.concurrent.ListenableFutureCallback;
+              
               class MyCallback implements ListenableFutureCallback<String> {
                   @Override
                   public void onSuccess(String result) {
@@ -151,6 +152,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               """,
             """
               import java.util.function.BiConsumer;
+
               class MyCallback implements BiConsumer<String, Throwable> {
                   @Override
                   public void accept(String result, Throwable ex) {
@@ -170,6 +172,17 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               class A {
                   void test(ListenableFuture<String> future) {
                       future.addCallback(new MyCallback());
+                  }
+              }
+              """,
+            """
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+              
+              import java.util.concurrent.CompletableFuture;
+              
+              class A {
+                  void test(CompletableFuture<String> future) {
+                      future.whenComplete(new MyCallback());
                   }
               }
               """

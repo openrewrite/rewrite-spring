@@ -16,11 +16,7 @@
 package org.openrewrite.java.spring.util.concurrent;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.InMemoryExecutionContext;
-import org.openrewrite.java.ChangeType;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.staticanalysis.RemoveRedundantTypeCast;
@@ -31,24 +27,23 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
     // These matcher patterns assume that ChangeType has already ran first; hence the use of CompletableFuture
     private static final MethodMatcher COMPLETABLE_MATCHER =
             new MethodMatcher("java.util.concurrent.CompletableFuture completable()");
-    private static final MethodMatcher ADD_CALLBACK_SUCCESS_FAILURE_MATCHER =
-            new MethodMatcher("java.util.concurrent.CompletableFuture addCallback(" +
-                              "org.springframework.util.concurrent.SuccessCallback, " +
-                              "org.springframework.util.concurrent.FailureCallback)");
-    private static final MethodMatcher ADD_CALLBACK_LISTENABLE_FUTURE_CALLBACK_MATCHER =
-            new MethodMatcher("java.util.concurrent.CompletableFuture addCallback(" +
-                              "org.springframework.util.concurrent.ListenableFutureCallback)");
+    private static final MethodMatcher ADD_CALLBACK_SUCCESS_FAILURE_MATCHER = new MethodMatcher(
+            "java.util.concurrent.CompletableFuture addCallback(org.springframework.util.concurrent.SuccessCallback, org.springframework.util.concurrent.FailureCallback)");
+    private static final MethodMatcher ADD_CALLBACK_LISTENABLE_FUTURE_CALLBACK_MATCHER = new MethodMatcher(
+            "java.util.concurrent.CompletableFuture addCallback(org.springframework.util.concurrent.ListenableFutureCallback)");
 
 
     @Override
     public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
         J.CompilationUnit cu = compilationUnit;
         cu = (J.CompilationUnit) new MemberReferenceToMethodInvocation().visit(cu, ctx);
+        cu = (J.CompilationUnit) new ListenableFutureCallbackToBiConsumerVisitor().visit(cu, ctx);
+        cu = (J.CompilationUnit) new ChangeMethodName(
+                "org.springframework.util.concurrent.ListenableFuture addCallback(..)", "whenComplete", true, true)
+                .getVisitor().visit(cu, ctx);
         cu = (J.CompilationUnit) new ChangeType(
-                "org.springframework.util.concurrent.ListenableFuture",
-                "java.util.concurrent.CompletableFuture",
-                null).getVisitor()
-                .visit(cu, ctx, getCursor().getParent());
+                "org.springframework.util.concurrent.ListenableFuture", "java.util.concurrent.CompletableFuture", null)
+                .getVisitor().visit(cu, ctx, getCursor().getParent());
         cu = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
         cu = (J.CompilationUnit) new UseLambdaForFunctionalInterface().getVisitor().visit(cu, ctx);
         cu = (J.CompilationUnit) new RemoveRedundantTypeCast().getVisitor().visit(cu, ctx); // XXX Should not necessary & fails
@@ -63,7 +58,7 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
             return mi.getSelect().withPrefix(mi.getPrefix());
         }
         if (ADD_CALLBACK_LISTENABLE_FUTURE_CALLBACK_MATCHER.matches(mi)) {
-            return new ListenableFutureCallbackToBiConsumerVisitor().visitNonNull(mi, new InMemoryExecutionContext());
+            return mi; // XXX Change method type still?
         }
         if (ADD_CALLBACK_SUCCESS_FAILURE_MATCHER.matches(mi)) {
             return replaceSuccessFailureCallback(mi);
