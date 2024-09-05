@@ -28,3 +28,15 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.kafka.core.KafkaOperations2
       newFullyQualifiedTypeName: org.springframework.kafka.core.KafkaOperations
   - org.openrewrite.java.spring.kafka.RemoveUsingCompletableFuture
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.MESSAGE_KEY
+      fullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.KEY
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.PARTITION_ID
+      fullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.PARTITION
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.RECEIVED_MESSAGE_KEY
+      fullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.RECEIVED_KEY
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.RECEIVED_PARTITION_ID
+      fullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.RECEIVED_PARTITION

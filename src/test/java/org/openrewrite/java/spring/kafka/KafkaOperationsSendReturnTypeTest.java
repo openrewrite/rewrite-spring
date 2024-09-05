@@ -39,7 +39,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
 
     @Test
     @DocumentExample
-    void usingCompletableFuture() {
+    void changeKafkaOperationsSendReturnType() {
         //noinspection deprecation
         rewriteRun(
           //language=java
