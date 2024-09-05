@@ -22,14 +22,10 @@ import org.openrewrite.staticanalysis.RemoveUnneededBlock;
 
 public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext> {
 
-    // XXX TODO Reconsider matching original ListenableFuture instead of CompletableFuture
-    // These matcher patterns assume that ChangeType has already ran first; hence the use of CompletableFuture
-    private static final MethodMatcher COMPLETABLE_MATCHER =
-            new MethodMatcher("java.util.concurrent.CompletableFuture completable()");
     private static final MethodMatcher ADD_CALLBACK_SUCCESS_FAILURE_MATCHER = new MethodMatcher(
-            "java.util.concurrent.CompletableFuture whenComplete(org.springframework.util.concurrent.SuccessCallback, org.springframework.util.concurrent.FailureCallback)");
-    private static final MethodMatcher ADD_CALLBACK_LISTENABLE_FUTURE_CALLBACK_MATCHER = new MethodMatcher(
-            "java.util.concurrent.CompletableFuture whenComplete(org.springframework.util.concurrent.ListenableFutureCallback)");
+            "org.springframework.util.concurrent.ListenableFuture addCallback(" +
+            "org.springframework.util.concurrent.SuccessCallback, " +
+            "org.springframework.util.concurrent.FailureCallback)");
 
 
     @Override
@@ -38,28 +34,21 @@ public class ListenableToCompletableFuture extends JavaVisitor<ExecutionContext>
 
         // Delegate to other visitors to handle the bulk of the work
         cu = (J.CompilationUnit) new ListenableFutureCallbackToBiConsumerVisitor().visit(cu, ctx);
+        cu = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
+
         cu = (J.CompilationUnit) new ChangeMethodName(
                 "org.springframework.util.concurrent.ListenableFuture addCallback(..)", "whenComplete", true, true)
                 .getVisitor().visit(cu, ctx);
         cu = (J.CompilationUnit) new ChangeType(
-                "org.springframework.util.concurrent.ListenableFuture", "java.util.concurrent.CompletableFuture", null)
+                "org.springframework.util.concurrent.ListenableFuture",
+                "java.util.concurrent.CompletableFuture", null)
                 .getVisitor().visit(cu, ctx, getCursor().getParent());
-
-        // Only now replace method invocations below
-        cu = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
         return cu;
     }
 
     @Override
     public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
         J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
-
-        if (COMPLETABLE_MATCHER.matches(mi)) {
-            return mi.getSelect().withPrefix(mi.getPrefix());
-        }
-        if (ADD_CALLBACK_LISTENABLE_FUTURE_CALLBACK_MATCHER.matches(mi)) {
-            return mi; // XXX Change method type still?
-        }
         if (ADD_CALLBACK_SUCCESS_FAILURE_MATCHER.matches(mi)) {
             return replaceSuccessFailureCallback(mi, ctx);
         }

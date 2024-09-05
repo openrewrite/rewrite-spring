@@ -261,32 +261,4 @@ class ListenableToCompletableFutureTest implements RewriteTest {
           )
         );
     }
-
-    @Test
-    void completable() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import java.util.concurrent.CompletableFuture;
-              import org.springframework.util.concurrent.ListenableFuture;
-              
-              class A {
-                  CompletableFuture<String> test(ListenableFuture<String> future) {
-                      return future.completable();
-                  }
-              }
-              """,
-            """
-              import java.util.concurrent.CompletableFuture;
-              
-              class A {
-                  CompletableFuture<String> test(CompletableFuture<String> future) {
-                      return future;
-                  }
-              }
-              """
-          )
-        );
-    }
 }
