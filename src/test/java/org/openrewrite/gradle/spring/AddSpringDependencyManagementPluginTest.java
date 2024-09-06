@@ -99,7 +99,9 @@ class AddSpringDependencyManagementPluginTest implements RewriteTest {
     private static GradleProject gradleProject(GradlePluginDescriptor... gradlePlugins) {
         return new GradleProject(
           Tree.randomId(),
+          "group",
           "example",
+          "version",
           ":",
           List.of(gradlePlugins),
           Collections.emptyList(),

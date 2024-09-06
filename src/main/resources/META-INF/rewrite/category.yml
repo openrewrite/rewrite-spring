@@ -20,12 +20,24 @@ packageName: org.openrewrite.java.spring
 description: Recipes for upgrading and patching [Spring](https://spring.io/) applications.
 ---
 type: specs.openrewrite.org/v1beta/category
+name: Spring Batch
+packageName: org.openrewrite.java.spring.batch
+---
+type: specs.openrewrite.org/v1beta/category
 name: Spring Boot 2.x
 packageName: org.openrewrite.java.spring.boot2
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring Boot 3.x
 packageName: org.openrewrite.java.spring.boot3
+---
+type: specs.openrewrite.org/v1beta/category
+name: Spring Cloud 2022
+packageName: org.openrewrite.java.spring.cloud2022
+---
+type: specs.openrewrite.org/v1beta/category
+name: Spring Cloud 2023
+packageName: org.openrewrite.java.spring.cloud2023
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring Data
@@ -36,5 +48,13 @@ name: Spring Framework
 packageName: org.openrewrite.java.spring.framework
 ---
 type: specs.openrewrite.org/v1beta/category
-name: Spring Batch
-packageName: org.openrewrite.java.spring.batch
+name: Spring Kafka
+packageName: org.openrewrite.java.spring.kafka
+---
+type: specs.openrewrite.org/v1beta/category
+name: Spring Security 5.x
+packageName: org.openrewrite.java.spring.security5
+---
+type: specs.openrewrite.org/v1beta/category
+name: Spring Security 6.x
+packageName: org.openrewrite.java.spring.security6

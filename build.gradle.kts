@@ -90,6 +90,11 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
 
+    parserClasspath("org.springframework:spring-messaging:5.+")
+    parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
+    parserClasspath("org.springframework.kafka:spring-kafka-test:2.9.+")
+    parserClasspath("org.apache.kafka:kafka-clients:3.2.+")
+
     parserClasspath("org.springframework.security:spring-security-config:5.8.+")
     parserClasspath("org.springframework.security:spring-security-crypto:5.8.+")
     parserClasspath("org.springframework.security:spring-security-oauth2-client:5.8.+")
@@ -123,6 +128,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-maven")
     implementation("org.openrewrite:rewrite-templating:$rewriteVersion")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
+    implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite:rewrite-java-17")
@@ -143,8 +149,6 @@ dependencies {
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
-
-    testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
 
