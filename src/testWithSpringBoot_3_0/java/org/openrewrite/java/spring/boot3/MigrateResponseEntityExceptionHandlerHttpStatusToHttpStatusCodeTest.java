@@ -17,13 +17,13 @@ package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implements RewriteTest {
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implements RewriteTest {
+class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -43,7 +43,7 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-              public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+              class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
@@ -57,7 +57,7 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-              public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+              class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {

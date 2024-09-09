@@ -22,12 +22,12 @@ import org.openrewrite.java.tree.J;
 
 public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode extends Recipe {
     @Override
-    public @NlsRewrite.DisplayName String getDisplayName() {
+    public String getDisplayName() {
         return "Migrate `ResponseEntityExceptionHandler` from HttpStatus to HttpStatusCode";
     }
 
     @Override
-    public @NlsRewrite.Description String getDescription() {
+    public String getDescription() {
         return "With Spring 6 `HttpStatus` was replaced by `HttpStatusCode` in most method signatures in the `ResponseEntityExceptionHandler`.";
     }
 
