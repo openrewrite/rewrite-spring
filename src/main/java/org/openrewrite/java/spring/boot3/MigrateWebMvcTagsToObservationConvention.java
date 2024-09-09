@@ -32,6 +32,11 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
     private static final String DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ = "org.springframework.http.server.observation.DefaultServerRequestObservationConvention";
     private static final String SERVERREQUESTOBSERVATIONCONVENTION_FQ = "org.springframework.http.server.observation.ServerRequestObservationContext";
     private static final String KEYVALUES_FQ = "io.micrometer.common.KeyValues";
+    private static final String HTTPSERVLETREQUEST_FQ = "jakarta.servlet.http.HttpServletRequest";
+    private static final String HTTPSERVLETRESPONSE_FQ = "jakarta.servlet.http.HttpServletResponse";
+
+    private static boolean addedHttpServletRequest;
+    private static boolean addedHttpServletResponse;
 
     @Override
     public @NlsRewrite.DisplayName String getDisplayName() {
@@ -59,14 +64,14 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                             .withType(JavaType.buildType(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ))
                                             .withPrefix(Space.SINGLE_SPACE));
                             c = super.visitClassDeclaration(c, ctx);
-                return maybeAutoFormat(classDecl, c, ctx, getCursor());
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        }
+                    }
                 }
-                return maybeAutoFormat(classDecl, c, executionContext, getCursor());
+                return maybeAutoFormat(classDecl, c, ctx, getCursor());
             }
 
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = method;
                 for (J.Annotation anno : m.getLeadingAnnotations()) {
                     if (TypeUtils.isOfType(anno.getType(), JavaType.buildType("java.lang.Override"))) {
@@ -97,6 +102,29 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     }
                 }
                 return super.visitMethodDeclaration(m, ctx);
+            }
+
+            @Override
+            public Statement visitStatement(Statement statement, ExecutionContext executionContext) {
+                return super.visitStatement(statement, executionContext);
+            }
+
+            @Override
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
+                if (method.getMethodType() != null && TypeUtils.isOfType(method.getMethodType().getDeclaringType(), JavaType.buildType(HTTPSERVLETREQUEST_FQ)) && !addedHttpServletRequest) {
+                    JavaTemplate.builder("HttpServletRequest request = context.get(HttpServletRequest.class);")
+                            .imports(HTTPSERVLETREQUEST_FQ)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(executionContext, "tomcat-embed-core-10.+"))
+                            .build()
+                            .apply(getCursor(), getCursor().firstEnclosing(J.MethodDeclaration.class).getBody().getCoordinates().firstStatement());
+                    addedHttpServletRequest = true;
+                }
+                return super.visitMethodInvocation(method, executionContext);
+            }
+
+            @Override
+            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext executionContext) {
+                return super.visitVariableDeclarations(multiVariable, executionContext);
             }
         });
     }
