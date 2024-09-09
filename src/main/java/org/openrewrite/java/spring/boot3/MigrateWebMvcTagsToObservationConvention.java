@@ -47,7 +47,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>(WEBMVCTAGSPROVIDER_FQ, true), new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = classDecl;
                 if (classDecl.getImplements() != null) {
                     for (TypeTree type : classDecl.getImplements()) {
@@ -58,9 +58,9 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     .withExtends(TypeTree.build(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION)
                                             .withType(JavaType.buildType(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ))
                                             .withPrefix(Space.SINGLE_SPACE));
-                            c = super.visitClassDeclaration(c, executionContext);
-                        }
-                    }
+                            c = super.visitClassDeclaration(c, ctx);
+                return maybeAutoFormat(classDecl, c, ctx, getCursor());
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 }
                 return maybeAutoFormat(classDecl, c, executionContext, getCursor());
             }
@@ -74,7 +74,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                             J.VariableDeclarations methodArg = JavaTemplate.builder("ServerRequestObservationContext context")
                                     .contextSensitive()
                                     .imports(SERVERREQUESTOBSERVATIONCONVENTION_FQ)
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(executionContext, "spring-web-6.+"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.+"))
                                     .build()
                                     .<J.MethodDeclaration>apply(getCursor(), method.getCoordinates().replaceParameters())
                                     .getParameters().get(0).withPrefix(Space.EMPTY);
@@ -82,7 +82,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                             Statement keyValuesInitializer = JavaTemplate.builder("KeyValues values = super.getLowCardinalityKeyValues(context);")
                                     .contextSensitive()
                                     .imports(KEYVALUES_FQ)
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(executionContext, "micrometer-commons-1.11.+"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                     .build()
                                     .<J.MethodDeclaration>apply(getCursor(), method.getBody().getCoordinates().firstStatement())
                                     .getBody().getStatements().get(0);
@@ -96,7 +96,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                         }
                     }
                 }
-                return super.visitMethodDeclaration(m, executionContext);
+                return super.visitMethodDeclaration(m, ctx);
             }
         });
     }
