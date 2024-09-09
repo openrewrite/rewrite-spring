@@ -48,8 +48,8 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                 new UsesType<>("org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler", true),
                 new JavaIsoVisitor<ExecutionContext>() {
                     @Override
-                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-                        J.MethodDeclaration m = super.visitMethodDeclaration(method, executionContext);
+                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
                         List<Statement> vars = m.getParameters();
                         for (int i = 0; i < vars.size(); i++) {
                             Statement var = vars.get(i);
