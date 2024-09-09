@@ -27,7 +27,7 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateWebMvcTagsToObservationConvention()).parser(JavaParser.fromJavaVersion().classpath( "micrometer-core", "spring-boot", "spring-context", "spring-beans", "spring-web", "tomcat-embed"));
+        spec.recipe(new MigrateWebMvcTagsToObservationConvention()).parser(JavaParser.fromJavaVersion().classpath( "micrometer-core", "spring-boot", "spring-context", "spring-beans", "spring-web", "tomcat-embed-core"));
     }
 
     @DocumentExample

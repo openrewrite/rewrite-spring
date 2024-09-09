@@ -114,7 +114,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 if (method.getMethodType() != null && TypeUtils.isOfType(method.getMethodType().getDeclaringType(), JavaType.buildType(HTTPSERVLETREQUEST_FQ)) && !addedHttpServletRequest) {
                     JavaTemplate.builder("HttpServletRequest request = context.get(HttpServletRequest.class);")
                             .imports(HTTPSERVLETREQUEST_FQ)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tomcat-embed-core-10.+"))
+                            .javaParser(JavaParser.fromJavaVersion().classpath("tomcat-embed-core"))
                             .build()
                             .apply(getCursor(), getCursor().firstEnclosing(J.MethodDeclaration.class).getBody().getCoordinates().firstStatement());
                     addedHttpServletRequest = true;
