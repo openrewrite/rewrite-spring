@@ -105,26 +105,26 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
             }
 
             @Override
-            public Statement visitStatement(Statement statement, ExecutionContext executionContext) {
-                return super.visitStatement(statement, executionContext);
+            public Statement visitStatement(Statement statement, ExecutionContext ctx) {
+                return super.visitStatement(statement, ctx);
             }
 
             @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 if (method.getMethodType() != null && TypeUtils.isOfType(method.getMethodType().getDeclaringType(), JavaType.buildType(HTTPSERVLETREQUEST_FQ)) && !addedHttpServletRequest) {
                     JavaTemplate.builder("HttpServletRequest request = context.get(HttpServletRequest.class);")
                             .imports(HTTPSERVLETREQUEST_FQ)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(executionContext, "tomcat-embed-core-10.+"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tomcat-embed-core-10.+"))
                             .build()
                             .apply(getCursor(), getCursor().firstEnclosing(J.MethodDeclaration.class).getBody().getCoordinates().firstStatement());
                     addedHttpServletRequest = true;
                 }
-                return super.visitMethodInvocation(method, executionContext);
+                return super.visitMethodInvocation(method, ctx);
             }
 
             @Override
-            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext executionContext) {
-                return super.visitVariableDeclarations(multiVariable, executionContext);
+            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
+                return super.visitVariableDeclarations(multiVariable, ctx);
             }
         });
     }
