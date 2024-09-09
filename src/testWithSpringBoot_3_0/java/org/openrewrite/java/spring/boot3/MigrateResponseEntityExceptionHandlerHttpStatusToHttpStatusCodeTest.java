@@ -16,7 +16,8 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.java.JavaParser;
+import org.openrewrite.DocumentExample;
+class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implements RewriteTest {
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,6 +31,7 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-context", "spring-beans", "spring-web", "spring-webmvc"));
     }
 
+    @DocumentExample
     @Test
     void migrateDropWizardDependenciesPackageNames() {
         //language=java
