@@ -19,11 +19,13 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.*;
-
-import java.util.List;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeTree;
+import org.openrewrite.java.tree.TypeUtils;
 
 import static java.util.Collections.singletonList;
 
@@ -50,24 +52,41 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-                        List<Statement> vars = m.getParameters();
-                        for (int i = 0; i < vars.size(); i++) {
-                            Statement var = vars.get(i);
-                            if (var instanceof J.VariableDeclarations) {
-                                J.VariableDeclarations v = (J.VariableDeclarations) var;
-                                if (TypeUtils.isOfType(v.getType(), JavaType.buildType(HTTP_STATUS_FQ))) {
-                                    String httpStatusCodeSimpleName = HTTP_STATUS_CODE_FQ.substring(HTTP_STATUS_CODE_FQ.lastIndexOf("."));
-                                    J.VariableDeclarations.NamedVariable declaredVar = v.getVariables().get(0);
-                                    v = v.withTypeExpression(TypeTree.build(httpStatusCodeSimpleName)
-                                                    .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)))
-                                            .withVariables(singletonList(declaredVar.withType(JavaType.buildType(HTTP_STATUS_CODE_FQ))));
-                                    vars.set(i, v);
-                                    maybeAddImport(HTTP_STATUS_CODE_FQ);
-                                    maybeRemoveImport(HTTP_STATUS_FQ);
-                                }
+                        boolean isOverride = false;
+                        for (J.Annotation ann : method.getLeadingAnnotations()) {
+                            if (TypeUtils.isAssignableTo("java.lang.Override", ann.getType())) {
+                                isOverride = true;
                             }
                         }
-                        return m.withParameters(vars);
+                        if (isOverride) {
+                            final JavaType.Method met = m.getMethodType().withParameterTypes(ListUtils.map(m.getMethodType().getParameterTypes(), type -> {
+                                if (TypeUtils.isAssignableTo(HTTP_STATUS_FQ, type)) {
+                                    return JavaType.buildType(HTTP_STATUS_CODE_FQ);
+                                }
+                                return type;
+                            }));
+                            m = m.withMethodType(met);
+                            m = m.withParameters(ListUtils.map(m.getParameters(), var -> {
+                                if (var instanceof J.VariableDeclarations) {
+                                    J.VariableDeclarations v = (J.VariableDeclarations) var;
+                                    J.VariableDeclarations.NamedVariable declaredVar = v.getVariables().get(0);
+                                    declaredVar = declaredVar.withVariableType(declaredVar.getVariableType().withOwner(met));
+                                    v = v.withVariables(singletonList(declaredVar));
+                                    if (TypeUtils.isOfType(v.getType(), JavaType.buildType(HTTP_STATUS_FQ))) {
+                                        String httpStatusCodeSimpleName = HTTP_STATUS_CODE_FQ.substring(HTTP_STATUS_CODE_FQ.lastIndexOf("."));
+                                        v = v.withTypeExpression(TypeTree.build(httpStatusCodeSimpleName)
+                                                .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)));
+                                        v = v.withVariables(singletonList(declaredVar.withType(JavaType.buildType(HTTP_STATUS_CODE_FQ))));
+
+                                        return v;
+                                    }
+                                }
+                                return var;
+                            }));
+                        }
+                        maybeAddImport(HTTP_STATUS_CODE_FQ);
+                        maybeRemoveImport(HTTP_STATUS_FQ);
+                        return m;
                     }
                 }
         );
