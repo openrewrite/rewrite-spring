@@ -145,7 +145,15 @@ dependencies {
         exclude("com.google.auto.service", "auto-service-annotations")
     }
     implementation("org.mongodb:mongo-java-driver:3.12.+")
-    implementation("org.springframework.data:spring-data-mongodb:2.2.+")
+    implementation("org.springframework.data:spring-data-mongodb:2.2.+"){
+        because("We only require the classes (for refaster style recipes), not the dependencies")
+        exclude(group = "org.springframework", module = "spring-beans")
+        exclude(group = "org.springframework", module = "spring-context")
+        exclude(group = "org.springframework", module = "spring-core")
+        exclude(group = "org.springframework", module = "spring-expression")
+        exclude(group = "org.springframework", module = "spring-jcl")
+        exclude(group = "org.springframework", module = "spring-tx")
+    }
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
