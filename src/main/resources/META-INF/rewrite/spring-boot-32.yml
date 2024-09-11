@@ -50,6 +50,7 @@ recipeList:
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_2
   - org.openrewrite.java.spring.boot3.EnableVirtualThreads
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_1
   - org.openrewrite.java.spring.cloud2023.UpgradeSpringCloud_2023
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.task.TaskSchedulerBuilder
@@ -66,6 +67,10 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.transaction.PlatformTransactionManagerCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizer
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 2.5.x
   - org.openrewrite.hibernate.MigrateToHibernate63
   - org.openrewrite.java.spring.boot3.RelocateLauncherClasses
 

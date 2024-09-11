@@ -15,9 +15,9 @@
  */
 package org.openrewrite.java.spring.boot2.search;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.Tree;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
@@ -262,7 +262,7 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
         return new SearchResult(Tree.randomId(), "Expected Domain Type ID is '" + domainIdType + "'");
     }
 
-    private static @Nullable J.Annotation findAnnotation(Collection<J.Annotation> annotations, String fqName) {
+    private static J.@Nullable Annotation findAnnotation(Collection<J.Annotation> annotations, String fqName) {
         for (J.Annotation a : annotations) {
             JavaType.FullyQualified fqType = TypeUtils.asFullyQualified(a.getAnnotationType().getType());
             if (fqType != null && fqName.equals(fqType.getFullyQualifiedName())) {
@@ -286,7 +286,7 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
         return null;
     }
 
-    private static @Nullable J.Assignment getArgument(J.Annotation a, String arg) {
+    private static J.@Nullable Assignment getArgument(J.Annotation a, String arg) {
         if (a.getArguments() != null) {
             for (Expression e : a.getArguments()) {
                 if (e instanceof J.Assignment) {

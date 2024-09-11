@@ -15,9 +15,9 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -121,12 +121,13 @@ public class MigrateItemWriterWrite extends Recipe {
             this.parameterName = parameterName;
         }
 
+        private static final MethodMatcher COLLECTION_MATCHER = new MethodMatcher("java.util.Collection *(..)", true);
         private static final MethodMatcher LIST_MATCHER = new MethodMatcher("java.util.List *(..)", true);
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-            if (LIST_MATCHER.matches(mi) && isParameter(mi.getSelect())) {
+            if ((COLLECTION_MATCHER.matches(mi) || LIST_MATCHER.matches(mi)) && isParameter(mi.getSelect())) {
                 assert mi.getPadding().getSelect() != null;
                 // No need to take care of typing here, since it's going to be printed and parsed on the JavaTemplate later on.
                 mi = mi.withSelect(newGetItemsMethodInvocation(mi.getPadding().getSelect()));

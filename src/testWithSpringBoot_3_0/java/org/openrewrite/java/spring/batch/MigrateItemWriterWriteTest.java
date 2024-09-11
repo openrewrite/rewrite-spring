@@ -42,33 +42,35 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import java.util.List;
-            import org.springframework.batch.item.ItemWriter;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final List<? extends T> items) throws Exception {
-                    for (final T item : items) {
-                        System.out.println(item.toString());
-                    }
-                }
-            }
-            """, """
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.ItemWriter;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final Chunk<? extends T> items) throws Exception {
-                    for (final T item : items) {
-                        System.out.println(item.toString());
-                    }
-                }
-            }
-            """)
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      for (final T item : items) {
+                          System.out.println(item.toString());
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      for (final T item : items) {
+                          System.out.println(item.toString());
+                      }
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -77,29 +79,31 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import java.util.List;
-            
-            import org.springframework.batch.item.database.JdbcBatchItemWriter;
-            
-            public class ExtendedJdbcBatchItemWriter extends JdbcBatchItemWriter<String> {
-            
-                public void write(List<? extends String> a) throws Exception {
-                    super.write(a);
-                }
-            }
-            """, """
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.database.JdbcBatchItemWriter;
-            
-            public class ExtendedJdbcBatchItemWriter extends JdbcBatchItemWriter<String> {
-            
-                @Override
-                public void write(Chunk<? extends String> a) throws Exception {
-                    super.write(a);
-                }
-            }
-            """)
+            """
+              import java.util.List;
+
+              import org.springframework.batch.item.database.JdbcBatchItemWriter;
+
+              public class ExtendedJdbcBatchItemWriter extends JdbcBatchItemWriter<String> {
+
+                  public void write(List<? extends String> a) throws Exception {
+                      super.write(a);
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.database.JdbcBatchItemWriter;
+
+              public class ExtendedJdbcBatchItemWriter extends JdbcBatchItemWriter<String> {
+
+                  @Override
+                  public void write(Chunk<? extends String> a) throws Exception {
+                      super.write(a);
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -108,25 +112,27 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import java.util.List;
-            import org.springframework.batch.item.ItemWriter;
-            
-            public abstract class AbstractItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public abstract void write(final List<? extends T> items) throws Exception;
-            }
-            """, """
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.ItemWriter;
-            
-            public abstract class AbstractItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public abstract void write(final Chunk<? extends T> items) throws Exception;
-            }
-            """)
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public abstract class AbstractItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public abstract void write(final List<? extends T> items) throws Exception;
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public abstract class AbstractItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public abstract void write(final Chunk<? extends T> items) throws Exception;
+              }
+              """
+          )
         );
     }
 
@@ -136,35 +142,37 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import java.util.List;
-            import org.springframework.batch.item.ItemWriter;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final List<? extends T> items) throws Exception {
-                    if (items.size() >= 3) {
-                        T item = items.get(2);
-                        System.out.println(item.toString());
-                    }
-                }
-            }
-            """, """
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.ItemWriter;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final Chunk<? extends T> items) throws Exception {
-                    if (items.getItems().size() >= 3) {
-                        T item = items.getItems().get(2);
-                        System.out.println(item.toString());
-                    }
-                }
-            }
-            """)
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      if (items.size() >= 3) {
+                          T item = items.get(2);
+                          System.out.println(item.toString());
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      if (items.getItems().size() >= 3) {
+                          T item = items.getItems().get(2);
+                          System.out.println(item.toString());
+                      }
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -174,40 +182,42 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import org.springframework.batch.item.ItemWriter;
+            """
+              import org.springframework.batch.item.ItemWriter;
 
-            import java.util.List;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final List<? extends T> items) throws Exception {
-                    List<? extends T> other = items;
-                    if (!other.isEmpty()) {
-                        T item = other.get(0);
-                        System.out.println(item);
-                    }
-                }
-            }
-            """, """            
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.ItemWriter;
-            
-            import java.util.List;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final Chunk<? extends T> items) throws Exception {
-                    List<? extends T> other = items.getItems();
-                    if (!other.isEmpty()) {
-                        T item = other.get(0);
-                        System.out.println(item);
-                    }
-                }
-            }
-            """)
+              import java.util.List;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      List<? extends T> other = items;
+                      if (!other.isEmpty()) {
+                          T item = other.get(0);
+                          System.out.println(item);
+                      }
+                  }
+              }
+              """,
+            """            
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              import java.util.List;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      List<? extends T> other = items.getItems();
+                      if (!other.isEmpty()) {
+                          T item = other.get(0);
+                          System.out.println(item);
+                      }
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -217,42 +227,44 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import org.springframework.batch.item.ItemWriter;
+            """
+              import org.springframework.batch.item.ItemWriter;
 
-            import java.util.List;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final List<? extends T> items) throws Exception {
-                    List<? extends T> other;
-                    other = items;
-                    if (!other.isEmpty()) {
-                        T item = other.get(0);
-                        System.out.println(item);
-                    }
-                }
-            }
-            """, """            
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.ItemWriter;
-            
-            import java.util.List;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final Chunk<? extends T> items) throws Exception {
-                    List<? extends T> other;
-                    other = items.getItems();
-                    if (!other.isEmpty()) {
-                        T item = other.get(0);
-                        System.out.println(item);
-                    }
-                }
-            }
-            """)
+              import java.util.List;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      List<? extends T> other;
+                      other = items;
+                      if (!other.isEmpty()) {
+                          T item = other.get(0);
+                          System.out.println(item);
+                      }
+                  }
+              }
+              """,
+            """            
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              import java.util.List;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      List<? extends T> other;
+                      other = items.getItems();
+                      if (!other.isEmpty()) {
+                          T item = other.get(0);
+                          System.out.println(item);
+                      }
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -262,42 +274,44 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import org.springframework.batch.item.ItemWriter;
+            """
+              import org.springframework.batch.item.ItemWriter;
 
-            import java.util.List;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-                private void method(List<? extends T> items) {
-                    for (T item : items) {
-                        System.out.println(item.toString());
-                    }
-                }
-            
-                @Override
-                public void write(final List<? extends T> items) throws Exception {
-                    method(items);
-                }
-            }
-            """, """            
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.ItemWriter;
-            
-            import java.util.List;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-                private void method(List<? extends T> items) {
-                    for (T item : items) {
-                        System.out.println(item.toString());
-                    }
-                }
-                
-                @Override
-                public void write(final Chunk<? extends T> items) throws Exception {
-                    method(items.getItems());
-                }
-            }
-            """)
+              import java.util.List;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                  private void method(List<? extends T> items) {
+                      for (T item : items) {
+                          System.out.println(item.toString());
+                      }
+                  }
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      method(items);
+                  }
+              }
+              """,
+            """            
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              import java.util.List;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                  private void method(List<? extends T> items) {
+                      for (T item : items) {
+                          System.out.println(item.toString());
+                      }
+                  }
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      method(items.getItems());
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -307,36 +321,38 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import org.springframework.batch.item.ItemWriter;
+            """
+              import org.springframework.batch.item.ItemWriter;
 
-            import java.util.List;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final List<? extends T> items) throws Exception {
-                    Iterable<? extends T> other = items;
-                    for (T item : other) {
-                        System.out.println(item.toString());
-                    }
-                }
-            }
-            """, """
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.ItemWriter;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final Chunk<? extends T> items) throws Exception {
-                    Iterable<? extends T> other = items;
-                    for (T item : other) {
-                        System.out.println(item.toString());
-                    }
-                }
-            }
-            """)
+              import java.util.List;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      Iterable<? extends T> other = items;
+                      for (T item : other) {
+                          System.out.println(item.toString());
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      Iterable<? extends T> other = items;
+                      for (T item : other) {
+                          System.out.println(item.toString());
+                      }
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -345,40 +361,42 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import org.springframework.batch.item.ItemWriter;
+            """
+              import org.springframework.batch.item.ItemWriter;
 
-            import java.util.List;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-                private void method(Iterable<? extends T> items) {
-                    for (T item : items) {
-                        System.out.println(item.toString());
-                    }
-                }
-            
-                @Override
-                public void write(final List<? extends T> items) throws Exception {
-                    method(items);
-                }
-            }
-            """, """            
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.ItemWriter;
-                        
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-                private void method(Iterable<? extends T> items) {
-                    for (T item : items) {
-                        System.out.println(item.toString());
-                    }
-                }
-                
-                @Override
-                public void write(final Chunk<? extends T> items) throws Exception {
-                    method(items);
-                }
-            }
-            """)
+              import java.util.List;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                  private void method(Iterable<? extends T> items) {
+                      for (T item : items) {
+                          System.out.println(item.toString());
+                      }
+                  }
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      method(items);
+                  }
+              }
+              """,
+            """            
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+                  private void method(Iterable<? extends T> items) {
+                      for (T item : items) {
+                          System.out.println(item.toString());
+                      }
+                  }
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      method(items);
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -388,41 +406,75 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import org.springframework.batch.item.ItemWriter;
+            """
+              import org.springframework.batch.item.ItemWriter;
 
-            import java.util.ArrayList;
-            import java.util.List;
-            
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
-            
-                @Override
-                public void write(final List<? extends T> items) throws Exception {
-                    List<? extends T> other = new ArrayList<>();
-                    for (T item : other) {
-                        System.out.println(item.toString());
-                    }
-                }
-            }
-            """, """
-            import org.springframework.batch.item.Chunk;
-            import org.springframework.batch.item.ItemWriter;
-            
-            import java.util.ArrayList;
-            import java.util.List;
+              import java.util.ArrayList;
+              import java.util.List;
 
-            public class ConsoleItemWriter<T> implements ItemWriter<T> {
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
 
-                @Override
-                public void write(final Chunk<? extends T> items) throws Exception {
-                    List<? extends T> other = new ArrayList<>();
-                    for (T item : other) {
-                        System.out.println(item.toString());
-                    }
-                }
-            }
-            """)
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      List<? extends T> other = new ArrayList<>();
+                      for (T item : other) {
+                          System.out.println(item.toString());
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              import java.util.ArrayList;
+              import java.util.List;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      List<? extends T> other = new ArrayList<>();
+                      for (T item : other) {
+                          System.out.println(item.toString());
+                      }
+                  }
+              }
+              """
+          )
         );
     }
 
+    @Test
+    void itemsStream() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      items.stream().forEach(item -> System.out.println(item.toString()));
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      items.getItems().stream().forEach(item -> System.out.println(item.toString()));
+                  }
+              }
+              """
+          )
+        );
+    }
 }

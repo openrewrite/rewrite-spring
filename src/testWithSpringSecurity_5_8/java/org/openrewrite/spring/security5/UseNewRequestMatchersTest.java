@@ -18,7 +18,9 @@ package org.openrewrite.spring.security5;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.spring.security5.AuthorizeHttpRequests;
 import org.openrewrite.java.spring.security5.UseNewRequestMatchers;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -43,13 +45,13 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-                            
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                            
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -62,13 +64,13 @@ class UseNewRequestMatchersTest implements RewriteTest {
               """,
             """
               package com.example;
-                          
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                          
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -90,14 +92,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-                            
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                            
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -111,14 +113,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
             ,
             """
               package com.example;
-                          
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                          
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -140,13 +142,13 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-                            
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                            
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -160,13 +162,13 @@ class UseNewRequestMatchersTest implements RewriteTest {
             ,
             """
               package com.example;
-                          
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                          
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -188,14 +190,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-                            
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                            
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -209,14 +211,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
             ,
             """
               package com.example;
-                          
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                          
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -238,13 +240,13 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-                            
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                            
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -258,13 +260,13 @@ class UseNewRequestMatchersTest implements RewriteTest {
             ,
             """
               package com.example;
-                          
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                          
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -286,14 +288,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-                            
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                            
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -307,14 +309,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
             ,
             """
               package com.example;
-                          
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                          
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -336,14 +338,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-                            
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                            
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -357,14 +359,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
             ,
             """
               package com.example;
-                          
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                          
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -386,14 +388,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-                            
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                            
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -410,14 +412,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
             ,
             """
               package com.example;
-                          
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.http.HttpMethod;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-                          
+
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -435,4 +437,85 @@ class UseNewRequestMatchersTest implements RewriteTest {
         );
     }
 
+    @Test
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/463")
+    void shouldUseCorrectTypeAfterAuthorizeHttpRequestsChain() {
+        //language=java
+        rewriteRun(
+          recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
+          java(
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeRequests()
+                          .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                          .antMatchers("/openapi").permitAll();
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeHttpRequests()
+                          .requestMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                          .requestMatchers("/openapi").permitAll();
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/463")
+    void shouldUseCorrectTypeAfterAuthorizeHttpRequestsChainDsl() {
+        //language=java
+        rewriteRun(
+          recipeSpec -> recipeSpec.recipes(new AuthorizeHttpRequests(), new UseNewRequestMatchers()),
+          java(
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeRequests(requests -> requests
+                          .antMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                          .antMatchers("/openapi").permitAll());
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeHttpRequests(requests -> requests
+                          .requestMatchers(HttpMethod.OPTIONS, "/rest/**").permitAll()
+                          .requestMatchers("/openapi").permitAll());
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
 }

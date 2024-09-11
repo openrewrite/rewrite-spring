@@ -45,6 +45,10 @@ recipeList:
       newVersion: 5.3.x
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_7
   - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_7
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 1.8.x
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.server.LocalServerPort

@@ -90,6 +90,11 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
 
+    parserClasspath("org.springframework:spring-messaging:5.+")
+    parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
+    parserClasspath("org.springframework.kafka:spring-kafka-test:2.9.+")
+    parserClasspath("org.apache.kafka:kafka-clients:3.2.+")
+
     parserClasspath("org.springframework.security:spring-security-config:5.8.+")
     parserClasspath("org.springframework.security:spring-security-crypto:5.8.+")
     parserClasspath("org.springframework.security:spring-security-oauth2-client:5.8.+")
@@ -106,6 +111,9 @@ recipeDependencies {
 
     parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     parserClasspath("net.minidev:json-smart:2.4.+")
+
+    parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.1.+")
+    parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -118,19 +126,32 @@ dependencies {
     implementation("org.openrewrite:rewrite-yaml")
     implementation("org.openrewrite:rewrite-gradle")
     implementation("org.openrewrite:rewrite-maven")
+    implementation("org.openrewrite:rewrite-templating:$rewriteVersion")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
+    implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
     runtimeOnly("org.openrewrite:rewrite-java-17")
+    runtimeOnly("org.openrewrite.recipe:rewrite-apache:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
+    runtimeOnly("org.openrewrite.recipe:rewrite-micrometer:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
+    runtimeOnly("org.openrewrite.recipe:rewrite-reactive-streams:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
+
+    annotationProcessor("org.openrewrite:rewrite-templating:$rewriteVersion")
+    compileOnly("com.google.errorprone:error_prone_core:2.19.1") {
+        exclude("com.google.auto.service", "auto-service-annotations")
+    }
+    implementation("org.mongodb:mongo-java-driver:3.12.+")
+    implementation("org.springframework.data:spring-data-mongodb:2.2.+"){
+        because("We only require the classes (for refaster style recipes), not the dependencies")
+        exclude(group = "org.springframework")
+    }
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
-
-    testImplementation("com.github.marschall:memoryfilesystem:latest.release")
 
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
 
@@ -168,6 +189,8 @@ dependencies {
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
     "testWithSpringBoot_2_3RuntimeOnly"("org.springframework:spring-web:5.2.+")
     "testWithSpringBoot_2_3Implementation"("org.springframework.data:spring-data-jpa:2.3.+")
+    "testWithSpringBoot_2_3Implementation"("org.springframework.data:spring-data-mongodb:2.2.+")
+    "testWithSpringBoot_2_3Implementation"("org.mongodb:mongo-java-driver:3.12.+")
     "testWithSpringBoot_2_3Implementation"("javax.persistence:javax.persistence-api:2.2")
 
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.boot:spring-boot:2.4.+")
