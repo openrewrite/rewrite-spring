@@ -16,11 +16,13 @@
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.properties.Assertions.properties;
 
-public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
+class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SeparateApplicationPropertiesByProfile());
@@ -29,7 +31,9 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
     @Test
     void noApplicationProperties() {
         rewriteRun(
-          org.openrewrite.properties.Assertions.properties("""
+          properties(
+            //language=properties
+            """
               spring.application.name=Openrewrite-PR-Service
               #PR-Service
               
@@ -45,7 +49,9 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
     @Test
     void noSeparateProfile() {
         rewriteRun(
-          org.openrewrite.properties.Assertions.properties("""
+          properties(
+            //language=properties
+            """
               spring.application.name=Openrewrite-PR-Service
               #PR-Service
               
@@ -58,13 +64,16 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
         );
     }
 
+    @DocumentExample
     @Test
     void separateProfileWithAppend() {
         rewriteRun(
-          org.openrewrite.properties.Assertions.properties(
+          properties(
+            //language=properties
             """
               line1=line1
               """,
+            //language=properties
             """
               line1=line1
               oauth2.clientId=9999999999999999999999
@@ -73,7 +82,8 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               """,
             sourceSpecs -> sourceSpecs.path("application-dev.properties")
           ),
-          org.openrewrite.properties.Assertions.properties(
+          properties(
+            //language=properties
             """
               spring.application.name=Openrewrite-PR-Service
               #PR-Service
@@ -96,6 +106,7 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               oauth2.clientId=77777777777777
               service.domainUrl=https://this.is.my.prod.url.com
               """,
+            //language=properties
             """
               spring.application.name=Openrewrite-PR-Service
               #PR-Service
@@ -105,15 +116,16 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               """,
             sourceSpecs -> sourceSpecs.path("application.properties")
           ),
-          org.openrewrite.properties.Assertions.properties(
+          properties(
             null,
             """
               app.config.currentEnvironment=LOCAL
               """,
             sourceSpecs -> sourceSpecs.path("application-local.properties")
           ),
-          org.openrewrite.properties.Assertions.properties(
+          properties(
             null,
+            //language=properties
             """
               #### XX Configuration ####
               oauth2.clientId=77777777777777
@@ -127,8 +139,9 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
     @Test
     void separateProfileWithoutAppend() {
         rewriteRun(
-          org.openrewrite.properties.Assertions.properties(
+          properties(
             null,
+            //language=properties
             """
               oauth2.clientId=9999999999999999999999
               service.domainUrl= https://this.is.my.dev.url.com
@@ -136,7 +149,8 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               """,
             sourceSpecs -> sourceSpecs.path("application-dev.properties")
           ),
-          org.openrewrite.properties.Assertions.properties(
+          properties(
+            //language=properties
             """
               spring.application.name=Openrewrite-PR-Service
               #PR-Service
@@ -159,6 +173,7 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               oauth2.clientId=77777777777777
               service.domainUrl=https://this.is.my.prod.url.com
               """,
+            //language=properties
             """
               spring.application.name=Openrewrite-PR-Service
               #PR-Service
@@ -168,15 +183,17 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               """,
             sourceSpecs -> sourceSpecs.path("application.properties")
           ),
-          org.openrewrite.properties.Assertions.properties(
+          properties(
             null,
+            //language=properties
             """
               app.config.currentEnvironment=LOCAL
               """,
             sourceSpecs -> sourceSpecs.path("application-local.properties")
           ),
-          org.openrewrite.properties.Assertions.properties(
+          properties(
             null,
+            //language=properties
             """
               #### XX Configuration ####
               oauth2.clientId=77777777777777
@@ -190,10 +207,12 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
     @Test
     void pathToApplicationProperties() {
         rewriteRun(
-          org.openrewrite.properties.Assertions.properties(
+          properties(
+            //language=properties
             """
               line1=line1
               """,
+            //language=properties
             """
               line1=line1
               oauth2.clientId=9999999999999999999999
@@ -202,7 +221,8 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               """,
             sourceSpecs -> sourceSpecs.path("folder1/folder2/application-dev.properties")
           ),
-          org.openrewrite.properties.Assertions.properties(
+          properties(
+            //language=properties
             """
               spring.application.name=Openrewrite-PR-Service
               #PR-Service
@@ -225,6 +245,7 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               oauth2.clientId=77777777777777
               service.domainUrl=https://this.is.my.prod.url.com
               """,
+            //language=properties
             """
               spring.application.name=Openrewrite-PR-Service
               #PR-Service
@@ -234,15 +255,17 @@ public class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               """,
             sourceSpecs -> sourceSpecs.path("folder1/folder2/application.properties")
           ),
-          org.openrewrite.properties.Assertions.properties(
+          properties(
             null,
+            //language=properties
             """
               app.config.currentEnvironment=LOCAL
               """,
             sourceSpecs -> sourceSpecs.path("folder1/folder2/application-local.properties")
           ),
-          org.openrewrite.properties.Assertions.properties(
+          properties(
             null,
+            //language=properties
             """
               #### XX Configuration ####
               oauth2.clientId=77777777777777

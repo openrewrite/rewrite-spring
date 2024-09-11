@@ -18,7 +18,7 @@ package org.openrewrite.java.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
-import org.openrewrite.internal.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.properties.CreatePropertiesFile;
 import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.tree.Properties;
@@ -28,19 +28,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<SeparateApplicationPropertiesByProfile.Accumulator> {
 
     @Override
     public String getDisplayName() {
-        return "Separate application.properties by profile";
+        return "Separate `application.properties` by profile";
     }
 
     @Override
     public String getDescription() {
-        return "Separating application.properties into separate files based on profiles while appending to any existing application-profile.properties.";
+        return "Separating `application.properties` into separate files based on profiles while appending to any existing `application-profile.properties`.";
     }
 
     @Override
@@ -52,9 +51,10 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
     public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext executionContext) {
-                if (!(tree instanceof Properties.File))
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (!(tree instanceof Properties.File)) {
                     return tree;
+                }
 
                 Properties.File propertyFile = (Properties.File) tree;
                 String sourcePath = PathUtils.separatorsToUnix(propertyFile.getSourcePath().toString());
@@ -65,8 +65,9 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                     acc.propertyFileContent = getNewApplicationPropertyFileInfo(propertyFile.getContent());
                 }
 
-                if (sourcePath.matches("(?:.*/)?application-[^/]+\\.properties"))
+                if (sourcePath.matches("(?:.*/)?application-[^/]+\\.properties")) {
                     acc.fileNameToFilePath.put(pathArray[pathArray.length - 1], sourcePath);
+                }
 
                 return tree;
             }
@@ -75,18 +76,21 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
     @Override
     public Collection<? extends SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
-        if (acc.propertyFileContent.isEmpty())
+        if (acc.propertyFileContent.isEmpty()) {
             return Collections.emptyList();
+        }
 
         Set<SourceFile> newApplicationPropertiesFiles = new HashSet<>();
 
-        for (Map.Entry<String, List<Properties.Content>> entry : acc.propertyFileContent.entrySet())
-            if (!acc.fileNameToFilePath.containsKey(entry.getKey()))
+        for (Map.Entry<String, List<Properties.Content>> entry : acc.propertyFileContent.entrySet()) {
+            if (!acc.fileNameToFilePath.containsKey(entry.getKey())) {
                 newApplicationPropertiesFiles.
                         add(new CreatePropertiesFile(acc.pathToApplicationProperties + entry.getKey(), "", null).
                                 generate(new AtomicBoolean(true), ctx).
                                 iterator().
                                 next());
+            }
+        }
 
         return newApplicationPropertiesFiles;
     }
@@ -96,8 +100,9 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         return new PropertiesVisitor<ExecutionContext>() {
             @Override
             public Properties visitFile(Properties.File file, ExecutionContext ctx) {
-                if (acc.propertyFileContent.isEmpty())
+                if (acc.propertyFileContent.isEmpty()) {
                     return file;
+                }
 
                 String[] filePathArray = file.getSourcePath().toString().split("/");
                 String fileName = filePathArray[filePathArray.length - 1];
@@ -117,8 +122,9 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
     private Properties deleteFromApplicationProperties(Properties.File applicationProperties) {
         List<Properties.Content> newContent = new ArrayList<>();
         for (Properties.Content c : applicationProperties.getContent()) {
-            if (isSeparator(c))
+            if (isSeparator(c)) {
                 break;
+            }
             newContent.add(c);
         }
         return applicationProperties.getContent().equals(newContent) ? applicationProperties :
@@ -143,11 +149,12 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         List<Properties.Content> list = new ArrayList<>();
         while (index < contentList.size() && !isSeparator(contentList.get(index))) {
             if (contentList.get(index) instanceof Properties.Entry &&
-                    ((Properties.Entry) contentList.get(index)).getKey().equals
-                            ("spring.config.activate.on-profile"))
+                ((Properties.Entry) contentList.get(index)).getKey().equals
+                        ("spring.config.activate.on-profile")) {
                 list.add(0, contentList.get(index));
-            else
+            } else {
                 list.add(contentList.get(index));
+            }
             index++;
         }
         return list;
@@ -159,9 +166,9 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
     private boolean isSeparator(Properties.Content c) {
         return c instanceof Properties.Comment &&
-                ((Properties.Comment) c).getMessage().equals("---") &&
-                ((((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("HASH_TAG"))) ||
-                        ((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("EXCLAMATION_MARK")));
+               ((Properties.Comment) c).getMessage().equals("---") &&
+               ((((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("HASH_TAG"))) ||
+                ((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("EXCLAMATION_MARK")));
     }
 
     public static class Accumulator {
