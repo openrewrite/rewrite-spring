@@ -22,6 +22,9 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -38,8 +41,12 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
     private static final String HTTPSERVLETRESPONSE_FQ = "jakarta.servlet.http.HttpServletResponse";
     private static final String TAGS_FQ = "io.micrometer.core.instrument.Tags";
     private static final String TAG_FQ = "io.micrometer.core.instrument.Tag";
-    private static final MethodMatcher TAGS_AND = new MethodMatcher("io.micrometer.core.instrument.Tags and(java.lang.String, java.lang.String)");
-    private static final MethodMatcher TAGS_OF = new MethodMatcher("io.micrometer.core.instrument.Tags of(io.micrometer.core.instrument.Tag[])");
+    private static final MethodMatcher TAGS_AND_STRING_STRING = new MethodMatcher("io.micrometer.core.instrument.Tags and(java.lang.String, java.lang.String)");
+    private static final MethodMatcher TAGS_AND_STRING_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags and(java.lang.String[])");
+    private static final MethodMatcher TAGS_AND_TAG_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags and(io.micrometer.core.instrument.Tag[])");
+    private static final MethodMatcher TAGS_OF_STRING_STRING = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.String, java.lang.String)");
+    private static final MethodMatcher TAGS_OF_STRING_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.String[])");
+    private static final MethodMatcher TAGS_OF_TAG_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags of(io.micrometer.core.instrument.Tag[])");
 
     private static boolean addedHttpServletRequest;
     private static boolean addedHttpServletResponse;
@@ -149,7 +156,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     J.VariableDeclarations m = (J.VariableDeclarations) s;
                     if (TypeUtils.isOfType(m.getType(), JavaType.buildType(TAGS_FQ))) {
                         J.MethodInvocation init = ((J.MethodInvocation) m.getVariables().get(0).getInitializer());
-                        if (TAGS_OF.matches(init)) {
+                        if (TAGS_OF_TAG_ARRAY.matches(init)) {
                             maybeRemoveImport(TAGS_FQ);
                             maybeRemoveImport(WEBMVCTAGS_FQ);
                             return null;
@@ -160,24 +167,57 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 if (s instanceof J.Assignment) {
                     J.Assignment a = (J.Assignment) s;
                     if (TypeUtils.isOfType(a.getType(), JavaType.buildType(TAGS_FQ))) {
-                        J.MethodInvocation init = ((J.MethodInvocation) a.getAssignment());
-
-                        maybeAddImport(KEYVALUE_FQ);
-                        maybeRemoveImport(TAG_FQ);
-                        J.MethodInvocation createKeyValue = JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
-                                .imports(KEYVALUE_FQ)
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
-                                .build()
-                                .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(0), init.getArguments().get(1));
-
-                        return JavaTemplate.builder("values.and(#{any(io.micrometer.common.KeyValue)})")
-                                .javaParser(JavaParser.fromJavaVersion())
-                                .build()
-                                .apply(getCursor(), a.getCoordinates().replace(), createKeyValue);
+                        return refactorTagsUsage(ctx, a);
                     }
                     return a;
                 }
                 return s;
+            }
+
+            private Statement refactorTagsUsage(ExecutionContext ctx, J.Assignment a) {
+                J.MethodInvocation init = ((J.MethodInvocation) a.getAssignment());
+
+                maybeAddImport(KEYVALUE_FQ);
+                maybeRemoveImport(TAG_FQ);
+                if (TAGS_AND_STRING_STRING.matches(init)) {
+                    J.MethodInvocation createKeyValue = JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
+                            .imports(KEYVALUE_FQ)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                            .build()
+                            .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(0), init.getArguments().get(1));
+                    return JavaTemplate.builder("values.and(#{any(io.micrometer.common.KeyValue)})")
+                            .javaParser(JavaParser.fromJavaVersion())
+                            .build()
+                            .apply(getCursor(), a.getCoordinates().replace(), createKeyValue);
+                } else if (TAGS_AND_STRING_ARRAY.matches(init)) {
+                    List<J.MethodInvocation> createKeys = new ArrayList<>();
+                    for (int i = 0; i < init.getArguments().size(); i+=2) {
+                        createKeys.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
+                                .imports(KEYVALUE_FQ)
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                .build()
+                                .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(i), init.getArguments().get(i+1)));
+                    }
+                    return JavaTemplate.builder("values.and(#{any(io.micrometer.common.KeyValue[])})")
+                            .javaParser(JavaParser.fromJavaVersion())
+                            .build()
+                            .apply(getCursor(), a.getCoordinates().replace(), createKeys);
+                } else if (TAGS_AND_TAG_ARRAY.matches(init)) {
+                    List<J.MethodInvocation> createKeys = new ArrayList<>();
+                    for (int i = 0; i < init.getArguments().size(); i++) {
+                        createKeys.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
+                                .imports(KEYVALUE_FQ)
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                .build()
+                                // TODO pass getKey and getValue of Tag at index i of as params
+                                .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(i), init.getArguments().get(i)));
+                    }
+                    return JavaTemplate.builder("values.and(#{any(io.micrometer.common.KeyValue[])})")
+                            .javaParser(JavaParser.fromJavaVersion())
+                            .build()
+                            .apply(getCursor(), a.getCoordinates().replace(), createKeys);
+                }
+                return a;
             }
 
             @Override
