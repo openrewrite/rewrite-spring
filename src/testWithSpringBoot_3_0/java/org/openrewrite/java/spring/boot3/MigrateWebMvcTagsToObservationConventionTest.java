@@ -70,7 +70,6 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
             
             @Component
             class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
-
                 @Override
                 public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {
                     HttpServletRequest request = context.get(HttpServletRequest.class);
