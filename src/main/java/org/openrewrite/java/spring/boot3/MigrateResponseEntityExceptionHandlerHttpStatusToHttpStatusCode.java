@@ -21,7 +21,8 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
@@ -44,21 +45,19 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
         return "With Spring 6 `HttpStatus` was replaced by `HttpStatusCode` in most method signatures in the `ResponseEntityExceptionHandler`.";
     }
 
+
+    private static final MethodMatcher HANDLER_METHOD = new MethodMatcher(
+            "org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler *(..)", true);
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
-                new UsesType<>("org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler", true),
+                new UsesMethod<>(HANDLER_METHOD),
                 new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-                        boolean isOverride = false;
-                        for (J.Annotation ann : method.getLeadingAnnotations()) {
-                            if (TypeUtils.isAssignableTo("java.lang.Override", ann.getType())) {
-                                isOverride = true;
-                            }
-                        }
-                        if (isOverride) {
+                        if (HANDLER_METHOD.matches(m.getMethodType()) && hasHttpStatusParameter(m)) {
                             final JavaType.Method met = m.getMethodType().withParameterTypes(ListUtils.map(m.getMethodType().getParameterTypes(), type -> {
                                 if (TypeUtils.isAssignableTo(HTTP_STATUS_FQ, type)) {
                                     return JavaType.buildType(HTTP_STATUS_CODE_FQ);
@@ -87,6 +86,12 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                         maybeAddImport(HTTP_STATUS_CODE_FQ);
                         maybeRemoveImport(HTTP_STATUS_FQ);
                         return m;
+                    }
+
+                    private boolean hasHttpStatusParameter(J.MethodDeclaration m) {
+                        return m.getParameters().stream().anyMatch(p ->
+                                p instanceof J.VariableDeclarations &&
+                                TypeUtils.isAssignableTo(HTTP_STATUS_FQ, ((J.VariableDeclarations) p).getType()));
                     }
                 }
         );
