@@ -17,15 +17,16 @@ package org.openrewrite.java.spring.boot3;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.*;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
-import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 public class MigrateWebMvcTagsToObservationConvention extends Recipe {
@@ -122,7 +123,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                 .withParameters(singletonList(methodArg))
                                 .withBody(m.getBody().withStatements(ListUtils.insert(m.getBody().getStatements(), keyValuesInitializer, 0)))
                                 .withMethodType(met);
-                        keyValuesIdentifier = ((J.VariableDeclarations)m.getBody().getStatements().get(0)).getVariables().get(0).getName();
+                        keyValuesIdentifier = ((J.VariableDeclarations) m.getBody().getStatements().get(0)).getVariables().get(0).getName();
                     }
                 }
                 m = (J.MethodDeclaration) super.visitMethodDeclaration(m, ctx);
@@ -191,12 +192,12 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                             .apply(getCursor(), a.getCoordinates().replace(), createKeyValue);
                 } else if (TAGS_AND_STRING_ARRAY.matches(init)) {
                     List<J.MethodInvocation> createKeys = new ArrayList<>();
-                    for (int i = 0; i < init.getArguments().size(); i+=2) {
+                    for (int i = 0; i < init.getArguments().size(); i += 2) {
                         createKeys.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
                                 .imports(KEYVALUE_FQ)
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                 .build()
-                                .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(i), init.getArguments().get(i+1)));
+                                .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(i), init.getArguments().get(i + 1)));
                     }
                     return JavaTemplate.builder("values.and(#{any(io.micrometer.common.KeyValue[])})")
                             .javaParser(JavaParser.fromJavaVersion())
