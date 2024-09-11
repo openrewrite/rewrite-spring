@@ -40,7 +40,6 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               base-url.PR-services=http://my.url.com
               exchange-token=1234567890
               exchange-tokens=${base-url.PR-services}/exchange-token
-              
               """,
             sourceSpecs -> sourceSpecs.path("application-dev.properties"))
         );
@@ -58,7 +57,6 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               base-url.PR-services=http://my.url.com
               exchange-token=1234567890
               exchange-tokens=${base-url.PR-services}/exchange-token
-              
               """,
             sourceSpecs -> sourceSpecs.path("application.properties"))
         );

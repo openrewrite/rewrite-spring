@@ -17,8 +17,8 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.*;
 import org.jspecify.annotations.Nullable;
+import org.openrewrite.*;
 import org.openrewrite.properties.CreatePropertiesFile;
 import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.tree.Properties;
@@ -60,12 +60,12 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 String sourcePath = PathUtils.separatorsToUnix(propertyFile.getSourcePath().toString());
                 String[] pathArray = sourcePath.split("/");
 
-                if (sourcePath.matches("(?:.*/)?application.properties")) {
+                if (propertyFile.getSourcePath().endsWith("application.properties")) {
                     acc.pathToApplicationProperties = getPathToApplicationProperties(pathArray);
                     acc.propertyFileContent = getNewApplicationPropertyFileInfo(propertyFile.getContent());
                 }
 
-                if (sourcePath.matches("(?:.*/)?application-[^/]+\\.properties")) {
+                if (propertyFile.getSourcePath().getFileName().toString().matches("application-[^/]+\\.properties")) {
                     acc.fileNameToFilePath.put(pathArray[pathArray.length - 1], sourcePath);
                 }
 
