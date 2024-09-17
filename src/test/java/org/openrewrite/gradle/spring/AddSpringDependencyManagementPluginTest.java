@@ -111,7 +111,8 @@ class AddSpringDependencyManagementPluginTest implements RewriteTest {
             .releases(true)
             .snapshots(true)
             .build()),
-          Collections.emptyMap()
+          Collections.emptyMap(),
+          null
         );
     }
 
