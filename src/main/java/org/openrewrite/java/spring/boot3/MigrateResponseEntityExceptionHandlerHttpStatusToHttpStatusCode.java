@@ -56,15 +56,6 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                 new UsesMethod<>(HANDLER_METHOD),
                 new JavaIsoVisitor<ExecutionContext>() {
 
-                    // TODO remove debug
-                    @Override
-                    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext executionContext) {
-                        J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, executionContext);
-                        System.out.println(TreeVisitingPrinter.printTree(cd));
-                        new FindTypes(HTTP_STATUS_FQ, false).getVisitor().visit(cd, executionContext);
-                        return cd;
-                    }
-
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration m = method;
@@ -82,7 +73,19 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                                     J.VariableDeclarations v = (J.VariableDeclarations) var;
                                     J.VariableDeclarations.NamedVariable declaredVar = v.getVariables().get(0);
                                     if (declaredVar.getVariableType() != null) {
-                                        declaredVar = declaredVar.withVariableType(declaredVar.getVariableType().withOwner(met));
+                                        declaredVar = declaredVar
+                                                .withVariableType(declaredVar
+                                                        .getVariableType()
+                                                        .withOwner(met))
+                                                .withName(declaredVar
+                                                        .getName()
+                                                        .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ))
+                                                        .withFieldType(declaredVar
+                                                                .getName()
+                                                                .getFieldType()
+                                                                .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ))
+                                                        )
+                                                );
                                         v = v.withVariables(singletonList(declaredVar));
                                         if (TypeUtils.isOfType(v.getType(), JavaType.buildType(HTTP_STATUS_FQ))) {
                                             String httpStatusCodeSimpleName = HTTP_STATUS_CODE_FQ.substring(HTTP_STATUS_CODE_FQ.lastIndexOf("."));
@@ -95,8 +98,8 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                                 }
                                 return var;
                             }));
-                            updateCursor(m);
                         }
+                        updateCursor(m);
                         maybeAddImport(HTTP_STATUS_CODE_FQ);
                         maybeRemoveImport(HTTP_STATUS_FQ);
                         return super.visitMethodDeclaration(m, ctx);
@@ -125,6 +128,27 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                     }
 
                     @Override
+                    public J.Identifier visitIdentifier(J.Identifier identifier, ExecutionContext executionContext) {
+                        J.Identifier ident = super.visitIdentifier(identifier, executionContext);
+                        J.MethodDeclaration methodScope = getCursor().firstEnclosing(J.MethodDeclaration.class);
+                        if (methodScope != null) {
+                            for (Statement stmt : methodScope.getParameters()) {
+                                if (stmt instanceof J.VariableDeclarations) {
+                                    J.VariableDeclarations vd = (J.VariableDeclarations) stmt;
+                                    for (J.VariableDeclarations.NamedVariable var : vd.getVariables()) {
+                                        if (var.getName().getSimpleName().equals(ident.getSimpleName())) {
+                                            if (!TypeUtils.isOfType(var.getName().getType(), ident.getType())) {
+                                                ident = ident.withType(var.getName().getType());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        return super.visitIdentifier(ident, executionContext);
+                    }
+
+                    @Override
                     public J.Return visitReturn(J.Return _return, ExecutionContext ctx) {
                         J.Return r = super.visitReturn(_return, ctx);
                         J.MethodDeclaration method = getCursor().firstEnclosing(J.MethodDeclaration.class);
@@ -138,7 +162,7 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                                         for (Statement stmt : method.getParameters()) {
                                             expressions.add(((J.VariableDeclarations) stmt).getVariables().get(0).getName());
                                         }
-                                        return maybeAutoFormat(r.withExpression((((J.MethodInvocation) r.getExpression()).withArguments(expressions))), _return, ctx);
+                                        return maybeAutoFormat(_return, r.withExpression((((J.MethodInvocation) r.getExpression()).withArguments(expressions))), ctx);
                                     }
                                 }
                             }
