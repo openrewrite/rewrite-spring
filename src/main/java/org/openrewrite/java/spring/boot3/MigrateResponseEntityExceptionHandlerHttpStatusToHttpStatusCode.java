@@ -17,8 +17,10 @@ package org.openrewrite.java.spring.boot3;
 
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.*;
-import org.openrewrite.java.search.FindTypes;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
 
@@ -79,13 +81,15 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                                                         .withOwner(met))
                                                 .withName(declaredVar
                                                         .getName()
-                                                        .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ))
-                                                        .withFieldType(declaredVar
-                                                                .getName()
-                                                                .getFieldType()
-                                                                .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ))
-                                                        )
-                                                );
+                                                        .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)));
+                                                if (declaredVar.getName().getFieldType() != null) {
+                                                    declaredVar = declaredVar.withName(declaredVar.getName()
+                                                            .withFieldType(declaredVar
+                                                                    .getName()
+                                                                    .getFieldType()
+                                                                    .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)))
+                                                    );
+                                                }
                                         v = v.withVariables(singletonList(declaredVar));
                                         if (TypeUtils.isOfType(v.getType(), JavaType.buildType(HTTP_STATUS_FQ))) {
                                             String httpStatusCodeSimpleName = HTTP_STATUS_CODE_FQ.substring(HTTP_STATUS_CODE_FQ.lastIndexOf("."));
