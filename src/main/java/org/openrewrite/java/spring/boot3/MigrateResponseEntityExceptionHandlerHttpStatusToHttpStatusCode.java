@@ -132,8 +132,8 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                     }
 
                     @Override
-                    public J.Identifier visitIdentifier(J.Identifier identifier, ExecutionContext executionContext) {
-                        J.Identifier ident = super.visitIdentifier(identifier, executionContext);
+                    public J.Identifier visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {
+                        J.Identifier ident = super.visitIdentifier(identifier, ctx);
                         J.MethodDeclaration methodScope = getCursor().firstEnclosing(J.MethodDeclaration.class);
                         if (methodScope != null) {
                             for (Statement stmt : methodScope.getParameters()) {
@@ -149,7 +149,7 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                                 }
                             }
                         }
-                        return super.visitIdentifier(ident, executionContext);
+                        return super.visitIdentifier(ident, ctx);
                     }
 
                     @Override
