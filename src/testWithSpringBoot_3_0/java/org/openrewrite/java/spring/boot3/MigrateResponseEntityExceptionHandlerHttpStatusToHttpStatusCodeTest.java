@@ -28,7 +28,6 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode())
-          .expectedCyclesThatMakeChanges(2)
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-context", "spring-beans", "spring-web", "spring-webmvc"));
     }
 
@@ -73,7 +72,7 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
     }
 
     @Test
-    void convertHttpUsageAsInt() {
+    void changeTypeOfValueCallAndRemoveImport() {
         //language=java
         rewriteRun(
           java(
@@ -114,7 +113,7 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
     }
 
     @Test
-    void convertHttpUsageAsEnum() {
+    void shouldNotChangeEnumUsageAndImport() {
         //language=java
         rewriteRun(
           java(
@@ -129,8 +128,8 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
-                      HttpStatus enumValue = status.value();
-                      return super.handleExceptionInternal(ex, body, headers, status, request);
+                      HttpStatus enumValue = HttpStatus.INTERNAL_SERVER_ERROR;
+                      return super.handleExceptionInternal(ex, body, headers, enumValue, request);
                   }
               }
               """,
@@ -146,8 +145,47 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-                      HttpStatus enumValue = HttpStatus.valueOf(status.value());
-                      return super.handleExceptionInternal(ex, body, headers, status, request);
+                      HttpStatus enumValue = HttpStatus.INTERNAL_SERVER_ERROR;
+                      return super.handleExceptionInternal(ex, body, headers, enumValue, request);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noSuperCallChangeMethodSignature() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.http.HttpHeaders;
+              import org.springframework.http.HttpStatus;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.context.request.WebRequest;
+              import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+              
+              class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+              
+                  @Override
+                  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+                      return ResponseEntity.ok().build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.HttpHeaders;
+              import org.springframework.http.HttpStatusCode;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.context.request.WebRequest;
+              import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+              
+              class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+              
+                  @Override
+                  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+                      return ResponseEntity.ok().build();
                   }
               }
               """

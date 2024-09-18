@@ -15,16 +15,16 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -49,13 +49,10 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
     private static final MethodMatcher HANDLER_METHOD = new MethodMatcher(
             "org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler *(..)", true);
 
-    private static final MethodMatcher HTTP_STATUS_VALUE_OF = new MethodMatcher(
-            HTTP_STATUS_FQ + " valueOf(int)", true);
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
-                new UsesMethod<>(HANDLER_METHOD),
+                new UsesType<>(RESPONSE_ENTITY_EXCEPTION_HANDLER_FQ, true),
                 new JavaIsoVisitor<ExecutionContext>() {
 
                     @Override
@@ -82,14 +79,14 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                                                 .withName(declaredVar
                                                         .getName()
                                                         .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)));
-                                                if (declaredVar.getName().getFieldType() != null) {
-                                                    declaredVar = declaredVar.withName(declaredVar.getName()
-                                                            .withFieldType(declaredVar
-                                                                    .getName()
-                                                                    .getFieldType()
-                                                                    .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)))
-                                                    );
-                                                }
+                                        if (declaredVar.getName().getFieldType() != null) {
+                                            declaredVar = declaredVar.withName(declaredVar.getName()
+                                                    .withFieldType(declaredVar
+                                                            .getName()
+                                                            .getFieldType()
+                                                            .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)))
+                                            );
+                                        }
                                         v = v.withVariables(singletonList(declaredVar));
                                         if (TypeUtils.isOfType(v.getType(), JavaType.buildType(HTTP_STATUS_FQ))) {
                                             String httpStatusCodeSimpleName = HTTP_STATUS_CODE_FQ.substring(HTTP_STATUS_CODE_FQ.lastIndexOf("."));
@@ -107,28 +104,6 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                         maybeAddImport(HTTP_STATUS_CODE_FQ);
                         maybeRemoveImport(HTTP_STATUS_FQ);
                         return super.visitMethodDeclaration(m, ctx);
-                    }
-
-                    @Override
-                    public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
-                        J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
-                        if (TypeUtils.isAssignableTo(HTTP_STATUS_FQ, vd.getType())) {
-                            vd = vd.withVariables(ListUtils.map(vd.getVariables(), var -> {
-                                if (var.getInitializer() instanceof J.MethodInvocation) {
-                                    J.MethodInvocation init = (J.MethodInvocation) var.getInitializer();
-                                    if (!HTTP_STATUS_VALUE_OF.matches(init.getMethodType())) {
-                                        J.MethodInvocation apply = JavaTemplate.builder("HttpStatus.valueOf(#{any(int)})")
-                                                .imports(HTTP_STATUS_FQ)
-                                                .javaParser(JavaParser.fromJavaVersion().classpath("spring-web"))
-                                                .build()
-                                                .apply(new Cursor(getCursor(), init), init.getCoordinates().replace(), init);
-                                        return var.withInitializer(apply);
-                                    }
-                                }
-                                return var;
-                            }));
-                        }
-                        return vd;
                     }
 
                     @Override
@@ -162,10 +137,21 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                                 J.Identifier returnSelect = (J.Identifier) returnMethod.getSelect();
                                 if (returnMethod.getMethodType() != null) {
                                     if (method != null && returnSelect.getSimpleName().equals("super") && TypeUtils.isAssignableTo(RESPONSE_ENTITY_EXCEPTION_HANDLER_FQ, returnMethod.getMethodType().getDeclaringType())) {
-                                        List<Expression> expressions = new ArrayList<>();
-                                        for (Statement stmt : method.getParameters()) {
-                                            expressions.add(((J.VariableDeclarations) stmt).getVariables().get(0).getName());
-                                        }
+                                        List<Expression> expressions = ListUtils.map(((J.MethodInvocation) r.getExpression()).getArguments(), (index, arg) -> {
+                                            if (arg instanceof J.Identifier) {
+                                                J.Identifier ident = (J.Identifier) arg;
+                                                Statement methodArg = method.getParameters().get(index);
+                                                if (methodArg instanceof J.VariableDeclarations) {
+                                                    J.VariableDeclarations vd = (J.VariableDeclarations) methodArg;
+                                                    if (ident.getSimpleName().equals(vd.getVariables().get(0).getSimpleName())) {
+                                                        if (!TypeUtils.isOfType(ident.getType(), vd.getVariables().get(0).getType())) {
+                                                            return ident.withType(vd.getVariables().get(0).getType());
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            return arg;
+                                        });
                                         return maybeAutoFormat(_return, r.withExpression((((J.MethodInvocation) r.getExpression()).withArguments(expressions))), ctx);
                                     }
                                 }
