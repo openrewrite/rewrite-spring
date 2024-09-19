@@ -34,6 +34,8 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
     private static final String HTTP_STATUS_FQ = "org.springframework.http.HttpStatus";
     private static final String HTTP_STATUS_CODE_FQ = "org.springframework.http.HttpStatusCode";
     private static final String RESPONSE_ENTITY_EXCEPTION_HANDLER_FQ = "org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler";
+    private static final MethodMatcher HANDLER_METHOD = new MethodMatcher(
+            "org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler *(..)", true);
 
     @Override
     public String getDisplayName() {
@@ -45,10 +47,6 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
         return "With Spring 6 `HttpStatus` was replaced by `HttpStatusCode` in most method signatures in the `ResponseEntityExceptionHandler`.";
     }
 
-
-    private static final MethodMatcher HANDLER_METHOD = new MethodMatcher(
-            "org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler *(..)", true);
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
@@ -58,43 +56,31 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration m = method;
-                        if (m.getMethodType() != null && HANDLER_METHOD.matches(m.getMethodType()) && hasHttpStatusParameter(m)) {
-                            final JavaType.Method met = m.getMethodType().withParameterTypes(ListUtils.map(m.getMethodType().getParameterTypes(), type -> {
-                                if (TypeUtils.isAssignableTo(HTTP_STATUS_FQ, type)) {
-                                    return JavaType.buildType(HTTP_STATUS_CODE_FQ);
-                                }
-                                return type;
-                            }));
+                        if (HANDLER_METHOD.matches(m.getMethodType())) {
+                            JavaType javaTypeHttpStatusCode = JavaType.buildType(HTTP_STATUS_CODE_FQ);
+                            //noinspection DataFlowIssue
+                            JavaType.Method met = m.getMethodType().withParameterTypes(ListUtils.map(m.getMethodType().getParameterTypes(),
+                                    type -> TypeUtils.isAssignableTo(HTTP_STATUS_FQ, type) ? javaTypeHttpStatusCode : type));
+                            if (met == m.getMethodType()) {
+                                // There was no parameter to change
+                                return m;
+                            }
 
                             m = m.withMethodType(met);
                             m = m.withParameters(ListUtils.map(m.getParameters(), var -> {
                                 if (var instanceof J.VariableDeclarations) {
                                     J.VariableDeclarations v = (J.VariableDeclarations) var;
                                     J.VariableDeclarations.NamedVariable declaredVar = v.getVariables().get(0);
-                                    if (declaredVar.getVariableType() != null) {
+                                    if (declaredVar.getVariableType() != null && TypeUtils.isAssignableTo(HTTP_STATUS_FQ, v.getType())) {
+                                        J.Identifier newName = declaredVar.getName().withType(javaTypeHttpStatusCode);
+                                        if (newName.getFieldType() != null) {
+                                            newName = newName.withFieldType(newName.getFieldType().withType(javaTypeHttpStatusCode));
+                                        }
                                         declaredVar = declaredVar
-                                                .withVariableType(declaredVar
-                                                        .getVariableType()
-                                                        .withOwner(met))
-                                                .withName(declaredVar
-                                                        .getName()
-                                                        .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)));
-                                        if (declaredVar.getName().getFieldType() != null) {
-                                            declaredVar = declaredVar.withName(declaredVar.getName()
-                                                    .withFieldType(declaredVar
-                                                            .getName()
-                                                            .getFieldType()
-                                                            .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)))
-                                            );
-                                        }
-                                        v = v.withVariables(singletonList(declaredVar));
-                                        if (TypeUtils.isOfType(v.getType(), JavaType.buildType(HTTP_STATUS_FQ))) {
-                                            String httpStatusCodeSimpleName = HTTP_STATUS_CODE_FQ.substring(HTTP_STATUS_CODE_FQ.lastIndexOf("."));
-                                            v = v.withTypeExpression(TypeTree.build(httpStatusCodeSimpleName)
-                                                    .withType(JavaType.buildType(HTTP_STATUS_CODE_FQ)));
-                                            v = v.withVariables(singletonList(declaredVar.withType(JavaType.buildType(HTTP_STATUS_CODE_FQ))));
-                                            return v;
-                                        }
+                                                .withName(newName)
+                                                .withVariableType(declaredVar.getVariableType().withOwner(met));
+                                        return v.withVariables(singletonList(declaredVar.withType(javaTypeHttpStatusCode)))
+                                                .withTypeExpression(TypeTree.build("HttpStatusCode").withType(javaTypeHttpStatusCode));
                                     }
                                 }
                                 return var;
@@ -158,12 +144,6 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                             }
                         }
                         return super.visitReturn(_return, ctx);
-                    }
-
-                    private boolean hasHttpStatusParameter(J.MethodDeclaration m) {
-                        return m.getParameters().stream().anyMatch(p ->
-                                p instanceof J.VariableDeclarations &&
-                                TypeUtils.isAssignableTo(HTTP_STATUS_FQ, ((J.VariableDeclarations) p).getType()));
                     }
                 }
         );

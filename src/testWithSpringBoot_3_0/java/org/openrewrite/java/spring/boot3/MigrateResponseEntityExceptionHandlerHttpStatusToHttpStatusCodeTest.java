@@ -18,8 +18,12 @@ package org.openrewrite.java.spring.boot3;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Statement;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+
+import java.util.List;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -48,6 +52,7 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+                      // Imagine we log or manipulate the status here somehow
                       return super.handleExceptionInternal(ex, body, headers, status, request);
                   }
               }
@@ -63,10 +68,16 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+                      // Imagine we log or manipulate the status here somehow
                       return super.handleExceptionInternal(ex, body, headers, status, request);
                   }
               }
-              """
+              """,
+            spec -> spec.afterRecipe(cu -> {
+
+                J.MethodDeclaration md = (J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(0);
+                List<Statement> parameters = md.getParameters();
+            })
           )
         );
     }
@@ -169,7 +180,8 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
               
                   @Override
-                  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+                  protected ResponseEntity<Object> handleExceptionInternal(
+                      Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
                       return ResponseEntity.ok().build();
                   }
               }
@@ -184,7 +196,8 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
               
                   @Override
-                  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+                  protected ResponseEntity<Object> handleExceptionInternal(
+                      Exception ex, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
                       return ResponseEntity.ok().build();
                   }
               }
