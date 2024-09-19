@@ -112,39 +112,6 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                         }
                         return super.visitIdentifier(ident, ctx);
                     }
-
-                    @Override
-                    public J.Return visitReturn(J.Return _return, ExecutionContext ctx) {
-                        J.Return r = super.visitReturn(_return, ctx);
-                        J.MethodDeclaration method = getCursor().firstEnclosing(J.MethodDeclaration.class);
-                        if (r.getExpression() instanceof J.MethodInvocation) {
-                            J.MethodInvocation returnMethod = (J.MethodInvocation) r.getExpression();
-                            if (returnMethod.getSelect() instanceof J.Identifier) {
-                                J.Identifier returnSelect = (J.Identifier) returnMethod.getSelect();
-                                if (returnMethod.getMethodType() != null) {
-                                    if (method != null && returnSelect.getSimpleName().equals("super") && TypeUtils.isAssignableTo(RESPONSE_ENTITY_EXCEPTION_HANDLER_FQ, returnMethod.getMethodType().getDeclaringType())) {
-                                        List<Expression> expressions = ListUtils.map(((J.MethodInvocation) r.getExpression()).getArguments(), (index, arg) -> {
-                                            if (arg instanceof J.Identifier) {
-                                                J.Identifier ident = (J.Identifier) arg;
-                                                Statement methodArg = method.getParameters().get(index);
-                                                if (methodArg instanceof J.VariableDeclarations) {
-                                                    J.VariableDeclarations vd = (J.VariableDeclarations) methodArg;
-                                                    if (ident.getSimpleName().equals(vd.getVariables().get(0).getSimpleName())) {
-                                                        if (!TypeUtils.isOfType(ident.getType(), vd.getVariables().get(0).getType())) {
-                                                            return ident.withType(vd.getVariables().get(0).getType());
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            return arg;
-                                        });
-                                        return maybeAutoFormat(_return, r.withExpression((((J.MethodInvocation) r.getExpression()).withArguments(expressions))), ctx);
-                                    }
-                                }
-                            }
-                        }
-                        return super.visitReturn(_return, ctx);
-                    }
                 }
         );
     }

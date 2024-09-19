@@ -72,12 +72,7 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
                       return super.handleExceptionInternal(ex, body, headers, status, request);
                   }
               }
-              """,
-            spec -> spec.afterRecipe(cu -> {
-
-                J.MethodDeclaration md = (J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(0);
-                List<Statement> parameters = md.getParameters();
-            })
+              """
           )
         );
     }
