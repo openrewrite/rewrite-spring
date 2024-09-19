@@ -15,7 +15,10 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -26,8 +29,6 @@ import org.openrewrite.java.tree.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
@@ -83,8 +84,12 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 tmpl.append(String.format("class %s extends DefaultServerRequestObservationConvention {\n", classDecl.getSimpleName()));
                 tmpl.append("    @Override\n");
                 tmpl.append("    public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {\n");
-                if (addHttpServletRequest) tmpl.append("        HttpServletRequest request = context.getCarrier();\n");
-                if (addHttpServletResponse) tmpl.append("        HttpServletResponse response = context.getResponse();\n");
+                if (addHttpServletRequest) {
+                    tmpl.append("        HttpServletRequest request = context.getCarrier();\n");
+                }
+                if (addHttpServletResponse) {
+                    tmpl.append("        HttpServletResponse response = context.getResponse();\n");
+                }
                 tmpl.append("        KeyValues values = super.getLowCardinalityKeyValues(context);\n");
                 tmpl.append("        return values;");
                 tmpl.append("    }\n");
