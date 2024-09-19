@@ -70,6 +70,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringDoc_2
   - org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
   - org.openrewrite.java.spring.boot3.RemoveSolrAutoConfigurationExclude
+  - org.openrewrite.java.spring.boot3.MigrateWebMvcTagsToObservationConvention
   - org.openrewrite.java.spring.batch.SpringBatch4To5Migration
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0
   - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_3_0

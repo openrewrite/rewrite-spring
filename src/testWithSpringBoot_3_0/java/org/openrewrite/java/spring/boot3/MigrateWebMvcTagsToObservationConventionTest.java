@@ -72,7 +72,7 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
             class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
                 @Override
                 public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {
-                    HttpServletRequest request = context.get(HttpServletRequest.class);
+                    HttpServletRequest request = context.getCarrier();
                     KeyValues values = super.getLowCardinalityKeyValues(context);
 
                     String customHeader = request.getHeader("X-Custom-Header");
