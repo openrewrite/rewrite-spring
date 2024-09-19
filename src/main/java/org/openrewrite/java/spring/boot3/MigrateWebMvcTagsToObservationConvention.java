@@ -25,7 +25,10 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Statement;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,12 +54,12 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
     private static final MethodMatcher TAGS_OF_TAG_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags of(io.micrometer.core.instrument.Tag[])");
 
     @Override
-    public @NlsRewrite.DisplayName String getDisplayName() {
+    public String getDisplayName() {
         return "Migrate `WebMvcTagsProvider` to `DefaultServerRequestObservationConvention`";
     }
 
     @Override
-    public @NlsRewrite.Description String getDescription() {
+    public String getDescription() {
         return "Migrate `WebMvcTagsProvider` to `DefaultServerRequestObservationConvention` as part of Spring Boot 3.2 removals.";
     }
 
@@ -68,8 +71,8 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 List<Statement> getTagsBodyStatements = new ArrayList<>();
                 boolean addHttpServletRequest = false;
                 boolean addHttpServletResponse = false;
-                for (Statement stmt : classDecl.getBody().getStatements()){
-                    if (stmt instanceof J.MethodDeclaration){
+                for (Statement stmt : classDecl.getBody().getStatements()) {
+                    if (stmt instanceof J.MethodDeclaration) {
                         J.MethodDeclaration md = (J.MethodDeclaration) stmt;
                         if (md.getSimpleName().equals("getTags") && md.getBody() != null) {
                             getTagsBodyStatements.addAll(md.getBody().getStatements().subList(0, md.getBody().getStatements().size() - 1));
@@ -108,13 +111,15 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                         .withModifiers(classDecl.getModifiers())
                         .withPrefix(classDecl.getPrefix())
                         .withBody(newClassDeclaration.getBody().withStatements(ListUtils.map(ListUtils.concatAll(newClassDeclaration.getBody().getStatements(), ListUtils.map(classDecl.getBody().getStatements(), stmt -> {
-                            if (stmt instanceof J.MethodDeclaration && ((J.MethodDeclaration) stmt).getSimpleName().equals("getTags")) { return null;}
+                            if (stmt instanceof J.MethodDeclaration && ((J.MethodDeclaration) stmt).getSimpleName().equals("getTags")) {
+                                return null;
+                            }
                             return stmt;
                         })), stmt -> {
                             if (stmt instanceof J.MethodDeclaration) {
                                 J.MethodDeclaration md = (J.MethodDeclaration) stmt;
                                 if (md.getSimpleName().equals("getLowCardinalityKeyValues")) {
-                                    return md.withBody(md.getBody().withStatements(ListUtils.insertAll(md.getBody().getStatements(), md.getBody().getStatements().size() -1, getTagsBodyStatements)));
+                                    return md.withBody(md.getBody().withStatements(ListUtils.insertAll(md.getBody().getStatements(), md.getBody().getStatements().size() - 1, getTagsBodyStatements)));
                                 }
                             }
                             return stmt;
@@ -139,10 +144,11 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     m = JavaTemplate.builder("HttpServletResponse response = #{any()}.getResponse();")
                             .imports(HTTPSERVLETRESPONSE_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ)
                             .contextSensitive()
-                            .javaParser(JavaParser.fromJavaVersion().classpath("tomcat-embed-core", "spring-web-6.+", "micrometer-commons",  "micrometer-observation"))
+                            .javaParser(JavaParser.fromJavaVersion().classpath("tomcat-embed-core", "spring-web-6.+", "micrometer-commons", "micrometer-observation"))
                             .build()
                             .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
-                }if (Boolean.TRUE.equals(addHttpServletRequest)) {
+                }
+                if (Boolean.TRUE.equals(addHttpServletRequest)) {
                     m = JavaTemplate.builder("HttpServletRequest request = #{any()}.getCarrier();")
                             .imports(HTTPSERVLETREQUEST_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ, "io.micrometer.observation.transport.ReceiverContext")
                             .contextSensitive()
@@ -182,7 +188,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
             private Statement refactorTagsUsage(ExecutionContext ctx, J.Assignment a) {
                 J.MethodInvocation init = ((J.MethodInvocation) a.getAssignment());
                 J.MethodDeclaration insideMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
-                J.Identifier returnIdentifier = (J.Identifier) ((J.Return)insideMethod.getBody().getStatements().get(insideMethod.getBody().getStatements().size()-1)).getExpression();
+                J.Identifier returnIdentifier = (J.Identifier) ((J.Return) insideMethod.getBody().getStatements().get(insideMethod.getBody().getStatements().size() - 1)).getExpression();
 
                 maybeAddImport(KEYVALUE_FQ);
                 maybeRemoveImport(TAG_FQ);
