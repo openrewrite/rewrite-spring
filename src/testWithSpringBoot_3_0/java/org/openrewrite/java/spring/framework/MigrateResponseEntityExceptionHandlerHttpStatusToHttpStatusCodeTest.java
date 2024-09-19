@@ -28,7 +28,7 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode())
-          .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-context", "spring-beans", "spring-web", "spring-webmvc"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-web", "spring-webmvc"));
     }
 
     @DocumentExample
