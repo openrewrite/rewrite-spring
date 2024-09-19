@@ -25,8 +25,6 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
-import java.util.List;
-
 import static java.util.Collections.singletonList;
 
 public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode extends Recipe {
