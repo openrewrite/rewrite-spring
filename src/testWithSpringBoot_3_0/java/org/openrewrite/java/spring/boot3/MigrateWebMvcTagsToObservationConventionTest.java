@@ -55,7 +55,6 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                     if (customHeader != null) {
                         tags = tags.and("custom.header", customHeader);
                     }
-
                     return tags;
                 }
             }
@@ -79,7 +78,6 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                     if (customHeader != null) {
                         values.and(KeyValue.of("custom.header", customHeader));
                     }
-
                     return values;
                 }
             }
