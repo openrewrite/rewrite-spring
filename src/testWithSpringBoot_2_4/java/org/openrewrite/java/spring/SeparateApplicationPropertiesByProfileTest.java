@@ -20,6 +20,8 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.properties.Assertions.properties;
 
 class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
@@ -270,6 +272,62 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
               service.domainUrl=https://this.is.my.prod.url.com
               """,
             sourceSpecs -> sourceSpecs.path("folder1/folder2/application-prod.properties")
+          )
+        );
+    }
+
+    @Test
+    void multiModuleProject() {
+        rewriteRun(
+          mavenProject("parent",
+            mavenProject("service",
+              srcMainResources(
+                properties(
+                  """
+                    global.service=true
+                    !---
+                    spring.config.activate.on-profile=dev
+                    dev.service=true
+                    """,
+                  """
+                    global.service=true
+                    """,
+                  spec -> spec.path("application.properties")
+                ),
+                properties(
+                  null,
+                  """
+                    dev.service=true
+                    """,
+                  spec -> spec.path("application-dev.properties")
+                )
+              )
+            ),
+            mavenProject("client",
+              srcMainResources(
+                properties("""
+                    global.client=true
+                    !---
+                    spring.config.activate.on-profile=dev
+                    dev.client=true
+                    """,
+                  """
+                    global.client=true
+                    """,
+                  spec -> spec.path("application.properties")
+                ),
+                properties(
+                  """
+                    dev.existing=true
+                    """,
+                  """
+                    dev.existing=true
+                    dev.client=true
+                    """,
+                  spec -> spec.path("application-dev.properties")
+                )
+              )
+            )
           )
         );
     }
