@@ -78,29 +78,29 @@ public class ExpandProperties extends Recipe {
                 return (Yaml.Documents) new YamlIsoVisitor<ExecutionContext>() {
                     boolean doneTrimming;
                     @Override
-                    public Yaml.Scalar visitScalar(Yaml.Scalar scalar, ExecutionContext executionContext) {
+                    public Yaml.Scalar visitScalar(Yaml.Scalar scalar, ExecutionContext ctx) {
                         doneTrimming = true;
                         return scalar.withPrefix(trimNewlineBeforeComment(scalar.getPrefix()));
                     }
 
                     @Override
-                    public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext executionContext) {
+                    public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                         doneTrimming = true;
                         return entry.withPrefix(trimNewlineBeforeComment(entry.getPrefix()));
                     }
 
                     @Override
-                    public Yaml.Sequence.Entry visitSequenceEntry(Yaml.Sequence.Entry entry, ExecutionContext executionContext) {
+                    public Yaml.Sequence.Entry visitSequenceEntry(Yaml.Sequence.Entry entry, ExecutionContext ctx) {
                         doneTrimming = true;
                         return entry.withPrefix(trimNewlineBeforeComment(entry.getPrefix()));
                     }
 
                     @Override
-                    public @Nullable Yaml visit(@Nullable Tree tree, ExecutionContext executionContext) {
+                    public @Nullable Yaml visit(@Nullable Tree tree, ExecutionContext ctx) {
                         if (doneTrimming) {
                             return (Yaml) tree;
                         }
-                        return super.visit(tree, executionContext);
+                        return super.visit(tree, ctx);
                     }
 
                     private String trimNewlineBeforeComment(String prefix) {
