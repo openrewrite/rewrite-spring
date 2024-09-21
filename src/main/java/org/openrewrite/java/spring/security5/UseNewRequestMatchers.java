@@ -64,8 +64,8 @@ public class UseNewRequestMatchers extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                         boolean isCsrfMatcher = CSRF_MATCHERS.matches(mi);
-                        if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi) || isCsrfMatcher)
-                                && mi.getSelect() != null) {
+                        if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi) || isCsrfMatcher) &&
+                                mi.getSelect() != null) {
                             String parametersTemplate = mi.getArguments().stream().map(arg -> "#{any()}").collect(joining(", "));
                             String replacementMethodName = isCsrfMatcher ? "ignoringRequestMatchers" : "requestMatchers";
                             J.MethodInvocation applied = JavaTemplate.builder(String.format("%s(%s)", replacementMethodName, parametersTemplate))

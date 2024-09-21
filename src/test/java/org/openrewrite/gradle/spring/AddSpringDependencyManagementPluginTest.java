@@ -17,7 +17,6 @@ package org.openrewrite.gradle.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.Tree;
 import org.openrewrite.gradle.marker.GradlePluginDescriptor;
 import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.maven.tree.MavenRepository;
@@ -97,22 +96,19 @@ class AddSpringDependencyManagementPluginTest implements RewriteTest {
     }
 
     private static GradleProject gradleProject(GradlePluginDescriptor... gradlePlugins) {
-        return new GradleProject(
-          Tree.randomId(),
-          "group",
-          "example",
-          "version",
-          ":",
-          List.of(gradlePlugins),
-          Collections.emptyList(),
-          Collections.singletonList(MavenRepository.builder()
+        return GradleProject.builder()
+          .group("group")
+          .name("example")
+          .version("version")
+          .path(":")
+          .plugins(List.of(gradlePlugins))
+          .mavenRepositories(Collections.singletonList(MavenRepository.builder()
             .id("Gradle Central Plugin Repository")
             .uri("https://plugins.gradle.org/m2")
             .releases(true)
             .snapshots(true)
-            .build()),
-          Collections.emptyMap()
-        );
+            .build()))
+          .build();
     }
 
     private static GradlePluginDescriptor springBootPlugin() {

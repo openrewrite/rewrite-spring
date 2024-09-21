@@ -90,9 +90,9 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
 
             // Strip calls to new DefaultBatchConfigurer()
             List<Statement> statements = md.getBody().getStatements();
-            if (statements.size() == 1
-                && statements.get(0) instanceof J.Return
-                && new MethodMatcher(DEFAULT_BATCH_CONFIGURER + " <constructor>(..)")
+            if (statements.size() == 1 &&
+                statements.get(0) instanceof J.Return &&
+                new MethodMatcher(DEFAULT_BATCH_CONFIGURER + " <constructor>(..)")
                         .matches(((J.Return) statements.get(0)).getExpression())) {
                 maybeRemoveImport(BATCH_CONFIGURER);
                 maybeRemoveImport(DEFAULT_BATCH_CONFIGURER);

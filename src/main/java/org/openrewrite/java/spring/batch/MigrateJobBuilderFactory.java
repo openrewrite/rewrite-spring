@@ -22,7 +22,9 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Statement;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -146,14 +148,14 @@ public class MigrateJobBuilderFactory extends Recipe {
         }
 
         private boolean isJobRepositoryParameter(Statement statement) {
-            return statement instanceof J.VariableDeclarations
-                    && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+            return statement instanceof J.VariableDeclarations &&
+                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
                     "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
-            return statement instanceof J.VariableDeclarations
-                    && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+            return statement instanceof J.VariableDeclarations &&
+                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
                     "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
         }
     }
