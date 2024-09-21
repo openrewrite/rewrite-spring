@@ -68,8 +68,8 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
 
     @Override
     public String getDescription() {
-        return "In Spring Security 5.8 some `Pbkdf2PasswordEncoder` constructors have been deprecated in favor of factory methods. "
-                + "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_pbkdf2passwordencoder) for more information.";
+        return "In Spring Security 5.8 some `Pbkdf2PasswordEncoder` constructors have been deprecated in favor of factory methods. " +
+                "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_pbkdf2passwordencoder) for more information.";
     }
 
     @Override
@@ -100,8 +100,8 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                             Expression secret = arguments.get(0);
                             Expression saltLength = arguments.get(1);
                             maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
-                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET)
-                                    && resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
+                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET) &&
+                                    resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
                                 return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                             } else {
                                 String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(DEFAULT_HASH_WIDTH);
@@ -114,9 +114,9 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                             Expression hashWidth = arguments.get(2);
                             Integer knownHashWidth = hashWidth instanceof J.Literal && hashWidth.getType() == JavaType.Primitive.Int ? (Integer) ((J.Literal) hashWidth).getValue() : null;
                             maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
-                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET)
-                                    && resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS)
-                                    && DEFAULT_HASH_WIDTH.equals(knownHashWidth)) {
+                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET) &&
+                                    resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS) &&
+                                    DEFAULT_HASH_WIDTH.equals(knownHashWidth)) {
                                 return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                             } else {
                                 String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(knownHashWidth);

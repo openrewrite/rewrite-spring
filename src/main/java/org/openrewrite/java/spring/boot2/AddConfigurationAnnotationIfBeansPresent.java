@@ -64,8 +64,8 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
                 maybeAddImport(FQN_CONFIGURATION);
                 return JavaTemplate.builder("@" + CONFIGURATION_SIMPLE_NAME)
                     .imports(FQN_CONFIGURATION)
-                    .javaParser(JavaParser.fromJavaVersion().dependsOn("package " + CONFIGURATION_PACKAGE
-                                                                       + "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
+                    .javaParser(JavaParser.fromJavaVersion().dependsOn("package " + CONFIGURATION_PACKAGE +
+                                                                       "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
                     .build().apply(
                         getCursor(),
                         c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))

@@ -85,16 +85,16 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
                 Xml.Tag resultTag = super.visitTag(tag, ctx);
                 if (isManagedDependencyTag()) {
                     ResolvedManagedDependency managedDependency = findManagedDependency(resultTag);
-                    if (managedDependency != null && managedDependency.getGroupId().equals(SPRINGBOOT_GROUP)
-                        && satisfiesOldVersionPattern(managedDependency.getVersion())) {
+                    if (managedDependency != null && managedDependency.getGroupId().equals(SPRINGBOOT_GROUP) &&
+                        satisfiesOldVersionPattern(managedDependency.getVersion())) {
                         return SearchResult.found(resultTag);
                     }
                 }
 
                 if (isDependencyTag()) {
                     ResolvedDependency dependency = findDependency(resultTag);
-                    if ((dependency != null) && dependency.getGroupId().equals(SPRINGBOOT_GROUP)
-                        && satisfiesOldVersionPattern(dependency.getVersion())) {
+                    if ((dependency != null) && dependency.getGroupId().equals(SPRINGBOOT_GROUP) &&
+                        satisfiesOldVersionPattern(dependency.getVersion())) {
                         return SearchResult.found(resultTag);
                     }
                 }

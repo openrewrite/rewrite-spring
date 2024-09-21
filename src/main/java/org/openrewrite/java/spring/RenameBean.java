@@ -80,8 +80,8 @@ public class RenameBean extends Recipe {
      * @return a recipe for this methodDeclaration if it declares a bean, or null if it does not declare a bean
      */
     public static @Nullable RenameBean fromDeclaration(J.MethodDeclaration methodDeclaration, String newName) {
-        return methodDeclaration.getMethodType() == null ? null
-                : fromDeclaration(methodDeclaration, newName, methodDeclaration.getMethodType().getReturnType().toString());
+        return methodDeclaration.getMethodType() == null ? null :
+                fromDeclaration(methodDeclaration, newName, methodDeclaration.getMethodType().getReturnType().toString());
     }
 
     /**
@@ -106,8 +106,8 @@ public class RenameBean extends Recipe {
      * @return a recipe for this classDeclaration if it declares a bean, or null if it does not declare a bean
      */
     public static @Nullable RenameBean fromDeclaration(J.ClassDeclaration classDeclaration, String newName) {
-        return classDeclaration.getType() == null ? null
-                : fromDeclaration(classDeclaration, newName, classDeclaration.getType().toString());
+        return classDeclaration.getType() == null ? null :
+                fromDeclaration(classDeclaration, newName, classDeclaration.getType().toString());
     }
 
     /**
@@ -182,12 +182,12 @@ public class RenameBean extends Recipe {
     }
 
     private TreeVisitor<?, ExecutionContext> precondition() {
-        return type == null
-                ? Preconditions.or(
+        return type == null ?
+                Preconditions.or(
                         new FindAnnotations("@" + FQN_QUALIFIER, false).getVisitor(),
                         new FindAnnotations("@" + FQN_BEAN, false).getVisitor(),
-                        new FindAnnotations("@" + FQN_COMPONENT, true).getVisitor())
-                : Preconditions.or(new UsesType<>(type, false), new DeclaresType<>(type));
+                        new FindAnnotations("@" + FQN_COMPONENT, true).getVisitor()) :
+                Preconditions.or(new UsesType<>(type, false), new DeclaresType<>(type));
     }
 
     @Override

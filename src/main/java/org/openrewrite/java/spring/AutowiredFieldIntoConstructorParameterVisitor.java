@@ -112,9 +112,9 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             return multiVariable;
         }
         VariableDeclarations mv = multiVariable;
-        if (blockCursor.getParent() != null && blockCursor.getParent().getValue() instanceof ClassDeclaration
-                && multiVariable.getVariables().size() == 1
-                && fieldName.equals(multiVariable.getVariables().get(0).getName().getSimpleName())) {
+        if (blockCursor.getParent() != null && blockCursor.getParent().getValue() instanceof ClassDeclaration &&
+                multiVariable.getVariables().size() == 1 &&
+                fieldName.equals(multiVariable.getVariables().get(0).getName().getSimpleName())) {
 
             mv = (VariableDeclarations) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + AUTOWIRED)).visitNonNull(multiVariable, p);
             if (mv != multiVariable && multiVariable.getTypeExpression() != null) {
@@ -161,10 +161,10 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                     ClassDeclaration classDecl = (ClassDeclaration) n;
                     JavaType.FullyQualified typeFqn = TypeUtils.asFullyQualified(type.getType());
                     if (typeFqn != null && classDecl.getKind() == ClassDeclaration.Kind.Type.Class && className.equals(classDecl.getSimpleName())) {
-                        JavaTemplate.Builder template = JavaTemplate.builder(""
-                                + classDecl.getSimpleName() + "(" + typeFqn.getClassName() + " " + fieldName + ") {\n"
-                                + "this." + fieldName + " = " + fieldName + ";\n"
-                                + "}\n"
+                        JavaTemplate.Builder template = JavaTemplate.builder("" +
+                                classDecl.getSimpleName() + "(" + typeFqn.getClassName() + " " + fieldName + ") {\n" +
+                                "this." + fieldName + " = " + fieldName + ";\n" +
+                                "}\n"
                         ).contextSensitive();
                         FullyQualified fq = TypeUtils.asFullyQualified(type.getType());
                         if (fq != null) {

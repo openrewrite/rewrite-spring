@@ -59,8 +59,8 @@ public class MigrateItemWriterWrite extends Recipe {
                 }
 
                 J.VariableDeclarations parameter = (J.VariableDeclarations) m.getParameters().get(0);
-                if (!(parameter.getTypeExpression() instanceof J.ParameterizedType)
-                    || ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() == null) {
+                if (!(parameter.getTypeExpression() instanceof J.ParameterizedType) ||
+                    ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() == null) {
                     return m;
                 }
                 String chunkTypeParameter = ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters().get(0).toString();

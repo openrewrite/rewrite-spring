@@ -63,8 +63,8 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
 
     @Override
     public String getDescription() {
-        return "In Spring Security 5.8 some `Argon2PasswordEncoder` constructors have been deprecated in favor of factory methods. "
-                + "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_argon2passwordencoder) for more information.";
+        return "In Spring Security 5.8 some `Argon2PasswordEncoder` constructors have been deprecated in favor of factory methods. " +
+                "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_argon2passwordencoder) for more information.";
     }
 
     @Override
@@ -89,17 +89,17 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
                             Expression memory = arguments.get(3);
                             Expression iterations = arguments.get(4);
                             maybeAddImport(ARGON2_PASSWORD_ENCODER_CLASS);
-                            if (resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)
-                                    && resolvedValueMatchesLiteral(hashLength, DEFAULT_HASH_LENGTH)
-                                    && resolvedValueMatchesLiteral(parallelism, DEFAULT_PARALLELISM)
-                                    && resolvedValueMatchesLiteral(memory, DEFAULT_MEMORY)
-                                    && resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS)) {
+                            if (resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH) &&
+                                    resolvedValueMatchesLiteral(hashLength, DEFAULT_HASH_LENGTH) &&
+                                    resolvedValueMatchesLiteral(parallelism, DEFAULT_PARALLELISM) &&
+                                    resolvedValueMatchesLiteral(memory, DEFAULT_MEMORY) &&
+                                    resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS)) {
                                 return newV58FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                            } else if (resolvedValueMatchesLiteral(saltLength, DEFAULT_V52_SALT_LENGTH)
-                                    && resolvedValueMatchesLiteral(hashLength, DEFAULT_V52_HASH_LENGTH)
-                                    && resolvedValueMatchesLiteral(parallelism, DEFAULT_V52_PARALLELISM)
-                                    && resolvedValueMatchesLiteral(memory, DEFAULT_V52_MEMORY)
-                                    && resolvedValueMatchesLiteral(iterations, DEFAULT_V52_ITERATIONS)) {
+                            } else if (resolvedValueMatchesLiteral(saltLength, DEFAULT_V52_SALT_LENGTH) &&
+                                    resolvedValueMatchesLiteral(hashLength, DEFAULT_V52_HASH_LENGTH) &&
+                                    resolvedValueMatchesLiteral(parallelism, DEFAULT_V52_PARALLELISM) &&
+                                    resolvedValueMatchesLiteral(memory, DEFAULT_V52_MEMORY) &&
+                                    resolvedValueMatchesLiteral(iterations, DEFAULT_V52_ITERATIONS)) {
                                 return newV52FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                             }
                         }

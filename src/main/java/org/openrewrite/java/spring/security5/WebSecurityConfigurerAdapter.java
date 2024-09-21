@@ -101,8 +101,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
             @Override
             public J.@Nullable ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType())
-                        && isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION);
+                boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType()) &&
+                        isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION);
                 boolean hasConflict = false;
                 if (isWebSecurityConfigurerAdapterClass) {
                     for (Statement s : classDecl.getBody().getStatements()) {
@@ -235,9 +235,9 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 String methodName = m.getSimpleName();
                 JavaType.Method methodType = m.getMethodType();
                 return (methodType == null && ("authenticationManagerBean".equals(methodName) || "userDetailsServiceBean".equals(methodName))) ||
-                        (USER_DETAILS_SERVICE_BEAN_METHOD_MATCHER.matches(methodType)
-                                || AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER.matches(methodType)
-                                || (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(methodType) && inConflictingAuthConfigMethod(m)));
+                        (USER_DETAILS_SERVICE_BEAN_METHOD_MATCHER.matches(methodType) ||
+                                AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER.matches(methodType) ||
+                                (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(methodType) && inConflictingAuthConfigMethod(m)));
             }
 
             private boolean inConflictingAuthConfigMethod(J.MethodDeclaration m) {
