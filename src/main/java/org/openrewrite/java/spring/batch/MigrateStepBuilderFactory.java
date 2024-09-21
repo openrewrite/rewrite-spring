@@ -65,8 +65,8 @@ public class MigrateStepBuilderFactory extends Recipe {
             // Remove StepBuilderFactory field if StepBuilderFactory.get(..) is used further down
             if (!FindMethods.find(classDeclaration, STEP_BUILDER_FACTORY_GET).isEmpty()) {
                 cd = cd.withBody(cd.getBody().withStatements(ListUtils.map(cd.getBody().getStatements(), statement -> {
-                    if (statement instanceof J.VariableDeclarations
-                        && ((J.VariableDeclarations) statement).getTypeExpression() != null) {
+                    if (statement instanceof J.VariableDeclarations &&
+                        ((J.VariableDeclarations) statement).getTypeExpression() != null) {
                         if (TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getTypeExpression().getType(),
                                 "org.springframework.batch.core.configuration.annotation.StepBuilderFactory")) {
                             return null;
@@ -118,14 +118,14 @@ public class MigrateStepBuilderFactory extends Recipe {
         }
 
         private boolean isJobRepositoryParameter(Statement statement) {
-            return statement instanceof J.VariableDeclarations
-                   && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+            return statement instanceof J.VariableDeclarations &&
+                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
                     "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
-            return statement instanceof J.VariableDeclarations
-                   && TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+            return statement instanceof J.VariableDeclarations &&
+                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
                     "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
         }
     }

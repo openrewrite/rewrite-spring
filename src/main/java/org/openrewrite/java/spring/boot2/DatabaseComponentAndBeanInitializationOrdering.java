@@ -83,8 +83,8 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
                 if (method.getMethodType() != null) {
-                    if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md)
-                            && requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
+                    if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md) &&
+                            requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
                         md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                             .javaParser(JavaParser.fromJavaVersion()
@@ -103,8 +103,8 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd)
-                        && requiresInitializationAnnotation(cd.getType())) {
+                if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd) &&
+                        requiresInitializationAnnotation(cd.getType())) {
                     cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                         .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                         .javaParser(JavaParser.fromJavaVersion()

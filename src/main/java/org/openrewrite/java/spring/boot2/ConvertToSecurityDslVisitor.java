@@ -160,18 +160,18 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         JavaType.Method type = m.getMethodType();
         if (type != null) {
             JavaType.FullyQualified declaringType = type.getDeclaringType();
-            return securityFqn.equals(declaringType.getFullyQualifiedName())
-                    && (type.getParameterTypes().isEmpty() || hasHandleableArg(m))
-                    && convertableMethods.contains(m.getSimpleName());
+            return securityFqn.equals(declaringType.getFullyQualifiedName()) &&
+                    (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
+                    convertableMethods.contains(m.getSimpleName());
         }
         return false;
     }
 
     private boolean hasHandleableArg(J.MethodInvocation m) {
-        return argReplacements.containsKey(m.getSimpleName())
-                && m.getMethodType() != null
-                && m.getMethodType().getParameterTypes().size() == 1
-                && !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
+        return argReplacements.containsKey(m.getSimpleName()) &&
+                m.getMethodType() != null &&
+                m.getMethodType().getParameterTypes().size() == 1 &&
+                !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
     }
 
     private Optional<JavaType.Method> createDesiredReplacement(J.MethodInvocation m) {
@@ -182,10 +182,10 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         JavaType.Parameterized customizerArgType = new JavaType.Parameterized(null,
                 CUSTOMIZER_SHALLOW_TYPE, Collections.singletonList(methodType.getReturnType()));
         boolean keepArg = keepArg(m.getSimpleName());
-        List<String> paramNames = keepArg ? ListUtils.concat(methodType.getParameterNames(), "arg1")
-                : Collections.singletonList("arg0");
-        List<JavaType> paramTypes = keepArg ? ListUtils.concat(methodType.getParameterTypes(), customizerArgType)
-                : Collections.singletonList(customizerArgType);
+        List<String> paramNames = keepArg ? ListUtils.concat(methodType.getParameterNames(), "arg1") :
+                Collections.singletonList("arg0");
+        List<JavaType> paramTypes = keepArg ? ListUtils.concat(methodType.getParameterTypes(), customizerArgType) :
+                Collections.singletonList(customizerArgType);
         return Optional.of(methodType.withReturnType(methodType.getDeclaringType())
                 .withName(methodRenames.getOrDefault(methodType.getName(), methodType.getName()))
                 .withParameterNames(paramNames)

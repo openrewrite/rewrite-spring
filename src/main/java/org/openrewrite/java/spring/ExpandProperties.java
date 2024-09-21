@@ -114,8 +114,8 @@ public class ExpandProperties extends Recipe {
             }
         };
         return sourceFileMask != null ?
-                Preconditions.check(new FindSourceFiles(sourceFileMask), visitor)
-                : visitor;
+                Preconditions.check(new FindSourceFiles(sourceFileMask), visitor) :
+                visitor;
     }
 
     private static class ExpandEntriesVisitor extends YamlVisitor<ExecutionContext> {

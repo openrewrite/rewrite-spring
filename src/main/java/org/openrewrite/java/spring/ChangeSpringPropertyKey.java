@@ -92,8 +92,8 @@ public class ChangeSpringPropertyKey extends Recipe {
     }
 
     private String exceptRegex() {
-        return except == null || except.isEmpty()
-                ? ""
-                : "(?!(" + String.join("|", except) + "))";
+        return except == null || except.isEmpty() ?
+                "" :
+                "(?!(" + String.join("|", except) + "))";
     }
 }

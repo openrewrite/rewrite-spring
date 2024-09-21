@@ -135,9 +135,9 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
             return Optional.empty();
         }
         return annotation.getArguments().stream()
-                .filter(arg -> arg instanceof J.Assignment
-                        && ((J.Assignment) arg).getVariable() instanceof J.Identifier
-                        && "loader".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName()))
+                .filter(arg -> arg instanceof J.Assignment &&
+                        ((J.Assignment) arg).getVariable() instanceof J.Identifier &&
+                        "loader".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName()))
                 .map(J.Assignment.class::cast)
                 .findFirst();
     }
