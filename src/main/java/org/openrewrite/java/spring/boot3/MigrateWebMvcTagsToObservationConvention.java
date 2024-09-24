@@ -25,7 +25,10 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Statement;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +38,6 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
     private static final String WEBMVCTAGSPROVIDER_FQ = "org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider";
     private static final String WEBMVCTAGS_FQ = "org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags";
-    private static final String DEFAULTSERVERREQUESTOBSERVATIONCONVENTION = "DefaultServerRequestObservationConvention";
     private static final String DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ = "org.springframework.http.server.observation.DefaultServerRequestObservationConvention";
     private static final String SERVERREQUESTOBSERVATIONCONVENTION_FQ = "org.springframework.http.server.observation.ServerRequestObservationContext";
     private static final String KEYVALUES_FQ = "io.micrometer.common.KeyValues";
@@ -204,8 +206,8 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                 .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(i), init.getArguments().get(i + 1)));
                     }
                     String keyValueVarArg = "#{any(io.micrometer.common.KeyValue)}";
-                    String string = String.join(", ", Collections.nCopies(createKeys.size(), keyValueVarArg));
-                    return JavaTemplate.builder("values.and(" + string + ")")
+                    String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(createKeys.size(), keyValueVarArg));
+                    return JavaTemplate.builder("values.and(" + keyValueVarArgsCombined + ")")
                             .javaParser(JavaParser.fromJavaVersion().classpath("micrometer-commons"))
                             .build()
                             .apply(getCursor(), a.getCoordinates().replace(), createKeys.toArray());
