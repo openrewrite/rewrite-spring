@@ -114,6 +114,8 @@ recipeDependencies {
 
     parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.1.+")
     parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
+
+    parserClasspath("org.apache.tomcat.embed:tomcat-embed-core:10.1.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()

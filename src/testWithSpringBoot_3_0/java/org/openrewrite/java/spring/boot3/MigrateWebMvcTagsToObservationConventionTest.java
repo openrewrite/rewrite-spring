@@ -27,7 +27,13 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateWebMvcTagsToObservationConvention()).parser(JavaParser.fromJavaVersion().classpath("micrometer-core", "spring-boot", "spring-context", "spring-beans", "spring-web", "tomcat-embed-core"));
+        spec.recipe(new MigrateWebMvcTagsToObservationConvention()).parser(JavaParser.fromJavaVersion().classpath(
+          "micrometer-core",
+          "spring-boot",
+          "spring-context",
+          "spring-beans",
+          "spring-web",
+          "tomcat-embed-core"));
     }
 
     @DocumentExample
@@ -94,7 +100,9 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                     return values;
                 }
             }
-            """));
+            """
+          )
+        );
     }
 
 }

@@ -100,7 +100,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 //noinspection DataFlowIssue
                 J.ClassDeclaration newClassDeclaration = JavaTemplate.builder(tmpl.toString())
                         .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion().classpath("micrometer-commons", "spring-web", "tomcat-embed-core"))
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons", "spring-web", "tomcat-embed-core"))
                         .imports(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ, KEYVALUES_FQ, HTTPSERVLETREQUEST_FQ, HTTPSERVLETRESPONSE_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ)
                         .build()
                         .apply(getCursor(), classDecl.getCoordinates().replace());
@@ -138,7 +138,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     m = JavaTemplate.builder("HttpServletResponse response = #{any()}.getResponse();")
                             .imports(HTTPSERVLETRESPONSE_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ)
                             .contextSensitive()
-                            .javaParser(JavaParser.fromJavaVersion().classpath("tomcat-embed-core", "spring-web-6.+", "micrometer-commons", "micrometer-observation"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tomcat-embed-core", "spring-web-6.+", "micrometer-commons", "micrometer-observation"))
                             .build()
                             .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
                 }
@@ -146,7 +146,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     m = JavaTemplate.builder("HttpServletRequest request = #{any()}.getCarrier();")
                             .imports(HTTPSERVLETREQUEST_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ, "io.micrometer.observation.transport.ReceiverContext")
                             .contextSensitive()
-                            .javaParser(JavaParser.fromJavaVersion().classpath("tomcat-embed-core", "spring-web-6.+", "micrometer-commons", "micrometer-observation"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tomcat-embed-core", "spring-web-6.+", "micrometer-commons", "micrometer-observation"))
                             .build()
                             .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
                 }
@@ -193,7 +193,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                             .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(0), init.getArguments().get(1));
                     return JavaTemplate.builder("#{any()}.and(#{any(io.micrometer.common.KeyValue)})")
                             .imports(KEYVALUES_FQ)
-                            .javaParser(JavaParser.fromJavaVersion().classpath("micrometer-commons"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons"))
                             .build()
                             .apply(getCursor(), a.getCoordinates().replace(), returnIdentifier, createKeyValue);
                 } else if (TAGS_AND_STRING_ARRAY.matches(init)) {
@@ -208,7 +208,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     String keyValueVarArg = "#{any(io.micrometer.common.KeyValue)}";
                     String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(createKeys.size(), keyValueVarArg));
                     return JavaTemplate.builder("values.and(" + keyValueVarArgsCombined + ")")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("micrometer-commons"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons"))
                             .build()
                             .apply(getCursor(), a.getCoordinates().replace(), createKeys.toArray());
                 } else if (TAGS_AND_TAG_ARRAY.matches(init)) {
@@ -217,7 +217,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                       "    values.and(KeyValue.of(tag.getKey(), tag.getValue()));\n" +
                                       "}\n";
                     return JavaTemplate.builder(template)
-                            .javaParser(JavaParser.fromJavaVersion().classpath("micrometer-commons"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons"))
                             .doAfterVariableSubstitution(System.out::println)
                             .build()
                             .apply(getCursor(), a.getCoordinates().replace(), iterable);
