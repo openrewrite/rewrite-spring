@@ -115,7 +115,7 @@ recipeDependencies {
     parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.1.+")
     parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
 
-    parserClasspath("org.apache.tomcat.embed:tomcat-embed-core:10.1.+")
+    parserClasspath("jakarta.servlet:jakarta.servlet-api:6.1.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -251,7 +251,7 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-config:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
-    "testWithSpringBoot_3_0RuntimeOnly"("org.apache.tomcat.embed:tomcat-embed-core:10.1.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("jakarta.servlet:jakarta.servlet-api:6.1.+")
 
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.2.+")
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")

@@ -33,7 +33,7 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
           "spring-context",
           "spring-beans",
           "spring-web",
-          "tomcat-embed-core"));
+          "jakarta.servlet-api"));
     }
 
     @DocumentExample
