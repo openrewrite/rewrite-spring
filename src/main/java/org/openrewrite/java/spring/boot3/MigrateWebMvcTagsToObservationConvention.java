@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -45,10 +46,13 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
     private static final String TAG_FQ = "io.micrometer.core.instrument.Tag";
     private static final MethodMatcher TAGS_AND_STRING_STRING = new MethodMatcher("io.micrometer.core.instrument.Tags and(java.lang.String, java.lang.String)");
     private static final MethodMatcher TAGS_AND_STRING_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags and(java.lang.String[])");
-    private static final MethodMatcher TAGS_AND_TAG_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags and(java.lang.Iterable)");
+    private static final MethodMatcher TAGS_AND_TAG_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags and(io.micrometer.core.instrument.Tag[])");
+    private static final MethodMatcher TAGS_AND_TAG_ITERABLE = new MethodMatcher("io.micrometer.core.instrument.Tags and(java.lang.Iterable)");
     private static final MethodMatcher TAGS_OF_STRING_STRING = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.String, java.lang.String)");
     private static final MethodMatcher TAGS_OF_STRING_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.String[])");
     private static final MethodMatcher TAGS_OF_TAG_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags of(io.micrometer.core.instrument.Tag[])");
+    private static final MethodMatcher TAGS_OF_TAG_ITERABLE = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.Iterable)");
+    private static final MethodMatcher TAG_OF = new MethodMatcher("io.micrometer.core.instrument.Tag of(java.lang.String, java.lang.String)");
 
     @Override
     public String getDisplayName() {
@@ -104,12 +108,16 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                             }
                             return stmt;
                         })));
-                maybeRemoveImport(WEBMVCTAGSPROVIDER_FQ);
                 maybeAddImport(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ);
-                maybeAddImport(SERVERREQUESTOBSERVATIONCONVENTION_FQ);
+                maybeAddImport(KEYVALUE_FQ);
                 maybeAddImport(KEYVALUES_FQ);
+                maybeAddImport(SERVERREQUESTOBSERVATIONCONVENTION_FQ);
                 maybeRemoveImport(HTTPSERVLETREQUEST_FQ);
                 maybeRemoveImport(HTTPSERVLETRESPONSE_FQ);
+                maybeRemoveImport(TAG_FQ);
+                maybeRemoveImport(TAGS_FQ);
+                maybeRemoveImport(WEBMVCTAGS_FQ);
+                maybeRemoveImport(WEBMVCTAGSPROVIDER_FQ);
                 return (J.ClassDeclaration) super.visitClassDeclaration(newClassDeclaration, ctx);
             }
 
@@ -143,63 +151,82 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
             public Statement visitStatement(Statement statement, ExecutionContext ctx) {
                 Statement s = (Statement) super.visitStatement(statement, ctx);
                 if (s instanceof J.VariableDeclarations) {
-                    J.VariableDeclarations m = (J.VariableDeclarations) s;
-                    if (TypeUtils.isOfType(m.getType(), JavaType.buildType(TAGS_FQ))) {
-                        J.MethodInvocation init = ((J.MethodInvocation) m.getVariables().get(0).getInitializer());
-                        if (TAGS_OF_TAG_ARRAY.matches(init)) {
-                            maybeRemoveImport(TAGS_FQ);
-                            maybeRemoveImport(WEBMVCTAGS_FQ);
+                    J.VariableDeclarations vd = (J.VariableDeclarations) s;
+                    if (TypeUtils.isOfType(vd.getType(), JavaType.buildType(TAGS_FQ))) {
+                        if (vd.getVariables().get(0).getInitializer() != null) {
                             //noinspection DataFlowIssue
-                            return null;
+                            return refactorTagsUsage(ctx, vd.getCoordinates(), (J.MethodInvocation) vd.getVariables().get(0).getInitializer(), vd);
                         }
                     }
-                    return m;
+                    return vd;
                 }
                 if (s instanceof J.Assignment) {
                     J.Assignment a = (J.Assignment) s;
                     if (TypeUtils.isOfType(a.getType(), JavaType.buildType(TAGS_FQ))) {
-                        return refactorTagsUsage(ctx, a);
+                        return refactorTagsUsage(ctx, a.getCoordinates(), (J.MethodInvocation) a.getAssignment(), a);
                     }
                     return a;
                 }
                 return s;
             }
 
-            private Statement refactorTagsUsage(ExecutionContext ctx, J.Assignment a) {
-                J.MethodInvocation init = ((J.MethodInvocation) a.getAssignment());
+            private Statement refactorTagsUsage(ExecutionContext ctx, org.openrewrite.java.tree.CoordinateBuilder.Statement coords, J.MethodInvocation init, Statement original) {
                 J.MethodDeclaration insideMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
                 if (insideMethod != null && insideMethod.getBody() != null) {
                     J.Identifier returnIdentifier = (J.Identifier) ((J.Return) insideMethod.getBody().getStatements().get(insideMethod.getBody().getStatements().size() - 1)).getExpression();
 
                     if (returnIdentifier != null) {
-                        maybeAddImport(KEYVALUE_FQ);
-                        maybeRemoveImport(TAG_FQ);
-                        if (TAGS_AND_STRING_STRING.matches(init)) {
+                        if (TAGS_AND_STRING_STRING.matches(init) || TAGS_OF_STRING_STRING.matches(init)) {
                             J.MethodInvocation createKeyValue = JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
                                     .imports(KEYVALUE_FQ)
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                     .build()
-                                    .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(0), init.getArguments().get(1));
+                                    .apply(getCursor(), coords.replace(), init.getArguments().get(0), init.getArguments().get(1));
                             return JavaTemplate.builder("#{any()}.and(#{any(io.micrometer.common.KeyValue)})")
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                     .build()
-                                    .apply(getCursor(), a.getCoordinates().replace(), returnIdentifier, createKeyValue);
-                        } else if (TAGS_AND_STRING_ARRAY.matches(init)) {
+                                    .apply(getCursor(), coords.replace(), returnIdentifier, createKeyValue);
+                        } else if (TAGS_AND_STRING_ARRAY.matches(init) || TAGS_OF_STRING_ARRAY.matches(init)) {
                             List<J> args = new ArrayList<>();
                             for (int i = 0; i < init.getArguments().size(); i += 2) {
                                 args.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
                                         .imports(KEYVALUE_FQ)
                                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                         .build()
-                                        .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(i), init.getArguments().get(i + 1)));
+                                        .apply(getCursor(), coords.replace(), init.getArguments().get(i), init.getArguments().get(i + 1)));
                             }
-                            String keyValueVarArg = "#{any(io.micrometer.common.KeyValue)}";
-                            String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(args.size(), keyValueVarArg));
-                            return JavaTemplate.builder("#{any()}.and(" + keyValueVarArgsCombined + ")")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
-                                    .build()
-                                    .apply(getCursor(), a.getCoordinates().replace(), ListUtils.insert(args, returnIdentifier, 0).toArray());
-                        } else if (TAGS_AND_TAG_ARRAY.matches(init)) {
+                            return getMultiKeyValueStatement(ctx, coords, args, returnIdentifier);
+                        } else if (TAGS_AND_TAG_ARRAY.matches(init) || TAGS_OF_TAG_ARRAY.matches(init)) {
+                            List<Expression> validArgs = ListUtils.map(init.getArguments(), expression -> {
+                                if (expression instanceof J.MethodInvocation && ((J.MethodInvocation) expression).getMethodType() != null && TypeUtils.isOfType(((J.MethodInvocation) expression).getMethodType().getDeclaringType(), JavaType.buildType(WEBMVCTAGS_FQ))) {
+                                    //noinspection DataFlowIssue
+                                    return null;
+                                }
+                                return expression;
+                            });
+                            if (validArgs.isEmpty()) {
+                                //noinspection DataFlowIssue
+                                return null;
+                            }
+                            List<J> args = new ArrayList<>();
+                            for (Expression arg : validArgs) {
+                                if (arg instanceof J.MethodInvocation && TAG_OF.matches(arg)) {
+                                    args.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
+                                            .imports(KEYVALUE_FQ)
+                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                            .build()
+                                            .apply(getCursor(), coords.replace(), ((J.MethodInvocation) arg).getArguments().get(0), ((J.MethodInvocation) arg).getArguments().get(1)));
+                                } else {
+                                    args.add(JavaTemplate.builder("KeyValue.of(#{any()}.getKey(), #{any()}.getValue())")
+                                            .imports(KEYVALUE_FQ)
+                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                            .build()
+                                            .apply(getCursor(), coords.replace(), arg, arg));
+                                }
+
+                            }
+                            return getMultiKeyValueStatement(ctx, coords, args, returnIdentifier);
+                        } else if (TAGS_AND_TAG_ITERABLE.matches(init) || TAGS_OF_TAG_ITERABLE.matches(init)) {
                             J.Identifier iterable = (J.Identifier) init.getArguments().get(0);
                             String template = "for (Tag tag : #{any()}) {\n" +
                                               "    #{any()}.and(KeyValue.of(tag.getKey(), tag.getValue()));\n" +
@@ -208,12 +235,27 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-core-1.11.+", "micrometer-commons-1.11.+"))
                                     .imports(TAG_FQ, KEYVALUE_FQ)
                                     .build()
-                                    .apply(getCursor(), a.getCoordinates().replace(), iterable, returnIdentifier);
+                                    .apply(getCursor(), coords.replace(), iterable, returnIdentifier);
                             return foreach.withControl(foreach.getControl().withIterable(foreach.getControl().getIterable().withPrefix(Space.SINGLE_SPACE)));
+                        } else if (TAG_OF.matches(init)) {
+                            return JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
+                                    .imports(KEYVALUE_FQ)
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                    .build()
+                                    .apply(getCursor(), coords.replace(), init.getArguments().get(0), init.getArguments().get(1));
                         }
                     }
                 }
-                return a;
+                return original;
+            }
+
+            private @NotNull Statement getMultiKeyValueStatement(ExecutionContext ctx, CoordinateBuilder.Statement coords, List<J> args, J.Identifier returnIdentifier) {
+                String keyValueVarArg = "#{any(io.micrometer.common.KeyValue)}";
+                String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(args.size(), keyValueVarArg));
+                return JavaTemplate.builder("#{any()}.and(" + keyValueVarArgsCombined + ")")
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                        .build()
+                        .apply(getCursor(), coords.replace(), ListUtils.insert(args, returnIdentifier, 0).toArray());
             }
 
             @Override
@@ -228,6 +270,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                         getCursor().putMessageOnFirstEnclosing(J.MethodDeclaration.class, "addHttpServletResponse", true);
                     }
                 }
+
                 return m;
             }
         });
