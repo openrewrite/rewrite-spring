@@ -52,6 +52,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
     private static final MethodMatcher TAGS_OF_STRING_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.String[])");
     private static final MethodMatcher TAGS_OF_TAG_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags of(io.micrometer.core.instrument.Tag[])");
     private static final MethodMatcher TAGS_OF_TAG_ITERABLE = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.Iterable)");
+    private static final MethodMatcher TAGS_OF_ANY = new MethodMatcher("io.micrometer.core.instrument.Tags of(..)");
     private static final MethodMatcher TAG_OF = new MethodMatcher("io.micrometer.core.instrument.Tag of(java.lang.String, java.lang.String)");
 
     @Override
@@ -75,6 +76,12 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                         J.MethodDeclaration md = (J.MethodDeclaration) stmt;
                         if (md.getSimpleName().equals("getTags") && md.getBody() != null) {
                             getTagsBodyStatements.addAll(md.getBody().getStatements().subList(0, md.getBody().getStatements().size() - 1));
+                            Statement ret = md.getBody().getStatements().get(md.getBody().getStatements().size() - 1);
+                            if (ret instanceof J.Return && ((J.Return) ret).getExpression() instanceof J.MethodInvocation) {
+                                if (TAGS_OF_ANY.matches(((J.Return) ret).getExpression())) {
+                                    getTagsBodyStatements.add((Statement) ((J.Return) ret).getExpression());
+                                }
+                            }
                             break;
                         }
                     }
@@ -167,6 +174,12 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     }
                     return a;
                 }
+                if (s instanceof J.MethodInvocation) {
+                    J.MethodInvocation mi = (J.MethodInvocation) s;
+                    if (TAGS_OF_ANY.matches(mi)) {
+                        return refactorTagsUsage(ctx, mi.getCoordinates(), mi, mi);
+                    }
+                }
                 return s;
             }
 
@@ -237,12 +250,6 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     .build()
                                     .apply(getCursor(), coords.replace(), iterable, returnIdentifier);
                             return foreach.withControl(foreach.getControl().withIterable(foreach.getControl().getIterable().withPrefix(Space.SINGLE_SPACE)));
-                        } else if (TAG_OF.matches(init)) {
-                            return JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
-                                    .imports(KEYVALUE_FQ)
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
-                                    .build()
-                                    .apply(getCursor(), coords.replace(), init.getArguments().get(0), init.getArguments().get(1));
                         }
                     }
                 }

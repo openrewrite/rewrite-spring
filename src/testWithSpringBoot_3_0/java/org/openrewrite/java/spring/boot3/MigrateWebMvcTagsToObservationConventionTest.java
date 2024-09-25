@@ -106,4 +106,50 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
         );
     }
 
+    @Test
+    void ShouldMigrateReturnTagsOf() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+            
+              import io.micrometer.core.instrument.Tag;
+            import io.micrometer.core.instrument.Tags;
+            import jakarta.servlet.http.HttpServletRequest;
+            import jakarta.servlet.http.HttpServletResponse;
+            import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider;
+            import org.springframework.stereotype.Component;
+            
+            @Component
+            class CustomWebMvcTagsProvider implements WebMvcTagsProvider {
+            
+                @Override
+                public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler, Throwable exception) {
+                    return Tags.of(Tag.of("a", "b"));
+                }
+            }
+            """,
+            """
+            
+              import io.micrometer.common.KeyValue;
+            import io.micrometer.common.KeyValues;
+            import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
+            import org.springframework.http.server.observation.ServerRequestObservationContext;
+            import org.springframework.stereotype.Component;
+            
+            @Component
+            class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
+            
+                @Override
+                public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {
+                    KeyValues values = super.getLowCardinalityKeyValues(context);
+                    values.and(KeyValue.of("a", "b"));
+                    return values;
+                }
+            }
+            """
+          )
+        );
+    }
+
 }
