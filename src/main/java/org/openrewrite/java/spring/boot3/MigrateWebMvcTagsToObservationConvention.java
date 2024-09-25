@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import org.jetbrains.annotations.NotNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -256,7 +255,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 return original;
             }
 
-            private @NotNull Statement getMultiKeyValueStatement(ExecutionContext ctx, CoordinateBuilder.Statement coords, List<J> args, J.Identifier returnIdentifier) {
+            private Statement getMultiKeyValueStatement(ExecutionContext ctx, CoordinateBuilder.Statement coords, List<J> args, J.Identifier returnIdentifier) {
                 String keyValueVarArg = "#{any(io.micrometer.common.KeyValue)}";
                 String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(args.size(), keyValueVarArg));
                 return JavaTemplate.builder("#{any()}.and(" + keyValueVarArgsCombined + ")")
