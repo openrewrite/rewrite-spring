@@ -61,8 +61,8 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl,
                                                             ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                if (cd.getExtends() != null
-                        && TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
+                if (cd.getExtends() != null &&
+                        TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
                     cd = cd.withExtends(null);
                     updateCursor(cd);
                     // This is an interesting one... JobExecutionListenerSupport implements

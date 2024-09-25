@@ -47,8 +47,8 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in as that is the new default in Spring Security 6. "
-                + "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
+        return "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in as that is the new default in Spring Security 6. " +
+                "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
     }
 
     @Override
@@ -57,14 +57,14 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
-                if (method.getSelect() != null && method.getArguments().size() == 1
-                        && REQUIRE_EXPLICIT_SAVE_MATCHER.matches(method)
-                        && isTrue(method.getArguments().get(0))) {
+                if (method.getSelect() != null && method.getArguments().size() == 1 &&
+                        REQUIRE_EXPLICIT_SAVE_MATCHER.matches(method) &&
+                        isTrue(method.getArguments().get(0))) {
                     return ToBeRemoved.withMarker(method);
                 } else if (method.getSelect() instanceof J.MethodInvocation && ToBeRemoved.hasMarker(method.getSelect())) {
                     return method.withSelect(((J.MethodInvocation) method.getSelect()).getSelect());
-                } else if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker)
-                        && method.getSelect() != null && TypeUtils.isAssignableTo(HTTP_SECURITY_TYPE, method.getSelect().getType())) {
+                } else if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker) &&
+                        method.getSelect() != null && TypeUtils.isAssignableTo(HTTP_SECURITY_TYPE, method.getSelect().getType())) {
                     if (method.getArguments().stream().allMatch(ToBeRemoved::hasMarker)) {
                         return ToBeRemoved.withMarker(method);
                     }

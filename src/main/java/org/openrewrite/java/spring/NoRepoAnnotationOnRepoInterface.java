@@ -50,8 +50,8 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
                 if (c.getKind() == J.ClassDeclaration.Kind.Type.Interface) {
                     boolean hasRepoAnnotation = c.getLeadingAnnotations().stream().anyMatch(annotation -> {
-                        if (annotation.getArguments() == null || annotation.getArguments().isEmpty()
-                                || annotation.getArguments().get(0) instanceof J.Empty) {
+                        if (annotation.getArguments() == null || annotation.getArguments().isEmpty() ||
+                                annotation.getArguments().get(0) instanceof J.Empty) {
                             JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
                             return type != null && ANNOTATION_REPOSITORY.equals(type.getFullyQualifiedName());
                         }

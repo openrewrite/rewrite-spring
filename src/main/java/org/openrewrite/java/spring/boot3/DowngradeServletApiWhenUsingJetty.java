@@ -35,9 +35,9 @@ public class DowngradeServletApiWhenUsingJetty extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Jetty does not yet support Servlet 6.0. This recipe will detect the presence of the `spring-boot-starter-jetty` as a "
-                + "first-order dependency and will add the maven property `jakarta-servlet.version` setting it's value to `5.0.0`. This "
-                + "will downgrade the `jakarta-servlet` artifact if the pom's parent extends from the spring-boot-parent.";
+        return "Jetty does not yet support Servlet 6.0. This recipe will detect the presence of the `spring-boot-starter-jetty` as a " +
+                "first-order dependency and will add the maven property `jakarta-servlet.version` setting it's value to `5.0.0`. This " +
+                "will downgrade the `jakarta-servlet` artifact if the pom's parent extends from the spring-boot-parent.";
     }
 
     @Override

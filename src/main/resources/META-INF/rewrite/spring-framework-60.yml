@@ -30,6 +30,7 @@ recipeList:
   - org.openrewrite.java.spring.framework.MigrateSpringAssert
   - org.openrewrite.apache.httpclient5.UpgradeApacheHttpClient_5
   - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryReadTimeout
+  - org.openrewrite.java.spring.framework.MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode
 
 ---
 type: specs.openrewrite.org/v1beta/recipe

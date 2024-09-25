@@ -137,9 +137,9 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
         }
 
         private boolean isCollectedContextOrEnvironment(List<J.MethodInvocation> collectedMethods, J.MethodInvocation methodInvocation) {
-            if (methodInvocation.getArguments().isEmpty()
-                    || collectedMethods.isEmpty()
-                    || collectedMethods.get(0).getArguments().isEmpty()) {
+            if (methodInvocation.getArguments().isEmpty() ||
+                    collectedMethods.isEmpty() ||
+                    collectedMethods.get(0).getArguments().isEmpty()) {
                 return false;
             }
             J.MethodInvocation collectedMethod = collectedMethods.get(0);
@@ -150,10 +150,10 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             Expression collectedEnvironmentName = getEnvironmentNameArgument(collectedMethod);
 
             return !(contextOrEnvironmentToCheck instanceof J.NewClass) &&
-                    SemanticallyEqual.areEqual(contextOrEnvironmentToCheck, collectedContextOrEnvironment)
-                    && (environmentNameToCheck == null && collectedEnvironmentName == null)
-                    || (environmentNameToCheck != null && collectedEnvironmentName != null
-                    && SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
+                    SemanticallyEqual.areEqual(contextOrEnvironmentToCheck, collectedContextOrEnvironment) &&
+                    (environmentNameToCheck == null && collectedEnvironmentName == null) ||
+                    (environmentNameToCheck != null && collectedEnvironmentName != null &&
+                    SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
         }
 
         private @Nullable Expression getEnvironmentNameArgument(J.MethodInvocation methodInvocation) {

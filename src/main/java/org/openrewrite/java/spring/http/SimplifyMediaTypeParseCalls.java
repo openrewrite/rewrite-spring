@@ -59,8 +59,8 @@ public class SimplifyMediaTypeParseCalls extends Recipe {
             J.MethodInvocation mi = (J.MethodInvocation) j;
             if (new MethodMatcher(PARSE_MEDIA_TYPE).matches(mi) || new MethodMatcher(VALUE_OF).matches(mi)) {
                 Expression methodArg = mi.getArguments().get(0);
-                if (methodArg instanceof J.FieldAccess
-                        && TypeUtils.isOfClassType(((J.FieldAccess) methodArg).getTarget().getType(), MEDIA_TYPE)) {
+                if (methodArg instanceof J.FieldAccess &&
+                        TypeUtils.isOfClassType(((J.FieldAccess) methodArg).getTarget().getType(), MEDIA_TYPE)) {
                     maybeRemoveImport(MEDIA_TYPE + ".parseMediaType");
                     maybeRemoveImport(MEDIA_TYPE + ".valueOf");
                     J.FieldAccess fieldAccess = (J.FieldAccess) methodArg;

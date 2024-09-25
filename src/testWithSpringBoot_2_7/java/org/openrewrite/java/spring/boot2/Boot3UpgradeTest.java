@@ -32,8 +32,15 @@ class Boot3UpgradeTest implements RewriteTest {
         spec
           .recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0")
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-context", "spring-data-jpa", "spring-web",
-              "spring-boot", "spring-core", "persistence-api", "validation-api", "xml.bind-api"));
+            .classpath(
+              "spring-context",
+              "spring-data-jpa",
+              "spring-web",
+              "spring-boot",
+              "spring-core",
+              "persistence-api",
+              "validation-api",
+              "xml.bind-api"));
     }
 
     @DocumentExample
@@ -50,18 +57,18 @@ class Boot3UpgradeTest implements RewriteTest {
                   <groupId>org.springframework.samples</groupId>
                   <artifactId>spring-petclinic</artifactId>
                   <version>2.7.3</version>
-
+                
                   <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
                     <version>2.7.3</version>
                   </parent>
                   <name>petclinic</name>
-
+                
                   <properties>
                     <java.version>1.8</java.version>
                   </properties>
-
+                
                   <dependencies>
                     <dependency>
                       <groupId>org.springframework.boot</groupId>
@@ -84,18 +91,18 @@ class Boot3UpgradeTest implements RewriteTest {
                   <groupId>org.springframework.samples</groupId>
                   <artifactId>spring-petclinic</artifactId>
                   <version>2.7.3</version>
-
+                
                   <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
                     <version>3.0.13</version>
                   </parent>
                   <name>petclinic</name>
-
+                
                   <properties>
                     <java.version>17</java.version>
                   </properties>
-
+                
                   <dependencies>
                     <dependency>
                       <groupId>jakarta.xml.bind</groupId>
@@ -183,6 +190,8 @@ class Boot3UpgradeTest implements RewriteTest {
                   @Entity
                   @Table(name = "specialties")
                   public class Specialty implements Serializable {
+                  
+                      private static final long serialVersionUID = 1;
                   
                       @Id
                       @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -352,6 +361,8 @@ class Boot3UpgradeTest implements RewriteTest {
                   @Entity
                   @Table(name = "vets")
                   public class Vet implements Serializable {
+                  
+                      private static final long serialVersionUID = 1;
                   
                       @Id
                       @GeneratedValue(strategy = GenerationType.IDENTITY)
