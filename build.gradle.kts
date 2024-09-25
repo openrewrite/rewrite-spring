@@ -116,6 +116,8 @@ recipeDependencies {
     parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
 
     parserClasspath("jakarta.servlet:jakarta.servlet-api:6.1.+")
+    parserClasspath("io.micrometer:micrometer-commons:1.11.+")
+    parserClasspath("io.micrometer:micrometer-core:1.11.12")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()

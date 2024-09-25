@@ -73,6 +73,7 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
             """
             import io.micrometer.common.KeyValue;
             import io.micrometer.common.KeyValues;
+            import io.micrometer.core.instrument.Tag;
             import io.micrometer.core.instrument.Tags;
             import jakarta.servlet.http.HttpServletRequest;
             import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;

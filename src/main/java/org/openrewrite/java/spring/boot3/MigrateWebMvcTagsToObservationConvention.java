@@ -25,10 +25,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,35 +66,24 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 List<Statement> getTagsBodyStatements = new ArrayList<>();
-                boolean addHttpServletRequest = false;
-                boolean addHttpServletResponse = false;
                 for (Statement stmt : classDecl.getBody().getStatements()) {
                     if (stmt instanceof J.MethodDeclaration) {
                         J.MethodDeclaration md = (J.MethodDeclaration) stmt;
                         if (md.getSimpleName().equals("getTags") && md.getBody() != null) {
                             getTagsBodyStatements.addAll(md.getBody().getStatements().subList(0, md.getBody().getStatements().size() - 1));
-                            addHttpServletRequest = Boolean.TRUE.equals(getCursor().pollMessage("addHttpServletRequest"));
-                            addHttpServletResponse = Boolean.TRUE.equals(getCursor().pollMessage("addHttpServletResponse"));
                             break;
                         }
                     }
                 }
 
-                StringBuilder tmpl = new StringBuilder();
-                tmpl.append(String.format("class %s extends DefaultServerRequestObservationConvention {\n", classDecl.getSimpleName()));
-                tmpl.append("    @Override\n");
-                tmpl.append("    public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {\n");
-                if (addHttpServletRequest) {
-                    tmpl.append("        HttpServletRequest request = context.getCarrier();\n");
-                }
-                if (addHttpServletResponse) {
-                    tmpl.append("        HttpServletResponse response = context.getResponse();\n");
-                }
-                tmpl.append("        KeyValues values = super.getLowCardinalityKeyValues(context);\n");
-                tmpl.append("        return values;");
-                tmpl.append("    }\n");
-                tmpl.append("}");
-                J.ClassDeclaration newClassDeclaration = JavaTemplate.builder(tmpl.toString())
+                String tmpl = "class " + classDecl.getSimpleName() + " extends DefaultServerRequestObservationConvention {\n" +
+                              "    @Override\n" +
+                              "    public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {\n" +
+                              "        KeyValues values = super.getLowCardinalityKeyValues(context);\n" +
+                              "        return values;" +
+                              "    }\n" +
+                              "}";
+                J.ClassDeclaration newClassDeclaration = JavaTemplate.builder(tmpl)
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons", "spring-web-6.+", "jakarta.servlet-api"))
                         .imports(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ, KEYVALUES_FQ, HTTPSERVLETREQUEST_FQ, HTTPSERVLETRESPONSE_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ)
@@ -182,7 +168,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
             private Statement refactorTagsUsage(ExecutionContext ctx, J.Assignment a) {
                 J.MethodInvocation init = ((J.MethodInvocation) a.getAssignment());
                 J.MethodDeclaration insideMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
-                if (insideMethod != null && insideMethod.getBody()!= null) {
+                if (insideMethod != null && insideMethod.getBody() != null) {
                     J.Identifier returnIdentifier = (J.Identifier) ((J.Return) insideMethod.getBody().getStatements().get(insideMethod.getBody().getStatements().size() - 1)).getExpression();
 
                     if (returnIdentifier != null) {
@@ -195,35 +181,35 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     .build()
                                     .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(0), init.getArguments().get(1));
                             return JavaTemplate.builder("#{any()}.and(#{any(io.micrometer.common.KeyValue)})")
-                                    .imports(KEYVALUES_FQ)
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                     .build()
                                     .apply(getCursor(), a.getCoordinates().replace(), returnIdentifier, createKeyValue);
                         } else if (TAGS_AND_STRING_ARRAY.matches(init)) {
-                            List<J.MethodInvocation> createKeys = new ArrayList<>();
+                            List<J> args = new ArrayList<>();
                             for (int i = 0; i < init.getArguments().size(); i += 2) {
-                                createKeys.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
+                                args.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
                                         .imports(KEYVALUE_FQ)
                                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                         .build()
                                         .apply(getCursor(), a.getCoordinates().replace(), init.getArguments().get(i), init.getArguments().get(i + 1)));
                             }
                             String keyValueVarArg = "#{any(io.micrometer.common.KeyValue)}";
-                            String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(createKeys.size(), keyValueVarArg));
-                            return JavaTemplate.builder("values.and(" + keyValueVarArgsCombined + ")")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons"))
+                            String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(args.size(), keyValueVarArg));
+                            return JavaTemplate.builder("#{any()}.and(" + keyValueVarArgsCombined + ")")
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                     .build()
-                                    .apply(getCursor(), a.getCoordinates().replace(), createKeys.toArray());
+                                    .apply(getCursor(), a.getCoordinates().replace(), ListUtils.insert(args, returnIdentifier, 0).toArray());
                         } else if (TAGS_AND_TAG_ARRAY.matches(init)) {
                             J.Identifier iterable = (J.Identifier) init.getArguments().get(0);
                             String template = "for (Tag tag : #{any()}) {\n" +
-                                              "    values.and(KeyValue.of(tag.getKey(), tag.getValue()));\n" +
+                                              "    #{any()}.and(KeyValue.of(tag.getKey(), tag.getValue()));\n" +
                                               "}\n";
-                            return JavaTemplate.builder(template)
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons"))
-                                    .doAfterVariableSubstitution(System.out::println)
+                            J.ForEachLoop foreach = JavaTemplate.builder(template)
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-core-1.11.+", "micrometer-commons-1.11.+"))
+                                    .imports(TAG_FQ, KEYVALUE_FQ)
                                     .build()
-                                    .apply(getCursor(), a.getCoordinates().replace(), iterable);
+                                    .apply(getCursor(), a.getCoordinates().replace(), iterable, returnIdentifier);
+                            return foreach.withControl(foreach.getControl().withIterable(foreach.getControl().getIterable().withPrefix(Space.SINGLE_SPACE)));
                         }
                     }
                 }
