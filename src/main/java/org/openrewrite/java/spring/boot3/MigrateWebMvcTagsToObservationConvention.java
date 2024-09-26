@@ -231,7 +231,8 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                 } else {
                                     args.add(JavaTemplate.builder("KeyValue.of(#{any()}.getKey(), #{any()}.getValue())")
                                             .imports(KEYVALUE_FQ)
-                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                            .contextSensitive()
+                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-core-1.11.+", "micrometer-commons-1.11.+"))
                                             .build()
                                             .apply(getCursor(), coords.replace(), arg, arg));
                                 }
