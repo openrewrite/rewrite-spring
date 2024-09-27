@@ -69,19 +69,24 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
         return Preconditions.check(new UsesType<>(WEBMVCTAGSPROVIDER_FQ, true), new JavaVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.MethodDeclaration getTagsMethod = null;
                 List<Statement> getTagsBodyStatements = new ArrayList<>();
                 for (Statement stmt : classDecl.getBody().getStatements()) {
                     if (stmt instanceof J.MethodDeclaration) {
                         J.MethodDeclaration md = (J.MethodDeclaration) stmt;
-                        if (md.getSimpleName().equals("getTags") && md.getBody() != null) {
-                            getTagsBodyStatements.addAll(md.getBody().getStatements().subList(0, md.getBody().getStatements().size() - 1));
-                            Statement ret = md.getBody().getStatements().get(md.getBody().getStatements().size() - 1);
-                            if (ret instanceof J.Return && ((J.Return) ret).getExpression() instanceof J.MethodInvocation) {
-                                if (TAGS_OF_ANY.matches(((J.Return) ret).getExpression())) {
-                                    getTagsBodyStatements.add((Statement) ((J.Return) ret).getExpression());
+                        if (md.getSimpleName().equals("getTags")) {
+                            getTagsMethod = md;
+                            if (getTagsMethod.getBody() != null) {
+                                getTagsBodyStatements.addAll(getTagsMethod.getBody().getStatements().subList(0, getTagsMethod.getBody().getStatements().size() - 1));
+                                Statement ret = getTagsMethod.getBody().getStatements().get(getTagsMethod.getBody().getStatements().size() - 1);
+                                if (ret instanceof J.Return && ((J.Return) ret).getExpression() instanceof J.MethodInvocation) {
+                                    if (TAGS_OF_ANY.matches(((J.Return) ret).getExpression())) {
+                                        getTagsBodyStatements.add((Statement) ((J.Return) ret).getExpression());
+                                    }
                                 }
+                                break;
                             }
-                            break;
+
                         }
                     }
                 }
@@ -101,12 +106,14 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                         .apply(getCursor(), classDecl.getCoordinates().replace());
 
                 J.ClassDeclaration finalNewClassDeclaration = newClassDeclaration;
+                final J.MethodDeclaration finalGetTagsMethod = getTagsMethod;
                 newClassDeclaration = newClassDeclaration
+                        .withId(classDecl.getId())
                         .withLeadingAnnotations(classDecl.getLeadingAnnotations())
                         .withModifiers(classDecl.getModifiers())
                         .withPrefix(classDecl.getPrefix())
                         .withBody(newClassDeclaration.getBody().withStatements(ListUtils.map(classDecl.getBody().getStatements(), stmt -> {
-                            if (stmt instanceof J.MethodDeclaration && ((J.MethodDeclaration) stmt).getSimpleName().equals("getTags")) {
+                            if (stmt.equals(finalGetTagsMethod)) {
                                 J.MethodDeclaration md = (J.MethodDeclaration) finalNewClassDeclaration.getBody().getStatements().get(0);
                                 md = md.withPrefix(stmt.getPrefix());
                                 //noinspection DataFlowIssue
@@ -124,6 +131,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 maybeRemoveImport(TAGS_FQ);
                 maybeRemoveImport(WEBMVCTAGS_FQ);
                 maybeRemoveImport(WEBMVCTAGSPROVIDER_FQ);
+                updateCursor(newClassDeclaration);
                 return (J.ClassDeclaration) super.visitClassDeclaration(newClassDeclaration, ctx);
             }
 
@@ -137,7 +145,6 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 if (Boolean.TRUE.equals(addHttpServletResponse) && m.getBody() != null) {
                     m = JavaTemplate.builder("HttpServletResponse response = #{any()}.getResponse();")
                             .imports(HTTPSERVLETRESPONSE_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ)
-                            .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-commons", "micrometer-observation"))
                             .build()
                             .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
@@ -145,7 +152,6 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 if (Boolean.TRUE.equals(addHttpServletRequest) && m.getBody() != null) {
                     m = JavaTemplate.builder("HttpServletRequest request = #{any()}.getCarrier();")
                             .imports(HTTPSERVLETREQUEST_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ, "io.micrometer.observation.transport.ReceiverContext")
-                            .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-commons", "micrometer-observation"))
                             .build()
                             .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
