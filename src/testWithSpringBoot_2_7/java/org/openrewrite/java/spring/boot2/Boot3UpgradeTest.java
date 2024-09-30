@@ -191,8 +191,6 @@ class Boot3UpgradeTest implements RewriteTest {
                   @Table(name = "specialties")
                   public class Specialty implements Serializable {
                   
-                      private static final long serialVersionUID = 1;
-                  
                       @Id
                       @GeneratedValue(strategy = GenerationType.IDENTITY)
                       private Integer id;
@@ -361,8 +359,6 @@ class Boot3UpgradeTest implements RewriteTest {
                   @Entity
                   @Table(name = "vets")
                   public class Vet implements Serializable {
-                  
-                      private static final long serialVersionUID = 1;
                   
                       @Id
                       @GeneratedValue(strategy = GenerationType.IDENTITY)
