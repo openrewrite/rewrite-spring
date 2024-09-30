@@ -74,12 +74,11 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2
 displayName: Upgrade SpringDoc
-description: Upgrade to SpringDoc v2.
+description: Upgrade to SpringDoc v2, as described in the [upgrade guide](https://springdoc.org/#migrating-from-springdoc-v1).
 tags:
   - springdoc
 recipeList:
   - org.openrewrite.openapi.swagger.UseJakartaSwaggerArtifacts
-  # https://springdoc.org/#migrating-from-springdoc-v1
   # "classes/annotations changes"
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.SpringDocUtils
@@ -99,40 +98,32 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.SwaggerUiConfigParameters
       newFullyQualifiedTypeName: org.springdoc.core.properties.SwaggerUiConfigParameters
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springdoc.core.models.GroupedOpenApi.Builder addOpenApiCustomiser(..)
+      newMethodName: addOpenApiCustomizer
+      matchOverrides: true
   # "The following table describes the main modules changes"
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-data-rest
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-groovy
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-hateoas
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-javadoc
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-kotlin
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-security
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-common
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-data-rest
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-groovy
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-hateoas
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-javadoc
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-kotlin
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-security
       newArtifactId: springdoc-openapi-starter-common
       newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
