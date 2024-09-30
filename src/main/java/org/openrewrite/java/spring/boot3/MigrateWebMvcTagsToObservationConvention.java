@@ -144,15 +144,15 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 Boolean addHttpServletRequest = getCursor().pollMessage("addHttpServletRequest");
                 if (Boolean.TRUE.equals(addHttpServletResponse) && m.getBody() != null) {
                     m = JavaTemplate.builder("HttpServletResponse response = #{any()}.getResponse();")
-                            .imports(HTTPSERVLETRESPONSE_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-commons", "micrometer-observation"))
+                            .imports(HTTPSERVLETRESPONSE_FQ)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation"))
                             .build()
                             .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
                 }
                 if (Boolean.TRUE.equals(addHttpServletRequest) && m.getBody() != null) {
                     m = JavaTemplate.builder("HttpServletRequest request = #{any()}.getCarrier();")
-                            .imports(HTTPSERVLETREQUEST_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ, "io.micrometer.observation.transport.ReceiverContext")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-commons", "micrometer-observation"))
+                            .imports(HTTPSERVLETREQUEST_FQ)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation"))
                             .build()
                             .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
                 }
