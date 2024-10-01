@@ -9,4 +9,12 @@
         <packageUrl regex="true">^pkg:maven/org\.springframework\.data/spring-data-mongodb@.*$</packageUrl>
         <cve>CVE-2022-22980</cve>
     </suppress>
+    <suppress until="2024-11-25Z">
+        <notes><![CDATA[
+                file name: rewrite-testing-frameworks-2.20.0-SNAPSHOT.jar: wiremock-jre8-2.35.0.jar: swagger-ui-bundle.js
+                false positive: js library that is shipped as part of this jar
+            ]]></notes>
+        <packageUrl regex="true">^pkg:javascript/DOMPurify@.*$</packageUrl>
+        <vulnerabilityName>CVE-2024-45801</vulnerabilityName>
+    </suppress>
 </suppressions>
