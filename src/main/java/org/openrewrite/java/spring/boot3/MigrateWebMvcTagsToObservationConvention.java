@@ -53,6 +53,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
     private static final MethodMatcher TAGS_OF_TAG_ITERABLE = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.Iterable)");
     private static final MethodMatcher TAGS_OF_ANY = new MethodMatcher("io.micrometer.core.instrument.Tags of(..)");
     private static final MethodMatcher TAG_OF = new MethodMatcher("io.micrometer.core.instrument.Tag of(java.lang.String, java.lang.String)");
+    private static final MethodMatcher GET_TAGS = new MethodMatcher("* getTags(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, java.lang.Object, java.lang.Throwable)");
 
     @Override
     public String getDisplayName() {
@@ -74,7 +75,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 for (Statement stmt : classDecl.getBody().getStatements()) {
                     if (stmt instanceof J.MethodDeclaration) {
                         J.MethodDeclaration md = (J.MethodDeclaration) stmt;
-                        if (md.getSimpleName().equals("getTags")) {
+                        if (GET_TAGS.matches(md, classDecl)) {
                             getTagsMethod = md;
                             if (getTagsMethod.getBody() != null) {
                                 getTagsBodyStatements.addAll(getTagsMethod.getBody().getStatements().subList(0, getTagsMethod.getBody().getStatements().size() - 1));
