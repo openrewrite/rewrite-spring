@@ -31,6 +31,7 @@ recipeList:
   - org.openrewrite.apache.httpclient5.UpgradeApacheHttpClient_5
   - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryReadTimeout
   - org.openrewrite.java.spring.framework.MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode
+  - org.openrewrite.java.spring.framework.MigrateResponseStatusException
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.MigrateResponseStatusException
