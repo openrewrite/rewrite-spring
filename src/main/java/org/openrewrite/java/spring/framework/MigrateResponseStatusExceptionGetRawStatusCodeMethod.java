@@ -42,7 +42,6 @@ public class MigrateResponseStatusExceptionGetRawStatusCodeMethod extends Recipe
                     MethodCall tree = mc.getTree();
                     if (tree instanceof J.MethodInvocation) {
                         return JavaTemplate.builder("#{any()}.getStatusCode().value()")
-                                .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-core-6", "spring-beans-6", "spring-web-6"))
                                 .build().apply(mc.getCursor(), tree.getCoordinates().replace(), ((J.MethodInvocation) tree).getSelect());
                     }
