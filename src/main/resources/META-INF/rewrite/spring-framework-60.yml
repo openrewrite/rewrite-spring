@@ -31,7 +31,17 @@ recipeList:
   - org.openrewrite.apache.httpclient5.UpgradeApacheHttpClient_5
   - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryReadTimeout
   - org.openrewrite.java.spring.framework.MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode
-
+  - org.openrewrite.java.spring.framework.MigrateResponseStatusException
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.MigrateResponseStatusException
+displayName: Migrate breaking changes in `ResponseStatusException`
+description: Migrate Spring Framework 5.3's `ResponseStatusException` method `getRawStatusCode()` to Spring Framework 6's `getStatusCode().value()` and `ResponseStatusException` method `getStatus()` to Spring Framework 6's `getStatusCode()` .
+recipeList:
+  - org.openrewrite.java.spring.framework.MigrateResponseStatusExceptionGetRawStatusCodeMethod
+  - org.openrewrite.java.ChangeMethodName:
+        methodPattern: "org.springframework.web.server.ResponseStatusException getStatus()"
+        newMethodName: "getStatusCode"
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.MigrateSpringAssert
