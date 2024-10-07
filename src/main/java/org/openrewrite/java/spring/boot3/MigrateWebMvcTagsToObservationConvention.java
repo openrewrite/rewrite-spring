@@ -94,8 +94,8 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
                 String tmpl = "class " + classDecl.getSimpleName() + " extends DefaultServerRequestObservationConvention {\n" +
                               "    @Override\n" +
-                              "    public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {\n" +
-                              "        KeyValues values = super.getLowCardinalityKeyValues(context);\n" +
+                              "    public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {\n" +
+                              "        KeyValues values = super.getHighCardinalityKeyValues(context);\n" +
                               "        return values;" +
                               "    }\n" +
                               "}";
@@ -276,7 +276,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 J.MethodDeclaration enclosingMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
-                if (enclosingMethod != null && enclosingMethod.getSimpleName().equals("getLowCardinalityKeyValues")) {
+                if (enclosingMethod != null && enclosingMethod.getSimpleName().equals("getHighCardinalityKeyValues")) {
                     if (m.getMethodType() != null && TypeUtils.isOfType(m.getMethodType().getDeclaringType(), JavaType.buildType(HTTPSERVLETREQUEST_FQ))) {
                         getCursor().putMessageOnFirstEnclosing(J.MethodDeclaration.class, "addHttpServletRequest", true);
                     }

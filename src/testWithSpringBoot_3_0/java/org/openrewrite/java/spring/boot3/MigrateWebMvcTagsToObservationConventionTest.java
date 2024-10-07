@@ -75,9 +75,9 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
               
                   @Override
-                  public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {
+                  public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
                       HttpServletRequest request = context.getCarrier();
-                      KeyValues values = super.getLowCardinalityKeyValues(context);
+                      KeyValues values = super.getHighCardinalityKeyValues(context);
               
                       String customHeader = request.getHeader("X-Custom-Header");
                       if (customHeader != null) {
@@ -134,8 +134,8 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                   Tag staticTag = Tag.of("a", "b");
               
                   @Override
-                  public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {
-                      KeyValues values = super.getLowCardinalityKeyValues(context);
+                  public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
+                      KeyValues values = super.getHighCardinalityKeyValues(context);
                       values.and(KeyValue.of("a", "b"));
                       values.and(KeyValue.of("a", "b"), KeyValue.of("c", "d"));
                       values.and(KeyValue.of("a", "b"), KeyValue.of(staticTag.getKey(), staticTag.getValue()));
@@ -202,10 +202,10 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                   Tag staticTag = Tag.of("a", "b");
               
                   @Override
-                  public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {
+                  public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
                       HttpServletRequest request = context.getCarrier();
                       HttpServletResponse response = context.getResponse();
-                      KeyValues values = super.getLowCardinalityKeyValues(context);
+                      KeyValues values = super.getHighCardinalityKeyValues(context);
               
                       String customHeader = request.getHeader("X-Custom-Header");
                       if (customHeader != null) {
@@ -256,8 +256,8 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
               
                   @Override
-                  public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {
-                      KeyValues values = super.getLowCardinalityKeyValues(context);
+                  public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
+                      KeyValues values = super.getHighCardinalityKeyValues(context);
                       values.and(KeyValue.of("a", "b"));
                       return values;
                   }
