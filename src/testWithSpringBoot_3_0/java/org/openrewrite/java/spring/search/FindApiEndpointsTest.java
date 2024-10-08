@@ -30,7 +30,41 @@ class FindApiEndpointsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new FindApiEndpoints())
-          .parser(JavaParser.fromJavaVersion().classpath("spring-web"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-web", "spring-context"));
+    }
+
+    @Test
+    @DocumentExample
+    void withinController() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.stereotype.Controller;
+              import org.springframework.web.bind.annotation.*;
+              
+              @Controller
+              class PersonController {
+                  @GetMapping("/count")
+                  int count() {
+                    return 42;
+                  }
+              }
+              """,
+            """
+              import org.springframework.stereotype.Controller;
+              import org.springframework.web.bind.annotation.*;
+              
+              @Controller
+              class PersonController {
+                  /*~~(GET /count)~~>*/@GetMapping("/count")
+                  int count() {
+                    return 42;
+                  }
+              }
+              """
+          )
+        );
     }
 
     @Test
@@ -41,7 +75,7 @@ class FindApiEndpointsTest implements RewriteTest {
           java(
             """
               import org.springframework.web.bind.annotation.*;
-
+              
               @RequestMapping("/person")
               class PersonController {
                   @GetMapping("/count")
@@ -52,10 +86,41 @@ class FindApiEndpointsTest implements RewriteTest {
               """,
             """
               import org.springframework.web.bind.annotation.*;
-
+              
               @RequestMapping("/person")
               class PersonController {
                   /*~~(GET /person/count)~~>*/@GetMapping("/count")
+                  int count() {
+                    return 42;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void multiplePathsOneMethod() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.bind.annotation.*;
+              
+              @RequestMapping({"/person", "/people"})
+              class PersonController {
+                  @GetMapping({"/count", "/length"})
+                  int count() {
+                    return 42;
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.bind.annotation.*;
+              
+              @RequestMapping({"/person", "/people"})
+              class PersonController {
+                  /*~~(GET /person/count, /person/length, /people/count, /people/length)~~>*/@GetMapping({"/count", "/length"})
                   int count() {
                     return 42;
                   }

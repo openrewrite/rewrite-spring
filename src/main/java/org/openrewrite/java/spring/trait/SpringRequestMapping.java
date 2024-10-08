@@ -27,9 +27,8 @@ import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.trait.SimpleTraitMatcher;
 import org.openrewrite.trait.Trait;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -52,23 +51,34 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
     }
 
     public String getPath() {
-        String path =
-                cursor.getPathAsStream()
-                        .filter(J.ClassDeclaration.class::isInstance)
-                        .map(classDecl -> ((J.ClassDeclaration) classDecl).getAllAnnotations().stream()
-                                .filter(SpringRequestMapping::hasRequestMapping)
-                                .findAny()
-                                .flatMap(classMapping -> new Annotated(new Cursor(null, classMapping))
-                                        .getDefaultAttribute(null)
-                                        .map(Literal::getString))
-                                .orElse(null))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.joining("/")) +
-                new Annotated(cursor)
-                        .getDefaultAttribute(null)
-                        .map(Literal::getString)
-                        .orElse("");
-        return path.replace("//", "/");
+        List<String> pathPrefixes = cursor.getPathAsStream()
+                .filter(J.ClassDeclaration.class::isInstance)
+                .map(J.ClassDeclaration.class::cast)
+                .flatMap(classDecl -> classDecl.getLeadingAnnotations().stream()
+                        .filter(SpringRequestMapping::hasRequestMapping)
+                        .findAny()
+                        .flatMap(classMapping -> new Annotated(new Cursor(null, classMapping))
+                                .getDefaultAttribute(null)
+                                .map(lit -> lit.getStrings().stream()))
+                        .orElse(Stream.of("")))
+                .collect(toList());
+        List<String> pathEndings = new Annotated(cursor)
+                .getDefaultAttribute(null)
+                .map(Literal::getStrings)
+                .orElse(Collections.emptyList());
+
+        StringBuilder result = new StringBuilder();
+        for (int j = 0; j < pathPrefixes.size(); j++) {
+            for (int i = 0; i < pathEndings.size(); i++) {
+                String pathEnding = pathEndings.get(i);
+                String prefix = pathPrefixes.get(j);
+                result.append(prefix).append(pathEnding);
+                if(i < pathEndings.size() - 1 || j < pathPrefixes.size() - 1) {
+                    result.append(", ");
+                }
+            }
+        }
+        return result.toString().replace("//", "/");
     }
 
     public static class Matcher extends SimpleTraitMatcher<SpringRequestMapping> {
