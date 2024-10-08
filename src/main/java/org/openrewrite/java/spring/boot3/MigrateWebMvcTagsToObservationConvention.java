@@ -101,7 +101,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                               "}";
                 J.ClassDeclaration newClassDeclaration = JavaTemplate.builder(tmpl)
                         .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons", "spring-web-6.+", "jakarta.servlet-api"))
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+", "spring-web-6.+", "jakarta.servlet-api"))
                         .imports(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ, KEYVALUES_FQ, HTTPSERVLETREQUEST_FQ, HTTPSERVLETRESPONSE_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ)
                         .build()
                         .apply(getCursor(), classDecl.getCoordinates().replace());
@@ -146,14 +146,14 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 if (Boolean.TRUE.equals(addHttpServletResponse) && m.getBody() != null) {
                     m = JavaTemplate.builder("HttpServletResponse response = #{any()}.getResponse();")
                             .imports(HTTPSERVLETRESPONSE_FQ)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation-1.11.+"))
                             .build()
                             .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
                 }
                 if (Boolean.TRUE.equals(addHttpServletRequest) && m.getBody() != null) {
                     m = JavaTemplate.builder("HttpServletRequest request = #{any()}.getCarrier();")
                             .imports(HTTPSERVLETREQUEST_FQ)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation-1.11.+"))
                             .build()
                             .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
                 }
