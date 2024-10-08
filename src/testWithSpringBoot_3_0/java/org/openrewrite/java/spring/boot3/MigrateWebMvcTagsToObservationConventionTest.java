@@ -267,5 +267,47 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
         );
     }
 
-
+    @Test
+    void shouldNotFailOnEmptyMethod() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import io.micrometer.core.instrument.Tag;
+              import jakarta.servlet.http.HttpServletRequest;
+              import jakarta.servlet.http.HttpServletResponse;
+              import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider;
+              
+              import java.util.Collections;
+              
+              class CustomWebMvcTagsProvider implements WebMvcTagsProvider {
+              
+                  @Override
+                  public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler, Throwable exception) {
+                      return Collections.emptyList();
+                  }
+              
+                  void shouldNotFailOnEmptyMethod() {}
+              }
+              """,
+            """
+              import io.micrometer.common.KeyValues;
+              import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
+              import org.springframework.http.server.observation.ServerRequestObservationContext;
+              
+              import java.util.Collections;
+              
+              class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
+              
+                  @Override
+                  public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
+                      return Collections.emptyList();
+                  }
+    
+                  void shouldNotFailOnEmptyMethod() {}
+              }
+              """
+          )
+        );
+    }
 }
