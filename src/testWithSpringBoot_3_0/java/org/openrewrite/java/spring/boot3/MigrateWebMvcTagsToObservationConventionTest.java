@@ -301,9 +301,10 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               
                   @Override
                   public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
-                      return Collections.emptyList();
+                      KeyValues values = super.getHighCardinalityKeyValues(context);
+                      return values;
                   }
-    
+              
                   void shouldNotFailOnEmptyMethod() {}
               }
               """

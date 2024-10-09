@@ -33,16 +33,19 @@ import java.util.List;
 
 public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
-    private static final String WEBMVCTAGSPROVIDER_FQ = "org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider";
-    private static final String WEBMVCTAGS_FQ = "org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags";
     private static final String DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ = "org.springframework.http.server.observation.DefaultServerRequestObservationConvention";
-    private static final String SERVERREQUESTOBSERVATIONCONVENTION_FQ = "org.springframework.http.server.observation.ServerRequestObservationContext";
-    private static final String KEYVALUES_FQ = "io.micrometer.common.KeyValues";
-    private static final String KEYVALUE_FQ = "io.micrometer.common.KeyValue";
     private static final String HTTPSERVLETREQUEST_FQ = "jakarta.servlet.http.HttpServletRequest";
     private static final String HTTPSERVLETRESPONSE_FQ = "jakarta.servlet.http.HttpServletResponse";
-    private static final String TAGS_FQ = "io.micrometer.core.instrument.Tags";
+    private static final String KEYVALUE_FQ = "io.micrometer.common.KeyValue";
+    private static final String KEYVALUES_FQ = "io.micrometer.common.KeyValues";
+    private static final String SERVERREQUESTOBSERVATIONCONVENTION_FQ = "org.springframework.http.server.observation.ServerRequestObservationContext";
     private static final String TAG_FQ = "io.micrometer.core.instrument.Tag";
+    private static final String TAGS_FQ = "io.micrometer.core.instrument.Tags";
+    private static final String WEBMVCTAGS_FQ = "org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags";
+    private static final String WEBMVCTAGSPROVIDER_FQ = "org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider";
+    private static final MethodMatcher GET_TAGS = new MethodMatcher("* getTags(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, java.lang.Object, java.lang.Throwable)");
+    private static final MethodMatcher GET_HIGH_CARD_KEY_VALUES = new MethodMatcher("* getHighCardinalityKeyValues(org.springframework.http.server.observation.ServerRequestObservationContext)");
+    private static final MethodMatcher TAG_OF = new MethodMatcher("io.micrometer.core.instrument.Tag of(java.lang.String, java.lang.String)");
     private static final MethodMatcher TAGS_AND_STRING_STRING = new MethodMatcher("io.micrometer.core.instrument.Tags and(java.lang.String, java.lang.String)");
     private static final MethodMatcher TAGS_AND_STRING_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags and(java.lang.String[])");
     private static final MethodMatcher TAGS_AND_TAG_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags and(io.micrometer.core.instrument.Tag[])");
@@ -52,8 +55,6 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
     private static final MethodMatcher TAGS_OF_TAG_ARRAY = new MethodMatcher("io.micrometer.core.instrument.Tags of(io.micrometer.core.instrument.Tag[])");
     private static final MethodMatcher TAGS_OF_TAG_ITERABLE = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.Iterable)");
     private static final MethodMatcher TAGS_OF_ANY = new MethodMatcher("io.micrometer.core.instrument.Tags of(..)");
-    private static final MethodMatcher TAG_OF = new MethodMatcher("io.micrometer.core.instrument.Tag of(java.lang.String, java.lang.String)");
-    private static final MethodMatcher GET_TAGS = new MethodMatcher("* getTags(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse, java.lang.Object, java.lang.Throwable)");
 
     @Override
     public String getDisplayName() {
@@ -139,23 +140,26 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = (J.MethodDeclaration) super.visitMethodDeclaration(method, ctx);
-                J.VariableDeclarations methodParam = (J.VariableDeclarations) m.getParameters().get(0);
-                J.Identifier methodParamIdentifier = methodParam.getVariables().get(0).getName();
-                Boolean addHttpServletResponse = getCursor().pollMessage("addHttpServletResponse");
-                Boolean addHttpServletRequest = getCursor().pollMessage("addHttpServletRequest");
-                if (Boolean.TRUE.equals(addHttpServletResponse) && m.getBody() != null) {
-                    m = JavaTemplate.builder("HttpServletResponse response = #{any()}.getResponse();")
-                            .imports(HTTPSERVLETRESPONSE_FQ)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation-1.11.+"))
-                            .build()
-                            .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
-                }
-                if (Boolean.TRUE.equals(addHttpServletRequest) && m.getBody() != null) {
-                    m = JavaTemplate.builder("HttpServletRequest request = #{any()}.getCarrier();")
-                            .imports(HTTPSERVLETREQUEST_FQ)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation-1.11.+"))
-                            .build()
-                            .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
+                J.ClassDeclaration cd = getCursor().firstEnclosing(J.ClassDeclaration.class);
+                if (cd != null && GET_HIGH_CARD_KEY_VALUES.matches(m, cd)) {
+                    J.VariableDeclarations methodParam = (J.VariableDeclarations) m.getParameters().get(0);
+                    J.Identifier methodParamIdentifier = methodParam.getVariables().get(0).getName();
+                    Boolean addHttpServletResponse = getCursor().pollMessage("addHttpServletResponse");
+                    Boolean addHttpServletRequest = getCursor().pollMessage("addHttpServletRequest");
+                    if (Boolean.TRUE.equals(addHttpServletResponse) && m.getBody() != null) {
+                        m = JavaTemplate.builder("HttpServletResponse response = #{any()}.getResponse();")
+                                .imports(HTTPSERVLETRESPONSE_FQ)
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation-1.11.+"))
+                                .build()
+                                .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
+                    }
+                    if (Boolean.TRUE.equals(addHttpServletRequest) && m.getBody() != null) {
+                        m = JavaTemplate.builder("HttpServletRequest request = #{any()}.getCarrier();")
+                                .imports(HTTPSERVLETREQUEST_FQ)
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation-1.11.+"))
+                                .build()
+                                .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
+                    }
                 }
                 return m;
             }
