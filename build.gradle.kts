@@ -114,6 +114,11 @@ recipeDependencies {
 
     parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.1.+")
     parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
+
+    parserClasspath("jakarta.servlet:jakarta.servlet-api:6.1.+")
+    parserClasspath("io.micrometer:micrometer-commons:1.11.+")
+    parserClasspath("io.micrometer:micrometer-core:1.11.+")
+    parserClasspath("io.micrometer:micrometer-observation:1.11.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -237,6 +242,7 @@ dependencies {
     "testWithSpringBoot_2_7RuntimeOnly"("jakarta.xml.bind:jakarta.xml.bind-api:2.3.3")
 
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-actuator:3.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-web:6.0.+")
@@ -249,6 +255,7 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-config:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("jakarta.servlet:jakarta.servlet-api:6.1.+")
 
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.2.+")
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")
