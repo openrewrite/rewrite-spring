@@ -16,18 +16,19 @@
 package org.openrewrite.java.spring.framework;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
-
-import static java.util.stream.Collectors.toList;
 
 public class MigrateResponseStatusExceptionGetStatusCodeMethod extends Recipe {
     private static final MethodMatcher GET_STATUS_METHOD_MATCHER = new MethodMatcher(
@@ -49,7 +50,7 @@ public class MigrateResponseStatusExceptionGetStatusCodeMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(GET_STATUS_METHOD_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 if (GET_STATUS_METHOD_MATCHER.matches(method)) {
@@ -70,25 +71,21 @@ public class MigrateResponseStatusExceptionGetStatusCodeMethod extends Recipe {
                 }
                 return super.visitVariableDeclarations(multiVariable, ctx);
             }
-        };
+        });
     }
 
     private static J.VariableDeclarations changeTypeToHttpStatusCode(J.VariableDeclarations variableDeclarations) {
-        final JavaType.ShallowClass httpStatusCodeJavaType = JavaType.ShallowClass.build(FULL_HTTP_STATUS_CODE_CLASS);
+        JavaType.ShallowClass httpStatusCodeJavaType = JavaType.ShallowClass.build(FULL_HTTP_STATUS_CODE_CLASS);
         return variableDeclarations
-                .withTypeExpression(
-                        TypeTree.build(HTTP_STATUS_CODE_CLASS).withType(httpStatusCodeJavaType)
-                ).withVariables(
-                        variableDeclarations.getVariables().stream()
-                                .map(variable -> {
-                                    if (variable.getVariableType() != null && TypeUtils.isAssignableTo(FULL_HTTP_STATUS_CLASS, variable.getType())) {
-                                        return variable
-                                                .withVariableType(variable.getVariableType().withType(httpStatusCodeJavaType))
-                                                .withName(variable.getName().withType(httpStatusCodeJavaType).withFieldType(variable.getName().getFieldType().withType(httpStatusCodeJavaType)));
-                                    }
-                                    return variable;
-                                })
-                                .collect(toList())
+                .withTypeExpression(TypeTree.build(HTTP_STATUS_CODE_CLASS).withType(httpStatusCodeJavaType))
+                .withVariables(ListUtils.map(variableDeclarations.getVariables(), variable -> {
+                            if (variable.getVariableType() != null && TypeUtils.isAssignableTo(FULL_HTTP_STATUS_CLASS, variable.getType())) {
+                                return variable
+                                        .withVariableType(variable.getVariableType().withType(httpStatusCodeJavaType))
+                                        .withName(variable.getName().withType(httpStatusCodeJavaType).withFieldType(variable.getName().getFieldType().withType(httpStatusCodeJavaType)));
+                            }
+                            return variable;
+                        })
                 );
     }
 }
