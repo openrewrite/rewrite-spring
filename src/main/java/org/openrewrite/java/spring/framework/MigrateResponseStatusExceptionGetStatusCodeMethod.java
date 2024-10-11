@@ -53,39 +53,37 @@ public class MigrateResponseStatusExceptionGetStatusCodeMethod extends Recipe {
         return Preconditions.check(new UsesMethod<>(GET_STATUS_METHOD_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                if (GET_STATUS_METHOD_MATCHER.matches(method)) {
+                J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                if (GET_STATUS_METHOD_MATCHER.matches(mi)) {
                     return JavaTemplate.builder("#{any()}.getStatusCode()")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-core-6", "spring-beans-6", "spring-web-6"))
                             .build()
-                            .apply(getCursor(), method.getCoordinates().replace(), method.getSelect());
+                            .apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect());
                 }
-                return super.visitMethodInvocation(method, ctx);
+                return mi;
             }
 
             @Override
             public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
-                if (multiVariable.getTypeExpression() != null && TypeUtils.isOfClassType(multiVariable.getTypeExpression().getType(), FULL_HTTP_STATUS_CLASS)) {
-                    multiVariable = changeTypeToHttpStatusCode(multiVariable);
+                J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
+                if (vd.getTypeExpression() != null && TypeUtils.isOfClassType(vd.getTypeExpression().getType(), FULL_HTTP_STATUS_CLASS)) {
+                    JavaType.ShallowClass httpStatusCodeJavaType = JavaType.ShallowClass.build(FULL_HTTP_STATUS_CODE_CLASS);
+                    vd = vd
+                            .withTypeExpression(TypeTree.build(HTTP_STATUS_CODE_CLASS).withType(httpStatusCodeJavaType))
+                            .withVariables(ListUtils.map(vd.getVariables(), variable -> {
+                                        if (variable.getVariableType() != null && TypeUtils.isAssignableTo(FULL_HTTP_STATUS_CLASS, variable.getType())) {
+                                            return variable
+                                                    .withVariableType(variable.getVariableType().withType(httpStatusCodeJavaType))
+                                                    .withName(variable.getName().withType(httpStatusCodeJavaType).withFieldType(variable.getName().getFieldType().withType(httpStatusCodeJavaType)));
+                                        }
+                                        return variable;
+                                    })
+                            );
                     maybeAddImport(FULL_HTTP_STATUS_CODE_CLASS);
                     maybeRemoveImport(FULL_HTTP_STATUS_CLASS);
                 }
-                return super.visitVariableDeclarations(multiVariable, ctx);
+                return vd;
             }
         });
-    }
-
-    private static J.VariableDeclarations changeTypeToHttpStatusCode(J.VariableDeclarations variableDeclarations) {
-        JavaType.ShallowClass httpStatusCodeJavaType = JavaType.ShallowClass.build(FULL_HTTP_STATUS_CODE_CLASS);
-        return variableDeclarations
-                .withTypeExpression(TypeTree.build(HTTP_STATUS_CODE_CLASS).withType(httpStatusCodeJavaType))
-                .withVariables(ListUtils.map(variableDeclarations.getVariables(), variable -> {
-                            if (variable.getVariableType() != null && TypeUtils.isAssignableTo(FULL_HTTP_STATUS_CLASS, variable.getType())) {
-                                return variable
-                                        .withVariableType(variable.getVariableType().withType(httpStatusCodeJavaType))
-                                        .withName(variable.getName().withType(httpStatusCodeJavaType).withFieldType(variable.getName().getFieldType().withType(httpStatusCodeJavaType)));
-                            }
-                            return variable;
-                        })
-                );
     }
 }
