@@ -43,6 +43,7 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
             """
               import org.springframework.http.HttpStatus;
               import org.springframework.web.server.ResponseStatusException;
+              
               class A {
                   void foo(ResponseStatusException e) {
                       HttpStatus i = e.getStatus();
@@ -50,11 +51,12 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
               }
               """,
             """
-              import org.springframework.http.HttpStatus;
+              import org.springframework.http.HttpStatusCode;
               import org.springframework.web.server.ResponseStatusException;
+              
               class A {
                   void foo(ResponseStatusException e) {
-                      HttpStatus i = e.getStatusCode();
+                      HttpStatusCode i = e.getStatusCode();
                   }
               }
               """
