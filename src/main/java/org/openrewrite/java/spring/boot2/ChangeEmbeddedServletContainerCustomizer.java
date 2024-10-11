@@ -28,9 +28,6 @@ import static java.util.Objects.requireNonNull;
 
 public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
 
-
-    private static J.@Nullable ParameterizedType webFactoryCustomizerIdentifier;
-
     private static final String DEPRECATED_INTERFACE_FQN = "org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer";
 
     @Override
@@ -47,6 +44,8 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>(DEPRECATED_INTERFACE_FQN, false), new JavaIsoVisitor<ExecutionContext>() {
+            private J.@Nullable ParameterizedType webFactoryCustomizerIdentifier;
+
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
@@ -65,30 +64,30 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
 
                 return c;
             }
+
+            private J.ParameterizedType getWebFactoryCustomizerIdentifier(ExecutionContext ctx) {
+                // Really no need to use a JavaTemplate in this recipe, we just compile a stubbed out class and extract
+                // the J.ParameterizedType from the class's stub's implements.
+                if (webFactoryCustomizerIdentifier == null) {
+                    JavaParser parser = JavaParser
+                            .fromJavaVersion()
+                            .classpathFromResources(ctx, "spring-boot-2.*")
+                            .build();
+                    J.CompilationUnit cu = parser.parse(
+                                    "import org.springframework.boot.web.server.WebServerFactoryCustomizer;\n" +
+                                    "import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;\n" +
+                                    "public abstract class Template implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {}"
+                            )
+                            .map(J.CompilationUnit.class::cast)
+                            .findFirst()
+                            .get();
+
+                    webFactoryCustomizerIdentifier = (J.ParameterizedType) requireNonNull(cu.getClasses()
+                            .get(0).getImplements()).get(0);
+                }
+
+                return webFactoryCustomizerIdentifier.withId(Tree.randomId());
+            }
         });
-    }
-
-    private static J.ParameterizedType getWebFactoryCustomizerIdentifier(ExecutionContext ctx) {
-        // Really no need to use a JavaTemplate in this recipe, we just compile a stubbed out class and extract
-        // the J.ParameterizedType from the class's stub's implements.
-        if (webFactoryCustomizerIdentifier == null) {
-            JavaParser parser = JavaParser
-                    .fromJavaVersion()
-                    .classpathFromResources(ctx, "spring-boot-2.*")
-                    .build();
-            J.CompilationUnit cu = parser.parse(
-                    "import org.springframework.boot.web.server.WebServerFactoryCustomizer;\n" +
-                            "import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;\n" +
-                            "public abstract class Template implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {}"
-            )
-                .map(J.CompilationUnit.class::cast)
-                .findFirst()
-                .get();
-
-            webFactoryCustomizerIdentifier = (J.ParameterizedType) requireNonNull(cu.getClasses()
-                    .get(0).getImplements()).get(0);
-        }
-
-        return webFactoryCustomizerIdentifier.withId(Tree.randomId());
     }
 }
