@@ -29,6 +29,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
   - org.openrewrite.java.migrate.UpgradeToJava17
+  - org.openrewrite.java.migrate.jakarta.UpdateJakartaAnnotations2
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
