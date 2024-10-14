@@ -53,7 +53,7 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
                     J.Identifier ident = new J.Identifier(Tree.randomId(), Space.format(" "), Markers.EMPTY, emptyList(),
                             "SmartInstantiationAwareBeanPostProcessor", JavaType.buildType(toImplementsFqn), null);
                     J.Block body = cd.getBody();
-                    cd = maybeAutoFormat(cd, cd.withBody(cd.getBody().withStatements(emptyList())).withImplements(ListUtils.concat(cd.getImplements(), ident)), ctx, getCursor());
+                    cd = maybeAutoFormat(cd, cd.withBody(cd.getBody().withStatements(emptyList())).withImplements(ListUtils.concat(cd.getImplements(), ident)), ctx, getCursor().getParentOrThrow());
                     cd = cd.withBody(body);
                 }
                 return cd;
