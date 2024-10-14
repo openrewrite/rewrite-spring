@@ -59,7 +59,8 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
                     });
                     if (hasRepoAnnotation && TypeUtils.isAssignableTo(INTERFACE_REPOSITORY, c.getType())) {
                         maybeRemoveImport(ANNOTATION_REPOSITORY);
-                        return (J.ClassDeclaration) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + ANNOTATION_REPOSITORY)).visit(c, ctx, getCursor());
+                        return (J.ClassDeclaration) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + ANNOTATION_REPOSITORY))
+                                .visit(c, ctx, getCursor().getParentOrThrow());
                     }
                 }
                 return c;
