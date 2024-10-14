@@ -39,13 +39,13 @@ class MigrateInstantiationAwareBeanPostProcessorAdapterTest implements RewriteTe
           java(
             """
               import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
-                            
+              
               class A extends InstantiationAwareBeanPostProcessorAdapter {
               }
               """,
             """
               import org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor;
-                            
+              
               class A implements SmartInstantiationAwareBeanPostProcessor {
               }
               """
