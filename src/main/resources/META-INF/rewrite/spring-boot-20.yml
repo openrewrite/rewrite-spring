@@ -81,6 +81,7 @@ recipeList:
       oldValue: false
       newValue: "off"
   - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
+  - org.openrewrite.apache.commons.lang.UpgradeApacheCommonsLang_2_3
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
