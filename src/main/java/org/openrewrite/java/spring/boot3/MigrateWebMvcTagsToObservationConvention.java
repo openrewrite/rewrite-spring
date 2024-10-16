@@ -251,7 +251,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                             }
                             return getMultiKeyValueStatement(ctx, coords, args, returnIdentifier);
                         } else if (TAGS_AND_TAG_ITERABLE.matches(init) || TAGS_OF_TAG_ITERABLE.matches(init)) {
-                            J.Identifier iterable = (J.Identifier) init.getArguments().get(0);
+                            Expression iterable = init.getArguments().get(0);
                             String template = "for (Tag tag : #{any()}) {\n" +
                                               "    #{any()}.and(KeyValue.of(tag.getKey(), tag.getValue()));\n" +
                                               "}\n";
