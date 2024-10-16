@@ -32,7 +32,7 @@ recipeList:
       artifactId: "*"
       newVersion: 5.3.x
       overrideManagedVersion: false
-  - org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
+  - org.openrewrite.java.spring.StringOptimizationRecipes.ReplaceDeprecatedStringUtilsIsEmptyRecipe
   - org.openrewrite.java.spring.framework.MigrateHandlerInterceptor
   - org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
   - org.openrewrite.java.spring.framework.JdbcTemplateObjectArrayArgToVarArgs
@@ -51,11 +51,4 @@ recipeList:
       groupId: cglib
       artifactId: cglib
 ---
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
-displayName: Use `ObjectUtils#isEmpty(Object)`
-description: '`StringUtils#isEmpty(Object)` was deprecated in 5.3.'
-recipeList:
-  - org.openrewrite.java.ChangeMethodTargetToStatic:
-      methodPattern: org.springframework.util.StringUtils isEmpty(Object)
-      fullyQualifiedTargetTypeName: org.springframework.util.ObjectUtils
+
