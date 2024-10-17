@@ -24,7 +24,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.FindImplementations;
 import org.openrewrite.java.tree.*;
 
 import java.util.ArrayList;
@@ -68,7 +68,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(WEBMVCTAGSPROVIDER_FQ, true), new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new FindImplementations(WEBMVCTAGSPROVIDER_FQ), new JavaVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.MethodDeclaration getTagsMethod = null;
