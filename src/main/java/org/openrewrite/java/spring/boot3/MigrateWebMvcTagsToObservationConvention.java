@@ -24,7 +24,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.FindImplementations;
 import org.openrewrite.java.tree.*;
 
 import java.util.ArrayList;
@@ -68,7 +68,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(WEBMVCTAGSPROVIDER_FQ, true), new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new FindImplementations(WEBMVCTAGSPROVIDER_FQ), new JavaVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.MethodDeclaration getTagsMethod = null;
@@ -251,7 +251,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                             }
                             return getMultiKeyValueStatement(ctx, coords, args, returnIdentifier);
                         } else if (TAGS_AND_TAG_ITERABLE.matches(init) || TAGS_OF_TAG_ITERABLE.matches(init)) {
-                            J.Identifier iterable = (J.Identifier) init.getArguments().get(0);
+                            Expression iterable = init.getArguments().get(0);
                             String template = "for (Tag tag : #{any()}) {\n" +
                                               "    #{any()}.and(KeyValue.of(tag.getKey(), tag.getValue()));\n" +
                                               "}\n";
