@@ -159,3 +159,20 @@ recipeList:
       oldArtifactId: metrics-servlets
       newArtifactId: metrics-jakarta-servlets
       newVersion: 4.2.x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.MigrateSapCfJavaLoggingSupport
+displayName: Migrate SAP cloud foundry logging support to Spring Boot 3.x
+description: Migrate SAP cloud foundry logging support from cf-java-logging-support-servlet to cf-java-logging-support-servlet-jakarta, to use jakarta with Spring Boot 3.
+tags:
+  - spring
+  - boot
+  - sap
+  - cloudfoundry
+  - logging
+recipeList:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.sap.hcp.cf.logging
+      oldArtifactId: cf-java-logging-support-servlet
+      newArtifactId: cf-java-logging-support-servlet-jakarta      
