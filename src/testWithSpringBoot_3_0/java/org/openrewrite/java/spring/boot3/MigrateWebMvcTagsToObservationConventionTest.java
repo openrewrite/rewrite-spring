@@ -182,7 +182,12 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                       tags = tags.and("a", "b", "c", "d");
                       tags = Tags.and(Tag.of("a", "b"), staticTag);
                       tags = tags.and(staticTags);
+                      tags = tags.and(methodTags());
                       return tags;
+                  }
+              
+                  private Tags methodTags() {
+                      return staticTags;
                   }
               }
               """,
@@ -219,7 +224,14 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                       for (Tag tag : staticTags) {
                           values.and(KeyValue.of(tag.getKey(), tag.getValue()));
                       }
+                      for (Tag tag : methodTags()) {
+                          values.and(KeyValue.of(tag.getKey(), tag.getValue()));
+                      }
                       return values;
+                  }
+              
+                  private Tags methodTags() {
+                      return staticTags;
                   }
               }
               """
