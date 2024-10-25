@@ -410,7 +410,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void multipleClasses() throws Exception {
+    void multipleClasses() {
         rewriteRun(
           //language=java
           java(
@@ -502,7 +502,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void multipleClassesNoFlattening() throws Exception {
+    void multipleClassesNoFlattening() {
         rewriteRun(
           //language=java
           java(
@@ -607,7 +607,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void inMemoryConfig() throws Exception {
+    void inMemoryConfig() {
         rewriteRun(
           //language=java
           java(
@@ -654,7 +654,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void inMemoryConfigWithUserBuilder() throws Exception {
+    void inMemoryConfigWithUserBuilder() {
         rewriteRun(
             //language=java
           java(
@@ -699,7 +699,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void inMemoryConfigWithUserString() throws Exception {
+    void inMemoryConfigWithUserString() {
         rewriteRun(
           //language=java
           java(
