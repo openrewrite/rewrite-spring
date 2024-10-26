@@ -40,7 +40,7 @@ import static java.util.stream.Collectors.toSet;
 
 class GeneratePropertiesMigratorConfiguration {
     public static void main(String[] args) throws IOException {
-        var springBootReleases = new SpringBootReleases(false); // `true` for release candidates
+        var springBootReleases = new SpringBootReleases(true); // `true` for release candidates
 
         var objectMapper = new ObjectMapper()
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);

@@ -34,7 +34,7 @@ jobs:
           branch: migrations/${{ env.NOW }}
           title: "[Auto] Spring Boot property migration recipes as of ${{ env.NOW }}"
           body: |
-            [Auto] Old GroupId migrations as of ${{ env.NOW }}.
+            [Auto] Spring Boot property migration recipes as of ${{ env.NOW }}.
           commit-message: "[Auto] Spring Boot property migration recipes as of ${{ env.NOW }}"
           labels: enhancement
       - name: Check outputs
