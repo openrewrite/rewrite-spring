@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -57,11 +58,11 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                         updateCursor(cd);
                     }
                     cd = JavaTemplate.builder("WebMvcConfigurer")
-                                    .contextSensitive()
-                                    .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-webmvc-5.*"))
-                                    .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
+                            .contextSensitive()
+                            .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-webmvc-5.*"))
+                            .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
                     updateCursor(cd);
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor().getParentOrThrow());
                     maybeRemoveImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
@@ -74,7 +75,7 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                 final MethodMatcher wm = new MethodMatcher("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter *(..)");
 
                 @Override
-                public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                     J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                     if (wm.matches(method.getMethodType())) {
                         return null;

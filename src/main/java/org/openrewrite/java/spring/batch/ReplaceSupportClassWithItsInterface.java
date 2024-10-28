@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.batch;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -39,7 +40,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
     @Override
     public String getDescription() {
         return "As of spring-batch 5.x Listeners has default methods (made possible by a Java 8 baseline) and can be " +
-                "implemented directly without the need for this adapter.";
+               "implemented directly without the need for this adapter.";
     }
 
     @Option(displayName = "Fully qualified class name",
@@ -62,7 +63,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                                                             ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null &&
-                        TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
+                    TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
                     cd = cd.withExtends(null);
                     updateCursor(cd);
                     // This is an interesting one... JobExecutionListenerSupport implements
@@ -76,14 +77,14 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                     }
 
                     cd = JavaTemplate
-                        .builder(JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
-                        .imports(fullyQualifiedInterfaceName)
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5", "spring-batch-infrastructure-5"))
-                        .build()
-                        .apply(
-                            getCursor(),
-                            cd.getCoordinates().addImplementsClause()
-                        );
+                            .builder(JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
+                            .imports(fullyQualifiedInterfaceName)
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5", "spring-batch-infrastructure-5"))
+                            .build()
+                            .apply(
+                                    getCursor(),
+                                    cd.getCoordinates().addImplementsClause()
+                            );
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor().getParentOrThrow());
                     maybeRemoveImport(fullyQualifiedClassName);
                     maybeAddImport(fullyQualifiedInterfaceName);
@@ -97,8 +98,8 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
         final MethodMatcher wm = new MethodMatcher(fullyQualifiedClassName + " *(..)");
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method,
-                                                        ExecutionContext ctx) {
+        public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method,
+                                                                  ExecutionContext ctx) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
             if (wm.matches(method.getMethodType())) {
                 //noinspection DataFlowIssue

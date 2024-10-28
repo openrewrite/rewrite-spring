@@ -16,6 +16,7 @@
 
 package org.springframework.boot.test.util;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MutablePropertySources;
@@ -36,19 +37,19 @@ public final class TestPropertyValues {
 
     public void applyTo(ConfigurableEnvironment environment, TestPropertyValues.Type type, String name) {}
 
-    public <T> T applyToSystemProperties(Callable<T> call) { return null; }
+    public <T> @Nullable T applyToSystemProperties(Callable<T> call) { return null; }
 
     private <E extends Throwable> void rethrow(Throwable e) throws E {}
 
     private void addToSources(MutablePropertySources sources, TestPropertyValues.Type type, String name) {}
 
-    public static TestPropertyValues of(String... pairs) { return null; }
+    public static @Nullable TestPropertyValues of(String... pairs) { return null; }
 
-    public static TestPropertyValues of(Iterable<String> pairs) { return null; }
+    public static @Nullable TestPropertyValues of(Iterable<String> pairs) { return null; }
 
-    public static TestPropertyValues of(Stream<String> pairs) { return null; }
+    public static @Nullable TestPropertyValues of(Stream<String> pairs) { return null; }
 
-    public static TestPropertyValues empty() { return null; }
+    public static @Nullable TestPropertyValues empty() { return null; }
 
     public static class Pair {}
 

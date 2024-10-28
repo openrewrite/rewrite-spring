@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.test;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -56,8 +57,9 @@ public class SpringRulesToJUnitExtension extends Recipe {
                         new UsesType<>(SPRING_METHOD_RULE, true)
                 ),
                 new JavaIsoVisitor<ExecutionContext>() {
+
                     @Override
-                    public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
+                    public J.@Nullable VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
                         J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
                         if (TypeUtils.isOfClassType(vd.getTypeAsFullyQualified(), SPRING_CLASS_RULE) ||
                             TypeUtils.isOfClassType(vd.getTypeAsFullyQualified(), SPRING_METHOD_RULE)) {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -60,17 +61,17 @@ public class MigrateJobBuilderFactory extends Recipe {
                     doAfterVisit(new MigrateJobBuilderFactory.RemoveJobBuilderFactoryVisitor(clazz, enclosingMethod));
 
                     return JavaTemplate
-                        .builder("new JobBuilder(#{any(java.lang.String)}, jobRepository)")
-                        .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-batch-core-5.+"))
-                        .imports("org.springframework.batch.core.repository.JobRepository",
-                            "org.springframework.batch.core.job.builder.JobBuilder")
-                        .build().apply(
-                            getCursor(),
-                            method.getCoordinates().replace(),
-                            method.getArguments().get(0)
-                        );
+                            .builder("new JobBuilder(#{any(java.lang.String)}, jobRepository)")
+                            .contextSensitive()
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-batch-core-5.+"))
+                            .imports("org.springframework.batch.core.repository.JobRepository",
+                                    "org.springframework.batch.core.job.builder.JobBuilder")
+                            .build().apply(
+                                    getCursor(),
+                                    method.getCoordinates().replace(),
+                                    method.getArguments().get(0)
+                            );
                 }
                 return super.visitMethodInvocation(method, ctx);
             }
@@ -109,7 +110,7 @@ public class MigrateJobBuilderFactory extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDecl, ExecutionContext ctx) {
+        public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDecl, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(methodDecl, ctx);
 
             if (!enclosingMethod.equals(md) && !md.isConstructor()) {
@@ -149,14 +150,14 @@ public class MigrateJobBuilderFactory extends Recipe {
 
         private boolean isJobRepositoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
-                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                    "org.springframework.batch.core.repository.JobRepository");
+                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                           "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
-                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                    "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
+                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                           "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
         }
     }
 }

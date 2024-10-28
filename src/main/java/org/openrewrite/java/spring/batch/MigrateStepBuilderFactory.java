@@ -80,7 +80,7 @@ public class MigrateStepBuilderFactory extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
+        public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
             // Add JobRepository parameter to method if StepBuilderFactory.get(..) is used further down
             if (!FindMethods.find(md, STEP_BUILDER_FACTORY_GET).isEmpty()) {
                 List<Object> params = md.getParameters().stream()
@@ -120,13 +120,13 @@ public class MigrateStepBuilderFactory extends Recipe {
         private boolean isJobRepositoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                    "org.springframework.batch.core.repository.JobRepository");
+                           "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                    "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
+                           "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
         }
     }
 
