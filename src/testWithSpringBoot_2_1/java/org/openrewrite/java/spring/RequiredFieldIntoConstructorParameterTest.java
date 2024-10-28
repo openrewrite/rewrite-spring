@@ -21,16 +21,17 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
           java(
             """
               package demo;
+              
               import org.springframework.beans.factory.annotation.Required;
               
-               public class Test {
-                   private String a;
+              public class Test {
+                  private String a;
               
-                   @Required
-                   void setA(String a) {
-                       this.a = a;
-                   }
-               }
+                  @Required
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              }
               """,
             """
               package demo;
@@ -74,13 +75,13 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
               package demo;
               
               public class Test {
-                 private String first;
-                 private final String a;
-             
-                Test(String first, String a) {
-                    this.first = first;
-                    this.a = a;
-                 }
+                  private final String a;
+                  private String first;
+              
+                  Test(String first, String a) {
+                      this.first = first;
+                      this.a = a;
+                  }
               }
               """
           )
