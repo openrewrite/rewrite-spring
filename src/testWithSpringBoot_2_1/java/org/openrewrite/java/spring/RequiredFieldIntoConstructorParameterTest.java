@@ -66,7 +66,7 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
     }
 
     @Test
-    public void requiredFieldIntoConstructorParameter() {
+    void requiredFieldIntoConstructorParameter() {
         rewriteRun(
           //language=java
           java(
