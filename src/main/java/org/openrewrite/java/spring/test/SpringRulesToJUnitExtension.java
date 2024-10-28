@@ -59,7 +59,7 @@ public class SpringRulesToJUnitExtension extends Recipe {
                 new JavaIsoVisitor<ExecutionContext>() {
 
                     @Override
-                    public  J.@Nullable VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
+                    public J.@Nullable VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
                         J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
                         if (TypeUtils.isOfClassType(vd.getTypeAsFullyQualified(), SPRING_CLASS_RULE) ||
                             TypeUtils.isOfClassType(vd.getTypeAsFullyQualified(), SPRING_METHOD_RULE)) {

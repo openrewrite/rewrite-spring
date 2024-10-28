@@ -150,7 +150,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                 }
 
                 @Override
-                public  J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                public J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                     if (targetToRemove == annotation) {
                         return null;
                     }
