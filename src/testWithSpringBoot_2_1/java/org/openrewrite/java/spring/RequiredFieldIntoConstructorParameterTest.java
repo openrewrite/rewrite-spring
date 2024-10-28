@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.openrewrite.DocumentExample;
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -27,7 +29,7 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new RequiredFieldIntoConstructorParameter())
-          .parser(JavaParser.fromJavaVersion().classpath("spring-beans"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-beans", "lombok"));
     }
 
     @DocumentExample
@@ -37,11 +39,9 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              package demo;
-              
               import org.springframework.beans.factory.annotation.Required;
               
-              public class Test {
+              class Foo {
                   private String a;
               
                   @Required
@@ -51,12 +51,14 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
               }
               """,
             """
-              package demo;
+              class Foo {
+                  private String a;
               
-              public class Test {
-                  private final String a;
-    
-                  Test(String a) {
+                  Foo(String a) {
+                      this.a = a;
+                  }
+              
+                  void setA(String a) {
                       this.a = a;
                   }
               }
@@ -66,37 +68,46 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
     }
 
     @Test
-    void requiredFieldIntoConstructorParameter() {
+    void currentConstructorsShouldNotBeChanged() {
         rewriteRun(
           //language=java
           java(
             """
-              package demo;
               import org.springframework.beans.factory.annotation.Required;
               
-              public class Test {
+              class Foo {
                  private String first;
                  private String a;
               
-                 Test(String first, String a) {
+                 Foo(String first) {
                     this.first = first;
-                  }
+                 }
               
                  @Required
                  void setA(String a) {
                      this.a = a;
                  }
               }
-              """,
+              """
+          )
+        );
+    }
+
+    @Test
+    void inherentedFieldsAreNotConsidered() {
+        rewriteRun(
+          //language=java
+          java(
             """
-              package demo;
+              import org.springframework.beans.factory.annotation.Required;
               
-              public class Test {
-                  private final String a;
-                  private String first;
+              class Bar {
+                  String a;
+              }
               
-                  Test(String first, String a) {
-                      this.first = first;
+              class Foo extends Bar {
+                  @Required
+                  void setA(String a) {
                       this.a = a;
                   }
               }
@@ -104,4 +115,212 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void multipleRequiredFieldIntoConstructorParameter() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Required;
+              
+              class Foo {
+                  private String a;
+                  private String b;
+              
+                  @Required
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              
+                  @Required
+                  void setB(String b) {
+                      this.b = b;
+                  }
+              }
+              """,
+            """
+              class Foo {
+                  private String a;
+                  private String b;
+              
+                  Foo(String a, String b) {
+                      this.a = a;
+                      this.b = b;
+                  }
+              
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              
+                  void setB(String b) {
+                      this.b = b;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void explicitEmptyConstructorShouldNotBeModified() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Required;
+              
+              class Foo {
+                  private String a;
+              
+                  Foo() {
+                  }
+              
+                  @Required
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void onlyRemoveAnnotationsForSingleSetter() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Required;
+              
+              class Foo {
+                  private String a;
+                  private String b;
+              
+                  Foo(String a, String b) {
+                      this.a = a;
+                      this.b = b;
+                  }
+              
+                  @Required
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              
+                  void setB(String b) {
+                      this.b = b;
+                  }
+              }
+              """,
+            """
+              class Foo {
+                  private String a;
+                  private String b;
+              
+                  Foo(String a, String b) {
+                      this.a = a;
+                      this.b = b;
+                  }
+              
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              
+                  void setB(String b) {
+                      this.b = b;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void onlyRemoveAnnotationsMultipleSetters() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Required;
+              
+              class Foo {
+                  private String a;
+                  private String b;
+              
+                  Foo(String a, String b) {
+                      this.a = a;
+                      this.b = b;
+                  }
+              
+                  @Required
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              
+                  @Required
+                  void setB(String b) {
+                      this.b = b;
+                  }
+              }
+              """,
+            """
+              class Foo {
+                  private String a;
+                  private String b;
+              
+                  Foo(String a, String b) {
+                      this.a = a;
+                      this.b = b;
+                  }
+              
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              
+                  void setB(String b) {
+                      this.b = b;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+      "AllArgsConstructor",
+      "RequiredArgsConstructor",
+      "NoArgsConstructor",
+      "Data",
+      "Value"
+    })
+    void ignoreLombok(String annotation) {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import lombok.%1$s;
+              import org.springframework.beans.factory.annotation.Required;
+              
+              @%1$s
+              class Foo {
+                  private String a;
+                  private String b;
+              
+                  @Required
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              
+                  @Required
+                  void setB(String b) {
+                      this.b = b;
+                  }
+              }
+              """.formatted(annotation)
+          )
+        );
+    }
+
 }

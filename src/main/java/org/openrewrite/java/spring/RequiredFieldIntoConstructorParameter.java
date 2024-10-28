@@ -16,9 +16,11 @@
 package org.openrewrite.java.spring;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.UsesType;
 
 public class RequiredFieldIntoConstructorParameter extends Recipe {
 
@@ -34,8 +36,9 @@ public class RequiredFieldIntoConstructorParameter extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-
-        };
+        return Preconditions.check(new UsesType<>("org.springframework.beans.factory.annotation.Required", false),
+            new JavaIsoVisitor<ExecutionContext>() {
+                // TODO:
+            });
     }
 }
