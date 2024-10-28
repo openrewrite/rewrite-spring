@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -109,7 +110,7 @@ public class MigrateJobBuilderFactory extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDecl, ExecutionContext ctx) {
+        public @Nullable J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDecl, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(methodDecl, ctx);
 
             if (!enclosingMethod.equals(md) && !md.isConstructor()) {

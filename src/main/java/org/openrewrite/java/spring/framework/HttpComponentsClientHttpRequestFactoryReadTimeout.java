@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -116,8 +117,8 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                         return cuWithComment;
                     }
 
-                    @Override
-                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            @Override
+            public @Nullable J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         if (SET_READ_TIMEOUT_METHOD_MATCHER.matches(method)) {
                             //noinspection DataFlowIssue
                             return null;

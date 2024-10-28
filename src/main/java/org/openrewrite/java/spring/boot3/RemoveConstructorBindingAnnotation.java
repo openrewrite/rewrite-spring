@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -149,7 +150,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                 }
 
                 @Override
-                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                public @Nullable J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                     if (targetToRemove == annotation) {
                         return null;
                     }
