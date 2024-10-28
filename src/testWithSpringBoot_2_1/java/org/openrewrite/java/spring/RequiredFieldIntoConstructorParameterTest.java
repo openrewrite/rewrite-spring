@@ -30,6 +30,7 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-beans"));
     }
 
+    @DocumentExample
     @Test
     void fieldIntoExistingSingleConstructor() {
         //language=java
