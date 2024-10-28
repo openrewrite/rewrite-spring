@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.batch;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -97,7 +98,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
         final MethodMatcher wm = new MethodMatcher(fullyQualifiedClassName + " *(..)");
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method,
+        public  J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method,
                                                         ExecutionContext ctx) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
             if (wm.matches(method.getMethodType())) {
