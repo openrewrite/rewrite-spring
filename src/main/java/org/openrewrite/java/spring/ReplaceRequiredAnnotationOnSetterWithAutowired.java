@@ -19,10 +19,17 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.*;
+import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.J;
+
+import java.util.Comparator;
+import java.util.Set;
 
 public class ReplaceRequiredAnnotationOnSetterWithAutowired extends Recipe {
+
+    public static final String ANNOTATION_REQUIRED_FQN = "org.springframework.beans.factory.annotation.Required";
 
     @Override
     public String getDisplayName() {
@@ -36,9 +43,33 @@ public class ReplaceRequiredAnnotationOnSetterWithAutowired extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.beans.factory.annotation.Required", false),
-                new JavaIsoVisitor<ExecutionContext>() {
-                    // TODO:
-                });
+        return Preconditions.check(new UsesType<>(ANNOTATION_REQUIRED_FQN, false),
+                new ReplaceRequiredAnnotationVisitor());
+    }
+
+    private static class ReplaceRequiredAnnotationVisitor extends JavaIsoVisitor<ExecutionContext> {
+        @Override
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+            Set<J.Annotation> requiredAnnotation = FindAnnotations.find(method, ReplaceRequiredAnnotationOnSetterWithAutowired.ANNOTATION_REQUIRED_FQN);
+            if (requiredAnnotation.isEmpty()) {
+                return method;
+            }
+
+            J.MethodDeclaration md = (J.MethodDeclaration) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + ReplaceRequiredAnnotationOnSetterWithAutowired.ANNOTATION_REQUIRED_FQN))
+                    .visit(method, executionContext, getCursor().getParentOrThrow());
+            if (md != null) {
+                updateCursor(md);
+
+                md = JavaTemplate.builder("@org.springframework.beans.factory.annotation.Autowired")
+                        .javaParser(JavaParser.fromJavaVersion().dependsOn("package org.springframework.beans.factory.annotation;public interface Autowired {}"))
+                        .build().apply(getCursor(), md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+
+                maybeRemoveImport(ReplaceRequiredAnnotationOnSetterWithAutowired.ANNOTATION_REQUIRED_FQN);
+                doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(md));
+
+                return md;
+            }
+            return method;
+        }
     }
 }
