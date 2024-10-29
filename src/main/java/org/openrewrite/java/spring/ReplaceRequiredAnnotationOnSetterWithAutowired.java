@@ -25,7 +25,6 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
 import java.util.Comparator;
-import java.util.Set;
 
 public class ReplaceRequiredAnnotationOnSetterWithAutowired extends Recipe {
 
@@ -49,24 +48,20 @@ public class ReplaceRequiredAnnotationOnSetterWithAutowired extends Recipe {
 
     private static class ReplaceRequiredAnnotationVisitor extends JavaIsoVisitor<ExecutionContext> {
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-            Set<J.Annotation> requiredAnnotation = FindAnnotations.find(method, ReplaceRequiredAnnotationOnSetterWithAutowired.ANNOTATION_REQUIRED_FQN);
-            if (requiredAnnotation.isEmpty()) {
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            if (FindAnnotations.find(method, ANNOTATION_REQUIRED_FQN).isEmpty()) {
                 return method;
             }
 
-            J.MethodDeclaration md = (J.MethodDeclaration) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + ReplaceRequiredAnnotationOnSetterWithAutowired.ANNOTATION_REQUIRED_FQN))
-                    .visit(method, executionContext, getCursor().getParentOrThrow());
+            J.MethodDeclaration md = (J.MethodDeclaration) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + ANNOTATION_REQUIRED_FQN))
+                    .visit(method, ctx, getCursor().getParentOrThrow());
             if (md != null) {
-                updateCursor(md);
-
                 md = JavaTemplate.builder("@org.springframework.beans.factory.annotation.Autowired")
                         .javaParser(JavaParser.fromJavaVersion().dependsOn("package org.springframework.beans.factory.annotation;public interface Autowired {}"))
-                        .build().apply(getCursor(), md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
+                        .build().apply(updateCursor(md), md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
 
-                maybeRemoveImport(ReplaceRequiredAnnotationOnSetterWithAutowired.ANNOTATION_REQUIRED_FQN);
+                maybeRemoveImport(ANNOTATION_REQUIRED_FQN);
                 doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(md));
-
                 return md;
             }
             return method;
