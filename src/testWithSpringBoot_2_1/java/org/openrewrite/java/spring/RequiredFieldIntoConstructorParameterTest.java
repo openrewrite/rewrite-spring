@@ -34,7 +34,7 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void fieldIntoExistingSingleConstructor() {
+    void fieldIntoNewConstructor() {
         //language=java
         rewriteRun(
           java(
@@ -51,24 +51,29 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
               }
               """,
             """
+              import org.springframework.beans.factory.annotation.Autowired;
+              
               class Foo {
-                  private String a;
+                    private String a;
               
-                  Foo(String a) {
-                      this.a = a;
-                  }
+                    Foo() {}
               
-                  void setA(String a) {
-                      this.a = a;
-                  }
-              }
+                    @Autowired
+                    Foo(String a) {
+                        this.a = a;
+                    }
+              
+                    void setA(String a) {
+                        this.a = a;
+                    }
+                }
               """
           )
         );
     }
 
     @Test
-    void currentConstructorsShouldNotBeChanged() {
+    void existingConstructorsShouldNotBeChanged() {
         rewriteRun(
           //language=java
           java(
@@ -94,7 +99,7 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
     }
 
     @Test
-    void inherentedFieldsAreNotConsidered() {
+    void inheritedFieldsAreNotConsidered() {
         rewriteRun(
           //language=java
           java(
@@ -144,6 +149,9 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
                   private String a;
                   private String b;
               
+                  Foo() {}
+              
+                  @Autowired
                   Foo(String a, String b) {
                       this.a = a;
                       this.b = b;
@@ -181,6 +189,25 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
                       this.a = a;
                   }
               }
+              """,
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              
+              class Foo {
+                  private String a;
+              
+                  Foo() {
+                  }
+              
+                  @Autowired
+                  Foo(String a) {
+                      this.a = a;
+                  }
+              
+                  void setA(String a) {
+                      this.a = a;
+                  }
+              }
               """
           )
         );
@@ -214,23 +241,25 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
               }
               """,
             """
+              import org.springframework.beans.factory.annotation.Autowired;
+              
               class Foo {
-                  private String a;
-                  private String b;
+                    private String a;
+                    private String b;
               
-                  Foo(String a, String b) {
-                      this.a = a;
-                      this.b = b;
-                  }
+                    Foo(String a, String b) {
+                        this.a = a;
+                        this.b = b;
+                    }
               
-                  void setA(String a) {
-                      this.a = a;
-                  }
+                    void setA(String a) {
+                        this.a = a;
+                    }
               
-                  void setB(String b) {
-                      this.b = b;
-                  }
-              }
+                    void setB(String b) {
+                        this.b = b;
+                    }
+                }
               """
           )
         );
@@ -244,44 +273,45 @@ class RequiredFieldIntoConstructorParameterTest implements RewriteTest {
             """
               import org.springframework.beans.factory.annotation.Required;
               
-              class Foo {
-                  private String a;
-                  private String b;
+                class Foo {
+                    private String a;
+                    private String b;
               
-                  Foo(String a, String b) {
-                      this.a = a;
-                      this.b = b;
-                  }
+                    @Required
+                    void setA(String a) {
+                        this.a = a;
+                    }
               
-                  @Required
-                  void setA(String a) {
-                      this.a = a;
-                  }
-              
-                  @Required
-                  void setB(String b) {
-                      this.b = b;
-                  }
-              }
+                    @Required
+                    void setB(String b) {
+                        this.b = b;
+                    }
+                }
               """,
             """
+              import org.springframework.beans.factory.annotation.Autowired;
+              
               class Foo {
-                  private String a;
-                  private String b;
+                    private String a;
+                    private String b;
               
-                  Foo(String a, String b) {
-                      this.a = a;
-                      this.b = b;
-                  }
+                    Foo() {
+                    }
               
-                  void setA(String a) {
-                      this.a = a;
-                  }
+                    @Autowired
+                    Foo(String a, String b) {
+                        this.a = a;
+                        this.b = b;
+                    }
               
-                  void setB(String b) {
-                      this.b = b;
-                  }
-              }
+                    void setA(String a) {
+                        this.a = a;
+                    }
+              
+                    void setB(String b) {
+                        this.b = b;
+                    }
+                }
               """
           )
         );

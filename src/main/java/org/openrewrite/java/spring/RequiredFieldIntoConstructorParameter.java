@@ -26,19 +26,21 @@ public class RequiredFieldIntoConstructorParameter extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Required FieldInto Constructor Parameter";
+        return "Required field into constructor parameter";
     }
 
     @Override
     public String getDescription() {
-        return "Moves attributes for setters maker with @Required annotation to constructor parameter.";
+        return "The RequiredFieldIntoConstructorParameter recipe moves fields which have setters marked with the " +
+                "@Required annotation to constructor parameters. It does not make changes when an existing constructor " +
+                "exists, for inherited fields, or for classes annotated with Lombok constructors.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("org.springframework.beans.factory.annotation.Required", false),
-            new JavaIsoVisitor<ExecutionContext>() {
-                // TODO:
-            });
+                new JavaIsoVisitor<ExecutionContext>() {
+                    // TODO:
+                });
     }
 }
