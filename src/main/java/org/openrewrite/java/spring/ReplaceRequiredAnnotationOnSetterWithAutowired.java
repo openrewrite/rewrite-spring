@@ -22,18 +22,16 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 
-public class RequiredFieldIntoConstructorParameter extends Recipe {
+public class ReplaceRequiredAnnotationOnSetterWithAutowired extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Required field into constructor parameter";
+        return "Replace `@Required` annotation on setter with `@Autowired`";
     }
 
     @Override
     public String getDescription() {
-        return "The RequiredFieldIntoConstructorParameter recipe moves fields which have setters marked with the " +
-                "@Required annotation to constructor parameters. It does not make changes when an existing constructor " +
-                "exists, for inherited fields, or for classes annotated with Lombok constructors.";
+        return "Replace setter methods annotated with `@Required` with `@Autowired`.";
     }
 
     @Override
