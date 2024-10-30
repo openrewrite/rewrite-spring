@@ -56,8 +56,8 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                     return tree;
                 }
 
-                tree = implementationVisitor.visit(tree, executionContext);
-                tree = functionalVisitor.visit(tree, executionContext);
+                tree = implementationVisitor.visit(tree, ctx);
+                tree = functionalVisitor.visit(tree, ctx);
                 return tree;
             }
         };
@@ -73,11 +73,11 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             }
 
             @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext executionContext) {
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext ctx) {
                 if (classDeclaration.getImplements() == null || classDeclaration.getImplements().stream().noneMatch(typeTree -> isAuditorAware.matches(typeTree.getType()))) {
                     return classDeclaration;
                 }
-                return super.visitClassDeclaration(classDeclaration, executionContext);
+                return super.visitClassDeclaration(classDeclaration, ctx);
             }
 
             @Override
@@ -118,7 +118,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             }
 
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 if (!isAuditorAware.matches(method.getReturnTypeExpression()) || method.getBody() == null || method.getBody().getStatements().size() != 1) {
                     return method;
                 }
@@ -132,7 +132,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
 
 
             @Override
-            public J.Return visitReturn(J.Return return_, ExecutionContext executionContext) {
+            public J.Return visitReturn(J.Return return_, ExecutionContext ctx) {
                 Expression expression = return_.getExpression();
                 if (expression instanceof J.Lambda) {
                     J.Lambda lambda = ((J.Lambda) expression);
