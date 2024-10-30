@@ -18,6 +18,9 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
 
     @Test
     void rewriteImplementation() {
+        //TODO Question for TIM: how to get rid of the types? I have the imports.
+        //-    public Optional<String> getCurrentAuditor() {
+        //+    public java.util.Optional<java.lang.String> getCurrentAuditor() {
         rewriteRun(
           java(
             """
@@ -35,6 +38,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               package sample;
               
               import org.springframework.data.domain.AuditorAware;
+              
               import java.util.Optional;
               
               public class MyAuditorAware implements AuditorAware<String> {
@@ -49,7 +53,16 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     }
 
     @Test
-    void rewriteFunctionalInterface() {
+    void rewriteLambdaLiteral() {
+        //TODO Question for TIM:
+        //sample/Configuration.java:7: error: incompatible types: bad return type in lambda expression
+        //       return () -> "admin";
+        //                    ^
+        //   String cannot be converted to Optional<String>
+        //
+        //LST contains missing or invalid type information
+        //MethodInvocation->Lambda->Return->Block->MethodDeclaration->Block->ClassDeclaration->CompilationUnit
+        // *~~(MethodInvocation type is missing or malformed)~~>*/Optional.ofNullable("admin")
         rewriteRun(
           java(
             """
@@ -66,6 +79,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               package sample;
               
               import org.springframework.data.domain.AuditorAware;
+              
               import java.util.Optional;
               
               public class Configuration {
@@ -79,7 +93,48 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     }
 
     @Test
-    void rewriteFunctionalImplementation() {
+    void rewriteLambdaBlock() {
+        rewriteRun(
+          java(
+            """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+              
+              import java.util.Objects;
+              
+              public class Configuration {
+                  public AuditorAware<String> auditorAware() {
+                      return () -> {
+                          return Objects.toString("admin");
+                      };
+                  }
+              }
+              """, """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+              
+              import java.util.Objects;
+              import java.util.Optional;
+              
+              public class Configuration {
+                  public AuditorAware<String> auditorAware() {
+                      return () -> {
+                          return Optional.ofNullable(Objects.toString("admin"));
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void rewriteInterfaceInstantiation() {
+        //TODO Question for TIM: how to get rid of the types? I have the imports.
+        //- public Optional<String> getCurrentAuditor() {
+        //+ public java.util.Optional<java.lang.String> getCurrentAuditor() {
         rewriteRun(
           java(
             """
@@ -101,16 +156,17 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               package sample;
               
               import org.springframework.data.domain.AuditorAware;
+              
               import java.util.Optional;
               
               public class Configuration {
                   public AuditorAware<String> auditorAware() {
-                        return new AuditorAware<String>() {
-                            @Override
-                            public Optional<String> getCurrentAuditor() {
-                                return Optional.ofNullable("admin");
-                            }
-                        };
+                      return new AuditorAware<String>() {
+                          @Override
+                          public Optional<String> getCurrentAuditor() {
+                              return Optional.ofNullable("admin");
+                          }
+                      };
                   }
               }
               """
@@ -140,11 +196,12 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               package sample;
               
               import org.springframework.data.domain.AuditorAware;
+              
               import java.util.Optional;
               
               public class Configuration {
                   public AuditorAware<String> auditorAware() {
-                      return () -> Optional.ofNullable(getCurrentAuditor());
+                      return () -> Optional.ofNullable(this.getCurrentAuditor());
                   }
               
                   public String getCurrentAuditor() {
@@ -152,6 +209,123 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void dontRewriteImplementation() {
+        rewriteRun(
+          java(
+            """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+              
+              import java.util.Optional;
+              
+              public class MyAuditorAware implements AuditorAware<String> {
+                  @Override
+                  public Optional<String> getCurrentAuditor() {
+                      return Optional.ofNullable("admin");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dontRewriteLambdaLiteral() {
+        rewriteRun(
+          java(
+            """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+              
+              import java.util.Optional;
+              
+              public class Configuration {
+                  public AuditorAware<String> auditorAware() {
+                      return () -> Optional.ofNullable("admin");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dontRewriteLambdaBlock() {
+        rewriteRun(
+          java(
+            """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+              
+              import java.util.Objects;
+              import java.util.Optional;
+              
+              public class Configuration {
+                  public AuditorAware<String> auditorAware() {
+                      return () -> {
+                          return Optional.ofNullable(Objects.toString("admin"));
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dontRewriteInterfaceInstantiation() {
+        rewriteRun(
+          java(
+            """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+              
+              import java.util.Optional;
+              
+              public class Configuration {
+                  public AuditorAware<String> auditorAware() {
+                      return new AuditorAware<String>() {
+                          @Override
+                          public Optional<String> getCurrentAuditor() {
+                              return Optional.ofNullable("admin");
+                          }
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dontRewriteOptionalMethodReference() {
+        rewriteRun(
+          java("""
+            package sample;
+            
+            import org.springframework.data.domain.AuditorAware;
+            
+            import java.util.Optional;
+            
+            public class Configuration {
+                public AuditorAware<String> auditorAware() {
+                    return this::getCurrentAuditor;
+                }
+            
+                public Optional<String> getCurrentAuditor() {
+                    return Optional.ofNullable("admin");
+                }
+            }
+            """
           )
         );
     }

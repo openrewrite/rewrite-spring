@@ -15,19 +15,20 @@
  */
 package org.openrewrite.java.spring.data;
 
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.*;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.TypeTree;
+import org.jspecify.annotations.Nullable;
+import org.openrewrite.*;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.TypeMatcher;
+import org.openrewrite.java.tree.*;
 
 public class MigrateAuditorAwareToOptional extends Recipe {
 
     private static final TypeMatcher isAuditorAware = new TypeMatcher("org.springframework.data.domain.AuditorAware", true);
     private static final MethodMatcher isCurrentAuditor = new MethodMatcher("org.springframework.data.domain.AuditorAware getCurrentAuditor()", true);
     private static final TypeMatcher isOptional = new TypeMatcher("java.util.Optional");
+    private static final JavaTemplate wrapOptional = JavaTemplate.builder("Optional.ofNullable(#{any()})").contextSensitive().imports("java.util.Optional").build();
 
     @Override
     public String getDisplayName() {
@@ -43,24 +44,33 @@ public class MigrateAuditorAwareToOptional extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaIsoVisitor<ExecutionContext> implementationVisitor = implementationVisitor();
-        JavaIsoVisitor<ExecutionContext> functionalInterfaceVisitor = functionalInterfaceVisitor();
+        JavaIsoVisitor<ExecutionContext> functionalVisitor = functionalVisitor(implementationVisitor);
 
         //TODO the other visitors for new AuditorAware() {...} and method references.
-        return new JavaIsoVisitor<ExecutionContext>() {
+
+        return new TreeVisitor<Tree, ExecutionContext>() {
+
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-                System.out.println(TreeVisitingPrinter.printTree(getCursor()));
-                cu = super.visitCompilationUnit(cu, executionContext);
-                cu = implementationVisitor.visitCompilationUnit(cu, executionContext);
-//                cu = functionalInterfaceVisitor.visitCompilationUnit(cu, executionContext);
-                maybeAddImport("java.util.Optional");
-                return cu;
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext executionContext, Cursor parent) {
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
+                }
+
+                tree = implementationVisitor.visit(tree, executionContext);
+                tree = functionalVisitor.visit(tree, executionContext);
+                return tree;
             }
         };
     }
 
     private JavaIsoVisitor<ExecutionContext> implementationVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
+
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+                maybeAddImport("java.util.Optional");
+                return super.visitCompilationUnit(cu, executionContext);
+            }
 
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext executionContext) {
@@ -73,11 +83,13 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 TypeTree returnType = method.getReturnTypeExpression();
-                if (!isCurrentAuditor.matches(method.getMethodType()) || isOptional.matches(returnType)) {
+                if (method.getMethodType() == null || !isCurrentAuditor.matches(method.getMethodType())
+                        || returnType == null || returnType.getType().toString().matches("java.util.Optional<.*>")) {
                     return method;
                 }
-                return (super.visitMethodDeclaration(method, ctx))
-                        .withReturnTypeExpression(TypeTree.build("java.util.Optional<" + returnType.printTrimmed(getCursor()) + ">"));
+                Space space = returnType.getPrefix();
+                returnType = TypeTree.build("java.util.Optional<" + returnType.getType() + ">");
+                return super.visitMethodDeclaration(method, ctx).withReturnTypeExpression(returnType.withPrefix(space));
             }
 
             @Override
@@ -86,33 +98,70 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 if (expression == null) {
                     return return_;
                 }
-                expression = JavaTemplate.builder("Optional.ofNullable(#{any()})")
-                        .imports("java.util.Optional")
-                        .build()
-                        .apply(getCursor(), expression.getCoordinates().replace(), expression);
-                if (expression == null) {
+                J.Return altered = wrapOptional.apply(getCursor(), expression.getCoordinates().replace(), expression);
+                if (altered == null) {
                     return return_;
                 }
 
-                return return_.withExpression(expression);
+                return altered;
             }
         };
     }
 
-    private JavaIsoVisitor<ExecutionContext> functionalInterfaceVisitor() {
+    private JavaIsoVisitor<ExecutionContext> functionalVisitor(JavaIsoVisitor<ExecutionContext> implementationVisitor) {
         return new JavaIsoVisitor<ExecutionContext>() {
+
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+                maybeAddImport("java.util.Optional");
+                return super.visitCompilationUnit(cu, executionContext);
+            }
+
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-                if (!isAuditorAware.matches(method.getReturnTypeExpression())) {
+                if (!isAuditorAware.matches(method.getReturnTypeExpression()) || method.getBody() == null || method.getBody().getStatements().size() != 1) {
                     return method;
                 }
+                Statement statement = method.getBody().getStatements().get(0);
+                if (!(statement instanceof J.Return)) {
+                    return method;
+                }
+
                 return super.visitMethodDeclaration(method, executionContext);
             }
+
 
             @Override
             public J.Return visitReturn(J.Return return_, ExecutionContext executionContext) {
                 Expression expression = return_.getExpression();
-                //TODO return Optional.ofNullable(expression) of the JReturn statement in the getCurrentAuditor method
+                if (expression instanceof J.Lambda) {
+                    J.Lambda lambda = ((J.Lambda) expression);
+                    J body = lambda.getBody();
+                    if (body instanceof J.Literal) {
+                        body = wrapOptional.apply(new Cursor(getCursor(), lambda), lambda.getCoordinates().replace(), body);
+                        return return_.withExpression(lambda.withBody(body));
+                    } else {
+                        return super.visitReturn(return_, executionContext);
+                    }
+                } else if (expression instanceof J.MethodInvocation) {
+                    if (isOptional.matches(((J.MethodInvocation) expression).getMethodType().getReturnType())) {
+                        return return_;
+                    }
+                    return return_.withExpression(wrapOptional.apply(new Cursor(getCursor(), expression), expression.getCoordinates().replace(), expression));
+                } else if (expression instanceof J.NewClass && isAuditorAware.matches(((J.NewClass) expression).getClazz().getType())) {
+                    implementationVisitor.setCursor(new Cursor(getCursor(), expression));
+                    return return_.withExpression(implementationVisitor.visitNewClass((J.NewClass) expression, executionContext));
+                } else if (expression instanceof J.MemberReference) {
+                    J.MemberReference memberReference = (J.MemberReference) expression;
+                    JavaType.Method methodType = memberReference.getMethodType();
+                    if (methodType == null || isOptional.matches(methodType.getReturnType())) {
+                        return return_;
+                    }
+                    Expression containing = memberReference.getContaining();
+                    //TODO: Question to Tim: If I use #{any()} for the method name, as getName returns a String, I get a java.lang.ClassCastException: class java.lang.String cannot be cast to class org.openrewrite.java.tree.J
+                    JavaTemplate template = JavaTemplate.builder("() -> Optional.ofNullable(#{any()}." + methodType.getName() + "())").imports("java.util.Optional").contextSensitive().build();
+                    return return_.withExpression(template.apply(new Cursor(getCursor(), expression), memberReference.getCoordinates().replace(), containing));
+                }
                 return return_;
             }
         };
