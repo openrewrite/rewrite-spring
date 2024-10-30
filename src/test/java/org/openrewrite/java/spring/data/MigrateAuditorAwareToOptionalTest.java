@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.data;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -33,6 +34,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           .recipe(new MigrateAuditorAwareToOptional());
     }
 
+    @DocumentExample
     @Test
     void rewriteImplementation() {
         //TODO Question for TIM: how to get rid of the types? I have the imports.
