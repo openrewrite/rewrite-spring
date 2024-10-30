@@ -17,10 +17,7 @@ package org.openrewrite.java.spring.data;
 
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.TypeMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.tree.*;
 
 public class MigrateAuditorAwareToOptional extends Recipe {
@@ -38,7 +35,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
     @Override
     public String getDescription() {
         return "As of Spring boot 2.0, the `AuditorAware.getCurrentAuditor` method should return an `Optional`. " +
-                "This recipe will update the implementations of this method to return an `Optional` using the `ofNullable`.";
+               "This recipe will update the implementations of this method to return an `Optional` using the `ofNullable`.";
     }
 
     @Override
@@ -83,13 +80,15 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 TypeTree returnType = method.getReturnTypeExpression();
-                if (method.getMethodType() == null || !isCurrentAuditor.matches(method.getMethodType())
-                        || returnType == null || returnType.getType().toString().matches("java.util.Optional<.*>")) {
+                if (method.getMethodType() == null || !isCurrentAuditor.matches(method.getMethodType()) ||
+                    returnType == null || returnType.getType().toString().matches("java.util.Optional<.*>")) {
                     return method;
                 }
                 Space space = returnType.getPrefix();
                 returnType = TypeTree.build("java.util.Optional<" + returnType.getType() + ">");
-                return super.visitMethodDeclaration(method, ctx).withReturnTypeExpression(returnType.withPrefix(space));
+                J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx).withReturnTypeExpression(returnType.withPrefix(space));
+                doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(md));
+                return md;
             }
 
             @Override

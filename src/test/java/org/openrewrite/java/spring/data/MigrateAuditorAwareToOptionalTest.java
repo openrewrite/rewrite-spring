@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.data;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Issue;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -28,6 +29,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
+          .parser(JavaParser.fromJavaVersion().classpath("spring-data-commons"))
           .recipe(new MigrateAuditorAwareToOptional());
     }
 
@@ -37,6 +39,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
         //-    public Optional<String> getCurrentAuditor() {
         //+    public java.util.Optional<java.lang.String> getCurrentAuditor() {
         rewriteRun(
+          //language=java
           java(
             """
               package sample;
@@ -79,6 +82,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
         //MethodInvocation->Lambda->Return->Block->MethodDeclaration->Block->ClassDeclaration->CompilationUnit
         // *~~(MethodInvocation type is missing or malformed)~~>*/Optional.ofNullable("admin")
         rewriteRun(
+          //language=java
           java(
             """
               package sample;
@@ -110,6 +114,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void rewriteLambdaBlock() {
         rewriteRun(
+          //language=java
           java(
             """
               package sample;
@@ -151,6 +156,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
         //- public Optional<String> getCurrentAuditor() {
         //+ public java.util.Optional<java.lang.String> getCurrentAuditor() {
         rewriteRun(
+          //language=java
           java(
             """
               package sample;
@@ -192,6 +198,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void rewriteMethodReference() {
         rewriteRun(
+          //language=java
           java(
             """
               package sample;
@@ -231,6 +238,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void dontRewriteImplementation() {
         rewriteRun(
+          //language=java
           java(
             """
               package sample;
@@ -253,6 +261,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void dontRewriteLambdaLiteral() {
         rewriteRun(
+          //language=java
           java(
             """
               package sample;
@@ -274,6 +283,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void dontRewriteLambdaBlock() {
         rewriteRun(
+          //language=java
           java(
             """
               package sample;
@@ -298,6 +308,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void dontRewriteInterfaceInstantiation() {
         rewriteRun(
+          //language=java
           java(
             """
               package sample;
@@ -324,24 +335,25 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void dontRewriteOptionalMethodReference() {
         rewriteRun(
+          //language=java
           java(
-                """
-            package sample;
-            
-            import org.springframework.data.domain.AuditorAware;
-            
-            import java.util.Optional;
-            
-            public class Configuration {
-                public AuditorAware<String> auditorAware() {
-                    return this::getCurrentAuditor;
-                }
-            
-                public Optional<String> getCurrentAuditor() {
-                    return Optional.ofNullable("admin");
-                }
-            }
             """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+              
+              import java.util.Optional;
+              
+              public class Configuration {
+                  public AuditorAware<String> auditorAware() {
+                      return this::getCurrentAuditor;
+                  }
+              
+                  public Optional<String> getCurrentAuditor() {
+                      return Optional.ofNullable("admin");
+                  }
+              }
+              """
           )
         );
     }
