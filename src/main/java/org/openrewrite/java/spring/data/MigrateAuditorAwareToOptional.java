@@ -158,7 +158,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                         return return_;
                     }
                     Expression containing = memberReference.getContaining();
-                    //TODO: Question to Tim: If I use #{any()} for the method name, as getName returns a String, I get a java.lang.ClassCastException: class java.lang.String cannot be cast to class org.openrewrite.java.tree.J
+                    //TODO Question for TIM: If I use #{any()} for the method name, as getName returns a String, I get a java.lang.ClassCastException: class java.lang.String cannot be cast to class org.openrewrite.java.tree.J
                     JavaTemplate template = JavaTemplate.builder("() -> Optional.ofNullable(#{any()}." + methodType.getName() + "())").imports("java.util.Optional").contextSensitive().build();
                     return return_.withExpression(template.apply(new Cursor(getCursor(), expression), memberReference.getCoordinates().replace(), containing));
                 }
