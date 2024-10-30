@@ -44,6 +44,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaIsoVisitor<ExecutionContext> implementationVisitor = implementationVisitor();
         JavaIsoVisitor<ExecutionContext> functionalInterfaceVisitor = functionalInterfaceVisitor();
+
         //TODO the other visitors for new AuditorAware() {...} and method references.
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
