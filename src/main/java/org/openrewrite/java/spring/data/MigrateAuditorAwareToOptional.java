@@ -51,7 +51,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         return new TreeVisitor<Tree, ExecutionContext>() {
 
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext executionContext, Cursor parent) {
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx, Cursor parent) {
                 if (!(tree instanceof SourceFile)) {
                     return tree;
                 }
@@ -67,9 +67,9 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 maybeAddImport("java.util.Optional");
-                return super.visitCompilationUnit(cu, executionContext);
+                return super.visitCompilationUnit(cu, ctx);
             }
 
             @Override
@@ -93,7 +93,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             }
 
             @Override
-            public J.Return visitReturn(J.Return return_, ExecutionContext executionContext) {
+            public J.Return visitReturn(J.Return return_, ExecutionContext ctx) {
                 Expression expression = return_.getExpression();
                 if (expression == null) {
                     return return_;
@@ -112,9 +112,9 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 maybeAddImport("java.util.Optional");
-                return super.visitCompilationUnit(cu, executionContext);
+                return super.visitCompilationUnit(cu, ctx);
             }
 
             @Override
@@ -127,7 +127,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                     return method;
                 }
 
-                return super.visitMethodDeclaration(method, executionContext);
+                return super.visitMethodDeclaration(method, ctx);
             }
 
 
@@ -141,7 +141,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                         body = wrapOptional.apply(new Cursor(getCursor(), lambda), lambda.getCoordinates().replace(), body);
                         return return_.withExpression(lambda.withBody(body));
                     } else {
-                        return super.visitReturn(return_, executionContext);
+                        return super.visitReturn(return_, ctx);
                     }
                 } else if (expression instanceof J.MethodInvocation) {
                     if (isOptional.matches(((J.MethodInvocation) expression).getMethodType().getReturnType())) {
@@ -150,7 +150,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                     return return_.withExpression(wrapOptional.apply(new Cursor(getCursor(), expression), expression.getCoordinates().replace(), expression));
                 } else if (expression instanceof J.NewClass && isAuditorAware.matches(((J.NewClass) expression).getClazz().getType())) {
                     implementationVisitor.setCursor(new Cursor(getCursor(), expression));
-                    return return_.withExpression(implementationVisitor.visitNewClass((J.NewClass) expression, executionContext));
+                    return return_.withExpression(implementationVisitor.visitNewClass((J.NewClass) expression, ctx));
                 } else if (expression instanceof J.MemberReference) {
                     J.MemberReference memberReference = (J.MemberReference) expression;
                     JavaType.Method methodType = memberReference.getMethodType();
