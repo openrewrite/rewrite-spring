@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.data;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
 public class MigrateAuditorAwareToOptional extends Recipe {
@@ -42,9 +43,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         JavaIsoVisitor<ExecutionContext> implementationVisitor = implementationVisitor();
         JavaIsoVisitor<ExecutionContext> functionalVisitor = functionalVisitor(implementationVisitor);
 
-        //TODO the other visitors for new AuditorAware() {...} and method references.
-
-        return new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(new UsesType<>("org.springframework.data.domain.AuditorAware", true), new TreeVisitor<Tree, ExecutionContext>() {
 
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx, Cursor parent) {
@@ -56,17 +55,11 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 tree = functionalVisitor.visit(tree, ctx);
                 return tree;
             }
-        };
+        });
     }
 
     private JavaIsoVisitor<ExecutionContext> implementationVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-
-            @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                maybeAddImport("java.util.Optional");
-                return super.visitCompilationUnit(cu, ctx);
-            }
 
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext ctx) {
@@ -87,6 +80,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 returnType = TypeTree.build("java.util.Optional<" + returnType.getType() + ">");
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx).withReturnTypeExpression(returnType.withPrefix(space));
                 doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(md));
+                maybeAddImport("java.util.Optional");
                 return md;
             }
 
@@ -103,6 +97,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 if (altered == null) {
                     return return_;
                 }
+                maybeAddImport("java.util.Optional");
 
                 return altered;
             }
@@ -111,13 +106,6 @@ public class MigrateAuditorAwareToOptional extends Recipe {
 
     private JavaIsoVisitor<ExecutionContext> functionalVisitor(JavaIsoVisitor<ExecutionContext> implementationVisitor) {
         return new JavaIsoVisitor<ExecutionContext>() {
-
-            @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                maybeAddImport("java.util.Optional");
-                return super.visitCompilationUnit(cu, ctx);
-            }
-
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 if (!isAuditorAware.matches(method.getReturnTypeExpression()) || method.getBody() == null || method.getBody().getStatements().size() != 1) {
@@ -144,6 +132,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                                 .imports("java.util.Optional")
                                 .build()
                                 .apply(new Cursor(getCursor(), lambda), lambda.getCoordinates().replace(), body);
+                        maybeAddImport("java.util.Optional");
                         return return_.withExpression(lambda.withBody(body));
                     } else {
                         return super.visitReturn(return_, ctx);
@@ -152,12 +141,14 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                     if (isOptional.matches(((J.MethodInvocation) expression).getMethodType().getReturnType())) {
                         return return_;
                     }
+                    maybeAddImport("java.util.Optional");
                     return return_.withExpression(JavaTemplate.builder("Optional.ofNullable(#{any()})")
                             .imports("java.util.Optional")
                             .build()
                             .apply(new Cursor(getCursor(), expression), expression.getCoordinates().replace(), expression));
                 } else if (expression instanceof J.NewClass && isAuditorAware.matches(((J.NewClass) expression).getClazz().getType())) {
                     implementationVisitor.setCursor(new Cursor(getCursor(), expression));
+                    maybeAddImport("java.util.Optional");
                     return return_.withExpression(implementationVisitor.visitNewClass((J.NewClass) expression, ctx));
                 } else if (expression instanceof J.MemberReference) {
                     J.MemberReference memberReference = (J.MemberReference) expression;
@@ -171,6 +162,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                             .contextSensitive()
                             .imports("java.util.Optional")
                             .build();
+                    maybeAddImport("java.util.Optional");
                     return return_.withExpression(template.apply(new Cursor(getCursor(), expression), memberReference.getCoordinates().replace(), containing));
                 }
                 return return_;

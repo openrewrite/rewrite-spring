@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.data;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -30,16 +31,13 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(JavaParser.fromJavaVersion().classpath("spring-data-commons"))
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13", "spring-data-commons-2.7"))
           .recipe(new MigrateAuditorAwareToOptional());
     }
 
     @DocumentExample
     @Test
     void rewriteImplementation() {
-        //TODO Question for TIM: how to get rid of the types? I have the imports.
-        //-    public Optional<String> getCurrentAuditor() {
-        //+    public java.util.Optional<java.lang.String> getCurrentAuditor() {
         rewriteRun(
           //language=java
           java(
