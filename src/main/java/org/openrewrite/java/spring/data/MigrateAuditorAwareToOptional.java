@@ -19,6 +19,7 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.spring.util.MemberReferenceToMethodInvocation;
 import org.openrewrite.java.tree.*;
 
 public class MigrateAuditorAwareToOptional extends Recipe {
@@ -105,6 +106,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
     }
 
     private JavaIsoVisitor<ExecutionContext> functionalVisitor(JavaIsoVisitor<ExecutionContext> implementationVisitor) {
+        MemberReferenceToMethodInvocation memberRefToInvocation = new MemberReferenceToMethodInvocation();
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
@@ -122,22 +124,36 @@ public class MigrateAuditorAwareToOptional extends Recipe {
 
             @Override
             public J.Return visitReturn(J.Return return_, ExecutionContext ctx) {
+
                 Expression expression = return_.getExpression();
+                if (expression instanceof J.MemberReference) {
+                    J.MemberReference memberReference = (J.MemberReference) expression;
+                    JavaType.Method methodType = memberReference.getMethodType();
+                    if (methodType == null || isOptional.matches(methodType.getReturnType())) {
+                        return return_;
+                    }
+
+                    expression = (Expression) memberRefToInvocation.visitNonNull(memberReference, ctx, new Cursor(getCursor(), expression).getParent());
+                }
                 if (expression instanceof J.Lambda) {
                     J.Lambda lambda = ((J.Lambda) expression);
                     J body = lambda.getBody();
-                    if (body instanceof J.Literal) {
+                    if (body instanceof J.MethodInvocation && isOptional.matches(((J.MethodInvocation) body).getMethodType().getReturnType())) {
+                        return return_;
+                    }
+                    if (body instanceof J.Literal || body instanceof J.MethodInvocation) {
                         body = JavaTemplate.builder("Optional.ofNullable(#{any()})")
                                 .contextSensitive()
                                 .imports("java.util.Optional")
                                 .build()
                                 .apply(new Cursor(getCursor(), lambda), lambda.getCoordinates().replace(), body);
+                        body = ((J.MethodInvocation) body).withMethodType(((J.MethodInvocation) body).getMethodType().withReturnType(JavaType.buildType("java.util.Optional")));
                         maybeAddImport("java.util.Optional");
                         return return_.withExpression(lambda.withBody(body));
-                    } else {
-                        return super.visitReturn(return_, ctx);
                     }
-                } else if (expression instanceof J.MethodInvocation) {
+                    return super.visitReturn(return_, ctx);
+                }
+                if (expression instanceof J.MethodInvocation) {
                     if (isOptional.matches(((J.MethodInvocation) expression).getMethodType().getReturnType())) {
                         return return_;
                     }
@@ -150,20 +166,6 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                     implementationVisitor.setCursor(new Cursor(getCursor(), expression));
                     maybeAddImport("java.util.Optional");
                     return return_.withExpression(implementationVisitor.visitNewClass((J.NewClass) expression, ctx));
-                } else if (expression instanceof J.MemberReference) {
-                    J.MemberReference memberReference = (J.MemberReference) expression;
-                    JavaType.Method methodType = memberReference.getMethodType();
-                    if (methodType == null || isOptional.matches(methodType.getReturnType())) {
-                        return return_;
-                    }
-                    Expression containing = memberReference.getContaining();
-                    //TODO Question for TIM: If I use #{any()} for the method name, as getName returns a String, I get a java.lang.ClassCastException: class java.lang.String cannot be cast to class org.openrewrite.java.tree.J
-                    JavaTemplate template = JavaTemplate.builder("() -> Optional.ofNullable(#{any()}." + methodType.getName() + "())")
-                            .contextSensitive()
-                            .imports("java.util.Optional")
-                            .build();
-                    maybeAddImport("java.util.Optional");
-                    return return_.withExpression(template.apply(new Cursor(getCursor(), expression), memberReference.getCoordinates().replace(), containing));
                 }
                 return return_;
             }

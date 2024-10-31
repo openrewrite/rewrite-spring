@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.util.concurrent;
+package org.openrewrite.java.spring.util;
 
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
@@ -28,7 +28,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
-class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionContext> {
+public class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionContext> {
     @Override
     public J visitMemberReference(J.MemberReference memberRef, ExecutionContext ctx) {
         J.MemberReference mr = (J.MemberReference) super.visitMemberReference(memberRef, ctx);

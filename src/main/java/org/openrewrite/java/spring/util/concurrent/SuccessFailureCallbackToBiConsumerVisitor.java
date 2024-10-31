@@ -19,6 +19,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.spring.util.MemberReferenceToMethodInvocation;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.staticanalysis.RemoveUnneededBlock;
 

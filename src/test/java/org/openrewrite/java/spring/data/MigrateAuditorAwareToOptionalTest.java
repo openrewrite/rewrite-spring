@@ -73,11 +73,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void rewriteLambdaLiteral() {
         //TODO Question for TIM:
-        //sample/Configuration.java:7: error: incompatible types: bad return type in lambda expression
-        //       return () -> "admin";
-        //                    ^
-        //   String cannot be converted to Optional<String>
-        //
         //LST contains missing or invalid type information
         //MethodInvocation->Lambda->Return->Block->MethodDeclaration->Block->ClassDeclaration->CompilationUnit
         // *~~(MethodInvocation type is missing or malformed)~~>*/Optional.ofNullable("admin")
