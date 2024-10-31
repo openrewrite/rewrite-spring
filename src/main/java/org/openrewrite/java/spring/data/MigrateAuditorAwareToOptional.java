@@ -25,7 +25,6 @@ public class MigrateAuditorAwareToOptional extends Recipe {
     private static final TypeMatcher isAuditorAware = new TypeMatcher("org.springframework.data.domain.AuditorAware", true);
     private static final MethodMatcher isCurrentAuditor = new MethodMatcher("org.springframework.data.domain.AuditorAware getCurrentAuditor()", true);
     private static final TypeMatcher isOptional = new TypeMatcher("java.util.Optional");
-    private static final JavaTemplate wrapOptional = JavaTemplate.builder("Optional.ofNullable(#{any()})").contextSensitive().imports("java.util.Optional").build();
 
     @Override
     public String getDisplayName() {
@@ -97,7 +96,10 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 if (expression == null) {
                     return return_;
                 }
-                J.Return altered = wrapOptional.apply(getCursor(), expression.getCoordinates().replace(), expression);
+                J.Return altered = JavaTemplate.builder("Optional.ofNullable(#{any()})")
+                        .imports("java.util.Optional")
+                        .build()
+                        .apply(getCursor(), expression.getCoordinates().replace(), expression);
                 if (altered == null) {
                     return return_;
                 }
@@ -137,7 +139,11 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                     J.Lambda lambda = ((J.Lambda) expression);
                     J body = lambda.getBody();
                     if (body instanceof J.Literal) {
-                        body = wrapOptional.apply(new Cursor(getCursor(), lambda), lambda.getCoordinates().replace(), body);
+                        body = JavaTemplate.builder("Optional.ofNullable(#{any()})")
+                                .contextSensitive()
+                                .imports("java.util.Optional")
+                                .build()
+                                .apply(new Cursor(getCursor(), lambda), lambda.getCoordinates().replace(), body);
                         return return_.withExpression(lambda.withBody(body));
                     } else {
                         return super.visitReturn(return_, ctx);
@@ -146,7 +152,10 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                     if (isOptional.matches(((J.MethodInvocation) expression).getMethodType().getReturnType())) {
                         return return_;
                     }
-                    return return_.withExpression(wrapOptional.apply(new Cursor(getCursor(), expression), expression.getCoordinates().replace(), expression));
+                    return return_.withExpression(JavaTemplate.builder("Optional.ofNullable(#{any()})")
+                            .imports("java.util.Optional")
+                            .build()
+                            .apply(new Cursor(getCursor(), expression), expression.getCoordinates().replace(), expression));
                 } else if (expression instanceof J.NewClass && isAuditorAware.matches(((J.NewClass) expression).getClazz().getType())) {
                     implementationVisitor.setCursor(new Cursor(getCursor(), expression));
                     return return_.withExpression(implementationVisitor.visitNewClass((J.NewClass) expression, ctx));
@@ -158,7 +167,10 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                     }
                     Expression containing = memberReference.getContaining();
                     //TODO Question for TIM: If I use #{any()} for the method name, as getName returns a String, I get a java.lang.ClassCastException: class java.lang.String cannot be cast to class org.openrewrite.java.tree.J
-                    JavaTemplate template = JavaTemplate.builder("() -> Optional.ofNullable(#{any()}." + methodType.getName() + "())").imports("java.util.Optional").contextSensitive().build();
+                    JavaTemplate template = JavaTemplate.builder("() -> Optional.ofNullable(#{any()}." + methodType.getName() + "())")
+                            .contextSensitive()
+                            .imports("java.util.Optional")
+                            .build();
                     return return_.withExpression(template.apply(new Cursor(getCursor(), expression), memberReference.getCoordinates().replace(), containing));
                 }
                 return return_;

@@ -63,7 +63,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               
               public class MyAuditorAware implements AuditorAware<String> {
                   @Override
-                  public Optional<String> getCurrentAuditor() {
+                  public Optional<java.lang.String> getCurrentAuditor() {
                       return Optional.ofNullable("admin");
                   }
               }
@@ -186,7 +186,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   public AuditorAware<String> auditorAware() {
                       return new AuditorAware<String>() {
                           @Override
-                          public Optional<String> getCurrentAuditor() {
+                          public Optional<java.lang.String> getCurrentAuditor() {
                               return Optional.ofNullable("admin");
                           }
                       };
