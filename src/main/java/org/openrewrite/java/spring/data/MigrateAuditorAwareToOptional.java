@@ -138,7 +138,8 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 if (expression instanceof J.Lambda) {
                     J.Lambda lambda = ((J.Lambda) expression);
                     J body = lambda.getBody();
-                    if (body instanceof J.MethodInvocation && isOptional.matches(((J.MethodInvocation) body).getMethodType().getReturnType())) {
+                    if (body instanceof J.MethodInvocation
+                            && (((J.MethodInvocation) body).getMethodType() != null && isOptional.matches(((J.MethodInvocation) body).getMethodType().getReturnType()))) {
                         return return_;
                     }
                     if (body instanceof J.Literal || body instanceof J.MethodInvocation) {
@@ -147,14 +148,18 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                                 .imports("java.util.Optional")
                                 .build()
                                 .apply(new Cursor(getCursor(), lambda), lambda.getCoordinates().replace(), body);
-                        body = ((J.MethodInvocation) body).withMethodType(((J.MethodInvocation) body).getMethodType().withReturnType(JavaType.buildType("java.util.Optional")));
+                        JavaType.Method methodType = ((J.MethodInvocation) body).getMethodType();
+                        if (methodType != null) {
+                            methodType = methodType.withReturnType(JavaType.buildType("java.util.Optional"));
+                        }
+                        body = ((J.MethodInvocation) body).withMethodType(methodType);
                         maybeAddImport("java.util.Optional");
                         return return_.withExpression(lambda.withBody(body));
                     }
                     return super.visitReturn(return_, ctx);
                 }
                 if (expression instanceof J.MethodInvocation) {
-                    if (isOptional.matches(((J.MethodInvocation) expression).getMethodType().getReturnType())) {
+                    if (((J.MethodInvocation) expression).getMethodType() != null && isOptional.matches(((J.MethodInvocation) expression).getMethodType().getReturnType())) {
                         return return_;
                     }
                     maybeAddImport("java.util.Optional");

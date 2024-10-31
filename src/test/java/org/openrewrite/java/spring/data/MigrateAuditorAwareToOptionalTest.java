@@ -328,6 +328,99 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     }
 
     @Test
+    void complexerObjects() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+              
+              public class Configuration {
+    
+                  public AuditorAware<User> auditorAware() {
+                      return this::determineUser;
+                  }
+    
+                  public User determineUser() {
+                      return new User("admin");
+                  }
+              
+                  public static class User {
+                      private final String name;
+              
+                      public User(String name) {
+                          this.name = name;
+                      }
+                  }
+              }
+              """, """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+             
+              import java.util.Optional;
+              
+              public class Configuration {
+    
+                  public AuditorAware<User> auditorAware() {
+                      return () -> Optional.ofNullable(this.determineUser());
+                  }
+    
+                  public User determineUser() {
+                      return new User("admin");
+                  }
+    
+                  public static class User {
+                      private final String name;
+        
+                      public User(String name) {
+                          this.name = name;
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dontRewriteOptionalObjectMethodReference() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+
+              import java.util.Optional;
+              
+              public class Configuration {
+    
+                  public AuditorAware<User> auditorAware() {
+                      return this::determineUser;
+                  }
+    
+                  public Optional<User> determineUser() {
+                      return Optional.of(new User("admin"));
+                  }
+              
+                  public static class User {
+                      private final String name;
+              
+                      public User(String name) {
+                          this.name = name;
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void dontRewriteOptionalMethodReference() {
         rewriteRun(
           //language=java
@@ -346,6 +439,120 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               
                   public Optional<String> getCurrentAuditor() {
                       return Optional.ofNullable("admin");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void complexerObjectsCalls() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+              
+              public class Configuration {
+    
+                  public AuditorAware<String> auditorAware() {
+                      return () -> {
+                          User u = this.determineUser();
+                          return u.getName();
+                      };
+                  }
+    
+                  public User determineUser() {
+                      return new User("admin");
+                  }
+              
+                  public static class User {
+                      private final String name;
+              
+                      public User(String name) {
+                          this.name = name;
+                      }
+        
+                      public String getName() {
+                          return name;
+                      }
+                  }
+              }
+              """, """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+             
+              import java.util.Optional;
+              
+              public class Configuration {
+    
+                  public AuditorAware<String> auditorAware() {
+                      return () -> {
+                          User u = this.determineUser();
+                          return Optional.ofNullable(u.getName());
+                      };
+                  }
+    
+                  public User determineUser() {
+                      return new User("admin");
+                  }
+              
+                  public static class User {
+                      private final String name;
+              
+                      public User(String name) {
+                          this.name = name;
+                      }
+        
+                      public String getName() {
+                          return name;
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dontRewriteOptionalObjectMethodInvocations() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package sample;
+              
+              import org.springframework.data.domain.AuditorAware;
+
+              import java.util.Optional;
+
+              public class Configuration {
+    
+                  public AuditorAware<String> auditorAware() {
+                      return () -> {
+                          User u = this.determineUser();
+                          return u.getName();
+                      };
+                  }
+    
+                  public User determineUser() {
+                      return new User("admin");
+                  }
+              
+                  public static class User {
+                      private final String name;
+              
+                      public User(String name) {
+                          this.name = name;
+                      }
+        
+                      public Optional<String> getName() {
+                          return Optional.ofNullable(name);
+                      }
                   }
               }
               """
