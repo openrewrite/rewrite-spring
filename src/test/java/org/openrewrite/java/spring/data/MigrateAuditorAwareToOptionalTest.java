@@ -72,10 +72,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
 
     @Test
     void rewriteLambdaLiteral() {
-        //TODO Question for TIM:
-        //LST contains missing or invalid type information
-        //MethodInvocation->Lambda->Return->Block->MethodDeclaration->Block->ClassDeclaration->CompilationUnit
-        // *~~(MethodInvocation type is missing or malformed)~~>*/Optional.ofNullable("admin")
         rewriteRun(
           //language=java
           java(
