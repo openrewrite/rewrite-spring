@@ -42,8 +42,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               public class MyAuditorAware implements AuditorAware<String> {
@@ -53,8 +51,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """, """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Optional;
@@ -76,8 +72,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               public class Configuration {
@@ -86,8 +80,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """, """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Optional;
@@ -108,8 +100,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Objects;
@@ -122,8 +112,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """, """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Objects;
@@ -150,8 +138,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               public class Configuration {
@@ -165,8 +151,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """, """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Optional;
@@ -192,8 +176,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               public class Configuration {
@@ -206,8 +188,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """, """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Optional;
@@ -232,8 +212,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Optional;
@@ -255,8 +233,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Optional;
@@ -277,8 +253,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Objects;
@@ -302,8 +276,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Optional;
@@ -329,8 +301,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               public class Configuration {
@@ -352,8 +322,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """, """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
              
               import java.util.Optional;
@@ -387,8 +355,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
 
               import java.util.Optional;
@@ -422,8 +388,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               import java.util.Optional;
@@ -448,8 +412,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
               
               public class Configuration {
@@ -478,8 +440,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """, """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
              
               import java.util.Optional;
@@ -520,8 +480,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           //language=java
           java(
             """
-              package sample;
-              
               import org.springframework.data.domain.AuditorAware;
 
               import java.util.Optional;
