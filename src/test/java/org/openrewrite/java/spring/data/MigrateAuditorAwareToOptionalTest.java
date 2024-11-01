@@ -31,7 +31,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13", "spring-data-commons-2.7"))
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13"))
           .recipe(new MigrateAuditorAwareToOptional());
     }
 
@@ -230,6 +230,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void dontRewriteLambdaLiteral() {
         rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-2")),
           //language=java
           java(
             """
@@ -250,6 +251,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Test
     void dontRewriteLambdaBlock() {
         rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-2")),
           //language=java
           java(
             """
@@ -304,11 +306,11 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               import org.springframework.data.domain.AuditorAware;
               
               public class Configuration {
-    
+              
                   public AuditorAware<User> auditorAware() {
                       return this::determineUser;
                   }
-    
+              
                   public User determineUser() {
                       return new User("admin");
                   }
@@ -323,22 +325,22 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               }
               """, """
               import org.springframework.data.domain.AuditorAware;
-             
+              
               import java.util.Optional;
               
               public class Configuration {
-    
+              
                   public AuditorAware<User> auditorAware() {
                       return () -> Optional.ofNullable(this.determineUser());
                   }
-    
+              
                   public User determineUser() {
                       return new User("admin");
                   }
-    
+              
                   public static class User {
                       private final String name;
-        
+              
                       public User(String name) {
                           this.name = name;
                       }
@@ -356,15 +358,15 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           java(
             """
               import org.springframework.data.domain.AuditorAware;
-
+              
               import java.util.Optional;
               
               public class Configuration {
-    
+              
                   public AuditorAware<User> auditorAware() {
                       return this::determineUser;
                   }
-    
+              
                   public Optional<User> determineUser() {
                       return Optional.of(new User("admin"));
                   }
@@ -415,14 +417,14 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               import org.springframework.data.domain.AuditorAware;
               
               public class Configuration {
-    
+              
                   public AuditorAware<String> auditorAware() {
                       return () -> {
                           User u = this.determineUser();
                           return u.getName();
                       };
                   }
-    
+              
                   public User determineUser() {
                       return new User("admin");
                   }
@@ -433,7 +435,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                       public User(String name) {
                           this.name = name;
                       }
-        
+              
                       public String getName() {
                           return name;
                       }
@@ -441,18 +443,18 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               }
               """, """
               import org.springframework.data.domain.AuditorAware;
-             
+              
               import java.util.Optional;
               
               public class Configuration {
-    
+              
                   public AuditorAware<String> auditorAware() {
                       return () -> {
                           User u = this.determineUser();
                           return Optional.ofNullable(u.getName());
                       };
                   }
-    
+              
                   public User determineUser() {
                       return new User("admin");
                   }
@@ -463,7 +465,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                       public User(String name) {
                           this.name = name;
                       }
-        
+              
                       public String getName() {
                           return name;
                       }
@@ -481,18 +483,18 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           java(
             """
               import org.springframework.data.domain.AuditorAware;
-
+              
               import java.util.Optional;
-
+              
               public class Configuration {
-    
+              
                   public AuditorAware<String> auditorAware() {
                       return () -> {
                           User u = this.determineUser();
                           return u.getName();
                       };
                   }
-    
+              
                   public User determineUser() {
                       return new User("admin");
                   }
@@ -503,7 +505,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                       public User(String name) {
                           this.name = name;
                       }
-        
+              
                       public Optional<String> getName() {
                           return Optional.ofNullable(name);
                       }
