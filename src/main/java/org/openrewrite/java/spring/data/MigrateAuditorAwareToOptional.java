@@ -61,15 +61,6 @@ public class MigrateAuditorAwareToOptional extends Recipe {
 
     private JavaIsoVisitor<ExecutionContext> implementationVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-
-            @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext ctx) {
-                if (classDeclaration.getImplements() == null || classDeclaration.getImplements().stream().noneMatch(typeTree -> isAuditorAware.matches(typeTree.getType()))) {
-                    return classDeclaration;
-                }
-                return super.visitClassDeclaration(classDeclaration, ctx);
-            }
-
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 TypeTree returnType = method.getReturnTypeExpression();
@@ -106,7 +97,6 @@ public class MigrateAuditorAwareToOptional extends Recipe {
     }
 
     private JavaIsoVisitor<ExecutionContext> functionalVisitor(JavaIsoVisitor<ExecutionContext> implementationVisitor) {
-        MemberReferenceToMethodInvocation memberRefToInvocation = new MemberReferenceToMethodInvocation();
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
@@ -133,7 +123,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                         return return_;
                     }
 
-                    expression = (Expression) memberRefToInvocation.visitNonNull(memberReference, ctx, new Cursor(getCursor(), expression).getParent());
+                    expression = (Expression) new MemberReferenceToMethodInvocation().visitNonNull(memberReference, ctx, new Cursor(getCursor(), expression).getParent());
                 }
                 if (expression instanceof J.Lambda) {
                     J.Lambda lambda = ((J.Lambda) expression);
