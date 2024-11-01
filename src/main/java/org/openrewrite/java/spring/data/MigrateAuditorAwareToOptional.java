@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
@@ -41,18 +42,14 @@ public class MigrateAuditorAwareToOptional extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.data.domain.AuditorAware", true), new TreeVisitor<Tree, ExecutionContext>() {
-
+        ImplementationVisitor implementationVisitor = new ImplementationVisitor();
+        FunctionalVisitor functionalVisitor = new FunctionalVisitor(implementationVisitor);
+        return Preconditions.check(new UsesType<>("org.springframework.data.domain.AuditorAware", true), new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx, Cursor parent) {
-                if (!(tree instanceof SourceFile)) {
-                    return tree;
-                }
-
-                ImplementationVisitor implementationVisitor = new ImplementationVisitor();
+            public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
                 tree = implementationVisitor.visit(tree, ctx);
-                tree = new FunctionalVisitor(implementationVisitor).visit(tree, ctx);
-                return tree;
+                tree = functionalVisitor.visit(tree, ctx);
+                return (J) tree;
             }
         });
     }
@@ -92,12 +89,9 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         }
     }
 
+    @RequiredArgsConstructor
     private static class FunctionalVisitor extends JavaIsoVisitor<ExecutionContext> {
         private final JavaIsoVisitor<ExecutionContext> implementationVisitor;
-
-        public FunctionalVisitor(JavaIsoVisitor<ExecutionContext> implementationVisitor) {
-            this.implementationVisitor = implementationVisitor;
-        }
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
@@ -108,14 +102,11 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             if (!(statement instanceof J.Return)) {
                 return method;
             }
-
             return super.visitMethodDeclaration(method, ctx);
         }
 
-
         @Override
         public J.Return visitReturn(J.Return return_, ExecutionContext ctx) {
-
             Expression expression = return_.getExpression();
             if (expression instanceof J.MemberReference) {
                 J.MemberReference memberReference = (J.MemberReference) expression;
@@ -123,7 +114,6 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 if (methodType == null || isOptional.matches(methodType.getReturnType())) {
                     return return_;
                 }
-
                 expression = (Expression) new MemberReferenceToMethodInvocation().visitNonNull(memberReference, ctx, new Cursor(getCursor(), expression).getParent());
             }
             if (expression instanceof J.Lambda) {

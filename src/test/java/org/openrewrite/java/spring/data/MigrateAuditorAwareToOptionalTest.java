@@ -131,9 +131,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
 
     @Test
     void rewriteInterfaceInstantiation() {
-        //TODO Question for TIM: how to get rid of the types? I have the imports.
-        //- public Optional<String> getCurrentAuditor() {
-        //+ public java.util.Optional<java.lang.String> getCurrentAuditor() {
         rewriteRun(
           //language=java
           java(
