@@ -30,6 +30,9 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
 public class MigrateWebMvcConfigurerAdapter extends Recipe {
+    private static final String WEB_MVC_CONFIGURER_ADAPTER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter";
+    private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
+
     @Override
     public String getDisplayName() {
         return "Replace `WebMvcConfigurerAdapter` with `WebMvcConfigurer`";
@@ -43,11 +46,13 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter", false), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(WEB_MVC_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
+            private final JavaType WEB_MVC_CONFIGURER_TYPE = JavaType.buildType(WEB_MVC_CONFIGURER);
+
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter")) {
+                if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
                     cd = cd.withExtends(null);
                     updateCursor(cd);
                     // This is an interesting one... WebMvcConfigurerAdapter implements WebMvcConfigurer
@@ -59,16 +64,49 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                     }
                     cd = JavaTemplate.builder("WebMvcConfigurer")
                             .contextSensitive()
-                            .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
+                            .imports(WEB_MVC_CONFIGURER)
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-webmvc-5.*"))
+                                    .classpathFromResources(ctx, "spring-webmvc-5"))
                             .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
                     updateCursor(cd);
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor().getParentOrThrow());
-                    maybeRemoveImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
-                    maybeAddImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurer");
+                    maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
+                    maybeAddImport(WEB_MVC_CONFIGURER);
                 }
                 return cd;
+            }
+
+            @Override
+            public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
+                if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
+                    if (newClass.getClazz() instanceof J.Identifier) {
+                        J.Identifier identifier = (J.Identifier) newClass.getClazz();
+                        newClass = newClass.withClazz(identifier
+                                .withType(WEB_MVC_CONFIGURER_TYPE)
+                                .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
+                        );
+                    }
+                    maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
+                    maybeAddImport(WEB_MVC_CONFIGURER);
+                }
+                return super.visitNewClass(newClass, ctx);
+            }
+
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
+                if (md.getMethodType() != null && TypeUtils.isOfClassType(md.getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
+                    if (md.getReturnTypeExpression() instanceof J.Identifier) {
+                        J.Identifier identifier = (J.Identifier) md.getReturnTypeExpression();
+                        md = md.withReturnTypeExpression(identifier
+                                .withType(WEB_MVC_CONFIGURER_TYPE)
+                                .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
+                        );
+                    }
+
+                    maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
+                    maybeAddImport(WEB_MVC_CONFIGURER);
+                }
+                return super.visitMethodDeclaration(md, ctx);
             }
 
             class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
