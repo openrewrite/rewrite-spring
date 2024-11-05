@@ -42,7 +42,7 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
     @Override
     public String getDescription() {
         return "As of 5.0 `WebMvcConfigurer` has default methods (made possible by a Java 8 baseline) and can be " +
-          "implemented directly without the need for this adapter.";
+               "implemented directly without the need for this adapter.";
     }
 
     @Override
@@ -64,11 +64,11 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                         updateCursor(cd);
                     }
                     cd = JavaTemplate.builder("WebMvcConfigurer")
-                      .contextSensitive()
-                      .imports(WEB_MVC_CONFIGURER)
-                      .javaParser(JavaParser.fromJavaVersion()
-                        .classpathFromResources(ctx, "spring-webmvc-5.*"))
-                      .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
+                            .contextSensitive()
+                            .imports(WEB_MVC_CONFIGURER)
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-webmvc-5"))
+                            .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
                     updateCursor(cd);
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor().getParentOrThrow());
                     maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
@@ -83,14 +83,14 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                     if (newClass.getClazz() instanceof J.Identifier) {
                         J.Identifier identifier = (J.Identifier) newClass.getClazz();
                         newClass = newClass.withClazz(identifier
-                          .withType(WEB_MVC_CONFIGURER_TYPE)
-                          .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
+                                .withType(WEB_MVC_CONFIGURER_TYPE)
+                                .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
                         );
                     } else if (newClass.getClazz() instanceof J.ParameterizedType) {
                         J.ParameterizedType parameterizedType = (J.ParameterizedType) newClass.getClazz();
                         newClass = newClass.withClazz(parameterizedType
-                          .withType(WEB_MVC_CONFIGURER_TYPE)
-                          .withClazz(TypeTree.build(WEB_MVC_CONFIGURER).withType(WEB_MVC_CONFIGURER_TYPE))
+                                .withType(WEB_MVC_CONFIGURER_TYPE)
+                                .withClazz(TypeTree.build(WEB_MVC_CONFIGURER).withType(WEB_MVC_CONFIGURER_TYPE))
                         );
                     }
                     maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
@@ -105,14 +105,14 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                     if (md.getReturnTypeExpression() instanceof J.Identifier) {
                         J.Identifier identifier = (J.Identifier) md.getReturnTypeExpression();
                         md = md.withReturnTypeExpression(identifier
-                          .withType(WEB_MVC_CONFIGURER_TYPE)
-                          .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
+                                .withType(WEB_MVC_CONFIGURER_TYPE)
+                                .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
                         );
                     } else if (md.getReturnTypeExpression() instanceof J.ParameterizedType) {
                         J.ParameterizedType parameterizedType = (J.ParameterizedType) md.getReturnTypeExpression();
                         md = md.withReturnTypeExpression(parameterizedType
-                          .withType(WEB_MVC_CONFIGURER_TYPE)
-                          .withClazz(TypeTree.build(WEB_MVC_CONFIGURER).withType(WEB_MVC_CONFIGURER_TYPE))
+                                .withType(WEB_MVC_CONFIGURER_TYPE)
+                                .withClazz(TypeTree.build(WEB_MVC_CONFIGURER).withType(WEB_MVC_CONFIGURER_TYPE))
                         );
                     }
 

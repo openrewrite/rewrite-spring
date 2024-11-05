@@ -28,13 +28,8 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-webmvc-5.*",
-              "spring-core-5.*",
-              "spring-web-5.*",
-              "spring-context-5.*"
-            ))
+        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-webmvc-5", "spring-core-5", "spring-web-5"))
           .recipe(new MigrateWebMvcConfigurerAdapter());
     }
 
@@ -44,30 +39,26 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
-                """
-            package a.b.c;
+            """
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-            import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+              public class CustomMvcConfigurer extends WebMvcConfigurerAdapter {
+                  private final String someArg;
+                  public CustomMvcConfigurer(String someArg) {
+                      super();
+                      this.someArg = someArg;
+                  }
+              }
+              """, """
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-            public class CustomMvcConfigurer extends WebMvcConfigurerAdapter {
-                private final String someArg;
-                public CustomMvcConfigurer(String someArg) {
-                    super();
-                    this.someArg = someArg;
-                }
-            }
-            """, """
-            package a.b.c;
-
-            import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-            public class CustomMvcConfigurer implements WebMvcConfigurer {
-                private final String someArg;
-                public CustomMvcConfigurer(String someArg) {
-                    this.someArg = someArg;
-                }
-            }
-            """)
+              public class CustomMvcConfigurer implements WebMvcConfigurer {
+                  private final String someArg;
+                  public CustomMvcConfigurer(String someArg) {
+                      this.someArg = someArg;
+                  }
+              }
+              """)
         );
     }
 
@@ -77,32 +68,26 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              import org.springframework.context.annotation.Bean;
-              import org.springframework.context.annotation.Configuration;
               import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-              @Configuration
-              public class WebConfig {
-                  @Bean
-                  public WebMvcConfigurerAdapter forwardToIndex() {
+              class WebConfig {
+                  WebMvcConfigurerAdapter forwardToIndex() {
                       return new WebMvcConfigurerAdapter() {
                       };
                   }
               }
-              """, """
-              import org.springframework.context.annotation.Bean;
-              import org.springframework.context.annotation.Configuration;
+              """,
+            """
               import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-              @Configuration
-              public class WebConfig {
-                  @Bean
-                  public WebMvcConfigurer forwardToIndex() {
+              class WebConfig {
+                  WebMvcConfigurer forwardToIndex() {
                       return new WebMvcConfigurer() {
                       };
                   }
               }
-              """)
+              """
+          )
         );
     }
 }
