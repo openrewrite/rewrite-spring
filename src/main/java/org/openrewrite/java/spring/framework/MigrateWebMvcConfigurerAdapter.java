@@ -27,9 +27,13 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
 public class MigrateWebMvcConfigurerAdapter extends Recipe {
+    private static final String WEB_MVC_CONFIGURER_ADAPTER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter";
+    private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
+
     @Override
     public String getDisplayName() {
         return "Replace `WebMvcConfigurerAdapter` with `WebMvcConfigurer`";
@@ -38,16 +42,18 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
     @Override
     public String getDescription() {
         return "As of 5.0 `WebMvcConfigurer` has default methods (made possible by a Java 8 baseline) and can be " +
-               "implemented directly without the need for this adapter.";
+          "implemented directly without the need for this adapter.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter", false), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(WEB_MVC_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
+            private final JavaType WEB_MVC_CONFIGURER_TYPE = JavaType.buildType(WEB_MVC_CONFIGURER);
+
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter")) {
+                if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
                     cd = cd.withExtends(null);
                     updateCursor(cd);
                     // This is an interesting one... WebMvcConfigurerAdapter implements WebMvcConfigurer
@@ -58,17 +64,62 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                         updateCursor(cd);
                     }
                     cd = JavaTemplate.builder("WebMvcConfigurer")
-                            .contextSensitive()
-                            .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-webmvc-5.*"))
-                            .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
+                      .contextSensitive()
+                      .imports(WEB_MVC_CONFIGURER)
+                      .javaParser(JavaParser.fromJavaVersion()
+                        .classpathFromResources(ctx, "spring-webmvc-5.*"))
+                      .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
                     updateCursor(cd);
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor().getParentOrThrow());
-                    maybeRemoveImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
-                    maybeAddImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurer");
+                    maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
+                    maybeAddImport(WEB_MVC_CONFIGURER);
                 }
                 return cd;
+            }
+
+            @Override
+            public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
+                if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
+                    if (newClass.getClazz() instanceof J.Identifier) {
+                        J.Identifier identifier = (J.Identifier) newClass.getClazz();
+                        newClass = newClass.withClazz(identifier
+                          .withType(WEB_MVC_CONFIGURER_TYPE)
+                          .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
+                        );
+                    } else if (newClass.getClazz() instanceof J.ParameterizedType) {
+                        J.ParameterizedType parameterizedType = (J.ParameterizedType) newClass.getClazz();
+                        newClass = newClass.withClazz(parameterizedType
+                          .withType(WEB_MVC_CONFIGURER_TYPE)
+                          .withClazz(TypeTree.build(WEB_MVC_CONFIGURER).withType(WEB_MVC_CONFIGURER_TYPE))
+                        );
+                    }
+                    maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
+                    maybeAddImport(WEB_MVC_CONFIGURER);
+                }
+                return super.visitNewClass(newClass, ctx);
+            }
+
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
+                if (md.getMethodType() != null && TypeUtils.isOfClassType(md.getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
+                    if (md.getReturnTypeExpression() instanceof J.Identifier) {
+                        J.Identifier identifier = (J.Identifier) md.getReturnTypeExpression();
+                        md = md.withReturnTypeExpression(identifier
+                          .withType(WEB_MVC_CONFIGURER_TYPE)
+                          .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
+                        );
+                    } else if (md.getReturnTypeExpression() instanceof J.ParameterizedType) {
+                        J.ParameterizedType parameterizedType = (J.ParameterizedType) md.getReturnTypeExpression();
+                        md = md.withReturnTypeExpression(parameterizedType
+                          .withType(WEB_MVC_CONFIGURER_TYPE)
+                          .withClazz(TypeTree.build(WEB_MVC_CONFIGURER).withType(WEB_MVC_CONFIGURER_TYPE))
+                        );
+                    }
+
+                    maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
+                    maybeAddImport(WEB_MVC_CONFIGURER);
+                }
+                return super.visitMethodDeclaration(md, ctx);
             }
 
             class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {

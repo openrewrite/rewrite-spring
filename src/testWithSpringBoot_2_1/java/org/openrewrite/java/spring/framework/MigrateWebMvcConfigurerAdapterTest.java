@@ -29,7 +29,12 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-webmvc-5.*", "spring-core-5.*", "spring-web-5.*"))
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-webmvc-5.*",
+              "spring-core-5.*",
+              "spring-web-5.*",
+              "spring-context-5.*"
+            ))
           .recipe(new MigrateWebMvcConfigurerAdapter());
     }
 
@@ -41,9 +46,9 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
           java(
                 """
             package a.b.c;
-            
+
             import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-            
+
             public class CustomMvcConfigurer extends WebMvcConfigurerAdapter {
                 private final String someArg;
                 public CustomMvcConfigurer(String someArg) {
@@ -53,9 +58,9 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
             }
             """, """
             package a.b.c;
-            
+
             import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-            
+
             public class CustomMvcConfigurer implements WebMvcConfigurer {
                 private final String someArg;
                 public CustomMvcConfigurer(String someArg) {
@@ -63,6 +68,41 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
                 }
             }
             """)
+        );
+    }
+
+    @Test
+    void transformBean() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+              @Configuration
+              public class WebConfig {
+                  @Bean
+                  public WebMvcConfigurerAdapter forwardToIndex() {
+                      return new WebMvcConfigurerAdapter() {
+                      };
+                  }
+              }
+              """, """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              @Configuration
+              public class WebConfig {
+                  @Bean
+                  public WebMvcConfigurer forwardToIndex() {
+                      return new WebMvcConfigurer() {
+                      };
+                  }
+              }
+              """)
         );
     }
 }
