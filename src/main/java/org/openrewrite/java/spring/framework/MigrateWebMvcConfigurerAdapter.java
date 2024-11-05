@@ -86,12 +86,6 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                                 .withType(WEB_MVC_CONFIGURER_TYPE)
                                 .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
                         );
-                    } else if (newClass.getClazz() instanceof J.ParameterizedType) {
-                        J.ParameterizedType parameterizedType = (J.ParameterizedType) newClass.getClazz();
-                        newClass = newClass.withClazz(parameterizedType
-                                .withType(WEB_MVC_CONFIGURER_TYPE)
-                                .withClazz(TypeTree.build(WEB_MVC_CONFIGURER).withType(WEB_MVC_CONFIGURER_TYPE))
-                        );
                     }
                     maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
                     maybeAddImport(WEB_MVC_CONFIGURER);
@@ -107,12 +101,6 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                         md = md.withReturnTypeExpression(identifier
                                 .withType(WEB_MVC_CONFIGURER_TYPE)
                                 .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
-                        );
-                    } else if (md.getReturnTypeExpression() instanceof J.ParameterizedType) {
-                        J.ParameterizedType parameterizedType = (J.ParameterizedType) md.getReturnTypeExpression();
-                        md = md.withReturnTypeExpression(parameterizedType
-                                .withType(WEB_MVC_CONFIGURER_TYPE)
-                                .withClazz(TypeTree.build(WEB_MVC_CONFIGURER).withType(WEB_MVC_CONFIGURER_TYPE))
                         );
                     }
 
