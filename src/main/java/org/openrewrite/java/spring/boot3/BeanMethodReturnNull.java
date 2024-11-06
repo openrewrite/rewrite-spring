@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.NlsRewrite;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -62,9 +61,6 @@ public class BeanMethodReturnNull extends Recipe {
               md.getReturnTypeExpression() != null && md.getReturnTypeExpression().getType() == JavaType.Primitive.Void
             ) {
                 md = md.withReturnTypeExpression(TypeTree.build(" Object"));
-
-                getCursor().putMessage(MSG_RETURN_VOID, true);
-
                 // Add `return null;` if the method does not have a return statement
                 List<Statement> statements = md.getBody().getStatements();
                 if (statements.isEmpty() || !(statements.get(statements.size() - 1) instanceof J.Return)) {
@@ -73,6 +69,8 @@ public class BeanMethodReturnNull extends Recipe {
                       .build()
                       .apply(updateCursor(md), md.getBody().getCoordinates().lastStatement());
                 }
+
+                getCursor().putMessage(MSG_RETURN_VOID, true);
             }
 
             return super.visitMethodDeclaration(md, ctx);

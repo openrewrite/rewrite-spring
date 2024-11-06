@@ -36,25 +36,25 @@ public class BeanMethodReturnVoidTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Bean;
 
-            public class Test {
+              public class Test {
 
-                @Bean
-                public void myBean() {
-                }
-            }
-        """, """
-            import org.springframework.context.annotation.Bean;
+                  @Bean
+                  public void myBean() {
+                  }
+              }
+              """, """
+              import org.springframework.context.annotation.Bean;
 
-            public class Test {
+              public class Test {
 
-                @Bean
-                public Object myBean() {
-                    return null;
-                }
-            }
-            """)
+                  @Bean
+                  public Object myBean() {
+                      return null;
+                  }
+              }
+              """)
         );
     }
 
@@ -64,44 +64,43 @@ public class BeanMethodReturnVoidTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Bean;
 
-            public class Test {
+              public class Test {
 
-                @Bean
-                public void myBean() {
-                    if (true) {
-                        return;
-                    }
-                    int i = 1;
-                    return;
-                }
+                  @Bean
+                  public void bar() {
+                      if (true) {
+                          return;
+                      }
+                      int i = 1;
+                  }
 
-                @Bean
-                public Object foo() {
-                    return "foo";
-                }
-            }
-        """, """
-            import org.springframework.context.annotation.Bean;
+                  @Bean
+                  public Object foo() {
+                      return "foo";
+                  }
+              }
+              """, """
+              import org.springframework.context.annotation.Bean;
 
-            public class Test {
+              public class Test {
 
-                @Bean
-                public Object myBean() {
-                    if (true) {
-                        return null;
-                    }
-                    int i = 1;
-                    return null;
-                }
+                  @Bean
+                  public Object bar() {
+                      if (true) {
+                          return null;
+                      }
+                      int i = 1;
+                      return null;
+                  }
 
-                @Bean
-                public Object foo() {
-                    return "foo";
-                }
-            }
-            """)
+                  @Bean
+                  public Object foo() {
+                      return "foo";
+                  }
+              }
+              """)
         );
     }
 }
