@@ -18,7 +18,8 @@ package org.openrewrite.java.spring.boot3;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import static org.openrewrite.java.Assertions.java;
-import org.openrewrite.java.JavaParser;
+
+class BeanMethodReturnVoidTest implements RewriteTest {
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
