@@ -112,4 +112,35 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void unusedImportOfHandlerInterceptorAdapterAndHasASuperCallShouldDoNothing() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+              class MyInterceptorLike extends MySuperInterceptor {
+                  @Override
+                  public boolean test() {
+                      return super.test();
+                  }
+                  @Override
+                  public boolean test2() {
+                      return super.test();
+                  }
+              }
+
+              class MySuperInterceptor {
+                  public boolean test() {
+                      return true;
+                  }
+                  public boolean test2() {
+                      return true;
+                  }
+              }"""
+          )
+        );
+    }
 }

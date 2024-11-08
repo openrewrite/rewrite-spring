@@ -21,7 +21,6 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.RemoveImport;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
@@ -29,6 +28,9 @@ import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
 public class MigrateHandlerInterceptor extends Recipe {
+
+    public static final String HANDLER_INTERCEPTOR_ADAPTER = "org.springframework.web.servlet.handler.HandlerInterceptorAdapter";
+    public static final String HANDLER_INTERCEPTOR = "org.springframework.web.servlet.HandlerInterceptor";
 
     @Override
     public String getDisplayName() {
@@ -40,46 +42,45 @@ public class MigrateHandlerInterceptor extends Recipe {
         return "Deprecated as of 5.3 in favor of implementing `HandlerInterceptor` and/or `AsyncHandlerInterceptor`.";
     }
 
-    // It will therefore be necessary to use the interfaces of these classes, respectively org.springframework.web.servlet.HandlerInterceptor and org.springframework.web.servlet.config.annotation.WebMvcConfigurer.
-    //In order to replace these Adapter classes with interfaces you would have to:
-    //- Edit import
-    //- Replace extends <className> by implements <interfaceName>
-    //- Replace super.<MethodName> calls by <InterfaceName>.super.<MethodName>
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.web.servlet.handler.HandlerInterceptorAdapter", false), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(HANDLER_INTERCEPTOR_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                if (classDecl.getExtends() != null && TypeUtils.isOfClassType(classDecl.getExtends().getType(),
-                        "org.springframework.web.servlet.handler.HandlerInterceptorAdapter")) {
-                    cd = cd.withExtends(null);
-                    cd = cd.withImplements(singletonList(TypeTree.build("HandlerInterceptor")
-                            .withType(JavaType.buildType("org.springframework.web.servlet.HandlerInterceptor")))
-                    );
-
-                    // temporary
-                    cd = cd.getPadding().withImplements(JContainer.withElements(requireNonNull(cd.getPadding().getImplements()),
-                            ListUtils.mapFirst(cd.getPadding().getImplements().getElements(),
-                                    anImplements -> anImplements.withPrefix(Space.format(" ")))));
-
-                    maybeAddImport("org.springframework.web.servlet.HandlerInterceptor");
-                    doAfterVisit(new RemoveImport<>("org.springframework.web.servlet.handler.HandlerInterceptorAdapter", true));
-                    return autoFormat(cd, requireNonNull(cd.getImplements()).get(0), ctx, getCursor().getParentOrThrow());
+                if (cd.getExtends() == null || !TypeUtils.isOfClassType(cd.getExtends().getType(), HANDLER_INTERCEPTOR_ADAPTER)) {
+                    return cd;
                 }
-                return cd;
+
+                maybeAddImport(HANDLER_INTERCEPTOR);
+                maybeRemoveImport(HANDLER_INTERCEPTOR_ADAPTER);
+
+                cd = cd.withExtends(null);
+                cd = cd.withImplements(singletonList(TypeTree.build("HandlerInterceptor")
+                        .withType(JavaType.buildType(HANDLER_INTERCEPTOR)))
+                );
+
+                // temporary
+                cd = cd.getPadding().withImplements(JContainer.withElements(requireNonNull(cd.getPadding().getImplements()),
+                        ListUtils.mapFirst(cd.getPadding().getImplements().getElements(),
+                                anImplements -> anImplements.withPrefix(Space.format(" ")))));
+
+                return autoFormat(cd, requireNonNull(cd.getImplements()).get(0), ctx, getCursor().getParentOrThrow());
             }
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                if (method.getSelect() instanceof J.Identifier) {
-                    if ("super".equals(((J.Identifier) method.getSelect()).getSimpleName())) {
-                        return method.withSelect(TypeTree.build("HandlerInterceptor.super")
-                                .withType(JavaType.buildType("org.springframework.web.servlet.HandlerInterceptor")));
-                    }
+                J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                if (mi.getMethodType() != null &&
+                        TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR) &&
+                        mi.getSelect() instanceof J.Identifier &&
+                        "super".equals(((J.Identifier) mi.getSelect()).getSimpleName())
+                ) {
+                    return mi.withSelect(TypeTree.build("HandlerInterceptor.super")
+                            .withType(JavaType.buildType(HANDLER_INTERCEPTOR)));
+
                 }
-                return super.visitMethodInvocation(method, ctx);
+                return mi;
             }
         });
     }
