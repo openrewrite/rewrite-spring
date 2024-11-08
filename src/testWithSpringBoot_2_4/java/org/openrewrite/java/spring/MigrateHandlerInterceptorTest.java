@@ -41,9 +41,9 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
           java(
             """
               import javax.servlet.http.*;
-              
+
               import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-              
+
               class MyInterceptor extends HandlerInterceptorAdapter {
                   @Override
                   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -53,10 +53,56 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
               """,
             """
               import javax.servlet.http.*;
-              
+
               import org.springframework.web.servlet.HandlerInterceptor;
-              
+
               class MyInterceptor implements HandlerInterceptor {
+                  @Override
+                  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+                      return HandlerInterceptor.super.preHandle(request, response, handler);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doesNotReplaceInterceptorsExtendingOwnInterceptors() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import javax.servlet.http.*;
+
+              import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+              class MyInterceptor extends MySuperInterceptor {
+                  @Override
+                  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+                      return super.preHandle(request, response, handler);
+                  }
+              }
+
+              class MySuperInterceptor extends HandlerInterceptorAdapter {
+                  @Override
+                  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+                      return super.preHandle(request, response, handler);
+                  }
+              }""",
+            """
+              import javax.servlet.http.*;
+
+              import org.springframework.web.servlet.HandlerInterceptor;
+
+              class MyInterceptor extends MySuperInterceptor {
+                  @Override
+                  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+                      return super.preHandle(request, response, handler);
+                  }
+              }
+
+              class MySuperInterceptor implements HandlerInterceptor {
                   @Override
                   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
                       return HandlerInterceptor.super.preHandle(request, response, handler);
