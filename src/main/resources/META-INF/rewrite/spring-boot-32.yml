@@ -71,7 +71,7 @@ recipeList:
       groupId: org.springdoc
       artifactId: "*"
       newVersion: 2.5.x
-  - org.openrewrite.hibernate.MigrateToHibernate63
+  - org.openrewrite.hibernate.MigrateToHibernate64
   - org.openrewrite.java.spring.boot3.RelocateLauncherClasses
 
 ---
