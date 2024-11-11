@@ -24,10 +24,14 @@ import org.openrewrite.java.ChangeMethodAccessLevelVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
 
 public class BeanMethodsNotPublic extends Recipe {
+    private static final String BEAN = "org.springframework.context.annotation.Bean";
+    private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@" + BEAN);
+
     @Override
     public String getDisplayName() {
         return "Remove `public` from `@Bean` methods";
@@ -40,25 +44,16 @@ public class BeanMethodsNotPublic extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.context.annotation.Bean", false),
-                new BeanMethodsNotPublicVisitor());
-    }
-
-    private static class BeanMethodsNotPublicVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
-
-        @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-
-            if (m.getAllAnnotations().stream().anyMatch(BEAN_ANNOTATION_MATCHER::matches) &&
-                    Boolean.FALSE.equals(TypeUtils.isOverride(method.getMethodType()))) {
-                // remove public modifier and copy any associated comments to the method
-                doAfterVisit(new ChangeMethodAccessLevelVisitor<>(new MethodMatcher(method), null));
+        return Preconditions.check(new UsesType<>(BEAN, false), new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                if (service(AnnotationService.class).matches(getCursor(), BEAN_ANNOTATION_MATCHER) &&
+                    !TypeUtils.isOverride(method.getMethodType())) {
+                    // remove public modifier and copy any associated comments to the method
+                    doAfterVisit(new ChangeMethodAccessLevelVisitor<>(new MethodMatcher(method), null));
+                }
+                return super.visitMethodDeclaration(method, ctx);
             }
-
-            return m;
-        }
-
+        });
     }
 }
