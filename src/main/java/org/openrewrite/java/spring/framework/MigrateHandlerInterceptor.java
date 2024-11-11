@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,9 +72,9 @@ public class MigrateHandlerInterceptor extends Recipe {
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                 if (mi.getMethodType() != null &&
-                        TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR) &&
-                        mi.getSelect() instanceof J.Identifier &&
-                        "super".equals(((J.Identifier) mi.getSelect()).getSimpleName())
+                    TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR) &&
+                    mi.getSelect() instanceof J.Identifier &&
+                    "super".equals(((J.Identifier) mi.getSelect()).getSimpleName())
                 ) {
                     return mi.withSelect(TypeTree.build("HandlerInterceptor.super")
                             .withType(JavaType.buildType(HANDLER_INTERCEPTOR)));

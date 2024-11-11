@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,8 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
                   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
                       return super.preHandle(request, response, handler);
                   }
-              }""",
+              }
+              """,
             """
               import javax.servlet.http.*;
 
