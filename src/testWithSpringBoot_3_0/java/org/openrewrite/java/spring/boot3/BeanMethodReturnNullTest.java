@@ -17,13 +17,13 @@ package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import static org.openrewrite.java.Assertions.java;
-
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-public class BeanMethodReturnVoidTest implements RewriteTest {
+import static org.openrewrite.java.Assertions.java;
+
+class BeanMethodReturnNullTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new BeanMethodReturnNull())
@@ -39,69 +39,109 @@ public class BeanMethodReturnVoidTest implements RewriteTest {
             """
               import org.springframework.context.annotation.Bean;
 
-              public class Test {
-
+              class Test {
                   @Bean
                   public void myBean() {
                   }
               }
-              """, """
+              """,
+            """
               import org.springframework.context.annotation.Bean;
 
-              public class Test {
-
+              class Test {
                   @Bean
                   public Object myBean() {
                       return null;
                   }
               }
-              """)
+              """
+          )
         );
     }
 
     @Test
-    void transformAllReturn() {
+    void transformEachReturnInMethod() {
         // language=java
         rewriteRun(
           java(
             """
               import org.springframework.context.annotation.Bean;
 
-              public class Test {
-
+              class Test {
                   @Bean
                   public void bar() {
                       if (true) {
                           return;
+                      } else {
+                          return;
                       }
                       int i = 1;
                   }
-
-                  @Bean
-                  public Object foo() {
-                      return "foo";
-                  }
               }
-              """, """
+              """,
+            """
               import org.springframework.context.annotation.Bean;
 
-              public class Test {
-
+              class Test {
                   @Bean
                   public Object bar() {
                       if (true) {
+                          return null;
+                      } else {
                           return null;
                       }
                       int i = 1;
                       return null;
                   }
+              }
+              """
+          )
+        );
+    }
 
+    @Test
+    void doNotTransformNestedReturn() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              class Test {
                   @Bean
-                  public Object foo() {
-                      return "foo";
+                  public void myBean() {
+                      Runnable r1 = () -> {
+                          return;
+                      };
+                      Runnable r2 = new Runnable() {
+                          @Override
+                          public void run() {
+                              return;
+                          }
+                      };
                   }
               }
-              """)
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+
+              class Test {
+                  @Bean
+                  public Object myBean() {
+                      Runnable r1 = () -> {
+                          return;
+                      };
+                      Runnable r2 = new Runnable() {
+                          @Override
+                          public void run() {
+                              return;
+                          }
+                      };
+                      return null;
+                  }
+              }
+              """
+          )
         );
     }
 }

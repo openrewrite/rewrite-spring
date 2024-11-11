@@ -23,73 +23,71 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeTree;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.service.AnnotationService;
+import org.openrewrite.java.tree.*;
 
 import java.util.List;
 
 public class BeanMethodReturnNull extends Recipe {
-    protected static final String BEAN_ANNOTATION_FQN = "org.springframework.context.annotation.Bean";
-    protected static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
+    private static final String BEAN_ANNOTATION_FQN = "org.springframework.context.annotation.Bean";
+    private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@" + BEAN_ANNOTATION_FQN);
     private static final String MSG_RETURN_VOID = "RETURN_VOID";
 
     @Override
     public String getDisplayName() {
-        return "Make all @Bean method to return non-void (null)";
+        return "`@Bean` methods may not return `void`";
     }
 
     @Override
     public String getDescription() {
-        return "Make all @Bean method to return non-void (null).";
+        return "Make `@Bean` methods return `Object` instead of `void`.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(BEAN_ANNOTATION_FQN, false),
-          new BeanMethodReturnVoidVisitor());
-    }
+        return Preconditions.check(new UsesType<>(BEAN_ANNOTATION_FQN, false), new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
+                // When the method is annotated with @Bean and it is not an override method
+                if (service(AnnotationService.class).matches(getCursor(), BEAN_ANNOTATION_MATCHER) &&
+                    !TypeUtils.isOverride(md.getMethodType()) &&
+                    md.getReturnTypeExpression() != null && md.getReturnTypeExpression().getType() == JavaType.Primitive.Void) {
+                    md = md.withReturnTypeExpression(TypeTree.build("Object")
+                            .withType(JavaType.buildType("java.lang.Object"))
+                            .withPrefix(md.getReturnTypeExpression().getPrefix()));
 
-    private static class BeanMethodReturnVoidVisitor extends JavaIsoVisitor<ExecutionContext> {
-        @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
-            // When the method is annotated with @Bean and it is not an override method
-            if (md.getAllAnnotations().stream().anyMatch(BEAN_ANNOTATION_MATCHER::matches) &&
-              !TypeUtils.isOverride(md.getMethodType()) &&
-              md.getReturnTypeExpression() != null && md.getReturnTypeExpression().getType() == JavaType.Primitive.Void
-            ) {
-                md = md.withReturnTypeExpression(TypeTree.build(" Object"));
-                // Add `return null;` if the method does not have a return statement
-                List<Statement> statements = md.getBody().getStatements();
-                if (statements.isEmpty() || !(statements.get(statements.size() - 1) instanceof J.Return)) {
-                    md = JavaTemplate.builder("return null;")
-                      .contextSensitive()
-                      .build()
-                      .apply(updateCursor(md), md.getBody().getCoordinates().lastStatement());
+                    // Add `return null;` if the method does not have a return statement
+                    List<Statement> statements = md.getBody().getStatements();
+                    if (statements.isEmpty() || !(statements.get(statements.size() - 1) instanceof J.Return)) {
+                        md = JavaTemplate.apply("return null;", updateCursor(md), md.getBody().getCoordinates().lastStatement());
+                    }
+
+                    getCursor().putMessage(MSG_RETURN_VOID, true);
                 }
 
-                getCursor().putMessage(MSG_RETURN_VOID, true);
+                return super.visitMethodDeclaration(md, ctx);
             }
 
-            return super.visitMethodDeclaration(md, ctx);
-        }
-
-        // Change `return;` to `return null;`
-        @Override
-        public J.Return visitReturn(J.Return _return, ExecutionContext ctx) {
-            if (_return.getExpression() == null) {
-                boolean isReturnVoid = Boolean.TRUE.equals(getCursor().getNearestMessage(MSG_RETURN_VOID));
-                if (isReturnVoid) {
-                    _return = JavaTemplate.builder("return null;")
-                      .contextSensitive()
-                      .build()
-                      .apply(updateCursor(_return), _return.getCoordinates().replace());
+            // Change `return;` to `return null;`
+            @Override
+            public J.Return visitReturn(J.Return _return, ExecutionContext ctx) {
+                if (_return.getExpression() == null && getCursor().getNearestMessage(MSG_RETURN_VOID, false)) {
+                    return JavaTemplate.apply("return null;", getCursor(), _return.getCoordinates().replace());
                 }
+                return super.visitReturn(_return, ctx);
             }
-            return super.visitReturn(_return, ctx);
-        }
+
+            // Do not traverse down into lambda and new class to avoid adding `return null;` there
+            @Override
+            public J.Lambda visitLambda(J.Lambda lambda, ExecutionContext ctx) {
+                return lambda;
+            }
+
+            @Override
+            public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
+                return newClass;
+            }
+        });
     }
 }
 
