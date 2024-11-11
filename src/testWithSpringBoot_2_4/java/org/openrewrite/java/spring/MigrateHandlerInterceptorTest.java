@@ -17,6 +17,7 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.framework.MigrateHandlerInterceptor;
 import org.openrewrite.test.RecipeSpec;
@@ -67,22 +68,17 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/620")
     @Test
     void doesNotReplaceInterceptorsExtendingOwnInterceptors() {
         //language=java
         rewriteRun(
+          // Do change classes that directly extend HandlerInterceptorAdapter
           java(
             """
               import javax.servlet.http.*;
 
               import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
-              class MyInterceptor extends MySuperInterceptor {
-                  @Override
-                  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-                      return super.preHandle(request, response, handler);
-                  }
-              }
 
               class MySuperInterceptor extends HandlerInterceptorAdapter {
                   @Override
@@ -96,13 +92,6 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
 
               import org.springframework.web.servlet.HandlerInterceptor;
 
-              class MyInterceptor extends MySuperInterceptor {
-                  @Override
-                  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-                      return super.preHandle(request, response, handler);
-                  }
-              }
-
               class MySuperInterceptor implements HandlerInterceptor {
                   @Override
                   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -110,37 +99,21 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
                   }
               }
               """
-          )
-        );
-    }
-
-    @Test
-    void unusedImportOfHandlerInterceptorAdapterAndHasASuperCallShouldDoNothing() {
-        //language=java
-        rewriteRun(
+          ),
+          // But do not change classes that transitively extend HandlerInterceptorAdapter
           java(
             """
-              import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+              import javax.servlet.http.*;
 
-              class MyInterceptorLike extends MySuperInterceptor {
+              import org.springframework.web.servlet.handler.HandlerInterceptorAdapter; // Unused but untouched
+
+              class MyInterceptor extends MySuperInterceptor {
                   @Override
-                  public boolean test() {
-                      return super.test();
-                  }
-                  @Override
-                  public boolean test2() {
-                      return super.test();
+                  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+                      return super.preHandle(request, response, handler);
                   }
               }
-
-              class MySuperInterceptor {
-                  public boolean test() {
-                      return true;
-                  }
-                  public boolean test2() {
-                      return true;
-                  }
-              }"""
+              """
           )
         );
     }
