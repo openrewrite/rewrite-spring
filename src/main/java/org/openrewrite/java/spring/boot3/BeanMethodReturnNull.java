@@ -50,17 +50,19 @@ public class BeanMethodReturnNull extends Recipe {
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
                 // When the method is annotated with @Bean and it is not an override method
                 if (service(AnnotationService.class).matches(getCursor(), BEAN_ANNOTATION_MATCHER) &&
-                    !TypeUtils.isOverride(md.getMethodType()) &&
+                    !TypeUtils.isOverride(md.getMethodType()) && md.getBody() != null &&
                     md.getReturnTypeExpression() != null && md.getReturnTypeExpression().getType() == JavaType.Primitive.Void) {
-                    md = md.withReturnTypeExpression(TypeTree.build("Object")
-                            .withType(JavaType.buildType("java.lang.Object"))
-                            .withPrefix(md.getReturnTypeExpression().getPrefix()));
 
                     // Add `return null;` if the method does not have a return statement
                     List<Statement> statements = md.getBody().getStatements();
                     if (statements.isEmpty() || !(statements.get(statements.size() - 1) instanceof J.Return)) {
                         md = JavaTemplate.apply("return null;", updateCursor(md), md.getBody().getCoordinates().lastStatement());
                     }
+
+                    // Change the return type to `Object`
+                    md = md.withReturnTypeExpression(TypeTree.build("Object")
+                            .withType(JavaType.buildType("java.lang.Object"))
+                            .withPrefix(md.getReturnTypeExpression().getPrefix()));
 
                     getCursor().putMessage(MSG_RETURN_VOID, true);
                 }
@@ -90,4 +92,3 @@ public class BeanMethodReturnNull extends Recipe {
         });
     }
 }
-
