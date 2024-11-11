@@ -183,3 +183,4 @@ recipeList:
   - org.openrewrite.java.spring.NoAutowiredOnConstructor
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
   - org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
+  - org.openrewrite.java.spring.framework.BeanMethodsNotPublic
