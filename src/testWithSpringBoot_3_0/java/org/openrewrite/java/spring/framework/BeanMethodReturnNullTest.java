@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.boot3;
+package org.openrewrite.java.spring.framework;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;

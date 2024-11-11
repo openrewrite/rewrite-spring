@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring;
+package org.openrewrite.java.spring.framework;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.Issue;
@@ -46,21 +46,21 @@ class BeanMethodsNotPublicTest implements RewriteTest {
               import a.b.c.DataSource;
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Primary;
-                            
+
               public class DatabaseConfiguration {
-                            
+
                   // primary comments
                   @Primary
                   @Bean
                   public DataSource dataSource() {
                       return new DataSource();
                   }
-                  
+
                   @Bean // comments
                   public final DataSource dataSource2() {
                       return new DataSource();
                   }
-                  
+
                   @Bean
                   // comments
                   public static DataSource dataSource3() {
@@ -72,21 +72,21 @@ class BeanMethodsNotPublicTest implements RewriteTest {
               import a.b.c.DataSource;
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Primary;
-                            
+
               public class DatabaseConfiguration {
-                            
+
                   // primary comments
                   @Primary
                   @Bean
                   DataSource dataSource() {
                       return new DataSource();
                   }
-                  
+
                   @Bean // comments
                   final DataSource dataSource2() {
                       return new DataSource();
                   }
-                  
+
                   @Bean // comments
                   static DataSource dataSource3() {
                       return new DataSource();
@@ -119,7 +119,7 @@ class BeanMethodsNotPublicTest implements RewriteTest {
           java(
             """
               import org.springframework.context.annotation.Bean;
-                            
+
               public class PublicBeans extends B implements A {
                   @Bean
                   public void a() {}
