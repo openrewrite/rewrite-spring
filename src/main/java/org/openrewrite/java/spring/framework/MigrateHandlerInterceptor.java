@@ -31,8 +31,8 @@ import static java.util.Objects.requireNonNull;
 
 public class MigrateHandlerInterceptor extends Recipe {
 
-    public static final String HANDLER_INTERCEPTOR_ADAPTER = "org.springframework.web.servlet.handler.HandlerInterceptorAdapter";
-    public static final String HANDLER_INTERCEPTOR = "org.springframework.web.servlet.HandlerInterceptor";
+    private static final String HANDLER_INTERCEPTOR_ADAPTER = "org.springframework.web.servlet.handler.HandlerInterceptorAdapter";
+    private static final String HANDLER_INTERCEPTOR = "org.springframework.web.servlet.HandlerInterceptor";
 
     @Override
     public String getDisplayName() {
