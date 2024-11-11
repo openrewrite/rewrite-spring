@@ -19,10 +19,12 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeTree;
+import org.openrewrite.java.tree.TypeUtils;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -54,16 +56,9 @@ public class MigrateHandlerInterceptor extends Recipe {
 
                 maybeAddImport(HANDLER_INTERCEPTOR);
                 maybeRemoveImport(HANDLER_INTERCEPTOR_ADAPTER);
-
-                cd = cd.withExtends(null);
-                cd = cd.withImplements(singletonList(TypeTree.build("HandlerInterceptor")
-                        .withType(JavaType.buildType(HANDLER_INTERCEPTOR)))
-                );
-
-                // temporary
-                cd = cd.getPadding().withImplements(JContainer.withElements(requireNonNull(cd.getPadding().getImplements()),
-                        ListUtils.mapFirst(cd.getPadding().getImplements().getElements(),
-                                anImplements -> anImplements.withPrefix(Space.format(" ")))));
+                cd = cd.withExtends(null)
+                        .withImplements(singletonList(TypeTree.build("HandlerInterceptor")
+                                .withType(JavaType.buildType(HANDLER_INTERCEPTOR))));
 
                 return autoFormat(cd, requireNonNull(cd.getImplements()).get(0), ctx, getCursor().getParentOrThrow());
             }
@@ -74,11 +69,9 @@ public class MigrateHandlerInterceptor extends Recipe {
                 if (mi.getMethodType() != null &&
                     TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR) &&
                     mi.getSelect() instanceof J.Identifier &&
-                    "super".equals(((J.Identifier) mi.getSelect()).getSimpleName())
-                ) {
+                    "super".equals(((J.Identifier) mi.getSelect()).getSimpleName())) {
                     return mi.withSelect(TypeTree.build("HandlerInterceptor.super")
                             .withType(JavaType.buildType(HANDLER_INTERCEPTOR)));
-
                 }
                 return mi;
             }
