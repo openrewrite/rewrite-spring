@@ -135,7 +135,7 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
               }
               """
           ),
-          // And do not change any other super call when HandlerInterceptorAdapter is imported
+          // And do not change any other super call when HandlerInterceptorAdapter is used
           java(
             """
               import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -143,6 +143,7 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
               class B extends A {
                   @Override
                   public String test() {
+                      new HandlerInterceptorAdapter() {};
                       return super.test();
                   }
               }
