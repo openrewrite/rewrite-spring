@@ -15,12 +15,14 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -28,12 +30,15 @@ import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 
 public class MigrateHandlerInterceptor extends Recipe {
 
     private static final String HANDLER_INTERCEPTOR_ADAPTER = "org.springframework.web.servlet.handler.HandlerInterceptorAdapter";
-    private static final String HANDLER_INTERCEPTOR = "org.springframework.web.servlet.HandlerInterceptor";
+    private static final String HANDLER_INTERCEPTOR_INTERFACE = "org.springframework.web.servlet.HandlerInterceptor";
+
+    private static final MethodMatcher PRE_HANDLE = new MethodMatcher("org.springframework.web.servlet.HandlerInterceptor preHandle(..)");
+    private static final MethodMatcher POST_HANDLE = new MethodMatcher("org.springframework.web.servlet.HandlerInterceptor postHandle(..)");
+    private static final MethodMatcher AFTER_COMPLETION = new MethodMatcher("org.springframework.web.servlet.HandlerInterceptor afterCompletion(..)");
 
     @Override
     public String getDisplayName() {
@@ -55,28 +60,27 @@ public class MigrateHandlerInterceptor extends Recipe {
                     return cd;
                 }
 
-                maybeAddImport(HANDLER_INTERCEPTOR);
+                maybeAddImport(HANDLER_INTERCEPTOR_INTERFACE);
                 maybeRemoveImport(HANDLER_INTERCEPTOR_ADAPTER);
 
-                cd = cd.withExtends(null)
-                        .withImplements(singletonList(TypeTree.build("HandlerInterceptor")
-                                .withType(JavaType.buildType(HANDLER_INTERCEPTOR))));
-
-                return autoFormat(cd, requireNonNull(cd.getImplements()).get(0), ctx, getCursor().getParentOrThrow());
+                TypeTree implments = TypeTree.build("HandlerInterceptor")
+                        .withType(JavaType.buildType(HANDLER_INTERCEPTOR_INTERFACE));
+                cd = cd.withExtends(null).withImplements(singletonList(implments));
+                return autoFormat(cd, implments, ctx, getCursor().getParentOrThrow());
             }
 
             @Override
-            public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            public @Nullable J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (mi.getMethodType() != null &&
-                        TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR) &&
-                        mi.getSelect() instanceof J.Identifier) {
-                    if ("super".equals(((J.Identifier) mi.getSelect()).getSimpleName())) {
-                        if ("preHandle".equals(mi.getSimpleName())) {
-                            return JavaTemplate.builder("true").build().apply(getCursor(), mi.getCoordinates().replace());
-                        } else if ("postHandle".equals(mi.getSimpleName()) || "afterCompletion".equals(mi.getSimpleName())) {
-                            return null;
-                        }
+                    TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR_INTERFACE) &&
+                    mi.getSelect() instanceof J.Identifier && "super".equals(((J.Identifier) mi.getSelect()).getSimpleName())) {
+                    if (PRE_HANDLE.matches(mi)) {
+                        // No need to call super for the hardcoded `true` return value there
+                        return JavaTemplate.apply("true", getCursor(), mi.getCoordinates().replace());
+                    }
+                    if (POST_HANDLE.matches(mi) || AFTER_COMPLETION.matches(mi)) {
+                        return null; // No need to call super for empty methods there
                     }
                 }
                 return mi;
