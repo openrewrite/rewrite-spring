@@ -44,11 +44,22 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
               import javax.servlet.http.*;
 
               import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+              import org.springframework.web.servlet.ModelAndView;
 
               class MyInterceptor extends HandlerInterceptorAdapter {
                   @Override
                   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
                       return super.preHandle(request, response, handler);
+                  }
+
+                  @Override
+                  public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+                      super.postHandle(request, response, handler, modelAndView);
+                  }
+
+                  @Override
+                  public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+                      super.afterCompletion(request, response, handler, ex);
                   }
               }
               """,
@@ -56,11 +67,20 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
               import javax.servlet.http.*;
 
               import org.springframework.web.servlet.HandlerInterceptor;
+              import org.springframework.web.servlet.ModelAndView;
 
               class MyInterceptor implements HandlerInterceptor {
                   @Override
                   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-                      return HandlerInterceptor.super.preHandle(request, response, handler);
+                      return true;
+                  }
+
+                  @Override
+                  public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+                  }
+
+                  @Override
+                  public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
                   }
               }
               """
@@ -95,7 +115,7 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
               class MySuperInterceptor implements HandlerInterceptor {
                   @Override
                   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-                      return HandlerInterceptor.super.preHandle(request, response, handler);
+                      return true;
                   }
               }
               """
@@ -111,6 +131,25 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
                   @Override
                   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
                       return super.preHandle(request, response, handler);
+                  }
+              }
+              """
+          ),
+          // And do not change any other super call when HandlerInterceptorAdapter is imported
+          java(
+            """
+              import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+              class B extends A {
+                  @Override
+                  public String test() {
+                      return super.test();
+                  }
+              }
+
+              class A {
+                  public String test() {
+                      return "test";
                   }
               }
               """

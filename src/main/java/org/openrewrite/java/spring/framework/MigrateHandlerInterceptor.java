@@ -19,7 +19,8 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -46,16 +47,17 @@ public class MigrateHandlerInterceptor extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(HANDLER_INTERCEPTOR_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(HANDLER_INTERCEPTOR_ADAPTER, false), new JavaVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
+                J.ClassDeclaration cd = (J.ClassDeclaration) super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() == null || !TypeUtils.isOfClassType(cd.getExtends().getType(), HANDLER_INTERCEPTOR_ADAPTER)) {
                     return cd;
                 }
 
                 maybeAddImport(HANDLER_INTERCEPTOR);
                 maybeRemoveImport(HANDLER_INTERCEPTOR_ADAPTER);
+
                 cd = cd.withExtends(null)
                         .withImplements(singletonList(TypeTree.build("HandlerInterceptor")
                                 .withType(JavaType.buildType(HANDLER_INTERCEPTOR))));
@@ -64,14 +66,18 @@ public class MigrateHandlerInterceptor extends Recipe {
             }
 
             @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+            public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (mi.getMethodType() != null &&
-                    TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR) &&
-                    mi.getSelect() instanceof J.Identifier &&
-                    "super".equals(((J.Identifier) mi.getSelect()).getSimpleName())) {
-                    return mi.withSelect(TypeTree.build("HandlerInterceptor.super")
-                            .withType(JavaType.buildType(HANDLER_INTERCEPTOR)));
+                        TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR) &&
+                        mi.getSelect() instanceof J.Identifier) {
+                    if ("super".equals(((J.Identifier) mi.getSelect()).getSimpleName())) {
+                        if ("preHandle".equals(mi.getSimpleName())) {
+                            return JavaTemplate.builder("true").build().apply(getCursor(), mi.getCoordinates().replace());
+                        } else if ("postHandle".equals(mi.getSimpleName()) || "afterCompletion".equals(mi.getSimpleName())) {
+                            return null;
+                        }
+                    }
                 }
                 return mi;
             }
