@@ -52,3 +52,4 @@ recipeList:
       newVersion: 2.2.x
   - org.openrewrite.hibernate.MigrateToHibernate62
   - org.openrewrite.reactive.reactor.UpgradeReactor_3_5
+  - org.openrewrite.java.testing.mockito.Mockito4to5Only
