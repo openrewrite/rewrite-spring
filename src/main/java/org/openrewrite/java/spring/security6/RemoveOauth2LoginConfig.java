@@ -21,8 +21,8 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.RemoveMethodInvocationsVisitor;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.spring.RemoveMethodInvocationsVisitor;
 
 import java.time.Duration;
 import java.util.ArrayList;

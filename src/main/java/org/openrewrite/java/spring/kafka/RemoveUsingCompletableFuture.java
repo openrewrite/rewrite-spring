@@ -18,7 +18,7 @@ package org.openrewrite.java.spring.kafka;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.spring.RemoveMethodInvocationsVisitor;
+import org.openrewrite.java.RemoveMethodInvocationsVisitor;
 
 import java.util.Collections;
 
