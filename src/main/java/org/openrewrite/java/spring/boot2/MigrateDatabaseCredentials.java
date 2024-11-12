@@ -83,7 +83,7 @@ public class MigrateDatabaseCredentials extends Recipe {
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                     if (FindProperty.find(documents, "spring." + tool + ".username", true).isEmpty() &&
                             FindProperty.find(documents, "spring." + tool + ".password", true).isEmpty()) {
-                        doAfterVisit(new FindProperty("spring." + tool + ".url", true).getVisitor());
+                        doAfterVisit(new FindProperty("spring." + tool + ".url", true, null).getVisitor());
                     }
                     return documents;
                 }
