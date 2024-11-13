@@ -44,12 +44,15 @@ recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.aspectj
       artifactId: aspectjrt
+      unlessUsing: org.aspectj.lang.annotation.*
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: aopalliance
       artifactId: aopalliance
+      unlessUsing: org.aopalliance.aop.*
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: cglib
       artifactId: cglib
+      unlessUsing: net.sf.cglib.core.*
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
