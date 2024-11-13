@@ -48,6 +48,7 @@ recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: aopalliance
       artifactId: aopalliance
+      unlessUsing: org.aopalliance.aop.*
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: cglib
       artifactId: cglib
