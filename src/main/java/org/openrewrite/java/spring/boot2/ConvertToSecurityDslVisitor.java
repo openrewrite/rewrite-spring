@@ -112,15 +112,13 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (initialMethod != method && (grandParent == null || !(grandParent.getValue() instanceof J.MethodInvocation))) {
             method = autoFormat(method, executionContext);
         }
-
         return method;
     }
 
     private static String generateParamNameFromMethodName(String n) {
         int i = n.length() - 1;
         //noinspection StatementWithEmptyBody
-        for (; i >= 0 && Character.isLowerCase(n.charAt(i)); i--) {
-        }
+        for (; i >= 0 && Character.isLowerCase(n.charAt(i)); i--) {}
         if (i >= 0) {
             return StringUtils.uncapitalize(i == 0 ? n : n.substring(i));
         }
@@ -132,11 +130,11 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(paramName, paramType), chain);
         // Special case for xssProtectionEnabled method
         if (XSS_PROTECTION_ENABLED.matches(body)) {
-            if (Boolean.parseBoolean(body.getArguments().get(0).print())) {
-                // Returning null will cause issues, use `and()` as a placeholder
-                body = body.withName(body.getName().withSimpleName("and")).withArguments(null);
-            } else {
+            if (J.Literal.isLiteralValue(body.getArguments().get(0), false)) {
                 body = body.withName(body.getName().withSimpleName("disable")).withArguments(null);
+            } else {
+                // Enabled by default; but returning `null` will cause issues, so we use `and()` as a placeholder
+                body = body.withName(body.getName().withSimpleName("and")).withArguments(null);
             }
         }
         return new J.Lambda(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
