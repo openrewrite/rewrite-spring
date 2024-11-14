@@ -28,7 +28,7 @@ recipeList:
       artifactId: mongodb-driver-legacy
       version: 5.1.x
       onlyIfUsing: com.mongodb.MongoClientURI
-  - org.openrewrite.java.spring.data.RefactorSimpleMongoDbFactoryRecipe
+  - org.openrewrite.java.spring.data.RefactorSimpleMongoDbFactory
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.data.mongodb.MongoDbFactory
       newFullyQualifiedTypeName: org.springframework.data.mongodb.MongoDatabaseFactory
