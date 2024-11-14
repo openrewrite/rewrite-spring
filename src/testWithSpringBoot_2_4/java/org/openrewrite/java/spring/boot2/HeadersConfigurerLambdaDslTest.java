@@ -38,37 +38,37 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
         rewriteRun(
           java(
             """
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-@EnableWebSecurity
-public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers(headers -> headers
-                         .contentSecurityPolicy("foobar"));
-    }
-}
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers(headers -> headers
+                                       .contentSecurityPolicy("foobar"));
+                  }
+              }
               """,
             """
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-@EnableWebSecurity
-public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers(headers -> headers
-                        .contentSecurityPolicy(policy -> policy
-                                .policyDirectives("foobar")));
-    }
-}
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers(headers -> headers
+                                      .contentSecurityPolicy(policy -> policy
+                                              .policyDirectives("foobar")));
+                  }
+              }
               """
           )
         );
@@ -80,34 +80,34 @@ public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
         rewriteRun(
           java(
             """
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
-@Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-          .headers()
-          .xssProtection().xssProtectionEnabled(true);
-    }
-}
+              @Configuration
+              public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                        .headers()
+                        .xssProtection().xssProtectionEnabled(true);
+                  }
+              }
               """,
             """
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
-@Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers()
-                .xssProtection(protection -> protection.and());
-    }
-}
+              @Configuration
+              public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers()
+                              .xssProtection(protection -> protection.and());
+                  }
+              }
               """
           )
         );
@@ -119,34 +119,34 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         rewriteRun(
           java(
             """
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
-@Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-          .headers()
-          .xssProtection().xssProtectionEnabled(false);
-    }
-}
+              @Configuration
+              public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                        .headers()
+                        .xssProtection().xssProtectionEnabled(false);
+                  }
+              }
               """,
             """
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
-@Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers()
-                .xssProtection(protection -> protection.disable());
-    }
-}
+              @Configuration
+              public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers()
+                              .xssProtection(protection -> protection.disable());
+                  }
+              }
               """
           )
         );
@@ -158,37 +158,37 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         rewriteRun(
           java(
             """
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-@EnableWebSecurity
-public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers(headers -> headers
-                        .contentSecurityPolicy("foobar").reportOnly());
-    }
-}
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers(headers -> headers
+                                      .contentSecurityPolicy("foobar").reportOnly());
+                  }
+              }
               """,
             """
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-@EnableWebSecurity
-public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers(headers -> headers
-                        .contentSecurityPolicy(policy -> policy
-                                .policyDirectives("foobar").reportOnly()));
-    }
-}
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers(headers -> headers
+                                      .contentSecurityPolicy(policy -> policy
+                                              .policyDirectives("foobar").reportOnly()));
+                  }
+              }
               """
           )
         );
@@ -200,39 +200,39 @@ public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
         rewriteRun(
           java(
             """
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 
-@EnableWebSecurity
-public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers(headers -> headers
-                         .referrerPolicy(ReferrerPolicy.ORIGIN));
-    }
-}
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers(headers -> headers
+                                       .referrerPolicy(ReferrerPolicy.ORIGIN));
+                  }
+              }
               """,
             """
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 
-@EnableWebSecurity
-public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers(headers -> headers
-                        .referrerPolicy(policy -> policy
-                                .policy(ReferrerPolicy.ORIGIN)));
-    }
-}
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers(headers -> headers
+                                      .referrerPolicy(policy -> policy
+                                              .policy(ReferrerPolicy.ORIGIN)));
+                  }
+              }
               """
           )
         );
@@ -244,46 +244,46 @@ public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
         rewriteRun(
           java(
             """
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 
-@EnableWebSecurity
-public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers(headers -> headers
-                         .contentSecurityPolicy("foobar").reportOnly().and()
-                         .cacheControl().and()
-                         .referrerPolicy(ReferrerPolicy.ORIGIN));
-    }
-}
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers(headers -> headers
+                                       .contentSecurityPolicy("foobar").reportOnly().and()
+                                       .cacheControl().and()
+                                       .referrerPolicy(ReferrerPolicy.ORIGIN));
+                  }
+              }
               """,
             """
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 
-import static org.springframework.security.config.Customizer.withDefaults;
+              import static org.springframework.security.config.Customizer.withDefaults;
 
-@EnableWebSecurity
-public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
+              @EnableWebSecurity
+              public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .headers(headers -> headers
-                        .contentSecurityPolicy(policy -> policy
-                                .policyDirectives("foobar").reportOnly())
-                        .cacheControl(withDefaults())
-                        .referrerPolicy(policy -> policy
-                                .policy(ReferrerPolicy.ORIGIN)));
-    }
-}
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers(headers -> headers
+                                      .contentSecurityPolicy(policy -> policy
+                                              .policyDirectives("foobar").reportOnly())
+                                      .cacheControl(withDefaults())
+                                      .referrerPolicy(policy -> policy
+                                              .policy(ReferrerPolicy.ORIGIN)));
+                  }
+              }
               """
           )
         );
