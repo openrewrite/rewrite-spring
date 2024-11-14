@@ -59,7 +59,7 @@ public class RefactorSimpleMongoDbFactory extends Recipe {
                         return JavaTemplate
                                 .builder("new SimpleMongoClientDbFactory(#{any(java.lang.String)})")
                                 .imports(SIMPLE_MONGO_CLIENT_DB_FACTORY)
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-data-mongodb-2"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-data-mongodb-2", "mongo-java-driver"))
                                 .build()
                                 .apply(getCursor(), newClass.getCoordinates().replace(), uri);
                     }
