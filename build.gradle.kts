@@ -87,6 +87,7 @@ recipeDependencies {
     parserClasspath("org.springframework.data:spring-data-commons:1.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
+    parserClasspath("org.springframework.data:spring-data-mongodb:4.+")
 
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
@@ -146,16 +147,6 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-reactive-streams:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
-
-    annotationProcessor("org.openrewrite:rewrite-templating:$rewriteVersion")
-    compileOnly("com.google.errorprone:error_prone_core:2.+") {
-        exclude("com.google.auto.service", "auto-service-annotations")
-    }
-    implementation("org.mongodb:mongo-java-driver:3.12.+")
-    implementation("org.springframework.data:spring-data-mongodb:2.2.+"){
-        because("We only require the classes (for refaster style recipes), not the dependencies")
-        exclude(group = "org.springframework")
-    }
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
