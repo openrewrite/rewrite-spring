@@ -75,6 +75,84 @@ public class ConventionalSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Test
+    void xssProtectionEnable() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+@Configuration
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+          .headers()
+          .xssProtection().xssProtectionEnabled(true);
+    }
+}
+              """,
+            """
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+@Configuration
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .headers()
+                .xssProtection(protection -> protection.and());
+    }
+}
+              """
+          )
+        );
+    }
+
+    @Test
+    void xssProtectionDisable() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+@Configuration
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+          .headers()
+          .xssProtection().xssProtectionEnabled(false);
+    }
+}
+              """,
+            """
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+@Configuration
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .headers()
+                .xssProtection(protection -> protection.disable());
+    }
+}
+              """
+          )
+        );
+    }
+
+    @Test
     void complexContentSecurityPolicy() {
         //language=java
         rewriteRun(

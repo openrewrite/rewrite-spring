@@ -39,6 +39,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     public static final String FQN_CUSTOMIZER = "org.springframework.security.config.Customizer";
 
+    private static final MethodMatcher XSS_PROTECTION_ENABLED = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.XXssConfig xssProtectionEnabled(boolean)");
+
     private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE =
             (JavaType.ShallowClass) JavaType.buildType(FQN_CUSTOMIZER);
 
@@ -111,6 +113,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (initialMethod != method && (grandParent == null || !(grandParent.getValue() instanceof J.MethodInvocation))) {
             method = autoFormat(method, executionContext);
         }
+
         return method;
     }
 
@@ -127,6 +130,15 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private J.Lambda createLambdaParam(String paramName, JavaType paramType, List<J.MethodInvocation> chain) {
         J.Identifier param = createIdentifier(paramName, paramType);
         J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(paramName, paramType), chain);
+        // Special case for xssProtectionEnabled method
+        if (XSS_PROTECTION_ENABLED.matches(body)) {
+            if (Boolean.parseBoolean(body.getArguments().get(0).print())) {
+                // Returning null will cause issues, use `and()` as a placeholder
+                body = body.withName(body.getName().withSimpleName("and")).withArguments(null);
+            } else {
+                body = body.withName(body.getName().withSimpleName("disable")).withArguments(null);
+            }
+        }
         return new J.Lambda(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
                 new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, Collections.singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
                 Space.build(" ", Collections.emptyList()),
