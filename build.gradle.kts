@@ -87,7 +87,7 @@ recipeDependencies {
     parserClasspath("org.springframework.data:spring-data-commons:1.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
-    parserClasspath("org.springframework.data:spring-data-mongodb:4.+")
+    parserClasspath("org.springframework.data:spring-data-mongodb:2.+")
 
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
