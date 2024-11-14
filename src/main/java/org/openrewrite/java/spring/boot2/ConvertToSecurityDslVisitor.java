@@ -15,6 +15,8 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.Tree;
@@ -28,9 +30,6 @@ import org.openrewrite.marker.Markup;
 
 import java.util.*;
 
-import static java.util.Collections.emptyList;
-import static java.util.Objects.requireNonNull;
-
 public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private static final String MSG_FLATTEN_CHAIN = "http-security-dsl-flatten-invocation-chain";
@@ -42,7 +41,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private static final MethodMatcher XSS_PROTECTION_ENABLED = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.XXssConfig xssProtectionEnabled(boolean)");
 
     private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE =
-            (JavaType.ShallowClass) JavaType.buildType(FQN_CUSTOMIZER);
+      (JavaType.ShallowClass) JavaType.buildType(FQN_CUSTOMIZER);
 
     private final String securityFqn;
 
@@ -67,12 +66,12 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
-            Map<String, String> argReplacements) {
+                                       Map<String, String> argReplacements) {
         this(securityFqn, convertableMethods, argReplacements, new HashMap<>());
     }
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
-            Map<String, String> argReplacements, Map<String, String> methodRenames) {
+                                       Map<String, String> argReplacements, Map<String, String> methodRenames) {
         this.securityFqn = securityFqn;
         this.convertableMethods = convertableMethods;
         this.argReplacements = argReplacements;
@@ -85,28 +84,28 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (isApplicableMethod(method)) {
             J.MethodInvocation m = method;
             method = createDesiredReplacement(method)
-                    .map(newMethodType -> {
-                        List<J.MethodInvocation> chain = computeAndMarkChain();
-                        boolean keepArg = keepArg(m.getSimpleName());
-                        String paramName = keepArg ? "configurer" : generateParamNameFromMethodName(m.getSimpleName());
-                        return m
-                                .withMethodType(newMethodType)
-                                .withName(m.getName().withSimpleName(newMethodType.getName()))
-                                .withArguments(ListUtils.concat(
-                                                keepArg ? m.getArguments().get(0) : null,
-                                                Collections.singletonList(chain.isEmpty() ?
-                                                        createDefaultsCall() :
-                                                        createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
-                                        )
-                                );
-                    })
-                    .orElse(method);
+              .map(newMethodType -> {
+                  List<J.MethodInvocation> chain = computeAndMarkChain();
+                  boolean keepArg = keepArg(m.getSimpleName());
+                  String paramName = keepArg ? "configurer" : generateParamNameFromMethodName(m.getSimpleName());
+                  return m
+                    .withMethodType(newMethodType)
+                    .withName(m.getName().withSimpleName(newMethodType.getName()))
+                    .withArguments(ListUtils.concat(
+                        keepArg ? m.getArguments().get(0) : null,
+                        Collections.singletonList(chain.isEmpty() ?
+                          createDefaultsCall() :
+                          createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
+                      )
+                    );
+              })
+              .orElse(method);
         }
         Boolean msg = getCursor().pollMessage(MSG_FLATTEN_CHAIN);
         if (Boolean.TRUE.equals(msg)) {
             method = requireNonNull(method.getSelect())
-                    .withPrefix(method.getPrefix())
-                    .withComments(method.getComments());
+              .withPrefix(method.getPrefix())
+              .withComments(method.getComments());
         }
         // Auto-format the top invocation call if anything has changed down the tree
         Cursor grandParent = getCursor().getParent(2);
@@ -120,7 +119,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private static String generateParamNameFromMethodName(String n) {
         int i = n.length() - 1;
         //noinspection StatementWithEmptyBody
-        for (; i >= 0 && Character.isLowerCase(n.charAt(i)); i--) {}
+        for (; i >= 0 && Character.isLowerCase(n.charAt(i)); i--) {
+        }
         if (i >= 0) {
             return StringUtils.uncapitalize(i == 0 ? n : n.substring(i));
         }
@@ -140,10 +140,10 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             }
         }
         return new J.Lambda(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
-                new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, Collections.singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
-                Space.build(" ", Collections.emptyList()),
-                body,
-                JavaType.Primitive.Void
+          new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, Collections.singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
+          Space.build(" ", Collections.emptyList()),
+          body,
+          JavaType.Primitive.Void
         );
     }
 
@@ -162,8 +162,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         assert invocation != null;
         if (invocation.getMarkers().getMarkers().stream().filter(Markup.Info.class::isInstance).map(Markup.Info.class::cast).anyMatch(marker -> MSG_TOP_INVOCATION.equals(marker.getMessage()))) {
             invocation = invocation
-                    .withMarkers(invocation.getMarkers().removeByType(Markup.Info.class))
-                    .withPrefix(Space.EMPTY);
+              .withMarkers(invocation.getMarkers().removeByType(Markup.Info.class))
+              .withPrefix(Space.EMPTY);
         }
         return invocation;
     }
@@ -173,17 +173,17 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (type != null) {
             JavaType.FullyQualified declaringType = type.getDeclaringType();
             return securityFqn.equals(declaringType.getFullyQualifiedName()) &&
-                    (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
-                    convertableMethods.contains(m.getSimpleName());
+              (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
+              convertableMethods.contains(m.getSimpleName());
         }
         return false;
     }
 
     private boolean hasHandleableArg(J.MethodInvocation m) {
         return argReplacements.containsKey(m.getSimpleName()) &&
-                m.getMethodType() != null &&
-                m.getMethodType().getParameterTypes().size() == 1 &&
-                !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
+          m.getMethodType() != null &&
+          m.getMethodType().getParameterTypes().size() == 1 &&
+          !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
     }
 
     private Optional<JavaType.Method> createDesiredReplacement(J.MethodInvocation m) {
@@ -192,16 +192,16 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             return Optional.empty();
         }
         JavaType.Parameterized customizerArgType = new JavaType.Parameterized(null,
-                CUSTOMIZER_SHALLOW_TYPE, Collections.singletonList(methodType.getReturnType()));
+          CUSTOMIZER_SHALLOW_TYPE, Collections.singletonList(methodType.getReturnType()));
         boolean keepArg = keepArg(m.getSimpleName());
         List<String> paramNames = keepArg ? ListUtils.concat(methodType.getParameterNames(), "arg1") :
-                Collections.singletonList("arg0");
+          Collections.singletonList("arg0");
         List<JavaType> paramTypes = keepArg ? ListUtils.concat(methodType.getParameterTypes(), customizerArgType) :
-                Collections.singletonList(customizerArgType);
+          Collections.singletonList(customizerArgType);
         return Optional.of(methodType.withReturnType(methodType.getDeclaringType())
-                .withName(methodRenames.getOrDefault(methodType.getName(), methodType.getName()))
-                .withParameterNames(paramNames)
-                .withParameterTypes(paramTypes)
+          .withName(methodRenames.getOrDefault(methodType.getName(), methodType.getName()))
+          .withParameterNames(paramNames)
+          .withParameterTypes(paramTypes)
         );
     }
 
@@ -215,8 +215,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             return Optional.empty();
         }
         return Optional.of(
-                methodType.withName(argReplacements.get(m.getSimpleName()))
-                        .withDeclaringType((JavaType.FullyQualified) methodType.getReturnType())
+          methodType.withName(argReplacements.get(m.getSimpleName()))
+            .withDeclaringType((JavaType.FullyQualified) methodType.getReturnType())
         );
     }
 
@@ -249,8 +249,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         Cursor cursor = getCursor();
         J.MethodInvocation initialMethodInvocation = cursor.getValue();
         createDesiredReplacementForArg(initialMethodInvocation).ifPresent(methodType ->
-                chain.add(initialMethodInvocation.withName(
-                        initialMethodInvocation.getName().withType(methodType).withSimpleName(methodType.getName()))));
+          chain.add(initialMethodInvocation.withName(
+            initialMethodInvocation.getName().withType(methodType).withSimpleName(methodType.getName()))));
         cursor = cursor.getParent(2);
         for (; isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
             cursor.putMessage(MSG_FLATTEN_CHAIN, true);
@@ -280,8 +280,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private boolean isAndMethod(J.MethodInvocation method) {
         return "and".equals(method.getSimpleName()) &&
-                (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty) &&
-                TypeUtils.isAssignableTo(securityFqn, method.getType());
+          (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty) &&
+          TypeUtils.isAssignableTo(securityFqn, method.getType());
     }
 
     private boolean isDisableMethod(J.MethodInvocation method) {
@@ -290,13 +290,13 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private J.MethodInvocation createDefaultsCall() {
         JavaType.Method methodType = new JavaType.Method(null, 9, CUSTOMIZER_SHALLOW_TYPE, "withDefaults",
-                new JavaType.GenericTypeVariable(null, "T", JavaType.GenericTypeVariable.Variance.INVARIANT, null),
-                null, null, null, null);
+          new JavaType.GenericTypeVariable(null, "T", JavaType.GenericTypeVariable.Variance.INVARIANT, null),
+          null, null, null, null);
         maybeAddImport(methodType.getDeclaringType().getFullyQualifiedName(), methodType.getName());
         return new J.MethodInvocation(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, null,
-                new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), "withDefaults", null, null),
-                JContainer.empty(), methodType)
-                .withSelect(null);
+          new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), "withDefaults", null, null),
+          JContainer.empty(), methodType)
+          .withSelect(null);
     }
 
 }
