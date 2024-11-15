@@ -34,16 +34,14 @@ import static java.util.Objects.requireNonNull;
 public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private static final String MSG_FLATTEN_CHAIN = "http-security-dsl-flatten-invocation-chain";
-
     private static final String MSG_TOP_INVOCATION = "top-method-invocation";
 
-    public static final String FQN_CUSTOMIZER = "org.springframework.security.config.Customizer";
+    private static final String FQN_CUSTOMIZER = "org.springframework.security.config.Customizer";
+    private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE = JavaType.ShallowClass.build(FQN_CUSTOMIZER);
 
-    private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE =
-            (JavaType.ShallowClass) JavaType.buildType(FQN_CUSTOMIZER);
+    private static final MethodMatcher XSS_PROTECTION_ENABLED = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.XXssConfig xssProtectionEnabled(boolean)");
 
     private final String securityFqn;
-
     private final Collection<String> convertableMethods;
 
     /**
@@ -65,12 +63,12 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
-            Map<String, String> argReplacements) {
+                                       Map<String, String> argReplacements) {
         this(securityFqn, convertableMethods, argReplacements, new HashMap<>());
     }
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
-            Map<String, String> argReplacements, Map<String, String> methodRenames) {
+                                       Map<String, String> argReplacements, Map<String, String> methodRenames) {
         this.securityFqn = securityFqn;
         this.convertableMethods = convertableMethods;
         this.argReplacements = argReplacements;
@@ -144,6 +142,14 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         J.MethodInvocation invocation = null;
         for (J.MethodInvocation inv : chain) {
             invocation = inv.withSelect(select);
+            if (XSS_PROTECTION_ENABLED.matches(invocation)) {
+                if (J.Literal.isLiteralValue(invocation.getArguments().get(0), false)) {
+                    invocation = invocation.withName(invocation.getName().withSimpleName("disable")).withArguments(null);
+                } else {
+                    // Enabled by default; but returning `null` will cause issues, so we use `and()` as a placeholder
+                    invocation = invocation.withName(invocation.getName().withSimpleName("and")).withArguments(null);
+                }
+            }
             select = invocation;
         }
         // Check if top-level invocation to remove the prefix as the prefix is space before the root call, i.e. before httpSecurity identifier. We don't want to have inside the lambda
@@ -161,17 +167,17 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (type != null) {
             JavaType.FullyQualified declaringType = type.getDeclaringType();
             return securityFqn.equals(declaringType.getFullyQualifiedName()) &&
-                    (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
-                    convertableMethods.contains(m.getSimpleName());
+                   (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
+                   convertableMethods.contains(m.getSimpleName());
         }
         return false;
     }
 
     private boolean hasHandleableArg(J.MethodInvocation m) {
         return argReplacements.containsKey(m.getSimpleName()) &&
-                m.getMethodType() != null &&
-                m.getMethodType().getParameterTypes().size() == 1 &&
-                !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
+               m.getMethodType() != null &&
+               m.getMethodType().getParameterTypes().size() == 1 &&
+               !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
     }
 
     private Optional<JavaType.Method> createDesiredReplacement(J.MethodInvocation m) {
@@ -268,8 +274,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private boolean isAndMethod(J.MethodInvocation method) {
         return "and".equals(method.getSimpleName()) &&
-                (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty) &&
-                TypeUtils.isAssignableTo(securityFqn, method.getType());
+               (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty) &&
+               TypeUtils.isAssignableTo(securityFqn, method.getType());
     }
 
     private boolean isDisableMethod(J.MethodInvocation method) {
