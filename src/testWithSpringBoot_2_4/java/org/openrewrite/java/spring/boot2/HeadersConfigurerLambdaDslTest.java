@@ -17,18 +17,26 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import static org.openrewrite.java.Assertions.java;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-
-import static org.openrewrite.java.Assertions.java;
 
 class HeadersConfigurerLambdaDslTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new HeadersConfigurerLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "tomcat-embed", "spring-core"));
+            .classpath(
+              "spring-beans",
+              "spring-context",
+              "spring-boot",
+              "spring-security-config-5.8.+",
+              "spring-security-web-5.8.+",
+              "spring-web",
+              "tomcat-embed",
+              "spring-core"
+            ));
     }
 
     @DocumentExample
@@ -145,6 +153,45 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
                       http
                               .headers()
                               .xssProtection(protection -> protection.disable());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void xssProtectionHeaderValue() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
+
+              @Configuration
+              public class WebSecurityConfig {
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                          .headers()
+                          .xssProtection()
+                          .headerValue(XXssProtectionHeaderWriter.HeaderValue.DISABLED);
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
+
+              @Configuration
+              public class WebSecurityConfig {
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                              .headers()
+                              .xssProtection(protection -> protection
+                                      .headerValue(XXssProtectionHeaderWriter.HeaderValue.DISABLED));
                   }
               }
               """
