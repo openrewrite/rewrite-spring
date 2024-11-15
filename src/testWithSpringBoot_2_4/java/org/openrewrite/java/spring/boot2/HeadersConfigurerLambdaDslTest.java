@@ -176,6 +176,7 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
                       http
                           .headers()
                           .xssProtection()
+                          .xssProtectionEnabled(true)
                           .headerValue(XXssProtectionHeaderWriter.HeaderValue.DISABLED);
                   }
               }
@@ -191,6 +192,7 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
                       http
                               .headers()
                               .xssProtection(protection -> protection
+                                      .and()
                                       .headerValue(XXssProtectionHeaderWriter.HeaderValue.DISABLED));
                   }
               }

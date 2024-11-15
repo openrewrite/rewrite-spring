@@ -129,14 +129,14 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         J.Identifier param = createIdentifier(paramName, paramType);
         J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(paramName, paramType), chain);
         // Special case for xssProtectionEnabled method
-        if (XSS_PROTECTION_ENABLED.matches(body)) {
-            if (J.Literal.isLiteralValue(body.getArguments().get(0), false)) {
-                body = body.withName(body.getName().withSimpleName("disable")).withArguments(null);
-            } else {
-                // Enabled by default; but returning `null` will cause issues, so we use `and()` as a placeholder
-                body = body.withName(body.getName().withSimpleName("and")).withArguments(null);
-            }
-        }
+//        if (XSS_PROTECTION_ENABLED.matches(body)) {
+//            if (J.Literal.isLiteralValue(body.getArguments().get(0), false)) {
+//                body = body.withName(body.getName().withSimpleName("disable")).withArguments(null);
+//            } else {
+//                // Enabled by default; but returning `null` will cause issues, so we use `and()` as a placeholder
+//                body = body.withName(body.getName().withSimpleName("and")).withArguments(null);
+//            }
+//        }
         return new J.Lambda(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
                 new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, Collections.singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
                 Space.build(" ", Collections.emptyList()),
@@ -154,6 +154,14 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         J.MethodInvocation invocation = null;
         for (J.MethodInvocation inv : chain) {
             invocation = inv.withSelect(select);
+            if (XSS_PROTECTION_ENABLED.matches(invocation)) {
+                if (J.Literal.isLiteralValue(invocation.getArguments().get(0), false)) {
+                    invocation = invocation.withName(invocation.getName().withSimpleName("disable")).withArguments(null);
+                } else {
+                    // Enabled by default; but returning `null` will cause issues, so we use `and()` as a placeholder
+                    invocation = invocation.withName(invocation.getName().withSimpleName("and")).withArguments(null);
+                }
+            }
             select = invocation;
         }
         // Check if top-level invocation to remove the prefix as the prefix is space before the root call, i.e. before httpSecurity identifier. We don't want to have inside the lambda
