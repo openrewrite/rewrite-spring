@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+
 import static org.openrewrite.java.Assertions.java;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
