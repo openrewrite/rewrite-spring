@@ -37,10 +37,6 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-maven-plugin
       newVersion: 3.4.x
-#  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
-#      groupId: org.springframework
-#      artifactId: "*"
-#      newVersion: 6.2.x    <- Does not exist yet, but probably required?
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent

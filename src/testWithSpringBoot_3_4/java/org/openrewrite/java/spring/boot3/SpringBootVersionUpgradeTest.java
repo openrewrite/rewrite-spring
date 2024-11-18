@@ -21,11 +21,13 @@ import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.regex.Pattern;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class SpringCloudVersionUpgradeTest implements RewriteTest {
+class SpringBootVersionUpgradeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -40,7 +42,7 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
 
     @Test
     @DocumentExample
-    void upgradeSpringCloudVersion() {
+    void upgradeVersion() {
         rewriteRun(
           mavenProject("project",
             //language=xml
@@ -58,27 +60,10 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
                         <version>2.2.2.RELEASE</version>
                         <relativePath/>
                     </parent>
-                    <properties>
-                        <java.version>11</java.version>
-                        <spring-cloud.version>Hoxton.SR9</spring-cloud.version>
-                        <mockito.version>2.18.3</mockito.version>
-                    </properties>
-                    <dependencyManagement>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.springframework.cloud</groupId>
-                                <artifactId>spring-cloud-dependencies</artifactId>
-                                <version>${spring-cloud.version}</version>
-                                <type>pom</type>
-                                <scope>import</scope>
-                            </dependency>
-                        </dependencies>
-                    </dependencyManagement>
                 </project>
                 """,
               spec -> spec.after(actual -> {
-                  assertThat(actual).containsPattern("<version>3.4.\\d+</version>");
-                  assertThat(actual).containsPattern("<spring-cloud.version>2023.0.\\d+</spring-cloud.version>");
+                  assertThat(actual).containsPattern("<version>3.3.\\d+</version>");
                   return actual;
               })
             )
