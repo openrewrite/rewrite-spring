@@ -915,5 +915,115 @@ class RenameBeanTest implements RewriteTest {
               )
             );
         }
+
+        @Test
+        void renamesMethodDeclarationAndUsageInOtherFile() {
+            rewriteRun(
+              spec -> spec.recipe(new RenameBean(null, "beanMethod", "newBeanMethod")),
+              java(
+                """
+                package sample;
+
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+
+                @Configuration
+                public class TestConfiguration {
+
+                    @Bean
+                    public void beanMethod() {
+                    }
+                }
+                """, """
+                package sample;
+
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+
+                @Configuration
+                public class TestConfiguration {
+
+                    @Bean
+                    public void newBeanMethod() {
+                    }
+                }
+                  """
+              ),
+              java("""
+                package sample;
+
+                public class TestClass {
+
+                    TestConfiguration testConfig;
+
+                    void testMethod() {
+                        testConfig.beanMethod();
+                    }
+                }
+                """, """
+                package sample;
+
+                public class TestClass {
+
+                    TestConfiguration testConfig;
+
+                    void testMethod() {
+                        testConfig.newBeanMethod();
+                    }
+                }
+                """
+              )
+            );
+        }
+
+        @Test
+        void renamesClassBeanUsagesInOtherFiles() {
+            rewriteRun(
+              spec -> spec.recipe(new RenameBean(null, "testConfiguration", "newTestConfiguration")),
+              java(
+                """
+                package sample;
+
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+
+                @Configuration
+                public class TestConfiguration {
+                }
+                """, """
+                package sample;
+
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+
+                @Configuration
+                public class NewTestConfiguration {
+                }
+                """
+              ), java("""
+                package sample;
+
+                import org.springframework.beans.factory.annotation.Autowired;
+                import org.springframework.stereotype.Service;
+
+                @Service
+                public class MyClass {
+                  @Autowired
+                  TestConfiguration testConfig;
+                }
+                """, """
+                package sample;
+
+                import org.springframework.beans.factory.annotation.Autowired;
+                import org.springframework.stereotype.Service;
+
+                @Service
+                public class MyClass {
+                  @Autowired
+                  NewTestConfiguration testConfig;
+                }
+                """)
+            );
+        }
     }
 }
