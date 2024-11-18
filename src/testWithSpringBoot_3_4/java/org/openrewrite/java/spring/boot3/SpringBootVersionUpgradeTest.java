@@ -30,7 +30,6 @@ class SpringBootVersionUpgradeTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .expectedCyclesThatMakeChanges(2)
           .recipe(Environment.builder()
             .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
