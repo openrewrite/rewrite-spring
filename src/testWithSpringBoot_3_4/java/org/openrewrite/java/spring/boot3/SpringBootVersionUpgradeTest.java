@@ -60,7 +60,7 @@ class SpringBootVersionUpgradeTest implements RewriteTest {
                 </project>
                 """,
               spec -> spec.after(actual -> {
-                  assertThat(actual).containsPattern("<version>3.3.\\d+</version>");
+                  assertThat(actual).containsPattern("<version>3.[34].\\d+</version>");
                   return actual;
               })
             )
