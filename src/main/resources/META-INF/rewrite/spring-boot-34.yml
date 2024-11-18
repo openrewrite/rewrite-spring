@@ -15,49 +15,36 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
-displayName: Migrate to Spring Boot 3.3
+name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4
+displayName: Migrate to Spring Boot 3.4
 description: >-
-  Migrate applications to the latest Spring Boot 3.3 release. This recipe will modify an
+  Migrate applications to the latest Spring Boot 3.4 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
-  etc) that are required as part of the migration to Spring Boot 3.2.
+  etc) that are required as part of the migration to Spring Boot 3.3.
 tags:
   - spring
   - boot
 recipeList:
-  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2
-  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_3
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
+  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_4
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
-      newVersion: 3.3.x
+      newVersion: 3.4.x
       overrideManagedVersion: false
   - org.openrewrite.maven.UpgradePluginVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-maven-plugin
-      newVersion: 3.3.x
-  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
-      groupId: org.springframework
-      artifactId: "*"
-      newVersion: 6.1.x
+      newVersion: 3.4.x
+#  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+#      groupId: org.springframework
+#      artifactId: "*"
+#      newVersion: 6.2.x    <- Does not exist yet, but probably required?
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
-      newVersion: 3.3.x
+      newVersion: 3.4.x
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
-      newVersion: 3.3.x
-  - org.openrewrite.micrometer.UpgradeMicrometer_1_13
-  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
-      pluginIdPattern: org.graalvm.buildtools.native
-      newVersion: 0.10.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: com.datastax.oss
-      newGroupId: org.apache.cassandra
-      oldArtifactId: "*"
-  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
-      groupId: org.springdoc
-      artifactId: "*"
-      newVersion: 2.6.x
-  - org.openrewrite.hibernate.MigrateToHibernate65
+      newVersion: 3.4.x
