@@ -27,5 +27,5 @@ recipeList:
       groupId: org.springframework
       artifactId: "*"
       newVersion: 6.1.x
-  - org.openrewrite.java.migrate.RemoveMethodInvocation:
+  - org.openrewrite.java.RemoveMethodInvocations:
       methodPattern: org.springframework.http.client.SimpleClientHttpRequestFactory setOutputStreaming(boolean)
