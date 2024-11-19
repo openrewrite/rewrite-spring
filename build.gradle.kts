@@ -87,6 +87,8 @@ recipeDependencies {
     parserClasspath("org.springframework.data:spring-data-commons:1.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
+    parserClasspath("org.springframework.data:spring-data-mongodb:2.2.+")
+    parserClasspath("org.mongodb:mongo-java-driver:3.12.+")
 
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.+")
@@ -133,7 +135,6 @@ dependencies {
     implementation("org.openrewrite:rewrite-yaml")
     implementation("org.openrewrite:rewrite-gradle")
     implementation("org.openrewrite:rewrite-maven")
-    implementation("org.openrewrite:rewrite-templating:$rewriteVersion")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
@@ -146,16 +147,6 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-reactive-streams:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
-
-    annotationProcessor("org.openrewrite:rewrite-templating:$rewriteVersion")
-    compileOnly("com.google.errorprone:error_prone_core:2.+") {
-        exclude("com.google.auto.service", "auto-service-annotations")
-    }
-    implementation("org.mongodb:mongo-java-driver:3.12.+")
-    implementation("org.springframework.data:spring-data-mongodb:2.2.+"){
-        because("We only require the classes (for refaster style recipes), not the dependencies")
-        exclude(group = "org.springframework")
-    }
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
@@ -209,7 +200,9 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-core:5.5.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-config:5.5.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-config:5.8.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-web:5.5.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-web:5.8.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-ldap:5.5.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-oauth2-client:5.5.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-oauth2-resource-server:5.5.+")
