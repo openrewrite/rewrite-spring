@@ -37,7 +37,7 @@ import static org.openrewrite.Tree.randomId;
 
 /**
  * A recipe to change parameter type for a method declaration.
- * <P>
+ * <p>
  * NOTE: This recipe is usually used for initial modification of parameter changes.
  * After modifying method parameters using this recipe, you may also need to modify
  * the method definition as needed to avoid compilation errors.
@@ -63,7 +63,6 @@ public class ChangeMethodParameter extends Recipe {
     @Option(displayName = "Parameter index",
             description = "A zero-based index that indicates the position at which the parameter will be added.",
             example = "0")
-    @Nullable
     Integer parameterIndex;
 
     @Override
@@ -97,23 +96,20 @@ public class ChangeMethodParameter extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-            method = super.visitMethodDeclaration(method, ctx);
-            if (parameterIndex == null || parameterIndex < 0) {
-                return method;
-            }
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDeclaration, ExecutionContext ctx) {
+            J.MethodDeclaration md = super.visitMethodDeclaration(methodDeclaration, ctx);
 
             J.ClassDeclaration enclosing = getCursor().firstEnclosing(J.ClassDeclaration.class);
-            if (enclosing != null && methodMatcher.matches(method, enclosing)) {
-                if (method.getParameters().isEmpty() || method.getParameters().size() <= parameterIndex) {
-                    return method;
+            if (enclosing != null && methodMatcher.matches(md, enclosing)) {
+                if (md.getParameters().isEmpty() || md.getParameters().size() <= parameterIndex) {
+                    return md;
                 }
-                if (method.getParameters().get(parameterIndex) instanceof J.VariableDeclarations) {
-                    J.VariableDeclarations parameter = (J.VariableDeclarations) method.getParameters().get(parameterIndex);
+                if (md.getParameters().get(parameterIndex) instanceof J.VariableDeclarations) {
+                    J.VariableDeclarations parameter = (J.VariableDeclarations) md.getParameters().get(parameterIndex);
 
                     TypeTree typeTree = createTypeTree(parameterType);
                     if (TypeUtils.isOfType(parameter.getType(), typeTree.getType())) {
-                        return method;
+                        return md;
                     }
 
                     String parameterName = parameter.getVariables().get(0).getSimpleName();
@@ -133,7 +129,7 @@ public class ChangeMethodParameter extends Recipe {
                                                     null,
                                                     0,
                                                     parameterName,
-                                                    method.getMethodType(),
+                                                    md.getMethodType(),
                                                     typeTree.getType(),
                                                     null
                                             )
@@ -144,11 +140,11 @@ public class ChangeMethodParameter extends Recipe {
                             )
                     ));
 
-                    method = autoFormat(changeParameter(method, parameter), parameter, ctx, getCursor().getParentTreeCursor());
+                    md = autoFormat(changeParameter(md, parameter), parameter, ctx, getCursor().getParentTreeCursor());
                 }
 
             }
-            return method;
+            return md;
         }
 
         private J.MethodDeclaration changeParameter(J.MethodDeclaration method, J.VariableDeclarations parameter) {

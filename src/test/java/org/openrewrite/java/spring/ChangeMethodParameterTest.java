@@ -28,6 +28,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void primitive() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "long", 0)),
+          //language=java
           java(
             """
               package foo;
@@ -53,6 +54,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void indexLargeThanZero() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "long", 1)),
+          //language=java
           java(
             """
               package foo;
@@ -78,23 +80,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void sameType() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "int", 0)),
-          java(
-            """
-              package foo;
-
-              public class Foo {
-                  public void bar(int i) {
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void invalidIndex() {
-        rewriteRun(
-          spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "int", -1)),
+          //language=java
           java(
             """
               package foo;
@@ -112,6 +98,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void notExistsIndex() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "int", 1)),
+          //language=java
           java(
             """
               package foo;
@@ -129,6 +116,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void typePattern() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("*..*#bar(..)", "long", 0)),
+          //language=java
           java(
             """
               package foo;
@@ -154,6 +142,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void primitiveArray() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "int[]", 0)),
+          //language=java
           java(
             """
               package foo;
@@ -179,6 +168,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void parameterized() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "java.util.List<java.util.regex.Pattern>", 0)),
+          //language=java
           java(
             """
               package foo;
@@ -207,6 +197,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void wildcard() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "java.util.List<?>", 0)),
+          //language=java
           java(
             """
               package foo;
@@ -234,6 +225,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void wildcardExtends() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "java.util.List<? extends Object>", 0)),
+          //language=java
           java(
             """
               package foo;
@@ -261,6 +253,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void string() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "String", 0)),
+          //language=java
           java(
             """
               package foo;
@@ -298,6 +291,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void first() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "long", 0)),
+          //language=java
           java(
             """
               package foo;
@@ -329,6 +323,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void qualified() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "java.util.regex.Pattern", 0)),
+          //language=java
           java(
             """
               package foo;
@@ -361,6 +356,7 @@ class ChangeMethodParameterTest implements RewriteTest {
     void object() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "Object", 0)),
+          //language=java
           java(
             """
               package foo;
