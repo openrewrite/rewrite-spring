@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.search;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
@@ -24,7 +23,6 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-@Disabled
 class FindApiEndpointsTest implements RewriteTest {
 
     @Override
@@ -42,7 +40,7 @@ class FindApiEndpointsTest implements RewriteTest {
             """
               import org.springframework.stereotype.Controller;
               import org.springframework.web.bind.annotation.*;
-              
+
               @Controller
               class PersonController {
                   @GetMapping("/count")
@@ -54,7 +52,7 @@ class FindApiEndpointsTest implements RewriteTest {
             """
               import org.springframework.stereotype.Controller;
               import org.springframework.web.bind.annotation.*;
-              
+
               @Controller
               class PersonController {
                   /*~~(GET /count)~~>*/@GetMapping("/count")
@@ -75,7 +73,7 @@ class FindApiEndpointsTest implements RewriteTest {
           java(
             """
               import org.springframework.web.bind.annotation.*;
-              
+
               @RequestMapping("/person")
               class PersonController {
                   @GetMapping("/count")
@@ -86,7 +84,7 @@ class FindApiEndpointsTest implements RewriteTest {
               """,
             """
               import org.springframework.web.bind.annotation.*;
-              
+
               @RequestMapping("/person")
               class PersonController {
                   /*~~(GET /person/count)~~>*/@GetMapping("/count")
@@ -106,7 +104,7 @@ class FindApiEndpointsTest implements RewriteTest {
           java(
             """
               import org.springframework.web.bind.annotation.*;
-              
+
               @RequestMapping({"/person", "/people"})
               class PersonController {
                   @GetMapping({"/count", "/length"})
@@ -117,7 +115,7 @@ class FindApiEndpointsTest implements RewriteTest {
               """,
             """
               import org.springframework.web.bind.annotation.*;
-              
+
               @RequestMapping({"/person", "/people"})
               class PersonController {
                   /*~~(GET /person/count, /person/length, /people/count, /people/length)~~>*/@GetMapping({"/count", "/length"})
@@ -130,7 +128,6 @@ class FindApiEndpointsTest implements RewriteTest {
         );
     }
 
-
     @Test
     void pathDefinedOnlyOnController() {
         rewriteRun(
@@ -139,7 +136,7 @@ class FindApiEndpointsTest implements RewriteTest {
             """
               import org.springframework.stereotype.Controller;
               import org.springframework.web.bind.annotation.*;
-              
+
               @Controller
               @RequestMapping("/count")
               class PersonController {
@@ -152,7 +149,7 @@ class FindApiEndpointsTest implements RewriteTest {
             """
               import org.springframework.stereotype.Controller;
               import org.springframework.web.bind.annotation.*;
-              
+
               @Controller
               @RequestMapping("/count")
               class PersonController {
