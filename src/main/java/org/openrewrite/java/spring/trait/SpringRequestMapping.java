@@ -65,7 +65,7 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
         List<String> pathEndings = new Annotated(cursor)
                 .getDefaultAttribute(null)
                 .map(Literal::getStrings)
-                .orElse(Collections.emptyList());
+                .orElse(Collections.singletonList(""));
 
         StringBuilder result = new StringBuilder();
         for (int j = 0; j < pathPrefixes.size(); j++) {

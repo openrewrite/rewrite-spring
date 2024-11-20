@@ -129,4 +129,40 @@ class FindApiEndpointsTest implements RewriteTest {
           )
         );
     }
+
+
+    @Test
+    void pathDefinedOnlyOnController() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.stereotype.Controller;
+              import org.springframework.web.bind.annotation.*;
+              
+              @Controller
+              @RequestMapping("/count")
+              class PersonController {
+                  @GetMapping
+                  int count() {
+                    return 42;
+                  }
+              }
+              """,
+            """
+              import org.springframework.stereotype.Controller;
+              import org.springframework.web.bind.annotation.*;
+              
+              @Controller
+              @RequestMapping("/count")
+              class PersonController {
+                  /*~~(GET /count)~~>*/@GetMapping
+                  int count() {
+                    return 42;
+                  }
+              }
+              """
+          )
+        );
+    }
 }
