@@ -21,6 +21,7 @@ import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.TypeMatcher;
+import org.openrewrite.java.search.DeclaresMethod;
 import org.openrewrite.java.search.DeclaresType;
 import org.openrewrite.java.service.ImportService;
 import org.openrewrite.java.tree.*;
@@ -81,25 +82,21 @@ public class ChangeMethodParameter extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        int idx = methodPattern.indexOf('#');
-        idx = idx == -1 ? methodPattern.indexOf(' ') : idx;
-        boolean typePattern = idx != -1 && methodPattern.lastIndexOf('*', idx) != -1;
-        return Preconditions.check(typePattern ? new DeclaresMatchingType(methodPattern.substring(0, idx)) : new DeclaresType<>(methodPattern.substring(0, idx)), new ChangeMethodArgumentVisitor(methodPattern));
+        return Preconditions.check(new DeclaresMethod<>(methodPattern, true), new ChangeMethodArgumentVisitor(methodPattern));
     }
 
     private class ChangeMethodArgumentVisitor extends JavaIsoVisitor<ExecutionContext> {
         private final MethodMatcher methodMatcher;
 
         public ChangeMethodArgumentVisitor(String methodPattern) {
-            this.methodMatcher = new MethodMatcher(methodPattern);
+            this.methodMatcher = new MethodMatcher(methodPattern, true);
         }
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDeclaration, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(methodDeclaration, ctx);
 
-            J.ClassDeclaration enclosing = getCursor().firstEnclosing(J.ClassDeclaration.class);
-            if (enclosing != null && methodMatcher.matches(md, enclosing)) {
+            if (methodMatcher.matches(md.getMethodType()) && md.getBody() != null) {
                 if (md.getParameters().isEmpty() || md.getParameters().size() <= parameterIndex) {
                     return md;
                 }
@@ -244,22 +241,6 @@ public class ChangeMethodParameter extends Recipe {
                 typeTree = ((J.Identifier) typeTree).withType(JavaType.ShallowClass.build(typeName));
             }
             return typeTree;
-        }
-    }
-
-    private static class DeclaresMatchingType extends JavaIsoVisitor<ExecutionContext> {
-        private final TypeMatcher typeMatcher;
-
-        public DeclaresMatchingType(String type) {
-            this.typeMatcher = new TypeMatcher(type);
-        }
-
-        @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-            if (classDecl.getType() != null && typeMatcher.matches(classDecl.getType())) {
-                return SearchResult.found(classDecl);
-            }
-            return super.visitClassDeclaration(classDecl, ctx);
         }
     }
 }

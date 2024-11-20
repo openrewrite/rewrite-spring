@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RewriteTest;
@@ -105,6 +106,32 @@ class ChangeMethodParameterTest implements RewriteTest {
 
               public class Foo {
                   public void bar(int i) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void methodNotMatch() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "long", 0)),
+          //language=java
+          java(
+            """
+              package foo;
+
+              public class Foo {
+                  public void bar(int i) {
+                  }
+              }
+              """,
+            """
+              package foo;
+
+              public class Foo {
+                  public void bar(long i) {
                   }
               }
               """
@@ -371,6 +398,60 @@ class ChangeMethodParameterTest implements RewriteTest {
 
               public class Foo {
                   public void bar(Object i) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Language("java")
+    String b = """
+      package b;
+      public interface B {
+         boolean m(String i);
+         boolean m(String i, String j);
+      }
+      """;
+
+    @Test
+    void fromInterface() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeMethodParameter("b.B#m(String, String)", "long", 0)),
+          //language=java
+          java(b),
+          java(
+            """
+              package foo;
+
+              import b.*;
+
+              public class Foo implements B {
+                  @Override
+                  public boolean m(String i) {
+                      return true;
+                  }
+
+                  @Override
+                  public boolean m(String i, String j) {
+                      return true;
+                  }
+              }
+              """,
+            """
+              package foo;
+
+              import b.*;
+
+              public class Foo implements B {
+                  @Override
+                  public boolean m(String i) {
+                      return true;
+                  }
+
+                  @Override
+                  public boolean m(long i, String j) {
+                      return true;
                   }
               }
               """
