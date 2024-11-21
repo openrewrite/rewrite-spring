@@ -23,8 +23,10 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.J.Literal;
-import org.openrewrite.java.tree.J.MethodInvocation;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+
+import static java.util.Collections.emptyList;
 
 public class SimplifyWebTestClientCalls extends Recipe {
 
@@ -44,10 +46,10 @@ public class SimplifyWebTestClientCalls extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesMethod<>(IS_EQUAL_TO_INT_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public MethodInvocation visitMethodInvocation(MethodInvocation method, ExecutionContext ctx) {
-                MethodInvocation m = super.visitMethodInvocation(method, ctx);
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (IS_EQUAL_TO_INT_MATCHER.matches(m.getMethodType())) {
-                    int statusCode = (int) ((Literal) m.getArguments().get(0)).getValue();
+                    int statusCode = (int) ((J.Literal) m.getArguments().get(0)).getValue();
                     switch (statusCode) {
                         case 200:
                             return replaceMethod(m, "isOk()");
@@ -80,9 +82,12 @@ public class SimplifyWebTestClientCalls extends Recipe {
                 return m;
             }
 
-            private MethodInvocation replaceMethod(MethodInvocation method, String methodName) {
+            private J.MethodInvocation replaceMethod(J.MethodInvocation method, String methodName) {
                 JavaTemplate template = JavaTemplate.builder(methodName).build();
-                return template.apply(getCursor(), method.getCoordinates().replaceMethod());
+                J.MethodInvocation methodInvocation = template.apply(getCursor(), method.getCoordinates().replaceMethod());
+                JavaType.Method type = methodInvocation.getMethodType().withParameterNames(emptyList()).withParameterTypes(emptyList());
+                return methodInvocation.withArguments(emptyList()).withMethodType(type).withName(methodInvocation.getName().withType(type));
+
             }
         });
     }
