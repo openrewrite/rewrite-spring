@@ -20,25 +20,17 @@ import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.spring.table.ApiEndpoints;
 import org.openrewrite.java.spring.trait.SpringRequestMapping;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.marker.SearchResult;
 
-import java.util.List;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
-
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class FindApiEndpoints extends Recipe {
-    private static final List<AnnotationMatcher> REST_ENDPOINTS = Stream.of("Request", "Get", "Post", "Put", "Delete", "Patch")
-            .map(method -> new AnnotationMatcher("@org.springframework.web.bind.annotation." + method + "Mapping"))
-            .collect(toList());
 
     transient ApiEndpoints apis = new ApiEndpoints(this);
 
@@ -63,7 +55,7 @@ public class FindApiEndpoints extends Recipe {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
                 SpringRequestMapping.Matcher matcher = new SpringRequestMapping.Matcher();
-                for (J.Annotation annotation : m.getAllAnnotations()) {
+                for (J.Annotation annotation : service(AnnotationService.class).getAllAnnotations(getCursor())) {
                     m = matcher.get(annotation, getCursor()).map(requestMapping -> {
                         String path = requestMapping.getPath();
                         String httpMethod = requestMapping.getHttpMethod();
