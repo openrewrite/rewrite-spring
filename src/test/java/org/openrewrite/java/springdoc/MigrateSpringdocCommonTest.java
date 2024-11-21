@@ -16,8 +16,10 @@
 package org.openrewrite.java.springdoc;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import static org.openrewrite.java.Assertions.java;
-import org.openrewrite.java.JavaParser;
+
+class MigrateSpringdocCommonTest implements RewriteTest {
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -32,7 +34,8 @@ public class MigrateSpringdocCommonTest implements RewriteTest {
           ));
     }
 
-    @Test
+    @DocumentExample
+    void fixCustomiserAndGroupedOpenApi() {
     public void fixCustomiserAndGroupedOpenApi() {
         // language=java
         rewriteRun(
