@@ -127,7 +127,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(paramName, paramType), chain);
         return new J.Lambda(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
                 new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, Collections.singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
-                Space.build(" ", Collections.emptyList()),
+                Space.build(" ", emptyList()),
                 body,
                 JavaType.Primitive.Void
         );
@@ -145,9 +145,19 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             if (XSS_PROTECTION_ENABLED.matches(invocation)) {
                 if (J.Literal.isLiteralValue(invocation.getArguments().get(0), false)) {
                     invocation = invocation.withName(invocation.getName().withSimpleName("disable")).withArguments(null);
+                    JavaType.Method methodType = invocation.getMethodType();
+                    if (methodType != null) {
+                        methodType = methodType.withParameterNames(emptyList()).withParameterTypes(emptyList());
+                        invocation = invocation.withMethodType(methodType).withName(invocation.getName().withType(methodType));
+                    }
                 } else {
                     // Enabled by default; but returning `null` will cause issues, so we use `and()` as a placeholder
                     invocation = invocation.withName(invocation.getName().withSimpleName("and")).withArguments(null);
+                    JavaType.Method methodType = invocation.getMethodType();
+                    if (methodType != null) {
+                        methodType = methodType.withParameterNames(emptyList()).withParameterTypes(emptyList());
+                        invocation = invocation.withMethodType(methodType).withName(invocation.getName().withType(methodType));
+                    }
                 }
             }
             select = invocation;
@@ -261,7 +271,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             }
         }
         if (cursor == null || chain.isEmpty()) {
-            return Collections.emptyList();
+            return emptyList();
         }
         if (!(cursor.getValue() instanceof J.MethodInvocation)) {
             // top invocation is at the end of the chain - mark it. We'd need to strip off prefix from this invocation later
