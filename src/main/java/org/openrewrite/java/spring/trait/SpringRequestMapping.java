@@ -36,7 +36,9 @@ import static java.util.stream.Collectors.toList;
 @Value
 public class SpringRequestMapping implements Trait<J.Annotation> {
 
-    private static final AnnotationMatcher MAPPING_MATCHER = new AnnotationMatcher("@org.springframework.web.bind.annotation.*Mapping");
+    private static final List<AnnotationMatcher> REST_ENDPOINTS = Stream.of("Request", "Get", "Post", "Put", "Delete", "Patch")
+            .map(method -> new AnnotationMatcher("@org.springframework.web.bind.annotation." + method + "Mapping"))
+            .collect(toList());
 
     Cursor cursor;
 
@@ -54,7 +56,7 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
                 .filter(J.ClassDeclaration.class::isInstance)
                 .map(J.ClassDeclaration.class::cast)
                 .flatMap(classDecl -> classDecl.getLeadingAnnotations().stream()
-                        .filter(MAPPING_MATCHER::matches)
+                        .filter(SpringRequestMapping::hasRequestMapping)
                         .findAny()
                         .flatMap(classMapping -> new Annotated(new Cursor(null, classMapping))
                                 .getDefaultAttribute(null)
@@ -84,10 +86,18 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
         @Override
         protected @Nullable SpringRequestMapping test(Cursor cursor) {
             Object value = cursor.getValue();
-            return value instanceof J.Annotation && MAPPING_MATCHER.matches((J.Annotation) value) ?
+            return value instanceof J.Annotation && hasRequestMapping((J.Annotation) value) ?
                     new SpringRequestMapping(cursor) :
                     null;
         }
     }
 
+    private static boolean hasRequestMapping(J.Annotation ann) {
+        for (AnnotationMatcher restEndpoint : REST_ENDPOINTS) {
+            if (restEndpoint.matches(ann)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
