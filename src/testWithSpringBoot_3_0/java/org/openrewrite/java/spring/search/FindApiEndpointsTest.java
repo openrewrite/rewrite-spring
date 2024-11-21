@@ -66,6 +66,47 @@ class FindApiEndpointsTest implements RewriteTest {
     }
 
     @Test
+    void withResponseBody() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.stereotype.Controller;
+              import org.springframework.web.bind.annotation.*;
+
+              @Controller
+              class PersonController {
+                  @GetMapping("/person")
+                  @ResponseBody Person person() {
+                      return new Person();
+                  }
+              }
+
+              class Person {
+                  int age = 42;
+              }
+              """,
+            """
+              import org.springframework.stereotype.Controller;
+              import org.springframework.web.bind.annotation.*;
+
+              @Controller
+              class PersonController {
+                  /*~~(GET /person)~~>*/@GetMapping("/person")
+                  @ResponseBody Person person() {
+                      return new Person();
+                  }
+              }
+
+              class Person {
+                  int age = 42;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     @DocumentExample
     void webClient() {
         rewriteRun(
