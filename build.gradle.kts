@@ -149,6 +149,8 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
+    testRuntimeOnly("org.springdoc:springdoc-openapi-common:1.+")
+    testRuntimeOnly("io.swagger.core.v3:swagger-models:2.+")
     testRuntimeOnly(gradleApi())
 
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
