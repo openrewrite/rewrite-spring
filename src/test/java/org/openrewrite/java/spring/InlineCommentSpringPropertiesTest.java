@@ -25,6 +25,7 @@ import static org.openrewrite.yaml.Assertions.yaml;
 
 class InlineCommentSpringPropertiesTest implements RewriteTest {
 
+    @DocumentExample
     @Test
     void shouldInsertInlineCommentsIntoProperties() {
         rewriteRun(
