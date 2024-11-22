@@ -52,7 +52,7 @@ public class InlineCommentSpringProperties extends Recipe {
         String inlineComment = " # " + comment;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, @NotNull ExecutionContext ctx) {
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 Tree processingTree = tree;
                 for (String key : propertyKeys) {
                     String regex = "(?<!" + inlineComment + ")$";
