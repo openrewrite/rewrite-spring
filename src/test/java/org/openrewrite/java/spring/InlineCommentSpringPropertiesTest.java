@@ -23,7 +23,7 @@ import java.util.List;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-public class InlineCommentSpringPropertiesTest implements RewriteTest {
+class InlineCommentSpringPropertiesTest implements RewriteTest {
 
     @Test
     void shouldInsertInlineCommentsIntoProperties() {

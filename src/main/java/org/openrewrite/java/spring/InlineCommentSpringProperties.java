@@ -28,12 +28,12 @@ import java.util.List;
 public class InlineCommentSpringProperties extends Recipe {
 
     @Override
-    public @NotNull @NlsRewrite.DisplayName String getDisplayName() {
+    public String getDisplayName() {
         return "Comment spring properties";
     }
 
     @Override
-    public @NotNull @NlsRewrite.Description String getDescription() {
+    public String getDescription() {
         return "Add inline comments to specified spring properties.";
     }
 
@@ -48,7 +48,7 @@ public class InlineCommentSpringProperties extends Recipe {
     String comment;
 
     @Override
-    public @NotNull TreeVisitor<?, ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         String inlineComment = " # " + comment;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
