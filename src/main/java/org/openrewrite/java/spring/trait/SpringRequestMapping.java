@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 
 @Value
 public class SpringRequestMapping implements Trait<J.Annotation> {
+
     private static final List<AnnotationMatcher> REST_ENDPOINTS = Stream.of("Request", "Get", "Post", "Put", "Delete", "Patch")
             .map(method -> new AnnotationMatcher("@org.springframework.web.bind.annotation." + method + "Mapping"))
             .collect(toList());
@@ -65,7 +66,7 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
         List<String> pathEndings = new Annotated(cursor)
                 .getDefaultAttribute(null)
                 .map(Literal::getStrings)
-                .orElse(Collections.emptyList());
+                .orElse(Collections.singletonList(""));
 
         StringBuilder result = new StringBuilder();
         for (int j = 0; j < pathPrefixes.size(); j++) {

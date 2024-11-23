@@ -39,7 +39,9 @@ public class AddSpringDependencyManagementPlugin extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Add `io.spring.dependency-management` plugin, if in use.";
+        return "Prior to Spring Boot 2.0 the dependency management plugin was applied automatically as part of the overall spring boot plugin. " +
+               "Afterwards the dependency-management plugin must be applied explicitly, or Gradle's `platform()` feature may be used instead. " +
+               "This recipe makes usage of io-spring.dependency-management explicit in anticipation of upgrade to Spring Boot 2.0 or later.";
     }
 
     @Override
@@ -55,7 +57,7 @@ public class AddSpringDependencyManagementPlugin extends Recipe {
 
     private static class UsesSpringDependencyManagement extends JavaIsoVisitor<ExecutionContext> {
         @Override
-        public J visit(@Nullable Tree tree, ExecutionContext ctx) {
+        public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
             if (tree instanceof JavaSourceFile) {
                 JavaSourceFile cu = (JavaSourceFile) tree;
                 Optional<GradleProject> maybeGp = cu.getMarkers().findFirst(GradleProject.class);
