@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,19 +31,34 @@ class InlineCommentSpringPropertiesTest implements RewriteTest {
     void shouldInsertInlineCommentsIntoProperties() {
         rewriteRun(
           spec -> spec.recipe(new InlineCommentSpringProperties(List.of("test.propertyKey1", "test.propertyKey2"), "my comment")),
-          yaml("""
+          //language=yaml
+          yaml(
+              """
               test.propertyKey1: xxx
-              test.propertyKey2: yyy""",
+              test.propertyKey2: yyy
+              test.propertyKey3: zzz
+              """,
             """
               test.propertyKey1: xxx # my comment
-              test.propertyKey2: yyy # my comment""",
-            spec -> spec.path("application.yaml")),
-          properties("""
-              test.propertyKey1: xxx
-              test.propertyKey2: yyy""",
+              test.propertyKey2: yyy # my comment
+              test.propertyKey3: zzz
+              """,
+            spec -> spec.path("application.yaml")
+          ),
+          //language=properties
+          properties(
+              """
+              test.propertyKey1=xxx
+              test.propertyKey2=yyy
+              test.propertyKey3=zzz
+              """,
             """
-              test.propertyKey1: xxx # my comment
-              test.propertyKey2: yyy # my comment""",
-            spec -> spec.path("application.properties")));
+              test.propertyKey1=xxx # my comment
+              test.propertyKey2=yyy # my comment
+              test.propertyKey3=zzz
+              """,
+            spec -> spec.path("application.properties")
+          )
+        );
     }
 }

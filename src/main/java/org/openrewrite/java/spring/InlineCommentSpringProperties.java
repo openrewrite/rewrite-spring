@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class InlineCommentSpringProperties extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Comment spring properties";
+        return "Comment Spring properties";
     }
 
     @Override
@@ -43,7 +43,7 @@ public class InlineCommentSpringProperties extends Recipe {
 
     @Option(displayName = "Inline comment",
             description = "Inline comment to be inserted",
-            example = "this property is deprecated and no longer applicable starting from Spring Boot 3.0.x")
+            example = "This property is deprecated and no longer applicable starting from Spring Boot 3.0.x")
     String comment;
 
     @Override
