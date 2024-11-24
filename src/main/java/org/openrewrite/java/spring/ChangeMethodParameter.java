@@ -20,10 +20,10 @@ import lombok.Value;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.DeclaresMethod;
 import org.openrewrite.java.service.ImportService;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
-import org.openrewrite.marker.SearchResult;
 
 import java.util.ArrayList;
 import java.util.List;

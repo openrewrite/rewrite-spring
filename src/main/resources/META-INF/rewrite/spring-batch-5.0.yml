@@ -67,8 +67,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.batch.UpgradeSkipPolicyParameterType
-displayName: Change the type of skipCount parameter in SkipPolicy from int to long
-description: The skipCount parameter in org.springframework.batch.core.step.skip.SkipPolicy#shouldSkip has been changed from int to long, this recipe updates the parameter type in the implementing classes.
+displayName: Change the type of `skipCount` parameter in `SkipPolicy` from `int` to `long`
+description: The `skipCount` parameter in `org.springframework.batch.core.step.skip.SkipPolicy#shouldSkip` has been changed from `int` to `long`, this recipe updates the parameter type in the implementing classes.
 recipeList:
   - org.openrewrite.java.spring.ChangeMethodParameter:
       methodPattern: org.springframework.batch.core.step.skip.SkipPolicy shouldSkip(java.lang.Throwable, int)
