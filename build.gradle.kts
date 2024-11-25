@@ -149,8 +149,6 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
-    testRuntimeOnly("org.springdoc:springdoc-openapi-common:1.+")
-    testRuntimeOnly("io.swagger.core.v3:swagger-models:2.+")
     testRuntimeOnly(gradleApi())
 
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
@@ -256,6 +254,9 @@ dependencies {
 
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.2.+")
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")
+
+    "testWithSpringBoot_3_3RuntimeOnly"("org.springdoc:springdoc-openapi-common:1.+")
+    "testWithSpringBoot_3_3RuntimeOnly"("io.swagger.core.v3:swagger-models:2.+")
 
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
