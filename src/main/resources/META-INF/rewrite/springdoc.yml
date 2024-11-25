@@ -67,7 +67,7 @@ recipeList:
       artifactId: "*"
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springdoc
-      artifactId: springdoc-openapi-starter-webmvc-ui
+      artifactId: springdoc-openapi-ui
       version: 1.5.x # aligns with spring boot 2.6
 
 ---
