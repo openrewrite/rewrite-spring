@@ -140,6 +140,92 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
         };
     }
 
+    /**
+     * @param methodDeclaration, which may or may not declare a bean
+     * @param newName,           for the potential bean
+     * @return a recipe for this methodDeclaration if it declares a bean, or null if it does not declare a bean
+     */
+    public static @Nullable RenameBean fromDeclaration(J.MethodDeclaration methodDeclaration, String newName) {
+        return methodDeclaration.getMethodType() == null ? null :
+                fromDeclaration(methodDeclaration, newName, methodDeclaration.getMethodType().getReturnType().toString());
+    }
+
+    /**
+     * @param methodDeclaration, which may or may not declare a bean
+     * @param newName,           for the potential bean
+     * @param type,              to override the type field on the returned RenameBean instance
+     * @return a recipe for this methodDeclaration if it declares a bean, or null if it does not declare a bean
+     */
+    public static @Nullable RenameBean fromDeclaration(J.MethodDeclaration methodDeclaration, String newName, @Nullable String type) {
+        BeanSearchResult beanSearchResult = isBean(methodDeclaration.getAllAnnotations(), BEAN_METHOD_ANNOTATIONS);
+        if (!beanSearchResult.isBean || methodDeclaration.getMethodType() == null) {
+            return null;
+        }
+        String beanName =
+                beanSearchResult.beanName != null ? beanSearchResult.beanName : methodDeclaration.getSimpleName();
+        return beanName.equals(newName) ? null : new RenameBean(type, beanName, newName);
+    }
+
+    /**
+     * @param classDeclaration, which may or may not declare a bean
+     * @param newName,          for the potential bean
+     * @return a recipe for this classDeclaration if it declares a bean, or null if it does not declare a bean
+     */
+    public static @Nullable RenameBean fromDeclaration(J.ClassDeclaration classDeclaration, String newName) {
+        return classDeclaration.getType() == null ? null :
+                fromDeclaration(classDeclaration, newName, classDeclaration.getType().toString());
+    }
+
+    /**
+     * @param classDeclaration, which may or may not declare a bean
+     * @param newName,          for the potential bean
+     * @param type,             to override the type field on the returned RenameBean instance
+     * @return a recipe for this classDeclaration if it declares a bean, or null if it does not declare a bean
+     */
+    public static @Nullable RenameBean fromDeclaration(J.ClassDeclaration classDeclaration, String newName, @Nullable String type) {
+        BeanSearchResult beanSearchResult = isBean(classDeclaration.getAllAnnotations(), BEAN_TYPE_ANNOTATIONS);
+        if (!beanSearchResult.isBean || classDeclaration.getType() == null) {
+            return null;
+        }
+        String beanName =
+                beanSearchResult.beanName != null ? beanSearchResult.beanName : StringUtils.uncapitalize(classDeclaration.getSimpleName());
+        return beanName.equals(newName) ? null : new RenameBean(type, beanName, newName);
+    }
+
+    private static BeanSearchResult isBean(Collection<J.Annotation> annotations, Set<String> types) {
+        for (J.Annotation annotation : annotations) {
+            if (anyAnnotationMatches(annotation, types)) {
+                if (annotation.getArguments() != null && !annotation.getArguments().isEmpty()) {
+                    for (Expression expr : annotation.getArguments()) {
+                        if (expr instanceof J.Literal) {
+                            return new BeanSearchResult(true, (String) ((J.Literal) expr).getValue());
+                        }
+                        J.Assignment beanNameAssignment = asBeanNameAssignment(expr);
+                        if (beanNameAssignment != null) {
+                            Expression assignmentExpr = beanNameAssignment.getAssignment();
+                            if (assignmentExpr instanceof J.Literal) {
+                                return new BeanSearchResult(true, (String) ((J.Literal) assignmentExpr).getValue());
+                            } else if (assignmentExpr instanceof J.NewArray) {
+                                List<Expression> initializers = ((J.NewArray) assignmentExpr).getInitializer();
+                                if (initializers != null) {
+                                    for (Expression initExpr : initializers) {
+                                        // if multiple aliases, just take the first one
+                                        if (initExpr instanceof J.Literal) {
+                                            return new BeanSearchResult(true,
+                                                    (String) ((J.Literal) initExpr).getValue());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return new BeanSearchResult(true, null);
+            }
+        }
+        return new BeanSearchResult(false, null);
+    }
+
     private static boolean anyAnnotationMatches(J.Annotation type, Set<String> types) {
         for (String it : types) {
             if (!FindAnnotations.find(type, '@' + it, true).isEmpty()) {
