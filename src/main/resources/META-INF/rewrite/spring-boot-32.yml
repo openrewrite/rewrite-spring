@@ -54,7 +54,6 @@ recipeList:
       onlyIfUsing: org.apache.commons.codec..*
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_2
-  - org.openrewrite.java.spring.boot3.EnableVirtualThreads
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_1
   - org.openrewrite.java.spring.cloud2023.UpgradeSpringCloud_2023
   - org.openrewrite.java.ChangeType:
@@ -78,19 +77,6 @@ recipeList:
       newVersion: 2.5.x
   - org.openrewrite.hibernate.MigrateToHibernate64
   - org.openrewrite.java.spring.boot3.RelocateLauncherClasses
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.EnableVirtualThreads
-displayName: Enable Virtual Threads on Java 21
-description: Set `spring.threads.virtual.enabled` to `true` in `application.properties` or `application.yml`.
-preconditions:
-  - org.openrewrite.java.search.HasJavaVersion:
-      version: 21.X
-recipeList:
-  - org.openrewrite.java.spring.AddSpringProperty:
-      property: spring.threads.virtual.enabled
-      value: true
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
