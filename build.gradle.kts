@@ -219,6 +219,9 @@ dependencies {
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.5.+")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-web:5.3.+")
 
+    "testWithSpringBoot_2_6RuntimeOnly"("org.springdoc:springdoc-openapi-common:1.+")
+    "testWithSpringBoot_2_6RuntimeOnly"("io.swagger.core.v3:swagger-models:2.+")
+
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
