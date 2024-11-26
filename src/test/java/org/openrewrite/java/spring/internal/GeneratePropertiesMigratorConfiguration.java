@@ -67,8 +67,8 @@ class GeneratePropertiesMigratorConfiguration {
                 System.out.println("Downloading version " + version);
                 springBootReleases.download(version).forEach(download -> {
                     try {
-                        Files.write(versionDir.toPath().resolve(download.getModuleName() + "-" +
-                          version + ".jar"), download.getBody());
+                        Files.write(versionDir.toPath().resolve(
+                          download.getModuleName() + "-" + version + ".jar"), download.getBody());
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
@@ -78,47 +78,47 @@ class GeneratePropertiesMigratorConfiguration {
             }
 
             System.out.println("Scanning version " + version);
-            try (ScanResult scanResult = new ClassGraph()
-              .overrideClasspath(Arrays.stream(requireNonNull(versionDir.listFiles())).map(File::toURI).collect(Collectors.toList()))
-              .acceptPaths("META-INF")
-              .enableMemoryMapping()
-              .scan()) {
-                List<SpringConfigurationMetadata.ConfigurationProperty> deprecations = getDeprecations(scanResult, alreadyDefined);
-                if (deprecations.isEmpty()) {
-                    continue;
-                }
-                var majorMinor = version.split("\\.");
-                if (semanticVersion.compareTo(new Version("3.1")) < 0) {
-                    // Don't override manual fixes to the unsupported 2.x and 3.0 versions anymore
-                    continue;
-                }
-                var recipePath = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s-properties.yml".formatted(majorMinor[0], majorMinor[1]));
-                writeFileHeader(majorMinor, recipePath);
-                generateReplacementRecipes(deprecations, recipePath);
-                generateCommentRecipesForDeprecations(deprecations, recipePath);
+            var deprecations = getDeprecations(versionDir, alreadyDefined);
+            if (deprecations.isEmpty()) {
+                continue;
             }
+            var majorMinor = version.split("\\.");
+            if (semanticVersion.compareTo(new Version("3.1")) < 0) {
+                // Don't override manual fixes to the unsupported 2.x and 3.0 versions anymore
+                continue;
+            }
+            var recipePath = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s-properties.yml".formatted(majorMinor[0], majorMinor[1]));
+            writeFileHeader(majorMinor, recipePath);
+            generateReplacementRecipes(deprecations, recipePath);
+            generateCommentRecipesForDeprecations(deprecations, recipePath);
         }
     }
 
-    private static List<SpringConfigurationMetadata.ConfigurationProperty> getDeprecations(ScanResult scanResult, HashSet<Object> alreadyDefined) {
-        ResourceList resources = scanResult.getResourcesMatchingWildcard("**/*spring-configuration-metadata.json");
-        return resources.stream()
-          .flatMap(res -> {
-              try (InputStream inputStream = res.open()) {
-                  final String text = new BufferedReader(
-                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                    .lines()
-                    .collect(joining("\n"));
-                  InputStream inputStream2 = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
-                  var metadata = objectMapper.readValue(inputStream2, SpringConfigurationMetadata.class);
-                  return metadata.properties().stream()
-                    .filter(p -> p.deprecation() != null)
-                    .filter(p -> alreadyDefined.add(getPropertyKey(p)));
-              } catch (IOException e) {
-                  throw new UncheckedIOException(e);
-              }
-          })
-          .toList();
+    private static List<SpringConfigurationMetadata.ConfigurationProperty> getDeprecations(File versionDir, Set<Object> alreadyDefined) {
+        try (ScanResult scanResult = new ClassGraph()
+          .overrideClasspath(Arrays.stream(requireNonNull(versionDir.listFiles())).map(File::toURI).collect(Collectors.toList()))
+          .acceptPaths("META-INF")
+          .enableMemoryMapping()
+          .scan()) {
+            ResourceList resources = scanResult.getResourcesMatchingWildcard("**/*spring-configuration-metadata.json");
+            return resources.stream()
+              .flatMap(res -> {
+                  try (InputStream inputStream = res.open()) {
+                      final String text = new BufferedReader(
+                        new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                        .lines()
+                        .collect(joining("\n"));
+                      InputStream inputStream2 = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+                      var metadata = objectMapper.readValue(inputStream2, SpringConfigurationMetadata.class);
+                      return metadata.properties().stream()
+                        .filter(p -> p.deprecation() != null)
+                        .filter(p -> alreadyDefined.add(getPropertyKey(p)));
+                  } catch (IOException e) {
+                      throw new UncheckedIOException(e);
+                  }
+              })
+              .toList();
+        }
     }
 
     private static void generateReplacementRecipes(List<SpringConfigurationMetadata.ConfigurationProperty> properties, Path recipePath) throws IOException {
@@ -148,7 +148,7 @@ class GeneratePropertiesMigratorConfiguration {
           .toList();
 
         if (!deprecationsWithoutReplacement.isEmpty()) {
-              Files.writeString(recipePath, deprecationsWithoutReplacement.stream()
+            Files.writeString(recipePath, deprecationsWithoutReplacement.stream()
                 .map(r -> """
                     - org.openrewrite.java.spring.InlineCommentSpringProperties:
                         comment: "%s"
@@ -164,12 +164,15 @@ class GeneratePropertiesMigratorConfiguration {
     }
 
     private static String getPropertyKey(SpringConfigurationMetadata.ConfigurationProperty property) {
-        String replacementSuffix = (property.deprecation() != null) && (property.deprecation().replacement() != null)? "->" + property.deprecation().replacement() : "";
+        String replacementSuffix = (property.deprecation() != null) &&
+                                   (property.deprecation().replacement() != null) ?
+          "->" + property.deprecation().replacement() : "";
         return property.name() + replacementSuffix;
     }
 
     private static void writeFileHeader(String[] majorMinor, Path recipePath) throws IOException {
-        Files.writeString(recipePath, "#\n" +
+        Files.writeString(recipePath,
+          "#\n" +
           Files.readAllLines(Paths.get("gradle/licenseHeader.txt"))
             .stream()
             .map(str -> str.replaceAll("^", "# "))
