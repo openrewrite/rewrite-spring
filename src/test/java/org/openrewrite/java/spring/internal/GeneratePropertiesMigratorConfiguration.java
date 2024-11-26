@@ -101,7 +101,7 @@ class GeneratePropertiesMigratorConfiguration {
         }
     }
 
-    private static @NotNull List<SpringConfigurationMetadata.ConfigurationProperty> getDeprecations(ScanResult scanResult, HashSet<Object> alreadyDefined) {
+    private static List<SpringConfigurationMetadata.ConfigurationProperty> getDeprecations(ScanResult scanResult, HashSet<Object> alreadyDefined) {
         ResourceList resources = scanResult.getResourcesMatchingWildcard("**/*spring-configuration-metadata.json");
         return resources.stream()
           .flatMap(res -> {
