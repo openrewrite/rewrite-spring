@@ -17,10 +17,13 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
@@ -31,19 +34,41 @@ class InlineCommentSpringPropertiesTest implements RewriteTest {
     void shouldInsertInlineCommentsIntoProperties() {
         rewriteRun(
           spec -> spec.recipe(new InlineCommentSpringProperties(List.of("test.propertyKey1", "test.propertyKey2"), "my comment")),
-          yaml("""
+          //language=yaml
+          yaml(
+            """
               test.propertyKey1: xxx
-              test.propertyKey2: yyy""",
+              test.propertyKey2: yyy
+              test.propertyKey3: zzz
+              """,
             """
               test.propertyKey1: xxx # my comment
-              test.propertyKey2: yyy # my comment""",
-            spec -> spec.path("application.yaml")),
-          properties("""
-              test.propertyKey1: xxx
-              test.propertyKey2: yyy""",
+              test.propertyKey2: yyy # my comment
+              test.propertyKey3: zzz
+              """,
+            spec -> spec.path("application.yaml")
+              .afterRecipe(file ->
+                assertThat(((Yaml.Mapping) file.getDocuments().get(0).getBlock()).getEntries().get(1).getPrefix())
+                  .isEqualTo(" # my comment\n"))
+          ),
+          //language=properties
+          properties(
             """
-              test.propertyKey1: xxx # my comment
-              test.propertyKey2: yyy # my comment""",
-            spec -> spec.path("application.properties")));
+              test.propertyKey1=xxx
+              test.propertyKey2=yyy
+              test.propertyKey3=zzz
+              """,
+            """
+              test.propertyKey1=xxx # my comment
+              test.propertyKey2=yyy # my comment
+              test.propertyKey3=zzz
+              """,
+            spec -> spec.path("application.properties")
+              .afterRecipe(file ->
+                // XXX Right now trailing comments are mapped as part of the value, not as separate comments
+                assertThat(((Properties.Entry) file.getContent().get(1)).getValue().getText()).isEqualTo("yyy # my comment")
+              )
+          )
+        );
     }
 }
