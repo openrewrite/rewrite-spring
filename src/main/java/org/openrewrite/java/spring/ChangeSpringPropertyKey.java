@@ -46,7 +46,7 @@ public class ChangeSpringPropertyKey extends Recipe {
     }
 
     @Option(displayName = "Old property key",
-            description = "The property key to rename. Supports glob",
+            description = "The property key to rename.",
             example = "management.metrics.binders.*.enabled")
     String oldPropertyKey;
 
