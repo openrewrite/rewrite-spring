@@ -28,9 +28,19 @@ recipeList:
       oldPropertyKey: spring.cassandra.ssl
       newPropertyKey: spring.cassandra.ssl.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.cassandra.ssl
+      newPropertyKey: spring.cassandra.ssl.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.redis.ssl
       newPropertyKey: spring.data.redis.ssl.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.streams.cache-max-size-buffering
       newPropertyKey: spring.kafka.streams.state-store-cache-max-size
+
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.couchbase.env.ssl.key-store
+      comment: "This property is deprecated because of the following reason: SSL bundle support with spring.ssl.bundle and spring.couchbase.env.ssl.bundle should be used instead"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.couchbase.env.ssl.key-store-password
+      comment: "This property is deprecated because of the following reason: SSL bundle support with spring.ssl.bundle and spring.couchbase.env.ssl.bundle should be used instead"
 

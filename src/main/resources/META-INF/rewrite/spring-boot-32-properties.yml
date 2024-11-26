@@ -25,6 +25,12 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.web.client.requests-metric-name
+      newPropertyKey: management.observations.http.client.requests.name
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.web.server.requests-metric-name
+      newPropertyKey: management.observations.http.server.requests.name
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.metrics.export.resource-attributes
       newPropertyKey: management.opentelemetry.resource-attributes
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -54,4 +60,41 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.jms.listener.concurrency
       newPropertyKey: spring.jms.listener.min-concurrency
+
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.dbcp2.default-query-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.dbcp2.max-conn-lifetime-millis
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.dbcp2.max-wait-millis
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.dbcp2.min-evictable-idle-time-millis
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.dbcp2.remove-abandoned-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.dbcp2.soft-min-evictable-idle-time-millis
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.dbcp2.time-between-eviction-runs-millis
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.dbcp2.validation-query-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.influx.password
+      comment: "This property is deprecated: the new InfluxDb Java client provides Spring Boot integration"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.influx.url
+      comment: "This property is deprecated: the new InfluxDb Java client provides Spring Boot integration"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.influx.user
+      comment: "This property is deprecated: the new InfluxDb Java client provides Spring Boot integration"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.mvc.throw-exception-if-no-handler-found
+      comment: "This property is deprecated: DispatcherServlet property is deprecated for removal and should no longer need to be configured"
 

@@ -40,7 +40,7 @@ import static java.util.stream.Collectors.toSet;
 
 class GeneratePropertiesMigratorConfiguration {
     private static final ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    private static final String DEPRECATION_PREFIX = "This property is deprecated because of the following reason: ";
+    private static final String DEPRECATION_PREFIX = "This property is deprecated: ";
     private static final String DEFAULT_DEPRECATION_COMMENT = "This property is deprecated and will be removed in future Spring Boot versions";
 
     public static void main(String[] args) throws IOException {
@@ -59,7 +59,7 @@ class GeneratePropertiesMigratorConfiguration {
         for (String version : latestPatchReleases) {
             Version semanticVersion = new Version(version);
             // We only need to scan one outdated version to prevent duplicate migration recipes
-            if (semanticVersion.compareTo(new Version("3.0")) < 0) {
+            if (semanticVersion.compareTo(new Version("3.1")) < 0) {
                 continue;
             }
             var versionDir = new File(releasesDir, version);
@@ -83,7 +83,7 @@ class GeneratePropertiesMigratorConfiguration {
                 continue;
             }
             var majorMinor = version.split("\\.");
-            if (semanticVersion.compareTo(new Version("3.1")) < 0) {
+            if (semanticVersion.compareTo(new Version("3.2")) < 0) {
                 // Don't override manual fixes to the unsupported 2.x and 3.0 versions anymore
                 continue;
             }

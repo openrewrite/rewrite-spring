@@ -118,3 +118,10 @@ recipeList:
       oldPropertyKey: spring.kafka.retry.topic.random-back-off
       newPropertyKey: spring.kafka.retry.topic.backoff.random
 
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.oracleucp.connection-wait-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.flyway.clean-on-validation-error
+      comment: "This property is deprecated: Deprecated in Flyway 10.18"
+
