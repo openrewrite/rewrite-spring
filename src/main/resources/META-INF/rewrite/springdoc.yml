@@ -27,6 +27,7 @@ tags:
 recipeList:
   - org.openrewrite.java.springdoc.SwaggerToSpringDoc
   - org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
+  - org.openrewrite.java.springdoc.MigrateSpringdocCommon
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -151,3 +152,22 @@ recipeList:
       groupId: org.springdoc
       artifactId: "*"
       newVersion: 2.1.x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.MigrateSpringdocCommon
+displayName: Migrate from springdoc-openapi-common to springdoc-openapi-starter-common
+description: Migrate from springdoc-openapi-common to springdoc-openapi-starter-common.
+tags:
+  - springdoc
+  - openapi
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springdoc.core.customizers.OpenApiCustomiser
+      newFullyQualifiedTypeName: org.springdoc.core.customizers.OpenApiCustomizer
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springdoc.core.GroupedOpenApi.Builder addOpenApiCustomiser(..)
+      newMethodName: addOpenApiCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springdoc.core.GroupedOpenApi
+      newFullyQualifiedTypeName: org.springdoc.core.models.GroupedOpenApi
