@@ -39,8 +39,8 @@ recipeList:
 
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.couchbase.env.ssl.key-store
-      comment: "This property is deprecated because of the following reason: SSL bundle support with spring.ssl.bundle and spring.couchbase.env.ssl.bundle should be used instead"
+      comment: "This property is deprecated: SSL bundle support with spring.ssl.bundle and spring.couchbase.env.ssl.bundle should be used instead"
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.couchbase.env.ssl.key-store-password
-      comment: "This property is deprecated because of the following reason: SSL bundle support with spring.ssl.bundle and spring.couchbase.env.ssl.bundle should be used instead"
+      comment: "This property is deprecated: SSL bundle support with spring.ssl.bundle and spring.couchbase.env.ssl.bundle should be used instead"
 
