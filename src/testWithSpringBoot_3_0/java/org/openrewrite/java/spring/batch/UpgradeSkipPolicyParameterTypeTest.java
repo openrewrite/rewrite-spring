@@ -52,7 +52,7 @@ class UpgradeSkipPolicyParameterTypeTest implements RewriteTest {
 
               public class MySkipPolicy implements SkipPolicy {
                   @Override
-                  public boolean shouldSkip(Throwable throwable, int skipCount) throws SkipLimitExceededException {
+                  public boolean shouldSkip(Throwable throwable, int skipCount) {
                       return true;
                   }
               }
@@ -63,7 +63,7 @@ class UpgradeSkipPolicyParameterTypeTest implements RewriteTest {
 
               public class MySkipPolicy implements SkipPolicy {
                   @Override
-                  public boolean shouldSkip(Throwable throwable, long skipCount) throws SkipLimitExceededException {
+                  public boolean shouldSkip(Throwable throwable, long skipCount) {
                       return true;
                   }
               }

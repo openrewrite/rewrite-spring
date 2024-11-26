@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -79,22 +80,22 @@ public class ChangeMethodParameter extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new DeclaresMethod<>(methodPattern, true), new ChangeMethodArgumentVisitor(methodPattern));
+        MethodMatcher methodMatcher = new MethodMatcher(methodPattern, true);
+        return Preconditions.check(new DeclaresMethod<>(methodMatcher), new ChangeMethodArgumentVisitor(methodMatcher));
     }
 
+    @RequiredArgsConstructor
     private class ChangeMethodArgumentVisitor extends JavaIsoVisitor<ExecutionContext> {
         private final MethodMatcher methodMatcher;
-
-        public ChangeMethodArgumentVisitor(String methodPattern) {
-            this.methodMatcher = new MethodMatcher(methodPattern, true);
-        }
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDeclaration, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(methodDeclaration, ctx);
 
-            if (methodMatcher.matches(md.getMethodType()) && md.getBody() != null) {
-                if (md.getParameters().isEmpty() || md.getParameters().size() <= parameterIndex) {
+            if (methodMatcher.matches(md.getMethodType())) {
+                if (md.getParameters().isEmpty() ||
+                    md.getParameters().get(0) instanceof J.Empty ||
+                    md.getParameters().size() <= parameterIndex) {
                     return md;
                 }
                 if (md.getParameters().get(parameterIndex) instanceof J.VariableDeclarations) {

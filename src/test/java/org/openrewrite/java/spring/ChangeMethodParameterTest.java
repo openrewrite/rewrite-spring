@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring;
 
-import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RewriteTest;
@@ -383,21 +382,30 @@ class ChangeMethodParameterTest implements RewriteTest {
         );
     }
 
-    @Language("java")
-    String b = """
-      package b;
-      public interface B {
-         boolean m(String i);
-         boolean m(String i, String j);
-      }
-      """;
-
     @Test
     void fromInterface() {
         rewriteRun(
           spec -> spec.recipe(new ChangeMethodParameter("b.B#m(String, String)", "long", 0)),
           //language=java
-          java(b),
+          java(
+            """
+              package b;
+              public interface B {
+                  boolean m(String i);
+
+                  boolean m(String i, String j);
+              }
+              """,
+            """
+              package b;
+              public interface B {
+                  boolean m(String i);
+
+                  boolean m(long i, String j);
+              }
+              """
+          ),
+          //language=java
           java(
             """
               package foo;
