@@ -27,7 +27,11 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.DeclaresType;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.service.AnnotationService;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.*;
 
@@ -65,21 +69,33 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
     }};
 
     @Override
+    public String getDisplayName() {
+        return "Rename bean";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Renames a Spring bean, both declaration and references.";
+    }
+
+    @Override
     public List<TreeVisitor<?, ExecutionContext>> getInitialValue(ExecutionContext ctx) {
         return new ArrayList<>();
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(List<TreeVisitor<?, ExecutionContext>> acc) {
+
         return Preconditions.check(precondition(), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
 
-                // handle beans named via method
-                Expression beanNameExpression = getBeanNameExpression(m.getAllAnnotations(), BEAN_METHOD_ANNOTATIONS);
+                // handle beans named via methods
+                List<J.Annotation> allAnnotations = service(AnnotationService.class).getAllAnnotations(getCursor());
+                Expression beanNameExpression = getBeanNameExpression(allAnnotations, BEAN_METHOD_ANNOTATIONS);
                 if (beanNameExpression == null && isRelevantType(m.getMethodType().getReturnType()) && m.getSimpleName().equals(oldName)) {
-                    acc.add(new ChangeMethodName(methodPattern(m), newName, false, false).getVisitor());
+                    acc.add(new ChangeMethodName(methodPattern(m), newName, true, false).getVisitor());
                 }
 
                 // handle annotation renames
@@ -91,7 +107,8 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
-                Expression beanNameExpression = getBeanNameExpression(cd.getAllAnnotations(), BEAN_TYPE_ANNOTATIONS);
+                List<J.Annotation> allAnnotations = service(AnnotationService.class).getAllAnnotations(getCursor());
+                Expression beanNameExpression = getBeanNameExpression(allAnnotations, BEAN_TYPE_ANNOTATIONS);
 
                 // handle bean named via class name
                 if (beanNameExpression == null && isRelevantType(cd.getType()) && StringUtils.uncapitalize(cd.getSimpleName()).equals(oldName)) {
@@ -115,108 +132,12 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 J.CompilationUnit newCu = super.visitCompilationUnit(cu, ctx);
-                for(TreeVisitor<?, ExecutionContext> visitor : acc) {
-                    newCu = (J.CompilationUnit)visitor.visit(newCu, ctx);
+                for (TreeVisitor<?, ExecutionContext> visitor : acc) {
+                    newCu = (J.CompilationUnit) visitor.visit(newCu, ctx);
                 }
                 return newCu;
             }
         };
-    }
-
-    @Override
-    public String getDisplayName() {
-        return "Rename bean";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Renames a Spring bean, both declaration and references.";
-    }
-
-    /**
-     * @param methodDeclaration, which may or may not declare a bean
-     * @param newName,           for the potential bean
-     * @return a recipe for this methodDeclaration if it declares a bean, or null if it does not declare a bean
-     */
-    public static @Nullable RenameBean fromDeclaration(J.MethodDeclaration methodDeclaration, String newName) {
-        return methodDeclaration.getMethodType() == null ? null :
-                fromDeclaration(methodDeclaration, newName, methodDeclaration.getMethodType().getReturnType().toString());
-    }
-
-    /**
-     * @param methodDeclaration, which may or may not declare a bean
-     * @param newName,           for the potential bean
-     * @param type,              to override the type field on the returned RenameBean instance
-     * @return a recipe for this methodDeclaration if it declares a bean, or null if it does not declare a bean
-     */
-    public static @Nullable RenameBean fromDeclaration(J.MethodDeclaration methodDeclaration, String newName, @Nullable String type) {
-        BeanSearchResult beanSearchResult = isBean(methodDeclaration.getAllAnnotations(), BEAN_METHOD_ANNOTATIONS);
-        if (!beanSearchResult.isBean || methodDeclaration.getMethodType() == null) {
-            return null;
-        }
-        String beanName =
-                beanSearchResult.beanName != null ? beanSearchResult.beanName : methodDeclaration.getSimpleName();
-        return beanName.equals(newName) ? null : new RenameBean(type, beanName, newName);
-    }
-
-    /**
-     * @param classDeclaration, which may or may not declare a bean
-     * @param newName,          for the potential bean
-     * @return a recipe for this classDeclaration if it declares a bean, or null if it does not declare a bean
-     */
-    public static @Nullable RenameBean fromDeclaration(J.ClassDeclaration classDeclaration, String newName) {
-        return classDeclaration.getType() == null ? null :
-                fromDeclaration(classDeclaration, newName, classDeclaration.getType().toString());
-    }
-
-    /**
-     * @param classDeclaration, which may or may not declare a bean
-     * @param newName,          for the potential bean
-     * @param type,             to override the type field on the returned RenameBean instance
-     * @return a recipe for this classDeclaration if it declares a bean, or null if it does not declare a bean
-     */
-    public static @Nullable RenameBean fromDeclaration(J.ClassDeclaration classDeclaration, String newName, @Nullable String type) {
-        BeanSearchResult beanSearchResult = isBean(classDeclaration.getAllAnnotations(), BEAN_TYPE_ANNOTATIONS);
-        if (!beanSearchResult.isBean || classDeclaration.getType() == null) {
-            return null;
-        }
-        String beanName =
-                beanSearchResult.beanName != null ? beanSearchResult.beanName : StringUtils.uncapitalize(classDeclaration.getSimpleName());
-        return beanName.equals(newName) ? null : new RenameBean(type, beanName, newName);
-    }
-
-    private static BeanSearchResult isBean(Collection<J.Annotation> annotations, Set<String> types) {
-        for (J.Annotation annotation : annotations) {
-            if (anyAnnotationMatches(annotation, types)) {
-                if (annotation.getArguments() != null && !annotation.getArguments().isEmpty()) {
-                    for (Expression expr : annotation.getArguments()) {
-                        if (expr instanceof J.Literal) {
-                            return new BeanSearchResult(true, (String) ((J.Literal) expr).getValue());
-                        }
-                        J.Assignment beanNameAssignment = asBeanNameAssignment(expr);
-                        if (beanNameAssignment != null) {
-                            Expression assignmentExpr = beanNameAssignment.getAssignment();
-                            if (assignmentExpr instanceof J.Literal) {
-                                return new BeanSearchResult(true, (String) ((J.Literal) assignmentExpr).getValue());
-                            } else if (assignmentExpr instanceof J.NewArray) {
-                                List<Expression> initializers = ((J.NewArray) assignmentExpr).getInitializer();
-                                if (initializers != null) {
-                                    for (Expression initExpr : initializers) {
-                                        // if multiple aliases, just take the first one
-                                        if (initExpr instanceof J.Literal) {
-                                            return new BeanSearchResult(true,
-                                                    (String) ((J.Literal) initExpr).getValue());
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                return new BeanSearchResult(true, null);
-            }
-        }
-        return new BeanSearchResult(false, null);
     }
 
     private static boolean anyAnnotationMatches(J.Annotation type, Set<String> types) {
@@ -276,9 +197,9 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
 
                     if (annotationParent instanceof J.MethodDeclaration) {
                         return isRelevantType(((J.MethodDeclaration) annotationParent).getMethodType().getReturnType());
-                    }else if (annotationParent instanceof J.ClassDeclaration) {
+                    } else if (annotationParent instanceof J.ClassDeclaration) {
                         return isRelevantType(((J.ClassDeclaration) annotationParent).getType());
-                    }else if (annotationParent instanceof J.VariableDeclarations) {
+                    } else if (annotationParent instanceof J.VariableDeclarations) {
                         return isRelevantType(((J.VariableDeclarations) annotationParent).getType());
                     }
                 }
@@ -319,8 +240,8 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
         return null;
     }
 
-    private TreeVisitor<J, ExecutionContext> renameBeanAnnotationValue(J.Annotation beanAnnotation,
-            J.Assignment beanNameAssignment) {
+    private TreeVisitor<J, ExecutionContext> renameBeanAnnotationValue(
+            J.Annotation beanAnnotation, J.Assignment beanNameAssignment) {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
