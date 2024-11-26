@@ -41,9 +41,9 @@ public class InlineCommentSpringProperties extends Recipe {
             example = "management.metrics.binders.files.enabled")
     List<String> propertyKeys;
 
-    @Option(displayName = "Inline comment",
-            description = "Inline comment to be inserted",
-            example = "this property is deprecated and no longer applicable starting from Spring Boot 3.0.x")
+    @Option(displayName = "Comment",
+            description = "Comment to replace the property key.",
+            example = "This property is deprecated and no longer applicable starting from Spring Boot 3.0.x")
     String comment;
 
     @Override
@@ -55,7 +55,7 @@ public class InlineCommentSpringProperties extends Recipe {
                 Tree processingTree = tree;
                 for (String key : propertyKeys) {
                     String regex = "(?<!" + inlineComment + ")$";
-                    ChangeSpringPropertyValue changeSpringPropertyValue = new ChangeSpringPropertyValue(key, inlineComment, regex, true, null);
+                    ChangeSpringPropertyValue changeSpringPropertyValue = new ChangeSpringPropertyValue(key, inlineComment, regex, true, null, comment);
                     processingTree = changeSpringPropertyValue.getVisitor().visit(processingTree, ctx);
                 }
                 return processingTree;

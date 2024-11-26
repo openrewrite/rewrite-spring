@@ -198,7 +198,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (updatedAmqpUrl != amqpUrl) {
                                         updated = true;
                                         connectionStrings[i] = updatedAmqpUrl.toString();
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null)
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null, null)
                                             .getVisitor());
                                     }
                                 } else {
@@ -214,7 +214,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                         connectionStrings[i] = updatedConnectionString;
                                         doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions)
                                             .getVisitor());
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null)
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null, null)
                                             .getVisitor());
                                     }
                                 }
@@ -296,7 +296,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                     if (updatedAmqpUrl != amqpUrl) {
                                         updated = true;
                                         connectionStrings[i] = updatedAmqpUrl.toString();
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null)
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null, null)
                                             .getVisitor());
                                     }
                                 } else {
@@ -312,7 +312,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                                         connectionStrings[i] = updatedConnectionString;
                                         doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions)
                                             .getVisitor());
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null)
+                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null, null)
                                             .getVisitor());
                                     }
                                 }

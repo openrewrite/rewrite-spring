@@ -37,19 +37,38 @@ class InlineCommentSpringPropertiesTest implements RewriteTest {
           //language=yaml
           yaml(
             """
-              test.propertyKey1: xxx
-              test.propertyKey2: yyy
-              test.propertyKey3: zzz
+              test:
+                propertyKey1: xxx
+                propertyKey2: yyy
+                propertyKey3: zzz
               """,
             """
-              test.propertyKey1: xxx # my comment
-              test.propertyKey2: yyy # my comment
-              test.propertyKey3: zzz
+              test:
+                # my comment
+                # my comment
+                # propertyKey1: xxx
+                # propertyKey2: yyy
+                propertyKey3: zzz
               """,
             spec -> spec.path("application.yaml")
               .afterRecipe(file ->
-                assertThat(((Yaml.Mapping) file.getDocuments().get(0).getBlock()).getEntries().get(1).getPrefix())
-                  .isEqualTo(" # my comment\n"))
+                assertThat(
+                  ((Yaml.Mapping)
+                    ((Yaml.Mapping) file.getDocuments().get(0)
+                      .getBlock()).getEntries().get(0)
+                      .getValue()).getEntries().get(0)
+                    .getPrefix())
+                  .isEqualTo(
+                    """
+
+                      # my comment
+                      # my comment
+                      # propertyKey1: xxx
+                      # propertyKey2: yyy
+                      \
+                    """
+                  )
+              )
           ),
           //language=properties
           properties(
