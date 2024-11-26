@@ -80,7 +80,7 @@ class EnableVirtualThreadsTest implements RewriteTest {
               spring:
                 threads:
                   virtual:
-                    enabled: true
+                    enabled: false
               """,
             s -> s.path("src/main/resources/application.yml")
           )
