@@ -24,10 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.maven.tree.Version;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,10 +36,13 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 
 class GeneratePropertiesMigratorConfiguration {
     private static final ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    private static final String DEPRECATION_PREFIX = "This property is deprecated because of the following reason: ";
+    private static final String DEFAULT_DEPRECATION_COMMENT = "This property is deprecated and will be removed in future Spring Boot versions";
 
     public static void main(String[] args) throws IOException {
         var springBootReleases = new SpringBootReleases(true); // `true` for release candidates
@@ -105,7 +106,12 @@ class GeneratePropertiesMigratorConfiguration {
         return resources.stream()
           .flatMap(res -> {
               try (InputStream inputStream = res.open()) {
-                  var metadata = objectMapper.readValue(inputStream, SpringConfigurationMetadata.class);
+                  final String text = new BufferedReader(
+                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                    .lines()
+                    .collect(joining("\n"));
+                  InputStream inputStream2 = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+                  var metadata = objectMapper.readValue(inputStream2, SpringConfigurationMetadata.class);
                   return metadata.properties().stream()
                     .filter(p -> p.deprecation() != null)
                     .filter(p -> alreadyDefined.add(getPropertyKey(p)));
@@ -143,17 +149,14 @@ class GeneratePropertiesMigratorConfiguration {
           .toList();
 
         if (!deprecationsWithoutReplacement.isEmpty()) {
-            Files.writeString(recipePath, """
-                      - org.openrewrite.java.spring.InlineCommentSpringProperties:
-                          comment: "This property is deprecated and will be removed in future Spring Boot versions"
-                          propertyKeys:
-                    """,
-              StandardOpenOption.APPEND);
-
               Files.writeString(recipePath, deprecationsWithoutReplacement.stream()
                 .map(r -> """
-                          - %s
+                    - org.openrewrite.java.spring.InlineCommentSpringProperties:
+                        comment: "%s"
+                        propertyKeys:
+                        - %s
                   """.formatted(
+                  r.deprecation().reason() != null ? DEPRECATION_PREFIX + r.deprecation().reason() : DEFAULT_DEPRECATION_COMMENT,
                   r.name())
                 )
                 .collect(joining("", "", "\n")),
@@ -192,7 +195,7 @@ class GeneratePropertiesMigratorConfiguration {
 
 record SpringConfigurationMetadata(List<ConfigurationProperty> properties) {
     record ConfigurationProperty(String name, @Nullable Deprecation deprecation) {
-        record Deprecation(@Nullable String replacement) {
+        record Deprecation(@Nullable String replacement, @Nullable String reason) {
         }
     }
 }
