@@ -24,7 +24,8 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
-public class MigrateSpringdocCommonTest implements RewriteTest {
+class MigrateSpringdocCommonTest implements RewriteTest {
+
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.springdoc.MigrateSpringdocCommon")
@@ -36,10 +37,9 @@ public class MigrateSpringdocCommonTest implements RewriteTest {
 
     @Test
     @DocumentExample
-    public void fixCustomiserAndGroupedOpenApi() {
+    void fixCustomiserAndGroupedOpenApi() {
         // language=java
         rewriteRun(
-          spec -> spec.afterTypeValidationOptions(TypeValidation.none()),
           java(
             """
               import io.swagger.v3.oas.models.OpenAPI;
@@ -84,6 +84,7 @@ public class MigrateSpringdocCommonTest implements RewriteTest {
                   }
               }
               """
-          ));
+          )
+        );
     }
 }

@@ -219,6 +219,9 @@ dependencies {
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.5.+")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-web:5.3.+")
 
+    "testWithSpringBoot_2_6RuntimeOnly"("org.springdoc:springdoc-openapi-common:1.+")
+    "testWithSpringBoot_2_6RuntimeOnly"("io.swagger.core.v3:swagger-models:2.+")
+
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot:2.7.+")
@@ -254,9 +257,6 @@ dependencies {
 
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.2.+")
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")
-
-    "testWithSpringBoot_3_3RuntimeOnly"("org.springdoc:springdoc-openapi-common:1.+")
-    "testWithSpringBoot_3_3RuntimeOnly"("io.swagger.core.v3:swagger-models:2.+")
 
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
