@@ -150,14 +150,11 @@ class GeneratePropertiesMigratorConfiguration {
         if (!deprecationsWithoutReplacement.isEmpty()) {
             Files.writeString(recipePath, deprecationsWithoutReplacement.stream()
                 .map(r -> """
-                    - org.openrewrite.java.spring.InlineCommentSpringProperties:
+                    - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+                        propertyKey: %s
                         comment: "%s"
-                        propertyKeys:
-                        - %s
-                  """.formatted(
-                  r.deprecation().reason() != null ? DEPRECATION_PREFIX + r.deprecation().reason() : DEFAULT_DEPRECATION_COMMENT,
-                  r.name())
-                )
+                  """.formatted(r.name(), r.deprecation().reason() != null ?
+                  DEPRECATION_PREFIX + r.deprecation().reason() : DEFAULT_DEPRECATION_COMMENT))
                 .collect(joining("", "", "\n")),
               StandardOpenOption.APPEND);
         }

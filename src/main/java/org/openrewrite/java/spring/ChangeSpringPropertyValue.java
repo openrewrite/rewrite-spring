@@ -67,13 +67,6 @@ public class ChangeSpringPropertyValue extends Recipe {
     @Nullable
     Boolean relaxedBinding;
 
-    @Option(displayName = "Comment",
-            description = "Comment to replace the property key.",
-            required = false,
-            example = "This property is deprecated and no longer applicable starting from Spring Boot 3.0.x")
-    @Nullable
-    String comment;
-
     @Override
     public Validated validate() {
         return super.validate().and(
@@ -84,9 +77,7 @@ public class ChangeSpringPropertyValue extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         Recipe changeProperties = new org.openrewrite.properties.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
-        Recipe changeYaml = comment != null ?
-                new org.openrewrite.yaml.CommentOutProperty(propertyKey, comment) :
-                new org.openrewrite.yaml.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding, null);
+        Recipe changeYaml = new org.openrewrite.yaml.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding, null);
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {

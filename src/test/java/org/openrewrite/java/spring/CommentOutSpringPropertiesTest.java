@@ -21,19 +21,20 @@ import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-class InlineCommentSpringPropertiesTest implements RewriteTest {
+class CommentOutSpringPropertiesTest implements RewriteTest {
 
     @DocumentExample
     @Test
     void shouldInsertInlineCommentsIntoProperties() {
         rewriteRun(
-          spec -> spec.recipe(new InlineCommentSpringProperties(List.of("test.propertyKey1", "test.propertyKey2"), "my comment")),
+          spec -> spec.recipes(
+            new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1"),
+            new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2")
+          ),
           //language=yaml
           yaml(
             """
@@ -44,8 +45,8 @@ class InlineCommentSpringPropertiesTest implements RewriteTest {
               """,
             """
               test:
-                # my comment
-                # my comment
+                # my comment 2
+                # my comment 1
                 # propertyKey1: xxx
                 # propertyKey2: yyy
                 propertyKey3: zzz
@@ -61,12 +62,12 @@ class InlineCommentSpringPropertiesTest implements RewriteTest {
                   .isEqualTo(
                     """
 
-                      # my comment
-                      # my comment
-                      # propertyKey1: xxx
-                      # propertyKey2: yyy
-                      \
-                    """
+                        # my comment 2
+                        # my comment 1
+                        # propertyKey1: xxx
+                        # propertyKey2: yyy
+                        \
+                      """
                   )
               )
           ),
@@ -78,16 +79,30 @@ class InlineCommentSpringPropertiesTest implements RewriteTest {
               test.propertyKey3=zzz
               """,
             """
-              test.propertyKey1=xxx # my comment
-              test.propertyKey2=yyy # my comment
+              test.propertyKey1=xxx # my comment 1
+              test.propertyKey2=yyy # my comment 2
               test.propertyKey3=zzz
               """,
             spec -> spec.path("application.properties")
               .afterRecipe(file ->
                 // XXX Right now trailing comments are mapped as part of the value, not as separate comments
-                assertThat(((Properties.Entry) file.getContent().get(1)).getValue().getText()).isEqualTo("yyy # my comment")
+                assertThat(((Properties.Entry) file.getContent().get(1)).getValue().getText()).isEqualTo("yyy # my comment 2")
               )
           )
+        );
+    }
+
+    @Test
+    void yamlComment() {
+        rewriteRun(
+          spec -> spec.recipe(new CommentOutSpringPropertyKey("server.port", "This property has been removed.")),
+          //language=yaml
+          yaml(
+            "server.port: 8080",
+            """
+              # This property has been removed.
+              # server.port: 8080
+              """)
         );
     }
 }
