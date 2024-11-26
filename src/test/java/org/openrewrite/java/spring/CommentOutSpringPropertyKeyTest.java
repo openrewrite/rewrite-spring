@@ -25,9 +25,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-class CommentOutSpringPropertiesTest implements RewriteTest {
+class CommentOutSpringPropertyKeyTest implements RewriteTest {
 
     @DocumentExample
+    @Test
+    void yamlComment() {
+        rewriteRun(
+          spec -> spec.recipe(new CommentOutSpringPropertyKey("server.port", "This property has been removed.")),
+          //language=yaml
+          yaml(
+            "server.port: 8080",
+            """
+              # This property has been removed.
+              # server.port: 8080
+              """)
+        );
+    }
+
     @Test
     void shouldInsertInlineCommentsIntoProperties() {
         rewriteRun(
@@ -86,23 +100,12 @@ class CommentOutSpringPropertiesTest implements RewriteTest {
             spec -> spec.path("application.properties")
               .afterRecipe(file ->
                 // XXX Right now trailing comments are mapped as part of the value, not as separate comments
-                assertThat(((Properties.Entry) file.getContent().get(1)).getValue().getText()).isEqualTo("yyy # my comment 2")
+                assertThat(
+                  ((Properties.Entry) file.getContent().get(1))
+                    .getValue().getText())
+                  .isEqualTo("yyy # my comment 2")
               )
           )
-        );
-    }
-
-    @Test
-    void yamlComment() {
-        rewriteRun(
-          spec -> spec.recipe(new CommentOutSpringPropertyKey("server.port", "This property has been removed.")),
-          //language=yaml
-          yaml(
-            "server.port: 8080",
-            """
-              # This property has been removed.
-              # server.port: 8080
-              """)
         );
     }
 }

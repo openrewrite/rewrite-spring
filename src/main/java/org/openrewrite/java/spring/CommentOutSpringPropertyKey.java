@@ -17,7 +17,8 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
@@ -33,11 +34,11 @@ public class CommentOutSpringPropertyKey extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Add inline comments before specified Spring properties, and comment out the property.";
+        return "Add comment to specified Spring properties, and comment out the property.";
     }
 
     @Option(displayName = "Property key",
-            description = "The name of the property key whose value is to be changed.",
+            description = "The name of the property key to comment out.",
             example = "management.metrics.binders.files.enabled")
     String propertyKey;
 
@@ -54,7 +55,8 @@ public class CommentOutSpringPropertyKey extends Recipe {
         Recipe changeYaml = new org.openrewrite.yaml.CommentOutProperty(propertyKey, comment) ;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+            public @Nullable Tree preVisit(@NonNull Tree tree, ExecutionContext ctx) {
+                stopAfterPreVisit();
                 if (tree instanceof Properties.File) {
                     return changeProperties.getVisitor().visit(tree, ctx);
                 } else if (tree instanceof Yaml.Documents) {
