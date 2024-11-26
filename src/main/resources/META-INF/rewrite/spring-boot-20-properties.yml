@@ -537,13 +537,13 @@ recipeList:
 
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: endpoints.actuator.enabled
-      comment: "This property is deprecated: The "actuator" endpoint is no longer available."
+      comment: "This property is deprecated: The \"actuator\" endpoint is no longer available."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: endpoints.actuator.path
-      comment: "This property is deprecated: The "actuator" endpoint is no longer available."
+      comment: "This property is deprecated: The \"actuator\" endpoint is no longer available."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: endpoints.actuator.sensitive
-      comment: "This property is deprecated: The "actuator" endpoint is no longer available."
+      comment: "This property is deprecated: The \"actuator\" endpoint is no longer available."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: endpoints.auditevents.sensitive
       comment: "This property is deprecated: Endpoint sensitive flag is no longer customizable as Spring Boot no longer provides a customizable security auto-configuration
@@ -571,16 +571,16 @@ recipeList:
 . Create or adapt your security configuration accordingly."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: endpoints.docs.curies.enabled
-      comment: "This property is deprecated: The "docs" endpoint is no longer available."
+      comment: "This property is deprecated: The \"docs\" endpoint is no longer available."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: endpoints.docs.enabled
-      comment: "This property is deprecated: The "docs" endpoint is no longer available."
+      comment: "This property is deprecated: The \"docs\" endpoint is no longer available."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: endpoints.docs.path
-      comment: "This property is deprecated: The "docs" endpoint is no longer available."
+      comment: "This property is deprecated: The \"docs\" endpoint is no longer available."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: endpoints.docs.sensitive
-      comment: "This property is deprecated: The "docs" endpoint is no longer available."
+      comment: "This property is deprecated: The \"docs\" endpoint is no longer available."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: endpoints.dump.id
       comment: "This property is deprecated: Endpoint identifier is no longer customizable."
