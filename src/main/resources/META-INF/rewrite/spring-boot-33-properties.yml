@@ -30,4 +30,17 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.couchbase.env.ssl.key-store-password
       newPropertyKey: spring.couchbase.env.ssl.bundle
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.kafka.streams.cache-max-bytes-buffering
+      newPropertyKey: spring.kafka.streams.state-store-cache-max-size
+
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.prometheus.metrics.export.histogram-flavor
+      comment: "This property is deprecated: No longer supported. Works only when using the Prometheus simpleclient."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.flyway.cherry-pick
+      comment: "This property is deprecated: Removed in Flyway 10"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.flyway.license-key
+      comment: "This property is deprecated: Removed in Flyway 10"
 
