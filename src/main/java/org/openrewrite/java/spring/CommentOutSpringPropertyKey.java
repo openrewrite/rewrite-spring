@@ -49,9 +49,7 @@ public class CommentOutSpringPropertyKey extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        String inlineComment = " # " + comment;
-        String regex = "(?<!" + inlineComment + ")$";
-        Recipe changeProperties = new org.openrewrite.properties.ChangePropertyValue(propertyKey, inlineComment, regex, true, null);
+        Recipe changeProperties = new org.openrewrite.properties.AddPropertyComment(propertyKey, comment, true);
         Recipe changeYaml = new org.openrewrite.yaml.CommentOutProperty(propertyKey, comment) ;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override

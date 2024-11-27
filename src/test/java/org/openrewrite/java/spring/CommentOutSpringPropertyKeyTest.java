@@ -43,7 +43,7 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
     }
 
     @Test
-    void shouldInsertInlineCommentsIntoProperties() {
+    void multipleYamlComments() {
         rewriteRun(
           spec -> spec.recipes(
             new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1"),
@@ -84,6 +84,16 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
                       """
                   )
               )
+          )
+        );
+    }
+
+    @Test
+    void multiplePropertiesComments() {
+        rewriteRun(
+          spec -> spec.recipes(
+            new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1"),
+            new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2")
           ),
           //language=properties
           properties(
@@ -93,18 +103,16 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
               test.propertyKey3=zzz
               """,
             """
-              test.propertyKey1=xxx # my comment 1
-              test.propertyKey2=yyy # my comment 2
+              # my comment 1
+              # test.propertyKey1=xxx
+              # my comment 2
+              # test.propertyKey2=yyy
               test.propertyKey3=zzz
               """,
             spec -> spec.path("application.properties")
               .afterRecipe(file ->
-                // XXX Right now trailing comments are mapped as part of the value, not as separate comments
-                assertThat(
-                  ((Properties.Entry) file.getContent().get(1))
-                    .getValue().getText())
-                  .isEqualTo("yyy # my comment 2")
-              )
+                assertThat(((Properties.Comment) file.getContent().get(3)).getMessage())
+                  .isEqualTo(" test.propertyKey2=yyy"))
           )
         );
     }
