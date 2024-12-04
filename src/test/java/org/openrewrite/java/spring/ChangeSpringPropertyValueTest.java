@@ -56,4 +56,27 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
           yaml("server.port: 53", "server.port: 8053")
         );
     }
+
+    @Test
+    void yamlValueQuoted() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyValue("management.endpoints.web.exposure.include", "*", null, null,  null)),
+          properties("management.endpoints.web.exposure.include=info,health", "management.endpoints.web.exposure.include=*"),
+          yaml(
+            """
+              management:
+                endpoints:
+                  web:
+                    exposure:
+                      include: info,health
+            """,
+            """
+              management:
+                endpoints:
+                  web:
+                    exposure:
+                      include: "*"
+            """)
+        );
+    }
 }
