@@ -23,6 +23,8 @@ import org.openrewrite.internal.StringUtils;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.regex.Pattern;
+
 @EqualsAndHashCode(callSuper = false)
 @Value
 public class ChangeSpringPropertyValue extends Recipe {
@@ -68,7 +70,7 @@ public class ChangeSpringPropertyValue extends Recipe {
     Boolean relaxedBinding;
 
     @Override
-    public Validated validate() {
+    public Validated<Object> validate() {
         return super.validate().and(
                 Validated.test("oldValue", "is required if `regex` is enabled", oldValue,
                         value -> !(Boolean.TRUE.equals(regex) && StringUtils.isNullOrEmpty(value))));
@@ -77,7 +79,8 @@ public class ChangeSpringPropertyValue extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         Recipe changeProperties = new org.openrewrite.properties.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
-        Recipe changeYaml = new org.openrewrite.yaml.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding, null);
+        String yamlValue = quoteValue(newValue) ? "\"" + newValue + "\"" : newValue;
+        Recipe changeYaml = new org.openrewrite.yaml.ChangePropertyValue(propertyKey, yamlValue, oldValue, regex, relaxedBinding, null);
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
@@ -89,5 +92,10 @@ public class ChangeSpringPropertyValue extends Recipe {
                 return tree;
             }
         };
+    }
+
+    private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");
+    private boolean quoteValue(String value) {
+        return scalarNeedsAQuote.matcher(value).matches();
     }
 }
