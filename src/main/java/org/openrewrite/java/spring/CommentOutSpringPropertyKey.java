@@ -50,7 +50,7 @@ public class CommentOutSpringPropertyKey extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         Recipe changeProperties = new org.openrewrite.properties.AddPropertyComment(propertyKey, comment, true);
-        Recipe changeYaml = new org.openrewrite.yaml.CommentOutProperty(propertyKey, comment) ;
+        Recipe changeYaml = new org.openrewrite.yaml.CommentOutProperty(propertyKey, comment, true);
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree preVisit(@NonNull Tree tree, ExecutionContext ctx) {
