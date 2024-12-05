@@ -1,6 +1,7 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -12,34 +13,89 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new ReplaceMockBeanAndSpyBean())
+        spec.recipeFromResources("org.openrewrite.java.boot3.ReplaceMockBeanAndSpyBean")
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-test"));
+              "spring-boot-test", "mockito-core"));
     }
 
+    @DocumentExample
     @Test
     void replacesMockBeanWithMockitoBean() {
         rewriteRun(
           // Input source file before applying the recipe
           java(
             """
-            import org.springframework.boot.test.mock.mockito.MockBean;
+              import org.springframework.boot.test.mock.mockito.MockBean;
 
-            public class SomeTest {
-                @MockBean
-                private String someService;
-            }
-            """,
+              public class SomeTest {
+                  @MockBean
+                  private String someService;
+              }
+              """,
             // Expected output after applying the recipe
             """
-            import org.springframework.test.context.bean.override.mockito.MockitoBean;
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-            public class SomeTest {
-                @MockitoBean
-                private String someService;
-            }
+              public class SomeTest {
+                  @MockitoBean
+                  private String someService;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replacesMockBeanWithMockitoBeanWithAttributes() {
+        rewriteRun(
+          // Input source file before applying the recipe
+          java(
             """
+              import org.mockito.Answers;
+              import org.springframework.boot.test.mock.mockito.MockBean;
+
+              public class SomeTest {
+                  @MockBean(name="someName", answer="Answers.RETURNS_DEFAULTS", classes=String.class, value=String.class)
+                  private String someService;
+              }
+              """,
+            // Expected output after applying the recipe
+            """
+              import org.mockito.Answers;
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+              public class SomeTest {
+                  @MockitoBean(name="someName", answers="Answers.RETURNS_DEFAULTS")
+                  private String someService;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replacesMockBeanWithParamsWithMockitoBeanWithParams() {
+        rewriteRun(
+          // Input source file before applying the recipe
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.MockBean;
+
+              public class SomeTest {
+                  @MockBean(name="bean1")
+                  private String someService;
+              }
+              """,
+            // Expected output after applying the recipe
+            """
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+              public class SomeTest {
+                  @MockitoBean(name="bean1")
+                  private String someService;
+              }
+              """
           )
         );
     }
@@ -49,25 +105,25 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.boot.test.mock.mockito.MockBean;
+              import org.springframework.boot.test.mock.mockito.MockBean;
 
-            public class SomeTest {
+              public class SomeTest {
 
-            @MockBean
-            @Deprecated
-            private String someService;
-            }
-            """,
+              @MockBean
+              @Deprecated
+              private String someService;
+              }
+              """,
             """
-            import org.springframework.test.context.bean.override.mockito.MockitoBean;
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-            public class SomeTest {
+              public class SomeTest {
 
-            @MockitoBean
-            @Deprecated
-            private String someService;
-            }
-            """
+              @MockitoBean
+              @Deprecated
+              private String someService;
+              }
+              """
           )
         );
     }
@@ -77,17 +133,17 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            public class SomeTest {
-                @org.springframework.boot.test.mock.mockito.MockBean
-                private String someService;
-            }
-            """,
+              public class SomeTest {
+                  @org.springframework.boot.test.mock.mockito.MockBean
+                  private String someService;
+              }
+              """,
             """
-            public class SomeTest {
-                @org.springframework.test.context.bean.override.mockito.MockitoBean
-                private String someService;
-            }
-            """
+              public class SomeTest {
+                  @org.springframework.test.context.bean.override.mockito.MockitoBean
+                  private String someService;
+              }
+              """
           )
         );
     }
@@ -98,30 +154,30 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
           // Input source file before applying the recipe
           java(
             """
-            import org.springframework.boot.test.mock.mockito.MockBean;
-            import org.springframework.boot.test.mock.mockito.SpyBean;
+              import org.springframework.boot.test.mock.mockito.MockBean;
+              import org.springframework.boot.test.mock.mockito.SpyBean;
 
-            public class SomeTest {
-                @SpyBean
-                private String someService;
+              public class SomeTest {
+                  @SpyBean
+                  private String someService;
 
-                @MockBean
-                private String someMockService;
-            }
-            """,
+                  @MockBean
+                  private String someMockService;
+              }
+              """,
             // Expected output after applying the recipe
             """
-            import org.springframework.test.context.bean.override.mockito.MockitoBean;
-            import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+              import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-            public class SomeTest {
-                @MockitoSpyBean
-                private String someService;
+              public class SomeTest {
+                  @MockitoSpyBean
+                  private String someService;
 
-                @MockitoBean
-                private String someMockService;
-            }
-            """
+                  @MockitoBean
+                  private String someMockService;
+              }
+              """
           )
         );
     }
@@ -132,22 +188,48 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
           // Input source file before applying the recipe
           java(
             """
-            import org.springframework.boot.test.mock.mockito.SpyBean;
+              import org.springframework.boot.test.mock.mockito.SpyBean;
 
-            public class SomeTest {
-                @SpyBean
-                private String someService;
-            }
-            """,
+              public class SomeTest {
+                  @SpyBean
+                  private String someService;
+              }
+              """,
             // Expected output after applying the recipe
             """
-            import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+              import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-            public class SomeTest {
-                @MockitoSpyBean
-                private String someService;
-            }
+              public class SomeTest {
+                  @MockitoSpyBean
+                  private String someService;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replacesSpyBeanWithMockitoSpyBeanwithAttributes() {
+        rewriteRun(
+          // Input source file before applying the recipe
+          java(
             """
+              import org.springframework.boot.test.mock.mockito.SpyBean;
+
+              public class SomeTest {
+                  @SpyBean(name="someName", classes=String.class, value=String.class, proxyTargetAware=true)
+                  private String someService;
+              }
+              """,
+            // Expected output after applying the recipe
+            """
+              import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+
+              public class SomeTest {
+                  @MockitoSpyBean(name="someName")
+                  private String someService;
+              }
+              """
           )
         );
     }
@@ -157,25 +239,25 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.boot.test.mock.mockito.SpyBean;
+              import org.springframework.boot.test.mock.mockito.SpyBean;
 
-            public class SomeTest {
+              public class SomeTest {
 
-            @SpyBean
-            @Deprecated
-            private String someService;
-            }
-            """,
+              @SpyBean
+              @Deprecated
+              private String someService;
+              }
+              """,
             """
-            import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+              import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-            public class SomeTest {
+              public class SomeTest {
 
-            @MockitoSpyBean
-            @Deprecated
-            private String someService;
-            }
-            """
+              @MockitoSpyBean
+              @Deprecated
+              private String someService;
+              }
+              """
           )
         );
     }
@@ -185,17 +267,17 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            public class SomeTest {
-                @org.springframework.boot.test.mock.mockito.SpyBean
-                private String someService;
-            }
-            """,
+              public class SomeTest {
+                  @org.springframework.boot.test.mock.mockito.SpyBean
+                  private String someService;
+              }
+              """,
             """
-            public class SomeTest {
-                @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
-                private String someService;
-            }
-            """
+              public class SomeTest {
+                  @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+                  private String someService;
+              }
+              """
           )
         );
     }
@@ -205,10 +287,10 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            public class SomeTest {
-                private String someService;
-            }
-            """
+              public class SomeTest {
+                  private String someService;
+              }
+              """
           )
         );
     }
