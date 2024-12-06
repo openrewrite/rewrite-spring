@@ -15,6 +15,23 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
+displayName: Spring Boot 2.x best practices
+description: Applies best practices to Spring Boot 2 applications.
+tags:
+  - spring
+  - boot
+recipeList:
+  # Note that we do not upgrade to Spring Boot 2.x here, as the 2.0 recipe includes SpringBoot2BestPractices itself
+  - org.openrewrite.java.spring.NoRequestMappingAnnotation
+  - org.openrewrite.java.spring.ImplicitWebAnnotationNames
+  - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
+  - org.openrewrite.java.spring.NoAutowiredOnConstructor
+  - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
+  - org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
+
+---
+type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.SpringBoot3BestPractices
 displayName: Spring Boot 3.x best practices
 description: Applies best practices to Spring Boot 3 applications.
@@ -22,10 +39,12 @@ tags:
   - spring
   - boot
 recipeList:
+  # These steps go above & beyond what's needed for a pure upgrade, and are not be included with 3.x upgrades themselves
   - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
   - org.openrewrite.java.migrate.UpgradeToJava21 # Allows for virtual threads
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
   - org.openrewrite.java.spring.boot3.EnableVirtualThreads
+  - org.openrewrite.java.spring.framework.BeanMethodsNotPublic # Intentionally not in 2.x
   # Replace literals with constants and simplify MediaType parse calls
   - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithHttpHeadersConstants
   - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants
