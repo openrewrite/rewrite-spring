@@ -1,5 +1,6 @@
 plugins {
     id("org.openrewrite.build.recipe-library") version "latest.release"
+    id("org.openrewrite.build.moderne-source-available-license") version "latest.release"
 }
 
 group = "org.openrewrite.recipe"
