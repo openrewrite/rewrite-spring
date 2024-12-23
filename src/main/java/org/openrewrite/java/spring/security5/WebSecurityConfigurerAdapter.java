@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Alex Boyko
@@ -56,7 +55,6 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     private static final String FQN_USER_DETAILS_BUILDER = "org.springframework.security.core.userdetails.User$UserBuilder";
     private static final String FQN_USER_DETAILS = "org.springframework.security.core.userdetails.UserDetails";
     private static final String FQN_BEAN = "org.springframework.context.annotation.Bean";
-    private static final String BEAN_ANNOTATION = "@Bean";
 
     private static final MethodMatcher CONFIGURE_HTTP_SECURITY_METHOD_MATCHER =
             new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter configure(org.springframework.security.config.annotation.web.builders.HttpSecurity)", true);
@@ -208,7 +206,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                         continue;
                                     }
                                     String uniqueName = computeBeanNameFromClassName(fc.getSimpleName(), beanType.getClassName());
-                                    List<J.Annotation> fcLeadingAnnotations = fc.getLeadingAnnotations().stream().filter(it -> !TypeUtils.isOfClassType(it.getType(), FQN_CONFIGURATION)).collect(toList());
+                                    List<J.Annotation> fcLeadingAnnotations = ListUtils.map(fc.getLeadingAnnotations(),
+                                            anno -> TypeUtils.isOfClassType(anno.getType(), FQN_CONFIGURATION) ? null : anno);
                                     s = m
                                             .withName(m.getName().withSimpleName(uniqueName))
                                             .withMethodType(m.getMethodType().withName(uniqueName))
@@ -303,19 +302,14 @@ public class WebSecurityConfigurerAdapter extends Recipe {
 
                 maybeAddImport(inmemoryAuthConfigType);
                 maybeAddImport(FQN_BEAN);
-
-                return JavaTemplate.builder(BEAN_ANNOTATION)
+                return JavaTemplate.builder("@Bean")
                         .imports(FQN_BEAN)
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .dependsOn(
-                                        "package org.springframework.context.annotation;\n" +
-                                                "public @interface Bean {}"))
+                        .javaParser(JavaParser.fromJavaVersion().dependsOn(
+                                "package org.springframework.context.annotation;public @interface Bean {}"))
                         .build()
-                        .apply(
-                                // not calling `updateCursor()` here because `visitBlock()` currently requires the original to be stored in the cursor
-                                new Cursor(getCursor().getParentOrThrow(), m),
-                                m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
-                        );
+                        // not calling `updateCursor()` here because `visitBlock()` currently requires the original to be stored in the cursor
+                        .apply(new Cursor(getCursor().getParentOrThrow(), m),
+                                m.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
             }
 
             @Override
