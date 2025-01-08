@@ -15,8 +15,6 @@
  */
 package org.openrewrite.java.spring.cloud2022;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.openrewrite.ExecutionContext;
@@ -79,19 +77,7 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
                             } else if (requestMapping.getArguments().size() == 1) {
                                 J.Assignment path = convertToPathAttribute(requestMapping.getArguments().get(0));
                                 if (path != null && !hasPathAttribute(feignClient)) {
-                                    cd = withAddedAttributeToFeignClient(removeRequestMapping(classDecl), path);
-                                }
-                            } else {
-                                List<Expression> args = new ArrayList<>(requestMapping.getArguments());
-                                Iterator<Expression> iterator = args.iterator();
-                                while (iterator.hasNext()) {
-                                    Expression argument = iterator.next();
-                                    J.Assignment path = convertToPathAttribute(argument);
-                                    if (path != null && !hasPathAttribute(feignClient)) {
-                                        iterator.remove();
-                                        cd = withRequestMappingAttributes(
-                                            withAddedAttributeToFeignClient(classDecl, path), args);
-                                    }
+                                    cd = addAttributeToFeignClient(removeRequestMapping(classDecl), path);
                                 }
                             }
                             return cd;
@@ -116,17 +102,7 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
                     });
                 }
 
-                private J.ClassDeclaration withRequestMappingAttributes(J.ClassDeclaration classDeclaration, List<Expression> args) {
-                    return classDeclaration.withLeadingAnnotations(
-                        ListUtils.map(classDeclaration.getLeadingAnnotations(), a -> {
-                            if (TypeUtils.isOfClassType(a.getType(), REQUEST_MAPPING)) {
-                                return a.withArguments(args);
-                            }
-                            return a;
-                        }));
-                }
-
-                private J.ClassDeclaration withAddedAttributeToFeignClient(J.ClassDeclaration classDeclaration, J.Assignment path) {
+                private J.ClassDeclaration addAttributeToFeignClient(J.ClassDeclaration classDeclaration, J.Assignment path) {
                     return classDeclaration.withLeadingAnnotations(
                         ListUtils.map(classDeclaration.getLeadingAnnotations(), a -> {
                             if (TypeUtils.isOfClassType(a.getType(), FEIGN_CLIENT)) {
