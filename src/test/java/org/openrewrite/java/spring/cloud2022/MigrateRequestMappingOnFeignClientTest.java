@@ -60,7 +60,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
               import org.springframework.web.bind.annotation.PathVariable;
               import org.springframework.web.bind.annotation.GetMapping;
 
-              @FeignClient(name = "myService", url = "http://localhost:8080", path = "/posts")
+              @FeignClient(path = "/posts", name = "myService", url = "http://localhost:8080")
               public interface MyServiceClient {
 
                   @GetMapping(value = "/{postId}", produces = "application/json")
