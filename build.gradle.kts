@@ -125,40 +125,40 @@ recipeDependencies {
     parserClasspath("io.micrometer:micrometer-observation:1.11.+")
 }
 
-val rewriteVersion = rewriteRecipe.rewriteVersion.get()
+val rewriteVersion = "latest.release"
 
 dependencies {
-    implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
+    implementation(platform("org.openrewrite:rewrite-bom:8.41.1"))
     implementation("org.openrewrite:rewrite-java")
     implementation("org.openrewrite:rewrite-xml")
     implementation("org.openrewrite:rewrite-properties")
     implementation("org.openrewrite:rewrite-yaml")
     implementation("org.openrewrite:rewrite-gradle")
     implementation("org.openrewrite:rewrite-maven")
-    implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
-    implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
-    implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
+    implementation("org.openrewrite.recipe:rewrite-java-dependencies:1.24.1")
+    implementation("org.openrewrite.recipe:rewrite-static-analysis:1.21.1")
+    implementation("org.openrewrite.gradle.tooling:model:latest.release")
 
     runtimeOnly("org.openrewrite:rewrite-java-17")
-    runtimeOnly("org.openrewrite.recipe:rewrite-apache:$rewriteVersion")
-    runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
-    runtimeOnly("org.openrewrite.recipe:rewrite-micrometer:$rewriteVersion")
-    runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
-    runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
-    runtimeOnly("org.openrewrite.recipe:rewrite-reactive-streams:$rewriteVersion")
-    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
+    runtimeOnly("org.openrewrite.recipe:rewrite-apache:1.9.1")
+    runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:1.13.1")
+    runtimeOnly("org.openrewrite.recipe:rewrite-micrometer:0.11.1")
+    runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:2.30.1")
+    runtimeOnly("org.openrewrite.recipe:rewrite-openapi:0.10.1")
+    runtimeOnly("org.openrewrite.recipe:rewrite-reactive-streams:0.6.1")
+    runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:2.23.1")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
 
     testImplementation("org.openrewrite:rewrite-test")
-    testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
+    testImplementation("org.openrewrite.gradle.tooling:model:latest.release")
 
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
     testImplementation("org.openrewrite:rewrite-java-17")
-    testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
-    testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
+    testImplementation("org.openrewrite.recipe:rewrite-migrate-java:2.30.1")
+    testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:2.23.1")
 
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework:spring-web:4.+")
     "testWithSpringBoot_1_5RuntimeOnly"("org.springframework.boot:spring-boot:1.5.+")
