@@ -66,12 +66,8 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
                         } else if (requestMapping.getArguments().size() == 1) {
                             String pathValueFromRequestMapping = getPathValue(requestMapping.getArguments().get(0));
                             if (pathValueFromRequestMapping != null && !hasPathAttribute(feignClient)) {
-                                cd = removeRequestMapping(classDecl, ctx);
-                                cd = classDecl.withLeadingAnnotations(
-                                    ListUtils.map(cd.getLeadingAnnotations(), a -> (J.Annotation)
-                                        new AddOrUpdateAnnotationAttribute(FEIGN_CLIENT, "path",
-                                            pathValueFromRequestMapping, true, false).getVisitor()
-                                            .visit(a, ctx, getCursor().getParentOrThrow())));
+                                cd = removeRequestMapping(cd, ctx);
+                                cd = addAttributeToFeignClient(cd, ctx, pathValueFromRequestMapping);
                             }
                         }
                         return cd;
@@ -95,17 +91,16 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
                     });
                 }
 
-                private J.ClassDeclaration addAttributeToFeignClient(J.ClassDeclaration classDeclaration, J.Assignment path) {
-                    return classDeclaration.withLeadingAnnotations(
-                        ListUtils.map(classDeclaration.getLeadingAnnotations(), a -> {
-                            if (TypeUtils.isOfClassType(a.getType(), FEIGN_CLIENT)) {
-                                return a.withArguments(ListUtils.concat(a.getArguments(), path));
-                            }
-                            return a;
-                        }));
+                private J.ClassDeclaration addAttributeToFeignClient(J.ClassDeclaration cd, ExecutionContext ctx, String path) {
+                    return cd.withLeadingAnnotations(
+                        ListUtils.map(cd.getLeadingAnnotations(), a -> (J.Annotation)
+                            new AddOrUpdateAnnotationAttribute(FEIGN_CLIENT, "path",
+                                path, true, false).getVisitor()
+                                .visit(a, ctx, getCursor().getParentOrThrow())));
                 }
 
                 private J.ClassDeclaration removeRequestMapping(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                    maybeRemoveImport(REQUEST_MAPPING);
                     return classDecl.withLeadingAnnotations(ListUtils.map(classDecl.getLeadingAnnotations(),
                         a -> (J.Annotation) new RemoveAnnotation(REQUEST_MAPPING).getVisitor()
                             .visit(a, ctx, getCursor().getParentOrThrow())));
@@ -120,10 +115,10 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
                         if (assignment.getVariable() instanceof J.Identifier) {
                             J.Identifier variable = (J.Identifier) assignment.getVariable();
                             if ("path".equals(variable.getSimpleName()) || "value".equals(variable.getSimpleName())) {
-                                Expression value = assignment.getAssignment();
-                                if (value instanceof J.Literal) {
-                                    J.Literal value1 = (J.Literal) value;
-                                    return (String) value1.getValue();
+                                Expression expression = assignment.getAssignment();
+                                if (expression instanceof J.Literal) {
+                                    J.Literal value = (J.Literal) expression;
+                                    return (String) value.getValue();
                                 }
                             }
                         }

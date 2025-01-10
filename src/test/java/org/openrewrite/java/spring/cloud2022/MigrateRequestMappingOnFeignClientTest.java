@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.cloud2022;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -23,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
+class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -35,7 +36,8 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
-    void testMigrateRequestMappingAnnotation() {
+    @DocumentExample
+    void migrateRequestMappingAnnotation() {
         rewriteRun(
           //language=java
           java(
@@ -72,7 +74,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
-    void testRequestMappingWithDefaultAttributeName() {
+    void requestMappingWithDefaultAttributeName() {
         rewriteRun(
           //language=java
           java(
@@ -97,7 +99,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
               import org.springframework.web.bind.annotation.PathVariable;
               import org.springframework.web.bind.annotation.GetMapping;
 
-              @FeignClient(name = "myService", url = "http://localhost:8080", path = "/posts")
+              @FeignClient(path = "/posts", name = "myService", url = "http://localhost:8080")
               public interface MyServiceClient {
 
                   @GetMapping(value = "/{postId}", produces = "application/json")
@@ -109,7 +111,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
-    void testRequestMappingWithValueAttributeName() {
+    void requestMappingWithValueAttributeName() {
         rewriteRun(
           //language=java
           java(
@@ -134,7 +136,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
               import org.springframework.web.bind.annotation.PathVariable;
               import org.springframework.web.bind.annotation.GetMapping;
 
-              @FeignClient(name = "myService", url = "http://localhost:8080", path = "/posts")
+              @FeignClient(path = "/posts", name = "myService", url = "http://localhost:8080")
               public interface MyServiceClient {
 
                   @GetMapping(value = "/{postId}", produces = "application/json")
@@ -146,7 +148,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
-    void testWithRequestMappingAnnotationOnMethod() {
+    void withRequestMappingAnnotationOnMethod() {
         rewriteRun(
           //language=java
           java(
@@ -170,7 +172,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
               import org.springframework.web.bind.annotation.RequestMethod;
               import org.springframework.web.bind.annotation.PathVariable;
 
-              @FeignClient(name = "myService", url = "http://localhost:8080", path = "/posts")
+              @FeignClient(path = "/posts", name = "myService", url = "http://localhost:8080")
               public interface MyServiceClient {
 
                   @RequestMapping(method = RequestMethod.GET, value = "/{postId}", produces = "application/json")
@@ -182,7 +184,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
-    void testWithNonRequestMappingOnFeignClientButWithOneOnMethod() {
+    void withNonRequestMappingOnFeignClientButWithOneOnMethod() {
         rewriteRun(
           //language=java
           java(
@@ -204,7 +206,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
-    void testRequestMappingAnnotationWithMultipleAttributes() {
+    void requestMappingAnnotationWithMultipleAttributes() {
         rewriteRun(
           //language=java
           java(
@@ -227,7 +229,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
-    void testRequestMappingAnnotationWithNonAttributes() {
+    void requestMappingAnnotationWithNonAttributes() {
         rewriteRun(
           //language=java
           java(
@@ -263,7 +265,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
-    void testRequestMappingAnnotationWithOnlyHeadersAttribute() {
+    void requestMappingAnnotationWithOnlyHeadersAttribute() {
         rewriteRun(
           //language=java
           java(
@@ -286,7 +288,7 @@ public class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
-    void testFeignClientAnnotationAlreadyHasPathAttribute() {
+    void feignClientAnnotationAlreadyHasPathAttribute() {
         rewriteRun(
           //language=java
           java(
