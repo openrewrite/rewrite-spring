@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.http;
 
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -45,19 +44,19 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
     @DocumentExample
     @ParameterizedTest
     @CsvSource({
-        "200,isOk()",
-        "201,isCreated()",
-        "202,isAccepted()",
-        "204,isNoContent()",
-        "302,isFound()",
-        "303,isSeeOther()",
-        "304,isNotModified()",
-        "307,isTemporaryRedirect()",
-        "308,isPermanentRedirect()",
-        "400,isBadRequest()",
-        "401,isUnauthorized()",
-        "403,isForbidden()",
-        "404,isNotFound()"
+      "200,isOk()",
+      "201,isCreated()",
+      "202,isAccepted()",
+      "204,isNoContent()",
+      "302,isFound()",
+      "303,isSeeOther()",
+      "304,isNotModified()",
+      "307,isTemporaryRedirect()",
+      "308,isPermanentRedirect()",
+      "400,isBadRequest()",
+      "401,isUnauthorized()",
+      "403,isForbidden()",
+      "404,isNotFound()"
     })
     void replacesAllIntStatusCodes(String httpStatus, String method) {
         rewriteRun(
@@ -99,64 +98,45 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
         );
     }
 
-    @Nested
-    class KotlinTest {
-        @DocumentExample
-        @ParameterizedTest
-        @CsvSource({
-          "200,isOk()",
-          "201,isCreated()",
-          "202,isAccepted()",
-          "204,isNoContent()",
-          "302,isFound()",
-          "303,isSeeOther()",
-          "304,isNotModified()",
-          "307,isTemporaryRedirect()",
-          "308,isPermanentRedirect()",
-          "400,isBadRequest()",
-          "401,isUnauthorized()",
-          "403,isForbidden()",
-          "404,isNotFound()"
-        })
-        void replacesAllIntStatusCodes(String httpStatus, String method) {
-            rewriteRun(
-              //language=kotlin
-              kotlin(
-                """
-                  import org.springframework.test.web.reactive.server.WebTestClient
+    @Test
+    void replaceKotlinInt() {
+        rewriteRun(
+          //language=kotlin
+          kotlin(
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient
 
-                  class Test {
-                      val webClient: WebTestClient = WebTestClient.bindToServer().build()
-                      fun someMethod() {
-                        webClient
-                            .post()
-                            .uri("/some/url")
-                            .bodyValue("someValue")
-                            .exchange()
-                            .expectStatus()
-                            .isEqualTo(%s)
-                      }
+              class Test {
+                  val webClient: WebTestClient = WebTestClient.bindToServer().build()
+                  fun someMethod() {
+                    webClient
+                        .post()
+                        .uri("/some/url")
+                        .bodyValue("someValue")
+                        .exchange()
+                        .expectStatus()
+                        .isEqualTo(200)
                   }
-                  """.formatted(httpStatus),
-                """
-                  import org.springframework.test.web.reactive.server.WebTestClient
+              }
+              """,
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient
 
-                  class Test {
-                      val webClient: WebTestClient = WebTestClient.bindToServer().build()
-                      fun someMethod() {
-                        webClient
-                            .post()
-                            .uri("/some/url")
-                            .bodyValue("someValue")
-                            .exchange()
-                            .expectStatus()
-                            .%s
-                      }
+              class Test {
+                  val webClient: WebTestClient = WebTestClient.bindToServer().build()
+                  fun someMethod() {
+                    webClient
+                        .post()
+                        .uri("/some/url")
+                        .bodyValue("someValue")
+                        .exchange()
+                        .expectStatus()
+                        .isOk()
                   }
-                  """.formatted(method)
-              )
-            );
-        }
+              }
+              """
+          )
+        );
     }
 
     @Test
