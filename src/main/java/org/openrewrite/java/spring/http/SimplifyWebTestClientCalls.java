@@ -23,14 +23,17 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+
+import java.util.List;
 
 import static java.util.Collections.emptyList;
 
 public class SimplifyWebTestClientCalls extends Recipe {
 
-    private static final MethodMatcher IS_EQUAL_TO_INT_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(int)");
+    private static final MethodMatcher IS_EQUAL_TO_INT_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(..)");
 
     @Override
     public String getDisplayName() {
@@ -49,7 +52,7 @@ public class SimplifyWebTestClientCalls extends Recipe {
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (IS_EQUAL_TO_INT_MATCHER.matches(m.getMethodType())) {
-                    int statusCode = (int) ((J.Literal) m.getArguments().get(0)).getValue();
+                    final int statusCode = extractStatusCode(m);
                     switch (statusCode) {
                         case 200:
                             return replaceMethod(m, "isOk()");
@@ -82,11 +85,40 @@ public class SimplifyWebTestClientCalls extends Recipe {
                 return m;
             }
 
+            private int extractStatusCode(J.MethodInvocation m) {
+                List<Expression> arguments = m.getArguments();
+                if (arguments.size() != 1) {
+                    throw new IllegalArgumentException("Status code must be provided as the single argument to isEqualTo but received " + arguments);
+                }
+                Expression expression = arguments.get(0);
+                if (expression instanceof J.Literal) {
+                    Object raw = ((J.Literal) expression).getValue();
+                    if (raw instanceof Integer) {
+                        return (int) raw;
+                    } else if (raw instanceof Long) {
+                        return ((Long) raw).intValue();
+                    } else {
+                        throw new IllegalArgumentException("Status code must be an int or long but received " + raw);
+                    }
+                } else if (expression instanceof J.MethodInvocation) {
+                    return -1; //HttpStatus is not yet supported
+                } else {
+                    throw new IllegalArgumentException("First argument to isEqualTo must be a literal but received " + expression);
+                }
+            }
+
             private J.MethodInvocation replaceMethod(J.MethodInvocation method, String methodName) {
-                JavaTemplate template = JavaTemplate.builder(methodName).build();
-                J.MethodInvocation methodInvocation = template.apply(getCursor(), method.getCoordinates().replaceMethod());
-                JavaType.Method type = methodInvocation.getMethodType().withParameterNames(emptyList()).withParameterTypes(emptyList());
-                return methodInvocation.withArguments(emptyList()).withMethodType(type).withName(methodInvocation.getName().withType(type));
+                JavaTemplate template = JavaTemplate.builder(methodName)
+                                                    .build();
+                J.MethodInvocation methodInvocation = template.apply(getCursor(), method.getCoordinates()
+                                                                                        .replaceMethod());
+                JavaType.Method type = methodInvocation.getMethodType()
+                                                       .withParameterNames(emptyList())
+                                                       .withParameterTypes(emptyList());
+                return methodInvocation.withArguments(emptyList())
+                                       .withMethodType(type)
+                                       .withName(methodInvocation.getName()
+                                                                 .withType(type));
 
             }
         });
