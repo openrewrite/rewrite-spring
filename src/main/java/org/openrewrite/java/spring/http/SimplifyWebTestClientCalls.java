@@ -23,6 +23,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
@@ -30,7 +31,7 @@ import static java.util.Collections.emptyList;
 
 public class SimplifyWebTestClientCalls extends Recipe {
 
-    private static final MethodMatcher IS_EQUAL_TO_INT_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(int)");
+    private static final MethodMatcher IS_EQUAL_TO_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(..)");
 
     @Override
     public String getDisplayName() {
@@ -44,12 +45,12 @@ public class SimplifyWebTestClientCalls extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>(IS_EQUAL_TO_INT_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(IS_EQUAL_TO_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                if (IS_EQUAL_TO_INT_MATCHER.matches(m.getMethodType())) {
-                    int statusCode = (int) ((J.Literal) m.getArguments().get(0)).getValue();
+                if (IS_EQUAL_TO_MATCHER.matches(m.getMethodType())) {
+                    final int statusCode = extractStatusCode(m.getArguments().get(0));
                     switch (statusCode) {
                         case 200:
                             return replaceMethod(m, "isOk()");
@@ -82,11 +83,26 @@ public class SimplifyWebTestClientCalls extends Recipe {
                 return m;
             }
 
+            private int extractStatusCode(Expression expression) {
+                if (expression instanceof J.Literal) {
+                    Object raw = ((J.Literal) expression).getValue();
+                    if (raw instanceof Integer) {
+                        return (int) raw;
+                    }
+                }
+                return -1; // HttpStatus is not yet supported
+            }
+
             private J.MethodInvocation replaceMethod(J.MethodInvocation method, String methodName) {
-                JavaTemplate template = JavaTemplate.builder(methodName).build();
-                J.MethodInvocation methodInvocation = template.apply(getCursor(), method.getCoordinates().replaceMethod());
-                JavaType.Method type = methodInvocation.getMethodType().withParameterNames(emptyList()).withParameterTypes(emptyList());
-                return methodInvocation.withArguments(emptyList()).withMethodType(type).withName(methodInvocation.getName().withType(type));
+                J.MethodInvocation methodInvocation = JavaTemplate.apply(methodName, getCursor(), method.getCoordinates().replaceMethod());
+                JavaType.Method type = methodInvocation
+                        .getMethodType()
+                        .withParameterNames(emptyList())
+                        .withParameterTypes(emptyList());
+                return methodInvocation
+                        .withArguments(emptyList())
+                        .withMethodType(type)
+                        .withName(methodInvocation.getName().withType(type));
 
             }
         });
