@@ -108,17 +108,15 @@ public class SimplifyWebTestClientCalls extends Recipe {
             }
 
             private J.MethodInvocation replaceMethod(J.MethodInvocation method, String methodName) {
-                JavaTemplate template = JavaTemplate.builder(methodName)
-                                                    .build();
-                J.MethodInvocation methodInvocation = template.apply(getCursor(), method.getCoordinates()
-                                                                                        .replaceMethod());
-                JavaType.Method type = methodInvocation.getMethodType()
-                                                       .withParameterNames(emptyList())
-                                                       .withParameterTypes(emptyList());
-                return methodInvocation.withArguments(emptyList())
-                                       .withMethodType(type)
-                                       .withName(methodInvocation.getName()
-                                                                 .withType(type));
+                J.MethodInvocation methodInvocation = JavaTemplate.apply(methodName, getCursor(), method.getCoordinates().replaceMethod());
+                JavaType.Method type = methodInvocation
+                        .getMethodType()
+                        .withParameterNames(emptyList())
+                        .withParameterTypes(emptyList());
+                return methodInvocation
+                        .withArguments(emptyList())
+                        .withMethodType(type)
+                        .withName(methodInvocation.getName().withType(type));
 
             }
         });
