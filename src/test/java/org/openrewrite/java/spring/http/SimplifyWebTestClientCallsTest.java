@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.http;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -165,14 +164,14 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
     }
 
     @Test
-    @Disabled("Yet to be implemented")
-    void usesIsOkForHttpStatus200() {
+    void usesIsOkForHttpStatusValueOf200() {
         rewriteRun(
           //language=java
           java(
             """
               import org.springframework.test.web.reactive.server.WebTestClient;
               import org.springframework.http.HttpStatus;
+
               class Test {
                   private final WebTestClient webClient = WebTestClient.bindToServer().build();
                   void someMethod() {
@@ -187,6 +186,7 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
               """,
             """
               import org.springframework.test.web.reactive.server.WebTestClient;
+
               class Test {
                   private final WebTestClient webClient = WebTestClient.bindToServer().build();
                   void someMethod() {
@@ -199,6 +199,101 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void usesIsOkForHttpStatusValueCodeOf200() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient;
+              import org.springframework.http.HttpStatusCode;
+
+              class Test {
+                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
+                  void someMethod() {
+                      webClient
+                          .post()
+                          .uri("/some/value")
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatusCode.valueOf(200));
+                  }
+              }
+              """,
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient;
+
+              class Test {
+                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
+                  void someMethod() {
+                      webClient
+                          .post()
+                          .uri("/some/value")
+                          .exchange()
+                          .expectStatus()
+                          .isOk();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+      "OK,isOk()",
+      "CREATED,isCreated()",
+      "ACCEPTED,isAccepted()",
+      "NO_CONTENT,isNoContent()",
+      "FOUND,isFound()",
+      "SEE_OTHER,isSeeOther()",
+      "NOT_MODIFIED,isNotModified()",
+      "TEMPORARY_REDIRECT,isTemporaryRedirect()",
+      "PERMANENT_REDIRECT,isPermanentRedirect()",
+      "BAD_REQUEST,isBadRequest()",
+      "UNAUTHORIZED,isUnauthorized()",
+      "FORBIDDEN,isForbidden()",
+      "NOT_FOUND,isNotFound()"
+    })
+    void usesIsOkForHttpStatusValue(String httpStatus, String method) {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient;
+              import org.springframework.http.HttpStatus;
+
+              class Test {
+                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
+                  void someMethod() {
+                      webClient
+                          .post()
+                          .uri("/some/value")
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.%s);
+                  }
+              }
+              """.formatted(httpStatus),
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient;
+
+              class Test {
+                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
+                  void someMethod() {
+                      webClient
+                          .post()
+                          .uri("/some/value")
+                          .exchange()
+                          .expectStatus()
+                          .%s;
+                  }
+              }
+              """.formatted(method)
           )
         );
     }

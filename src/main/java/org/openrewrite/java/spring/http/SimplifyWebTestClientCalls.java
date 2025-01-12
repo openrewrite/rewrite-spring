@@ -27,6 +27,8 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
+import java.util.List;
+
 import static java.util.Collections.emptyList;
 
 public class SimplifyWebTestClientCalls extends Recipe {
@@ -84,16 +86,65 @@ public class SimplifyWebTestClientCalls extends Recipe {
             }
 
             private int extractStatusCode(Expression expression) {
-                if (expression instanceof J.Literal) {
+                if (expression instanceof J.FieldAccess) {
+                    //isEqualTo(HttpStatus.OK)
+                    J.FieldAccess fa = (J.FieldAccess) expression;
+                    if (fa.getTarget() instanceof J.Identifier) {
+                        if ("HttpStatus".equals(((J.Identifier) fa.getTarget()).getSimpleName())) {
+                            switch (fa.getSimpleName()) {
+                                case "OK":
+                                    return 200;
+                                case "CREATED":
+                                    return 201;
+                                case "ACCEPTED":
+                                    return 202;
+                                case "NO_CONTENT":
+                                    return 204;
+                                case "FOUND":
+                                    return 302;
+                                case "SEE_OTHER":
+                                    return 303;
+                                case "NOT_MODIFIED":
+                                    return 304;
+                                case "TEMPORARY_REDIRECT":
+                                    return 307;
+                                case "PERMANENT_REDIRECT":
+                                    return 308;
+                                case "BAD_REQUEST":
+                                    return 400;
+                                case "UNAUTHORIZED":
+                                    return 401;
+                                case "FORBIDDEN":
+                                    return 403;
+                                case "NOT_FOUND":
+                                    return 404;
+                            }
+                        }
+                    }
+                } else if (expression instanceof J.Literal) {
+                    //isEqualTo(200)
                     Object raw = ((J.Literal) expression).getValue();
                     if (raw instanceof Integer) {
                         return (int) raw;
                     }
+                } else if (expression instanceof J.MethodInvocation) {
+                    //isEqualTo(HttpStatus.valueOf(200))
+                    //isEqualTo(HttpStatusCode.valueOf(200))
+                    J.MethodInvocation methodInvocation = (J.MethodInvocation) expression;
+                    List<Expression> arguments = methodInvocation.getArguments();
+                    if (arguments.size() == 1 && arguments.get(0) instanceof J.Literal) {
+                        Object raw = ((J.Literal) arguments.get(0)).getValue();
+                        if (raw instanceof Integer) {
+                            return (int) raw;
+                        }
+                    }
                 }
-                return -1; // HttpStatus is not yet supported
+                return -1;
             }
 
             private J.MethodInvocation replaceMethod(J.MethodInvocation method, String methodName) {
+                maybeRemoveImport("org.springframework.http.HttpStatus");
+                maybeRemoveImport("org.springframework.http.HttpStatusCode");
                 J.MethodInvocation methodInvocation = JavaTemplate.apply(methodName, getCursor(), method.getCoordinates().replaceMethod());
                 JavaType.Method type = methodInvocation
                         .getMethodType()
@@ -103,7 +154,6 @@ public class SimplifyWebTestClientCalls extends Recipe {
                         .withArguments(emptyList())
                         .withMethodType(type)
                         .withName(methodInvocation.getName().withType(type));
-
             }
         });
     }
