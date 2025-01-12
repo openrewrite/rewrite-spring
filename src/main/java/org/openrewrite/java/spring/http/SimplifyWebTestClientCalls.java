@@ -154,9 +154,7 @@ public class SimplifyWebTestClientCalls extends Recipe {
                         .withArguments(emptyList())
                         .withMethodType(type)
                         .withName(methodInvocation.getName().withType(type));
-
             }
         });
     }
 }
-
