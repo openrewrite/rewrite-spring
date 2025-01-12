@@ -52,8 +52,7 @@ public class SimplifyWebTestClientCalls extends Recipe {
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (IS_EQUAL_TO_MATCHER.matches(m.getMethodType())) {
-                    final int statusCode = extractStatusCode(m.getArguments()
-                                                              .get(0));
+                    final int statusCode = extractStatusCode(m.getArguments().get(0));
                     switch (statusCode) {
                         case 200:
                             return replaceMethod(m, "isOk()");
@@ -91,11 +90,8 @@ public class SimplifyWebTestClientCalls extends Recipe {
                     //isEqualTo(HttpStatus.OK)
                     J.FieldAccess fa = (J.FieldAccess) expression;
                     if (fa.getTarget() instanceof J.Identifier) {
-                        J.Identifier target = (J.Identifier) fa.getTarget();
-                        if (target.getSimpleName()
-                                  .equals("HttpStatus")) {
-                            String value = fa.getSimpleName();
-                            switch (value) {
+                        if ("HttpStatus".equals(((J.Identifier) fa.getTarget()).getSimpleName())) {
+                            switch (fa.getSimpleName()) {
                                 case "OK":
                                     return 200;
                                 case "CREATED":
@@ -123,18 +119,15 @@ public class SimplifyWebTestClientCalls extends Recipe {
                                 case "NOT_FOUND":
                                     return 404;
                             }
-
                         }
                     }
-                }
-                if (expression instanceof J.Literal) {
+                } else if (expression instanceof J.Literal) {
                     //isEqualTo(200)
                     Object raw = ((J.Literal) expression).getValue();
                     if (raw instanceof Integer) {
                         return (int) raw;
                     }
-                }
-                if (expression instanceof J.MethodInvocation) {
+                } else if (expression instanceof J.MethodInvocation) {
                     //isEqualTo(HttpStatus.valueOf(200))
                     //isEqualTo(HttpStatusCode.valueOf(200))
                     J.MethodInvocation methodInvocation = (J.MethodInvocation) expression;
@@ -150,20 +143,17 @@ public class SimplifyWebTestClientCalls extends Recipe {
             }
 
             private J.MethodInvocation replaceMethod(J.MethodInvocation method, String methodName) {
-                J.MethodInvocation methodInvocation = JavaTemplate.apply(methodName, getCursor(), method.getCoordinates()
-                                                                                                        .replaceMethod());
+                maybeRemoveImport("org.springframework.http.HttpStatus");
+                maybeRemoveImport("org.springframework.http.HttpStatusCode");
+                J.MethodInvocation methodInvocation = JavaTemplate.apply(methodName, getCursor(), method.getCoordinates().replaceMethod());
                 JavaType.Method type = methodInvocation
                         .getMethodType()
                         .withParameterNames(emptyList())
                         .withParameterTypes(emptyList());
-                J.MethodInvocation result = methodInvocation
+                return methodInvocation
                         .withArguments(emptyList())
                         .withMethodType(type)
-                        .withName(methodInvocation.getName()
-                                                  .withType(type));
-                maybeRemoveImport("org.springframework.http.HttpStatusCode");
-                maybeRemoveImport("org.springframework.http.HttpStatus");
-                return result;
+                        .withName(methodInvocation.getName().withType(type));
 
             }
         });
