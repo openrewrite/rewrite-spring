@@ -90,3 +90,7 @@ recipeList:
       methodPattern: org.springframework.util.Assert notEmpty(java.util.Map)
       argumentIndex: 1
       literal: must not be empty
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: org.springframework.util.Assert notEmpty(java.util.Collection)
+      argumentIndex: 1
+      literal: must not be empty

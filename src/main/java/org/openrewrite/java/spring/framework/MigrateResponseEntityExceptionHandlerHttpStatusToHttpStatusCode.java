@@ -26,6 +26,7 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 
 public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode extends Recipe {
 
@@ -78,7 +79,9 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                                                 .withName(newName)
                                                 .withVariableType(declaredVar.getVariableType().withOwner(met));
                                         return v.withVariables(singletonList(declaredVar.withType(javaTypeHttpStatusCode)))
-                                                .withTypeExpression(TypeTree.build("HttpStatusCode").withType(javaTypeHttpStatusCode));
+                                                .withTypeExpression(TypeTree.build("HttpStatusCode")
+                                                        .withType(javaTypeHttpStatusCode)
+                                                        .withPrefix(requireNonNull(v.getTypeExpression()).getPrefix()));
                                     }
                                 }
                                 return var;

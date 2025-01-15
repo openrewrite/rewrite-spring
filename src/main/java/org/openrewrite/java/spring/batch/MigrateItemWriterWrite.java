@@ -86,8 +86,6 @@ public class MigrateItemWriterWrite extends Recipe {
 
                 m = JavaTemplate.builder("#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
                         .contextSensitive()
-                        .doBeforeParseTemplate(System.out::println)
-//                        .doAfterVariableSubstitution(System.out::println)
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                         .imports("org.springframework.batch.item.Chunk")

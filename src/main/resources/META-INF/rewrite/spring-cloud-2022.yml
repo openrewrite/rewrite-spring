@@ -25,6 +25,7 @@ tags:
 recipeList:
   - org.openrewrite.java.spring.cloud2022.DependencyUpgrades
   - org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing
+  - org.openrewrite.java.spring.cloud2022.MigrateRequestMappingOnFeignClient
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
