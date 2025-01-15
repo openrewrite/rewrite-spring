@@ -111,6 +111,43 @@ class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     }
 
     @Test
+    void requestMappingWithDefaultAttributeNameAndArray() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.cloud.openfeign.FeignClient;
+              import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RequestMethod;
+              import org.springframework.web.bind.annotation.PathVariable;
+              import org.springframework.web.bind.annotation.GetMapping;
+
+              @FeignClient(name = "myService", url = "http://localhost:8080")
+              @RequestMapping({"/posts"})
+              public interface MyServiceClient {
+
+                  @GetMapping(value = "/{postId}", produces = "application/json")
+                  String getPostById(@PathVariable("postId") Long postId);
+              }
+              """,
+            """
+              import org.springframework.cloud.openfeign.FeignClient;
+              import org.springframework.web.bind.annotation.RequestMethod;
+              import org.springframework.web.bind.annotation.PathVariable;
+              import org.springframework.web.bind.annotation.GetMapping;
+
+              @FeignClient(path = "/posts", name = "myService", url = "http://localhost:8080")
+              public interface MyServiceClient {
+
+                  @GetMapping(value = "/{postId}", produces = "application/json")
+                  String getPostById(@PathVariable("postId") Long postId);
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void requestMappingWithValueAttributeName() {
         rewriteRun(
           //language=java

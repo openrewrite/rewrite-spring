@@ -28,6 +28,8 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.List;
+
 public class MigrateRequestMappingOnFeignClient extends Recipe {
 
     private static final String FEIGN_CLIENT = "org.springframework.cloud.openfeign.FeignClient";
@@ -121,6 +123,11 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
                                     return (String) value.getValue();
                                 }
                             }
+                        }
+                    } else if (arg instanceof J.NewArray) {
+                        List<Expression> initializer = ((J.NewArray) arg).getInitializer();
+                        if (initializer != null && initializer.size() == 1) {
+                            return getPathValue(initializer.get(0));
                         }
                     }
                     return null;
