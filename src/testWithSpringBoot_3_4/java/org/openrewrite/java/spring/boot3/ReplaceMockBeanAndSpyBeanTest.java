@@ -38,7 +38,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void replacesMockBeanWithMockitoBean() {
         rewriteRun(
-          // Input source file before applying the recipe
+          //language=java
           java(
             """
               import org.springframework.boot.test.mock.mockito.MockBean;
@@ -48,7 +48,6 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
                   private String someService;
               }
               """,
-            // Expected output after applying the recipe
             """
               import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -64,7 +63,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void replacesMockBeanWithMockitoBeanWithAttributes() {
         rewriteRun(
-          // Input source file before applying the recipe
+          //language=java
           java(
             """
               import org.mockito.Answers;
@@ -75,7 +74,6 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
                   private String someService;
               }
               """,
-            // Expected output after applying the recipe
             """
               import org.mockito.Answers;
               import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -92,7 +90,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void replacesMockBeanWithParamsWithMockitoBeanWithParams() {
         rewriteRun(
-          // Input source file before applying the recipe
+          //language=java
           java(
             """
               import org.springframework.boot.test.mock.mockito.MockBean;
@@ -102,7 +100,6 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
                   private String someService;
               }
               """,
-            // Expected output after applying the recipe
             """
               import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -118,6 +115,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void doesNotChangeOtherAnnotations() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.boot.test.mock.mockito.MockBean;
@@ -146,6 +144,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void handlesNoMockBeanImport() {
         rewriteRun(
+          //language=java
           java(
             """
               public class SomeTest {
@@ -166,7 +165,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void replacesMockBeanWithMockitoBeanAndSpyBeanWithMockitoSpyBean() {
         rewriteRun(
-          // Input source file before applying the recipe
+          //language=java
           java(
             """
               import org.springframework.boot.test.mock.mockito.MockBean;
@@ -180,7 +179,6 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
                   private String someMockService;
               }
               """,
-            // Expected output after applying the recipe
             """
               import org.springframework.test.context.bean.override.mockito.MockitoBean;
               import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -200,7 +198,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void replacesSpyBeanWithMockitoSpyBean() {
         rewriteRun(
-          // Input source file before applying the recipe
+          //language=java
           java(
             """
               import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -210,7 +208,6 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
                   private String someService;
               }
               """,
-            // Expected output after applying the recipe
             """
               import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -226,7 +223,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void replacesSpyBeanWithMockitoSpyBeanwithAttributes() {
         rewriteRun(
-          // Input source file before applying the recipe
+          //language=java
           java(
             """
               import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -236,7 +233,6 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
                   private String someService;
               }
               """,
-            // Expected output after applying the recipe
             """
               import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -252,6 +248,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void doesNotChangeOtherAnnotationsSpyBean() {
         rewriteRun(
+          //language=java
           java(
             """
               import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -280,6 +277,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void handlesNoSpyBeanImport() {
         rewriteRun(
+          //language=java
           java(
             """
               public class SomeTest {
@@ -300,6 +298,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     @Test
     void doesNothingWhenNoAnnotationPresent() {
         rewriteRun(
+          //language=java
           java(
             """
               public class SomeTest {
