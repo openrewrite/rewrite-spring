@@ -36,7 +36,8 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
     @DocumentExample
     @Test
     void replacesSetConnectTimeout() {
-        rewriteRun(java("""
+        rewriteRun(java(
+                """
           import org.springframework.boot.web.client.RestTemplateBuilder;
 
           public class Example {
@@ -57,7 +58,8 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
 
     @Test
     void replacesSetReadTimeout() {
-        rewriteRun(java("""
+        rewriteRun(java(
+                """
           import org.springframework.boot.web.client.RestTemplateBuilder;
 
           public class Example {
@@ -78,7 +80,8 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
 
     @Test
     void replacesSetSslBundle() {
-        rewriteRun(java("""
+        rewriteRun(java(
+                """
           import org.springframework.boot.web.client.RestTemplateBuilder;
           import org.springframework.boot.ssl.SslBundle;
 
@@ -101,7 +104,8 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
 
     @Test
     void replacesRequestFactory() {
-        rewriteRun(java("""
+        rewriteRun(java(
+                """
           import org.springframework.boot.web.client.RestTemplateBuilder;
           import org.springframework.http.client.ClientHttpRequestFactory;
 
@@ -124,7 +128,8 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
 
     @Test
     void doesNothingWhenNoDeprecatedMethodsPresent() {
-        rewriteRun(java("""
+        rewriteRun(java(
+                """
           import org.springframework.boot.web.client.RestTemplateBuilder;
 
           public class Example {
