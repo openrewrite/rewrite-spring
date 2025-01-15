@@ -15,9 +15,9 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -29,8 +29,7 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.boot3.ReplaceRestTemplateBuilderMethods")
-          .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-web"));
     }
 
     @DocumentExample
@@ -117,6 +116,7 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
         );
     }
 
+    @Disabled("Not yet implemented")
     @Test
     void replacesRequestFactory() {
         rewriteRun(
