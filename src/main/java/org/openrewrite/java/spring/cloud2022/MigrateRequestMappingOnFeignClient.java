@@ -97,7 +97,7 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
                     return cd.withLeadingAnnotations(
                         ListUtils.map(cd.getLeadingAnnotations(), a -> (J.Annotation)
                             new AddOrUpdateAnnotationAttribute(FEIGN_CLIENT, "path",
-                                path, true, false).getVisitor()
+                                path, null, true, false).getVisitor()
                                 .visit(a, ctx, getCursor().getParentOrThrow())));
                 }
 
