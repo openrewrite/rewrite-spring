@@ -16,7 +16,7 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.boot3.ReplaceMockBeanAndSpyBean
+name: org.openrewrite.java.spring.boot3.ReplaceMockBeanAndSpyBean
 displayName: Replace `@MockBean` and `@SpyBean`
 description: Replaces `@MockBean` and `@SpyBean` annotations with `@MockitoBean` and `@MockitoSpyBean`.
 recipeList:

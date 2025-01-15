@@ -15,7 +15,7 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.boot3.ReplaceRestTemplateBuilderMethods
+name: org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderMethods
 displayName: Replace deprecated setters in `RestTemplateBuilder`
 description: Replaces `setConnectTimeout`, `setReadTimeout`, and `setSslBundle` method invocations with `connectTimeout`, `readTimeout`, and `sslBundle` respectively.
 recipeList:

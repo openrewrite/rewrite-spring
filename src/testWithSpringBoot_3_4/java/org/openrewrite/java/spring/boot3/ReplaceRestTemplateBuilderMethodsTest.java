@@ -28,7 +28,7 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.boot3.ReplaceRestTemplateBuilderMethods")
+        spec.recipeFromResources("org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderMethods")
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-web"));
     }
 

@@ -28,7 +28,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.boot3.ReplaceMockBeanAndSpyBean")
+        spec.recipeFromResources("org.openrewrite.java.spring.boot3.ReplaceMockBeanAndSpyBean")
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-boot-test", "mockito-core"));
