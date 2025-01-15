@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.boot3.ReplaceRestTemplateBuilderMethods
-displayName: Replace deprecated methods in RestTemplateBuilder
-
+displayName: Replace deprecated setters in `RestTemplateBuilder`
 description: Replaces `setConnectTimeout`, `setReadTimeout`, and `setSslBundle` method invocations with `connectTimeout`, `readTimeout`, and `sslBundle` respectively.
 recipeList:
   - org.openrewrite.java.ChangeMethodName:

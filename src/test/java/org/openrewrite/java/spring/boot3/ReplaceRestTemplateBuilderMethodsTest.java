@@ -30,114 +30,137 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.boot3.ReplaceRestTemplateBuilderMethods")
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test", "mockito-core"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot"));
     }
 
     @DocumentExample
     @Test
     void replacesSetConnectTimeout() {
-        rewriteRun(java(
-                """
-          import org.springframework.boot.web.client.RestTemplateBuilder;
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.web.client.RestTemplateBuilder;
 
-          public class Example {
-              public void configure(RestTemplateBuilder builder) {
-                  builder.setConnectTimeout(java.time.Duration.ofSeconds(10));
+              class Example {
+                  public void configure(RestTemplateBuilder builder) {
+                      builder.setConnectTimeout(java.time.Duration.ofSeconds(10));
+                  }
               }
-          }
-          """, """
-          import org.springframework.boot.web.client.RestTemplateBuilder;
+              """,
+            """
+              import org.springframework.boot.web.client.RestTemplateBuilder;
 
-          public class Example {
-              public void configure(RestTemplateBuilder builder) {
-                  builder.connectTimeout(java.time.Duration.ofSeconds(10));
+              class Example {
+                  public void configure(RestTemplateBuilder builder) {
+                      builder.connectTimeout(java.time.Duration.ofSeconds(10));
+                  }
               }
-          }
-          """));
+              """
+          )
+        );
     }
 
     @Test
     void replacesSetReadTimeout() {
-        rewriteRun(java(
-                """
-          import org.springframework.boot.web.client.RestTemplateBuilder;
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.web.client.RestTemplateBuilder;
 
-          public class Example {
-              public void configure(RestTemplateBuilder builder) {
-                  builder.setReadTimeout(java.time.Duration.ofSeconds(10));
+              class Example {
+                  public void configure(RestTemplateBuilder builder) {
+                      builder.setReadTimeout(java.time.Duration.ofSeconds(10));
+                  }
               }
-          }
-          """, """
-          import org.springframework.boot.web.client.RestTemplateBuilder;
+              """,
+            """
+              import org.springframework.boot.web.client.RestTemplateBuilder;
 
-          public class Example {
-              public void configure(RestTemplateBuilder builder) {
-                  builder.readTimeout(java.time.Duration.ofSeconds(10));
+              class Example {
+                  public void configure(RestTemplateBuilder builder) {
+                      builder.readTimeout(java.time.Duration.ofSeconds(10));
+                  }
               }
-          }
-          """));
+              """
+          )
+        );
     }
 
     @Test
     void replacesSetSslBundle() {
-        rewriteRun(java(
-                """
-          import org.springframework.boot.web.client.RestTemplateBuilder;
-          import org.springframework.boot.ssl.SslBundle;
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.web.client.RestTemplateBuilder;
+              import org.springframework.boot.ssl.SslBundle;
 
-          public class Example {
-              public void configure(RestTemplateBuilder builder, SslBundle sslBundle) {
-                  builder.setSslBundle(sslBundle);
+              class Example {
+                  public void configure(RestTemplateBuilder builder, SslBundle sslBundle) {
+                      builder.setSslBundle(sslBundle);
+                  }
               }
-          }
-          """, """
-          import org.springframework.boot.web.client.RestTemplateBuilder;
-          import org.springframework.boot.ssl.SslBundle;
+              """,
+            """
+              import org.springframework.boot.web.client.RestTemplateBuilder;
+              import org.springframework.boot.ssl.SslBundle;
 
-          public class Example {
-              public void configure(RestTemplateBuilder builder, SslBundle sslBundle) {
-                  builder.sslBundle(sslBundle);
+              class Example {
+                  public void configure(RestTemplateBuilder builder, SslBundle sslBundle) {
+                      builder.sslBundle(sslBundle);
+                  }
               }
-          }
-          """));
+              """
+          )
+        );
     }
 
     @Test
     void replacesRequestFactory() {
-        rewriteRun(java(
-                """
-          import org.springframework.boot.web.client.RestTemplateBuilder;
-          import org.springframework.http.client.ClientHttpRequestFactory;
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.web.client.RestTemplateBuilder;
+              import org.springframework.http.client.ClientHttpRequestFactory;
 
-          public class Example {
-              public void configure(RestTemplateBuilder builder, ClientHttpRequestFactory factory) {
-                  builder.requestFactory(factory);
+              class Example {
+                  public void configure(RestTemplateBuilder builder, ClientHttpRequestFactory factory) {
+                      builder.requestFactory(factory);
+                  }
               }
-          }
-          """, """
-          import org.springframework.boot.web.client.RestTemplateBuilder;
-          import org.springframework.http.client.ClientHttpRequestFactory;
+              """,
+            """
+              import org.springframework.boot.web.client.RestTemplateBuilder;
+              import org.springframework.http.client.ClientHttpRequestFactory;
 
-          public class Example {
-              public void configure(RestTemplateBuilder builder, ClientHttpRequestFactory factory) {
-                  builder.requestFactoryBuilder(factory);
+              class Example {
+                  public void configure(RestTemplateBuilder builder, ClientHttpRequestFactory factory) {
+                      builder.requestFactoryBuilder(factory);
+                  }
               }
-          }
-          """));
+              """
+          )
+        );
     }
 
     @Test
     void doesNothingWhenNoDeprecatedMethodsPresent() {
-        rewriteRun(java(
-                """
-          import org.springframework.boot.web.client.RestTemplateBuilder;
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.web.client.RestTemplateBuilder;
 
-          public class Example {
-              public void configure(RestTemplateBuilder builder) {
-                  builder.additionalCustomizers(customizer -> {});
+              class Example {
+                  public void configure(RestTemplateBuilder builder) {
+                      builder.additionalCustomizers(customizer -> {});
+                  }
               }
-          }
-          """));
+              """
+          )
+        );
     }
-
 }
