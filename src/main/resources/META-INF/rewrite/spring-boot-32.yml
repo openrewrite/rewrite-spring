@@ -53,6 +53,7 @@ recipeList:
       artifactId: commons-codec
       version: 1.7.x
       onlyIfUsing: org.apache.commons.codec..*
+      acceptTransitive: true
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_2
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_1
