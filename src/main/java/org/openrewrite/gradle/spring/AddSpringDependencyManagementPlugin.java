@@ -22,12 +22,14 @@ import org.openrewrite.*;
 import org.openrewrite.gradle.IsBuildGradle;
 import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.gradle.plugins.AddBuildPlugin;
+import org.openrewrite.groovy.GroovyIsoVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.marker.SearchResult;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -51,7 +53,7 @@ public class AddSpringDependencyManagementPlugin extends Recipe {
                         new IsBuildGradle<>(),
                         new UsesSpringDependencyManagement()
                 ),
-                new AddBuildPlugin("io.spring.dependency-management", "1.0.6.RELEASE", null, null).getVisitor()
+                new AddBuildPlugin("io.spring.dependency-management", "1.0.6.RELEASE", null, null, false).getVisitor()
         );
     }
 
@@ -66,11 +68,38 @@ public class AddSpringDependencyManagementPlugin extends Recipe {
                 }
                 GradleProject gp = maybeGp.get();
                 if (gp.getPlugins().stream().anyMatch(plugin -> "io.spring.dependency-management".equals(plugin.getId()) ||
-                        "io.spring.gradle.dependencymanagement.DependencyManagementPlugin".equals(plugin.getFullyQualifiedClassName()))) {
+                        "io.spring.gradle.dependencymanagement.DependencyManagementPlugin".equals(plugin.getFullyQualifiedClassName()))
+                    && usesDependencyManagementDsl(cu)
+                ) {
                     return SearchResult.found(cu);
                 }
             }
             return super.visit(tree, ctx);
+        }
+    }
+
+    private static boolean usesDependencyManagementDsl(JavaSourceFile cu) {
+        AtomicBoolean found = new AtomicBoolean(false);
+        new UsesDependencyManagementDslVisitor().visit(cu, found);
+        return found.get();
+    }
+
+    private static class UsesDependencyManagementDslVisitor extends GroovyIsoVisitor<AtomicBoolean> {
+        @Override
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicBoolean found) {
+            if ("dependencyManagement".equals(method.getSimpleName())) {
+                found.set(true);
+                return method;
+            }
+            return super.visitMethodInvocation(method, found);
+        }
+
+        @Override
+        public @Nullable J visit(@Nullable Tree tree, AtomicBoolean found) {
+            if (found.get()) {
+                return (J) tree;
+            }
+            return super.visit(tree, found);
         }
     }
 }

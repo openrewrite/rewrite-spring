@@ -41,11 +41,10 @@ class AddSpringDependencyManagementPluginTest implements RewriteTest {
                   id "java"
                   id "org.springframework.boot" version "1.5.22.RELEASE"
               }
-              
               repositories {
                   mavenCentral()
               }
-              
+              dependencyManagement { }
               dependencies {
                   compile "org.springframework.boot:spring-boot-starter-web"
               }
@@ -56,11 +55,10 @@ class AddSpringDependencyManagementPluginTest implements RewriteTest {
                   id "org.springframework.boot" version "1.5.22.RELEASE"
                   id "io.spring.dependency-management" version "1.0.6.RELEASE"
               }
-              
               repositories {
                   mavenCentral()
               }
-              
+              dependencyManagement { }
               dependencies {
                   compile "org.springframework.boot:spring-boot-starter-web"
               }
@@ -81,11 +79,10 @@ class AddSpringDependencyManagementPluginTest implements RewriteTest {
                   id "java"
                   id "org.springframework.boot" version "2.6.15"
               }
-              
+
               repositories {
                   mavenCentral()
               }
-              
               dependencies {
                   implementation platform("org.springframework.boot:spring-boot-starter-dependencies:2.6.15")
                   implementation "org.springframework.boot:spring-boot-starter-web"
