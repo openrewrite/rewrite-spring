@@ -21,10 +21,13 @@ import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
 class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
+
     @Override
     public void defaults(RecipeSpec spec) {
         spec
@@ -41,39 +44,41 @@ class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
     @Test
     void activateOnProfileDoNotMoveActivate() {
         rewriteRun(
-          properties(
-            """
-              # application.properties
-              spring.profiles.active=production
-              spring.profiles=dev
-              """,
-            """
-              # application.properties
-              spring.profiles.active=production
-              spring.config.activate.on-profile=dev
-              """,
-            s -> s.path("src/main/resources/application.properties")
-          ),
-          yaml(
-            """
-                  ---
-                  spring:
-                    profiles:
-                      active: dev
-                  ---
-                  spring:
-                    profiles: prod
-              """,
-            """
-                  ---
-                  spring:
-                    profiles:
-                      active: dev
-                  ---
-                  spring:
-                    config.activate.on-profile: prod
-              """,
-            s -> s.path("src/main/resources/application.yml")
+          mavenProject("test",
+            srcMainResources(
+              properties(
+                """
+                  # application.properties
+                  spring.profiles.active=production
+                  spring.profiles=dev
+                  """,
+                """
+                  # application.properties
+                  spring.profiles.active=production
+                  spring.config.activate.on-profile=dev
+                  """
+              ),
+              yaml(
+                """
+                      ---
+                      spring:
+                        profiles:
+                          active: dev
+                      ---
+                      spring:
+                        profiles: prod
+                  """,
+                """
+                      ---
+                      spring:
+                        profiles:
+                          active: dev
+                      ---
+                      spring:
+                        config.activate.on-profile: prod
+                  """
+              )
+            )
           )
         );
     }
