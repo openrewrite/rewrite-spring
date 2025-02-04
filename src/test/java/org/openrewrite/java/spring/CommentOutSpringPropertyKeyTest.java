@@ -22,6 +22,8 @@ import org.openrewrite.test.RewriteTest;
 import org.openrewrite.yaml.tree.Yaml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
@@ -32,13 +34,17 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
     void yamlComment() {
         rewriteRun(
           spec -> spec.recipe(new CommentOutSpringPropertyKey("server.port", "This property has been removed.")),
-          //language=yaml
-          yaml(
-            "server.port: 8080",
-            """
-              # This property has been removed.
-              # server.port: 8080
-              """)
+          mavenProject("",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                "server.port: 8080",
+                """
+                  # This property has been removed.
+                  # server.port: 8080
+                  """)
+            )
+          )
         );
     }
 
@@ -49,41 +55,45 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
             new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1"),
             new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2")
           ),
-          //language=yaml
-          yaml(
-            """
-              test:
-                propertyKey1: xxx
-                propertyKey2: yyy
-                propertyKey3: zzz
-              """,
-            """
-              test:
-                # my comment 2
-                # my comment 1
-                # propertyKey1: xxx
-                # propertyKey2: yyy
-                propertyKey3: zzz
-              """,
-            spec -> spec.path("application.yaml")
-              .afterRecipe(file ->
-                assertThat(
-                  ((Yaml.Mapping)
-                    ((Yaml.Mapping) file.getDocuments().get(0)
-                      .getBlock()).getEntries().get(0)
-                      .getValue()).getEntries().get(0)
-                    .getPrefix())
-                  .isEqualTo(
-                    """
+          mavenProject("",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  test:
+                    propertyKey1: xxx
+                    propertyKey2: yyy
+                    propertyKey3: zzz
+                  """,
+                """
+                  test:
+                    # my comment 2
+                    # my comment 1
+                    # propertyKey1: xxx
+                    # propertyKey2: yyy
+                    propertyKey3: zzz
+                  """,
+                spec -> spec.path("application.yaml")
+                  .afterRecipe(file ->
+                    assertThat(
+                      ((Yaml.Mapping)
+                        ((Yaml.Mapping) file.getDocuments().get(0)
+                          .getBlock()).getEntries().get(0)
+                          .getValue()).getEntries().get(0)
+                        .getPrefix())
+                      .isEqualTo(
+                        """
 
-                        # my comment 2
-                        # my comment 1
-                        # propertyKey1: xxx
-                        # propertyKey2: yyy
-                        \
-                      """
+                            # my comment 2
+                            # my comment 1
+                            # propertyKey1: xxx
+                            # propertyKey2: yyy
+                            \
+                          """
+                      )
                   )
               )
+            )
           )
         );
     }
@@ -95,24 +105,28 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
             new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1"),
             new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2")
           ),
-          //language=properties
-          properties(
-            """
-              test.propertyKey1=xxx
-              test.propertyKey2=yyy
-              test.propertyKey3=zzz
-              """,
-            """
-              # my comment 1
-              # test.propertyKey1=xxx
-              # my comment 2
-              # test.propertyKey2=yyy
-              test.propertyKey3=zzz
-              """,
-            spec -> spec.path("application.properties")
-              .afterRecipe(file ->
-                assertThat(((Properties.Comment) file.getContent().get(3)).getMessage())
-                  .isEqualTo(" test.propertyKey2=yyy"))
+          mavenProject("",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  test.propertyKey1=xxx
+                  test.propertyKey2=yyy
+                  test.propertyKey3=zzz
+                  """,
+                """
+                  # my comment 1
+                  # test.propertyKey1=xxx
+                  # my comment 2
+                  # test.propertyKey2=yyy
+                  test.propertyKey3=zzz
+                  """,
+                spec -> spec.path("application.properties")
+                  .afterRecipe(file ->
+                    assertThat(((Properties.Comment) file.getContent().get(3)).getMessage())
+                      .isEqualTo(" test.propertyKey2=yyy"))
+              )
+            )
           )
         );
     }

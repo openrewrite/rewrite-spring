@@ -71,7 +71,7 @@ public class ChangeSpringPropertyKey extends Recipe {
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(Pattern.quote(oldPropertyKey + ".") + exceptRegex() + "(.+)", newPropertyKey + ".$1", true, true);
 
-        return new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(new IsPossibleSpringConfigFile(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Yaml.Documents) {
@@ -88,7 +88,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                 }
                 return tree;
             }
-        };
+        });
     }
 
     private String exceptRegex() {
