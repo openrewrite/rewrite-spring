@@ -33,8 +33,7 @@ import org.openrewrite.yaml.tree.Yaml;
 public class IsPossibleSpringConfigFile extends TreeVisitor<Tree, ExecutionContext> {
 
     @Override
-    @Nullable
-    public Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+    public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
         if (((tree instanceof Yaml.Documents) || (tree instanceof Properties.File)) && tree.getMarkers().findFirst(SourceSet.class).isPresent()) {
             return SearchResult.found(tree);
         }

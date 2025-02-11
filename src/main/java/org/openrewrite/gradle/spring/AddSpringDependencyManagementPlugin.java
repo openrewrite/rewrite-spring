@@ -68,8 +68,8 @@ public class AddSpringDependencyManagementPlugin extends Recipe {
                 }
                 GradleProject gp = maybeGp.get();
                 if (gp.getPlugins().stream().anyMatch(plugin -> "io.spring.dependency-management".equals(plugin.getId()) ||
-                        "io.spring.gradle.dependencymanagement.DependencyManagementPlugin".equals(plugin.getFullyQualifiedClassName()))
-                    && usesDependencyManagementDsl(cu)
+                        "io.spring.gradle.dependencymanagement.DependencyManagementPlugin".equals(plugin.getFullyQualifiedClassName())) &&
+                    usesDependencyManagementDsl(cu)
                 ) {
                     return SearchResult.found(cu);
                 }
