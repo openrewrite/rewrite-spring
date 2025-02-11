@@ -70,6 +70,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHibernateConstraintsToJavax
   - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
+  - org.openrewrite.java.spring.boot2.MaybeAddSpringBootStarterActuator
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
   - org.openrewrite.java.spring.ChangeSpringPropertyValue:
@@ -168,3 +169,20 @@ recipeList:
       artifactId: validation-api
       version: 2.x
       onlyIfUsing: org.hibernate.validator.constraints.*
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MaybeAddSpringBootStarterActuator
+displayName: Replace `micrometer-spring-legacy` with `spring-boot-starter-actuator`
+description: Replace deprecated `micrometer-spring-legacy` with `spring-boot-starter-actuator`
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: io.micrometer
+      artifactIdPattern: micrometer-spring-legacy
+recipeList:
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: io.micrometer
+      artifactId: micrometer-spring-legacy
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-actuator
+      version: 2.0.x
