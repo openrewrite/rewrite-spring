@@ -140,11 +140,13 @@ public class ExpandProperties extends Recipe {
                                                 Markers.EMPTY,
                                                 Yaml.Scalar.Style.PLAIN,
                                                 null,
+                                                null,
                                                 key.substring(key.indexOf('.') + 1)),
                                         "",
                                         e.getValue()
                                 )
                         ),
+                        null,
                         null,
                         null
                 ));
@@ -173,13 +175,14 @@ public class ExpandProperties extends Recipe {
                             keyMappings.getValue().stream().flatMap(duplicateMapping -> duplicateMapping.getEntries().stream())
                                     .collect(Collectors.toList()),
                             null,
+                            null,
                             null
                     );
                     Yaml.Mapping.Entry newEntry = autoFormat(
                             new Yaml.Mapping.Entry(randomId(),
                                     "",
                                     Markers.EMPTY,
-                                    new Yaml.Scalar(randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, keyMappings.getKey()),
+                                    new Yaml.Scalar(randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, null, keyMappings.getKey()),
                                     "", newMapping),
                             ctx, getCursor());
 

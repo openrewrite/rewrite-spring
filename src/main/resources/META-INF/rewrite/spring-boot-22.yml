@@ -72,6 +72,8 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.test.rule.OutputCapture
       newFullyQualifiedTypeName: org.springframework.boot.test.system.OutputCaptureRule
 
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_2
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateApplicationHealthIndicatorToPingHealthIndicator
@@ -91,3 +93,16 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientBuilderCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.test.web.reactive.server.WebTestClientBuilderCustomizer
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_2
+displayName: Upgrade MyBatis to Spring Boot 2.2
+description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 2.2.
+recipeList:
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_1
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mybatis.spring.boot
+      artifactId: "*"
+      newVersion: 2.1.2
+      overrideManagedVersion: true
