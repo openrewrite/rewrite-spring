@@ -80,6 +80,7 @@ recipeList:
   - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2
   - org.openrewrite.hibernate.MigrateToHibernate61
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -180,3 +181,15 @@ recipeList:
       oldArtifactId: cf-java-logging-support-servlet
       newArtifactId: cf-java-logging-support-servlet-jakarta
       newVersion: "[3.7.0,4)"
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
+displayName: Upgrade MyBatis to Spring Boot 3.0
+description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 3.0.
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mybatis.spring.boot
+      artifactId: "*"
+      newVersion: 3.0.2
+      overrideManagedVersion: true
