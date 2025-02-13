@@ -30,7 +30,7 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.framework.MigrateResponseStatusException")
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-5.3", "spring-beans-5.3", "spring-web-5.3"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-5.", "spring-beans-5.", "spring-web-5."));
     }
 
     @DocumentExample
@@ -43,7 +43,7 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
             """
               import org.springframework.http.HttpStatus;
               import org.springframework.web.server.ResponseStatusException;
-              
+
               class A {
                   void foo(ResponseStatusException e) {
                       HttpStatus i = e.getStatus();
@@ -53,7 +53,7 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
             """
               import org.springframework.http.HttpStatusCode;
               import org.springframework.web.server.ResponseStatusException;
-              
+
               class A {
                   void foo(ResponseStatusException e) {
                       HttpStatusCode i = e.getStatusCode();
