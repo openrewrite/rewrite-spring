@@ -84,6 +84,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
   - org.openrewrite.apache.commons.lang.UpgradeApacheCommonsLang_2_3
   - org.openrewrite.java.spring.data.MigrateAuditorAwareToOptional
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_0
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
@@ -186,3 +187,15 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-actuator
       version: 2.0.x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_0
+displayName: Upgrade MyBatis to Spring Boot 2.0
+description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 2.0.
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mybatis.spring.boot
+      artifactId: "*"
+      newVersion: 2.0.1
+      overrideManagedVersion: true
