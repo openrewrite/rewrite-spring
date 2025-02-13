@@ -106,6 +106,7 @@ name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_2
 displayName: Upgrade MyBatis to Spring Boot 3.2
 description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 3.2.
 recipeList:
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mybatis.spring.boot
       artifactId: "*"
