@@ -32,8 +32,8 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
               "spring-beans",
               "spring-context",
               "spring-boot",
-              "spring-security-config-5.8",
-              "spring-security-web-5.8",
+              "spring-security-config-5.8.+",
+              "spring-security-web-5.8.+",
               "spring-web",
               "tomcat-embed",
               "spring-core"

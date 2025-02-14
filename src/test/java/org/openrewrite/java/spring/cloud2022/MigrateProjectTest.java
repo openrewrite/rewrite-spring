@@ -41,7 +41,7 @@ class MigrateProjectTest implements RewriteTest {
             .activateRecipes("org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing"))
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-cloud-sleuth-api-3"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-cloud-sleuth-api-3.+"));
     }
 
     @Test

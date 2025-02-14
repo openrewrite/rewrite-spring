@@ -39,7 +39,7 @@ class UseNewSecurityMatchersTest implements RewriteTest {
         spec.recipe(new UseNewSecurityMatchers())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3", "spring-beans-5.3", "spring-web-5.3", "spring-security-web-5.8", "spring-security-config-5.8"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
     }
 
     @DocumentExample
@@ -50,13 +50,13 @@ class UseNewSecurityMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-
+                            
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -74,13 +74,13 @@ class UseNewSecurityMatchersTest implements RewriteTest {
             ,
             """
               package com.example;
-
+                          
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-
+                          
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -106,14 +106,14 @@ class UseNewSecurityMatchersTest implements RewriteTest {
           java(
                 """
             package com.example.demo;
-
+                        
             import org.springframework.context.annotation.Bean;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.http.HttpMethod;
             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
             import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
             import org.springframework.security.web.SecurityFilterChain;
-
+                        
             @Configuration
             @EnableWebSecurity
             class SecurityConfig {
@@ -127,14 +127,14 @@ class UseNewSecurityMatchersTest implements RewriteTest {
             }
             """, """
             package com.example.demo;
-
+                        
             import org.springframework.context.annotation.Bean;
             import org.springframework.context.annotation.Configuration;
             import org.springframework.http.HttpMethod;
             import org.springframework.security.config.annotation.web.builders.HttpSecurity;
             import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
             import org.springframework.security.web.SecurityFilterChain;
-
+                        
             @Configuration
             @EnableWebSecurity
             class SecurityConfig {
@@ -165,13 +165,13 @@ class UseNewSecurityMatchersTest implements RewriteTest {
           java(
             """
               package com.example;
-
+                            
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-
+                            
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
@@ -189,13 +189,13 @@ class UseNewSecurityMatchersTest implements RewriteTest {
             ,
             """
               package com.example;
-
+                          
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-
+                          
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {

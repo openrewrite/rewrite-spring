@@ -30,7 +30,7 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .recipe(new SimplifyMediaTypeParseCalls())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6", "spring-core-6"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.+", "spring-core-6.+"));
     }
 
     @DocumentExample
@@ -69,10 +69,10 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
           java(
             """
               import org.springframework.http.MediaType;
-
+              
               import static org.springframework.http.MediaType.parseMediaType;
               import static org.springframework.http.MediaType.valueOf;
-
+              
               class Test {
                   MediaType mediaType1 = MediaType.parseMediaType(MediaType.%1$s);
                   MediaType mediaType2 = MediaType.valueOf(MediaType.%1$s);
@@ -82,7 +82,7 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
               """.formatted(value),
             """
               import org.springframework.http.MediaType;
-
+              
               class Test {
                   MediaType mediaType1 = MediaType.%1$s;
                   MediaType mediaType2 = MediaType.%1$s;

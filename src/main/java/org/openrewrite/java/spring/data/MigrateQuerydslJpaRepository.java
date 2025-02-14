@@ -78,9 +78,9 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                         .imports(targetFqn)
                         .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx,
-                                "javax.persistence-api-2",
-                                "spring-data-commons-2",
-                                "spring-data-jpa-2"
+                                "javax.persistence-api-2.+",
+                                "spring-data-commons-2.+",
+                                "spring-data-jpa-2.+"
                             ))
                         .build().apply(
                             getCursor(),

@@ -29,8 +29,8 @@ class MigrateSpringdocCommonTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.springdoc.MigrateSpringdocCommon")
           .parser(JavaParser.fromJavaVersion().classpath(
-            "springdoc-openapi-common-1",
-            "swagger-models-2"
+            "springdoc-openapi-common-1.+",
+            "swagger-models-2.+"
           ));
     }
 

@@ -71,7 +71,7 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
                 if (webFactoryCustomizerIdentifier == null) {
                     JavaParser parser = JavaParser
                             .fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-boot-2")
+                            .classpathFromResources(ctx, "spring-boot-2.+")
                             .build();
                     J.CompilationUnit cu = parser.parse(
                                     "import org.springframework.boot.web.server.WebServerFactoryCustomizer;\n" +

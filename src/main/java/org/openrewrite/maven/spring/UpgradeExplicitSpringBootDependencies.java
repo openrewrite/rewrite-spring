@@ -44,7 +44,7 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
 
     @Option(displayName = "From Spring version",
             description = "XRage pattern for spring version used to limit which projects should be updated",
-            example = " 2.7")
+            example = " 2.7.+")
     String fromVersion;
 
     @Option(displayName = "To Spring version",

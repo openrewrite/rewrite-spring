@@ -32,7 +32,7 @@ class MigrateToWebServerFactoryCustomizerTest implements RewriteTest {
             .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
             .activateRecipes("org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer"))
-          .parser(JavaParser.fromJavaVersion().classpath("spring-boot-1", "spring-context-4", "spring-beans-4"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-context", "spring-beans"));
     }
 
     @DocumentExample

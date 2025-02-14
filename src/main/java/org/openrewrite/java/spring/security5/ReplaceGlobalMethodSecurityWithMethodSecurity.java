@@ -63,7 +63,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                             maybeRemoveImport(EnableGlobalMethodSecurityFqn);
                             J.Annotation replacementAnnotation = JavaTemplate.builder("@EnableMethodSecurity(prePostEnabled = false)")
                                     .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-security-config-5.8"))
+                                            .classpathFromResources(ctx, "spring-security-config-5.8.+"))
                                     .imports(EnableMethodSecurityFqn)
                                     .build()
                                     .apply(getCursor(), annotation.getCoordinates().replace());
