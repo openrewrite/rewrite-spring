@@ -17,7 +17,6 @@ package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurity;
@@ -31,9 +30,7 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ReplaceGlobalMethodSecurityWithMethodSecurity())
-          .parser(JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-security-config-5.8.+"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-security-config-5.+"));
     }
 
     @DocumentExample

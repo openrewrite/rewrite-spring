@@ -17,7 +17,6 @@ package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security5.UpdateArgon2PasswordEncoder;
 import org.openrewrite.test.RecipeSpec;
@@ -29,9 +28,7 @@ class UpdateArgon2PasswordEncoderTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UpdateArgon2PasswordEncoder())
-                .parser(JavaParser.fromJavaVersion()
-                        .logCompilationWarningsAndErrors(true)
-                        .classpathFromResources(new InMemoryExecutionContext(), "spring-security-crypto-5.8.+"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-security-crypto-5.+"));
     }
 
     @DocumentExample
@@ -42,7 +39,7 @@ class UpdateArgon2PasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       Argon2PasswordEncoder encoder = new Argon2PasswordEncoder();
@@ -51,7 +48,7 @@ class UpdateArgon2PasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       Argon2PasswordEncoder encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_2();
@@ -69,7 +66,7 @@ class UpdateArgon2PasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-              
+
               class T {
                   final int saltLength = 16;
                   void encoderWithDefaults() {
@@ -82,7 +79,7 @@ class UpdateArgon2PasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-              
+
               class T {
                   final int saltLength = 16;
                   void encoderWithDefaults() {
@@ -104,7 +101,7 @@ class UpdateArgon2PasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       Argon2PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 1, 16384, 2);
@@ -113,7 +110,7 @@ class UpdateArgon2PasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       Argon2PasswordEncoder encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
@@ -131,7 +128,7 @@ class UpdateArgon2PasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-              
+
               class T {
                   int saltLength = 64;
                   void encoderWithDefaultsNotAsConstant() {

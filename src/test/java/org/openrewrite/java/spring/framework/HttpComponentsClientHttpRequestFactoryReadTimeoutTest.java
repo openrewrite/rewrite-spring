@@ -30,9 +30,9 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
     public void defaults(RecipeSpec spec) {
         spec.recipe(new HttpComponentsClientHttpRequestFactoryReadTimeout())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-beans-5",
-            "spring-boot-3.1",
-            "spring-web-5",
+            "spring-beans-5.3",
+            "spring-boot-3",
+            "spring-web-5.3",
             "httpclient5",
             "httpcore5"));
     }
@@ -51,12 +51,12 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
               import org.springframework.web.client.RestTemplate;
-              
+
               class RestContextInitializer {
                   RestTemplate getRestTemplate() throws Exception {
                       Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().build();
                       PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-              
+
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
@@ -77,15 +77,15 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
               import org.springframework.web.client.RestTemplate;
-              
+
               import java.util.concurrent.TimeUnit;
-              
+
               class RestContextInitializer {
                   RestTemplate getRestTemplate() throws Exception {
                       Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().build();
                       PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
                       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(30000, TimeUnit.MILLISECONDS).build());
-              
+
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
@@ -114,15 +114,15 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
               import org.springframework.web.client.RestTemplate;
-              
+
               import javax.net.ssl.SSLContext;
-              
+
               class RestContextInitializer {
                   RestTemplate getRestTemplate() throws Exception {
                       SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, (cert, authType) -> true).build();
                       SSLConnectionSocketFactory socketFactoryRegistry = new SSLConnectionSocketFactory(sslContext,NoopHostnameVerifier.INSTANCE);
                       PoolingHttpClientConnectionManager poolingConnectionManager = PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactoryRegistry).build();
-              
+
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
@@ -144,18 +144,18 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
               import org.springframework.web.client.RestTemplate;
-              
+
               import javax.net.ssl.SSLContext;
-              
+
               import java.util.concurrent.TimeUnit;
-              
+
               class RestContextInitializer {
                   RestTemplate getRestTemplate() throws Exception {
                       SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, (cert, authType) -> true).build();
                       SSLConnectionSocketFactory socketFactoryRegistry = new SSLConnectionSocketFactory(sslContext,NoopHostnameVerifier.INSTANCE);
                       PoolingHttpClientConnectionManager poolingConnectionManager = PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactoryRegistry).build();
                       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(30000, TimeUnit.MILLISECONDS).build());
-              
+
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
@@ -183,15 +183,15 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
               import org.springframework.web.client.RestTemplate;
-              
+
               import javax.net.ssl.SSLContext;
-              
+
               class RestContextInitializer {
                   RestTemplate getRestTemplate() throws Exception {
                       SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, (cert, authType) -> true).build();
                       SSLConnectionSocketFactory socketFactoryRegistry = new SSLConnectionSocketFactory(sslContext,NoopHostnameVerifier.INSTANCE);
                       return PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactoryRegistry).build();
-              
+
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
@@ -211,15 +211,15 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
               import org.springframework.web.client.RestTemplate;
-              
+
               import javax.net.ssl.SSLContext;
-              
+
               class RestContextInitializer {
                   RestTemplate getRestTemplate() throws Exception {
                       SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, (cert, authType) -> true).build();
                       SSLConnectionSocketFactory socketFactoryRegistry = new SSLConnectionSocketFactory(sslContext,NoopHostnameVerifier.INSTANCE);
                       return PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactoryRegistry).build();
-              
+
                       return new RestTemplateBuilder()
                               .requestFactory(() -> {
                                   HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();

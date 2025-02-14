@@ -84,7 +84,7 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-webflux:5.+")
     parserClasspath("org.springframework:spring-webmvc:5.+")
 
-    parserClasspath("org.springframework.data:spring-data-commons:2.+")
+    parserClasspath("org.springframework.data:spring-data-commons:2.7.+")
     parserClasspath("org.springframework.data:spring-data-commons:1.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
@@ -92,8 +92,8 @@ recipeDependencies {
     parserClasspath("org.mongodb:mongo-java-driver:3.12.+")
 
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
-    parserClasspath("org.springframework.batch:spring-batch-core:5.+")
-    parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
+    parserClasspath("org.springframework.batch:spring-batch-core:5.1.+")
+    parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.1.+")
 
     parserClasspath("org.springframework:spring-messaging:5.+")
     parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")

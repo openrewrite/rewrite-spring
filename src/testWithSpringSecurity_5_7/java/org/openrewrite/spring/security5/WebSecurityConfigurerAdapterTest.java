@@ -412,94 +412,94 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
           //language=java
           java(
             """
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.core.annotation.Order;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-            import org.springframework.security.core.userdetails.UserDetailsService;
-            import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.core.annotation.Order;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.core.userdetails.UserDetailsService;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
-            @EnableWebSecurity
-            public class MultiHttpSecurityConfig {
-                @Bean
-                public UserDetailsService userDetailsService() throws Exception {
-                    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-                    return manager;
-                }
+              @EnableWebSecurity
+              public class MultiHttpSecurityConfig {
+                  @Bean
+                  public UserDetailsService userDetailsService() throws Exception {
+                      InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                      return manager;
+                  }
 
-                @Configuration
-                @Order(1)
-                public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
-                    protected void configure(HttpSecurity http) throws Exception {
-                        http
-                            .antMatcher("/api/**")
-                            .authorizeRequests()
-                                .anyRequest().hasRole("ADMIN")
-                                .and()
-                            .httpBasic();
-                    }
-                }
+                  @Configuration
+                  @Order(1)
+                  public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+                      protected void configure(HttpSecurity http) throws Exception {
+                          http
+                              .antMatcher("/api/**")
+                              .authorizeRequests()
+                                  .anyRequest().hasRole("ADMIN")
+                                  .and()
+                              .httpBasic();
+                      }
+                  }
 
-                @Configuration
-                @ConditionalOnProperty(prefix = "x.y", value = "enabled", havingValue = "true", matchIfMissing = true)
-                public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+                  @Configuration
+                  @ConditionalOnProperty(prefix = "x.y", value = "enabled", havingValue = "true", matchIfMissing = true)
+                  public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
-                    @Override
-                    protected void configure(HttpSecurity http) throws Exception {
-                        http
-                            .authorizeRequests()
-                                .anyRequest().authenticated()
-                                .and()
-                            .formLogin();
-                    }
-                }
-            }
-            """,
+                      @Override
+                      protected void configure(HttpSecurity http) throws Exception {
+                          http
+                              .authorizeRequests()
+                                  .anyRequest().authenticated()
+                                  .and()
+                              .formLogin();
+                      }
+                  }
+              }
+              """,
             """
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-            import org.springframework.core.annotation.Order;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.core.userdetails.UserDetailsService;
-            import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-            import org.springframework.security.web.SecurityFilterChain;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+              import org.springframework.core.annotation.Order;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.core.userdetails.UserDetailsService;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+              import org.springframework.security.web.SecurityFilterChain;
 
-            @EnableWebSecurity
-            public class MultiHttpSecurityConfig {
-                @Bean
-                public UserDetailsService userDetailsService() throws Exception {
-                    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-                    return manager;
-                }
+              @EnableWebSecurity
+              public class MultiHttpSecurityConfig {
+                  @Bean
+                  public UserDetailsService userDetailsService() throws Exception {
+                      InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                      return manager;
+                  }
 
-                @Bean
-                @Order(1)
-                SecurityFilterChain apiWebSecurityConfigurationSecurityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .antMatcher("/api/**")
-                            .authorizeRequests()
-                            .anyRequest().hasRole("ADMIN")
-                            .and()
-                            .httpBasic();
-                    return http.build();
-                }
+                  @Bean
+                  @Order(1)
+                  SecurityFilterChain apiWebSecurityConfigurationSecurityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .antMatcher("/api/**")
+                              .authorizeRequests()
+                              .anyRequest().hasRole("ADMIN")
+                              .and()
+                              .httpBasic();
+                      return http.build();
+                  }
 
-                @Bean
-                @ConditionalOnProperty(prefix = "x.y", value = "enabled", havingValue = "true", matchIfMissing = true)
-                SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeRequests()
-                            .anyRequest().authenticated()
-                            .and()
-                            .formLogin();
-                    return http.build();
-                }
-            }
-            """
+                  @Bean
+                  @ConditionalOnProperty(prefix = "x.y", value = "enabled", havingValue = "true", matchIfMissing = true)
+                  SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeRequests()
+                              .anyRequest().authenticated()
+                              .and()
+                              .formLogin();
+                      return http.build();
+                  }
+              }
+              """
           )
         );
     }
@@ -509,7 +509,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
-              """
+            """
               import org.springframework.context.annotation.Bean;
               import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
               import org.springframework.context.annotation.Configuration;
@@ -663,7 +663,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     @Test
     void inMemoryConfigWithUserBuilder() {
         rewriteRun(
-            //language=java
+          //language=java
           java(
             """
               package com.example.websecuritydemo;
