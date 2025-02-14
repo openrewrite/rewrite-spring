@@ -308,7 +308,7 @@ sourceSetNames.forEach { sourceSet, versions ->
             jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
             testClassesDirs = sourceSetReference.output.classesDirs
             classpath = sourceSetReference.runtimeClasspath
-            shouldRunAfter(tasks.test)
+            shouldRunAfter(tasks.processTestResources)
         }
         tasks.check {
             dependsOn(testTask)
