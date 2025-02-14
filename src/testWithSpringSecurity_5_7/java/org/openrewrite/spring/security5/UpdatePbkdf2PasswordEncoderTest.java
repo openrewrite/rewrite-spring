@@ -29,9 +29,8 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UpdatePbkdf2PasswordEncoder())
-                .parser(JavaParser.fromJavaVersion()
-                        .logCompilationWarningsAndErrors(true)
-                        .classpathFromResources(new InMemoryExecutionContext(), "spring-security-crypto-5.8.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-security-crypto-5.8.+"));
     }
 
     @DocumentExample
@@ -42,7 +41,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       Pbkdf2PasswordEncoder encoder = new Pbkdf2PasswordEncoder();
@@ -51,7 +50,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
@@ -69,7 +68,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       Pbkdf2PasswordEncoder encoder = new Pbkdf2PasswordEncoder("");
@@ -82,7 +81,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               import static org.springframework.security.crypto.password.Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256;
 
               class T {
@@ -106,7 +105,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               class T {
                   final int finalSaltLength = 8;
                   int nonFinalSaltLength = 8;
@@ -126,7 +125,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               import static org.springframework.security.crypto.password.Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256;
 
               class T {
@@ -157,7 +156,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       Pbkdf2PasswordEncoder encoder = new Pbkdf2PasswordEncoder("", 185000, 256);
@@ -172,7 +171,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               import static org.springframework.security.crypto.password.Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256;
 
               class T {
@@ -198,7 +197,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               class T {
                   void m() {
                       Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5();
@@ -207,7 +206,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-              
+
               class T {
                   void m() {
                       Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();

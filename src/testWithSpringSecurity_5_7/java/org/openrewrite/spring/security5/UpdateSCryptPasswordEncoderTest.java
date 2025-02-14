@@ -29,9 +29,7 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UpdateSCryptPasswordEncoder())
-                .parser(JavaParser.fromJavaVersion()
-                        .logCompilationWarningsAndErrors(true)
-                        .classpathFromResources(new InMemoryExecutionContext(), "spring-security-crypto-5.8.+"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-security-crypto-5.+"));
     }
 
     @DocumentExample
@@ -42,7 +40,7 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       SCryptPasswordEncoder encoder = new SCryptPasswordEncoder();
@@ -51,7 +49,7 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       SCryptPasswordEncoder encoder = SCryptPasswordEncoder.defaultsForSpringSecurity_v4_1();
@@ -69,7 +67,7 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
-              
+
               class T {
                   final int saltLength = 64;
                   void encoderWithDefaults() {
@@ -82,7 +80,7 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
-              
+
               class T {
                   final int saltLength = 64;
                   void encoderWithDefaults() {
@@ -104,7 +102,7 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       SCryptPasswordEncoder encoder = new SCryptPasswordEncoder(65536, 8, 1, 32, 16);
@@ -113,7 +111,7 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
               """,
             """
               import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
-              
+
               class T {
                   void encoderWithDefaults() {
                       SCryptPasswordEncoder encoder = SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8();
@@ -131,7 +129,7 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
           java(
             """
               import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
-              
+
               class T {
                   int saltLength = 64;
                   void encoderWithDefaultsNotAsConstant() {
