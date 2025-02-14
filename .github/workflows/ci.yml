@@ -18,11 +18,12 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  GRADLE_SWITCHES: --console=plain --info --warning-mode=all --no-daemon
+
 jobs:
   build:
     uses: openrewrite/gh-automation/.github/workflows/ci-gradle.yml@main
-    env:
-      GRADLE_SWITCHES: --console=plain --info --warning-mode=all --no-daemon
     secrets:
       gradle_enterprise_access_key: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
       ossrh_username: ${{ secrets.OSSRH_USERNAME }}
