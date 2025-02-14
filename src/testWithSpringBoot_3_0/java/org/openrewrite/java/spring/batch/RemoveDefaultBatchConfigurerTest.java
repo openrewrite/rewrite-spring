@@ -32,7 +32,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
         spec.recipe(new RemoveDefaultBatchConfigurer())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-batch-core-4.3.+"));
+              "spring-batch-core-4.3"));
     }
 
     @DocumentExample
@@ -67,7 +67,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                 Foo() {
                     super();
                 }
-                        
+
                 @Override
                 public void setDataSource(javax.sql.DataSource dataSource) {
                     super.setDataSource(dataSource);
@@ -124,7 +124,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                 public void setDataSource(javax.sql.DataSource dataSource) {
                     // Datasource ignored; this method and comment should be removed
                 }
-                
+
                 @Override
                 public void baz() {
                     // Comment only, still retained

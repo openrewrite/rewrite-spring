@@ -31,7 +31,7 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
         spec.recipe(new PropagateAuthenticationServiceExceptions())
                 .parser(JavaParser.fromJavaVersion()
                         .logCompilationWarningsAndErrors(true)
-                        .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
+                        .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3", "spring-beans-5.3", "spring-web-5.3", "spring-security-web-5.8", "spring-security-config-5.8"));
     }
 
     @DocumentExample
@@ -43,7 +43,7 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
           java(
             """
               import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
-              
+
               class T {
                   void m() {
                       AuthenticationEntryPointFailureHandler handler = null;
@@ -53,7 +53,7 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
               """,
             """
               import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
-              
+
               class T {
                   void m() {
                       AuthenticationEntryPointFailureHandler handler = null;

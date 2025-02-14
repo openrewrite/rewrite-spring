@@ -33,7 +33,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         spec.recipe(new MigrateItemWriterWrite())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-batch-core-4.3.+", "spring-batch-infrastructure-4.3.+", "spring-beans-4.3.30.RELEASE"));
+              "spring-batch-core-4.3", "spring-batch-infrastructure-4.3", "spring-beans-4.3.30.RELEASE"));
     }
 
     @DocumentExample
@@ -199,7 +199,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
                   }
               }
               """,
-            """            
+            """
               import org.springframework.batch.item.Chunk;
               import org.springframework.batch.item.ItemWriter;
 
@@ -245,7 +245,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
                   }
               }
               """,
-            """            
+            """
               import org.springframework.batch.item.Chunk;
               import org.springframework.batch.item.ItemWriter;
 
@@ -292,7 +292,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
                   }
               }
               """,
-            """            
+            """
               import org.springframework.batch.item.Chunk;
               import org.springframework.batch.item.ItemWriter;
 
@@ -379,7 +379,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
                   }
               }
               """,
-            """            
+            """
               import org.springframework.batch.item.Chunk;
               import org.springframework.batch.item.ItemWriter;
 

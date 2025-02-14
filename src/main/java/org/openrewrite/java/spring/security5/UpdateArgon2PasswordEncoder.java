@@ -117,7 +117,7 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
                 return JavaTemplate.builder("Argon2PasswordEncoder.defaultsForSpringSecurity_v5_2()")
                         .imports(ARGON2_PASSWORD_ENCODER_CLASS)
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8"))
                         .build();
             }
 
@@ -125,7 +125,7 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
                 return JavaTemplate.builder("Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8()")
                         .imports(ARGON2_PASSWORD_ENCODER_CLASS)
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8"))
                         .build();
             }
         });

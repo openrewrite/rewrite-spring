@@ -30,8 +30,8 @@ class UpgradeSkipPolicyParameterTypeTest implements RewriteTest {
         spec
           .recipeFromResource("/META-INF/rewrite/spring-batch-5.0.yml", "org.openrewrite.java.spring.batch.UpgradeSkipPolicyParameterType")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch-core-4.3.+",
-            "spring-batch-infrastructure-4.3.+",
+            "spring-batch-core-4.3",
+            "spring-batch-infrastructure-4.3",
             "spring-beans-4.3.30.RELEASE",
             "spring-batch",
             "spring-boot",

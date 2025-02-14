@@ -153,7 +153,7 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                 return JavaTemplate.builder("Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()")
                         .imports(PBKDF2_PASSWORD_ENCODER_CLASS)
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8"))
                         .build();
             }
 
@@ -162,7 +162,7 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                         .imports(PBKDF2_PASSWORD_ENCODER_CLASS)
                         .staticImports(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm." + algorithm)
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8"))
                         .build();
             }
 
@@ -170,7 +170,7 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                 return JavaTemplate.builder("new Pbkdf2PasswordEncoder(#{any(java.lang.CharSequence)}, #{any(int)}, #{any(int)}, #{any(int)})")
                         .imports(PBKDF2_PASSWORD_ENCODER_CLASS)
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
+                                .classpathFromResources(ctx, "spring-security-crypto-5.8"))
                         .build();
             }
         });

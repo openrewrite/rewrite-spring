@@ -102,7 +102,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                               "}";
                 J.ClassDeclaration newClassDeclaration = JavaTemplate.builder(tmpl)
                         .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+", "spring-web-6.+", "jakarta.servlet-api"))
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11", "spring-web-6", "jakarta.servlet-api"))
                         .imports(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ, KEYVALUES_FQ, HTTPSERVLETREQUEST_FQ, HTTPSERVLETRESPONSE_FQ, SERVERREQUESTOBSERVATIONCONVENTION_FQ)
                         .build()
                         .apply(getCursor(), classDecl.getCoordinates().replace());
@@ -149,14 +149,14 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     if (Boolean.TRUE.equals(addHttpServletResponse) && m.getBody() != null) {
                         m = JavaTemplate.builder("HttpServletResponse response = #{any()}.getResponse();")
                                 .imports(HTTPSERVLETRESPONSE_FQ)
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation-1.11.+"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6", "micrometer-observation-1.11"))
                                 .build()
                                 .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
                     }
                     if (Boolean.TRUE.equals(addHttpServletRequest) && m.getBody() != null) {
                         m = JavaTemplate.builder("HttpServletRequest request = #{any()}.getCarrier();")
                                 .imports(HTTPSERVLETREQUEST_FQ)
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6.+", "micrometer-observation-1.11.+"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jakarta.servlet-api", "spring-web-6", "micrometer-observation-1.11"))
                                 .build()
                                 .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), methodParamIdentifier);
                     }
@@ -202,11 +202,11 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                         if (TAGS_AND_STRING_STRING.matches(init) || TAGS_OF_STRING_STRING.matches(init)) {
                             J.MethodInvocation createKeyValue = JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
                                     .imports(KEYVALUE_FQ)
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11"))
                                     .build()
                                     .apply(getCursor(), coords.replace(), init.getArguments().get(0), init.getArguments().get(1));
                             return JavaTemplate.builder("#{any()}.and(#{any(io.micrometer.common.KeyValue)})")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11"))
                                     .build()
                                     .apply(getCursor(), coords.replace(), returnIdentifier, createKeyValue);
                         } else if (TAGS_AND_STRING_ARRAY.matches(init) || TAGS_OF_STRING_ARRAY.matches(init)) {
@@ -214,7 +214,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                             for (int i = 0; i < init.getArguments().size(); i += 2) {
                                 args.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
                                         .imports(KEYVALUE_FQ)
-                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11"))
                                         .build()
                                         .apply(getCursor(), coords.replace(), init.getArguments().get(i), init.getArguments().get(i + 1)));
                             }
@@ -236,14 +236,14 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                 if (arg instanceof J.MethodInvocation && TAG_OF.matches(arg)) {
                                     args.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
                                             .imports(KEYVALUE_FQ)
-                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11"))
                                             .build()
                                             .apply(getCursor(), coords.replace(), ((J.MethodInvocation) arg).getArguments().get(0), ((J.MethodInvocation) arg).getArguments().get(1)));
                                 } else {
                                     args.add(JavaTemplate.builder("KeyValue.of(#{any()}.getKey(), #{any()}.getValue())")
                                             .imports(KEYVALUE_FQ)
                                             .contextSensitive()
-                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-core-1.11.+", "micrometer-commons-1.11.+"))
+                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-core-1.11", "micrometer-commons-1.11"))
                                             .build()
                                             .apply(getCursor(), coords.replace(), arg, arg));
                                 }
@@ -256,7 +256,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                               "    #{any()}.and(KeyValue.of(tag.getKey(), tag.getValue()));\n" +
                                               "}\n";
                             J.ForEachLoop foreach = JavaTemplate.builder(template)
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-core-1.11.+", "micrometer-commons-1.11.+"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-core-1.11", "micrometer-commons-1.11"))
                                     .imports(TAG_FQ, KEYVALUE_FQ)
                                     .build()
                                     .apply(getCursor(), coords.replace(), iterable, returnIdentifier);
@@ -271,7 +271,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                 String keyValueVarArg = "#{any(io.micrometer.common.KeyValue)}";
                 String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(args.size(), keyValueVarArg));
                 return JavaTemplate.builder("#{any()}.and(" + keyValueVarArgsCombined + ")")
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11"))
                         .build()
                         .apply(getCursor(), coords.replace(), ListUtils.insert(args, returnIdentifier, 0).toArray());
             }

@@ -32,7 +32,7 @@ class UpdateRequestCacheTest implements RewriteTest {
         spec.recipe(new UpdateRequestCache())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3", "spring-beans-5.3", "spring-web-5.3", "spring-security-web-5.8", "spring-security-config-5.8"));
     }
 
     @DocumentExample
@@ -79,7 +79,7 @@ class UpdateRequestCacheTest implements RewriteTest {
               import org.springframework.security.web.SecurityFilterChain;
               import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
               import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-                  
+
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
@@ -88,7 +88,7 @@ class UpdateRequestCacheTest implements RewriteTest {
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
                       requestCache.setMatchingRequestParameterName("continue");
-    
+
                       http.authorizeHttpRequests(authorize -> authorize
                               .requestMatchers("/public", "/public/*").permitAll()
                               .requestMatchers("/login").permitAll()
@@ -97,7 +97,7 @@ class UpdateRequestCacheTest implements RewriteTest {
                               .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
                           .requestCache((cache) -> cache
                               .requestCache(requestCache));
-    
+
                       return http.build();
                   }
               }
@@ -173,7 +173,7 @@ class UpdateRequestCacheTest implements RewriteTest {
                             .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
                         .requestCache((cache) -> cache
                             .requestCache(new HttpSessionRequestCache()));
-                          
+
                     return http.build();
                   }
               }
@@ -201,7 +201,7 @@ class UpdateRequestCacheTest implements RewriteTest {
                             .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
                         .requestCache((cache) -> cache
                             .requestCache(new NullRequestCache()));
-                          
+
                     return http.build();
                   }
               }

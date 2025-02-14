@@ -64,7 +64,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                             .builder("new JobBuilder(#{any(java.lang.String)}, jobRepository)")
                             .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-batch-core-5.+"))
+                                    .classpathFromResources(ctx, "spring-batch-core-5"))
                             .imports("org.springframework.batch.core.repository.JobRepository",
                                     "org.springframework.batch.core.job.builder.JobBuilder")
                             .build().apply(
@@ -137,7 +137,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                             "org.springframework.batch.core.job.builder.JobBuilder",
                             "org.springframework.batch.core.Step")
                     .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-batch-core-5.+"))
+                            .classpathFromResources(ctx, "spring-batch-core-5"))
                     .build();
 
             md = paramsTemplate.apply(getCursor(), md.getCoordinates().replaceParameters(), params.toArray());

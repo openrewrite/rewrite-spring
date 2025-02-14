@@ -65,7 +65,7 @@ public class UseNewSecurityMatchers extends Recipe {
                 return JavaTemplate.builder("securityMatcher(#{any(String)})")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-security-web-5.8.+", "spring-security-config-5.8.+"))
+                                .classpathFromResources(ctx, "spring-security-web-5.8", "spring-security-config-5.8"))
                         .build();
             }
         });

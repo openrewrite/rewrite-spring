@@ -120,7 +120,7 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                 return JavaTemplate.builder("@Configuration")
                     .imports(CONFIGURATION_FQN)
                     .javaParser(JavaParser.fromJavaVersion()
-                        .classpathFromResources(ctx, "spring-context-5.3.+"))
+                        .classpathFromResources(ctx, "spring-context-5.3"))
                     .build()
                     .apply(
                         getCursor(),

@@ -46,7 +46,7 @@ class RenameBeanTest implements RewriteTest {
                   }
                   """
               )
-              .classpathFromResources(new InMemoryExecutionContext(), "spring-context-6.+", "spring-beans-6.+")
+              .classpathFromResources(new InMemoryExecutionContext(), "spring-context-6", "spring-beans-6")
           );
     }
 
