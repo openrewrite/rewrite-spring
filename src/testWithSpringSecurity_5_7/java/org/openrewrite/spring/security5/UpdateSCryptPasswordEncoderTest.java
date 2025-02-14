@@ -17,7 +17,6 @@ package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security5.UpdateSCryptPasswordEncoder;
 import org.openrewrite.test.RecipeSpec;
