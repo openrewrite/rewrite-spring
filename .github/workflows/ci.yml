@@ -18,9 +18,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  GRADLE_SWITCHES: --console=plain --info --warning-mode=all --no-daemon
-
 jobs:
   build:
     uses: openrewrite/gh-automation/.github/workflows/ci-gradle.yml@main
