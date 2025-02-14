@@ -27,3 +27,5 @@ jobs:
       ossrh_token: ${{ secrets.OSSRH_TOKEN }}
       ossrh_signing_key: ${{ secrets.OSSRH_SIGNING_KEY }}
       ossrh_signing_password: ${{ secrets.OSSRH_SIGNING_PASSWORD }}
+    with:
+      java_version: '17'
