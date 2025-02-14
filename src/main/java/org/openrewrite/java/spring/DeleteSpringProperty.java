@@ -33,7 +33,7 @@ public class DeleteSpringProperty extends Recipe {
 
     @Option(displayName = "Property key",
         description = "The property key to delete. Supports glob expressions",
-        example = "management.endpoint.configprops.*")
+        example = "management.endpoint.configprops.+")
     String propertyKey;
 
     @Override

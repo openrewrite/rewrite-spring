@@ -71,8 +71,8 @@ public class MigrateJpaSort extends Recipe {
                     return JavaTemplate.builder(template)
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-data-commons-2.*",
-                                "spring-data-jpa-2.3.*", "javax.persistence-api-2.*"))
+                            .classpathFromResources(ctx, "spring-data-commons-2.+",
+                                "spring-data-jpa-2.3.+", "javax.persistence-api-2.+"))
                         .imports("org.springframework.data.jpa.domain.JpaSort")
                         .build()
                         .apply(

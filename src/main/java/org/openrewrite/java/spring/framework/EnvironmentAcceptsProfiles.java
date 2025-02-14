@@ -55,7 +55,7 @@ public class EnvironmentAcceptsProfiles extends Recipe {
                 method = JavaTemplate.builder(template)
                     .imports("org.springframework.core.env.Profiles", "org.springframework.core.env.Environment")
                     .javaParser(JavaParser.fromJavaVersion()
-                        .classpathFromResources(ctx, "spring-core-5.*"))
+                        .classpathFromResources(ctx, "spring-core-5.+"))
                     .build()
                     .apply(
                         getCursor(),

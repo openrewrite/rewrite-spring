@@ -89,7 +89,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                         md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                                 .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-boot-2.*"))
+                                        .classpathFromResources(ctx, "spring-boot-2.+"))
                                 .build()
                                 .apply(
                                         getCursor(),
@@ -109,7 +109,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                     cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*"))
+                                    .classpathFromResources(ctx, "spring-boot-2.+"))
                             .build()
                             .apply(
                                     getCursor(),

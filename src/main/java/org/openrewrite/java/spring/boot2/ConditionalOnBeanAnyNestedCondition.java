@@ -120,7 +120,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                         a = JavaTemplate.builder("@Conditional(#{}.class)")
                             .imports("org.springframework.context.annotation.Conditional")
                             .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
+                                .classpathFromResources(ctx, "spring-context-5.+", "spring-boot-autoconfigure-2.+"))
                             .build()
                             .apply(
                                 getCursor(),
@@ -152,7 +152,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                             .contextSensitive()
                             .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
+                                    .classpathFromResources(ctx, "spring-context-5.+", "spring-boot-autoconfigure-2.+"))
                             .build();
 
                     c = maybeAutoFormat(

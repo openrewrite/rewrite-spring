@@ -307,7 +307,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
                 maybeAddImport(AUTO_CONFIGURATION_FQN);
                 return JavaTemplate.builder("@AutoConfiguration")
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-boot-autoconfigure-2.7.*"))
+                                .classpathFromResources(ctx, "spring-boot-autoconfigure-2.7.+"))
                         .imports(AUTO_CONFIGURATION_FQN)
                         .build()
                         .apply(getCursor(), c.getCoordinates().addAnnotation(comparing(J.Annotation::getSimpleName)));
