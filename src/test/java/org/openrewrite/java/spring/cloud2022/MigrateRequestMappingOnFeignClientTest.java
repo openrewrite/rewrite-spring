@@ -30,9 +30,9 @@ class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .recipe(new MigrateRequestMappingOnFeignClient())
-          .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-web", "spring-cloud-openfeign-core"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-web",
+            "spring-cloud-openfeign-core"));
     }
 
     @Test

@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.framework;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -30,7 +29,29 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.framework.MigrateResponseStatusException")
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-5.3", "spring-beans-5.3", "spring-web-5.3"));
+          //language=java
+          .parser(JavaParser.fromJavaVersion().dependsOn(
+              """
+                package org.springframework.web.server;
+
+                import org.springframework.http.HttpStatus;
+
+                public class ResponseStatusException extends RuntimeException {
+                	private int status;
+                	public HttpStatus getStatus() {
+                		return HttpStatus.valueOf(this.status);
+                	}
+                	public int getRawStatusCode() {
+                		return this.status;
+                	}
+                }
+                """,
+              """
+                package org.springframework.http;
+                public enum HttpStatus { OK }
+                """
+            )
+          );
     }
 
     @DocumentExample
@@ -43,7 +64,7 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
             """
               import org.springframework.http.HttpStatus;
               import org.springframework.web.server.ResponseStatusException;
-              
+
               class A {
                   void foo(ResponseStatusException e) {
                       HttpStatus i = e.getStatus();
@@ -53,7 +74,7 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
             """
               import org.springframework.http.HttpStatusCode;
               import org.springframework.web.server.ResponseStatusException;
-              
+
               class A {
                   void foo(ResponseStatusException e) {
                       HttpStatusCode i = e.getStatusCode();
@@ -64,7 +85,6 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
         );
     }
 
-    @DocumentExample
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/554")
     @Test
     void migrateResponseStatusExceptionGetRawStatusCodeMethod() {
