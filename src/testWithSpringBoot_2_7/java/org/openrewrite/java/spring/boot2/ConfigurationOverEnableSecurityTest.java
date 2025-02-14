@@ -30,7 +30,13 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ConfigurationOverEnableSecurity(false))
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "spring-core"));
+            .classpath(
+              "spring-beans",
+              "spring-context",
+              "spring-boot",
+              "spring-security",
+              "spring-web",
+              "spring-core"));
     }
 
     @DocumentExample
@@ -41,14 +47,14 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
           java(
             """
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              
+
               @EnableWebSecurity
               class A {}
               """,
             """
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              
+
               @Configuration
               @EnableWebSecurity
               class A {}
@@ -65,7 +71,7 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
             """
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              
+
               @Configuration
               @EnableWebSecurity
               class A {}
@@ -81,7 +87,7 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
           java(
             """
               import org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity;
-              
+
               @EnableRSocketSecurity
               class A{}
               """
@@ -96,14 +102,14 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
           java(
             """
               import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-              
+
               @EnableWebFluxSecurity
               class A {}
               """,
             """
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-              
+
               @Configuration
               @EnableWebFluxSecurity
               class A {}
@@ -119,14 +125,14 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
           java(
             """
               import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-              
+
               @EnableMethodSecurity
               class A {}
               """,
             """
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-              
+
               @Configuration
               @EnableMethodSecurity
               class A {}

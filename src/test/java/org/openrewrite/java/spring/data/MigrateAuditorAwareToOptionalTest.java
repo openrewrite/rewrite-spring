@@ -31,7 +31,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1."))
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13"))
           .recipe(new MigrateAuditorAwareToOptional());
     }
 
