@@ -29,9 +29,11 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.framework.MigrateResponseStatusException")
+        spec.recipes(
+            new MigrateResponseStatusExceptionGetRawStatusCodeMethod(),
+            new MigrateResponseStatusExceptionGetStatusCodeMethod())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-core-5", "spring-beans-5", "spring-web-5"));
+            "spring-core-5", "spring-web-5"));
     }
 
     @DocumentExample
