@@ -110,7 +110,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                     source = new CoalescePropertiesVisitor<Integer>().visitDocuments(a.withDocuments(ListUtils.map((List<Yaml.Document>) a.getDocuments(), doc -> {
                         if (merged.compareAndSet(false, true) && FindProperty.find(doc, "spring.config.activate.on-profile", true).isEmpty()) {
                             return (Yaml.Document) new MergeYamlVisitor<Integer>(doc.getBlock(), b.getDocuments()
-                                    .get(0).getBlock(), true, null, null).visit(doc, 0, new Cursor(new Cursor(null, a), doc));
+                                    .get(0).getBlock(), true, null, null, null).visit(doc, 0, new Cursor(new Cursor(null, a), doc));
                         }
                         return doc;
                     })), 0);
