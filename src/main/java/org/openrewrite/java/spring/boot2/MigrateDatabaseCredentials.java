@@ -91,7 +91,7 @@ public class MigrateDatabaseCredentials extends Recipe {
                 @Override
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                     doAfterVisit(new MergeYaml("$.spring." + tool, "username: ${spring.datasource.username}", true, null, null, null, null).getVisitor());
-                    doAfterVisit(new MergeYaml("$.spring." + tool, "password: ${spring.datasource.password}", true, null, null,null, null).getVisitor());
+                    doAfterVisit(new MergeYaml("$.spring." + tool, "password: ${spring.datasource.password}", true, null, null, null, null).getVisitor());
                     doAfterVisit(new CoalesceProperties().getVisitor());
                     return documents;
                 }
