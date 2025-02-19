@@ -32,6 +32,11 @@ recipeList:
       artifactId: "*"
       newVersion: 5.8.x
       overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.security
+      artifactId: spring-security-oauth2-authorization-server
+      newVersion: 0.4.x
+      overrideManagedVersion: false
   - org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl
   - org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
   - org.openrewrite.java.spring.boot2.HeadersConfigurerLambdaDsl
@@ -63,8 +68,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml
 displayName: Replace global method security with method security
 description: >-
-  `@EnableGlobalMethodSecurity` and `<global-method-security>` are deprecated in favor of `@EnableMethodSecurity` 
-  and `<method-security>`, respectively. The new annotation and XML element activate Spring’s pre-post annotations 
+  `@EnableGlobalMethodSecurity` and `<global-method-security>` are deprecated in favor of `@EnableMethodSecurity`
+  and `<method-security>`, respectively. The new annotation and XML element activate Spring’s pre-post annotations
   by default and use AuthorizationManager internally.
 tags:
   - spring

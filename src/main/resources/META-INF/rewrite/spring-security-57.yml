@@ -31,4 +31,9 @@ recipeList:
       artifactId: "*"
       newVersion: 5.7.x
       overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.security
+      artifactId: spring-security-oauth2-authorization-server
+      newVersion: 0.3.x
+      overrideManagedVersion: false
   - org.openrewrite.java.spring.security5.WebSecurityConfigurerAdapter
