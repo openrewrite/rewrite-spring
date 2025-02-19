@@ -40,9 +40,17 @@ tags:
   - spring
   - boot
 recipeList:
-  # These steps go above & beyond what's needed for a pure upgrade, and are not be included with 3.x upgrades themselves
-  - org.openrewrite.java.migrate.UpgradeToJava21 # Allows for virtual threads
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.SpringBoot3BestPracticesOnly
+displayName: Spring Boot 3.3 best practices (only)
+description: Applies best practices to Spring Boot 3 applications, without chaining in upgrades to Spring Boot.
+tags:
+  - spring
+  - boot
+recipeList:
+  # These steps go above & beyond what's needed for a pure upgrade, and are not be included with 3.x upgrades themselves
   - org.openrewrite.java.spring.boot3.EnableVirtualThreads
   - org.openrewrite.java.spring.framework.BeanMethodsNotPublic # Intentionally not in 2.x
   # Replace literals with constants and simplify MediaType parse calls
