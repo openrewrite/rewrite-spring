@@ -126,7 +126,7 @@ public class ReplaceStringLiteralsWithHttpHeadersConstants extends ScanningRecip
             public J preVisit(J tree, ExecutionContext ctx) {
                 stopAfterPreVisit();
                 for (String header : HEADERS) {
-                    doAfterVisit(new ReplaceStringLiteralWithConstant("org.springframework.http.HttpHeaders." + header).getVisitor());
+                    doAfterVisit(new ReplaceStringLiteralWithConstant(null, "org.springframework.http.HttpHeaders." + header).getVisitor());
                 }
                 return tree;
             }
