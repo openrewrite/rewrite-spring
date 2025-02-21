@@ -97,7 +97,7 @@ public class ReplaceStringLiteralsWithMediaTypeConstants extends ScanningRecipe<
                 stopAfterPreVisit();
                 for (String mediaType : MEDIA_TYPES) {
                     try {
-                        doAfterVisit(new ReplaceStringLiteralWithConstant("org.springframework.http.MediaType." + mediaType).getVisitor());
+                        doAfterVisit(new ReplaceStringLiteralWithConstant(null, "org.springframework.http.MediaType." + mediaType).getVisitor());
                     } catch (IllegalArgumentException ignore) {
                         // this is typically a NoSuchFieldException when an older version of Spring is used
                     }
