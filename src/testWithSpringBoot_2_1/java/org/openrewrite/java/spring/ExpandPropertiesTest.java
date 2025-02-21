@@ -27,7 +27,7 @@ class ExpandPropertiesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new ExpandProperties());
+        spec.recipe(new ExpandProperties(null));
     }
 
     @DocumentExample

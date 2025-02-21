@@ -101,8 +101,8 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                     // update application.yml file
                     AtomicBoolean merged = new AtomicBoolean(false);
 
-                    Yaml.Documents a = (Yaml.Documents) new ExpandProperties().getVisitor().visit(acc.getApplicationYaml(), ctx);
-                    Yaml.Documents b = (Yaml.Documents) new ExpandProperties().getVisitor().visit(acc.getBootstrapYaml(), ctx);
+                    Yaml.Documents a = (Yaml.Documents) new ExpandProperties(null).getVisitor().visit(acc.getApplicationYaml(), ctx);
+                    Yaml.Documents b = (Yaml.Documents) new ExpandProperties(null).getVisitor().visit(acc.getBootstrapYaml(), ctx);
                     assert a != null;
                     assert b != null;
 

@@ -15,7 +15,8 @@
  */
 package org.openrewrite.java.spring;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -31,6 +32,8 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonList;
 import static org.openrewrite.Tree.randomId;
 
+@Value
+@EqualsAndHashCode(callSuper = false)
 public class ExpandProperties extends Recipe {
 
     @Option(displayName = "Source file mask",
@@ -38,7 +41,7 @@ public class ExpandProperties extends Recipe {
             example = "**/application*.yml",
             required = false)
     @Nullable
-    private final String sourceFileMask;
+    private String sourceFileMask;
 
     @Override
     public String getDisplayName() {
@@ -48,15 +51,6 @@ public class ExpandProperties extends Recipe {
     @Override
     public String getDescription() {
         return "Expand YAML properties to not use the dot syntax shortcut.";
-    }
-
-    public ExpandProperties() {
-        this.sourceFileMask = null;
-    }
-
-    @JsonCreator
-    public ExpandProperties(String sourceFileMask) {
-        this.sourceFileMask = sourceFileMask;
     }
 
     @Override
