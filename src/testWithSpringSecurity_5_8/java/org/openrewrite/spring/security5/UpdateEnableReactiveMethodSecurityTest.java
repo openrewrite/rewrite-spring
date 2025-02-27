@@ -17,7 +17,6 @@ package org.openrewrite.spring.security5;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.security6.UpdateEnableReactiveMethodSecurity;
 import org.openrewrite.test.RecipeSpec;
@@ -32,8 +31,11 @@ class UpdateEnableReactiveMethodSecurityTest implements RewriteTest {
         spec.recipe(new UpdateEnableReactiveMethodSecurity())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-security-web-5.8.+",
-              "spring-security-config-5.8.+"));
+            .classpath("spring-security-web",
+              "spring-security-config"));
+        // Some kind of problem with type tables prevents this from working right now
+//            .classpathFromResources(new InMemoryExecutionContext(), "spring-security-web-5.8.+",
+//              "spring-security-config-5.8.+"));
     }
 
     @DocumentExample
