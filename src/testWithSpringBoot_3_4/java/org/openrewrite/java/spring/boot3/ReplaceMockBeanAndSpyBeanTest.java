@@ -153,8 +153,10 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
               }
               """,
             """
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
               public class SomeTest {
-                  @org.springframework.test.context.bean.override.mockito.MockitoBean
+                  @MockitoBean
                   private String someService;
               }
               """
@@ -286,8 +288,10 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
               }
               """,
             """
+              import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+
               public class SomeTest {
-                  @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+                  @MockitoSpyBean
                   private String someService;
               }
               """
