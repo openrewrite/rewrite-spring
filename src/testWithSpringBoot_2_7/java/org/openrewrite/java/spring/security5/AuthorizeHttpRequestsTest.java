@@ -121,7 +121,7 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
               public class JdbcSecurityConfiguration {
                   @Bean
                   SecurityFilterChain web(HttpSecurity http) throws Exception {
-                      AuthorizationManagerRequestMatcherRegistry reqs = http.authorizeHttpRequests();
+                      AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry reqs = http.authorizeHttpRequests();
                       reqs.antMatchers("/ll").authenticated();
                       return http.build();
                   }
