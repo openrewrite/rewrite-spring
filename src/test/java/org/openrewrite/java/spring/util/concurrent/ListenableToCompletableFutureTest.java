@@ -21,6 +21,7 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
@@ -30,7 +31,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(toRecipe(ListenableToCompletableFuture::new))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6", "spring-kafka-2"));
     }
 
     @Test
@@ -49,7 +50,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
                           public void onSuccess(String result) {
                               System.out.println(result);
                           }
-              
+
                           @Override
                           public void onFailure(Throwable ex) {
                               System.err.println(ex.getMessage());
@@ -60,7 +61,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               """,
             """
               import java.util.concurrent.CompletableFuture;
-              
+
               class A {
                   void test(CompletableFuture<String> future) {
                       future.whenComplete((String result, Throwable ex) -> {
@@ -88,14 +89,14 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               class A {
                   void test(ListenableFuture<String> future) {
                       future.addCallback(new ListenableFutureCallback<String>() {
-              
+
                           private final String field = "value";
-              
+
                           @Override
                           public void onSuccess(String result) {
                               System.out.println(result);
                           }
-              
+
                           @Override
                           public void onFailure(Throwable ex) {
                               System.err.println(ex.getMessage());
@@ -107,13 +108,13 @@ class ListenableToCompletableFutureTest implements RewriteTest {
             """
               import java.util.concurrent.CompletableFuture;
               import java.util.function.BiConsumer;
-              
+
               class A {
                   void test(CompletableFuture<String> future) {
                       future.whenComplete(new BiConsumer<String, Throwable>() {
-              
+
                           private final String field = "value";
-              
+
                           @Override
                           public void accept(String result, Throwable ex) {
                               if (ex == null) {
@@ -137,13 +138,13 @@ class ListenableToCompletableFutureTest implements RewriteTest {
           java(
             """
               import org.springframework.util.concurrent.ListenableFutureCallback;
-              
+
               class MyCallback implements ListenableFutureCallback<String> {
                   @Override
                   public void onSuccess(String result) {
                       System.out.println(result);
                   }
-              
+
                   @Override
                   public void onFailure(Throwable ex) {
                       System.err.println(ex.getMessage());
@@ -177,9 +178,9 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               """,
             """
               import org.springframework.util.concurrent.ListenableFutureCallback;
-              
+
               import java.util.concurrent.CompletableFuture;
-              
+
               class A {
                   void test(CompletableFuture<String> future) {
                       future.whenComplete(new MyCallback());
@@ -207,7 +208,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               """,
             """
               import java.util.concurrent.CompletableFuture;
-              
+
               class A {
                   void test(CompletableFuture<String> future) {
                       future.whenComplete((string, ex) -> {
@@ -244,7 +245,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               """,
             """
               import java.util.concurrent.CompletableFuture;
-              
+
               class A {
                   void test(CompletableFuture<String> future) {
                       future.whenComplete((string, ex) -> {
@@ -259,6 +260,53 @@ class ListenableToCompletableFutureTest implements RewriteTest {
               }
               """
           )
+        );
+    }
+
+    @Test
+    void addSuccessFailureCallbackWithTypeCast() {
+        //language=java
+        rewriteRun(
+            spec -> spec
+              .typeValidationOptions(TypeValidation.all().methodInvocations(false))
+              .afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
+            java(
+                """
+                  import org.springframework.util.concurrent.ListenableFuture;
+                  import org.springframework.kafka.core.KafkaFailureCallback;
+
+                  class Example {
+                      void test(ListenableFuture<String> future) {
+                          future.addCallback(
+                              string -> {
+                                  System.out.print("success: ");
+                                  System.out.println(string);
+                              },
+                              (KafkaFailureCallback<Integer, String>) ex -> {
+                                  System.out.println(ex.getFailedProducerRecord());
+                              });
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.kafka.core.KafkaProducerException;
+
+                  import java.util.concurrent.CompletableFuture;
+
+                  class Example {
+                      void test(CompletableFuture<String> future) {
+                          future.whenComplete((string, ex) -> {
+                              if (ex == null) {
+                                  System.out.print("success: ");
+                                  System.out.println(string);
+                              } else {
+                                  System.out.println(((KafkaProducerException) ex).getFailedProducerRecord());
+                              }
+                          });
+                      }
+                  }
+                  """
+            )
         );
     }
 }
