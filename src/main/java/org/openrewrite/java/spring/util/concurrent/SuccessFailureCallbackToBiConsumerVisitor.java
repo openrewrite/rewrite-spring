@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.util.concurrent;
 import lombok.AllArgsConstructor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.spring.util.MemberReferenceToMethodInvocation;
@@ -26,14 +27,13 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.staticanalysis.RemoveUnneededBlock;
 
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 class SuccessFailureCallbackToBiConsumerVisitor extends JavaIsoVisitor<ExecutionContext> {
 
     private static final MethodMatcher ADD_CALLBACK_SUCCESS_FAILURE_MATCHER = new MethodMatcher(
             "org.springframework.util.concurrent.ListenableFuture addCallback(" +
-            "org.springframework.util.concurrent.SuccessCallback, " +
-            "org.springframework.util.concurrent.FailureCallback)");
+                    "org.springframework.util.concurrent.SuccessCallback, " +
+                    "org.springframework.util.concurrent.FailureCallback)");
     private static final String FQN_KAFKA_FAILURE_CALLBACK = "org.springframework.kafka.core.KafkaFailureCallback";
     private static final MethodMatcher GET_FAILED_PRODUCER_RECORD = new MethodMatcher("org.springframework.kafka.core.KafkaProducerException getFailedProducerRecord()");
     private static final String FQN_KAFKA_PRODUCER_EXCEPTION = "org.springframework.kafka.core.KafkaProducerException";
@@ -76,7 +76,9 @@ class SuccessFailureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Execution
             whenComplete = (J.MethodInvocation) new RemoveUnneededBlock().getVisitor().visitNonNull(whenComplete, ctx, getCursor().getParent());
             if (isKafkaFailureCallback) {
                 J.Lambda biConsumer = (J.Lambda) whenComplete.getArguments().get(0);
-                doAfterVisit(new MigrateKafkaProducerExceptionVisitor(((J.VariableDeclarations) biConsumer.getParameters().getParameters().get(1)).getVariables().get(0).getName()));
+                J.VariableDeclarations secondArg = (J.VariableDeclarations) biConsumer.getParameters().getParameters().get(1);
+                J.Identifier secondArgName = secondArg.getVariables().get(0).getName();
+                doAfterVisit(new MigrateKafkaProducerExceptionVisitor(secondArgName));
                 maybeRemoveImport(FQN_KAFKA_FAILURE_CALLBACK);
             }
             return whenComplete;
@@ -89,18 +91,17 @@ class SuccessFailureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Execution
         private Expression name;
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            method = super.visitMethodInvocation(method, executionContext);
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             if (GET_FAILED_PRODUCER_RECORD.matches(method) && Objects.equals(method.getSelect().printTrimmed(), name.printTrimmed())) {
-                maybeAddImport(FQN_KAFKA_PRODUCER_EXCEPTION, null,false);
+                maybeAddImport(FQN_KAFKA_PRODUCER_EXCEPTION, null, false);
 
-                return JavaTemplate.builder("((KafkaProducerException)#{any(org.springframework.kafka.core.KafkaProducerException)}).getFailedProducerRecord()")
-                    .imports(FQN_KAFKA_PRODUCER_EXCEPTION)
-                    .build()
-                    .apply(getCursor(), method.getCoordinates().replace(), name);
-            } else {
-                return method;
+                return JavaTemplate.builder("((KafkaProducerException)#{any()}).getFailedProducerRecord()")
+                        .imports(FQN_KAFKA_PRODUCER_EXCEPTION)
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-kafka-2"))
+                        .build()
+                        .apply(getCursor(), method.getCoordinates().replace(), name);
             }
+            return super.visitMethodInvocation(method, ctx);
         }
     }
 }
