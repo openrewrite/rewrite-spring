@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 the original author or authors.
+ * <p>
+ * Licensed under the Moderne Source Available License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://docs.moderne.io/licensing/moderne-source-available-license
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.openrewrite.java.spring.batch;
 
 import org.openrewrite.ExecutionContext;
@@ -71,9 +86,9 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             if(method != this.method) {
-                return super.visitMethodDeclaration(method, executionContext);
+                return super.visitMethodDeclaration(method, ctx);
             }
             Optional<J.VariableDeclarations> parameterOptional = method.getParameters().stream()
                     .map(parameter-> ((J.VariableDeclarations) parameter))
@@ -97,7 +112,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
             J.VariableDeclarations vdd = JavaTemplate.builder("Chunk" + chunkType + " _chunk")
                     .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(executionContext, "spring-batch-core-5.+"))
+                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+"))
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
                     .<J.MethodDeclaration>apply(getCursor(), method.getCoordinates().replaceParameters())
@@ -106,7 +121,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
             J.MethodDeclaration methodDeclaration = JavaTemplate.builder("List"+chunkType+" #{} = _chunk.getItems();")
                     .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(executionContext, "spring-batch-core-5.+"))
+                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+"))
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
                     .apply(getCursor(), method.getBody().getCoordinates().firstStatement(), paramName);
@@ -121,7 +136,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             method = JavaTemplate.builder("#{}\n #{} void write(#{} Chunk"+chunkType+" #{})#{} #{}")
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(executionContext, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                            .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
                     .apply(

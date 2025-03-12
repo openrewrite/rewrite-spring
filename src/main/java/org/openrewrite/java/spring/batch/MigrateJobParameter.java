@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 the original author or authors.
+ * <p>
+ * Licensed under the Moderne Source Available License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://docs.moderne.io/licensing/moderne-source-available-license
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.openrewrite.java.spring.batch;
 
 import org.openrewrite.*;
@@ -41,8 +56,8 @@ public class MigrateJobParameter extends Recipe {
 
                     private boolean defineMapTypeWithJobParameter(JavaType type) {
                         if(type != null && type.isAssignableFrom(Pattern.compile("java.util.Map")) && type instanceof JavaType.Parameterized) {
-                           if (((JavaType.Parameterized)type).getTypeParameters().get(1).isAssignableFrom(Pattern.compile(JOBPARAMETER))
-                                && !(((JavaType.Parameterized)type).getTypeParameters().get(1) instanceof  JavaType.Parameterized)
+                           if (((JavaType.Parameterized)type).getTypeParameters().get(1).isAssignableFrom(Pattern.compile(JOBPARAMETER)) &&
+                                !(((JavaType.Parameterized)type).getTypeParameters().get(1) instanceof  JavaType.Parameterized)
                            ) {
                                return true;
                             }
@@ -52,8 +67,8 @@ public class MigrateJobParameter extends Recipe {
 
                     private boolean defineMapEntryTypeWithJobParameter(JavaType type) {
                         if(type != null && type.isAssignableFrom(Pattern.compile("java.util.Map.Entry")) && type instanceof JavaType.Parameterized) {
-                            if (((JavaType.Parameterized)type).getTypeParameters().get(1).isAssignableFrom(Pattern.compile(JOBPARAMETER))
-                                    && !(((JavaType.Parameterized)type).getTypeParameters().get(1) instanceof  JavaType.Parameterized)
+                            if (((JavaType.Parameterized)type).getTypeParameters().get(1).isAssignableFrom(Pattern.compile(JOBPARAMETER)) &&
+                                    !(((JavaType.Parameterized)type).getTypeParameters().get(1) instanceof  JavaType.Parameterized)
                             ) {
                                 return true;
                             }
@@ -63,8 +78,8 @@ public class MigrateJobParameter extends Recipe {
 
 
                     @Override
-                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-                        method = super.visitMethodInvocation(method, executionContext);
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        method = super.visitMethodInvocation(method, ctx);
                         if (method.getType()!=null && method.getType().isAssignableFrom(Pattern.compile("java.util.Map")) && method.getName().getSimpleName().equals("of") && method.getArguments().size() % 2 == 0) {
                             method = method.withTypeParameters(null);
                         }
@@ -122,8 +137,8 @@ public class MigrateJobParameter extends Recipe {
 
 
                     @Override
-                    public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext executionContext) {
-                        newClass = super.visitNewClass(newClass, executionContext);
+                    public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
+                        newClass = super.visitNewClass(newClass, ctx);
                         if (newClass!=null && newClass.getClazz() != null &&  newClass.getClazz().getType()!=null && newClass.getClazz().getType().isAssignableFrom(Pattern.compile("org.springframework.batch.core.JobParameter"))) {
                             JavaType javaType = newClass.getArguments().get(0).getType();
 
@@ -135,7 +150,7 @@ public class MigrateJobParameter extends Recipe {
                             if (newClass.getArguments().size() > 1) {
                                 newClass = JavaTemplate.builder("new JobParameter<>(#{}, #{}.class, #{})")
                                         .javaParser(JavaParser.fromJavaVersion()
-                                                .classpathFromResources(executionContext, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                                                .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                                         .build()
                                         .apply(getCursor(), newClass.getCoordinates().replace(),
                                                 newClass.getArguments().get(0).print(getCursor()),
@@ -145,7 +160,7 @@ public class MigrateJobParameter extends Recipe {
                             } else {
                                 newClass = JavaTemplate.builder("new JobParameter<>(#{}, #{}.class)")
                                         .javaParser(JavaParser.fromJavaVersion()
-                                                .classpathFromResources(executionContext, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                                                .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                                         .build()
                                         .apply(getCursor(), newClass.getCoordinates().replace(),
 
@@ -165,8 +180,8 @@ public class MigrateJobParameter extends Recipe {
     public class JNewClassOfMap extends JavaIsoVisitor<ExecutionContext> {
 
         @Override
-        public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext executionContext) {
-
+        public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
+            newClass = super.visitNewClass(newClass, ctx);
             newClass = super.visitNewClass(newClass, executionContext);
             if(newClass!= null && newClass.getType() !=null && newClass.getType().isAssignableFrom(Pattern.compile("java.util.Map"))) {
                 if(newClass.getClazz() instanceof J.ParameterizedType) {
