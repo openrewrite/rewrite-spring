@@ -44,6 +44,17 @@ class SuccessFailureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Execution
         if (ADD_CALLBACK_SUCCESS_FAILURE_MATCHER.matches(mi)) {
             mi = (J.MethodInvocation) new MemberReferenceToMethodInvocation().visitNonNull(mi, ctx, getCursor().getParent());
 
+            /* If the first argument is a method invocation, very probably it's a mockito.when(), we should not do anything here
+             * For example:
+             *   ListenableFuture<SendResult> future = mock(ListenableFuture.class);
+             *   doAnswer(i -> {
+             *     return null;
+             *   }).when(future).whenComplete(any(), any());
+             */
+            if (mi.getArguments().get(0) instanceof J.MethodInvocation) {
+                return mi;
+            }
+
             J.Lambda successCallback = (J.Lambda) mi.getArguments().get(0);
 
             boolean isKafkaFailureCallback = false;
