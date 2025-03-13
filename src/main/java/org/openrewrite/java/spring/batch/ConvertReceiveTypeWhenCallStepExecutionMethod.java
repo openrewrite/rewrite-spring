@@ -106,8 +106,8 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
         @Override
         public J visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
             J j =  super.visitVariableDeclarations(multiVariable, ctx);
+            VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
             visitMethodInvocation.visitVariableDeclarations(multiVariable, ctx);
-            visitMethodInvocation.visitVariableDeclarations(multiVariable, executionContext);
             if(visitMethodInvocation.isFound) {
                 doAfterVisit(new AddCast());
             }
@@ -134,7 +134,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                                 }
                                 return super.visitMethodInvocation(method, ctx);
                             }
-                        }.visit(method, executionContext);
+                        }.visit(method, ctx);
                         if(findWhen.get()) {
                             j = JavaTemplate.builder("#{}.thenReturn((long) #{})")
                                     .contextSensitive()

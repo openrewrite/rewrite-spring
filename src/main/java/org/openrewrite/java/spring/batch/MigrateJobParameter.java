@@ -180,8 +180,7 @@ public class MigrateJobParameter extends Recipe {
     public class JNewClassOfMap extends JavaIsoVisitor<ExecutionContext> {
 
         @Override
-        public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
-            newClass = super.visitNewClass(newClass, ctx);
+        public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext executionContext) {
             newClass = super.visitNewClass(newClass, executionContext);
             if(newClass!= null && newClass.getType() !=null && newClass.getType().isAssignableFrom(Pattern.compile("java.util.Map"))) {
                 if(newClass.getClazz() instanceof J.ParameterizedType) {

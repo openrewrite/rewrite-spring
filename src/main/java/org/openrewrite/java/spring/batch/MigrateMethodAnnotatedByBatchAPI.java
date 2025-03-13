@@ -91,11 +91,12 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                 return super.visitMethodDeclaration(method, ctx);
             }
             Optional<J.VariableDeclarations> parameterOptional = method.getParameters().stream()
+                    .filter(parameter-> parameter instanceof J.VariableDeclarations)
                     .map(parameter-> ((J.VariableDeclarations) parameter))
                     .filter(parameter-> parameter.getType().isAssignableFrom(Pattern.compile("java.util.List")))
                     .findFirst();
             if(!parameterOptional.isPresent()) {
-                return super.visitMethodDeclaration(method, executionContext);
+                return super.visitMethodDeclaration(method, ctx);
             }
             J.VariableDeclarations parameter = parameterOptional.get();
             String chunkTypeParameter = null;
