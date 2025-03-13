@@ -114,13 +114,14 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry;
               import org.springframework.security.web.SecurityFilterChain;
 
               @Configuration
               public class JdbcSecurityConfiguration {
                   @Bean
                   SecurityFilterChain web(HttpSecurity http) throws Exception {
-                      org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry reqs = http.authorizeHttpRequests();
+                      AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry reqs = http.authorizeHttpRequests();
                       reqs.antMatchers("/ll").authenticated();
                       return http.build();
                   }
