@@ -27,14 +27,6 @@ import static org.openrewrite.java.Assertions.java;
 
 @SuppressWarnings("NewClassNamingConvention")
 class UnnecessarySpringExtensionTest implements RewriteTest {
-//    override val parser: JavaParser
-//        get() = JavaParser.fromJavaVersion()
-//            .classpath("spring-context", "spring-test", "spring-boot-test", "junit-jupiter-api", "spring-boot-test-autoconfigure", "spring-batch-test")
-//            .build()
-//
-//    override val recipe: Recipe
-//        get() = UnnecessarySpringExtension()
-
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -53,7 +45,7 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
               import org.junit.jupiter.api.extension.ExtendWith;
               import org.springframework.boot.test.context.SpringBootTest;
               import org.springframework.test.context.junit.jupiter.SpringExtension;
-              
+
               @SpringBootTest
               @ExtendWith(SpringExtension.class)
               class Test {
@@ -61,7 +53,7 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
               """,
             """
               import org.springframework.boot.test.context.SpringBootTest;
-              
+
               @SpringBootTest
               class Test {
               }
@@ -97,7 +89,7 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
               import org.junit.jupiter.api.extension.ExtendWith;
               import %s;
               import org.springframework.test.context.junit.jupiter.SpringExtension;
-              
+
               @%s
               @ExtendWith(SpringExtension.class)
               class Test {
@@ -105,11 +97,31 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
               """.formatted(annotationName, annotationName.substring(annotationName.lastIndexOf('.') + 1)),
             """
               import %s;
-              
+
               @%s
               class Test {
               }
               """.formatted(annotationName, annotationName.substring(annotationName.lastIndexOf('.') + 1))
+          )
+        );
+    }
+
+    @Test
+    void noChangeIfMoreThanOneExtensionToNotChangeOrder() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.junit.jupiter.api.extension.Extension;
+              import org.springframework.boot.test.context.SpringBootTest;
+              import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+              @SpringBootTest
+              @ExtendWith({SpringExtension.class, Extension.class})
+              class Test {
+              }
+              """
           )
         );
     }

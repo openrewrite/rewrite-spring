@@ -23,12 +23,14 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UnnecessarySpringExtension extends Recipe {
@@ -81,13 +83,19 @@ public class UnnecessarySpringExtension extends Recipe {
                         new FindBootTestAnnotation().visit(c, annotationFound);
 
                         if (annotationFound.get()) {
-                            if (!FindAnnotations.find(c, EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN).isEmpty()) {
-                                c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
-                                        .getVisitor().visit(c, ctx, getCursor().getParentOrThrow());
-                                assert c != null;
-                                maybeRemoveImport("org.springframework.test.context.junit.jupiter.SpringExtension");
-                                maybeRemoveImport("org.junit.jupiter.api.extension.ExtendWith");
-                                return super.visitClassDeclaration(c.withBody(classDecl.getBody()), ctx);
+                            Set<J.Annotation> extendsWiths = FindAnnotations.find(c, EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN);
+                            if (!extendsWiths.isEmpty()) {
+                                Expression expression = extendsWiths.iterator().next().getArguments().get(0);
+                                if ((expression instanceof J.FieldAccess) || (expression instanceof J.NewArray &&
+                                        ((J.NewArray) expression).getInitializer() != null &&
+                                        (((J.NewArray) expression).getInitializer().size() == 1))) {
+                                    c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
+                                            .getVisitor().visit(c, ctx, getCursor().getParentOrThrow());
+                                    assert c != null;
+                                    maybeRemoveImport("org.springframework.test.context.junit.jupiter.SpringExtension");
+                                    maybeRemoveImport("org.junit.jupiter.api.extension.ExtendWith");
+                                    return super.visitClassDeclaration(c.withBody(classDecl.getBody()), ctx);
+                                }
                             }
                         }
                         return super.visitClassDeclaration(classDecl, ctx);
