@@ -15,7 +15,10 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -34,12 +37,12 @@ public class MigrateJobParameter extends Recipe {
     private static final String JOBPARAMETER = "org.springframework.batch.core.JobParameter";
 
     @Override
-    public @NlsRewrite.DisplayName String getDisplayName() {
+    public String getDisplayName() {
         return "Migration Job Parameter";
     }
 
     @Override
-    public @NlsRewrite.Description String getDescription() {
+    public String getDescription() {
         return "Migration Job Parameter, parameterized type is essential in spring batch 5 .";
     }
 
@@ -87,11 +90,11 @@ public class MigrateJobParameter extends Recipe {
                     }
 
                     @Override
-                    public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext executionContext) {
-                        multiVariable = super.visitVariableDeclarations(multiVariable, executionContext);
+                    public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
+                        multiVariable = super.visitVariableDeclarations(multiVariable, ctx);
                         if(defineMapTypeWithJobParameter(multiVariable.getType())) {
                             JNewClassOfMap jNewClassOfMap = new JNewClassOfMap();
-                            multiVariable = jNewClassOfMap.visitVariableDeclarations(multiVariable, executionContext);
+                            multiVariable = jNewClassOfMap.visitVariableDeclarations(multiVariable, ctx);
                             multiVariable = multiVariable.withTypeExpression(TypeTree.build("Map<String, JobParameter<?>>").withPrefix(multiVariable.getTypeExpression().getPrefix())).withType(JavaType.buildType("java.util.Map"));
                             doAfterVisit(new AddImport<>("java.util.Map", null, false));
                         } else if (defineMapEntryTypeWithJobParameter(multiVariable.getType())) {
@@ -103,16 +106,16 @@ public class MigrateJobParameter extends Recipe {
 
 
                     @Override
-                    public J.Assignment visitAssignment(J.Assignment assignment, ExecutionContext executionContext) {
-                        assignment = super.visitAssignment(assignment, executionContext);
+                    public J.Assignment visitAssignment(J.Assignment assignment, ExecutionContext ctx) {
+                        assignment = super.visitAssignment(assignment, ctx);
                         JNewClassOfMap jNewClassOfMap = new JNewClassOfMap();
-                        assignment = jNewClassOfMap.visitAssignment(assignment, executionContext);
+                        assignment = jNewClassOfMap.visitAssignment(assignment, ctx);
                         return assignment;
                     }
 
                     @Override
-                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-                        method = super.visitMethodDeclaration(method, executionContext);
+                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        method = super.visitMethodDeclaration(method, ctx);
 
                         if(method.getReturnTypeExpression()!=null && defineMapTypeWithJobParameter(method.getReturnTypeExpression().getType())) {
                             method = method.withReturnTypeExpression(TypeTree.build("Map<String, JobParameter<?>>").withPrefix(method.getReturnTypeExpression().getPrefix()));
@@ -180,8 +183,8 @@ public class MigrateJobParameter extends Recipe {
     public class JNewClassOfMap extends JavaIsoVisitor<ExecutionContext> {
 
         @Override
-        public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext executionContext) {
-            newClass = super.visitNewClass(newClass, executionContext);
+        public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
+            newClass = super.visitNewClass(newClass, ctx);
             if(newClass!= null && newClass.getType() !=null && newClass.getType().isAssignableFrom(Pattern.compile("java.util.Map"))) {
                 if(newClass.getClazz() instanceof J.ParameterizedType) {
                     newClass = newClass.withClazz(TypeTree.build( ((J.ParameterizedType) newClass.getClazz()).getClazz() + "<>").withPrefix(Space.SINGLE_SPACE));

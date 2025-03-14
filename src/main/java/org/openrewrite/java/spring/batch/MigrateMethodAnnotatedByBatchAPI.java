@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.batch;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.NlsRewrite;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -35,12 +34,12 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
 
     @Override
-    public @NlsRewrite.DisplayName String getDisplayName() {
+    public String getDisplayName() {
         return "Migrate method when it annotated by Spring Batch API";
     }
 
     @Override
-    public @NlsRewrite.Description String getDescription() {
+    public String getDescription() {
         return "Migrate method when it annotated by Spring Batch API.";
 
     }
@@ -59,18 +58,18 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 Optional<J. Annotation> methodAnnotation =  method.getLeadingAnnotations().stream()
                         .filter(annotation -> Objects.nonNull(annotation.getType()))
                         .filter(annotation -> annotatedMethods.contains(annotation.getType().toString()))
                         .findFirst();
 
                 if(methodAnnotation.isPresent()) {
-                    method = super.visitMethodDeclaration(method, executionContext);
+                    method = super.visitMethodDeclaration(method, ctx);
                     doAfterVisit(new RefineMethod(method));
                     return method;
                 } else {
-                    return super.visitMethodDeclaration(method, executionContext);
+                    return super.visitMethodDeclaration(method, ctx);
                 }
 
             }
