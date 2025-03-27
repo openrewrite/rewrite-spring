@@ -15,8 +15,6 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -26,6 +24,9 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MigrateBase64Utils extends Recipe {
 
