@@ -39,7 +39,7 @@ public class MigrateBase64Utils extends Recipe {
 
     @Override
     public String getDescription() {
-        return "`org.springframework.util.Base64Utils` was deprecated, in favor of `java.util.Base64`.";
+        return "Replaces usages of deprecated `org.springframework.util.Base64Utils` with `java.util.Base64`.";
     }
 
     @Override
