@@ -51,9 +51,9 @@ public class MigrateBase64Utils extends Recipe {
 
         private static final String JAVA_UTIL_BASE_64 = "java.util.Base64";
 
-        private final Map<MethodMatcher, JavaTemplate> SPRING_TO_JDK_MAPPINGS = new HashMap<>();
+        private static final Map<MethodMatcher, JavaTemplate> SPRING_TO_JDK_MAPPINGS = new HashMap<>();
 
-        UpdateDeprecatedMethods() {
+        static {
             SPRING_TO_JDK_MAPPINGS.put(new MethodMatcher(SPRING_BASE_64_UTILS + " encode(byte[])"), JavaTemplate.builder("Base64.getEncoder().encode(#{anyArray(byte)})").imports(JAVA_UTIL_BASE_64).build());
             SPRING_TO_JDK_MAPPINGS.put(new MethodMatcher(SPRING_BASE_64_UTILS + " decode(byte[])"), JavaTemplate.builder("Base64.getDecoder().decode(#{anyArray(byte)})").imports(JAVA_UTIL_BASE_64).build());
             SPRING_TO_JDK_MAPPINGS.put(new MethodMatcher(SPRING_BASE_64_UTILS + " encodeToString(byte[])"), JavaTemplate.builder("Base64.getEncoder().encodeToString(#{anyArray(byte)})").imports(JAVA_UTIL_BASE_64).build());
