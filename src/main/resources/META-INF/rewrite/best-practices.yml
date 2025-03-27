@@ -33,7 +33,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.SpringBoot3BestPractices
+name: org.openrewrite.java.spring.boot3.SpringBoot33BestPractices
 displayName: Spring Boot 3.3 best practices
 description: Applies best practices to Spring Boot 3 applications.
 tags:
