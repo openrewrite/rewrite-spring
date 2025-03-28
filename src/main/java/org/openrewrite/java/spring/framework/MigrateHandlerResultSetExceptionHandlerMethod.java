@@ -46,8 +46,8 @@ public class MigrateHandlerResultSetExceptionHandlerMethod extends Recipe {
         return Preconditions.check(new UsesType<>(HandlerResult, false), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-                J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (METHOD_MATCHER.matches(m)) {
                     if (m.getArguments().get(0) instanceof J.Identifier) {
                         return JavaTemplate.builder("(exchange, ex) ->  #{any()}.apply(ex)")
