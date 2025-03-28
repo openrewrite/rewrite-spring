@@ -31,14 +31,14 @@ class MigrateHandlerResultSetExceptionHandlerMethodTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
             .typeValidationOptions(TypeValidation.none())
-            .recipe(new MigrateHandlerResultSetExceptionHandlerMethod("func"))
+            .recipe(new MigrateHandlerResultSetExceptionHandlerMethod())
             .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
                 "reactor-core-3.6.+", "spring-webflux-6.1.+"));
     }
 
     @DocumentExample
     @Test
-    void migrateHandlerResultSetExceptionHandlerMethodParameterIsLambda() {
+    void migrateHandlerResultSetExceptionHandlerMethodParameterIsInlineLambdaFunction() {
         rewriteRun(
             // language=java
             java(
@@ -56,12 +56,44 @@ class MigrateHandlerResultSetExceptionHandlerMethodTest implements RewriteTest {
                     import org.springframework.web.reactive.HandlerResult;
                     import reactor.core.publisher.Mono;
 
-                    import java.util.function.Function;
+                    class MyHandler {
+                        void configureHandler(HandlerResult result) {
+                            result.setExceptionHandler((exchange, ex) -> Mono.empty());
+                        }
+                    }
+                    """
+            )
+        );
+    }
+
+    @Test
+    void migrateHandlerResultSetExceptionHandlerMethodParameterIsNonInlineLambdaFunction() {
+        rewriteRun(
+            // language=java
+            java(
+                """
+                    import org.springframework.web.reactive.HandlerResult;
+                    import reactor.core.publisher.Mono;
 
                     class MyHandler {
                         void configureHandler(HandlerResult result) {
-                            Function<Throwable, Mono<HandlerResult>> func = (ex -> Mono.empty());
-                            result.setExceptionHandler((exchange, ex) -> func.apply(ex));
+                            result.setExceptionHandler(ex -> {
+                                // do something
+                                return Mono.empty();
+                            });
+                        }
+                    }
+                    """,
+                """
+                    import org.springframework.web.reactive.HandlerResult;
+                    import reactor.core.publisher.Mono;
+
+                    class MyHandler {
+                        void configureHandler(HandlerResult result) {
+                            result.setExceptionHandler((exchange, ex) -> {
+                                // do something
+                                return Mono.empty();
+                            });
                         }
                     }
                     """
@@ -97,6 +129,30 @@ class MigrateHandlerResultSetExceptionHandlerMethodTest implements RewriteTest {
                         void configureHandler(HandlerResult result) {
                             Function<Throwable, Mono<HandlerResult>> func = (ex -> Mono.empty());
                             result.setExceptionHandler((exchange, ex) -> func.apply(ex));
+                        }
+                    }
+                    """
+            )
+        );
+    }
+
+    @Test
+    void migrateHandlerResultSetExceptionHandlerMethodParameterIsDispatchExceptionHandler() {
+        rewriteRun(
+            // language=java
+            java(
+                """
+                    import org.springframework.web.reactive.HandlerResult;
+                    import reactor.core.publisher.Mono;
+
+                    import java.util.function.Function;
+
+                    class MyHandler {
+                        void configureHandler(HandlerResult result) {
+                            result.setExceptionHandler((exchange, ex) -> {
+                                // do something
+                                return Mono.empty();
+                            });
                         }
                     }
                     """

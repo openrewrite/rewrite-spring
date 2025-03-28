@@ -15,30 +15,21 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Statement;
 
-@NoArgsConstructor
-@AllArgsConstructor
 public class MigrateHandlerResultSetExceptionHandlerMethod extends Recipe {
 
     private static final String HandlerResult = "org.springframework.web.reactive.HandlerResult";
 
     private static final MethodMatcher METHOD_MATCHER = new MethodMatcher(HandlerResult + " setExceptionHandler(java.util.function.Function)");
-
-    private String exceptionHandlerFieldName = "exceptionHandler";
 
     @Override
     public String getDisplayName() {
@@ -54,42 +45,23 @@ public class MigrateHandlerResultSetExceptionHandlerMethod extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>(HandlerResult, false), new JavaIsoVisitor<ExecutionContext>() {
 
-                @Override
-                public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                    J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                    if (md.getBody() == null) {
-                        return md;
+            @Override
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
+                J.MethodInvocation m = super.visitMethodInvocation(method, executionContext);
+                if (METHOD_MATCHER.matches(m)) {
+                    if (m.getArguments().get(0) instanceof J.Identifier) {
+                        return JavaTemplate.builder("(exchange, ex) ->  #{any()}.apply(ex)")
+                            .build()
+                            .apply(getCursor(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
+                    } else if (m.getArguments().get(0) instanceof J.Lambda) {
+                        return JavaTemplate.builder("(exchange, ex) ->  #{any()}")
+                            .build()
+                            .apply(getCursor(), m.getCoordinates().replaceArguments(), ((J.Lambda) m.getArguments().get(0)).getBody());
                     }
-                    for (Statement statement : md.getBody().getStatements()) {
-                        if (statement instanceof J.MethodInvocation) {
-                            J.MethodInvocation m = (J.MethodInvocation) statement;
-                            if (METHOD_MATCHER.matches(m)) {
-                                if (m.getArguments().get(0) instanceof J.Identifier) {
-                                    md = JavaTemplate.builder("(exchange, ex) ->  #{any()}.apply(ex)")
-                                        .build()
-                                        .apply(getCursor(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
-                                } else {
-                                    md = JavaTemplate.builder("Function<Throwable, Mono<HandlerResult>> " + exceptionHandlerFieldName + " = (#{any(java.util.function.Function)})")
-                                        .contextSensitive()
-                                        .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "reactor-core", "spring-webflux-6.1.+"))
-                                        .imports("reactor.core.publisher.Mono", "java.util.function.Function")
-                                        .build()
-                                        .apply(getCursor(), m.getCoordinates().before(), m.getArguments().get(0));
-                                    maybeAddImport("reactor.core.publisher.Mono");
-                                    maybeAddImport("java.util.function.Function");
-
-                                    md = JavaTemplate.builder("(exchange, ex) -> " + exceptionHandlerFieldName + ".apply(ex)")
-                                        .build()
-                                        .apply(new Cursor(getCursor(), md), m.getCoordinates().replaceArguments());
-                                }
-                            }
-                        }
-                    }
-                    return md;
                 }
+                return m;
             }
-        );
+        });
     }
 
 }
