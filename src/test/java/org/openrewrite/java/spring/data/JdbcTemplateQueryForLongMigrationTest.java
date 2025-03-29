@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.data;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -33,6 +34,7 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc-4", "spring-beans"));
     }
 
+    @DocumentExample
     @Test
     void simpleTransformation() {
         rewriteRun(
