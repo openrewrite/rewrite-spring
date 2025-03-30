@@ -41,49 +41,48 @@ class MigrateJobParameterTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-            package test;
-            import org.springframework.batch.core.JobParameter;
-            import org.springframework.batch.core.JobParameters;
-            import java.util.Date;
-            import java.util.Map;
+              package test;
+              import org.springframework.batch.core.JobParameter;
+              import org.springframework.batch.core.JobParameters;
+              import java.util.Date;
+              import java.util.Map;
 
-            public class PointsReconFileWriterTest {
+              public class PointsReconFileWriterTest {
 
-                @Test
-                public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
-                    JobParameters jobParameters = new JobParameters(Map.of(
-                            "inputFile", new JobParameter("TEST_INPUT_FILE"),
-                            "emailId", new JobParameter(new Date()),
-                            "pgpKey", new JobParameter(new Integer[]{1})
-                    ));
-                }
+                  @Test
+                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                      JobParameters jobParameters = new JobParameters(Map.of(
+                              "inputFile", new JobParameter("TEST_INPUT_FILE"),
+                              "emailId", new JobParameter(new Date()),
+                              "pgpKey", new JobParameter(new Integer[]{1})
+                      ));
+                  }
 
-            }
+              }
               """,
             """
-            package test;
-            import org.springframework.batch.core.JobParameter;
-            import org.springframework.batch.core.JobParameters;
-            import java.util.Date;
-            import java.util.Map;
+              package test;
+              import org.springframework.batch.core.JobParameter;
+              import org.springframework.batch.core.JobParameters;
+              import java.util.Date;
+              import java.util.Map;
 
-            public class PointsReconFileWriterTest {
+              public class PointsReconFileWriterTest {
 
-                @Test
-                public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
-                    JobParameters jobParameters = new JobParameters(Map.of(
-                            "inputFile", new JobParameter<>("TEST_INPUT_FILE", String.class),
-                            "emailId", new JobParameter<>(new Date(), Date.class),
-                            "pgpKey", new JobParameter<>(new Integer[]{1}, java.lang.Integer[].class)
-                    ));
-                }
+                  @Test
+                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                      JobParameters jobParameters = new JobParameters(Map.of(
+                              "inputFile", new JobParameter<>("TEST_INPUT_FILE", String.class),
+                              "emailId", new JobParameter<>(new Date(), Date.class),
+                              "pgpKey", new JobParameter<>(new Integer[]{1}, java.lang.Integer[].class)
+                      ));
+                  }
 
-            }
+              }
               """
           )
         );
     }
-
 
 
     @DocumentExample
@@ -94,48 +93,48 @@ class MigrateJobParameterTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-            package test;
-            import org.springframework.batch.core.JobParameter;
-            import org.springframework.batch.core.JobParameters;
-            import java.util.Date;
-            import java.util.Map;
-            import java.util.HashMap;
-            import java.util.UUID;
-            public class PointsReconFileWriterTest {
+              package test;
+              import org.springframework.batch.core.JobParameter;
+              import org.springframework.batch.core.JobParameters;
+              import java.util.Date;
+              import java.util.Map;
+              import java.util.HashMap;
+              import java.util.UUID;
+              public class PointsReconFileWriterTest {
 
-                @Test
-                public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
-                    String from = UUID.randomUUID().toString();
-                    Map<String, JobParameter> parameters = new HashMap<>();
-                    parameters.put("sellerId", new JobParameter(from));
-                    parameters.put("smtpHost", new JobParameter("localhost"));
+                  @Test
+                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                      String from = UUID.randomUUID().toString();
+                      Map<String, JobParameter> parameters = new HashMap<>();
+                      parameters.put("sellerId", new JobParameter(from));
+                      parameters.put("smtpHost", new JobParameter("localhost"));
 
-                    JobParameters jobParameters = new JobParameters(parameters);
-                }
+                      JobParameters jobParameters = new JobParameters(parameters);
+                  }
 
-            }
+              }
               """,
             """
-            package test;
-            import org.springframework.batch.core.JobParameter;
-            import org.springframework.batch.core.JobParameters;
-            import java.util.Date;
-            import java.util.Map;
-            import java.util.HashMap;
-            import java.util.UUID;
-            public class PointsReconFileWriterTest {
+              package test;
+              import org.springframework.batch.core.JobParameter;
+              import org.springframework.batch.core.JobParameters;
+              import java.util.Date;
+              import java.util.Map;
+              import java.util.HashMap;
+              import java.util.UUID;
+              public class PointsReconFileWriterTest {
 
-                @Test
-                public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
-                    String from = UUID.randomUUID().toString();
-                    Map<String,JobParameter<?>> parameters = new HashMap<>();
-                    parameters.put("sellerId", new JobParameter<>(from, String.class));
-                    parameters.put("smtpHost", new JobParameter<>("localhost", String.class));
+                  @Test
+                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                      String from = UUID.randomUUID().toString();
+                      Map<String,JobParameter<?>> parameters = new HashMap<>();
+                      parameters.put("sellerId", new JobParameter<>(from, String.class));
+                      parameters.put("smtpHost", new JobParameter<>("localhost", String.class));
 
-                    JobParameters jobParameters = new JobParameters(parameters);
-                }
+                      JobParameters jobParameters = new JobParameters(parameters);
+                  }
 
-            }
+              }
               """
           )
         );
@@ -150,42 +149,42 @@ class MigrateJobParameterTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-            package test;
-            import org.springframework.batch.core.JobParameter;
-            import org.springframework.batch.core.JobParameters;
-            import java.util.Date;
-            import java.util.HashMap;
-            import java.util.Map;
-            import java.util.UUID;
-            public class PointsReconFileWriterTest {
+              package test;
+              import org.springframework.batch.core.JobParameter;
+              import org.springframework.batch.core.JobParameters;
+              import java.util.Date;
+              import java.util.HashMap;
+              import java.util.Map;
+              import java.util.UUID;
+              public class PointsReconFileWriterTest {
 
-                @Test
-                public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
-                    final HashMap<String, JobParameter> paramMap = new HashMap<String, JobParameter>() {{
-                                put("Target", new JobParameter("JOB_NAME"));
-                    }};
-                }
+                  @Test
+                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                      final HashMap<String, JobParameter> paramMap = new HashMap<String, JobParameter>() {{
+                                  put("Target", new JobParameter("JOB_NAME"));
+                      }};
+                  }
 
-            }
+              }
               """,
             """
-            package test;
-            import org.springframework.batch.core.JobParameter;
-            import org.springframework.batch.core.JobParameters;
-            import java.util.Date;
-            import java.util.HashMap;
-            import java.util.Map;
-            import java.util.UUID;
-            public class PointsReconFileWriterTest {
+              package test;
+              import org.springframework.batch.core.JobParameter;
+              import org.springframework.batch.core.JobParameters;
+              import java.util.Date;
+              import java.util.HashMap;
+              import java.util.Map;
+              import java.util.UUID;
+              public class PointsReconFileWriterTest {
 
-                @Test
-                public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
-                    final Map<String,JobParameter<?>> paramMap = new HashMap<>() {{
-                                put("Target", new JobParameter<>("JOB_NAME", String.class));
-                    }};
-                }
+                  @Test
+                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                      final Map<String,JobParameter<?>> paramMap = new HashMap<>() {{
+                                  put("Target", new JobParameter<>("JOB_NAME", String.class));
+                      }};
+                  }
 
-            }
+              }
               """
           )
         );
@@ -199,42 +198,42 @@ class MigrateJobParameterTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-            package test;
-            import org.springframework.batch.core.JobParameter;
-            import org.springframework.batch.core.JobParameters;
-            import java.util.Date;
-            import java.util.Map;
-            import java.util.HashMap;
-            import java.util.UUID;
-            public class PointsReconFileWriterTest {
+              package test;
+              import org.springframework.batch.core.JobParameter;
+              import org.springframework.batch.core.JobParameters;
+              import java.util.Date;
+              import java.util.Map;
+              import java.util.HashMap;
+              import java.util.UUID;
+              public class PointsReconFileWriterTest {
 
-                public Map<String, JobParameter> getParameters(String carrier, String dirLocation) {
-                    Map<String, JobParameter> parameters = new HashMap<>();
-                    parameters.put("ARG_CARRIER", new JobParameter(carrier));
-                    parameters.put("ARG_DIRECTORY_LOCATION", new JobParameter(dirLocation));
-                    return parameters;
-                }
+                  public Map<String, JobParameter> getParameters(String carrier, String dirLocation) {
+                      Map<String, JobParameter> parameters = new HashMap<>();
+                      parameters.put("ARG_CARRIER", new JobParameter(carrier));
+                      parameters.put("ARG_DIRECTORY_LOCATION", new JobParameter(dirLocation));
+                      return parameters;
+                  }
 
-            }
+              }
               """,
             """
-            package test;
-            import org.springframework.batch.core.JobParameter;
-            import org.springframework.batch.core.JobParameters;
-            import java.util.Date;
-            import java.util.Map;
-            import java.util.HashMap;
-            import java.util.UUID;
-            public class PointsReconFileWriterTest {
+              package test;
+              import org.springframework.batch.core.JobParameter;
+              import org.springframework.batch.core.JobParameters;
+              import java.util.Date;
+              import java.util.Map;
+              import java.util.HashMap;
+              import java.util.UUID;
+              public class PointsReconFileWriterTest {
 
-                public Map<String,JobParameter<?>> getParameters(String carrier, String dirLocation) {
-                    Map<String,JobParameter<?>> parameters = new HashMap<>();
-                    parameters.put("ARG_CARRIER", new JobParameter<>(carrier, String.class));
-                    parameters.put("ARG_DIRECTORY_LOCATION", new JobParameter<>(dirLocation, String.class));
-                    return parameters;
-                }
+                  public Map<String,JobParameter<?>> getParameters(String carrier, String dirLocation) {
+                      Map<String,JobParameter<?>> parameters = new HashMap<>();
+                      parameters.put("ARG_CARRIER", new JobParameter<>(carrier, String.class));
+                      parameters.put("ARG_DIRECTORY_LOCATION", new JobParameter<>(dirLocation, String.class));
+                      return parameters;
+                  }
 
-            }
+              }
               """
           )
         );

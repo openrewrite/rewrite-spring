@@ -25,11 +25,11 @@ import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
-class ConvertReceiveTypeWhenCallStepExecutionMethodTest  implements RewriteTest {
+class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4", "spring-batch-infrastructure", "spring-beans",  "mockito-core-5.+"))
+        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4", "spring-batch-infrastructure", "spring-beans", "mockito-core-5.+"))
           .recipe(new ConvertReceiveTypeWhenCallStepExecutionMethod());
     }
 

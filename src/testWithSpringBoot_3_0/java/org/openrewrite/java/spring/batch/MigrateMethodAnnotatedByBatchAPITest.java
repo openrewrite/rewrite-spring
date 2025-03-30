@@ -41,36 +41,34 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-            package test;
-            import java.util.List;
-            import org.springframework.batch.core.annotation.BeforeWrite;
+              import java.util.List;
+              import org.springframework.batch.core.annotation.BeforeWrite;
 
-            public class ProfileUpdateWriter {
+              public class ProfileUpdateWriter {
 
-                @BeforeWrite
-                public void write(List<? extends List<T>> items) throws Exception {
-                    for (List<T> subList : items) {
-                    }
-                }
+                  @BeforeWrite
+                  public void write(List<? extends List<T>> items) throws Exception {
+                      for (List<T> subList : items) {
+                      }
+                  }
 
-            }
+              }
               """,
             """
-            package test;
-            import java.util.List;
-            import org.springframework.batch.core.annotation.BeforeWrite;
-            import org.springframework.batch.item.Chunk;
+              import java.util.List;
+              import org.springframework.batch.core.annotation.BeforeWrite;
+              import org.springframework.batch.item.Chunk;
 
-            public class ProfileUpdateWriter {
+              public class ProfileUpdateWriter {
 
-                @BeforeWrite
-                public void write(Chunk<? extends List<T>> _chunk) throws Exception {
-                    List<? extends List<T>> items = _chunk.getItems();
-                    for (List<T> subList : items) {
-                    }
-                }
+                  @BeforeWrite
+                  public void write(Chunk<? extends List<T>> _chunk) throws Exception {
+                      List<? extends List<T>> items = _chunk.getItems();
+                      for (List<T> subList : items) {
+                      }
+                  }
 
-            }
+              }
               """
           )
         );

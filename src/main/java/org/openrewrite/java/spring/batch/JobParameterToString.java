@@ -40,14 +40,12 @@ public class JobParameterToString extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesMethod<>("org.springframework.batch.core.JobParameter toString()"),
                 new JavaIsoVisitor<ExecutionContext>() {
-
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         method = super.visitMethodInvocation(method, ctx);
                         if (new MethodMatcher("org.springframework.batch.core.JobParameter toString()").matches(method)) {
-
-                            return JavaTemplate.builder("#{}.getValue().toString()")
-                                    .build().apply(getCursor(), method.getCoordinates().replace(), method.getSelect().print(getCursor()));
+                            return JavaTemplate.builder("#{any()}.getValue().toString()")
+                                    .build().apply(getCursor(), method.getCoordinates().replace(), method.getSelect());
                         }
                         return method;
                     }
