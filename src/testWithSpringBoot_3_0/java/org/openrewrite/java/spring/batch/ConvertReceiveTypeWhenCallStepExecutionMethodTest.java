@@ -72,7 +72,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
         );
     }
 
-    @DocumentExample
     @Test
     void test2() {
         //language=java
@@ -117,7 +116,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
         );
     }
 
-    @DocumentExample
     @Test
     void test3() {
         //language=java
@@ -160,7 +158,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
         );
     }
 
-    @DocumentExample
     @Test
     void test4() {
         //language=java

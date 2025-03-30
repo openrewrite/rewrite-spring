@@ -35,7 +35,7 @@ class MigrateJobParameterTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void test1() {
+    void addClassArguments() {
         //language=java
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.none()),
@@ -84,10 +84,8 @@ class MigrateJobParameterTest implements RewriteTest {
         );
     }
 
-
-    @DocumentExample
     @Test
-    void test2() {
+    void addStringClassArguments() {
         //language=java
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.none()),
@@ -140,8 +138,6 @@ class MigrateJobParameterTest implements RewriteTest {
         );
     }
 
-
-    @DocumentExample
     @Test
     void test3() {
         //language=java
@@ -190,7 +186,6 @@ class MigrateJobParameterTest implements RewriteTest {
         );
     }
 
-    @DocumentExample
     @Test
     void test4() {
         //language=java
