@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
@@ -45,6 +46,7 @@ public class JobParameterToString extends Recipe {
                         method = super.visitMethodInvocation(method, ctx);
                         if (new MethodMatcher("org.springframework.batch.core.JobParameter toString()").matches(method)) {
                             return JavaTemplate.builder("#{any()}.getValue().toString()")
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-4.3.+"))
                                     .build().apply(getCursor(), method.getCoordinates().replace(), method.getSelect());
                         }
                         return method;
