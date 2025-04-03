@@ -1,0 +1,62 @@
+package org.openrewrite.java.spring.framework;
+
+import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeSpec;
+import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
+
+import static org.openrewrite.java.Assertions.java;
+
+class MigrateWebExchangeBindExceptionResolveErrorMethodTest implements RewriteTest {
+
+    @Override
+    public void defaults(RecipeSpec spec) {
+        spec
+          .typeValidationOptions(TypeValidation.none())
+          .recipe(new MigrateWebExchangeBindExceptionResolveErrorMethod())
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-web-6.1.+", "spring-core", "spring-context"));
+    }
+
+    @DocumentExample
+    @Test
+    void migrateResourceHttpMessageWriterAddHeadersMethod() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              import org.springframework.context.MessageSource;
+              import java.util.Locale;
+              import org.springframework.web.bind.support.WebExchangeBindException;
+              import java.util.Map;
+              import org.springframework.validation.ObjectError;
+
+              class A {
+                  public void handleValidationError(WebExchangeBindException ex, MessageSource messageSource, Locale locale) {
+                      Map<ObjectError, String> errorMessages = ex.resolveErrorMessages(messageSource, locale);
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.MessageSource;
+              import java.util.Locale;
+              import org.springframework.web.bind.support.WebExchangeBindException;
+              import org.springframework.web.util.BindErrorUtils;
+
+              import java.util.Map;
+              import org.springframework.validation.ObjectError;
+
+              class A {
+                  public void handleValidationError(WebExchangeBindException ex, MessageSource messageSource, Locale locale) {
+                      Map<ObjectError, String> errorMessages = BindErrorUtils.resolve(ex.getAllErrors(), messageSource, locale);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+}
