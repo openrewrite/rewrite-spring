@@ -25,18 +25,22 @@ recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_1
   - org.openrewrite.java.spring.framework.MigrateHandlerResultHasExceptionHandlerMethod
   - org.openrewrite.java.spring.framework.MigrateHandlerResultSetExceptionHandlerMethod
+
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.http.client.ClientHttpResponse getRawStatusCode()
       newMethodName: getStatusCode
+
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.http.client.observation.ClientHttpObservationDocumentation.HighCardinalityKeyNames.CLIENT_NAME
       fullyQualifiedConstantName: org.springframework.http.client.observation.ClientHttpObservationDocumentation.LowCardinalityKeyNames.CLIENT_NAME
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.web.reactive.function.client.ClientHttpObservationDocumentation.HighCardinalityKeyNames.CLIENT_NAME
       fullyQualifiedConstantName: org.springframework.web.reactive.function.client.ClientHttpObservationDocumentation.LowCardinalityKeyNames.CLIENT_NAME
+
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.web.filter.reactive.ServerWebExchangeContextFilter get(reactor.util.context.Context)
       newMethodName: getExchange
+
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.web.reactive.socket.client.JettyWebSocketClient
       newFullyQualifiedTypeName: org.springframework.web.reactive.socket.client.StandardWebSocketClient
