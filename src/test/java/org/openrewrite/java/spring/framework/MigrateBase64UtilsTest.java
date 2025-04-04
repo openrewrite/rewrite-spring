@@ -31,7 +31,7 @@ class MigrateBase64UtilsTest implements RewriteTest {
         spec
           .recipe(new MigrateBase64Utils())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-core-6.1.+"));
+            "spring-core-5.+"));
     }
 
     @DocumentExample
@@ -41,8 +41,6 @@ class MigrateBase64UtilsTest implements RewriteTest {
           //language=java
           java(
             """
-              package test.base64;
-
               import java.nio.charset.StandardCharsets;
               import org.springframework.util.Base64Utils;
 
@@ -61,8 +59,6 @@ class MigrateBase64UtilsTest implements RewriteTest {
               }
               """,
             """
-              package test.base64;
-
               import java.nio.charset.StandardCharsets;
               import java.util.Base64;
 
