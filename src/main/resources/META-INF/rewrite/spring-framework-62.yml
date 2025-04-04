@@ -23,6 +23,7 @@ displayName: Migrate to Spring Framework 6.2
 description: Migrate applications to the latest Spring Framework 6.2 release.
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_1
+  - org.openrewrite.java.spring.framework.MigrateBase64Utils
   - org.openrewrite.java.spring.framework.MigrateHandlerResultHasExceptionHandlerMethod
   - org.openrewrite.java.spring.framework.MigrateHandlerResultSetExceptionHandlerMethod
 
