@@ -29,7 +29,10 @@ class MigrateJobParameterTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4.3.+", "spring-batch-infrastructure-4.3.+", "spring-beans-4.3.+"))
+        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-batch-core-4.3.+",
+            "spring-batch-infrastructure-4.3.+",
+            "spring-beans-4.3.+"))
           .recipe(new MigrateJobParameter());
     }
 
@@ -41,7 +44,6 @@ class MigrateJobParameterTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-              package test;
               import org.springframework.batch.core.JobParameter;
               import org.springframework.batch.core.JobParameters;
               import java.util.Date;
@@ -61,7 +63,6 @@ class MigrateJobParameterTest implements RewriteTest {
               }
               """,
             """
-              package test;
               import org.springframework.batch.core.JobParameter;
               import org.springframework.batch.core.JobParameters;
               import java.util.Date;
@@ -91,7 +92,6 @@ class MigrateJobParameterTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-              package test;
               import org.springframework.batch.core.JobParameter;
               import org.springframework.batch.core.JobParameters;
               import java.util.Date;
@@ -113,7 +113,6 @@ class MigrateJobParameterTest implements RewriteTest {
               }
               """,
             """
-              package test;
               import org.springframework.batch.core.JobParameter;
               import org.springframework.batch.core.JobParameters;
               import java.util.Date;
@@ -145,7 +144,6 @@ class MigrateJobParameterTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-              package test;
               import org.springframework.batch.core.JobParameter;
               import org.springframework.batch.core.JobParameters;
               import java.util.Date;
@@ -164,7 +162,6 @@ class MigrateJobParameterTest implements RewriteTest {
               }
               """,
             """
-              package test;
               import org.springframework.batch.core.JobParameter;
               import org.springframework.batch.core.JobParameters;
               import java.util.Date;
@@ -193,7 +190,6 @@ class MigrateJobParameterTest implements RewriteTest {
           spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
-              package test;
               import org.springframework.batch.core.JobParameter;
               import org.springframework.batch.core.JobParameters;
               import java.util.Date;
@@ -212,7 +208,6 @@ class MigrateJobParameterTest implements RewriteTest {
               }
               """,
             """
-              package test;
               import org.springframework.batch.core.JobParameter;
               import org.springframework.batch.core.JobParameters;
               import java.util.Date;
