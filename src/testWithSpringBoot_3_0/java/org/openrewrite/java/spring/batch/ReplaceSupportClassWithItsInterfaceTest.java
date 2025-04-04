@@ -41,16 +41,16 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
           java(
             """
               import org.springframework.batch.core.listener.ChunkListenerSupport;
-              
+
               public class MyClass extends ChunkListenerSupport {
-              
+
               }
               """,
             """
               import org.springframework.batch.core.ChunkListener;
-              
+
               public class MyClass implements ChunkListener {
-              
+
               }
               """
           )
@@ -64,16 +64,16 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
           java(
             """
               import org.springframework.batch.core.listener.JobExecutionListenerSupport;
-              
+
               public class MyClass extends JobExecutionListenerSupport {
-              
+
               }
               """,
             """
               import org.springframework.batch.core.JobExecutionListener;
-              
+
               public class MyClass implements JobExecutionListener {
-              
+
               }
               """
           )
@@ -87,16 +87,16 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
           java(
             """
               import org.springframework.batch.core.listener.StepExecutionListenerSupport;
-              
+
               public class MyClass extends StepExecutionListenerSupport {
-              
+
               }
               """,
             """
               import org.springframework.batch.core.StepExecutionListener;
-              
+
               public class MyClass implements StepExecutionListener {
-              
+
               }
               """
           )
@@ -110,16 +110,16 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
           java(
             """
               import org.springframework.batch.repeat.listener.RepeatListenerSupport;
-              
+
               public class MyClass extends RepeatListenerSupport {
-              
+
               }
               """,
             """
               import org.springframework.batch.repeat.RepeatListener;
-              
+
               public class MyClass implements RepeatListener {
-              
+
               }
               """
           )
@@ -133,16 +133,16 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
           java(
             """
               import org.springframework.batch.core.listener.SkipListenerSupport;
-              
+
               public class MyClass extends SkipListenerSupport {
-              
+
               }
               """,
             """
               import org.springframework.batch.core.SkipListener;
-              
+
               public class MyClass implements SkipListener {
-              
+
               }
               """
           )

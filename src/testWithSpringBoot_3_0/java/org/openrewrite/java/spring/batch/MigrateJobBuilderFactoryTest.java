@@ -43,23 +43,23 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            import org.springframework.batch.core.Job;
-            import org.springframework.batch.core.Step;
-            import org.springframework.batch.core.job.builder.JobBuilder;
-            import org.springframework.batch.core.repository.JobRepository;
-            import org.springframework.context.annotation.Bean;
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
 
-            public class MyJobConfig {
+              public class MyJobConfig {
 
-                @Bean
-                Job myJob(Step step, JobRepository jobRepository) {
-                    return new JobBuilder("myJob", jobRepository)
-                        .start(step)
-                        .build();
-                }
-            }
-            """)
+                  @Bean
+                  Job myJob(Step step, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """)
         );
     }
 
@@ -70,42 +70,42 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
           java(
-                """
-            import org.springframework.batch.core.Job;
-            import org.springframework.batch.core.Step;
-            import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-            import org.springframework.beans.factory.annotation.Autowired;
-            import org.springframework.context.annotation.Bean;
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
 
-            public class MyJobConfig {
+              public class MyJobConfig {
 
-                @Autowired
-                private JobBuilderFactory jobBuilderFactory;
+                  @Autowired
+                  private JobBuilderFactory jobBuilderFactory;
 
-                @Bean
-                Job myJob(Step step) {
-                    return this.jobBuilderFactory.get("myJob")
-                        .start(step)
-                        .build();
-                }
-            }
-            """, """
-            import org.springframework.batch.core.Job;
-            import org.springframework.batch.core.Step;
-            import org.springframework.batch.core.job.builder.JobBuilder;
-            import org.springframework.batch.core.repository.JobRepository;
-            import org.springframework.context.annotation.Bean;
+                  @Bean
+                  Job myJob(Step step) {
+                      return this.jobBuilderFactory.get("myJob")
+                          .start(step)
+                          .build();
+                  }
+              }
+              """, """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
 
-            public class MyJobConfig {
+              public class MyJobConfig {
 
-                @Bean
-                Job myJob(Step step, JobRepository jobRepository) {
-                    return new JobBuilder("myJob", jobRepository)
-                        .start(step)
-                        .build();
-                }
-            }
-            """)
+                  @Bean
+                  Job myJob(Step step, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """)
         );
     }
 
@@ -115,38 +115,38 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
           java(
-                """
-            import org.springframework.batch.core.Job;
-            import org.springframework.batch.core.Step;
-            import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-            import org.springframework.context.annotation.Bean;
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.context.annotation.Bean;
 
-            public class MyJobConfig {
+              public class MyJobConfig {
 
-                @Bean
-                Job myJob(JobBuilderFactory jobBuilderFactory, Step step) {
-                    return jobBuilderFactory.get("myJob")
-                        .start(step)
-                        .build();
-                }
-            }
-            """, """
-            import org.springframework.batch.core.Job;
-            import org.springframework.batch.core.Step;
-            import org.springframework.batch.core.job.builder.JobBuilder;
-            import org.springframework.batch.core.repository.JobRepository;
-            import org.springframework.context.annotation.Bean;
+                  @Bean
+                  Job myJob(JobBuilderFactory jobBuilderFactory, Step step) {
+                      return jobBuilderFactory.get("myJob")
+                          .start(step)
+                          .build();
+                  }
+              }
+              """, """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
 
-            public class MyJobConfig {
+              public class MyJobConfig {
 
-                @Bean
-                Job myJob(Step step, JobRepository jobRepository) {
-                    return new JobBuilder("myJob", jobRepository)
-                        .start(step)
-                        .build();
-                }
-            }
-            """)
+                  @Bean
+                  Job myJob(Step step, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """)
         );
     }
 
@@ -156,44 +156,44 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
           java(
-                """
-            import org.springframework.batch.core.Job;
-            import org.springframework.batch.core.Step;
-            import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-            import org.springframework.context.annotation.Bean;
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.context.annotation.Bean;
 
-            public class MyJobConfig {
+              public class MyJobConfig {
 
-                private JobBuilderFactory jobBuilderFactory;
+                  private JobBuilderFactory jobBuilderFactory;
 
-                public MyJobConfig(JobBuilderFactory jobBuilderFactory) {
-                    this.jobBuilderFactory = jobBuilderFactory;
-                }
+                  public MyJobConfig(JobBuilderFactory jobBuilderFactory) {
+                      this.jobBuilderFactory = jobBuilderFactory;
+                  }
 
-                @Bean
-                Job myJob(JobBuilderFactory jobBuilderFactory, Step step) {
-                    return jobBuilderFactory.get("myJob")
-                        .start(step)
-                        .build();
-                }
-            }
-            """, """
-            import org.springframework.batch.core.Job;
-            import org.springframework.batch.core.Step;
-            import org.springframework.batch.core.job.builder.JobBuilder;
-            import org.springframework.batch.core.repository.JobRepository;
-            import org.springframework.context.annotation.Bean;
+                  @Bean
+                  Job myJob(JobBuilderFactory jobBuilderFactory, Step step) {
+                      return jobBuilderFactory.get("myJob")
+                          .start(step)
+                          .build();
+                  }
+              }
+              """, """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
 
-            public class MyJobConfig {
+              public class MyJobConfig {
 
-                @Bean
-                Job myJob(Step step, JobRepository jobRepository) {
-                    return new JobBuilder("myJob", jobRepository)
-                        .start(step)
-                        .build();
-                }
-            }
-            """)
+                  @Bean
+                  Job myJob(Step step, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """)
         );
     }
 
