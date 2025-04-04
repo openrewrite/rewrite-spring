@@ -22,22 +22,16 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 public class MigrateHandlerResultHasExceptionHandlerMethod extends Recipe {
 
-    private static final String HandlerResult = "org.springframework.web.reactive.HandlerResult";
-
-    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher(HandlerResult + " hasExceptionHandler()");
-
-    private static final JavaTemplate replacementTemplate = JavaTemplate
-        .builder("#{any(org.springframework.web.reactive.HandlerResult)}.getExceptionHandler() != null")
-        .build();
+    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher("org.springframework.web.reactive.HandlerResult hasExceptionHandler()");
 
     @Override
     public String getDisplayName() {
-        return "Migrate `org.springframework.web.reactive.HandlerResult.hasExceptionHandler` method";
+        return "Migrate `HandlerResult.hasExceptionHandler()` to `getExceptionHandler()`";
     }
 
     @Override
@@ -47,13 +41,14 @@ public class MigrateHandlerResultHasExceptionHandlerMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(HandlerResult, false), new JavaVisitor<ExecutionContext>() {
-
+        return Preconditions.check(new UsesMethod<>(METHOD_MATCHER), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (METHOD_MATCHER.matches(mi)) {
-                    return replacementTemplate.apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect());
+                    return JavaTemplate
+                            .builder("#{any(org.springframework.web.reactive.HandlerResult)}.getExceptionHandler() != null")
+                            .build().apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect());
                 }
                 return mi;
             }
