@@ -43,6 +43,18 @@ public class MigrateBase64Utils extends Recipe {
     private static final MethodMatcher ENCODE_TO_URL_SAFE_STRING = new MethodMatcher(SPRING_BASE_64_UTILS + " encodeToUrlSafeString(byte[])");
     private static final MethodMatcher DECODE_FROM_URL_SAFE_STRING = new MethodMatcher(SPRING_BASE_64_UTILS + " decodeFromUrlSafeString(String)");
 
+    private static final Map<MethodMatcher, String> MAPPINGS = new HashMap<>();
+    static {
+        MAPPINGS.put(ENCODE, "Base64.getEncoder().encode(#{anyArray(byte)})");
+        MAPPINGS.put(DECODE, "Base64.getDecoder().decode(#{anyArray(byte)})");
+        MAPPINGS.put(ENCODE_TO_STRING, "Base64.getEncoder().encodeToString(#{anyArray(byte)})");
+        MAPPINGS.put(DECODE_FROM_STRING, "Base64.getDecoder().decode(#{any(String)})");
+        MAPPINGS.put(ENCODE_URL_SAFE, "Base64.getUrlEncoder().encode(#{anyArray(byte)})");
+        MAPPINGS.put(DECODE_URL_SAFE, "Base64.getUrlDecoder().decode(#{anyArray(byte)})");
+        MAPPINGS.put(ENCODE_TO_URL_SAFE_STRING, "Base64.getUrlEncoder().encodeToString(#{anyArray(byte)})");
+        MAPPINGS.put(DECODE_FROM_URL_SAFE_STRING, "Base64.getUrlDecoder().decode(#{any(String)})");
+    }
+
     @Override
     public String getDisplayName() {
         return "Migrate `org.springframework.util.Base64Utils` to `java.io.Base64`";
@@ -56,30 +68,17 @@ public class MigrateBase64Utils extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesMethod<>(ANY_BASE64UTILS), new JavaIsoVisitor<ExecutionContext>() {
-
-            private Map<MethodMatcher, JavaTemplate.Builder> mappings() {
-                Map<MethodMatcher, JavaTemplate.Builder> mappings = new HashMap<>();
-                mappings.put(ENCODE, JavaTemplate.builder("Base64.getEncoder().encode(#{anyArray(byte)})"));
-                mappings.put(DECODE, JavaTemplate.builder("Base64.getDecoder().decode(#{anyArray(byte)})"));
-                mappings.put(ENCODE_TO_STRING, JavaTemplate.builder("Base64.getEncoder().encodeToString(#{anyArray(byte)})"));
-                mappings.put(DECODE_FROM_STRING, JavaTemplate.builder("Base64.getDecoder().decode(#{any(String)})"));
-                mappings.put(ENCODE_URL_SAFE, JavaTemplate.builder("Base64.getUrlEncoder().encode(#{anyArray(byte)})"));
-                mappings.put(DECODE_URL_SAFE, JavaTemplate.builder("Base64.getUrlDecoder().decode(#{anyArray(byte)})"));
-                mappings.put(ENCODE_TO_URL_SAFE_STRING, JavaTemplate.builder("Base64.getUrlEncoder().encodeToString(#{anyArray(byte)})"));
-                mappings.put(DECODE_FROM_URL_SAFE_STRING, JavaTemplate.builder("Base64.getUrlDecoder().decode(#{any(String)})"));
-                return mappings;
-            }
-
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (ANY_BASE64UTILS.matches(m)) {
-                    for (Map.Entry<MethodMatcher, JavaTemplate.Builder> entry : mappings().entrySet()) {
+                    for (Map.Entry<MethodMatcher, String> entry : MAPPINGS.entrySet()) {
                         if (entry.getKey().matches(m)) {
                             maybeAddImport("java.util.Base64");
                             maybeRemoveImport(SPRING_BASE_64_UTILS);
-                            return entry.getValue()
-                                    .imports("java.util.Base64").build()
+                            return JavaTemplate.builder(entry.getValue())
+                                    .imports("java.util.Base64")
+                                    .build()
                                     .apply(updateCursor(m), m.getCoordinates().replace(), method.getArguments().get(0));
                         }
                     }
@@ -88,5 +87,4 @@ public class MigrateBase64Utils extends Recipe {
             }
         });
     }
-
 }
