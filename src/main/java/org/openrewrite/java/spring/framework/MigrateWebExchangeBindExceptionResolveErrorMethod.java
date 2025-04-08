@@ -34,7 +34,7 @@ public class MigrateWebExchangeBindExceptionResolveErrorMethod extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Migrate `org.springframework.web.bind.support.WebExchangeBindException.resolveErrorMessages` method";
+        return "Migrate `WebExchangeBindException.resolveErrorMessages`";
     }
 
     @Override
@@ -64,5 +64,4 @@ public class MigrateWebExchangeBindExceptionResolveErrorMethod extends Recipe {
             }
         });
     }
-
 }

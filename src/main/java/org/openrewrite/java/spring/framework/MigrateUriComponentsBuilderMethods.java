@@ -23,7 +23,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 public class MigrateUriComponentsBuilderMethods extends Recipe {
@@ -36,18 +36,17 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Migrate `fromHttpRequest` and `parseForwardedFor` methods in `org.springframework.web.util.UriComponentsBuilder`";
+        return "Migrate `UriComponentsBuilder.fromHttpRequest` and `parseForwardedFor`";
     }
 
     @Override
     public String getDescription() {
-        return "`fromHttpRequest` and `parseForwardedFor` methods in `org.springframework.web.util.UriComponentsBuilder` was deprecated, in favor of `org.springframework.web.util.ForwardedHeaderUtils`.";
+        return "The `fromHttpRequest` and `parseForwardedFor` methods in `org.springframework.web.util.UriComponentsBuilder` were deprecated, in favor of `org.springframework.web.util.ForwardedHeaderUtils`.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(TARGET_CLASS, false), new JavaVisitor<ExecutionContext>() {
-
+        return Preconditions.check(new UsesMethod<>(TARGET_CLASS + " *(..)", false), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);

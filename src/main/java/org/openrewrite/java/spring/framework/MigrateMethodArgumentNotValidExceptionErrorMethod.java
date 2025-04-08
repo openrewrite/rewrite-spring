@@ -42,7 +42,7 @@ public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Migrate `MethodArgumentNotValidException.errorsToStringList` and `resolveErrorMessages` method";
+        return "Migrate `MethodArgumentNotValidException.errorsToStringList` and `resolveErrorMessages`";
     }
 
     @Override

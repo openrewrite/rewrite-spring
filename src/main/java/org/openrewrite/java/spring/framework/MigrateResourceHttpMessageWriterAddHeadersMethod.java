@@ -31,12 +31,12 @@ public class MigrateResourceHttpMessageWriterAddHeadersMethod extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Migrate `org.springframework.http.codec.ResourceHttpMessageWriter.addHeaders` method";
+        return "Migrate `ResourceHttpMessageWriter.addHeaders`";
     }
 
     @Override
     public String getDescription() {
-        return "`Migrate `org.springframework.http.codec.ResourceHttpMessageWriter.addHeaders` was deprecated, in favor of `addDefaultHeaders` method.";
+        return "`org.springframework.http.codec.ResourceHttpMessageWriter.addHeaders` was deprecated, in favor of `addDefaultHeaders` method.";
     }
 
     @Override
