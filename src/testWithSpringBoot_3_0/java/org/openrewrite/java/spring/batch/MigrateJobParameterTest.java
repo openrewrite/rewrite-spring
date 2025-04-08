@@ -41,7 +41,9 @@ class MigrateJobParameterTest implements RewriteTest {
     void addClassArguments() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          spec -> spec
+            .typeValidationOptions(TypeValidation.all().constructorInvocations(false))
+            .afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import org.springframework.batch.core.JobParameter;
@@ -51,7 +53,6 @@ class MigrateJobParameterTest implements RewriteTest {
 
               public class Foo {
 
-                  @Test
                   public void foo1() throws Exception {
                       JobParameters jobParameters = new JobParameters(Map.of(
                               "inputFile", new JobParameter("TEST_INPUT_FILE"),
@@ -70,7 +71,6 @@ class MigrateJobParameterTest implements RewriteTest {
 
               public class Foo {
 
-                  @Test
                   public void foo1() throws Exception {
                       JobParameters jobParameters = new JobParameters(Map.of(
                               "inputFile", new JobParameter<>("TEST_INPUT_FILE", String.class),
@@ -89,7 +89,6 @@ class MigrateJobParameterTest implements RewriteTest {
     void addStringClassArguments() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import org.springframework.batch.core.JobParameter;
@@ -100,7 +99,6 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.UUID;
               public class Foo {
 
-                  @Test
                   public void foo1() throws Exception {
                       String from = UUID.randomUUID().toString();
                       Map<String, JobParameter> parameters = new HashMap<>();
@@ -121,7 +119,6 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.UUID;
               public class Foo {
 
-                  @Test
                   public void foo1() throws Exception {
                       String from = UUID.randomUUID().toString();
                       Map<String,JobParameter<?>> parameters = new HashMap<>();
@@ -138,10 +135,9 @@ class MigrateJobParameterTest implements RewriteTest {
     }
 
     @Test
-    void test3() {
+    void addGenericTypeToVariable() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import org.springframework.batch.core.JobParameter;
@@ -152,7 +148,6 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.UUID;
               public class Foo {
 
-                  @Test
                   public void foo1() throws Exception {
                       final HashMap<String, JobParameter> paramMap = new HashMap<String, JobParameter>() {{
                                   put("Target", new JobParameter("JOB_NAME"));
@@ -170,7 +165,6 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.UUID;
               public class Foo {
 
-                  @Test
                   public void foo1() throws Exception {
                       final Map<String,JobParameter<?>> paramMap = new HashMap<>() {{
                                   put("Target", new JobParameter<>("JOB_NAME", String.class));
@@ -184,10 +178,9 @@ class MigrateJobParameterTest implements RewriteTest {
     }
 
     @Test
-    void test4() {
+    void addTypeToReturn() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import org.springframework.batch.core.JobParameter;
