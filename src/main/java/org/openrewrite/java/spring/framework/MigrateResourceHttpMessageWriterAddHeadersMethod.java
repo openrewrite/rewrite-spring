@@ -22,15 +22,12 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 public class MigrateResourceHttpMessageWriterAddHeadersMethod extends Recipe {
 
-    private static final String TARGET_CLASS = "org.springframework.http.codec.ResourceHttpMessageWriter";
-
-    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher(TARGET_CLASS +
-        " addHeaders(org.springframework.http.ReactiveHttpOutputMessage, org.springframework.core.io.Resource, org.springframework.http.MediaType, java.util.Map)");
+    private static final MethodMatcher ADD_HEADERS_MATCHER = new MethodMatcher("org.springframework.http.codec.ResourceHttpMessageWriter addHeaders(..)");
 
     @Override
     public String getDisplayName() {
@@ -44,19 +41,26 @@ public class MigrateResourceHttpMessageWriterAddHeadersMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(TARGET_CLASS, false), new JavaIsoVisitor<ExecutionContext>() {
-
+        return Preconditions.check(new UsesMethod<>(ADD_HEADERS_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                if (METHOD_MATCHER.matches(m)) {
-                    return JavaTemplate.builder("#{any()}.addDefaultHeaders(#{any()}, #{any()}, #{any()}, #{any()}).block()")
-                        .build()
-                        .apply(getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0), m.getArguments().get(1), m.getArguments().get(2), m.getArguments().get(3));
+                if (ADD_HEADERS_MATCHER.matches(m)) {
+                    return JavaTemplate.builder("#{any(org.springframework.http.codec.ResourceHttpMessageWriter)}" +
+                                    ".addDefaultHeaders(#{any(org.springframework.http.ReactiveHttpOutputMessage)}," +
+                                    " #{any(org.springframework.core.io.Resource)}," +
+                                    " #{any(org.springframework.http.MediaType)}," +
+                                    " #{any(java.util.Map)})" +
+                                    ".block()")
+                            .build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect(),
+                                    m.getArguments().get(0),
+                                    m.getArguments().get(1),
+                                    m.getArguments().get(2),
+                                    m.getArguments().get(3));
                 }
                 return m;
             }
         });
     }
-
 }
