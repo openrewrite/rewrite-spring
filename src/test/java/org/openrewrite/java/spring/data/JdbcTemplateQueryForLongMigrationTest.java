@@ -29,16 +29,14 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JdbcTemplateQueryForLongMigration())
-          .parser(JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc-4", "spring-beans"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc-4", "spring-beans"));
     }
 
     @DocumentExample
     @Test
     void simpleTransformation() {
         rewriteRun(
-          spec -> spec.expectedCyclesThatMakeChanges(1),
+          //language=java
           java(
             """
               import org.springframework.jdbc.core.JdbcTemplate;
@@ -67,7 +65,7 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
     @Test
     void transformationWithArgs() {
         rewriteRun(
-          spec -> spec.expectedCyclesThatMakeChanges(1),
+          //language=java
           java(
             """
               import org.springframework.jdbc.core.JdbcTemplate;
