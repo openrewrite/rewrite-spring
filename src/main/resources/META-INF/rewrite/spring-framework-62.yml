@@ -48,3 +48,6 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.web.socket.client.jetty.JettyWebSocketClient
       newFullyQualifiedTypeName: org.springframework.web.socket.client.standard.StandardWebSocketClient
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.web.reactive.function.client.support.WebClientAdapter forClient(org.springframework.web.reactive.function.client.WebClient)
+      newMethodName: create
