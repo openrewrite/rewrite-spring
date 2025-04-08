@@ -72,7 +72,7 @@ public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
                 if (ERRORS_TO_STRING_LIST_WITH_LOCALE.matches(m)) {
                     maybeAddImport("org.springframework.web.util.BindErrorUtils");
                     return JavaTemplate.builder("(#{any()} != null ?\n" +
-                                    "BindErrorUtils.resolve(#{any()}, #{any()}, #{any()}).values().stream().toList() :\n" +
+                                    "BindErrorUtils.resolve(#{any()}, #{any(org.springframework.context.MessageSource)}, #{any()}).values().stream().toList() :\n" +
                                     "BindErrorUtils.resolve(#{any()}).values().stream().toList())")
                             .imports("org.springframework.web.util.BindErrorUtils")
                             .javaParser(JavaParser.fromJavaVersion()
@@ -82,8 +82,10 @@ public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
                                             "spring-context-6.+",
                                             "spring-web-6.1.+"))
                             .build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(1), m.getArguments().get(0),
-                                    m.getArguments().get(1), m.getArguments().get(2), m.getArguments().get(0));
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getArguments().get(1),
+                                    m.getArguments().get(0), m.getArguments().get(1), m.getArguments().get(2),
+                                    m.getArguments().get(0));
                 }
                 if (RESOLVE_ERROR_MESSAGES.matches(m)) {
                     maybeAddImport("org.springframework.web.util.BindErrorUtils");
