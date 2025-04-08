@@ -38,7 +38,6 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
     void fixMethodArguments() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import java.util.List;
@@ -47,8 +46,8 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
               public class ProfileUpdateWriter {
 
                   @BeforeWrite
-                  public void write(List<? extends List<T>> items) throws Exception {
-                      for (List<T> subList : items) {
+                  public void write(List<? extends List<String>> items) throws Exception {
+                      for (List<String> subList : items) {
                       }
                   }
 
@@ -62,9 +61,9 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
               public class ProfileUpdateWriter {
 
                   @BeforeWrite
-                  public void write(Chunk<? extends List<T>> _chunk) throws Exception {
-                      List<? extends List<T>> items = _chunk.getItems();
-                      for (List<T> subList : items) {
+                  public void write(Chunk<? extends List<String>> _chunk) throws Exception {
+                      List<? extends List<String>> items = _chunk.getItems();
+                      for (List<String> subList : items) {
                       }
                   }
 

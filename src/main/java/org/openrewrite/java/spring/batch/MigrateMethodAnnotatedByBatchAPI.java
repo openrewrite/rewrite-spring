@@ -132,25 +132,22 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
 
             maybeAddImport("org.springframework.batch.item.Chunk");
-            return JavaTemplate.builder("#{}\n #{} void write(#{} Chunk" + chunkType + " #{})#{} #{}")
+            String annotations = method.getLeadingAnnotations().stream().map(a -> a.print(getCursor())).reduce((a1, a2) -> a1 + "\n" + a2).orElse("");
+            String methodModifiers = method.getModifiers().stream()
+                    .map(J.Modifier::toString)
+                    .collect(Collectors.joining(" "));
+            String parameterModifiers = parameter.getModifiers().stream()
+                    .map(J.Modifier::toString)
+                    .collect(Collectors.joining(" "));
+            String throwz = Optional.ofNullable(method.getThrows()).flatMap(throwsList -> throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e -> " throws " + e)).orElse("");
+            String body = method.getBody() == null ? "" : methodDeclaration.getBody().print(getCursor());
+            return JavaTemplate.builder(String.format("%s\n %s void write(%s Chunk" + chunkType + " %s)%s %s", annotations, methodModifiers, parameterModifiers, "_chunk", throwz, body))
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
-                    .apply(
-                            getCursor(),
-                            method.getCoordinates().replace(),
-                            method.getLeadingAnnotations().stream().map(a -> a.print(getCursor())).reduce((a1, a2) -> a1 + "\n" + a2).orElse(""),
-                            method.getModifiers().stream()
-                                    .map(J.Modifier::toString)
-                                    .collect(Collectors.joining(" ")),
-                            parameter.getModifiers().stream()
-                                    .map(J.Modifier::toString)
-                                    .collect(Collectors.joining(" ")),
-                            "_chunk",
-                            Optional.ofNullable(method.getThrows()).flatMap(throwsList -> throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e -> " throws " + e)).orElse(""),
-                            method.getBody() == null ? "" : methodDeclaration.getBody().print(getCursor()));
+                    .apply(getCursor(), method.getCoordinates().replace());
         }
     }
 }
