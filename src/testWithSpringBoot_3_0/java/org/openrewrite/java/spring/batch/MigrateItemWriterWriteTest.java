@@ -199,7 +199,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
                   }
               }
               """,
-            """            
+            """
               import org.springframework.batch.item.Chunk;
               import org.springframework.batch.item.ItemWriter;
 
@@ -245,7 +245,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
                   }
               }
               """,
-            """            
+            """
               import org.springframework.batch.item.Chunk;
               import org.springframework.batch.item.ItemWriter;
 
@@ -292,7 +292,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
                   }
               }
               """,
-            """            
+            """
               import org.springframework.batch.item.Chunk;
               import org.springframework.batch.item.ItemWriter;
 
@@ -379,7 +379,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
                   }
               }
               """,
-            """            
+            """
               import org.springframework.batch.item.Chunk;
               import org.springframework.batch.item.ItemWriter;
 
