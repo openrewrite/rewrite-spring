@@ -144,6 +144,9 @@ public class MigrateJobParameter extends Recipe {
                         if (nc.getClazz() != null &&
                                 nc.getClazz().getType() != null &&
                                 nc.getClazz().getType().isAssignableFrom(Pattern.compile("org.springframework.batch.core.JobParameter"))) {
+                            if(newClass.getArguments().stream().filter(expression -> expression.getType()!=null).anyMatch(expression -> expression.getType().isAssignableFrom(Pattern.compile("java.lang.Class")))) {
+                                return newClass;
+                            }
                             JavaType javaType = nc.getArguments().get(0).getType();
                             String typeString = typeString(javaType);
                             if (typeString == null) {

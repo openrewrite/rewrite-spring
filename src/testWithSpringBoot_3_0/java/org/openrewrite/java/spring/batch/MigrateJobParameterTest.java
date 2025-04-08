@@ -49,10 +49,10 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.Date;
               import java.util.Map;
 
-              public class PointsReconFileWriterTest {
+              public class Foo {
 
                   @Test
-                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                  public void foo1() throws Exception {
                       JobParameters jobParameters = new JobParameters(Map.of(
                               "inputFile", new JobParameter("TEST_INPUT_FILE"),
                               "emailId", new JobParameter(new Date()),
@@ -68,10 +68,10 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.Date;
               import java.util.Map;
 
-              public class PointsReconFileWriterTest {
+              public class Foo {
 
                   @Test
-                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                  public void foo1() throws Exception {
                       JobParameters jobParameters = new JobParameters(Map.of(
                               "inputFile", new JobParameter<>("TEST_INPUT_FILE", String.class),
                               "emailId", new JobParameter<>(new Date(), Date.class),
@@ -98,10 +98,10 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.Map;
               import java.util.HashMap;
               import java.util.UUID;
-              public class PointsReconFileWriterTest {
+              public class Foo {
 
                   @Test
-                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                  public void foo1() throws Exception {
                       String from = UUID.randomUUID().toString();
                       Map<String, JobParameter> parameters = new HashMap<>();
                       parameters.put("sellerId", new JobParameter(from));
@@ -119,10 +119,10 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.Map;
               import java.util.HashMap;
               import java.util.UUID;
-              public class PointsReconFileWriterTest {
+              public class Foo {
 
                   @Test
-                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                  public void foo1() throws Exception {
                       String from = UUID.randomUUID().toString();
                       Map<String,JobParameter<?>> parameters = new HashMap<>();
                       parameters.put("sellerId", new JobParameter<>(from, String.class));
@@ -150,10 +150,10 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.HashMap;
               import java.util.Map;
               import java.util.UUID;
-              public class PointsReconFileWriterTest {
+              public class Foo {
 
                   @Test
-                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                  public void foo1() throws Exception {
                       final HashMap<String, JobParameter> paramMap = new HashMap<String, JobParameter>() {{
                                   put("Target", new JobParameter("JOB_NAME"));
                       }};
@@ -168,10 +168,10 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.HashMap;
               import java.util.Map;
               import java.util.UUID;
-              public class PointsReconFileWriterTest {
+              public class Foo {
 
                   @Test
-                  public void shouldUpdateMemberStatusWhenDecisionCodeIsA() throws Exception {
+                  public void foo1() throws Exception {
                       final Map<String,JobParameter<?>> paramMap = new HashMap<>() {{
                                   put("Target", new JobParameter<>("JOB_NAME", String.class));
                       }};
@@ -196,9 +196,9 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.Map;
               import java.util.HashMap;
               import java.util.UUID;
-              public class PointsReconFileWriterTest {
+              public class Foo {
 
-                  public Map<String, JobParameter> getParameters(String carrier, String dirLocation) {
+                  public Map<String, JobParameter> foo1(String carrier, String dirLocation) {
                       Map<String, JobParameter> parameters = new HashMap<>();
                       parameters.put("ARG_CARRIER", new JobParameter(carrier));
                       parameters.put("ARG_DIRECTORY_LOCATION", new JobParameter(dirLocation));
@@ -214,9 +214,9 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.Map;
               import java.util.HashMap;
               import java.util.UUID;
-              public class PointsReconFileWriterTest {
+              public class Foo {
 
-                  public Map<String,JobParameter<?>> getParameters(String carrier, String dirLocation) {
+                  public Map<String,JobParameter<?>> foo1(String carrier, String dirLocation) {
                       Map<String,JobParameter<?>> parameters = new HashMap<>();
                       parameters.put("ARG_CARRIER", new JobParameter<>(carrier, String.class));
                       parameters.put("ARG_DIRECTORY_LOCATION", new JobParameter<>(dirLocation, String.class));
