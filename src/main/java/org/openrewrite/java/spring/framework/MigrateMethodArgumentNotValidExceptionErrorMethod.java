@@ -23,7 +23,8 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
 public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
@@ -41,7 +42,7 @@ public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Migrate `org.springframework.web.bind.MethodArgumentNotValidException.errorsToStringList` and `resolveErrorMessages` method";
+        return "Migrate `MethodArgumentNotValidException.errorsToStringList` and `resolveErrorMessages` method";
     }
 
     @Override
@@ -51,8 +52,7 @@ public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(TARGET_CLASS, false), new JavaVisitor<ExecutionContext>() {
-
+        return Preconditions.check(new UsesMethod<>(TARGET_CLASS + " *rrors*(..)", false), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
@@ -60,43 +60,29 @@ public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
                     maybeAddImport("org.springframework.web.util.BindErrorUtils");
                     return JavaTemplate.builder("BindErrorUtils.resolve(#{any()}).values().stream().toList()")
                             .imports("org.springframework.web.util.BindErrorUtils")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx,
-                                            "spring-beans-6.+",
-                                            "spring-core-6.+",
-                                            "spring-context-6.+",
-                                            "spring-web-6.1.+"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context-6.+", "spring-web-6.+"))
                             .build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
-                }
-                if (ERRORS_TO_STRING_LIST_WITH_LOCALE.matches(m)) {
+                } else if (ERRORS_TO_STRING_LIST_WITH_LOCALE.matches(m)) {
                     maybeAddImport("org.springframework.web.util.BindErrorUtils");
-                    return JavaTemplate.builder("(#{any()} != null ?\n" +
-                                    "BindErrorUtils.resolve(#{any()}, #{any(org.springframework.context.MessageSource)}, #{any()}).values().stream().toList() :\n" +
-                                    "BindErrorUtils.resolve(#{any()}).values().stream().toList())")
+                    Expression messageSourceArg = m.getArguments().get(1);
+                    if (messageSourceArg instanceof J.Literal) { // null
+                        return JavaTemplate.builder("BindErrorUtils.resolve(#{any()}).values().stream().toList()")
+                                .imports("org.springframework.web.util.BindErrorUtils")
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context-6.+", "spring-web-6.+"))
+                                .build()
+                                .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
+                    }
+                    return JavaTemplate.builder("BindErrorUtils.resolve(#{any()}, #{any(org.springframework.context.MessageSource)}, #{any()}).values().stream().toList()")
                             .imports("org.springframework.web.util.BindErrorUtils")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx,
-                                            "spring-beans-6.+",
-                                            "spring-core-6.+",
-                                            "spring-context-6.+",
-                                            "spring-web-6.1.+"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context-6.+", "spring-web-6.+"))
                             .build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getArguments().get(1),
-                                    m.getArguments().get(0), m.getArguments().get(1), m.getArguments().get(2),
-                                    m.getArguments().get(0));
-                }
-                if (RESOLVE_ERROR_MESSAGES.matches(m)) {
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), messageSourceArg, m.getArguments().get(2));
+                } else if (RESOLVE_ERROR_MESSAGES.matches(m)) {
                     maybeAddImport("org.springframework.web.util.BindErrorUtils");
                     return JavaTemplate.builder("BindErrorUtils.resolve(#{any()}.getAllErrors(), #{any()}, #{any()})")
                             .imports("org.springframework.web.util.BindErrorUtils")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx,
-                                            "spring-beans-6.+",
-                                            "spring-core-6.+",
-                                            "spring-context-6.+",
-                                            "spring-web-6.1.+"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context-6.+", "spring-web-6.+"))
                             .build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
                 }
@@ -104,5 +90,4 @@ public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
             }
         });
     }
-
 }
