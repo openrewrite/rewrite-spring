@@ -23,15 +23,14 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 public class MigrateWebExchangeBindExceptionResolveErrorMethod extends Recipe {
 
-    private static final String TARGET_CLASS = "org.springframework.web.bind.support.WebExchangeBindException";
-
-    private static final MethodMatcher RESOLVE_ERROR_MESSAGES = new MethodMatcher(TARGET_CLASS +
-        " resolveErrorMessages(org.springframework.context.MessageSource, java.util.Locale)");
+    private static final MethodMatcher RESOLVE_ERROR_MESSAGES = new MethodMatcher(
+            "org.springframework.web.bind.support.WebExchangeBindException" +
+                    " resolveErrorMessages(org.springframework.context.MessageSource, java.util.Locale)");
 
     @Override
     public String getDisplayName() {
@@ -45,19 +44,21 @@ public class MigrateWebExchangeBindExceptionResolveErrorMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(TARGET_CLASS, false), new JavaVisitor<ExecutionContext>() {
-
+        return Preconditions.check(new UsesMethod<>(RESOLVE_ERROR_MESSAGES), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (RESOLVE_ERROR_MESSAGES.matches(m)) {
                     maybeAddImport("org.springframework.web.util.BindErrorUtils");
                     return JavaTemplate.builder("BindErrorUtils.resolve(#{any()}.getAllErrors(), #{any()}, #{any()})")
-                        .imports("org.springframework.web.util.BindErrorUtils")
-                        .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-web-6.1.+"))
-                        .build()
-                        .apply(getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
+                            .imports("org.springframework.web.util.BindErrorUtils")
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx,
+                                            "spring-context-6.+",
+                                            "spring-core-6.+",
+                                            "spring-web-6.+"))
+                            .build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
                 }
                 return m;
             }
