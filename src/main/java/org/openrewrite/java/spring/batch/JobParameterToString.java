@@ -27,6 +27,9 @@ import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 public class JobParameterToString extends Recipe {
+
+    private static final MethodMatcher JOB_PARAMETER_TO_STRING_MATCHER = new MethodMatcher("org.springframework.batch.core.JobParameter toString()");
+
     @Override
     public String getDisplayName() {
         return "Migration invocation of JobParameter.toString to JobParameter.getValue.toString";
@@ -39,12 +42,13 @@ public class JobParameterToString extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>("org.springframework.batch.core.JobParameter toString()"),
+        return Preconditions.check(
+                new UsesMethod<>(JOB_PARAMETER_TO_STRING_MATCHER),
                 new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         method = super.visitMethodInvocation(method, ctx);
-                        if (new MethodMatcher("org.springframework.batch.core.JobParameter toString()").matches(method)) {
+                        if (JOB_PARAMETER_TO_STRING_MATCHER.matches(method)) {
                             return JavaTemplate.builder("#{any()}.getValue().toString()")
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-4.3.+"))
                                     .build().apply(getCursor(), method.getCoordinates().replace(), method.getSelect());

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.RequiredArgsConstructor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -54,25 +55,15 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-
         return Preconditions.check(
-                Preconditions.or(new UsesMethod<>(CommitCount),
-                        new UsesMethod<>(ReadCount),
-                        new UsesMethod<>(WriteCount),
-                        new UsesMethod<>(RollbackCount),
-                        new UsesMethod<>(FilterCount),
-                        new UsesMethod<>(SkipCount),
-                        new UsesMethod<>(ReadSkipCount),
-                        new UsesMethod<>(WriteSkipCount),
-                        new UsesMethod<>(ProcessSkipCount)
-                ),
+                new UsesMethod<>("org.springframework.batch.core.StepExecution get*Count()"),
                 new JavaIsoVisitor<ExecutionContext>() {
-
                     @Override
                     public J.MemberReference visitMemberReference(J.MemberReference memberRef, ExecutionContext ctx) {
                         memberRef = super.visitMemberReference(memberRef, ctx);
                         final J.MemberReference mr = memberRef;
-                        if (Stream.of(CommitCount, ReadCount, WriteCount, RollbackCount, FilterCount, SkipCount, ReadSkipCount, WriteSkipCount, ProcessSkipCount).anyMatch(methodMatcher -> methodMatcher.matches(mr))) {
+                        if (Stream.of(CommitCount, ReadCount, WriteCount, RollbackCount, FilterCount, SkipCount, ReadSkipCount, WriteSkipCount, ProcessSkipCount)
+                                .anyMatch(methodMatcher -> methodMatcher.matches(mr))) {
                             doAfterVisit(new MemberReferenceToMethodInvocation(memberRef));
                         }
                         return memberRef;
@@ -83,59 +74,52 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         method = super.visitMethodInvocation(method, ctx);
                         final J.MethodInvocation md = method;
-                        if (Stream.of(CommitCount, ReadCount, WriteCount, RollbackCount, FilterCount, SkipCount, ReadSkipCount, WriteSkipCount, ProcessSkipCount).anyMatch(methodMatcher -> methodMatcher.matches(md))) {
+                        if (Stream.of(CommitCount, ReadCount, WriteCount, RollbackCount, FilterCount, SkipCount, ReadSkipCount, WriteSkipCount, ProcessSkipCount)
+                                .anyMatch(methodMatcher -> methodMatcher.matches(md))) {
                             doAfterVisit(new AddCastToMethodInvocation(method));
                         }
                         return method;
                     }
-
                 });
     }
 
-    private class AddCastToMethodInvocation extends JavaVisitor<ExecutionContext> {
+    @RequiredArgsConstructor
+    private static class AddCastToMethodInvocation extends JavaVisitor<ExecutionContext> {
 
-        private J.MethodInvocation selfMethodInvocation;
-
-
-        public AddCastToMethodInvocation(J.MethodInvocation selfMethodInvocation) {
-            this.selfMethodInvocation = selfMethodInvocation;
-        }
-
-
+        private final J.MethodInvocation selfMethodInvocation;
 
         @Override
         public J visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
-            J j =  super.visitVariableDeclarations(multiVariable, ctx);
+            J j = super.visitVariableDeclarations(multiVariable, ctx);
             VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
             visitMethodInvocation.visitVariableDeclarations(multiVariable, ctx);
-            if(visitMethodInvocation.isFound) {
+            if (visitMethodInvocation.isFound) {
                 doAfterVisit(new AddCast());
             }
             return j;
         }
 
-
-
-
         @Override
         public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J j = super.visitMethodInvocation(method, ctx);
-            if(method != selfMethodInvocation) {
-                if(new MethodMatcher("org.mockito.stubbing.OngoingStubbing thenReturn(..)").matches(method)) {
+            if (method != selfMethodInvocation) {
+                if (new MethodMatcher("org.mockito.stubbing.OngoingStubbing thenReturn(..)").matches(method)) {
 
-                    if(method.getArguments().get(0).getType() != null && ("int".equals(method.getArguments().get(0).getType().toString()) || method.getArguments().get(0).getType().isAssignableFrom(Pattern.compile("java.lang.Integer")))) {
+                    if (method.getArguments().get(0).getType() != null &&
+                            ("int".equals(method.getArguments().get(0).getType().toString()) ||
+                                    method.getArguments().get(0).getType().isAssignableFrom(Pattern.compile("java.lang.Integer")))) {
 
                         final AtomicBoolean findWhen = new AtomicBoolean(false);
                         new JavaIsoVisitor<ExecutionContext>() {
                             @Override
                             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                                if(new MethodMatcher("org.mockito.Mockito when(..)").matches(method)) {
+                                if (new MethodMatcher("org.mockito.Mockito when(..)").matches(method)) {
                                     findWhen.set(true);
                                 }
                                 return super.visitMethodInvocation(method, ctx);
                             }
                         }.visit(method, ctx);
-                        if(findWhen.get()) {
+                        if (findWhen.get()) {
                             j = JavaTemplate.builder("#{}.thenReturn((long) #{})")
                                     .contextSensitive()
                                     .build().apply(getCursor(), method.getCoordinates().replace(), method.getSelect().print(getCursor()), method.getArguments().get(0).print(getCursor()))
@@ -144,12 +128,12 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                     }
                     return j;
 
-                } else if(new MethodMatcher("org.mockito.Mockito when(..)").matches(method)) {
+                } else if (new MethodMatcher("org.mockito.Mockito when(..)").matches(method)) {
                     return j;
                 } else {
                     VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
                     visitMethodInvocation.visitMethodInvocation(method, ctx);
-                    if(visitMethodInvocation.isFound) {
+                    if (visitMethodInvocation.isFound) {
                         doAfterVisit(new AddCast());
                     }
                 }
@@ -161,10 +145,10 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
 
         @Override
         public J visitReturn(J.Return return_, ExecutionContext ctx) {
-            J j =  super.visitReturn(return_, ctx);
+            J j = super.visitReturn(return_, ctx);
             VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
             visitMethodInvocation.visitReturn(return_, ctx);
-            if(visitMethodInvocation.isFound) {
+            if (visitMethodInvocation.isFound) {
                 doAfterVisit(new AddCast());
             }
             return j;
@@ -187,38 +171,27 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
 
     }
 
+    @RequiredArgsConstructor
+    private static class VisitMethodInvocation extends JavaIsoVisitor<ExecutionContext> {
 
-    private class VisitMethodInvocation extends JavaIsoVisitor<ExecutionContext> {
-
-        private J.MethodInvocation selfMethodInvocation;
-
-        public VisitMethodInvocation(J.MethodInvocation selfMethodInvocation) {
-            this.selfMethodInvocation = selfMethodInvocation;
-        }
+        private final J.MethodInvocation selfMethodInvocation;
 
         private boolean isFound = false;
-
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             method = super.visitMethodInvocation(method, ctx);
-            if(method == selfMethodInvocation) {
+            if (method == selfMethodInvocation) {
                 isFound = true;
             }
             return method;
         }
     }
 
+    @RequiredArgsConstructor
+    private static class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionContext> {
 
-
-    private class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionContext> {
-
-
-        private J.MemberReference selfMemberRef;
-
-        public MemberReferenceToMethodInvocation(J.MemberReference selfMemberRef) {
-            this.selfMemberRef = selfMemberRef;
-        }
+        private final J.MemberReference selfMemberRef;
 
         @Override
         public J visitMemberReference(J.MemberReference memberRef, ExecutionContext ctx) {
@@ -238,7 +211,5 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                 return super.visitMemberReference(memberRef, ctx);
             }
         }
-
     }
-
 }

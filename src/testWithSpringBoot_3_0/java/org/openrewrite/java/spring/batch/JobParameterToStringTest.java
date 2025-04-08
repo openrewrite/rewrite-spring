@@ -60,6 +60,4 @@ class JobParameterToStringTest implements RewriteTest {
           )
         );
     }
-
-
 }

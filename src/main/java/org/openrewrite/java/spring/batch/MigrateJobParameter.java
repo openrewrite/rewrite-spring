@@ -179,7 +179,7 @@ public class MigrateJobParameter extends Recipe {
         );
     }
 
-    public static class JNewClassOfMap extends JavaIsoVisitor<ExecutionContext> {
+    private static class JNewClassOfMap extends JavaIsoVisitor<ExecutionContext> {
         @Override
         public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
             J.NewClass nc = super.visitNewClass(newClass, ctx);

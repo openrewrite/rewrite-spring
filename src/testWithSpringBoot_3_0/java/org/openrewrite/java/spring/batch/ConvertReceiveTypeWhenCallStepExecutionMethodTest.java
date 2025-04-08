@@ -47,7 +47,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
               import org.springframework.batch.core.StepExecution;
               public class ProfileUpdateWriter {
 
-
                   private void populateJobMetrics(JobExecution jobExecution) {
                     jobExecution.getStepExecutions().stream().map(StepExecution::getRollbackCount).mapToLong(Integer::longValue).sum();
                   }
@@ -60,7 +59,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
               import org.springframework.batch.core.JobExecution;
               import org.springframework.batch.core.StepExecution;
               public class ProfileUpdateWriter {
-
 
                   private void populateJobMetrics(JobExecution jobExecution) {
                     jobExecution.getStepExecutions().stream().map(_stepExecution -> (int) _stepExecution.getRollbackCount()).mapToLong(Integer::longValue).sum();
@@ -84,7 +82,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
               import org.springframework.batch.core.StepExecution;
               public class ProfileUpdateWriter {
 
-
                   private void populateJobMetrics(StepExecution stepExecution) {
                     int v = stepExecution.getRollbackCount();
                   }
@@ -100,7 +97,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
 
               import org.springframework.batch.core.StepExecution;
               public class ProfileUpdateWriter {
-
 
                   private void populateJobMetrics(StepExecution stepExecution) {
                     int v = (int) stepExecution.getRollbackCount();
@@ -128,7 +124,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
               import org.springframework.batch.core.StepExecution;
               public class ProfileUpdateWriter {
 
-
                   private void populateJobMetrics(StepExecution stepExecution) {
                     set(stepExecution.getRollbackCount());
                   }
@@ -143,7 +138,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
 
               import org.springframework.batch.core.StepExecution;
               public class ProfileUpdateWriter {
-
 
                   private void populateJobMetrics(StepExecution stepExecution) {
                     set((int) stepExecution.getRollbackCount());
@@ -171,12 +165,9 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
               import org.mockito.Mockito;
               public class ProfileUpdateWriter {
 
-
                   private void populateJobMetrics(StepExecution stepExecution) {
                     Mockito.when(stepExecution.getRollbackCount()).thenReturn(1);
                   }
-
-
 
               }
               """,
@@ -187,12 +178,9 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
               import org.mockito.Mockito;
               public class ProfileUpdateWriter {
 
-
                   private void populateJobMetrics(StepExecution stepExecution) {
                     Mockito.when(stepExecution.getRollbackCount()).thenReturn((long) 1);
                   }
-
-
 
               }
               """

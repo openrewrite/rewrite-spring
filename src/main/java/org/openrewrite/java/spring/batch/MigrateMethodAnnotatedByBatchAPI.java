@@ -15,12 +15,15 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.RequiredArgsConstructor;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
@@ -31,7 +34,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
-
 
     @Override
     public String getDisplayName() {
@@ -52,19 +54,18 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
         }
     };
 
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+        JavaIsoVisitor<ExecutionContext> visitor = new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                Optional<J. Annotation> methodAnnotation =  method.getLeadingAnnotations().stream()
+                Optional<J.Annotation> methodAnnotation = method.getLeadingAnnotations().stream()
                         .filter(annotation -> Objects.nonNull(annotation.getType()))
                         .filter(annotation -> annotatedMethods.contains(annotation.getType().toString()))
                         .findFirst();
 
-                if(methodAnnotation.isPresent()) {
+                if (methodAnnotation.isPresent()) {
                     method = super.visitMethodDeclaration(method, ctx);
                     doAfterVisit(new RefineMethod(method));
                     return method;
@@ -74,33 +75,31 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
             }
         };
+        return Preconditions.check(new UsesType<>("org.springframework.batch.core.annotation.*", true), visitor);
     }
 
+    @RequiredArgsConstructor
     private static class RefineMethod extends JavaIsoVisitor<ExecutionContext> {
 
-        J.MethodDeclaration method;
-
-        public RefineMethod(J.MethodDeclaration method) {
-            this.method = method;
-        }
+        final J.MethodDeclaration method;
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-            if(method != this.method) {
+            if (method != this.method) {
                 return super.visitMethodDeclaration(method, ctx);
             }
             Optional<J.VariableDeclarations> parameterOptional = method.getParameters().stream()
-                    .filter(parameter-> parameter instanceof J.VariableDeclarations)
-                    .map(parameter-> ((J.VariableDeclarations) parameter))
-                    .filter(parameter-> parameter.getType().isAssignableFrom(Pattern.compile("java.util.List")))
+                    .filter(parameter -> parameter instanceof J.VariableDeclarations)
+                    .map(parameter -> ((J.VariableDeclarations) parameter))
+                    .filter(parameter -> parameter.getType().isAssignableFrom(Pattern.compile("java.util.List")))
                     .findFirst();
-            if(!parameterOptional.isPresent()) {
+            if (!parameterOptional.isPresent()) {
                 return super.visitMethodDeclaration(method, ctx);
             }
             J.VariableDeclarations parameter = parameterOptional.get();
             String chunkTypeParameter = null;
             if ((parameter.getTypeExpression() instanceof J.ParameterizedType)) {
-                if(((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() != null) {
+                if (((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() != null) {
                     chunkTypeParameter = ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters().get(0).toString();
                 } else {
                     chunkTypeParameter = "?";
@@ -116,10 +115,10 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
                     .<J.MethodDeclaration>apply(getCursor(), method.getCoordinates().replaceParameters())
-                    .getParameters().get(0).withPrefix( Space.EMPTY);
+                    .getParameters().get(0).withPrefix(Space.EMPTY);
             vdd = vdd.withTypeExpression(TypeTree.build("org.springframework.batch.item.Chunk")).withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
 
-            J.MethodDeclaration methodDeclaration = JavaTemplate.builder("List"+chunkType+" #{} = _chunk.getItems();")
+            J.MethodDeclaration methodDeclaration = JavaTemplate.builder("List" + chunkType + " #{} = _chunk.getItems();")
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+"))
                     .imports("org.springframework.batch.item.Chunk")
@@ -132,8 +131,8 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                             .withParameterTypes(Collections.singletonList(vdd.getType())));
 
 
-
-            method = JavaTemplate.builder("#{}\n #{} void write(#{} Chunk"+chunkType+" #{})#{} #{}")
+            maybeAddImport("org.springframework.batch.item.Chunk");
+            return JavaTemplate.builder("#{}\n #{} void write(#{} Chunk" + chunkType + " #{})#{} #{}")
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
@@ -142,7 +141,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .apply(
                             getCursor(),
                             method.getCoordinates().replace(),
-                             method.getLeadingAnnotations().stream().map(a->a.print(getCursor())).reduce((a1,a2)->a1 + "\n" + a2).orElse(""),
+                            method.getLeadingAnnotations().stream().map(a -> a.print(getCursor())).reduce((a1, a2) -> a1 + "\n" + a2).orElse(""),
                             method.getModifiers().stream()
                                     .map(J.Modifier::toString)
                                     .collect(Collectors.joining(" ")),
@@ -150,11 +149,8 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                                     .map(J.Modifier::toString)
                                     .collect(Collectors.joining(" ")),
                             "_chunk",
-                            Optional.ofNullable(method.getThrows()).flatMap(throwsList->throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e-> " throws " + e)).orElse(""),
-                            method.getBody() == null ? "" :  methodDeclaration.getBody().print(getCursor()));
-            maybeAddImport("org.springframework.batch.item.Chunk");
-            return method;
-
+                            Optional.ofNullable(method.getThrows()).flatMap(throwsList -> throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e -> " throws " + e)).orElse(""),
+                            method.getBody() == null ? "" : methodDeclaration.getBody().print(getCursor()));
         }
     }
 }
