@@ -30,7 +30,6 @@ class MigrateMethodArgumentNotValidExceptionErrorMethodTest implements RewriteTe
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .afterTypeValidationOptions(TypeValidation.all().methodInvocations(false))
           .recipe(new MigrateMethodArgumentNotValidExceptionErrorMethod())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-beans-6.+",
