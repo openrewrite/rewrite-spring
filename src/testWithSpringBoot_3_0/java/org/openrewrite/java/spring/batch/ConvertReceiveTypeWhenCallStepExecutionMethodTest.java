@@ -29,16 +29,17 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4", "spring-batch-infrastructure", "spring-beans", "mockito-core-5.+"))
+        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-batch-core-4", "spring-batch-infrastructure", "spring-beans", "mockito-core-5.+"))
           .recipe(new ConvertReceiveTypeWhenCallStepExecutionMethod());
     }
 
     @DocumentExample
     @Test
-    void test1() {
+    void methodReferenceToLambda() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          spec -> spec.afterTypeValidationOptions(TypeValidation.all().methodInvocations(false)),
           java(
             """
               package test;
@@ -71,10 +72,9 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
     }
 
     @Test
-    void test2() {
+    void castInAssignment() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package test;
@@ -113,10 +113,9 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
     }
 
     @Test
-    void test3() {
+    void castInMethodInvocationArguments() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package test;
@@ -153,10 +152,10 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
     }
 
     @Test
-    void test4() {
+    void changeMockitoWhen() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          spec -> spec.afterTypeValidationOptions(TypeValidation.all().methodInvocations(false)),
           java(
             """
               package test;
