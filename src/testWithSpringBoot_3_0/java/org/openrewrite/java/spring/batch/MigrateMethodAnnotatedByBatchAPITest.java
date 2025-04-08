@@ -21,6 +21,7 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+
 import static org.openrewrite.java.Assertions.java;
 
 class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
