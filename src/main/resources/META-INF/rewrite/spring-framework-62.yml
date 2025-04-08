@@ -26,6 +26,10 @@ recipeList:
   - org.openrewrite.java.spring.framework.MigrateBase64Utils
   - org.openrewrite.java.spring.framework.MigrateHandlerResultHasExceptionHandlerMethod
   - org.openrewrite.java.spring.framework.MigrateHandlerResultSetExceptionHandlerMethod
+  - org.openrewrite.java.spring.framework.MigrateMethodArgumentNotValidExceptionErrorMethod
+  - org.openrewrite.java.spring.framework.MigrateResourceHttpMessageWriterAddHeadersMethod
+  - org.openrewrite.java.spring.framework.MigrateUriComponentsBuilderMethods
+  - org.openrewrite.java.spring.framework.MigrateWebExchangeBindExceptionResolveErrorMethod
 
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.http.client.ClientHttpResponse getRawStatusCode()
@@ -41,6 +45,9 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.web.filter.reactive.ServerWebExchangeContextFilter get(reactor.util.context.Context)
       newMethodName: getExchange
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.web.reactive.function.client.support.WebClientAdapter forClient(org.springframework.web.reactive.function.client.WebClient)
+      newMethodName: create
 
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.web.reactive.socket.client.JettyWebSocketClient
