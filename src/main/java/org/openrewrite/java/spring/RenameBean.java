@@ -114,8 +114,8 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
                 if (beanNameExpression == null && isRelevantType(cd.getType()) && StringUtils.uncapitalize(cd.getSimpleName()).equals(oldName)) {
                     String newFullyQualifiedTypeName = cd.getType().getFullyQualifiedName()
                             .replaceAll("^((.+\\.)*)[^.]+$", "$1" + StringUtils.capitalize(newName));
-                    acc.add(new ChangeType(cd.getType().getFullyQualifiedName(), newFullyQualifiedTypeName, false).getVisitor());
-                    acc.add(new ChangeType(cd.getType().getFullyQualifiedName() + "Test", newFullyQualifiedTypeName + "Test", false).getVisitor());
+                    acc.add(new ChangeType(cd.getType().getFullyQualifiedName(), newFullyQualifiedTypeName, false, null).getVisitor());
+                    acc.add(new ChangeType(cd.getType().getFullyQualifiedName() + "Test", newFullyQualifiedTypeName + "Test", false, null).getVisitor());
                 }
 
                 // handle annotation renames

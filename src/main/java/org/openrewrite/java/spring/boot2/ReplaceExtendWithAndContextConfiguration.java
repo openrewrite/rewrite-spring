@@ -89,7 +89,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                             // Change the @ContextConfiguration annotation to @SpringJUnitConfig
                             maybeRemoveImport(FQN_CONTEXT_CONFIGURATION);
                             maybeAddImport(FQN_SPRING_JUNIT_CONFIG);
-                            a = (J.Annotation) new ChangeType(FQN_CONTEXT_CONFIGURATION, FQN_SPRING_JUNIT_CONFIG, false)
+                            a = (J.Annotation) new ChangeType(FQN_CONTEXT_CONFIGURATION, FQN_SPRING_JUNIT_CONFIG, false, null)
                                     .getVisitor().visitNonNull(a, ctx, getCursor().getParentOrThrow());
                             a = autoFormat(a, ctx);
                         }

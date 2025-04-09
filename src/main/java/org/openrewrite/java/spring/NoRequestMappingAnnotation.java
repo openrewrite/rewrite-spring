@@ -103,7 +103,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                 // Change the Annotation Type
                 maybeAddImport("org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName);
                 a = (J.Annotation) new ChangeType("org.springframework.web.bind.annotation.RequestMapping",
-                        "org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName, false)
+                        "org.springframework.web.bind.annotation." + resolvedRequestMappingAnnotationClassName, false, null)
                         .getVisitor().visit(a, ctx, getCursor().getParentOrThrow());
 
                 // if there is only one remaining argument now, and it is "path" or "value", then we can drop the key name

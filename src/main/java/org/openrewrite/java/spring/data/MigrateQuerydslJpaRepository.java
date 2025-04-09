@@ -51,7 +51,7 @@ public class MigrateQuerydslJpaRepository extends Recipe {
             @Override
             public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 J.CompilationUnit c = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
-                doAfterVisit(new ChangeType(originalFqn, targetFqn, false).getVisitor());
+                doAfterVisit(new ChangeType(originalFqn, targetFqn, false, null).getVisitor());
                 return c;
             }
 

@@ -57,15 +57,15 @@ public class AuthorizeHttpRequests extends Recipe {
                 doAfterVisit(new ChangeType(
                         "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer.ExpressionInterceptUrlRegistry",
                         "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer.AuthorizationManagerRequestMatcherRegistry",
-                        false).getVisitor());
+                        false, null).getVisitor());
                 doAfterVisit(new ChangeType(
                         "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer",
                         "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer",
-                        false).getVisitor());
+                        false, null).getVisitor());
                 doAfterVisit(new ChangeType(
                         "org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer",
                         "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer",
-                        false).getVisitor());
+                        false, null).getVisitor());
             }
 
             @Override
