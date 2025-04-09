@@ -21,7 +21,7 @@ Licensor: Moderne, Inc. on behalf of itself and its subsidiaries worldwide.
 
 Modify, Modified, or Modification: copy from or adapt all or part of the work in a fashion requiring copyright permission (including, without limitation, creating a derivative work via linking or otherwise) other than making an exact unlinked copy. The resulting work is called a Modified version of the earlier work or a Modification.
 
-Software: The Licensor:undefined:s software components provided to You by the Licensor under this Agreement.
+Software: The Licensor's software components provided to You by the Licensor under this Agreement.
 
 Trademark:  the trademarks, service marks, and any other similar rights.
 
@@ -34,7 +34,7 @@ Your Licenses: means all the Licenses granted to You under this Agreement.
 
 ## License
 
-The Licensor grants You a non-exclusive, royalty-free, worldwide, non-sublicensable, non-transferable license under the Licensor:undefined:s copyrights to use, copy, distribute internally, and prepare derivative works of the Software, in each case subject to, and conditional on compliance with, the limitations and conditions below.
+The Licensor grants You a non-exclusive, royalty-free, worldwide, non-sublicensable, non-transferable license under the Licensor's copyrights to use, copy, distribute internally, and prepare derivative works of the Software, in each case subject to, and conditional on compliance with, the limitations and conditions below.
 
 ## Limitations
 
@@ -44,12 +44,14 @@ Making the functionality of the Software or Modified version available to third 
 
 Examples of third parties that are prohibited under this limitation include but are not limited to:
   * Sourcegraph and Sourcegraph Batch Changes
+  * Amazon Q Code Transformer
+  * Broadcom Application Advisor
 
-You may not and will not alter, remove, or obscure any licensing, copyright, or other notices of the Licensor in the Software. Any use of the Licensor:undefined:s Trademarks is subject to applicable law (but no license is granted hereunder with respect to the Licensor:undefined:s Trademarks).
+You may not and will not alter, remove, or obscure any licensing, copyright, or other notices of the Licensor in the Software. Any use of the Licensor's Trademarks is subject to applicable law (but no license is granted hereunder with respect to the Licensor's Trademarks).
 
 ## Patents
 
-The Licensor grants You a license, under any of the Licensor:undefined:s patent claims covering the Software, to make, have made, use, import and have imported the Software, in each case subject to, and conditional upon compliance with, the limitations and conditions in this Agreement. This license does not cover any patent claims that You cause to be infringed by Modifications or additions to the Software. If You or Your Company make any claim that the Software (or any Modification owned by or available from the Licensor) infringes or contributes to infringement of any patent, the patent license granted under this Agreement ends immediately.
+The Licensor grants You a license, under any of the Licensor's patent claims covering the Software, to make, have made, use, import and have imported the Software, in each case subject to, and conditional upon compliance with, the limitations and conditions in this Agreement. This license does not cover any patent claims that You cause to be infringed by Modifications or additions to the Software. If You or Your Company make any claim that the Software (or any Modification owned by or available from the Licensor) infringes or contributes to infringement of any patent, the patent license granted under this Agreement ends immediately.
 
 ## Notices
 
