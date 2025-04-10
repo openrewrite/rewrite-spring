@@ -62,7 +62,7 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 J.CompilationUnit compilationUnit = super.visitCompilationUnit(cu, ctx);
-                doAfterVisit(new ChangeType(fromExtendingFqn, toImplementsFqn, false, null).getVisitor());
+                doAfterVisit(new ChangeType(fromExtendingFqn, toImplementsFqn, false).getVisitor());
                 return compilationUnit;
             }
         });
