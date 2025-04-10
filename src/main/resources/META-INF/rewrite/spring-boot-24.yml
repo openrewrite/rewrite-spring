@@ -72,6 +72,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateHsqlEmbeddedDatabaseConnection
 
   # Update properties
+  - org.openrewrite.java.spring.boot2.MergeBootstrapYamlWithApplicationYaml
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
 
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_4
