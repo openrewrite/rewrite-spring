@@ -50,8 +50,8 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Replaces any references to the deprecated `EnvironmentTestUtils`" +
-                " with `TestPropertyValues` and the appropriate functionality.";
+        return "Replaces any references to the deprecated `EnvironmentTestUtils` " +
+                "with `TestPropertyValues` and the appropriate functionality.";
     }
 
     @Override

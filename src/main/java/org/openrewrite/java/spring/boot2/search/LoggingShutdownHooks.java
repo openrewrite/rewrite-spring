@@ -48,7 +48,7 @@ public class LoggingShutdownHooks extends ScanningRecipe<AtomicBoolean> {
     public String getDescription() {
         return "Spring Boot registers a logging shutdown hook by default for JAR-based applications to ensure that " +
                 "logging resources are released when the JVM exits. If your application is deployed as a WAR then " +
-                "the shutdown hook is not registered since the servlet container usually handles logging concerns." +
+                "the shutdown hook is not registered since the servlet container usually handles logging concerns. " +
                 "\n\n" +
                 "Most applications will want the shutdown hook. However, if your application has complex context " +
                 "hierarchies, then you may need to disable it. You can use the `logging.register-shutdown-hook` " +

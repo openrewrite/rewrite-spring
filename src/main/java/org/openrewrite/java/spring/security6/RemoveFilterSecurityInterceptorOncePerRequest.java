@@ -35,8 +35,8 @@ public class RemoveFilterSecurityInterceptorOncePerRequest extends Recipe {
 
     @Override
     public String getDescription() {
-        return "In Spring Security 6.0, `<http>` defaults `authorizeRequests#filterSecurityInterceptorOncePerRequest` to false." +
-               " So, to complete migration, any defaults values can be removed.";
+        return "In Spring Security 6.0, `<http>` defaults `authorizeRequests#filterSecurityInterceptorOncePerRequest` to false. " +
+               "So, to complete migration, any defaults values can be removed.";
     }
 
     @Override

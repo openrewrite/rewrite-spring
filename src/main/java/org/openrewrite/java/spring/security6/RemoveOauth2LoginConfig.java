@@ -41,8 +41,8 @@ public class RemoveOauth2LoginConfig extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "`oauth2Login()` is a Spring Security feature that allows users to authenticate with an OAuth2 or OpenID" +
-                " Connect 1.0 provider. When a user is authenticated using this feature, they are granted a set of " +
+        return "`oauth2Login()` is a Spring Security feature that allows users to authenticate with an OAuth2 or OpenID " +
+                "Connect 1.0 provider. When a user is authenticated using this feature, they are granted a set of " +
                 "authorities that determines what actions they are allowed to perform within the application.\n" +
                 "\n" +
                 "In Spring Security 5, the default authority given to a user authenticated with an OAuth2 or OpenID " +
