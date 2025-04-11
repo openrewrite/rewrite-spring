@@ -159,7 +159,7 @@ dependencies {
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
     testImplementation("org.openrewrite:rewrite-java-17")
-    testImplementation("org.openrewrite:rewrite-kotlin:$rewriteVersion")
+    testImplementation("org.openrewrite:rewrite-kotlin")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
