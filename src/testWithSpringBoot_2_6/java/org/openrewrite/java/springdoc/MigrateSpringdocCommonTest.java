@@ -61,7 +61,8 @@ class MigrateSpringdocCommonTest implements RewriteTest {
                       }
                   }
               }
-              """, """
+              """,
+                """
               import io.swagger.v3.oas.models.OpenAPI;
               import org.springdoc.core.customizers.OpenApiCustomizer;
               import org.springdoc.core.models.GroupedOpenApi;

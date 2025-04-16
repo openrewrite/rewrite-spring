@@ -76,7 +76,8 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
                   web:
                     exposure:
                       include: "*"
-            """)
+            """
+          )
         );
     }
 }

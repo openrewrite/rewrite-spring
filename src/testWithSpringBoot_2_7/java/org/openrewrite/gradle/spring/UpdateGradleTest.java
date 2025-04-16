@@ -63,11 +63,12 @@ class UpdateGradleTest implements RewriteTest {
               dependencies {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """, spec -> spec.after(gradle -> {
-                Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
-                assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
-                //language=gradle
-                return """
+              """,
+                spec -> spec.after(gradle -> {
+                    Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
+                    assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                    //language=gradle
+                    return """
               plugins {
                   id "java"
                   id "org.springframework.boot" version "%s"
@@ -85,7 +86,7 @@ class UpdateGradleTest implements RewriteTest {
                   useJUnitPlatform()
               }
               """.formatted(version.group());
-            })
+                })
             //language=gradle
           ),
           properties(
@@ -155,11 +156,12 @@ class UpdateGradleTest implements RewriteTest {
                   implementation platform("org.springframework.boot:spring-boot-dependencies:2.6.15")
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
-              """, spec -> spec.after(gradle -> {
-                Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
-                assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
-                //language=gradle
-                return """
+              """,
+                spec -> spec.after(gradle -> {
+                    Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
+                    assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                    //language=gradle
+                    return """
               plugins {
                   id "java"
                   id "org.springframework.boot" version "%s"
@@ -177,7 +179,7 @@ class UpdateGradleTest implements RewriteTest {
                   useJUnitPlatform()
               }
               """.formatted(version.group(), version.group());
-            })
+                })
           ),
           properties(
             //language=properties

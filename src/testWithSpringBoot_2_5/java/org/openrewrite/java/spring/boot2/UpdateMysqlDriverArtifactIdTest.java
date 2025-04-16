@@ -80,7 +80,8 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                       </dependency>
                     </dependencies>
                   </project>
-                  """));
+                  """
+              ));
         }
 
         @Test
@@ -182,7 +183,8 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   tasks.withType(Test).configureEach {
                       useJUnitPlatform()
                   }
-                  """)
+                  """
+              )
             );
         }
 
@@ -208,11 +210,12 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   tasks.withType(Test).configureEach {
                       useJUnitPlatform()
                   }
-                  """, spec -> spec.after(gradle -> {
-                    Matcher version = Pattern.compile("2\\.5\\.\\d+").matcher(gradle);
-                    assertThat(version.find()).describedAs("Expected 2.5.x in %s", gradle).isTrue();
-                    //language=gradle
-                    return """
+                  """,
+                    spec -> spec.after(gradle -> {
+                        Matcher version = Pattern.compile("2\\.5\\.\\d+").matcher(gradle);
+                        assertThat(version.find()).describedAs("Expected 2.5.x in %s", gradle).isTrue();
+                        //language=gradle
+                        return """
                   plugins {
                     id 'java'
                     id 'org.springframework.boot' version '%s'
@@ -230,7 +233,7 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                       useJUnitPlatform()
                   }
                   """.formatted(version.group());
-                  })
+                    })
               )
             );
         }

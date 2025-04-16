@@ -49,10 +49,12 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                       // Datasource ignored; this method and comment should be removed
                   }
               }
-              """, """
+              """,
+                """
               class Foo {
               }
-              """)
+              """
+          )
         );
     }
 
@@ -73,10 +75,12 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                       super.setDataSource(dataSource);
                   }
               }
-              """, """
+              """,
+                """
               class Foo {
               }
-              """)
+              """
+          )
         );
     }
 
@@ -94,14 +98,16 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                       System.out.println("Additional statements should ensure method is not removed");
                   }
               }
-              """, """
+              """,
+                """
               class Foo {
                   /*~~(TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed)~~>*/
                   public void setDataSource(javax.sql.DataSource dataSource) {
                       System.out.println("Additional statements should ensure method is not removed");
                   }
               }
-              """)
+              """
+          )
         );
     }
 
@@ -115,7 +121,8 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
               public interface Bar {
                   void baz();
               }
-              """),
+              """
+          ),
           java(
             """
               import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
@@ -130,7 +137,8 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                       // Comment only, still retained
                   }
               }
-              """, """
+              """,
+                """
               class Foo implements bar.Bar {
 
                   @Override
@@ -138,7 +146,8 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                       // Comment only, still retained
                   }
               }
-              """)
+              """
+          )
         );
     }
 
@@ -155,10 +164,12 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                       return new DefaultBatchConfigurer(dataSource);
                   }
               }
-              """, """
+              """,
+                """
               class FooConfig {
               }
-              """)
+              """
+          )
         );
     }
 }

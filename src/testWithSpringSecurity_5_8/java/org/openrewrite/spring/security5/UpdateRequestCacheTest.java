@@ -141,7 +141,8 @@ class UpdateRequestCacheTest implements RewriteTest {
                       return http.build();
                   }
               }
-              """)
+              """
+          )
         );
     }
 

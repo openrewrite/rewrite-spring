@@ -59,7 +59,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                           .build();
                   }
               }
-              """)
+              """
+          )
         );
     }
 
@@ -89,7 +90,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                           .build();
                   }
               }
-              """, """
+              """,
+                """
               import org.springframework.batch.core.Job;
               import org.springframework.batch.core.Step;
               import org.springframework.batch.core.job.builder.JobBuilder;
@@ -105,7 +107,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                           .build();
                   }
               }
-              """)
+              """
+          )
         );
     }
 
@@ -130,7 +133,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                           .build();
                   }
               }
-              """, """
+              """,
+                """
               import org.springframework.batch.core.Job;
               import org.springframework.batch.core.Step;
               import org.springframework.batch.core.job.builder.JobBuilder;
@@ -146,7 +150,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                           .build();
                   }
               }
-              """)
+              """
+          )
         );
     }
 
@@ -177,7 +182,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                           .build();
                   }
               }
-              """, """
+              """,
+                """
               import org.springframework.batch.core.Job;
               import org.springframework.batch.core.Step;
               import org.springframework.batch.core.job.builder.JobBuilder;
@@ -193,7 +199,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                           .build();
                   }
               }
-              """)
+              """
+          )
         );
     }
 

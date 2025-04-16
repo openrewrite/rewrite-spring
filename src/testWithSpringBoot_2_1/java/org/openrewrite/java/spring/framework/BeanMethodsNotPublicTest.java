@@ -40,7 +40,8 @@ class BeanMethodsNotPublicTest implements RewriteTest {
             """
               package a.b.c;
               public class DataSource {}
-              """),
+              """
+          ),
           java(
             """
               import a.b.c.DataSource;
