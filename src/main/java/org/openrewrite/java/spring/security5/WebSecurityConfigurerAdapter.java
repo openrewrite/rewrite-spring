@@ -18,10 +18,7 @@ package org.openrewrite.java.spring.security5;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
@@ -248,14 +245,14 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 } else if (!classCursor.getMessage(HAS_CONFLICT, true)) {
                     J.ClassDeclaration c = classCursor.getValue();
                     if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(m, c)) {
-                        m = changeToBeanMethod(m, c, FQN_SECURITY_FILTER_CHAIN, "filterChain", true);
+                        m = changeToBeanMethod(m, c, FQN_SECURITY_FILTER_CHAIN, "filterChain", true, ctx);
                     } else if (CONFIGURE_WEB_SECURITY_METHOD_MATCHER.matches(m, c)) {
-                        m = changeToBeanMethod(m, c, FQN_WEB_SECURITY_CUSTOMIZER, "webSecurityCustomizer", false);
+                        m = changeToBeanMethod(m, c, FQN_WEB_SECURITY_CUSTOMIZER, "webSecurityCustomizer", false, ctx);
                     } else if (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(m, c)) {
                         AuthType authType = getAuthType(m);
                         switch (authType) {
                             case INMEMORY:
-                                m = changeToBeanMethod(m, c, FQN_INMEMORY_AUTH_MANAGER, "inMemoryAuthManager", false);
+                                m = changeToBeanMethod(m, c, FQN_INMEMORY_AUTH_MANAGER, "inMemoryAuthManager", false, ctx);
                                 break;
                             case JDBC:
                                 //TODO: implement
@@ -271,7 +268,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return super.visitMethodDeclaration(m, ctx);
             }
 
-            private J.MethodDeclaration changeToBeanMethod(J.MethodDeclaration m, J.ClassDeclaration c, String fqnReturnType, String newMethodName, boolean keepParams) {
+            private J.MethodDeclaration changeToBeanMethod(J.MethodDeclaration m, J.ClassDeclaration c, String fqnReturnType, String newMethodName, boolean keepParams, ExecutionContext ctx) {
                 JavaType.FullyQualified inmemoryAuthConfigType = (JavaType.FullyQualified) JavaType.buildType(fqnReturnType);
                 JavaType.Method type = m.getMethodType();
                 if (type != null) {
@@ -304,8 +301,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 maybeAddImport(FQN_BEAN);
                 return JavaTemplate.builder("@Bean")
                         .imports(FQN_BEAN)
-                        .javaParser(JavaParser.fromJavaVersion().dependsOn(
-                                "package org.springframework.context.annotation;public @interface Bean {}"))
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context"))
                         .build()
                         // not calling `updateCursor()` here because `visitBlock()` currently requires the original to be stored in the cursor
                         .apply(new Cursor(getCursor().getParentOrThrow(), m),
