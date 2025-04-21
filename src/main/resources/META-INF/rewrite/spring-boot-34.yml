@@ -58,3 +58,4 @@ recipeList:
       newGroupId: org.webjars
       newArtifactId: webjars-locator-lite
       newVersion: 1.0.x
+  - org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderMethods

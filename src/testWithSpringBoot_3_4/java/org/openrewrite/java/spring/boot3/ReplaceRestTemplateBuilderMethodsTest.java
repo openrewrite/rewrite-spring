@@ -125,20 +125,22 @@ class ReplaceRestTemplateBuilderMethodsTest implements RewriteTest {
             """
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.ClientHttpRequestFactory;
+              import java.util.function.Function;
 
               class Example {
-                  public void configure(RestTemplateBuilder builder, ClientHttpRequestFactory factory) {
-                      builder.requestFactory(factory);
+                  public void configure(RestTemplateBuilder builder, Function<org.springframework.boot.web.client.ClientHttpRequestFactorySettings, ClientHttpRequestFactory> requestFactoryFunction) {
+                      builder.requestFactory(requestFactoryFunction);
                   }
               }
               """,
             """
               import org.springframework.boot.web.client.RestTemplateBuilder;
               import org.springframework.http.client.ClientHttpRequestFactory;
+              import java.util.function.Function;
 
               class Example {
-                  public void configure(RestTemplateBuilder builder, ClientHttpRequestFactory factory) {
-                      builder.requestFactoryBuilder(factory);
+                  public void configure(RestTemplateBuilder builder, Function<org.springframework.boot.web.client.ClientHttpRequestFactorySettings, ClientHttpRequestFactory> requestFactoryFunction) {
+                      builder.requestFactoryBuilder((settings) -> requestFactoryFunction.apply(org.springframework.boot.web.client.ClientHttpRequestFactorySettings.of(settings)));
                   }
               }
               """
