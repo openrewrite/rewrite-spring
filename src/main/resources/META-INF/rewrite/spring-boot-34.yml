@@ -52,4 +52,9 @@ recipeList:
       groupId: org.springdoc
       artifactId: "*"
       newVersion: 2.8.x
-
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.webjars
+      oldArtifactId: webjars-locator-core
+      newGroupId: org.webjars
+      newArtifactId: webjars-locator-lite
+      newVersion: 1.0.x
