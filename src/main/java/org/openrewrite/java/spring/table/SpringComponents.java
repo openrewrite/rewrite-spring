@@ -25,7 +25,7 @@ import org.openrewrite.Recipe;
 public class SpringComponents extends DataTable<SpringComponents.Row> {
 
     public SpringComponents(Recipe recipe) {
-        super(recipe, Row.class, SpringComponents.class.getName(),
+        super(recipe,
                 "Spring component definitions",
                 "Classes defined with a form of a Spring `@Component` stereotype and types returned from `@Bean` annotated methods.");
     }

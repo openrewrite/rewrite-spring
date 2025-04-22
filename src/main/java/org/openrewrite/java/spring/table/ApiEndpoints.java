@@ -25,8 +25,9 @@ import org.openrewrite.Recipe;
 public class ApiEndpoints extends DataTable<ApiEndpoints.Row> {
 
     public ApiEndpoints(Recipe recipe) {
-        super(recipe, Row.class, ApiEndpoints.class.getName(),
-                "API endpoints", "The API endpoints that applications expose.");
+        super(recipe,
+                "API endpoints",
+                "The API endpoints that applications expose.");
     }
 
     @Value
