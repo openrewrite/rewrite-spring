@@ -295,7 +295,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private J.MethodInvocation createDefaultsCall() {
         JavaType.Method methodType = new JavaType.Method(null, 9, CUSTOMIZER_SHALLOW_TYPE, "withDefaults",
                 new JavaType.GenericTypeVariable(null, "T", JavaType.GenericTypeVariable.Variance.INVARIANT, null),
-                null, null, null, null);
+                null, null, null, null, Collections.emptyList(), Collections.emptyList());
         maybeAddImport(methodType.getDeclaringType().getFullyQualifiedName(), methodType.getName());
         return new J.MethodInvocation(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, null,
                 new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), "withDefaults", null, null),
