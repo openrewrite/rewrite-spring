@@ -25,7 +25,7 @@ import org.openrewrite.Recipe;
 public class SpringComponentRelationships extends DataTable<SpringComponentRelationships.Row> {
 
     public SpringComponentRelationships(Recipe recipe) {
-        super(recipe, Row.class, SpringComponentRelationships.class.getName(),
+        super(recipe,
                 "Relationships between Spring components",
                 "A table of relationships between Spring components.");
     }
