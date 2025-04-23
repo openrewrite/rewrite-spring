@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import java.util.Comparator;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -26,6 +25,8 @@ import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.Comparator;
 
 public class AddValidToNestedConfigPropertiesRecipe extends Recipe {
 
@@ -50,8 +51,8 @@ public class AddValidToNestedConfigPropertiesRecipe extends Recipe {
                     return super.visitClassDeclaration(classDecl, ctx);
                 }
                 visitedTopLevelClass = true;
-                if (!FindAnnotations.find(classDecl, "@org.springframework.boot.context.properties.ConfigurationProperties").isEmpty()
-                    && !FindAnnotations.find(classDecl, "@org.springframework.validation.annotation.Validated").isEmpty()) {
+                if (!FindAnnotations.find(classDecl, "@org.springframework.boot.context.properties.ConfigurationProperties").isEmpty() &&
+                    !FindAnnotations.find(classDecl, "@org.springframework.validation.annotation.Validated").isEmpty()) {
                     return super.visitClassDeclaration(classDecl, ctx);
                 }
                 return classDecl;
@@ -61,8 +62,8 @@ public class AddValidToNestedConfigPropertiesRecipe extends Recipe {
             public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations varDecl, ExecutionContext ctx) {
                 JavaType.FullyQualified type = TypeUtils.asFullyQualified(varDecl.getType());
                 if (type != null && !isPrimitiveOrCommonType(type)) {
-                    if (FindAnnotations.find(varDecl, "@javax.validation.Valid").isEmpty()
-                        && FindAnnotations.find(varDecl, "@jakarta.validation.Valid").isEmpty()) {
+                    if (FindAnnotations.find(varDecl, "@javax.validation.Valid").isEmpty() &&
+                        FindAnnotations.find(varDecl, "@jakarta.validation.Valid").isEmpty()) {
                         maybeAddImport("jakarta.validation.Valid");
                         JavaTemplate template = JavaTemplate.builder("@Valid")
                             .imports("jakarta.validation.Valid")
