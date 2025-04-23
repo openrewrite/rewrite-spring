@@ -59,3 +59,4 @@ recipeList:
       newArtifactId: webjars-locator-lite
       newVersion: 1.0.x
   - org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderMethods
+  - org.openrewrite.java.spring.boot3.AddValidToNestedConfigPropertiesRecipe
