@@ -28,48 +28,49 @@ class NotRepeatSpringAnnotationsInSubclassesTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new NotRepeatSpringAnnotationsInSubclasses())
           .parser(JavaParser.fromJavaVersion().classpath("spring-beans", "spring-boot",
-            "spring-context", "spring-core", "spring-web"));
-    }
-
-    @Test
-    void removeLeadingAutowiredAnnotation() {
-        //language=java
-        rewriteRun(
-          java(
-          """
-          import org.springframework.web.bind.annotation.PathVariable;
+            "spring-context", "spring-core", "spring-web")
+            .dependsOn(
+              """
+                 import org.springframework.web.bind.annotation.PathVariable;
           import org.springframework.web.bind.annotation.PostMapping;
           import org.springframework.web.bind.annotation.RequestBody;
+
           public interface UserApi {
               @PostMapping("/users/{id}")
               String updateUser(
                   @PathVariable("id") Long id,
                   @RequestBody UserData request
               );
+
               class UserData {
                   private String firstName;
                   private String lastName;
-                  public String getFirstName() {return firstName;}
+
+                  public String getFirstName() {
+                      return firstName;
+                  }
+
                   public void setFirstName(String firstName) {
                       this.firstName = firstName;
                   }
+
                   public String getLastName() {
                       return lastName;
                   }
+
                   public void setLastName(String lastName) {
                       this.lastName = lastName;
-          }
-          """
-          ),
-                          return lastName;
-                      }
-
-                      public void setLastName(String lastName) {
-                          this.lastName = lastName;
-                      }
                   }
               }
-          """),
+          }
+                """
+            ));
+    }
+
+    @Test
+    void removeLeadingAutowiredAnnotation() {
+        //language=java
+        rewriteRun(
           java(
             """
               import org.springframework.web.bind.annotation.PathVariable;
@@ -80,8 +81,8 @@ class NotRepeatSpringAnnotationsInSubclassesTest implements RewriteTest {
               @RestController
               public class UserController implements UserApi {
 
-                  @PostMapping("/users/{id}")
-                  String updateUser(
+                  @Override @PostMapping("/users/{id}")
+                  public String updateUser(
                       @PathVariable("id") Long id,
                       @RequestBody UserData request
                   ) {

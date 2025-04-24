@@ -19,9 +19,19 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
+import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.RemoveAnnotation;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class NotRepeatSpringAnnotationsInSubclasses extends Recipe {
 
@@ -37,7 +47,8 @@ public class NotRepeatSpringAnnotationsInSubclasses extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.web.bind.annotation.PostMapping", false), new JavaIsoVisitor<ExecutionContext>() {
+        //return Preconditions.check(new UsesType<>("org.springframework.web.bind.annotation.PostMapping", false), new JavaIsoVisitor<ExecutionContext>() {
+        return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
@@ -45,9 +56,32 @@ public class NotRepeatSpringAnnotationsInSubclasses extends Recipe {
             }
 
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-                return super.visitMethodDeclaration(method, executionContext);
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
+
+                Optional<JavaType.Method> overriddenMethod = TypeUtils.findOverriddenMethod(md.getMethodType());
+                if (overriddenMethod.isPresent()) {
+
+                    JavaType.Method overrideMethod = overriddenMethod.get();
+
+                    List<JavaType.FullyQualified> baseAnnotations = overrideMethod.getAnnotations();
+                    List<JavaType.FullyQualified> methodAnnotations = md.getMethodType().getAnnotations();
+                    List<JavaType.FullyQualified> nonRepeated = methodAnnotations.stream()
+                            .filter(a -> baseAnnotations.stream().noneMatch(b -> TypeUtils.isOfType(a, b)))
+                            .collect(Collectors.toList());
+
+                    List<J.Annotation> annotations = ListUtils.map(md.getLeadingAnnotations(),
+                            a -> {
+                                if (nonRepeated.stream().noneMatch(n -> TypeUtils.isOfType(a.getType(), ((JavaType.Annotation)n).getType())))
+                                return (J.Annotation) new RemoveAnnotation(a.getType().toString()).getVisitor().visit(a, ctx, getCursor().getParentOrThrow());
+                                return a;
+                            });
+                    md = md.withLeadingAnnotations(annotations);
+
+
+                }
+                return md;
             }
-        });
+        };
     }
 }
