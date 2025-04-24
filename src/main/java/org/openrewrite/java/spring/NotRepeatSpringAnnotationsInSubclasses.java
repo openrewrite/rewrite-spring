@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,15 @@
 package org.openrewrite.java.spring;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotation;
-import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,7 +38,7 @@ public class NotRepeatSpringAnnotationsInSubclasses extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Remove Spring annotations if they repeating in subclasses.";
+        return "Remove Spring annotations in subclasses if they present in base classes.";
     }
 
     @Override
@@ -51,8 +47,7 @@ public class NotRepeatSpringAnnotationsInSubclasses extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                return cd;
+                return super.visitClassDeclaration(classDecl, ctx);
             }
 
             @Override
@@ -66,19 +61,20 @@ public class NotRepeatSpringAnnotationsInSubclasses extends Recipe {
 
                     List<JavaType.FullyQualified> baseAnnotations = overrideMethod.getAnnotations();
                     List<JavaType.FullyQualified> methodAnnotations = md.getMethodType().getAnnotations();
-                    List<JavaType.FullyQualified> nonRepeated = methodAnnotations.stream()
-                            .filter(a -> baseAnnotations.stream().noneMatch(b -> TypeUtils.isOfType(a, b)))
+                    List<JavaType.FullyQualified> repeated = methodAnnotations.stream()
+                            .filter(a -> baseAnnotations.stream().anyMatch(b -> TypeUtils.isOfType(a, b)))
                             .collect(Collectors.toList());
 
                     List<J.Annotation> annotations = ListUtils.map(md.getLeadingAnnotations(),
                             a -> {
-                                if (nonRepeated.stream().noneMatch(n -> TypeUtils.isOfType(a.getType(), ((JavaType.Annotation)n).getType())))
-                                return (J.Annotation) new RemoveAnnotation(a.getType().toString()).getVisitor().visit(a, ctx, getCursor().getParentOrThrow());
+                                if (repeated.stream().anyMatch(n -> TypeUtils.isOfType(a.getType(), ((JavaType.Annotation) n).getType()))) {
+                                    return (J.Annotation) new RemoveAnnotation(a.getType().toString()).getVisitor().visit(a, ctx, getCursor().getParentOrThrow());
+                                }
                                 return a;
                             });
                     md = md.withLeadingAnnotations(annotations);
 
-
+                    repeated.forEach(this::maybeRemoveImport);
                 }
                 return md;
             }

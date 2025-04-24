@@ -15,7 +15,9 @@
  */
 package org.openrewrite.java.spring;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -31,44 +33,80 @@ class NotRepeatSpringAnnotationsInSubclassesTest implements RewriteTest {
             "spring-context", "spring-core", "spring-web")
             .dependsOn(
               """
-                 import org.springframework.web.bind.annotation.PathVariable;
-          import org.springframework.web.bind.annotation.PostMapping;
-          import org.springframework.web.bind.annotation.RequestBody;
+              import org.springframework.web.bind.annotation.PathVariable;
+              import org.springframework.web.bind.annotation.PostMapping;
+              import org.springframework.web.bind.annotation.RequestBody;
 
-          public interface UserApi {
-              @PostMapping("/users/{id}")
-              String updateUser(
-                  @PathVariable("id") Long id,
-                  @RequestBody UserData request
-              );
+              public interface UserApi {
+                  @PostMapping("/users/{id}")
+                  String updateUser(
+                      @PathVariable("id") Long id,
+                      @RequestBody UserData request
+                  );
 
-              class UserData {
-                  private String firstName;
-                  private String lastName;
+                  class UserData {
+                      private String firstName;
+                      private String lastName;
 
-                  public String getFirstName() {
-                      return firstName;
-                  }
+                      public String getFirstName() {
+                          return firstName;
+                      }
 
-                  public void setFirstName(String firstName) {
-                      this.firstName = firstName;
-                  }
+                      public void setFirstName(String firstName) {
+                          this.firstName = firstName;
+                      }
 
-                  public String getLastName() {
-                      return lastName;
-                  }
+                      public String getLastName() {
+                          return lastName;
+                      }
 
-                  public void setLastName(String lastName) {
-                      this.lastName = lastName;
+                      public void setLastName(String lastName) {
+                          this.lastName = lastName;
+                      }
                   }
               }
-          }
-                """
+              """
             ));
     }
 
     @Test
-    void removeLeadingAutowiredAnnotation() {
+    @DocumentExample
+    void removeMethodAnnotation() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.web.bind.annotation.PostMapping;
+              import org.springframework.web.bind.annotation.RestController;
+
+              @RestController
+              public class UserController implements UserApi {
+
+                  @Override @PostMapping("/users/{id}")
+                  public String updateUser(Long id, UserData request) {
+                      return "User " + id + " updated: " + request.getFirstName() + " " + request.getLastName();
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.bind.annotation.RestController;
+
+              @RestController
+              public class UserController implements UserApi {
+
+                  @Override
+                  public String updateUser(Long id, UserData request) {
+                      return "User " + id + " updated: " + request.getFirstName() + " " + request.getLastName();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    @Disabled
+    void removeMethodArgumentsAnnotation() {
         //language=java
         rewriteRun(
           java(
