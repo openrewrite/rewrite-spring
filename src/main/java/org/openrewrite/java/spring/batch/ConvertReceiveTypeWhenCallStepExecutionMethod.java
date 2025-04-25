@@ -20,13 +20,11 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Javadoc;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -159,6 +157,16 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
         }
 
         private class AddCast extends JavaVisitor<ExecutionContext> {
+            @Override
+            protected JavadocVisitor<ExecutionContext> getJavadocVisitor() {
+                return new JavadocVisitor<ExecutionContext>(this) {
+                    @Override
+                    public Javadoc visitReference(Javadoc.Reference reference, ExecutionContext ctx) {
+                        return reference;
+                    }
+                };
+            }
+
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J parent = getCursor().getParentTreeCursor().getValue();
