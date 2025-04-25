@@ -186,4 +186,34 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void unrelatedJavadoc() {
+        rewriteRun(
+          java(
+            """
+            import org.springframework.batch.core.StepExecution;
+            /**
+              * @see String#concat(String)
+              */
+            class A {
+                private void populateJobMetrics(StepExecution stepExecution) {
+                    int idontcare = stepExecution.getRollbackCount();
+                }
+            }
+            """,
+            """
+            import org.springframework.batch.core.StepExecution;
+            /**
+              * @see String#concat(String)
+              */
+            class A {
+                private void populateJobMetrics(StepExecution stepExecution) {
+                    int idontcare = (int) stepExecution.getRollbackCount();
+                }
+            }
+            """
+          )
+        );
+    }
 }
