@@ -212,7 +212,8 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
                     int idontcare = (int) stepExecution.getRollbackCount();
                 }
             }
-            """)
+            """
+          )
         );
     }
 }
