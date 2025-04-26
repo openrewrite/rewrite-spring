@@ -33,6 +33,39 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
             .classpath("spring-webmvc", "spring-webflux", "spring-web", "spring-context"));
     }
 
+    @DocumentExample
+    @Test
+    void noConfigOverridden() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.web.bind.annotation.*;
+                
+              @RestController
+              public class ExampleController {
+                
+                  @GetMapping("/get")
+                  public String getExample() {
+                      return "This is a GET example.";
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.bind.annotation.*;
+                
+              @RestController
+              public class ExampleController {
+                
+                  @GetMapping({"/get", "/get/"})
+                  public String getExample() {
+                      return "This is a GET example.";
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void noChangeWithConfigOverriddenByWebMvcConfigurer() {
         //language=java
@@ -191,39 +224,6 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
                   @Override
                   public void configurePathMatching(PathMatchConfigurer configurer) {
                       configurer.setUseTrailingSlashMatch(true);
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void noConfigOverridden() {
-        rewriteRun(
-          java(
-            """
-              import org.springframework.web.bind.annotation.*;
-                
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping("/get")
-                  public String getExample() {
-                      return "This is a GET example.";
-                  }
-              }
-              """,
-            """
-              import org.springframework.web.bind.annotation.*;
-                
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping({"/get", "/get/"})
-                  public String getExample() {
-                      return "This is a GET example.";
                   }
               }
               """

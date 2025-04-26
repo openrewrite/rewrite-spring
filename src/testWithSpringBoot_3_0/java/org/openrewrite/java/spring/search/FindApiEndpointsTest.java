@@ -66,6 +66,38 @@ class FindApiEndpointsTest implements RewriteTest {
     }
 
     @Test
+    @DocumentExample
+    void webClient() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.bind.annotation.*;
+
+              @RequestMapping("/person")
+              class PersonController {
+                  @GetMapping("/count")
+                  int count() {
+                    return 42;
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.bind.annotation.*;
+
+              @RequestMapping("/person")
+              class PersonController {
+                  /*~~(GET /person/count)~~>*/@GetMapping("/count")
+                  int count() {
+                    return 42;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void withResponseBody() {
         rewriteRun(
           //language=java
@@ -100,38 +132,6 @@ class FindApiEndpointsTest implements RewriteTest {
 
               class Person {
                   int age = 42;
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    @DocumentExample
-    void webClient() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.web.bind.annotation.*;
-
-              @RequestMapping("/person")
-              class PersonController {
-                  @GetMapping("/count")
-                  int count() {
-                    return 42;
-                  }
-              }
-              """,
-            """
-              import org.springframework.web.bind.annotation.*;
-
-              @RequestMapping("/person")
-              class PersonController {
-                  /*~~(GET /person/count)~~>*/@GetMapping("/count")
-                  int count() {
-                    return 42;
-                  }
               }
               """
           )

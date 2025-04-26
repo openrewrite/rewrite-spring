@@ -32,6 +32,31 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
             .classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "spring-core"));
     }
 
+    @DocumentExample
+    @Test
+    void enableWebSecurityForceAdd() {
+        //language=java
+        rewriteRun(
+          spec -> spec.recipe(new ConfigurationOverEnableSecurity(true)),
+          java(
+            """
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+                            
+              @EnableWebSecurity
+              class A {}
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
+              @Configuration
+              @EnableWebSecurity
+              class A {}
+              """
+          )
+        );
+    }
+
     @Test
     void enableWebSecurity() {
         //language=java
@@ -86,31 +111,6 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
               import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
               
               @EnableMethodSecurity
-              class A {}
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void enableWebSecurityForceAdd() {
-        //language=java
-        rewriteRun(
-          spec -> spec.recipe(new ConfigurationOverEnableSecurity(true)),
-          java(
-            """
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-                            
-              @EnableWebSecurity
-              class A {}
-              """,
-            """
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
-              @Configuration
-              @EnableWebSecurity
               class A {}
               """
           )

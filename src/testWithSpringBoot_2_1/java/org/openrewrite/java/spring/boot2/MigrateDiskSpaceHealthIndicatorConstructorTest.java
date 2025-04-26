@@ -32,25 +32,6 @@ class MigrateDiskSpaceHealthIndicatorConstructorTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot-actuator", "spring-core"));
     }
 
-    @Test
-    void doNotChangeCurrentApi() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.boot.actuate.system.DiskSpaceHealthIndicator;
-              import org.springframework.util.unit.DataSize;
-              
-              class Test {
-                  void method() {
-                      DiskSpaceHealthIndicator indicator = new DiskSpaceHealthIndicator(null, DataSize.ofBytes(1));
-                  }
-              }
-              """
-          )
-        );
-    }
-
     @DocumentExample
     @Test
     void changeDeprecatedConstructor() {
@@ -86,6 +67,25 @@ class MigrateDiskSpaceHealthIndicatorConstructorTest implements RewriteTest {
                   }
                   long value() {
                       return 10L;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeCurrentApi() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.boot.actuate.system.DiskSpaceHealthIndicator;
+              import org.springframework.util.unit.DataSize;
+              
+              class Test {
+                  void method() {
+                      DiskSpaceHealthIndicator indicator = new DiskSpaceHealthIndicator(null, DataSize.ofBytes(1));
                   }
               }
               """

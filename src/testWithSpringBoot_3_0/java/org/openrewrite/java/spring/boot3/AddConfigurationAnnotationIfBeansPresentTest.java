@@ -33,20 +33,6 @@ class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
             .classpath("spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "spring-core"));
     }
 
-    @Test
-    void enableWebSecurityNoBeans() {
-        rewriteRun(
-          java(
-            """
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
-              @EnableWebSecurity
-              class A {}
-              """
-          )
-        );
-    }
-
     @DocumentExample
     @Test
     void enableWebSecurityWithBeans() {
@@ -71,6 +57,20 @@ class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
               class A {
                 @Bean String hello() { return "hello"; }
               }
+              """
+          )
+        );
+    }
+
+    @Test
+    void enableWebSecurityNoBeans() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
+              @EnableWebSecurity
+              class A {}
               """
           )
         );

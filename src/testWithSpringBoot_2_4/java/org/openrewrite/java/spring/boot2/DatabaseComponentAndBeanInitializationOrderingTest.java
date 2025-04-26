@@ -32,6 +32,66 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
             .classpath("spring-beans", "spring-context", "spring-boot", "spring-jdbc", "spring-orm", "jooq", "persistence-api", "jaxb-api"));
     }
 
+    @DocumentExample
+    @Test
+    void dslContextBeanShouldNotBeAnnotated() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.jooq.impl.DSL;
+              import org.jooq.DSLContext;
+              import org.jooq.SQLDialect;
+              import javax.sql.DataSource;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.context.annotation.Bean;
+
+              @Configuration
+              class PersistenceConfiguration {
+
+                  public static class A { private DataSource ds;}
+
+                  @Bean
+                  DSLContext dslContext(DataSource ds) {
+                      return DSL.using(ds, SQLDialect.SQLITE);
+                  }
+
+                  @Bean
+                  A a() {
+                      return new A();
+                  }
+              }
+              """,
+            """
+              import org.jooq.impl.DSL;
+              import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
+              import org.jooq.DSLContext;
+              import org.jooq.SQLDialect;
+              import javax.sql.DataSource;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.context.annotation.Bean;
+
+              @Configuration
+              class PersistenceConfiguration {
+
+                  public static class A { private DataSource ds;}
+
+                  @Bean
+                  DSLContext dslContext(DataSource ds) {
+                      return DSL.using(ds, SQLDialect.SQLITE);
+                  }
+
+                  @Bean
+                  @DependsOnDatabaseInitialization
+                  A a() {
+                      return new A();
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void jdbcOperationsBeanShouldNotBeAnnotated() {
         //language=java
@@ -123,66 +183,6 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
                   @Bean
                   EntityManagerFactory entityManagerFactory() {
                       return Persistence.createEntityManagerFactory("PERSISTENCE_UNIT_NAME");
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void dslContextBeanShouldNotBeAnnotated() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.jooq.impl.DSL;
-              import org.jooq.DSLContext;
-              import org.jooq.SQLDialect;
-              import javax.sql.DataSource;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.context.annotation.Bean;
-
-              @Configuration
-              class PersistenceConfiguration {
-
-                  public static class A { private DataSource ds;}
-
-                  @Bean
-                  DSLContext dslContext(DataSource ds) {
-                      return DSL.using(ds, SQLDialect.SQLITE);
-                  }
-
-                  @Bean
-                  A a() {
-                      return new A();
-                  }
-              }
-              """,
-            """
-              import org.jooq.impl.DSL;
-              import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
-              import org.jooq.DSLContext;
-              import org.jooq.SQLDialect;
-              import javax.sql.DataSource;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.context.annotation.Bean;
-
-              @Configuration
-              class PersistenceConfiguration {
-
-                  public static class A { private DataSource ds;}
-
-                  @Bean
-                  DSLContext dslContext(DataSource ds) {
-                      return DSL.using(ds, SQLDialect.SQLITE);
-                  }
-
-                  @Bean
-                  @DependsOnDatabaseInitialization
-                  A a() {
-                      return new A();
                   }
               }
               """
