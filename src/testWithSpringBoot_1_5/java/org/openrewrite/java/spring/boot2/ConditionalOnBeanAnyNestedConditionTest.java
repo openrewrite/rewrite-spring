@@ -33,6 +33,76 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
             .classpath("spring-boot-autoconfigure", "spring-context"));
     }
 
+    @DocumentExample
+    @Test
+    void twoConditionalAnnotationsWithSameMultipleClassCandidatesReversed() {
+        //language=java
+        rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          java(
+            """
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+              import org.springframework.context.annotation.Bean;
+              
+              class ThingOne {}
+              
+              class ThingTwo {}
+              
+              class ConfigClass {
+                  @Bean
+                  @ConditionalOnBean({Aa.class, Bb.class})
+                  public ThingOne thingOne() {
+                      return new ThingOne();
+                  }
+                  @Bean
+                  @ConditionalOnBean({Bb.class, Aa.class})
+                  public ThingTwo thingTwo() {
+                      return new ThingTwo();
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Conditional;
+              
+              class ThingOne {}
+              
+              class ThingTwo {}
+              
+              class ConfigClass {
+                  @Bean
+                  @Conditional(ConditionAaOrBb.class)
+                  public ThingOne thingOne() {
+                      return new ThingOne();
+                  }
+              
+                  @Bean
+                  @Conditional(ConditionAaOrBb.class)
+                  public ThingTwo thingTwo() {
+                      return new ThingTwo();
+                  }
+              
+                  private static class ConditionAaOrBb extends AnyNestedCondition {
+                      ConditionAaOrBb() {
+                          super(ConfigurationPhase.REGISTER_BEAN);
+                      }
+              
+                      @ConditionalOnBean(Aa.class)
+                      class AaCondition {
+                      }
+              
+                      @ConditionalOnBean(Bb.class)
+                      class BbCondition {
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void conditionalAnnotationSingleClassCandidateNoChange() {
         //language=java
@@ -165,76 +235,6 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
               
                       @ConditionalOnBean(Cc.class)
                       class CcCondition {
-                      }
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void twoConditionalAnnotationsWithSameMultipleClassCandidatesReversed() {
-        //language=java
-        rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
-          java(
-            """
-              import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-              import org.springframework.context.annotation.Bean;
-              
-              class ThingOne {}
-              
-              class ThingTwo {}
-              
-              class ConfigClass {
-                  @Bean
-                  @ConditionalOnBean({Aa.class, Bb.class})
-                  public ThingOne thingOne() {
-                      return new ThingOne();
-                  }
-                  @Bean
-                  @ConditionalOnBean({Bb.class, Aa.class})
-                  public ThingTwo thingTwo() {
-                      return new ThingTwo();
-                  }
-              }
-              """,
-            """
-              import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
-              import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-              import org.springframework.context.annotation.Bean;
-              import org.springframework.context.annotation.Conditional;
-              
-              class ThingOne {}
-              
-              class ThingTwo {}
-              
-              class ConfigClass {
-                  @Bean
-                  @Conditional(ConditionAaOrBb.class)
-                  public ThingOne thingOne() {
-                      return new ThingOne();
-                  }
-              
-                  @Bean
-                  @Conditional(ConditionAaOrBb.class)
-                  public ThingTwo thingTwo() {
-                      return new ThingTwo();
-                  }
-              
-                  private static class ConditionAaOrBb extends AnyNestedCondition {
-                      ConditionAaOrBb() {
-                          super(ConfigurationPhase.REGISTER_BEAN);
-                      }
-              
-                      @ConditionalOnBean(Aa.class)
-                      class AaCondition {
-                      }
-              
-                      @ConditionalOnBean(Bb.class)
-                      class BbCondition {
                       }
                   }
               }

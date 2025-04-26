@@ -33,29 +33,6 @@ class MigrateLoggingSystemPropertyConstantsTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
     }
 
-    @Test
-    void doNotUpdateCurrentAPIs() {
-        //language=java 
-        rewriteRun(
-          java(
-            """
-              package org.test;
-
-              import org.springframework.boot.logging.LoggingSystemProperties;
-
-              import static org.springframework.boot.logging.LoggingSystemProperties.CONSOLE_LOG_PATTERN;
-              
-              class Test {
-                  void method() {
-                      String valueA = LoggingSystemProperties.EXCEPTION_CONVERSION_WORD;
-                      String valueB = CONSOLE_LOG_PATTERN;
-                  }
-              }
-              """
-          )
-        );
-    }
-
     @DocumentExample
     @Test
     void updateFieldAccess() {
@@ -89,6 +66,29 @@ class MigrateLoggingSystemPropertyConstantsTest implements RewriteTest {
                       String valueC = LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_FILE_SIZE;
                       String valueD = LogbackLoggingSystemProperties.ROLLINGPOLICY_TOTAL_SIZE_CAP;
                       String valueE = LogbackLoggingSystemProperties.ROLLINGPOLICY_FILE_NAME_PATTERN;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotUpdateCurrentAPIs() {
+        //language=java 
+        rewriteRun(
+          java(
+            """
+              package org.test;
+
+              import org.springframework.boot.logging.LoggingSystemProperties;
+
+              import static org.springframework.boot.logging.LoggingSystemProperties.CONSOLE_LOG_PATTERN;
+              
+              class Test {
+                  void method() {
+                      String valueA = LoggingSystemProperties.EXCEPTION_CONVERSION_WORD;
+                      String valueB = CONSOLE_LOG_PATTERN;
                   }
               }
               """
