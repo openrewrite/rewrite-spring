@@ -17,18 +17,17 @@ package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class AddValidToNestedConfigPropertiesRecipeTest implements RewriteTest {
+class AddValidToNestedConfigPropertiesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new AddValidToNestedConfigPropertiesRecipe())
+        spec.recipe(new AddValidToNestedConfigProperties())
           .parser(JavaParser.fromJavaVersion()
             .classpath("spring-boot", "spring-context", "jakarta.validation-api")
             .dependsOn(
@@ -51,7 +50,8 @@ class AddValidToNestedConfigPropertiesRecipeTest implements RewriteTest {
                     }
                 }
                 """
-            ));
+            )
+          );
     }
 
     @DocumentExample

@@ -19,10 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4
 displayName: Migrate to Spring Boot 3.4
 description: >-
-  Migrate applications to the latest Spring Boot 3.4 release. This recipe will modify an
-  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
-  changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
-  etc) that are required as part of the migration to Spring Boot 3.4.
+  Migrate applications to the latest Spring Boot 3.4 release. This recipe will modify an application's build files,
+  make changes to deprecated/preferred APIs.
 tags:
   - spring
   - boot
@@ -60,4 +58,4 @@ recipeList:
       newArtifactId: webjars-locator-lite
       newVersion: 1.0.x
   - org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderMethods
-  - org.openrewrite.java.spring.boot3.AddValidToNestedConfigPropertiesRecipe
+  - org.openrewrite.java.spring.boot3.AddValidToNestedConfigProperties
