@@ -31,24 +31,6 @@ class MigrateRestTemplateBuilderTimeoutByIntTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-web", "spring-core"));
     }
 
-    @Test
-    void doNotChangeCurrentApi() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.web.client.RestTemplate;
-              import org.springframework.boot.web.client.RestTemplateBuilder;
-              import java.time.Duration;
-              class Test {
-                  RestTemplate template = new RestTemplateBuilder()
-                      .setConnectTimeout(Duration.ofMillis(1)).build();
-              }
-              """
-          )
-        );
-    }
-
     @DocumentExample
     @Test
     void changeDeprecatedMethods() {
@@ -77,6 +59,24 @@ class MigrateRestTemplateBuilderTimeoutByIntTest implements RewriteTest {
                           .setConnectTimeout(Duration.ofMillis(1))
                           .setReadTimeout(Duration.ofMillis(1))
                           .build();
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeCurrentApi() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.web.client.RestTemplate;
+              import org.springframework.boot.web.client.RestTemplateBuilder;
+              import java.time.Duration;
+              class Test {
+                  RestTemplate template = new RestTemplateBuilder()
+                      .setConnectTimeout(Duration.ofMillis(1)).build();
               }
               """
           )

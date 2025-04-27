@@ -34,34 +34,6 @@ class FindApiCallsTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-webflux", "spring-web", "spring-boot"));
     }
 
-    @Test
-    void webClient() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.web.reactive.function.client.WebClient;
-              class Test {
-                  WebClient.Builder webClientBuilder;
-                  void test() {
-                      webClientBuilder.build()
-                        .get()
-                        .uri(base() + "/getThing");
-                        
-                      webClientBuilder.build()
-                        .post()
-                        .uri(base() + "/postThing");
-                  }
-                  
-                  String base() {
-                      return "https://base";
-                  }
-              }
-              """
-          )
-        );
-    }
-
     @DocumentExample
     @Test
     void restTemplate() {
@@ -89,6 +61,34 @@ class FindApiCallsTest implements RewriteTest {
                   void test() {
                       /*~~(GET base() + "/getThing")~~>*/restTemplate.getForObject(base() + "/getThing", String.class);
                       /*~~(POST base() + "/postThing")~~>*/restTemplate.postForEntity(base() + "/postThing", null, String.class);
+                  }
+                  
+                  String base() {
+                      return "https://base";
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void webClient() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.reactive.function.client.WebClient;
+              class Test {
+                  WebClient.Builder webClientBuilder;
+                  void test() {
+                      webClientBuilder.build()
+                        .get()
+                        .uri(base() + "/getThing");
+                        
+                      webClientBuilder.build()
+                        .post()
+                        .uri(base() + "/postThing");
                   }
                   
                   String base() {

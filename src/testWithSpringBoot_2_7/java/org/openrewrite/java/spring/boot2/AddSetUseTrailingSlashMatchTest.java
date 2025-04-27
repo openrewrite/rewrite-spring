@@ -32,6 +32,40 @@ class AddSetUseTrailingSlashMatchTest implements RewriteTest {
           .recipe(new AddSetUseTrailingSlashMatch());
     }
 
+    @DocumentExample
+    @Test
+    void addConfigurePathMatchMethodForWebMvcConfigurer() {
+        rewriteRun(
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              @Configuration
+              public class MyWebConfiguration implements WebMvcConfigurer {
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              @Configuration
+              public class MyWebConfiguration implements WebMvcConfigurer {
+                  @Override
+                  public void configurePathMatch(PathMatchConfigurer configurer) {
+                      configurer.setUseTrailingSlashMatch(true);
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void noChangeIfExistWithWebMvcConfigurer() {
         rewriteRun(
@@ -68,40 +102,6 @@ class AddSetUseTrailingSlashMatchTest implements RewriteTest {
               public class MyWebConfig implements WebFluxConfigurer {
                   @Override
                   public void configurePathMatching(PathMatchConfigurer configurer) {
-                      configurer.setUseTrailingSlashMatch(true);
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void addConfigurePathMatchMethodForWebMvcConfigurer() {
-        rewriteRun(
-          java(
-            """
-              package com.example.demo;
-
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-              @Configuration
-              public class MyWebConfiguration implements WebMvcConfigurer {
-              }
-              """,
-            """
-              package com.example.demo;
-
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-              @Configuration
-              public class MyWebConfiguration implements WebMvcConfigurer {
-                  @Override
-                  public void configurePathMatch(PathMatchConfigurer configurer) {
                       configurer.setUseTrailingSlashMatch(true);
                   }
               }

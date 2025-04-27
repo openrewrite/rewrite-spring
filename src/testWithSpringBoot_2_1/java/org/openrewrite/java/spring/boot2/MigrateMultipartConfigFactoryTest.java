@@ -31,25 +31,6 @@ class MigrateMultipartConfigFactoryTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot", "spring-core"));
     }
 
-    @Test
-    void doNotChangeCurrentApi() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.boot.web.servlet.MultipartConfigFactory;
-              
-              class Test {
-                  void method() {
-                      MultipartConfigFactory factory = new MultipartConfigFactory();
-                      factory.setLocation(null);
-                  }
-              }
-              """
-          )
-        );
-    }
-
     @DocumentExample
     @Test
     void changeDeprecatedMethods() {
@@ -84,6 +65,25 @@ class MigrateMultipartConfigFactoryTest implements RewriteTest {
                       factory.setMaxRequestSize(DataSize.parse("1"));
                       factory.setFileSizeThreshold(DataSize.ofBytes(1));
                       factory.setFileSizeThreshold(DataSize.parse("1"));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeCurrentApi() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.boot.web.servlet.MultipartConfigFactory;
+              
+              class Test {
+                  void method() {
+                      MultipartConfigFactory factory = new MultipartConfigFactory();
+                      factory.setLocation(null);
                   }
               }
               """

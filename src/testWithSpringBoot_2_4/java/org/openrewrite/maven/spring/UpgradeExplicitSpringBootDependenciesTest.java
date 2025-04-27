@@ -24,6 +24,75 @@ import static org.openrewrite.maven.Assertions.pomXml;
 
 class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
 
+    @DocumentExample
+    @Test
+    void shouldBuildCorrectPomModelAfterUpdateTo3x() {
+        rewriteRun(
+          spec -> spec.recipe(new UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3")),
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>explicit-deps-app</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <repositories>
+                      <repository>
+                          <id>spring-milestone</id>
+                          <url>https://repo.spring.io/milestone</url>
+                          <snapshots>
+                              <enabled>false</enabled>
+                          </snapshots>
+                      </repository>
+                  </repositories>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                          <version>2.7.3</version>
+                      </dependency>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-test</artifactId>
+                          <version>2.7.3</version>
+                          <scope>test</scope>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>explicit-deps-app</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <repositories>
+                      <repository>
+                          <id>spring-milestone</id>
+                          <url>https://repo.spring.io/milestone</url>
+                          <snapshots>
+                              <enabled>false</enabled>
+                          </snapshots>
+                      </repository>
+                  </repositories>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                          <version>3.0.0-M3</version>
+                      </dependency>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-test</artifactId>
+                          <version>3.0.0-M3</version>
+                          <scope>test</scope>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
+        );
+    }
+
     @Test
     void shouldUpdateExplicitDependenciesTo30() {
         rewriteRun(
@@ -796,75 +865,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                 </project>
                 """
             )
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void shouldBuildCorrectPomModelAfterUpdateTo3x() {
-        rewriteRun(
-          spec -> spec.recipe(new UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3")),
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <groupId>com.example</groupId>
-                  <artifactId>explicit-deps-app</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <repositories>
-                      <repository>
-                          <id>spring-milestone</id>
-                          <url>https://repo.spring.io/milestone</url>
-                          <snapshots>
-                              <enabled>false</enabled>
-                          </snapshots>
-                      </repository>
-                  </repositories>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-web</artifactId>
-                          <version>2.7.3</version>
-                      </dependency>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-test</artifactId>
-                          <version>2.7.3</version>
-                          <scope>test</scope>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """,
-            """
-              <project>
-                  <groupId>com.example</groupId>
-                  <artifactId>explicit-deps-app</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <repositories>
-                      <repository>
-                          <id>spring-milestone</id>
-                          <url>https://repo.spring.io/milestone</url>
-                          <snapshots>
-                              <enabled>false</enabled>
-                          </snapshots>
-                      </repository>
-                  </repositories>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-web</artifactId>
-                          <version>3.0.0-M3</version>
-                      </dependency>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-test</artifactId>
-                          <version>3.0.0-M3</version>
-                          <scope>test</scope>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """
           )
         );
     }

@@ -38,32 +38,6 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
               "spring-context-5.+"));
     }
 
-    @Test
-    void doNotChangeCurrentApi() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Job;
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.job.builder.JobBuilder;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.context.annotation.Bean;
-
-              public class MyJobConfig {
-
-                  @Bean
-                  Job myJob(Step step, JobRepository jobRepository) {
-                      return new JobBuilder("myJob", jobRepository)
-                          .start(step)
-                          .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
     @DocumentExample
     @Test
     void replaceAutowiredJobBuilderFactory() {
@@ -92,6 +66,32 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
               }
               """,
                 """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
+
+              public class MyJobConfig {
+
+                  @Bean
+                  Job myJob(Step step, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeCurrentApi() {
+        // language=java
+        rewriteRun(
+          java(
+            """
               import org.springframework.batch.core.Job;
               import org.springframework.batch.core.Step;
               import org.springframework.batch.core.job.builder.JobBuilder;

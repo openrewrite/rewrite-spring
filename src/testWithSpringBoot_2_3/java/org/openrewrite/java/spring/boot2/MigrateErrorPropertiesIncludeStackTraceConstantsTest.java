@@ -31,31 +31,6 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest implements RewriteTes
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot-autoconfigure"));
     }
 
-    @Test
-    void doNotUpdateCurrentAPIs() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              package org.test;
-
-              import org.springframework.boot.autoconfigure.web.ErrorProperties;
-
-              import static org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace.ALWAYS;
-              
-              class Test {
-                  void methodA() {
-                      ErrorProperties.IncludeStacktrace doNotUpdate = ErrorProperties.IncludeStacktrace.NEVER;
-                  }
-                  void methodB() {
-                      ErrorProperties.IncludeStacktrace doNotUpdate = ALWAYS;
-                  }
-              }
-              """
-          )
-        );
-    }
-
     @DocumentExample
     @Test
     void updateFieldAccessToRecommendedReplacements() {
@@ -81,6 +56,31 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest implements RewriteTes
               class Test {
                   void methodA() {
                       ErrorProperties.IncludeStacktrace value = ErrorProperties.IncludeStacktrace.ON_PARAM;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotUpdateCurrentAPIs() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package org.test;
+
+              import org.springframework.boot.autoconfigure.web.ErrorProperties;
+
+              import static org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace.ALWAYS;
+              
+              class Test {
+                  void methodA() {
+                      ErrorProperties.IncludeStacktrace doNotUpdate = ErrorProperties.IncludeStacktrace.NEVER;
+                  }
+                  void methodB() {
+                      ErrorProperties.IncludeStacktrace doNotUpdate = ALWAYS;
                   }
               }
               """
