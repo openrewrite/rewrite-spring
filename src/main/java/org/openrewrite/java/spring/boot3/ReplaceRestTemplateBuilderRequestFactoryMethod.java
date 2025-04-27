@@ -19,10 +19,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
@@ -47,11 +44,14 @@ public class ReplaceRestTemplateBuilderRequestFactoryMethod extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (METHOD_MATCHER.matches(mi)) {
-                    return JavaTemplate
-                        .builder("#{any()}.requestFactoryBuilder((settings) -> #{any()}.apply(org.springframework.boot.web.client.ClientHttpRequestFactorySettings.of(settings)))")
-                        .imports("org.springframework.boot.http.client.ClientHttpRequestFactorySettings", "org.springframework.boot.web.client.RestTemplateBuilder")
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.2", "spring-boot-3.4"))
-                        .build().apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect(), mi.getArguments().get(0));
+                    J replacement = JavaTemplate
+                            .builder("#{any()}.requestFactoryBuilder(settings -> #{any()}.apply(org.springframework.boot.web.client.ClientHttpRequestFactorySettings.of(settings)))")
+                            .imports("org.springframework.boot.http.client.ClientHttpRequestFactorySettings", "org.springframework.boot.web.client.RestTemplateBuilder")
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.2", "spring-boot-3.+"))
+                            .build()
+                            .apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect(), mi.getArguments().get(0));
+                    doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(replacement));
+                    return replacement;
                 }
                 return mi;
             }
