@@ -25,28 +25,27 @@ import org.openrewrite.java.tree.J;
 
 public class ReplaceRestTemplateBuilderRequestFactoryMethod extends Recipe {
 
-    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder requestFactory(java.util.function.Function)");
+    private static final MethodMatcher REQUEST_FACTORY_MATCHER = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder requestFactory(java.util.function.Function)");
 
     @Override
     public String getDisplayName() {
-        return "Replace `RestTemplateBuilder.requestFactory(java.util.function.Function)` method";
+        return "Replace `RestTemplateBuilder.requestFactory(Function)` with `requestFactoryBuilder`";
     }
 
     @Override
     public String getDescription() {
-        return "`RestTemplateBuilder.requestFactory(java.util.function.Function)` was deprecated since Spring Boot 3.4.0, in favor of `requestFactoryBuilder(ClientHttpRequestFactoryBuilder)`.";
+        return "`RestTemplateBuilder.requestFactory(java.util.function.Function)` was deprecated since Spring Boot 3.4, in favor of `requestFactoryBuilder(ClientHttpRequestFactoryBuilder)`.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>(METHOD_MATCHER), new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(REQUEST_FACTORY_MATCHER), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
-                if (METHOD_MATCHER.matches(mi)) {
-                    J replacement = JavaTemplate
-                            .builder("#{any()}.requestFactoryBuilder(settings -> #{any()}.apply(org.springframework.boot.web.client.ClientHttpRequestFactorySettings.of(settings)))")
-                            .imports("org.springframework.boot.http.client.ClientHttpRequestFactorySettings", "org.springframework.boot.web.client.RestTemplateBuilder")
+                if (REQUEST_FACTORY_MATCHER.matches(mi) && mi.getSelect() != null) {
+                    J replacement = JavaTemplate.builder("#{any()}.requestFactoryBuilder(settings -> #{any()}.apply(ClientHttpRequestFactorySettings.of(settings)))")
+                            .imports("org.springframework.boot.web.client.ClientHttpRequestFactorySettings")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.2", "spring-boot-3.+"))
                             .build()
                             .apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect(), mi.getArguments().get(0));
