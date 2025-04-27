@@ -30,7 +30,7 @@ class AddValidToNestedConfigPropertiesRecipeTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new AddValidToNestedConfigPropertiesRecipe())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot", "spring-context", "jakarta.validation-api")
+            .classpath("spring-boot", "spring-context", "jakarta.validation-api")
             .dependsOn(
               // language=java
               """
