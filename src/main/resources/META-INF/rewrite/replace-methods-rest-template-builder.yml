@@ -28,3 +28,4 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.boot.web.client.RestTemplateBuilder setSslBundle(org.springframework.boot.ssl.SslBundle)
       newMethodName: sslBundle
+  - org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderRequestFactoryMethod

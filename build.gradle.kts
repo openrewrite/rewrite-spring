@@ -123,6 +123,8 @@ recipeDependencies {
     parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
 
     parserClasspath("jakarta.servlet:jakarta.servlet-api:6.1.+")
+    parserClasspath("jakarta.validation:jakarta.validation-api:3.0.+")
+
     parserClasspath("io.micrometer:micrometer-commons:1.11.+")
     parserClasspath("io.micrometer:micrometer-core:1.11.+")
     parserClasspath("io.micrometer:micrometer-observation:1.11.+")
@@ -263,7 +265,9 @@ dependencies {
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")
 
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.boot:spring-boot:3.4.+")
+    "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-context:6.2.+")
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-web:6.2.+")
+    "testWithSpringBoot_3_4RuntimeOnly"("jakarta.validation:jakarta.validation-api:3.0.+")
 
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
