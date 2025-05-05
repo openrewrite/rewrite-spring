@@ -22,6 +22,7 @@ import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.SourceSpec;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -55,6 +56,49 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
               import org.springframework.boot.test.context.SpringBootTest;
 
               @SpringBootTest
+              class Test {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void removeSpringExtensionAsValueIfSpringBootTestIsPresent() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.boot.test.context.SpringBootTest;
+              import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+              @SpringBootTest
+              @ExtendWith(value = {SpringExtension.class})
+              class Test {
+              }
+              """,
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest
+              class Test {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void notRemoveSpringExtensionWithoutSpringBootTest() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+              @ExtendWith({SpringExtension.class})
               class Test {
               }
               """
@@ -106,19 +150,109 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
         );
     }
 
+//    @Test
+//    void noChangeIfMoreThanOneExtensionToNotChangeOrder() {
+//        //language=java
+//        rewriteRun(
+//          java(
+//            """
+//              import org.junit.jupiter.api.extension.ExtendWith;
+//              import org.junit.jupiter.api.extension.Extension;
+//              import org.springframework.boot.test.context.SpringBootTest;
+//              import org.springframework.test.context.junit.jupiter.SpringExtension;
+//
+//              @SpringBootTest
+//              @ExtendWith({SpringExtension.class, Extension.class})
+//              class Test {
+//              }
+//              """
+//          )
+//        );
+//    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/678")
     @Test
-    void noChangeIfMoreThanOneExtensionToNotChangeOrder() {
+    void retainSecondaryAnnotation() {
         //language=java
         rewriteRun(
           java(
             """
+              import org.junit.jupiter.api.extension.BeforeAllCallback;
+              import org.junit.jupiter.api.extension.ExtensionContext;
+              class AnotherExtension implements BeforeAllCallback {
+                  void beforeAll(ExtensionContext context) {
+                  }
+              }
+              """,
+            SourceSpec::skip
+          ),
+          java(
+            """
               import org.junit.jupiter.api.extension.ExtendWith;
-              import org.junit.jupiter.api.extension.Extension;
               import org.springframework.boot.test.context.SpringBootTest;
               import org.springframework.test.context.junit.jupiter.SpringExtension;
 
               @SpringBootTest
-              @ExtendWith({SpringExtension.class, Extension.class})
+              @ExtendWith({SpringExtension.class, AnotherExtension.class})
+              class Test {
+              }
+              """,
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest
+              @ExtendWith({ AnotherExtension.class})
+              class Test {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void retainSeveralAnnotations() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.junit.jupiter.api.extension.BeforeAllCallback;
+              import org.junit.jupiter.api.extension.ExtensionContext;
+              class BeforeExtension implements BeforeAllCallback {
+                  void beforeAll(ExtensionContext context) {
+                  }
+              }
+              """,
+            SourceSpec::skip
+          ),
+          java(
+            """
+              import org.junit.jupiter.api.extension.AfterAllCallback;
+              import org.junit.jupiter.api.extension.ExtensionContext;
+              class AfterExtension implements AfterAllCallback {
+                  void afterAll(ExtensionContext context) {
+                  }
+              }
+              """,
+            SourceSpec::skip
+          ),
+          java(
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.boot.test.context.SpringBootTest;
+              import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+              @SpringBootTest
+              @ExtendWith({BeforeExtension.class, SpringExtension.class, AfterExtension.class})
+              class Test {
+              }
+              """,
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest
+              @ExtendWith({BeforeExtension.class, AfterExtension.class})
               class Test {
               }
               """
