@@ -21,8 +21,6 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.RemoveAnnotation;
-import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
@@ -32,7 +30,6 @@ import org.openrewrite.java.tree.TypeUtils;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -64,7 +61,6 @@ public class UnnecessarySpringExtension extends Recipe {
     private static final String EXTEND_WITH_ANNOTATION = "@" + EXTEND_WITH;
     private static final AnnotationMatcher EXTEND_WITH_MATCHER = new AnnotationMatcher(EXTEND_WITH_ANNOTATION);
     private static final String SPRING_EXTENSION = "org.springframework.test.context.junit.jupiter.SpringExtension";
-    private static final String EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN = EXTEND_WITH_ANNOTATION + "(" + SPRING_EXTENSION + ".class)";
 
     @Override
     public String getDisplayName() {
@@ -91,42 +87,47 @@ public class UnnecessarySpringExtension extends Recipe {
                         new FindBootTestAnnotation().visit(c, annotationFound);
 
                         if (annotationFound.get()) {
-                            Set<J.Annotation> extendsWiths = FindAnnotations.find(c, EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN);
-                            if (!extendsWiths.isEmpty()) {
-                                Expression expression = extendsWiths.iterator().next().getArguments().get(0);
-                                if ((expression instanceof J.FieldAccess) || (expression instanceof J.NewArray &&
-                                        ((J.NewArray) expression).getInitializer() != null &&
-                                        (((J.NewArray) expression).getInitializer().size() == 1))) {
-                                    c = (J.ClassDeclaration) new RemoveAnnotation(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN)
-                                            .getVisitor().visit(c, ctx, getCursor().getParentOrThrow());
-                                    assert c != null;
-                                    maybeRemoveImport(SPRING_EXTENSION);
-                                    maybeRemoveImport(EXTEND_WITH);
-                                    return super.visitClassDeclaration(c.withBody(classDecl.getBody()), ctx);
-                                }
-                            }
+                            return super.visitClassDeclaration(classDecl, ctx);
                         }
-                        return super.visitClassDeclaration(classDecl, ctx);
+                        return classDecl;
                     }
 
                     @Override
-                    public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext executionContext) {
+                    public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                         if (EXTEND_WITH_MATCHER.matches(annotation)) {
 
                             Expression expression = annotation.getArguments().get(0);
 
+                            if (expression instanceof J.FieldAccess) {
+                                if (isSpringExtension(expression)) {
+                                    maybeRemoveImport(SPRING_EXTENSION);
+                                    maybeRemoveImport(EXTEND_WITH);
+                                    return null;
+                                }
+                            }
+
                             if (expression instanceof J.NewArray) {
                                 List<Expression> collected = ((J.NewArray) expression).getInitializer().stream()
-                                        .filter(e -> !TypeUtils.isAssignableTo("java.lang.Class<" + SPRING_EXTENSION + ">", e.getType()))
+                                        .filter(e -> !isSpringExtension(e))
                                         .collect(Collectors.toList());
+                                if (collected.isEmpty()) {
+                                    maybeRemoveImport(SPRING_EXTENSION);
+                                    maybeRemoveImport(EXTEND_WITH);
+                                    return null;
+                                }
                                 expression = ((J.NewArray) expression).withInitializer(collected);
-                                annotation = annotation.withArguments(Collections.singletonList(expression));
+                                J.Annotation newAnnotation = annotation.withArguments(Collections.singletonList(expression));
+                                annotation = maybeAutoFormat(annotation, newAnnotation, ctx);
+                                maybeRemoveImport(SPRING_EXTENSION);
                             }
-                            maybeRemoveImport(SPRING_EXTENSION);
                             return annotation;
                         }
 
-                        return super.visitAnnotation(annotation, executionContext);
+                        return super.visitAnnotation(annotation, ctx);
+                    }
+
+                    private boolean isSpringExtension(Expression expression) {
+                        return TypeUtils.isAssignableTo("java.lang.Class<" + SPRING_EXTENSION + ">", expression.getType());
                     }
                 });
     }
