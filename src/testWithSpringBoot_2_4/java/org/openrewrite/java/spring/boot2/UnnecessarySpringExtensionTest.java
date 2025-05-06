@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.boot2;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -36,6 +37,7 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
             .classpath("spring-context", "spring-test", "spring-boot-test", "junit-jupiter-api", "spring-boot-test-autoconfigure", "spring-batch-test"));
     }
 
+    @DocumentExample
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/43")
     @Test
     void removeSpringExtensionIfSpringBootTestIsPresent() {
@@ -73,8 +75,8 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
               import org.springframework.boot.test.context.SpringBootTest;
               import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-              @SpringBootTest
               @ExtendWith({SpringExtension.class})
+              @SpringBootTest
               class Test {
               }
               """,
@@ -90,7 +92,7 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
     }
 
     @Test
-    void notRemoveSpringExtensionIfSpringBootTestIsPresent() {
+    void notRemoveSpringExtensionIfNoSpringBootTestIsPresent() {
         //language=java
         rewriteRun(
           java(
@@ -98,24 +100,7 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
               import org.junit.jupiter.api.extension.ExtendWith;
               import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-              @ExtendWith({SpringExtension.class})
-              class Test {
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void notRemoveOtherExtensionWithoutSpringBootTest() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.junit.jupiter.api.extension.ExtendWith;
-              import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-              @ExtendWith({SpringExtension.class})
+              @ExtendWith(SpringExtension.class)
               class Test {
               }
               """
@@ -168,7 +153,7 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
     }
 
     @Test
-    void noChangeIfOtherExtension() {
+    void noChangesIfOtherExtension() {
         //language=java
         rewriteRun(
           java(
@@ -180,6 +165,24 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
 
               @SpringBootTest
               @ExtendWith(Extension.class)
+              class Test {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangesIfNoSpringBootTest() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.junit.jupiter.api.extension.Extension;
+              import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+              @ExtendWith({SpringExtension.class, Extension.class})
               class Test {
               }
               """
