@@ -19,6 +19,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotation;
@@ -34,7 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 public class UnnecessarySpringExtension extends Recipe {
 
@@ -118,10 +118,8 @@ public class UnnecessarySpringExtension extends Recipe {
                             Expression expression = annotation.getArguments().get(0);
 
                             if (expression instanceof J.NewArray) {
-                                List<Expression> collected = ((J.NewArray) expression).getInitializer().stream()
-                                        .filter(e -> !isSpringExtension(e))
-                                        .collect(Collectors.toList());
-                                Expression newArgument = ((J.NewArray) expression).withInitializer(collected);
+                                List<Expression> otherExtensions = ListUtils.map(((J.NewArray) expression).getInitializer(), e -> isSpringExtension(e) ? null : e);
+                                Expression newArgument = ((J.NewArray) expression).withInitializer(otherExtensions);
                                 J.Annotation newAnnotation = annotation.withArguments(Collections.singletonList(newArgument));
                                 maybeRemoveImport(SPRING_EXTENSION);
                                 return maybeAutoFormat(annotation, newAnnotation, ctx);
