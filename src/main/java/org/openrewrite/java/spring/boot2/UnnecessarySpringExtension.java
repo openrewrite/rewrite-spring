@@ -27,8 +27,11 @@ import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static java.util.Collections.singletonList;
@@ -58,7 +61,7 @@ public class UnnecessarySpringExtension extends Recipe {
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                         Set<J.Annotation> extendsWithMetaAnnotations = FindAnnotations.find(classDecl, EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN, true);
-                        if (1 < extendsWithMetaAnnotations.size()) {
+                        if (1 < extendsWithMetaAnnotations.size() || extendsWithMetaAnnotations.size() == 1 && usesOlderSpringTestAnnotation(classDecl)) {
                             return classDecl.withLeadingAnnotations(ListUtils.map(classDecl.getLeadingAnnotations(), annotation -> {
                                 if (EXTENDS_WITH_SPRING_EXACT_MATCHER.matches(annotation)) {
                                     Expression expression = annotation.getArguments().get(0);
@@ -84,6 +87,38 @@ public class UnnecessarySpringExtension extends Recipe {
                             }));
                         }
                         return super.visitClassDeclaration(classDecl, ctx);
+                    }
+
+                    private final List<String> SPRING_BOOT_TEST_ANNOTATIONS = Arrays.asList(
+                            "org.springframework.boot.test.context.SpringBootTest",
+                            "org.springframework.boot.test.autoconfigure.jdbc.JdbcTest",
+                            "org.springframework.boot.test.autoconfigure.web.client.RestClientTest",
+                            "org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest",
+                            "org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest",
+                            "org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest",
+                            "org.springframework.boot.test.autoconfigure.webservices.client.WebServiceClientTest",
+                            "org.springframework.boot.test.autoconfigure.jooq.JooqTest",
+                            "org.springframework.boot.test.autoconfigure.json.JsonTest",
+                            "org.springframework.boot.test.autoconfigure.data.cassandra.DataCassandraTest",
+                            "org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest",
+                            "org.springframework.boot.test.autoconfigure.data.ldap.DataLdapTest",
+                            "org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest",
+                            "org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest",
+                            "org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest",
+                            "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest",
+                            "org.springframework.batch.test.context.SpringBatchTest",
+                            "org.springframework.test.context.junit.jupiter.SpringJUnitConfig"
+                    );
+
+                    /**
+                     * When upgrading from 1.5 the `@SpringBootTest` annotation is not yet meta annotated.
+                     */
+                    private boolean usesOlderSpringTestAnnotation(J.ClassDeclaration classDecl) {
+                        return classDecl.getLeadingAnnotations().stream()
+                                .anyMatch(leadingAnnotation -> {
+                                    JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(leadingAnnotation.getType());
+                                    return fullyQualified != null && SPRING_BOOT_TEST_ANNOTATIONS.contains(fullyQualified.getFullyQualifiedName());
+                                });
                     }
                 });
     }
