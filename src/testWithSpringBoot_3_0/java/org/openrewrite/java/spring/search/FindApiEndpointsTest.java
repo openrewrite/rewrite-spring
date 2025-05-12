@@ -18,9 +18,11 @@ package org.openrewrite.java.spring.search;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.spring.table.ApiEndpoints;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class FindApiEndpointsTest implements RewriteTest {
@@ -100,6 +102,10 @@ class FindApiEndpointsTest implements RewriteTest {
     @Test
     void withResponseBody() {
         rewriteRun(
+          spec -> spec.dataTable(ApiEndpoints.Row.class, rows -> {
+              assertThat(rows).singleElement()
+                .matches(row -> row.getLeadingAnnotations().contains("@ResponseBody"));
+          }),
           //language=java
           java(
             """

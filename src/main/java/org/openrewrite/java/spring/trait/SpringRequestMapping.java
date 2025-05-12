@@ -29,8 +29,10 @@ import org.openrewrite.trait.Trait;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 @Value
@@ -83,20 +85,13 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
     }
 
     public String getLeadingAnnotations() {
-        StringBuilder annotationsBuilder = new StringBuilder();
         J.MethodDeclaration method = cursor.firstEnclosing(J.MethodDeclaration.class);
-
-        if (method != null) {
-            for (J.Annotation leadingAnnotation : method.getLeadingAnnotations()) {
-                if (!leadingAnnotation.getSimpleName().contains("Mapping")) {
-                    if (annotationsBuilder.length() > 0) {
-                        annotationsBuilder.append(", ");
-                    }
-                    annotationsBuilder.append(leadingAnnotation);
-                }
-            }
+        if (method == null) {
+            return "";
         }
-        return annotationsBuilder.toString();
+        return method.getLeadingAnnotations().stream()
+                .map(J.Annotation::toString)
+                .collect(joining(", "));
     }
 
     public static class Matcher extends SimpleTraitMatcher<SpringRequestMapping> {
