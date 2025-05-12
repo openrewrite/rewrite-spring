@@ -31,7 +31,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     }
 
     @Test
-    void mergeBootstrap() {
+    void mergeBootstrapYAML() {
         rewriteRun(
           srcMainResources(
             //language=yaml
@@ -52,6 +52,33 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 """,
               null,
               spec -> spec.path("bootstrap.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void mergeBootstrapYML() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              """
+                spring.application.name: main
+                name: test
+                """,
+              spec -> spec.path("application.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: test
+                """,
+              null,
+              spec -> spec.path("bootstrap.yml")
             )
           )
         );

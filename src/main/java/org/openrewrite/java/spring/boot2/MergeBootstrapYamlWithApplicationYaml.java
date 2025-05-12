@@ -59,9 +59,9 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                 }
                 SourceFile source = (SourceFile) tree;
                 Path sourcePath = source.getSourcePath();
-                if (acc.getBootstrapYaml() == null && PathUtils.matchesGlob(sourcePath, "**/main/resources/bootstrap.y?ml")) {
+                if (acc.getBootstrapYaml() == null && PathUtils.matchesGlob(sourcePath, "**/main/resources/bootstrap.y*ml")) {
                     acc.setBootstrapYaml(source);
-                } else if (acc.getApplicationYaml() == null && PathUtils.matchesGlob(sourcePath, "**/main/resources/application.y?ml")) {
+                } else if (acc.getApplicationYaml() == null && PathUtils.matchesGlob(sourcePath, "**/main/resources/application.y*ml")) {
                     acc.setApplicationYaml(source);
                 }
                 return source;
