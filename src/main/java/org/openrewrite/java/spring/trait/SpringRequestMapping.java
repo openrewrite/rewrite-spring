@@ -82,6 +82,23 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
         return result.toString().replace("//", "/");
     }
 
+    public String getLeadingAnnotations() {
+        StringBuilder annotationsBuilder = new StringBuilder();
+        J.MethodDeclaration method = cursor.firstEnclosing(J.MethodDeclaration.class);
+
+        if (method != null) {
+            for (J.Annotation leadingAnnotation : method.getLeadingAnnotations()) {
+                if (!leadingAnnotation.getSimpleName().contains("Mapping")) {
+                    if (annotationsBuilder.length() > 0) {
+                        annotationsBuilder.append(", ");
+                    }
+                    annotationsBuilder.append(leadingAnnotation);
+                }
+            }
+        }
+        return annotationsBuilder.toString();
+    }
+
     public static class Matcher extends SimpleTraitMatcher<SpringRequestMapping> {
         @Override
         protected @Nullable SpringRequestMapping test(Cursor cursor) {

@@ -45,5 +45,9 @@ public class ApiEndpoints extends DataTable<ApiEndpoints.Row> {
         @Column(displayName = "Path",
                 description = "The path of the API endpoint.")
         String path;
+
+        @Column(displayName = "Leading Annotations",
+                description = "The Leading annotations of the API endpoint.")
+        String leadingAnnotations;
     }
 }
