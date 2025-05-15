@@ -34,6 +34,10 @@ public class ApiEndpoints extends DataTable<ApiEndpoints.Row> {
                 description = "The path to the source file containing the API endpoint definition.")
         String sourcePath;
 
+        @Column(displayName = "Method Signature",
+                description = "The method signature of the API endpoint.")
+        String methodSignature;
+
         @Column(displayName = "Method name",
                 description = "The name of the method that defines the API endpoint.")
         String methodName;

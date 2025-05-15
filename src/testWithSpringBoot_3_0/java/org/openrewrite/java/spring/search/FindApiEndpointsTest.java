@@ -102,10 +102,10 @@ class FindApiEndpointsTest implements RewriteTest {
     @Test
     void withResponseBody() {
         rewriteRun(
-          spec -> spec.dataTable(ApiEndpoints.Row.class, rows -> {
-              assertThat(rows).singleElement()
-                .matches(row -> row.getLeadingAnnotations().contains("@ResponseBody"));
-          }),
+          spec -> spec.dataTable(ApiEndpoints.Row.class, rows ->
+            assertThat(rows).singleElement()
+              .matches(row -> row.getMethodSignature().contains("Person person()"))
+              .matches(row -> row.getLeadingAnnotations().contains("@ResponseBody"))),
           //language=java
           java(
             """

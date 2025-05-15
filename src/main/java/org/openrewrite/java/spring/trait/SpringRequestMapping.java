@@ -29,7 +29,6 @@ import org.openrewrite.trait.Trait;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
@@ -83,6 +82,19 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
         }
         return result.toString().replace("//", "/");
     }
+
+    public String getMethodSignature() {
+        J.MethodDeclaration method = cursor.firstEnclosing(J.MethodDeclaration.class);
+        if (method == null) {
+            return "";
+        }
+        //noinspection DataFlowIssue
+        return method
+                .withLeadingAnnotations(Collections.emptyList())
+                .withBody(null)
+                .printTrimmed(cursor);
+    }
+
 
     public String getLeadingAnnotations() {
         J.MethodDeclaration method = cursor.firstEnclosing(J.MethodDeclaration.class);

@@ -58,11 +58,13 @@ public class FindApiEndpoints extends Recipe {
                 for (J.Annotation annotation : service(AnnotationService.class).getAllAnnotations(getCursor())) {
                     m = matcher.get(annotation, getCursor()).map(requestMapping -> {
                         String path = requestMapping.getPath();
+                        String methodSignature = requestMapping.getMethodSignature();
                         String httpMethod = requestMapping.getHttpMethod();
                         String leadingAnnotations = requestMapping.getLeadingAnnotations();
 
                         apis.insertRow(ctx, new ApiEndpoints.Row(
                                 getCursor().firstEnclosingOrThrow(JavaSourceFile.class).getSourcePath().toString(),
+                                methodSignature,
                                 method.getSimpleName(),
                                 httpMethod,
                                 path,
