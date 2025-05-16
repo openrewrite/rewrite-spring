@@ -18,7 +18,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2024.UpgradeSpringCloud_2024
 displayName: Migrate to Spring Cloud 2024
-description: Migrate applications to the latest Spring Cloud 2024 release.
+description: Migrate applications to the latest Spring Cloud 2024 (Moorgate) release.
 tags:
   - spring
   - cloud
@@ -30,7 +30,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2024.DependencyUpgrades
 displayName: Upgrade dependencies to Spring Cloud 2024
-description: Upgrade dependencies to Spring Cloud 2024 from prior 2022.x version.
+description: Upgrade dependencies to Spring Cloud 2024 from prior 2023.x version.
 tags:
   - spring
   - cloud
@@ -49,7 +49,8 @@ recipeList:
       artifactId: spring-cloud-dependencies
       newVersion: 2024.0.x
       overrideManagedVersion: false
-  # Specific modules with independent versioning
+
+  # circuitbreaker, kubernetes & task follow a different versioning scheme
   # https://docs.spring.io/spring-cloud-release/reference/2024.0/
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
