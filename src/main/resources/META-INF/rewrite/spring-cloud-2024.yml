@@ -16,21 +16,21 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.cloud2023.UpgradeSpringCloud_2023
-displayName: Migrate to Spring Cloud 2023
-description: Migrate applications to the latest Spring Cloud 2023 (Leyton) release.
+name: org.openrewrite.java.spring.cloud2024.UpgradeSpringCloud_2024
+displayName: Migrate to Spring Cloud 2024
+description: Migrate applications to the latest Spring Cloud 2024 (Moorgate) release.
 tags:
   - spring
   - cloud
 recipeList:
-  - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
-  - org.openrewrite.java.spring.cloud2023.DependencyUpgrades
+  - org.openrewrite.java.spring.cloud2023.UpgradeSpringCloud_2023
+  - org.openrewrite.java.spring.cloud2024.DependencyUpgrades
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.cloud2023.DependencyUpgrades
-displayName: Upgrade dependencies to Spring Cloud 2023
-description: Upgrade dependencies to Spring Cloud 2023 from prior 2022.x version.
+name: org.openrewrite.java.spring.cloud2024.DependencyUpgrades
+displayName: Upgrade dependencies to Spring Cloud 2024
+description: Upgrade dependencies to Spring Cloud 2024 from prior 2023.x version.
 tags:
   - spring
   - cloud
@@ -38,46 +38,47 @@ recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: "*"
-      newVersion: 4.1.x
+      newVersion: 4.2.x
       overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-parent
-      newVersion: 2023.0.x
+      newVersion: 2024.0.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
-      newVersion: 2023.0.x
+      newVersion: 2024.0.x
       overrideManagedVersion: false
+
   # circuitbreaker, kubernetes & task follow a different versioning scheme
-  # https://docs.spring.io/spring-cloud-release/reference/2023.0/
+  # https://docs.spring.io/spring-cloud-release/reference/2024.0/
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-circuitbreaker-*
-      newVersion: 3.1.x
+      newVersion: 3.2.x
       overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-circuitbreaker-*
-      newVersion: 3.1.x
+      newVersion: 3.2.x
       overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-kubernetes-*
-      newVersion: 3.1.x
+      newVersion: 3.2.x
       overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-kubernetes-*
-      newVersion: 3.1.x
+      newVersion: 3.2.x
       overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-task-*
-      newVersion: 3.1.x
+      newVersion: 3.2.x
       overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-task-*
-      newVersion: 3.1.x
+      newVersion: 3.2.x
       overrideManagedVersion: false
