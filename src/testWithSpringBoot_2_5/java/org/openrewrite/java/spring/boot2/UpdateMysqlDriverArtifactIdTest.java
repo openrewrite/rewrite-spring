@@ -114,8 +114,7 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                     Matcher version = Pattern.compile("2.7.\\d+").matcher(pom);
                     assertThat(version.find()).describedAs("Expected 2.7.x in %s", pom).isTrue();
                     //language=xml
-                    return String.format(
-                      """
+                    return """
                         <project>
                           <modelVersion>4.0.0</modelVersion>
                           <groupId>com.example</groupId>
@@ -135,7 +134,7 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                             </dependency>
                           </dependencies>
                         </project>
-                        """, version.group(0));
+                        """.formatted(version.group(0));
                 })
               )
             );

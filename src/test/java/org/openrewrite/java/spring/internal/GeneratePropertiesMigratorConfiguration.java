@@ -27,7 +27,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.util.*;
@@ -87,7 +86,7 @@ class GeneratePropertiesMigratorConfiguration {
                 // Don't override manual fixes to the unsupported 2.x and 3.0 versions anymore
                 continue;
             }
-            var recipePath = Paths.get("src/main/resources/META-INF/rewrite/spring-boot-%s%s-properties.yml".formatted(majorMinor[0], majorMinor[1]));
+            var recipePath = Path.of("src/main/resources/META-INF/rewrite/spring-boot-%s%s-properties.yml".formatted(majorMinor[0], majorMinor[1]));
             writeFileHeader(majorMinor, recipePath);
             generateReplacementRecipes(deprecations, recipePath);
             generateCommentRecipesForDeprecations(deprecations, recipePath);
@@ -170,7 +169,7 @@ class GeneratePropertiesMigratorConfiguration {
     private static void writeFileHeader(String[] majorMinor, Path recipePath) throws IOException {
         Files.writeString(recipePath,
           "#\n" +
-          Files.readAllLines(Paths.get("gradle/licenseHeader.txt"))
+          Files.readAllLines(Path.of("gradle/licenseHeader.txt"))
             .stream()
             .map(str -> str.replaceAll("^", "# "))
             .map(str -> str.replace("${year}", LocalDate.now().getYear() + ""))
