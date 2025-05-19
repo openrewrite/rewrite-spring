@@ -137,7 +137,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                             "org.springframework.batch.core.job.builder.JobBuilder",
                             "org.springframework.batch.core.Step")
                     .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-batch-core-5.+"))
+                            .classpathFromResources(ctx, "spring-batch-core-5.1.+"))
                     .build();
 
             md = paramsTemplate.apply(getCursor(), md.getCoordinates().replaceParameters(), params.toArray());

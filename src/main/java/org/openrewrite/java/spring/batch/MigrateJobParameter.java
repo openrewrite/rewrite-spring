@@ -157,7 +157,7 @@ public class MigrateJobParameter extends Recipe {
                                 return JavaTemplate.builder("new JobParameter<>(#{any()}, #{}.class, #{any()})")
                                         .imports("org.springframework.batch.core.JobParameter")
                                         .javaParser(JavaParser.fromJavaVersion()
-                                                .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                                                .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                                         .build()
                                         .apply(getCursor(), nc.getCoordinates().replace(),
                                                 nc.getArguments().get(0),
@@ -167,7 +167,7 @@ public class MigrateJobParameter extends Recipe {
                             return JavaTemplate.builder("new JobParameter<>(#{any()}, #{}.class)")
                                     .imports("org.springframework.batch.core.JobParameter")
                                     .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                                            .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                                     .build()
                                     .apply(getCursor(), nc.getCoordinates().replace(),
                                             nc.getArguments().get(0),

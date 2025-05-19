@@ -98,7 +98,7 @@ public class MigrateStepBuilderFactory extends Recipe {
                     J.VariableDeclarations vdd = JavaTemplate.builder("JobRepository jobRepository")
                             .contextSensitive()
                             .imports("org.springframework.batch.core.repository.JobRepository")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
                             .build()
                             .<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
                             .getParameters().get(0).withPrefix(parametersEmpty ? Space.EMPTY : Space.SINGLE_SPACE);
@@ -142,7 +142,7 @@ public class MigrateStepBuilderFactory extends Recipe {
                 return JavaTemplate.builder("new StepBuilder(#{any(java.lang.String)}, jobRepository)")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                                .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                         .imports("org.springframework.batch.core.step.builder.StepBuilder")
                         .build()
                         .apply(getCursor(), mi.getCoordinates().replace(), mi.getArguments().get(0));
