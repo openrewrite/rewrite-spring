@@ -111,7 +111,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
             J.VariableDeclarations vdd = JavaTemplate.builder("Chunk" + chunkType + " _chunk")
                     .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+"))
+                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
                     .<J.MethodDeclaration>apply(getCursor(), method.getCoordinates().replaceParameters())
@@ -120,7 +120,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
             J.MethodDeclaration methodDeclaration = JavaTemplate.builder("List" + chunkType + " #{} = _chunk.getItems();")
                     .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+"))
+                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
                     .apply(getCursor(), method.getBody().getCoordinates().firstStatement(), paramName);
@@ -144,7 +144,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             return JavaTemplate.builder(String.format("%s\n %s void write(%s Chunk" + chunkType + " %s)%s %s", annotations, methodModifiers, parameterModifiers, "_chunk", throwz, body))
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                            .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
                     .apply(getCursor(), method.getCoordinates().replace());
