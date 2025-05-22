@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.test;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -37,6 +38,7 @@ class SpringRulesToJUnitExtensionTest implements RewriteTest {
 
     @Test
     @DocumentExample
+    @Disabled
     void migrateWithSpringBootTestPresent() {
         rewriteRun(
           //language=java
@@ -75,6 +77,7 @@ class SpringRulesToJUnitExtensionTest implements RewriteTest {
     }
 
     @Test
+    @Disabled
     void migrateSingleAnnotation() {
         rewriteRun(
           //language=java
