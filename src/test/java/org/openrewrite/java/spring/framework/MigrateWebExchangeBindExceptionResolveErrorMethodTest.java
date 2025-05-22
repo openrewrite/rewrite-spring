@@ -33,7 +33,7 @@ class MigrateWebExchangeBindExceptionResolveErrorMethodTest implements RewriteTe
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-context-6.+",
             "spring-core-6.+",
-            "spring-web-6.+"));
+            "spring-web-6.1.+"));
     }
 
     @DocumentExample
