@@ -28,6 +28,11 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.java.dependencies.search.RepositoryHasDependency:
+      groupIdPattern: org.springframework
+      artifactIdPattern: "*"
+      version: 1-5.1
 recipeList:
   # Upgrade 2.0.x from 1.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:

@@ -21,6 +21,11 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
 displayName: Migrate to Spring Boot 2.7
 description: Upgrade to Spring Boot 2.7.
+preconditions:
+  - org.openrewrite.java.dependencies.search.RepositoryHasDependency:
+      groupIdPattern: org.springframework
+      artifactIdPattern: "*"
+      version: 1-5.4
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
