@@ -31,7 +31,7 @@ class MigrateMethodArgumentNotValidExceptionErrorMethodTest implements RewriteTe
         spec
           .recipe(new MigrateMethodArgumentNotValidExceptionErrorMethod())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-context-6.+", "spring-web-6.+"));
+            "spring-context-6.+", "spring-web-6.1.+"));
     }
 
     @DocumentExample

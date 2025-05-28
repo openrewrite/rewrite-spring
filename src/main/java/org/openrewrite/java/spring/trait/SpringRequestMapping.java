@@ -88,7 +88,6 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
         if (method == null) {
             return "";
         }
-        //noinspection DataFlowIssue
         return method
                 .withLeadingAnnotations(Collections.emptyList())
                 .withBody(null)
@@ -103,7 +102,7 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
         }
         return method.getLeadingAnnotations().stream()
                 .map(J.Annotation::toString)
-                .collect(joining(", "));
+                .collect(joining("|"));
     }
 
     public static class Matcher extends SimpleTraitMatcher<SpringRequestMapping> {
