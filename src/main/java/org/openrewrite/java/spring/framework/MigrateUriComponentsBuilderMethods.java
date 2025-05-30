@@ -56,7 +56,7 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
                     return JavaTemplate.builder("ForwardedHeaderUtils.adaptFromForwardedHeaders(#{any()}.getURI(), #{any()}.getHeaders())")
                         .imports("org.springframework.web.util.ForwardedHeaderUtils")
                         .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-web-6.1.+"))
+                            .classpathFromResources(ctx, "spring-web-6.+"))
                         .build()
                         .apply(getCursor(), mi.getCoordinates().replace(), mi.getArguments().get(0), mi.getArguments().get(0));
                 }
@@ -66,7 +66,7 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
                     return JavaTemplate.builder("ForwardedHeaderUtils.parseForwardedFor(#{any()}.getURI(), #{any()}.getHeaders(), #{any()})")
                         .imports("org.springframework.web.util.ForwardedHeaderUtils")
                         .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-web-6.1.+"))
+                            .classpathFromResources(ctx, "spring-web-6.+"))
                         .build()
                         .apply(getCursor(), mi.getCoordinates().replace(), mi.getArguments().get(0), mi.getArguments().get(0), mi.getArguments().get(1));
                 }
