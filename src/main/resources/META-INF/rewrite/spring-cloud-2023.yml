@@ -23,7 +23,6 @@ tags:
   - spring
   - cloud
 recipeList:
-  - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
   - org.openrewrite.java.spring.cloud2023.DependencyUpgrades
 
 ---
