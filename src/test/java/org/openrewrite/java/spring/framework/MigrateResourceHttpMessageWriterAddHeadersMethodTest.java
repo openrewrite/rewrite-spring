@@ -33,7 +33,7 @@ class MigrateResourceHttpMessageWriterAddHeadersMethodTest implements RewriteTes
           .afterTypeValidationOptions(TypeValidation.all().methodInvocations(false)) // Attempts to fix so far fail
           .recipe(new MigrateResourceHttpMessageWriterAddHeadersMethod())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-web-6.1.+", "spring-core"));
+            "spring-web-6.+", "spring-core"));
     }
 
     @DocumentExample

@@ -43,7 +43,7 @@ class GeneratePropertiesMigratorConfiguration {
     private static final String DEFAULT_DEPRECATION_COMMENT = "This property is deprecated and will be removed in future Spring Boot versions";
 
     public static void main(String[] args) throws IOException {
-        var springBootReleases = new SpringBootReleases(true); // `true` for release candidates
+        var springBootReleases = new SpringBootReleases(false); // `true` for release candidates
         var releasesDir = new File(".boot-releases");
         //noinspection ResultOfMethodCallIgnored
         releasesDir.mkdirs();
