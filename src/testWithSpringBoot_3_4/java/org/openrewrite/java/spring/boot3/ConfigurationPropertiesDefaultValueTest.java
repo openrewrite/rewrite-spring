@@ -16,7 +16,9 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.java.JavaParser;
+import org.openrewrite.DocumentExample;
+
+import static org.openrewrite.java.Assertions.java;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.*;
@@ -30,6 +32,7 @@ class ConfigurationPropertiesDefaultValueTest implements RewriteTest {
           );
     }
 
+    @DocumentExample
     @Test
     void lstContainsErroneousNodes() {
         rewriteRun(
@@ -54,7 +57,7 @@ class ConfigurationPropertiesDefaultValueTest implements RewriteTest {
                 @DefaultValue("https://www.tubby.nl") String url
               ) {
               }
-          """
+              """
           )
         );
     }
