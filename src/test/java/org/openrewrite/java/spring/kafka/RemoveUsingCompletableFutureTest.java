@@ -45,7 +45,7 @@ class RemoveUsingCompletableFutureTest implements RewriteTest {
               import org.springframework.kafka.core.KafkaOperations2;
               import org.springframework.kafka.support.SendResult;
               import java.util.concurrent.CompletableFuture;
-              
+
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
                       KafkaOperations2<String, String> kafkaOperations2 = kafkaOperations.usingCompletableFuture();
@@ -57,10 +57,10 @@ class RemoveUsingCompletableFutureTest implements RewriteTest {
               import org.springframework.kafka.core.KafkaOperations;
               import org.springframework.kafka.support.SendResult;
               import java.util.concurrent.CompletableFuture;
-              
+
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
-                      KafkaOperations<String, String> kafkaOperations2 = kafkaOperations;
+                      KafkaOperations<String, String> kafkaOperations1 = kafkaOperations;
                   }
               }
               """
