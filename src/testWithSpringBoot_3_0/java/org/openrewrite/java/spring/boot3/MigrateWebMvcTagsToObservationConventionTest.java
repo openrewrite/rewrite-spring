@@ -50,13 +50,13 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import jakarta.servlet.http.HttpServletResponse;
               import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags;
               import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider;
-              
+
               class CustomWebMvcTagsProvider implements WebMvcTagsProvider {
-              
+
                   @Override
                   public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler, Throwable exception) {
                       Tags tags = Tags.of(WebMvcTags.method(request), WebMvcTags.uri(request, response), WebMvcTags.status(response), WebMvcTags.outcome(response));
-              
+
                       String customHeader = request.getHeader("X-Custom-Header");
                       if (customHeader != null) {
                           tags = tags.and("custom.header", customHeader);
@@ -71,14 +71,14 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import jakarta.servlet.http.HttpServletRequest;
               import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
               import org.springframework.http.server.observation.ServerRequestObservationContext;
-              
+
               class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
-              
+
                   @Override
                   public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
                       HttpServletRequest request = context.getCarrier();
                       KeyValues values = super.getHighCardinalityKeyValues(context);
-              
+
                       String customHeader = request.getHeader("X-Custom-Header");
                       if (customHeader != null) {
                           values.and(KeyValue.of("custom.header", customHeader));
@@ -103,12 +103,12 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import jakarta.servlet.http.HttpServletResponse;
               import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags;
               import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider;
-              
+
               class CustomWebMvcTagsProvider implements WebMvcTagsProvider {
-              
+
                   Tags staticTags = Tags.of("a", "b", "c", "d");
                   Tag staticTag = Tag.of("a", "b");
-              
+
                   @Override
                   public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler, Throwable exception) {
                       Tags tags = Tags.of(WebMvcTags.method(request), WebMvcTags.uri(request, response), WebMvcTags.status(response), WebMvcTags.outcome(response));
@@ -127,12 +127,12 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import io.micrometer.core.instrument.Tags;
               import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
               import org.springframework.http.server.observation.ServerRequestObservationContext;
-              
+
               class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
-              
+
                   Tags staticTags = Tags.of("a", "b", "c", "d");
                   Tag staticTag = Tag.of("a", "b");
-              
+
                   @Override
                   public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
                       KeyValues values = super.getHighCardinalityKeyValues(context);
@@ -162,16 +162,16 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import jakarta.servlet.http.HttpServletResponse;
               import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags;
               import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider;
-              
+
               class CustomWebMvcTagsProvider implements WebMvcTagsProvider {
-              
+
                   Tags staticTags = Tags.of("a", "b", "c", "d");
                   Tag staticTag = Tag.of("a", "b");
-              
+
                   @Override
                   public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler, Throwable exception) {
                       Tags tags = Tags.of(WebMvcTags.method(request), WebMvcTags.uri(request, response), WebMvcTags.status(response), WebMvcTags.outcome(response));
-              
+
                       String customHeader = request.getHeader("X-Custom-Header");
                       if (customHeader != null) {
                           tags = tags.and("custom.header", customHeader);
@@ -185,7 +185,7 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                       tags = tags.and(methodTags());
                       return tags;
                   }
-              
+
                   private Tags methodTags() {
                       return staticTags;
                   }
@@ -200,18 +200,18 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import jakarta.servlet.http.HttpServletResponse;
               import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
               import org.springframework.http.server.observation.ServerRequestObservationContext;
-              
+
               class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
-              
+
                   Tags staticTags = Tags.of("a", "b", "c", "d");
                   Tag staticTag = Tag.of("a", "b");
-              
+
                   @Override
                   public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
                       HttpServletRequest request = context.getCarrier();
                       HttpServletResponse response = context.getResponse();
                       KeyValues values = super.getHighCardinalityKeyValues(context);
-              
+
                       String customHeader = request.getHeader("X-Custom-Header");
                       if (customHeader != null) {
                           values.and(KeyValue.of("custom.header", customHeader));
@@ -229,7 +229,7 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
                       }
                       return values;
                   }
-              
+
                   private Tags methodTags() {
                       return staticTags;
                   }
@@ -250,9 +250,9 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import jakarta.servlet.http.HttpServletRequest;
               import jakarta.servlet.http.HttpServletResponse;
               import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider;
-              
+
               class CustomWebMvcTagsProvider implements WebMvcTagsProvider {
-              
+
                   @Override
                   public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler, Throwable exception) {
                       return Tags.of(Tag.of("a", "b"));
@@ -264,9 +264,9 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import io.micrometer.common.KeyValues;
               import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
               import org.springframework.http.server.observation.ServerRequestObservationContext;
-              
+
               class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
-              
+
                   @Override
                   public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
                       KeyValues values = super.getHighCardinalityKeyValues(context);
@@ -289,16 +289,16 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import jakarta.servlet.http.HttpServletRequest;
               import jakarta.servlet.http.HttpServletResponse;
               import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider;
-              
+
               import java.util.Collections;
-              
+
               class CustomWebMvcTagsProvider implements WebMvcTagsProvider {
-              
+
                   @Override
                   public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler, Throwable exception) {
                       return Collections.emptyList();
                   }
-              
+
                   void shouldNotFailOnEmptyMethod() {}
               }
               """,
@@ -306,18 +306,57 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import io.micrometer.common.KeyValues;
               import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
               import org.springframework.http.server.observation.ServerRequestObservationContext;
-              
+
               import java.util.Collections;
-              
+
               class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
-              
+
                   @Override
                   public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
                       KeyValues values = super.getHighCardinalityKeyValues(context);
                       return values;
                   }
-              
+
                   void shouldNotFailOnEmptyMethod() {}
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldNotCrashWhengetLongRequestTagsExists() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import io.micrometer.core.instrument.Tag;
+              import io.micrometer.core.instrument.Tags;
+              import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider;
+
+              import jakarta.servlet.http.HttpServletRequest;
+              import jakarta.servlet.http.HttpServletResponse;
+
+              public class WebMvcExample implements WebMvcTagsProvider {
+
+                  /**
+                   * Instance of {@link WebMvcTagsProvider}.
+                   */
+                  private final WebMvcTagsProvider webMvcTagsProvider;
+
+                  public WebMvcExample(WebMvcTagsProvider webMvcTagsProvider) {
+                      this.webMvcTagsProvider = webMvcTagsProvider;
+                  }
+
+                  @Override
+                  public Iterable<Tag> getTags(final HttpServletRequest request, final HttpServletResponse response, final Object handler, final Throwable exception) {
+                      return Tags.of(webMvcTagsProvider.getTags(request, response, handler, exception)).and("ABC", "ABC");
+                  }
+
+                  @Override
+                  public Iterable<Tag> getLongRequestTags(final HttpServletRequest request, final Object handler) {
+                      return Tags.of(webMvcTagsProvider.getLongRequestTags(request, handler)).and("ABC", "ABC");
+                  }
               }
               """
           )
