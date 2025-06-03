@@ -46,7 +46,8 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.0.x
-  - org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
+# Disabled because it causes problems in some builds
+#  - org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: 4.x
       addIfMissing: false
