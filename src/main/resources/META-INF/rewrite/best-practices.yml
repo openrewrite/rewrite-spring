@@ -24,6 +24,7 @@ tags:
   - boot
 recipeList:
   # Note that we do not upgrade to Spring Boot 2.x here, as the 2.0 recipe includes SpringBoot2BestPractices itself
+  - org.openrewrite.java.spring.PreserveParameterWhitespace
   - org.openrewrite.java.spring.NoRequestMappingAnnotation
   - org.openrewrite.java.spring.ImplicitWebAnnotationNames
   - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
