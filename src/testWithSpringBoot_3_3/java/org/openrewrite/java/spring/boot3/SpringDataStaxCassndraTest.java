@@ -89,7 +89,6 @@ class SpringDataStaxCassandraTest implements RewriteTest {
                     <artifactId>fooservice</artifactId>
                     <version>1.0-SNAPSHOT</version>
 
-                    <dependencyManagement>
                         <dependencies>
                             <dependency>
                                 <groupId>com.datastax.oss</groupId>
@@ -98,7 +97,6 @@ class SpringDataStaxCassandraTest implements RewriteTest {
                                 <type>jar</type>
                             </dependency>
                         </dependencies>
-                    </dependencyManagement>
                 </project>
                 """,
               spec -> spec.after(actual -> {
@@ -124,8 +122,6 @@ class SpringDataStaxCassandraTest implements RewriteTest {
                     <groupId>com.example</groupId>
                     <artifactId>fooservice</artifactId>
                     <version>1.0-SNAPSHOT</version>
-
-                    <dependencyManagement>
                         <dependencies>
                             <dependency>
                                 <groupId>com.datastax.oss</groupId>
@@ -134,7 +130,6 @@ class SpringDataStaxCassandraTest implements RewriteTest {
                                 <type>jar</type>
                             </dependency>
                         </dependencies>
-                    </dependencyManagement>
                 </project>
                 """,
               spec -> spec.after(actual -> {
