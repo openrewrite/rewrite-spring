@@ -66,6 +66,7 @@ name: org.openrewrite.java.spring.boot3.ChangeCassandraGroupId
 displayName: Change `com.datastax.oss` to `org.apache.cassandra`
 description: Change `groupId` from `com.datastax.oss` to `org.apache.cassandra` and adopt the Spring Boot 3.3 managed version.
 recipeList:
+  # Use explicit artifactIds as opposed to a wildcard, as we do not wish to change `com.datastax.oss:native-protocol`
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.datastax.oss
       oldArtifactId: java-driver-bom
