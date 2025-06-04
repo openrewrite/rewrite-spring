@@ -53,7 +53,7 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.graalvm.buildtools.native
       newVersion: 0.10.x
-  - org.openrewrite.java.spring.boot3.UpgradeCassandraGroupId
+  - org.openrewrite.java.spring.boot3.ChangeCassandraGroupId
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springdoc
       artifactId: "*"
@@ -62,52 +62,12 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.UpgradeCassandraGroupId
-displayName: Upgrade com.datastax.oss to org.apache.cassandra
-description: Upgrade com.datastax.oss to org.apache.cassandra and upgrade the versions as well for the relevant libraries
+name: org.openrewrite.java.spring.boot3.ChangeCassandraGroupId
+displayName: Change `com.datastax.oss` to `org.apache.cassandra`
+description: Change `groupId` from `com.datastax.oss` to `org.apache.cassandra` and adopt the Spring Boot 3.3 managed version.
 recipeList:
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.datastax.oss
-      oldArtifactId: java-driver-bom
-      newGroupId: org.apache.cassandra
-      newVersion: 4.18.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.datastax.oss
-      oldArtifactId: java-driver-core
-      newGroupId: org.apache.cassandra
-      newVersion: 4.18.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.datastax.oss
-      oldArtifactId: java-driver-core-shaded
-      newGroupId: org.apache.cassandra
-      newVersion: 4.18.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.datastax.oss
-      oldArtifactId: java-driver-mapper-processor
-      newGroupId: org.apache.cassandra
-      newVersion: 4.18.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.datastax.oss
-      oldArtifactId: java-driver-mapper-runtime
-      newGroupId: org.apache.cassandra
-      newVersion: 4.18.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.datastax.oss
-      oldArtifactId: java-driver-query-builder
-      newGroupId: org.apache.cassandra
-      newVersion: 4.18.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.datastax.oss
-      oldArtifactId: java-driver-test-infra
-      newGroupId: org.apache.cassandra
-      newVersion: 4.18.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.datastax.oss
-      oldArtifactId: java-driver-metrics-micrometer
-      newGroupId: org.apache.cassandra
-      newVersion: 4.18.x
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.datastax.oss
-      oldArtifactId: java-driver-metrics-microprofile
+      oldArtifactId: "*"
       newGroupId: org.apache.cassandra
       newVersion: 4.18.x

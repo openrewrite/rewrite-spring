@@ -29,15 +29,10 @@ class SpringDataStaxCassandraTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec
-          .expectedCyclesThatMakeChanges(1)
-          .recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3")
-          );
+        spec.recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3");
     }
 
+    @DocumentExample
     @Test
     void groupIdChangeCassandraBom() {
         rewriteRun(
@@ -45,13 +40,11 @@ class SpringDataStaxCassandraTest implements RewriteTest {
             //language=xml
             pomXml(
               """
-                <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
                     <groupId>com.example</groupId>
                     <artifactId>fooservice</artifactId>
                     <version>1.0-SNAPSHOT</version>
-
                     <dependencyManagement>
                         <dependencies>
                             <dependency>
@@ -65,11 +58,12 @@ class SpringDataStaxCassandraTest implements RewriteTest {
                     </dependencyManagement>
                 </project>
                 """,
-              spec -> spec.after(actual -> {
-                  assertThat(actual).containsPattern("<version>4.18.\\d+</version>");
-                  assertThat(actual).containsPattern("<groupId>org.apache.cassandra</groupId>");
-                  return actual;
-              })
+              spec -> spec.after(actual ->
+                assertThat(actual)
+                  .containsPattern("<groupId>org.apache.cassandra</groupId>")
+                  .containsPattern("<version>4.18.\\d+</version>")
+                  .actual()
+              )
             )
           )
         );
@@ -82,28 +76,27 @@ class SpringDataStaxCassandraTest implements RewriteTest {
             //language=xml
             pomXml(
               """
-                <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
                     <groupId>com.example</groupId>
                     <artifactId>fooservice</artifactId>
                     <version>1.0-SNAPSHOT</version>
-
-                        <dependencies>
-                            <dependency>
-                                <groupId>com.datastax.oss</groupId>
-                                <artifactId>java-driver-core</artifactId>
-                                <version>4.17.0</version>
-                                <type>jar</type>
-                            </dependency>
-                        </dependencies>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.datastax.oss</groupId>
+                            <artifactId>java-driver-core</artifactId>
+                            <version>4.17.0</version>
+                            <type>jar</type>
+                        </dependency>
+                    </dependencies>
                 </project>
                 """,
-              spec -> spec.after(actual -> {
-                  assertThat(actual).containsPattern("<version>4.18.\\d+</version>");
-                  assertThat(actual).containsPattern("<groupId>org.apache.cassandra</groupId>");
-                  return actual;
-              })
+              spec -> spec.after(actual ->
+                assertThat(actual)
+                  .containsPattern("<groupId>org.apache.cassandra</groupId>")
+                  .containsPattern("<version>4.18.\\d+</version>")
+                  .actual()
+              )
             )
           )
         );
@@ -116,27 +109,27 @@ class SpringDataStaxCassandraTest implements RewriteTest {
             //language=xml
             pomXml(
               """
-                <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <project>
                     <modelVersion>4.0.0</modelVersion>
                     <groupId>com.example</groupId>
                     <artifactId>fooservice</artifactId>
                     <version>1.0-SNAPSHOT</version>
-                        <dependencies>
-                            <dependency>
-                                <groupId>com.datastax.oss</groupId>
-                                <artifactId>native-protocol</artifactId>
-                                <version>1.5.1</version>
-                                <type>jar</type>
-                            </dependency>
-                        </dependencies>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.datastax.oss</groupId>
+                            <artifactId>native-protocol</artifactId>
+                            <version>1.5.1</version>
+                            <type>jar</type>
+                        </dependency>
+                    </dependencies>
                 </project>
                 """,
-              spec -> spec.after(actual -> {
-                  assertThat(actual).containsPattern("<version>1.5.1</version>");
-                  assertThat(actual).containsPattern("<groupId>com.datastax.oss</groupId>");
-                  return actual;
-              })
+              spec -> spec.after(actual ->
+                assertThat(actual)
+                  .containsPattern("<groupId>com.datastax.oss</groupId>")
+                  .containsPattern("<version>1.5.1</version>")
+                  .actual()
+              )
             )
           )
         );
