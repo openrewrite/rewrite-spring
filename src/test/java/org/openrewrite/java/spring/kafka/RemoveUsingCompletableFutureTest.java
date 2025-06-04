@@ -48,7 +48,7 @@ class RemoveUsingCompletableFutureTest implements RewriteTest {
 
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
-                      KafkaOperations2<String, String> kafkaOperations2 = kafkaOperations.usingCompletableFuture();
+                      KafkaOperations2<String, String> k2 = kafkaOperations.usingCompletableFuture();
                   }
               }
               """,
@@ -60,7 +60,7 @@ class RemoveUsingCompletableFutureTest implements RewriteTest {
 
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
-                      KafkaOperations<String, String> kafkaOperations1 = kafkaOperations;
+                      KafkaOperations<String, String> k2 = kafkaOperations;
                   }
               }
               """
