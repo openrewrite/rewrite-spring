@@ -119,7 +119,6 @@ class SpringDataStaxCassandraTest implements RewriteTest {
                             <groupId>com.datastax.oss</groupId>
                             <artifactId>native-protocol</artifactId>
                             <version>1.5.1</version>
-                            <type>jar</type>
                         </dependency>
                     </dependencies>
                 </project>

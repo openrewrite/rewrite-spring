@@ -68,6 +68,46 @@ description: Change `groupId` from `com.datastax.oss` to `org.apache.cassandra` 
 recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.datastax.oss
-      oldArtifactId: "*"
+      oldArtifactId: java-driver-bom
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-core
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-core-shaded
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-mapper-processor
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-mapper-runtime
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-query-builder
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-test-infra
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-metrics-micrometer
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-metrics-microprofile
       newGroupId: org.apache.cassandra
       newVersion: 4.18.x
