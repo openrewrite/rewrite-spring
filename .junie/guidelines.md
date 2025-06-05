@@ -17,12 +17,17 @@
 - Multi-line string literals are used for test inputs and expected outputs
 - Builder pattern is commonly used for creating complex objects
 
+### Nullness Annotations
+- JSpecify is used for nullness support via the `@NullMarked` annotation
+- Nullness is enabled at the package-level using `@NullMarked` in the `package-info.java` files
+- Java code only needs to use `@Nullable` annotation where a parameter, return value, or field can be `null`
+- A nested type that has a qualified reference in the source code (as e.g. `J.Identifier`) needs to be annotated as `J.@Nullable Identifier`
+
 ### Dependencies
 - Uses Gradle with Kotlin DSL for build configuration
-- Dependencies are organized by purpose in the build.gradle.kts file
+- Dependencies are organized by purpose in the `build.gradle.kts` file
 - Uses OpenRewrite as the core framework for code transformation
 - Supports multiple Spring Boot versions (1.5 through 3.4)
-- Supports multiple Spring Security versions (5.7, 5.8, 6.2)
 
 ### Type Reference Dependencies
 - Dependencies for type references from Java sources declared in tests (via `Assertions#java()`) and in templates (`JavaTemplate` usage) need to be configured via the `JavaParser`
