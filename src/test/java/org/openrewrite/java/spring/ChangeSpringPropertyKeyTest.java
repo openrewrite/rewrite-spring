@@ -325,4 +325,65 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/231")
+    void changeConditionalOnPropertyAnnotation() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("foo", "bar", List.of("baz")))
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure")),
+          java(
+            """
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+              class MyConfiguration {
+                  @ConditionalOnProperty(name = "foo", havingValue = "true")
+                  public String foo() {
+                      return "foo";
+                  }
+
+                  @ConditionalOnProperty(name = "foo.foo", havingValue = "true")
+                  public String fooFoo() {
+                      return "foo.foo";
+                  }
+
+                  @ConditionalOnProperty(name = "foo.bar", havingValue = "true")
+                  public String fooBar() {
+                      return "foo.bar";
+                  }
+
+                  @ConditionalOnProperty(name = "foo.baz", havingValue = "true")
+                  public String fooBaz() {
+                      return "foo.baz";
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+              class MyConfiguration {
+                  @ConditionalOnProperty(name = "bar", havingValue = "true")
+                  public String foo() {
+                      return "foo";
+                  }
+
+                  @ConditionalOnProperty(name = "bar.foo", havingValue = "true")
+                  public String fooFoo() {
+                      return "foo.foo";
+                  }
+
+                  @ConditionalOnProperty(name = "bar.bar", havingValue = "true")
+                  public String fooBar() {
+                      return "foo.bar";
+                  }
+
+                  @ConditionalOnProperty(name = "foo.baz", havingValue = "true")
+                  public String fooBaz() {
+                      return "foo.baz";
+                  }
+              }
+              """
+          )
+        );
+    }
 }

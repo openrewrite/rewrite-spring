@@ -20,12 +20,14 @@ import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.java.AnnotationMatcher;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.trait.Traits;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
+import org.openrewrite.yaml.ChangePropertyKey;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.List;
@@ -71,14 +73,18 @@ public class ChangeSpringPropertyKey extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        org.openrewrite.yaml.ChangePropertyKey yamlChangePropertyKey =
-                new org.openrewrite.yaml.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except, null);
+        ChangePropertyKey yamlChangePropertyKey =
+                new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except, null);
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey + ".") + exceptRegex() + "(.+)", newPropertyKey + ".$1", true, true);
 
-        return Preconditions.check(Preconditions.or(new IsPossibleSpringConfigFile(), new UsesType<>("org.springframework.beans.factory.annotation.Value", false)), new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(
+                new IsPossibleSpringConfigFile(),
+                new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
+                new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false)
+        ), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Yaml.Documents) {
@@ -93,9 +99,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                         tree = newTree;
                     }
                 } else if (tree instanceof JavaSourceFile) {
-                    tree = Traits.annotated("@org.springframework.beans.factory.annotation.Value")
-                            .asVisitor(annotated -> mapArgs(annotated.getTree()))
-                            .visit(tree, ctx);
+                    tree = new JavaPropertyKeyVisitor().visit(tree, ctx);
                 }
                 return tree;
             }
@@ -108,61 +112,102 @@ public class ChangeSpringPropertyKey extends Recipe {
                 "(?!(" + String.join("|", except) + "))";
     }
 
-    private J.Annotation mapArgs(J.Annotation a) {
-        if (a.getArguments() != null) {
-            a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
-                if (arg instanceof J.Literal) {
-                    J.Literal literal = (J.Literal) arg;
-                    if (literal.getValue() instanceof String) {
-                        String value = (String) literal.getValue();
-                        if (value.contains(oldPropertyKey)) {
-                            Pattern pattern = Pattern.compile("\\$\\{(" + quote(oldPropertyKey) + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
-                            Matcher matcher = pattern.matcher(value);
-                            int idx = 0;
-                            if (matcher.find()) {
-                                StringBuilder sb = new StringBuilder();
-                                do {
-                                    sb.append(value, idx, matcher.start());
-                                    idx = matcher.end();
-                                    boolean found = false;
-                                    if (except != null) {
-                                        for (String e : except) {
-                                            if (matcher.group(1).startsWith(oldPropertyKey + '.' + e)) {
-                                                found = true;
-                                                break;
+    private class JavaPropertyKeyVisitor extends JavaIsoVisitor<ExecutionContext> {
+        private final AnnotationMatcher VALUE_MATCHER =
+                new AnnotationMatcher("@org.springframework.beans.factory.annotation.Value");
+        private final AnnotationMatcher CONDITIONAL_ON_PROPERTY_MATCHER =
+                new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty");
+
+        @Override
+        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+            J.Annotation a = annotation;
+
+            if (VALUE_MATCHER.matches(annotation)) {
+                if (a.getArguments() != null) {
+                    a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
+                        if (arg instanceof J.Literal) {
+                            J.Literal literal = (J.Literal) arg;
+                            if (literal.getValue() instanceof String) {
+                                String value = (String) literal.getValue();
+                                if (value.contains(oldPropertyKey)) {
+                                    Pattern pattern = Pattern.compile("\\$\\{(" + quote(oldPropertyKey) + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
+                                    Matcher matcher = pattern.matcher(value);
+                                    int idx = 0;
+                                    if (matcher.find()) {
+                                        StringBuilder sb = new StringBuilder();
+                                        do {
+                                            sb.append(value, idx, matcher.start());
+                                            idx = matcher.end();
+                                            boolean found = false;
+                                            if (except != null) {
+                                                for (String e : except) {
+                                                    if (matcher.group(1).startsWith(oldPropertyKey + '.' + e)) {
+                                                        found = true;
+                                                        break;
+                                                    }
+                                                }
                                             }
+                                            if (found) {
+                                                sb.append(matcher.group(0));
+                                            } else {
+                                                sb.append("${")
+                                                        .append(matcher.group(1).replaceFirst(quote(oldPropertyKey), newPropertyKey))
+                                                        .append(matcher.group(2));
+                                            }
+                                        } while (matcher.find());
+                                        sb.append(value, idx, value.length());
+
+                                        String newValue = sb.toString();
+
+                                        if (!value.equals(newValue)) {
+                                            if (except != null) {
+                                                for (String e : except) {
+                                                    if (newValue.contains("${" + newPropertyKey + '.' + e)) {
+                                                        return arg;
+                                                    }
+                                                }
+                                            }
+                                            arg = literal.withValue(newValue)
+                                                    .withValueSource("\"" + newValue.replace("\\", "\\\\") + "\"");
                                         }
                                     }
-                                    if (found) {
-                                        sb.append(matcher.group(0));
-                                    } else {
-                                        sb.append("${")
-                                                .append(matcher.group(1).replaceFirst(quote(oldPropertyKey), newPropertyKey))
-                                                .append(matcher.group(2));
-                                    }
-                                } while (matcher.find());
-                                sb.append(value, idx, value.length());
-
-                                String newValue = sb.toString();
-
-                                if (!value.equals(newValue)) {
-                                    if (except != null) {
-                                        for (String e : except) {
-                                            if (newValue.contains("${" + newPropertyKey + '.' + e)) {
-                                                return arg;
-                                            }
-                                        }
-                                    }
-                                    arg = literal.withValue(newValue)
-                                            .withValueSource("\"" + newValue.replace("\\", "\\\\") + "\"");
                                 }
                             }
                         }
-                    }
+                        return arg;
+                    }));
                 }
-                return arg;
-            }));
+            } else if (CONDITIONAL_ON_PROPERTY_MATCHER.matches(annotation)) {
+                if (a.getArguments() != null) {
+                    a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
+                        if (arg instanceof J.Assignment &&
+                            ((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName().equals("name") &&
+                            ((J.Assignment) arg).getAssignment() instanceof J.Literal) {
+                            J.Assignment assignment = (J.Assignment) arg;
+                            J.Literal literal = (J.Literal) assignment.getAssignment();
+                            String value = literal.getValue().toString();
+
+                            if (value.startsWith(oldPropertyKey)) {
+                                if (except != null) {
+                                    for (String e : except) {
+                                        if (value.startsWith(oldPropertyKey + '.' + e)) {
+                                            return arg;
+                                        }
+                                    }
+                                }
+                                arg = assignment.withAssignment(
+                                        literal.withValueSource(
+                                                        literal.getValueSource().replaceFirst(quote(oldPropertyKey), newPropertyKey))
+                                                .withValue(value.replaceFirst(quote(oldPropertyKey), newPropertyKey))
+                                );
+                            }
+                        }
+                        return arg;
+                    }));
+                }
+            }
+
+            return a;
         }
-        return a;
     }
 }
