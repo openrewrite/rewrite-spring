@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.doc;
 
 import lombok.Getter;
 import lombok.Value;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
@@ -30,6 +31,7 @@ import org.openrewrite.marker.SearchResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.openrewrite.Preconditions.and;
 import static org.openrewrite.Preconditions.or;
@@ -58,107 +60,11 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(DocketBeanAccumulator acc) {
-        return Preconditions.check(or(and(new UsesType<>("springfox.documentation.spring.web.plugins.Docket", true), new UsesType<>("org.springframework.context.annotation.Bean", true)), new IsPossibleSpringConfigFile()), new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(or(isDocketJavaBeanConfiguration(), new IsPossibleSpringConfigFile()), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext executionContext, Cursor parent) {
                 if (tree instanceof J.CompilationUnit) {
-                    return new JavaIsoVisitor<ExecutionContext>() {
-                        @Override
-                        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
-                            J.MethodDeclaration md = super.visitMethodDeclaration(method, executionContext);
-                            if (md.getLeadingAnnotations().stream().anyMatch(BEAN_ANNOTATIONMATCHER::matches) && DOCKET_TYPEMATCHER.matches(md.getReturnTypeExpression())) {
-                                DocketDefinition.Builder docketDefinitionBuilder = new JavaIsoVisitor<DocketDefinition.Builder>() {
-                                    @Override
-                                    public J.NewClass visitNewClass(J.NewClass newClass, DocketDefinition.Builder builder) {
-                                        J.NewClass nc = super.visitNewClass(newClass, builder);
-                                        if (!builder.isValid()) {
-                                            return nc;
-                                        }
-                                        if (!DOCKET_TYPEMATCHER.matches(newClass.getType()) ||
-                                                !DOCUMENTATIONTYPE_TYPEMATCHER.matches(newClass.getArguments().get(0).getType()) ||
-                                                !"SWAGGER_2".equals(((J.FieldAccess) newClass.getArguments().get(0)).getName().getSimpleName())) {
-                                            builder.invalidate();
-                                        }
-                                        return nc;
-                                    }
-
-                                    @Override
-                                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, DocketDefinition.Builder builder) {
-                                        J.MethodInvocation mi = super.visitMethodInvocation(method, builder);
-                                        if (!builder.isValid()) {
-                                            return mi;
-                                        }
-                                        if (mi.getSelect() != null &&
-                                                APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
-                                                "paths".equals(mi.getSimpleName())) {
-                                            new JavaIsoVisitor<DocketDefinition.Builder>() {
-                                                @Override
-                                                public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, DocketDefinition.Builder builder) {
-                                                    new JavaIsoVisitor<DocketDefinition.Builder>() {
-                                                        @Override
-                                                        public J.Literal visitLiteral(J.Literal literal, DocketDefinition.Builder builder) {
-                                                            builder.addPath(literal);
-                                                            return super.visitLiteral(literal, builder);
-                                                        }
-
-                                                        @Override
-                                                        public J.Identifier visitIdentifier(J.Identifier identifier, DocketDefinition.Builder builder) {
-                                                            builder.addPath(identifier);
-                                                            return super.visitIdentifier(identifier, builder);
-                                                        }
-
-                                                        @Override
-                                                        public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, DocketDefinition.Builder builder) {
-                                                            builder.addPath(fieldAccess);
-                                                            return super.visitFieldAccess(fieldAccess, builder);
-                                                        }
-                                                    }.visit(method.getArguments(), builder);
-                                                    return method;
-                                                }
-                                            }.visit(mi.getArguments(), builder);
-                                        } else if (mi.getSelect() != null &&
-                                                APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
-                                                "apis".equals(mi.getSimpleName())) {
-                                            new JavaIsoVisitor<DocketDefinition.Builder>() {
-                                                @Override
-                                                public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, DocketDefinition.Builder builder) {
-                                                    new JavaIsoVisitor<DocketDefinition.Builder>() {
-                                                        @Override
-                                                        public J.Literal visitLiteral(J.Literal literal, DocketDefinition.Builder builder) {
-                                                            builder.addApi(literal);
-                                                            return super.visitLiteral(literal, builder);
-                                                        }
-
-                                                        @Override
-                                                        public J.Identifier visitIdentifier(J.Identifier identifier, DocketDefinition.Builder builder) {
-                                                            builder.addApi(identifier);
-                                                            return super.visitIdentifier(identifier, builder);
-                                                        }
-
-                                                        @Override
-                                                        public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, DocketDefinition.Builder builder) {
-                                                            builder.addApi(fieldAccess);
-                                                            return super.visitFieldAccess(fieldAccess, builder);
-                                                        }
-                                                    }.visit(method.getArguments(), builder);
-                                                    return method;
-                                                }
-                                            }.visit(mi.getArguments(), builder);
-                                        } else if (mi.getSelect() != null &&
-                                                DOCKET_TYPEMATCHER.matches(mi.getSelect().getType()) &&
-                                                "groupName".equals(mi.getSimpleName())) {
-                                            builder.setGroup(mi.getArguments().get(0));
-                                        }
-                                        return mi;
-                                    }
-                                }.reduce(md, new DocketDefinition.Builder());
-                                if (docketDefinitionBuilder.isValid()) {
-                                    acc.docketDefinitions.add(docketDefinitionBuilder.build());
-                                }
-                            }
-                            return md;
-                        }
-                    }.visit(tree, executionContext);
+                    return new JavaBeanConfigurationScanner(acc).visit(tree, executionContext);
                 } else if (new IsPossibleSpringConfigFile().visit(tree, executionContext).getMarkers().findFirst(SearchResult.class).isPresent()) {
                     acc.hasProperties = true;
                 }
@@ -173,7 +79,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
             return TreeVisitor.noop();
         }
         DocketDefinition docketDefinition = acc.docketDefinitions.get(0);
-        return Preconditions.check(or(and(new UsesType<>("springfox.documentation.spring.web.plugins.Docket", true), new UsesType<>("org.springframework.context.annotation.Bean", true)), new IsPossibleSpringConfigFile()), new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(or(isDocketJavaBeanConfiguration(), new IsPossibleSpringConfigFile()), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext executionContext, Cursor parent) {
                 if (tree instanceof J.CompilationUnit) {
@@ -193,7 +99,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                                     String methodTemplate = "@Bean\n" +
                                             "public GroupedOpenApi " + method.getSimpleName() + "() {\n" +
                                             "    return GroupedOpenApi.builder()\n";
-                                    if(docketDefinition.groupName == null) {
+                                    if (docketDefinition.groupName == null) {
                                         methodTemplate = methodTemplate + "            .group(\"public\")\n";
                                     } else {
                                         methodTemplate = methodTemplate + "            .group(" + (docketDefinition.groupName instanceof J.Literal ? "\"" + docketDefinition.groupName + "\"" : docketDefinition.groupName) + ")\n";
@@ -255,14 +161,108 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         });
     }
 
+    private static @NotNull TreeVisitor<?, ExecutionContext> isDocketJavaBeanConfiguration() {
+        return and(new UsesType<>("springfox.documentation.spring.web.plugins.Docket", true), new UsesType<>("org.springframework.context.annotation.Bean", true));
+    }
+
+    private static class JavaBeanConfigurationScanner extends JavaIsoVisitor<ExecutionContext> {
+        private final DocketBeanAccumulator acc;
+
+        public JavaBeanConfigurationScanner(DocketBeanAccumulator acc) {
+            this.acc = acc;
+        }
+
+        @Override
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext executionContext) {
+            J.MethodDeclaration md = super.visitMethodDeclaration(method, executionContext);
+            if (md.getLeadingAnnotations().stream().anyMatch(BEAN_ANNOTATIONMATCHER::matches) && DOCKET_TYPEMATCHER.matches(md.getReturnTypeExpression())) {
+                DocketDefinition.Builder docketDefinitionBuilder = new JavaIsoVisitor<DocketDefinition.Builder>() {
+                    @Override
+                    public J.NewClass visitNewClass(J.NewClass newClass, DocketDefinition.Builder builder) {
+                        J.NewClass nc = super.visitNewClass(newClass, builder);
+                        if (!builder.isValid()) {
+                            return nc;
+                        }
+                        if (!DOCKET_TYPEMATCHER.matches(newClass.getType()) ||
+                                !DOCUMENTATIONTYPE_TYPEMATCHER.matches(newClass.getArguments().get(0).getType()) ||
+                                !"SWAGGER_2".equals(((J.FieldAccess) newClass.getArguments().get(0)).getName().getSimpleName())) {
+                            builder.invalidate();
+                        }
+                        return nc;
+                    }
+
+                    @Override
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, DocketDefinition.Builder builder) {
+                        J.MethodInvocation mi = super.visitMethodInvocation(method, builder);
+                        if (!builder.isValid()) {
+                            return mi;
+                        }
+                        if (mi.getSelect() != null &&
+                                APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
+                                "paths".equals(mi.getSimpleName())) {
+                            new ArgumentExtractor(builder).visit(mi.getArguments(), builder::addPath);
+                        } else if (mi.getSelect() != null &&
+                                APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
+                                "apis".equals(mi.getSimpleName())) {
+                            new ArgumentExtractor(builder).visit(mi.getArguments(), builder::addApi);
+                        } else if (mi.getSelect() != null &&
+                                DOCKET_TYPEMATCHER.matches(mi.getSelect().getType()) &&
+                                "groupName".equals(mi.getSimpleName())) {
+                            builder.setGroup(mi.getArguments().get(0));
+                        }
+                        return mi;
+                    }
+                }.reduce(md, new DocketDefinition.Builder());
+                if (docketDefinitionBuilder.isValid()) {
+                    acc.docketDefinitions.add(docketDefinitionBuilder.build());
+                }
+            }
+            return md;
+        }
+    }
+
+    static class ArgumentExtractor extends JavaIsoVisitor<Consumer<Expression>> {
+        private final DocketDefinition.Builder builder;
+
+        public ArgumentExtractor(DocketDefinition.Builder builder) {
+            this.builder = builder;
+        }
+
+        @Override
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, Consumer<Expression> consumer) {
+            new JavaIsoVisitor<Consumer<Expression>>() {
+                @Override
+                public J.Literal visitLiteral(J.Literal literal, Consumer<Expression> consumer) {
+                    consumer.accept(literal);
+                    return super.visitLiteral(literal, consumer);
+                }
+
+                @Override
+                public J.Identifier visitIdentifier(J.Identifier identifier, Consumer<Expression> consumer) {
+                    consumer.accept(identifier);
+                    return super.visitIdentifier(identifier, consumer);
+                }
+
+                @Override
+                public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, Consumer<Expression> consumer) {
+                    consumer.accept(fieldAccess);
+                    return super.visitFieldAccess(fieldAccess, consumer);
+                }
+            }.visit(method.getArguments(), consumer);
+            return method;
+        }
+    }
+
     static class DocketBeanAccumulator {
         public boolean hasProperties = false;
+
         public List<DocketDefinition> docketDefinitions = new ArrayList<>();
 
         @Value
         static class DocketDefinition {
             Expression groupName;
             Expression paths;
+
             Expression apis;
 
             static class Builder {
@@ -270,6 +270,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                 private boolean valid = true;
                 private Expression paths = null;
                 private Expression apis = null;
+
                 private Expression groupName = null;
 
                 public void invalidate() {
