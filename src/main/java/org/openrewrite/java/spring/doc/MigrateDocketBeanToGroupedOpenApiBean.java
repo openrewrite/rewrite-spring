@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.doc;
 
 import lombok.Getter;
 import lombok.Value;
-import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
