@@ -160,7 +160,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         });
     }
 
-    private static @NotNull TreeVisitor<?, ExecutionContext> isDocketJavaBeanConfiguration() {
+    private static TreeVisitor<?, ExecutionContext> isDocketJavaBeanConfiguration() {
         return and(new UsesType<>("springfox.documentation.spring.web.plugins.Docket", true), new UsesType<>("org.springframework.context.annotation.Bean", true));
     }
 
