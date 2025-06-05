@@ -17,6 +17,7 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -28,7 +29,28 @@ class FieldInjectionToConstructorInjectionTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new FieldInjectionToConstructorInjectionSimple(null))
-          .parser(JavaParser.fromJavaVersion().classpath("spring-beans"));
+          .parser(JavaParser.fromJavaVersion()
+            .logCompilationWarningsAndErrors(true)
+            //language=java
+            .dependsOn(
+              """
+                package org.springframework.beans.factory.annotation;
+                public @interface Autowired {
+                    boolean required() default true;
+                }
+                """,
+              """
+                package org.springframework.beans.factory.annotation;
+                public @interface Qualifier {
+                    String value();
+                }
+                """,
+              """
+                package com.example;
+                class BaseService {}
+                """
+            )
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.+", "spring-beans-5.+"));
     }
 
     @DocumentExample
