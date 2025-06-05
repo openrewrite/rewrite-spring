@@ -18,17 +18,17 @@ package org.openrewrite.java.spring;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
 
-import static org.openrewrite.java.Assertions.mavenProject;
-import static org.openrewrite.java.Assertions.srcMainResources;
+import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
-
 
 class ChangeSpringPropertyKeyTest implements RewriteTest {
 
@@ -283,6 +283,116 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   """
               )
             )
+          )
+        );
+    }
+
+    @Test
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/231")
+    void changeValueAnnotation() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans")),
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Value;
+
+              class MyConfiguration {
+                  @Value("${server.servlet-path.foo.bar} ${server.servlet-path.bar}")
+                  private String servletPath;
+
+                  @Value("${server.servlet-path.foo:/\\\\{foo\\\\}} ${server.servlet-path.bar:/\\\\{bar\\\\}}")
+                  private String servletPathWithDefault;
+
+                  @Value("${server.servlet-path}/api")
+                  private String apiPath;
+              }
+              """,
+            """
+              import org.springframework.beans.factory.annotation.Value;
+
+              class MyConfiguration {
+                  @Value("${server.servlet-path.foo.bar} ${server.servlet.path.bar}")
+                  private String servletPath;
+
+                  @Value("${server.servlet-path.foo:/\\\\{foo\\\\}} ${server.servlet.path.bar:/\\\\{bar\\\\}}")
+                  private String servletPathWithDefault;
+
+                  @Value("${server.servlet.path}/api")
+                  private String apiPath;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/231")
+    void changeConditionalOnPropertyAnnotation() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("foo", "bar", List.of("baz")))
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure")),
+          java(
+            """
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+              class MyConfiguration {
+                  @ConditionalOnProperty(name = "foo", havingValue = "true")
+                  public String foo() {
+                      return "foo";
+                  }
+
+                  @ConditionalOnProperty(name = "foo.foo", havingValue = "true")
+                  public String fooFoo() {
+                      return "foo.foo";
+                  }
+
+                  @ConditionalOnProperty(name = "foo.bar", havingValue = "true")
+                  public String fooBar() {
+                      return "foo.bar";
+                  }
+
+                  @ConditionalOnProperty(name = "foo.baz", havingValue = "true")
+                  public String fooBaz() {
+                      return "foo.baz";
+                  }
+
+                  @ConditionalOnProperty(name = "foo.bazes", havingValue = "true")
+                  public String fooBazes() {
+                      return "foo.bazes";
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+              class MyConfiguration {
+                  @ConditionalOnProperty(name = "bar", havingValue = "true")
+                  public String foo() {
+                      return "foo";
+                  }
+
+                  @ConditionalOnProperty(name = "bar.foo", havingValue = "true")
+                  public String fooFoo() {
+                      return "foo.foo";
+                  }
+
+                  @ConditionalOnProperty(name = "bar.bar", havingValue = "true")
+                  public String fooBar() {
+                      return "foo.bar";
+                  }
+
+                  @ConditionalOnProperty(name = "foo.baz", havingValue = "true")
+                  public String fooBaz() {
+                      return "foo.baz";
+                  }
+
+                  @ConditionalOnProperty(name = "bar.bazes", havingValue = "true")
+                  public String fooBazes() {
+                      return "foo.bazes";
+                  }
+              }
+              """
           )
         );
     }
