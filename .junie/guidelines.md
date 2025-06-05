@@ -24,6 +24,31 @@
 - Supports multiple Spring Boot versions (1.5 through 3.4)
 - Supports multiple Spring Security versions (5.7, 5.8, 6.2)
 
+### Type Reference Dependencies
+- Dependencies for type references from Java sources declared in tests (via `Assertions#java()`) and in templates (`JavaTemplate` usage) need to be configured via the `JavaParser`
+- These dependencies should be configured using the `JavaParser.Builder#classpathFromResources()` method
+- The dependencies are specified as regex patterns that match against Maven artifact names from the `recipeDependencies` configuration in the Gradle build script
+- As there are multiple versions for many dependencies, the version needs to be encoded into the pattern (e.g., `"spring-beans-6"`)
+- Adding a new dependency to the `recipeDependencies` configuration in `build.gradle.kts` requires running the Gradle `createTypeTable` task
+
+#### Examples:
+
+In tests:
+```
+JavaParser.fromJavaVersion()
+    .classpathFromResources(new InMemoryExecutionContext(),
+        "spring-context-6.+", "spring-beans-6.+")
+```
+
+In production code with JavaTemplate:
+```
+JavaTemplate.builder("@Bean")
+    .imports(FQN_BEAN)
+    .javaParser(JavaParser.fromJavaVersion()
+        .classpathFromResources(ctx, "spring-context-6"))
+    .build()
+```
+
 ## Code Organization and Package Structure
 
 ### Package Structure
@@ -57,23 +82,6 @@ The project follows a hierarchical package structure:
 ### Source Sets
 - `main` - Main source code
 - `test` - Standard test code
-- Multiple specialized test source sets for different Spring Boot versions:
-  - `testWithSpringBoot_1_5`
-  - `testWithSpringBoot_2_1`
-  - `testWithSpringBoot_2_2`
-  - `testWithSpringBoot_2_3`
-  - `testWithSpringBoot_2_4`
-  - `testWithSpringBoot_2_5`
-  - `testWithSpringBoot_2_6`
-  - `testWithSpringBoot_2_7`
-  - `testWithSpringBoot_3_0`
-  - `testWithSpringBoot_3_2`
-  - `testWithSpringBoot_3_3`
-  - `testWithSpringBoot_3_4`
-- Additional source sets for Spring Security testing:
-  - `testWithSpringSecurity_5_7`
-  - `testWithSpringSecurity_5_8`
-  - `testWithSpringSecurity_6_2`
 
 ## Unit and Integration Testing Approaches
 

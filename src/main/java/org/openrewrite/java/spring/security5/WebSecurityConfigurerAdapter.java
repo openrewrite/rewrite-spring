@@ -304,7 +304,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 maybeAddImport(FQN_BEAN);
                 return JavaTemplate.builder("@Bean")
                         .imports(FQN_BEAN)
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context"))
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context-6"))
                         .build()
                         // not calling `updateCursor()` here because `visitBlock()` currently requires the original to be stored in the cursor
                         .apply(new Cursor(getCursor().getParentOrThrow(), m),
