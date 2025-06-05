@@ -17,8 +17,8 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -28,6 +28,8 @@ import org.openrewrite.marker.Markers;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -60,7 +62,7 @@ public class FieldInjectionToConstructorInjection extends Recipe {
     }
 
     private static class FieldInjectionToConstructorInjectionVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private final Integer maxAutowiredFields;
+        private final @Nullable Integer maxAutowiredFields;
 
         public FieldInjectionToConstructorInjectionVisitor(@Nullable Integer maxAutowiredFields) {
             this.maxAutowiredFields = maxAutowiredFields;
@@ -151,6 +153,22 @@ public class FieldInjectionToConstructorInjection extends Recipe {
     }
 
     private static class CreateConstructorVisitor extends JavaVisitor<ExecutionContext> {
+        private static final Comparator<Statement> CONSTRUCTORS_FIRST_COMPARATOR = (a, b) -> {
+            boolean aIsMethod = a instanceof J.MethodDeclaration;
+            boolean bIsMethod = b instanceof J.MethodDeclaration;
+
+            if (aIsMethod != bIsMethod) {
+                return aIsMethod ? 1 : -1; // non-methods first
+            }
+
+            if (aIsMethod) {
+                boolean aIsConstructor = ((J.MethodDeclaration) a).isConstructor();
+                boolean bIsConstructor = ((J.MethodDeclaration) b).isConstructor();
+                return Boolean.compare(bIsConstructor, aIsConstructor); // constructors first
+            }
+
+            return 0; // equal for non-methods
+        };
         private final J.ClassDeclaration classDecl;
         private final List<J.VariableDeclarations> autowiredFields;
 
@@ -197,29 +215,12 @@ public class FieldInjectionToConstructorInjection extends Recipe {
                         .contextSensitive()
                         .build();
 
-                // Find insertion point
-                Optional<Statement> firstMethod = cd.getBody().getStatements().stream()
-                        .filter(J.MethodDeclaration.class::isInstance)
-                        .findFirst();
-
-                return firstMethod.map(statement ->
-                        (J) template.apply(
-                            getCursor(),
-                            statement.getCoordinates().before()
-                        )
-                    )
-                    .orElseGet(() ->
-                        template.apply(
-                            getCursor(),
-                            cd.getBody().getCoordinates().lastStatement()
-                        )
-                    );
+                return template.apply(getCursor(), cd.getBody().getCoordinates().addStatement(CONSTRUCTORS_FIRST_COMPARATOR));
             }
             return super.visitClassDeclaration(cd, ctx);
         }
 
-        @Nullable
-        private J.Annotation getQualifierAnnotation(J.VariableDeclarations field) {
+        private J.@Nullable Annotation getQualifierAnnotation(J.VariableDeclarations field) {
             return field.getLeadingAnnotations().stream()
                     .filter(annotation -> TypeUtils.isOfClassType(annotation.getType(), QUALIFIER))
                     .findFirst()
@@ -305,8 +306,7 @@ public class FieldInjectionToConstructorInjection extends Recipe {
             return super.visitClassDeclaration(cd, ctx);
         }
 
-        @Nullable
-        private J.Annotation getQualifierAnnotation(J.VariableDeclarations field) {
+        private J.@Nullable Annotation getQualifierAnnotation(J.VariableDeclarations field) {
             return field.getLeadingAnnotations().stream()
                     .filter(annotation -> TypeUtils.isOfClassType(annotation.getType(), QUALIFIER))
                     .findFirst()
@@ -322,12 +322,18 @@ public class FieldInjectionToConstructorInjection extends Recipe {
         }
 
         @Override
+        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+            J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
+            return maybeAutoFormat(classDecl, cd, ctx);
+        }
+
+        @Override
         public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations varDecl, ExecutionContext ctx) {
             if (varDecl.getId().equals(field.getId())) {
                 // Remove @Autowired and @Qualifier annotations
                 List<J.Annotation> newAnnotations = new ArrayList<>();
                 for (J.Annotation annotation : varDecl.getLeadingAnnotations()) {
-                    if (!TypeUtils.isOfClassType(annotation.getType(), AUTOWIRED) && 
+                    if (!TypeUtils.isOfClassType(annotation.getType(), AUTOWIRED) &&
                         !TypeUtils.isOfClassType(annotation.getType(), QUALIFIER)) {
                         newAnnotations.add(annotation);
                     }
@@ -349,11 +355,11 @@ public class FieldInjectionToConstructorInjection extends Recipe {
 
                     J.Modifier finalModifier = new J.Modifier(
                         Tree.randomId(),
-                        Space.format(" "),
+                        Space.SINGLE_SPACE,
                         Markers.EMPTY,
                         null,
                         J.Modifier.Type.Final,
-                        Collections.emptyList()
+                        emptyList()
                     );
 
                     if (privateIndex >= 0) {
@@ -377,7 +383,7 @@ public class FieldInjectionToConstructorInjection extends Recipe {
                 // Remove imports for @Autowired if no longer used
                 maybeRemoveImport(AUTOWIRED);
 
-                return vd;
+                return maybeAutoFormat(varDecl, vd, ctx);
             }
             return super.visitVariableDeclarations(varDecl, ctx);
         }
