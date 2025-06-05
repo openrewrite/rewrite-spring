@@ -30,7 +30,6 @@ import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-
 class ChangeSpringPropertyKeyTest implements RewriteTest {
 
     @Override

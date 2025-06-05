@@ -20,9 +20,8 @@ import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.AnnotationMatcher;
-import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.trait.Traits;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.properties.search.FindProperties;
@@ -94,7 +93,9 @@ public class ChangeSpringPropertyKey extends Recipe {
                         tree = newTree;
                     }
                 } else if (tree instanceof JavaSourceFile) {
-                    tree = new JavaPropertyKeyVisitor().visit(tree, ctx);
+                    tree = Traits.annotated("@org.springframework.beans.factory.annotation.Value")
+                            .asVisitor(annotated -> mapArgs(annotated.getTree()))
+                            .visit(tree, ctx);
                 }
                 return tree;
             }
@@ -107,72 +108,61 @@ public class ChangeSpringPropertyKey extends Recipe {
                 "(?!(" + String.join("|", except) + "))";
     }
 
-    private class JavaPropertyKeyVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private final AnnotationMatcher VALUE_ANNOTATION_MATCHER =
-                new AnnotationMatcher("@org.springframework.beans.factory.annotation.Value");
-
-        @Override
-        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-            J.Annotation a = annotation;
-
-            if (VALUE_ANNOTATION_MATCHER.matches(annotation)) {
-                if (a.getArguments() != null) {
-                    a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
-                        if (arg instanceof J.Literal) {
-                            J.Literal literal = (J.Literal) arg;
-                            if (literal.getValue() instanceof String) {
-                                String value = (String) literal.getValue();
-                                if (value.contains(oldPropertyKey)) {
-                                    Pattern pattern = Pattern.compile("\\$\\{(" + quote(oldPropertyKey) + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
-                                    Matcher matcher = pattern.matcher(value);
-                                    int idx = 0;
-                                    if (matcher.find()) {
-                                        StringBuilder sb = new StringBuilder();
-                                        do {
-                                            sb.append(value, idx, matcher.start());
-                                            idx = matcher.end();
-                                            boolean found = false;
-                                            if (except != null) {
-                                                for (String e : except) {
-                                                    if (matcher.group(1).startsWith(oldPropertyKey + '.' + e)) {
-                                                        found = true;
-                                                        break;
-                                                    }
-                                                }
+    private J.Annotation mapArgs(J.Annotation a) {
+        if (a.getArguments() != null) {
+            a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
+                if (arg instanceof J.Literal) {
+                    J.Literal literal = (J.Literal) arg;
+                    if (literal.getValue() instanceof String) {
+                        String value = (String) literal.getValue();
+                        if (value.contains(oldPropertyKey)) {
+                            Pattern pattern = Pattern.compile("\\$\\{(" + quote(oldPropertyKey) + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
+                            Matcher matcher = pattern.matcher(value);
+                            int idx = 0;
+                            if (matcher.find()) {
+                                StringBuilder sb = new StringBuilder();
+                                do {
+                                    sb.append(value, idx, matcher.start());
+                                    idx = matcher.end();
+                                    boolean found = false;
+                                    if (except != null) {
+                                        for (String e : except) {
+                                            if (matcher.group(1).startsWith(oldPropertyKey + '.' + e)) {
+                                                found = true;
+                                                break;
                                             }
-                                            if (found) {
-                                                sb.append(matcher.group(0));
-                                            } else {
-                                                sb.append("${")
-                                                        .append(matcher.group(1).replaceFirst(quote(oldPropertyKey), newPropertyKey))
-                                                        .append(matcher.group(2));
-                                            }
-                                        } while (matcher.find());
-                                        sb.append(value, idx, value.length());
-
-                                        String newValue = sb.toString();
-
-                                        if (!value.equals(newValue)) {
-                                            if (except != null) {
-                                                for (String e : except) {
-                                                    if (newValue.contains("${" + newPropertyKey + '.' + e)) {
-                                                        return arg;
-                                                    }
-                                                }
-                                            }
-                                            arg = literal.withValue(newValue)
-                                                    .withValueSource("\"" + newValue.replace("\\", "\\\\") + "\"");
                                         }
                                     }
+                                    if (found) {
+                                        sb.append(matcher.group(0));
+                                    } else {
+                                        sb.append("${")
+                                                .append(matcher.group(1).replaceFirst(quote(oldPropertyKey), newPropertyKey))
+                                                .append(matcher.group(2));
+                                    }
+                                } while (matcher.find());
+                                sb.append(value, idx, value.length());
+
+                                String newValue = sb.toString();
+
+                                if (!value.equals(newValue)) {
+                                    if (except != null) {
+                                        for (String e : except) {
+                                            if (newValue.contains("${" + newPropertyKey + '.' + e)) {
+                                                return arg;
+                                            }
+                                        }
+                                    }
+                                    arg = literal.withValue(newValue)
+                                            .withValueSource("\"" + newValue.replace("\\", "\\\\") + "\"");
                                 }
                             }
                         }
-                        return arg;
-                    }));
+                    }
                 }
-            }
-
-            return a;
+                return arg;
+            }));
         }
+        return a;
     }
 }
