@@ -78,7 +78,7 @@ public class ChangeSpringPropertyKey extends Recipe {
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey + ".") + exceptRegex() + "(.+)", newPropertyKey + ".$1", true, true);
+                new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey) + exceptRegex() + "(.+)", newPropertyKey + "$1", true, true);
 
         return Preconditions.check(Preconditions.or(
                 new IsPossibleSpringConfigFile(),
@@ -109,7 +109,7 @@ public class ChangeSpringPropertyKey extends Recipe {
     private String exceptRegex() {
         return except == null || except.isEmpty() ?
                 "" :
-                "(?!(" + String.join("|", except) + "))";
+                "(?!\\.(?:" + String.join("|", except) + "))";
     }
 
     private class JavaPropertyKeyVisitor extends JavaIsoVisitor<ExecutionContext> {
@@ -130,7 +130,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                             if (literal.getValue() instanceof String) {
                                 String value = (String) literal.getValue();
                                 if (value.contains(oldPropertyKey)) {
-                                    Pattern pattern = Pattern.compile("\\$\\{(" + quote(oldPropertyKey) + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
+                                    Pattern pattern = Pattern.compile("\\$\\{(" + quote(oldPropertyKey) + exceptRegex() + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
                                     Matcher matcher = pattern.matcher(value);
                                     int idx = 0;
                                     if (matcher.find()) {
@@ -138,22 +138,9 @@ public class ChangeSpringPropertyKey extends Recipe {
                                         do {
                                             sb.append(value, idx, matcher.start());
                                             idx = matcher.end();
-                                            boolean found = false;
-                                            if (except != null) {
-                                                for (String e : except) {
-                                                    if (matcher.group(1).startsWith(oldPropertyKey + '.' + e)) {
-                                                        found = true;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            if (found) {
-                                                sb.append(matcher.group(0));
-                                            } else {
-                                                sb.append("${")
-                                                        .append(matcher.group(1).replaceFirst(quote(oldPropertyKey), newPropertyKey))
-                                                        .append(matcher.group(2));
-                                            }
+                                            sb.append("${")
+                                                    .append(matcher.group(1).replaceFirst(quote(oldPropertyKey), newPropertyKey))
+                                                    .append(matcher.group(2));
                                         } while (matcher.find());
                                         sb.append(value, idx, value.length());
 
@@ -187,14 +174,9 @@ public class ChangeSpringPropertyKey extends Recipe {
                             J.Literal literal = (J.Literal) assignment.getAssignment();
                             String value = literal.getValue().toString();
 
-                            if (value.startsWith(oldPropertyKey)) {
-                                if (except != null) {
-                                    for (String e : except) {
-                                        if (value.startsWith(oldPropertyKey + '.' + e)) {
-                                            return arg;
-                                        }
-                                    }
-                                }
+                            Pattern pattern = Pattern.compile("^" + quote(oldPropertyKey) + exceptRegex());
+                            Matcher matcher = pattern.matcher(value);
+                            if (matcher.find()) {
                                 arg = assignment.withAssignment(
                                         literal.withValueSource(
                                                         literal.getValueSource().replaceFirst(quote(oldPropertyKey), newPropertyKey))
