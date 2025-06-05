@@ -17,10 +17,13 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.*;
-import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
+import org.jspecify.annotations.Nullable;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Statement;
+import org.openrewrite.java.tree.TypeTree;
+import org.openrewrite.java.tree.TypeUtils;
+import java.util.ArrayList;
+import java.util.List;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
@@ -221,8 +224,8 @@ public class FieldInjectionToConstructorInjectionSimple extends Recipe {
                     .anyMatch(annotation -> TypeUtils.isOfClassType(annotation.getType(), AUTOWIRED));
         }
 
-        @Nullable
-        private J.Annotation getQualifierAnnotation(J.VariableDeclarations field) {
+
+        private J.@Nullable Annotation getQualifierAnnotation(J.VariableDeclarations field) {
             return field.getLeadingAnnotations().stream()
                     .filter(annotation -> TypeUtils.isOfClassType(annotation.getType(), QUALIFIER))
                     .findFirst()

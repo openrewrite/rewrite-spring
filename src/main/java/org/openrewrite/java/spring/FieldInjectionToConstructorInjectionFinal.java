@@ -17,9 +17,10 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.*;
-import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.JavaIsoVisitor;
+import org.jspecify.annotations.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
@@ -201,7 +202,6 @@ public class FieldInjectionToConstructorInjectionFinal extends Recipe {
                         insertionPoint = i + 1;
                     }
                 }
-                
                 statements.add(insertionPoint, constructorJavaTemplate.apply(
                     getCursor(),
                     cd.getBody().getCoordinates().firstStatement()
@@ -236,7 +236,6 @@ public class FieldInjectionToConstructorInjectionFinal extends Recipe {
                                     break;
                                 }
                             }
-                            
                             J.Modifier finalModifier = new J.Modifier(
                                 Tree.randomId(),
                                 Space.format(" "),
@@ -263,7 +262,6 @@ public class FieldInjectionToConstructorInjectionFinal extends Recipe {
                             }
                             vd = vd.withVariables(variables);
                         }
-                        
                         statements.set(i, vd);
                     }
                 }
@@ -277,9 +275,9 @@ public class FieldInjectionToConstructorInjectionFinal extends Recipe {
                     .anyMatch(annotation -> TypeUtils.isOfClassType(annotation.getType(), AUTOWIRED));
         }
 
-        @Nullable
-        private J.Annotation getQualifierAnnotation(J.VariableDeclarations field) {
-            return field.getLeadingAnnotations().stream()
+
+        private J.@Nullable Annotation getQualifierAnnotation(J.VariableDeclarations field) {
+}
                     .filter(annotation -> TypeUtils.isOfClassType(annotation.getType(), QUALIFIER))
                     .findFirst()
                     .orElse(null);
