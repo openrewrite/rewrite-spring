@@ -38,7 +38,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void rewriteDocketWithApplicationYml() {
+    void rewriteSingleDocketToApplicationYml() {
         rewriteRun(
           //language=yaml
           srcMainResources(
@@ -94,7 +94,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
-    void rewriteDocketWithApplicationProperties() {
+    void rewriteSingleDocketToApplicationProperties() {
         rewriteRun(
           //language=properties
           srcMainResources(
@@ -147,7 +147,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
-    void rewriteDocketWithoutProperties() {
+    void rewriteSingleDocketToGroupedOpenApiBean() {
         rewriteRun(
           srcMainJava(
             //language=java
@@ -196,7 +196,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
-    void rewriteDocketWithLiteralValuesWithApplicationYml() {
+    void rewriteSingleDocketWithLiteralValuesToApplicationYml() {
         rewriteRun(
           //language=yaml
           srcMainResources(
@@ -256,7 +256,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
-    void rewriteDocketWithLiteralValuesWithApplicationProperties() {
+    void rewriteSingleWithLiteralValuesToApplicationProperties() {
         rewriteRun(
           //language=properties
           srcMainResources(
@@ -312,7 +312,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
-    void rewriteDocketWithLiteralValuesWithoutProperties() {
+    void rewriteSingleDocketWithLiteralValuesToGroupedOpenApiBean() {
         rewriteRun(
           srcMainJava(
             //language=java
@@ -363,7 +363,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
-    void rewriteDocketWithFieldValuesWithApplicationYml() {
+    void rewriteSingleDocketWithFieldValuesAndApplicationYmlToGroupedOpenApiBean() {
         rewriteRun(
           //language=yaml
           srcMainResources(
@@ -432,7 +432,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
-    void rewriteDocketWithFieldValuesWithApplicationProperties() {
+    void rewriteSingleDocketWithFieldValuesAndApplicationPropertiesToGroupedOpenApiBean() {
         rewriteRun(
           //language=properties
           srcMainResources(
@@ -501,7 +501,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
-    void rewriteDocketWithFieldValuesWithoutProperties() {
+    void rewriteSingleDocketWithFieldValuesToGroupedOpenApiBean() {
         rewriteRun(
           srcMainJava(
             //language=java
