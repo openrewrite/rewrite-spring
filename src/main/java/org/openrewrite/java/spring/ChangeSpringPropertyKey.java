@@ -109,7 +109,7 @@ public class ChangeSpringPropertyKey extends Recipe {
     private String exceptRegex() {
         return except == null || except.isEmpty() ?
                 "" :
-                "(?!\\.(?:" + String.join("|", except) + "))";
+                "(?!\\.(?:" + String.join("|", except) + ")\\b)";
     }
 
     private class JavaPropertyKeyVisitor extends JavaIsoVisitor<ExecutionContext> {

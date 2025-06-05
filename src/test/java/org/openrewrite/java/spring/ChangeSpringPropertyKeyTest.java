@@ -356,6 +356,11 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   public String fooBaz() {
                       return "foo.baz";
                   }
+
+                  @ConditionalOnProperty(name = "foo.bazes", havingValue = "true")
+                  public String fooBazes() {
+                      return "foo.bazes";
+                  }
               }
               """,
             """
@@ -380,6 +385,11 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   @ConditionalOnProperty(name = "foo.baz", havingValue = "true")
                   public String fooBaz() {
                       return "foo.baz";
+                  }
+
+                  @ConditionalOnProperty(name = "bar.bazes", havingValue = "true")
+                  public String fooBazes() {
+                      return "foo.bazes";
                   }
               }
               """
