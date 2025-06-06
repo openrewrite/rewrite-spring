@@ -660,6 +660,41 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
+    void ignoreDocketWhenPathSelectorsRegex() {
+        rewriteRun(
+                srcMainJava(
+                        //language=java
+                        java(
+                                """
+                                  package org.project.example;
+
+                                  import org.springframework.context.annotation.Bean;
+                                  import springfox.documentation.RequestHandler;
+                                  import springfox.documentation.builders.PathSelectors;
+                                  import springfox.documentation.builders.RequestHandlerSelectors;
+                                  import springfox.documentation.spi.DocumentationType;
+                                  import springfox.documentation.spring.web.plugins.Docket;
+                                  import java.util.function.Predicate;
+
+                                  class ApplicationConfiguration {
+
+                                      @Bean
+                                      public Docket publicApi() {
+                                         return new Docket(DocumentationType.SWAGGER_2)
+                                                 .select()
+                                                 .apis(RequestHandlerSelectors.basePackage("com.example"))
+                                                 .paths(PathSelectors.regex(""))
+                                                 .build()
+                                                 .pathMapping("/");
+                                      }
+                                  }
+                                  """
+                        )
+                )
+        );
+    }
+
+    @Test
     void ignoreDocketWhenPathSelectorsExternal() {
         rewriteRun(
           srcMainJava(

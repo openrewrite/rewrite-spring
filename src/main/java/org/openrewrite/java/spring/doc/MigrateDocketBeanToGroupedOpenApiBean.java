@@ -29,6 +29,7 @@ import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -41,8 +42,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     private static final TypeMatcher DOCKET_TYPEMATCHER = new TypeMatcher("springfox.documentation.spring.web.plugins.Docket");
     private static final TypeMatcher DOCUMENTATIONTYPE_TYPEMATCHER = new TypeMatcher("springfox.documentation.spi.DocumentationType");
     private static final TypeMatcher APISELECTORBUILDER_TYPEMATCHER = new TypeMatcher("springfox.documentation.spring.web.plugins.ApiSelectorBuilder");
-    private static final ArgumentExtractor REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR = new ArgumentExtractor(new TypeMatcher("springfox.documentation.builders.RequestHandlerSelectors"));
-    private static final ArgumentExtractor PATHSELECTOR_ARGUMENT_EXTRACTOR = new ArgumentExtractor(new TypeMatcher("springfox.documentation.builders.PathSelectors"));
+    private static final ArgumentExtractor REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR = new ArgumentExtractor(Arrays.asList(new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors any()", true), new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors basePackage(..)", true)));
+    private static final ArgumentExtractor PATHSELECTOR_ARGUMENT_EXTRACTOR = new ArgumentExtractor(Arrays.asList(new MethodMatcher("springfox.documentation.builders.PathSelectors any()", true), new MethodMatcher("springfox.documentation.builders.PathSelectors ant(..)", true)));
 
 
     @Override
@@ -193,14 +194,15 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     @Value
     @EqualsAndHashCode(callSuper = false)
     private static class ArgumentExtractor extends JavaIsoVisitor<ArgumentExtractor.ArgumentExtractorResult> {
-        TypeMatcher typeMatcher;
+
+        List<MethodMatcher> methodMatchers;
 
         @Override
         public @Nullable J visit(@Nullable Tree tree, ArgumentExtractorResult argumentExtractorResult) {
             if (argumentExtractorResult.builder.isValid() &&
                     tree instanceof J.MethodInvocation &&
                     ((J.MethodInvocation) tree).getSelect() != null &&
-                    typeMatcher.matches(((J.MethodInvocation) tree).getSelect().getType())) {
+                    methodMatchers.stream().anyMatch(e -> e.matches(((J.MethodInvocation) tree)))) {
                 return super.visit(tree, argumentExtractorResult);
             }
             argumentExtractorResult.builder.invalidate();
