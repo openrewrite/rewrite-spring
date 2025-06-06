@@ -52,6 +52,7 @@ recipeList:
       artifactId: swagger-annotations
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: '@springfox.documentation.swagger2.annotations.EnableSwagger2'
+  - org.openrewrite.java.spring.doc.MigrateDocketBeanToGroupedOpenApiBean
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
