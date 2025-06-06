@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.doc;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -33,7 +32,8 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
         spec.recipe(new MigrateDocketBeanToGroupedOpenApiBean())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-core", "spring-context", "spring-beans", "spring-plugin-core", "springfox-core", "springfox-spring-web", "springfox-spi"));
+            .classpath("spring-core", "spring-context", "spring-beans", "spring-plugin-core", "springfox-core", "springfox-spring-web", "springfox-spi"));
+
     }
 
     @DocumentExample
@@ -552,6 +552,145 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                                 .pathsToMatch(PATH)
                                 .packagesToScan(BASEPACKAGE)
                                 .build();
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void ignoreMultipleDocket() {
+        rewriteRun(
+          //language=yaml
+          srcMainResources(
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              spec -> spec.path("application.yaml")
+            )
+          ),
+          srcMainJava(
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import org.springframework.context.annotation.Bean;
+                import springfox.documentation.builders.PathSelectors;
+                import springfox.documentation.builders.RequestHandlerSelectors;
+                import springfox.documentation.spi.DocumentationType;
+                import springfox.documentation.spring.web.plugins.Docket;
+
+                class ApplicationConfiguration {
+
+                    private static final String GROUPNAME = "internal";
+                    private static final String BASEPACKAGE = "com.example.api";
+                    private static final String PATH = "/api/v1/**";
+
+                    @Bean
+                    public Docket publicApi() {
+                        return new Docket(DocumentationType.SWAGGER_2)
+                                .groupName(GROUPNAME)
+                                .select()
+                                .apis(RequestHandlerSelectors.basePackage(BASEPACKAGE))
+                                .paths(PathSelectors.ant(PATH))
+                                .build()
+                                .pathMapping("/");
+                    }
+
+                    @Bean
+                    public Docket internalApi() {
+                        return new Docket(DocumentationType.SWAGGER_2)
+                                .groupName("internal")
+                                .select()
+                                .apis(RequestHandlerSelectors.basePackage(BASEPACKAGE))
+                                .paths(PathSelectors.ant(PATH))
+                                .build()
+                                .pathMapping("/");
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void ignoreDocketWhenRequestHandlerSelectorsExternal() {
+        rewriteRun(
+          srcMainJava(
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import org.springframework.context.annotation.Bean;
+                import springfox.documentation.RequestHandler;
+                import springfox.documentation.builders.PathSelectors;
+                import springfox.documentation.builders.RequestHandlerSelectors;
+                import springfox.documentation.spi.DocumentationType;
+                import springfox.documentation.spring.web.plugins.Docket;
+                import java.util.function.Predicate;
+
+                class ApplicationConfiguration {
+
+                    private static final String GROUPNAME = "internal";
+                    private static final String BASEPACKAGE = "com.example.api";
+                    private static final Predicate<RequestHandler> requestHandlerPredicate = RequestHandlerSelectors.basePackage(BASEPACKAGE);
+                    private static final String PATH = "/api/v1/**";
+
+                    @Bean
+                    public Docket publicApi() {
+                       return new Docket(DocumentationType.SWAGGER_2)
+                               .groupName(GROUPNAME)
+                               .select()
+                               .apis(requestHandlerPredicate)
+                               .paths(PathSelectors.ant(PATH))
+                               .build()
+                               .pathMapping("/");
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void ignoreDocketWhenPathSelectorsExternal() {
+        rewriteRun(
+          srcMainJava(
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import org.springframework.context.annotation.Bean;
+                import springfox.documentation.builders.PathSelectors;
+                import springfox.documentation.builders.RequestHandlerSelectors;
+                import springfox.documentation.spi.DocumentationType;
+                import springfox.documentation.spring.web.plugins.Docket;
+                import java.util.function.Predicate;
+
+                class ApplicationConfiguration {
+
+                    private static final String GROUPNAME = "internal";
+                    private static final String BASEPACKAGE = "com.example.api";
+                    private static final String PATH = "/api/v1/**";
+                    private static final Predicate<String> pathSelectorsPredicate = PathSelectors.ant(PATH);
+
+                    @Bean
+                    public Docket publicApi() {
+                        return new Docket(DocumentationType.SWAGGER_2)
+                                .groupName(GROUPNAME)
+                                .select()
+                                .apis(RequestHandlerSelectors.basePackage(BASEPACKAGE))
+                                .paths(pathSelectorsPredicate)
+                                .build()
+                                .pathMapping("/");
                     }
                 }
                 """

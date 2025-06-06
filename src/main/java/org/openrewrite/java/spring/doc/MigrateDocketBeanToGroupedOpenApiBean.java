@@ -15,8 +15,11 @@
  */
 package org.openrewrite.java.spring.doc;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.Value;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
@@ -25,7 +28,8 @@ import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.spring.IsPossibleSpringConfigFile;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.marker.SearchResult;
+import org.openrewrite.properties.tree.Properties;
+import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +44,9 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     private static final TypeMatcher DOCKET_TYPEMATCHER = new TypeMatcher("springfox.documentation.spring.web.plugins.Docket");
     private static final TypeMatcher DOCUMENTATIONTYPE_TYPEMATCHER = new TypeMatcher("springfox.documentation.spi.DocumentationType");
     private static final TypeMatcher APISELECTORBUILDER_TYPEMATCHER = new TypeMatcher("springfox.documentation.spring.web.plugins.ApiSelectorBuilder");
+    private static final ArgumentExtractor REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR = new ArgumentExtractor(new TypeMatcher("springfox.documentation.builders.RequestHandlerSelectors"));
+    private static final ArgumentExtractor PATHSELECTOR_ARGUMENT_EXTRACTOR = new ArgumentExtractor(new TypeMatcher("springfox.documentation.builders.PathSelectors"));
 
-    private static final ArgumentExtractor ARGUMENT_EXTRACTOR = new ArgumentExtractor();
 
     @Override
     public String getDisplayName() {
@@ -62,10 +67,10 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     public TreeVisitor<?, ExecutionContext> getScanner(DocketBeanAccumulator acc) {
         return Preconditions.check(or(isDocketJavaBeanConfiguration(), new IsPossibleSpringConfigFile()), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public Tree visit(Tree tree, ExecutionContext ctx) {
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof J.CompilationUnit) {
-                    return new JavaBeanConfigurationScanner(acc).visit(tree, ctx);
-                } else if (tree != null && new IsPossibleSpringConfigFile().visit(tree, ctx).getMarkers().findFirst(SearchResult.class).isPresent()) {
+                    return new JavaBeanConfigurationScanner(acc).visitNonNull(tree, ctx);
+                } else if (isApplicationProperties(tree)) {
                     acc.hasProperties = true;
                 }
                 return super.visit(tree, ctx);
@@ -96,26 +101,34 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                                 if (canConfigureInProperties(acc, docketDefinition)) {
                                     return null;
                                 } else {
-                                    String methodTemplate = "@Bean\n" +
-                                            "public GroupedOpenApi " + method.getSimpleName() + "() {\n" +
-                                            "    return GroupedOpenApi.builder()\n";
+                                    StringBuilder methodTemplateBuilder = new StringBuilder();
+                                    methodTemplateBuilder.append("@Bean\n")
+                                            .append("public GroupedOpenApi ").append(method.getSimpleName()).append("() {\n")
+                                            .append("return GroupedOpenApi.builder()\n");
                                     if (docketDefinition.groupName == null) {
-                                        methodTemplate = methodTemplate + "            .group(\"public\")\n";
+                                        methodTemplateBuilder.append(".group(\"public\")\n");
                                     } else {
-                                        methodTemplate = methodTemplate + "            .group(" + (docketDefinition.groupName instanceof J.Literal ? "\"" + docketDefinition.groupName + "\"" : docketDefinition.groupName) + ")\n";
+                                        String group = docketDefinition.groupName instanceof J.Literal ? "\"" + docketDefinition.groupName + "\"" : docketDefinition.groupName.toString();
+                                        methodTemplateBuilder.append(".group(").append(group).append(")\n");
                                     }
                                     if (docketDefinition.paths == null && docketDefinition.apis == null) {
-                                        methodTemplate = methodTemplate + "            .pathsToMatch(\"/**\")\n";
+                                        methodTemplateBuilder.append(".pathsToMatch(\"/**\")\n");
                                     } else {
-                                        methodTemplate = methodTemplate + (docketDefinition.paths != null ? "            .pathsToMatch(" + (docketDefinition.paths instanceof J.Literal ? "\"" + docketDefinition.paths + "\"" : docketDefinition.paths) + ")\n" : "");
-                                        methodTemplate = methodTemplate + (docketDefinition.apis != null ? "            .packagesToScan(" + (docketDefinition.apis instanceof J.Literal ? "\"" + docketDefinition.apis + "\"" : docketDefinition.apis) + ")\n" : "");
+                                        if (docketDefinition.paths != null) {
+                                            String paths = docketDefinition.paths instanceof J.Literal ? "\"" + docketDefinition.paths + "\"" : docketDefinition.paths.toString();
+                                            methodTemplateBuilder.append(".pathsToMatch(").append(paths).append(")\n");
+                                        }
+                                        if (docketDefinition.apis != null) {
+                                            String apis = docketDefinition.apis instanceof J.Literal ? "\"" + docketDefinition.apis + "\"" : docketDefinition.apis.toString();
+                                            methodTemplateBuilder.append(".packagesToScan(").append(apis).append(")\n");
+                                        }
                                     }
-                                    methodTemplate = methodTemplate + "            .build();\n" +
-                                            "}";
+                                    methodTemplateBuilder.append(".build();\n")
+                                            .append("}");
 
                                     maybeAddImport("org.springdoc.core.models.GroupedOpenApi", false);
                                     maybeAddImport("org.springframework.context.annotation.Bean", false);
-                                    return JavaTemplate.builder(methodTemplate)
+                                    return JavaTemplate.builder(methodTemplateBuilder.toString())
                                             .contextSensitive()
                                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context", "springdoc-openapi-starter-common"))
                                             .imports("org.springdoc.core.models.GroupedOpenApi", "org.springframework.context.annotation.Bean").build()
@@ -124,41 +137,53 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                             }
                             return md;
                         }
-                    }.visit(tree, ctx);
-                } else if (new IsPossibleSpringConfigFile().visit(tree, ctx).getMarkers().findFirst(SearchResult.class).isPresent()) {
-                    if (canConfigureInProperties(acc, docketDefinition)) {
-                        Tree result = new AddSpringProperty("springdoc.api-docs.path", "/v3/api-docs", null, null).getVisitor().visit(tree, ctx);
-                        result = new AddSpringProperty("springdoc.swagger-ui.path", "/swagger-ui.html", null, null).getVisitor().visit(result, ctx);
-                        if (docketDefinition.groupName == null) {
-                            result = formatGroupProperties(ctx, result, "springdoc", docketDefinition);
-                        } else {
-                            result = new AddSpringProperty("springdoc.group-configs[0]" + ".group", docketDefinition.groupName.toString(), null, null).getVisitor().visit(result, ctx);
-                            result = formatGroupProperties(ctx, result, "springdoc.group-configs[0]", docketDefinition);
-                        }
-                        return result;
+                    }.visitNonNull(tree, ctx);
+                } else if (isApplicationProperties(tree) && canConfigureInProperties(acc, docketDefinition)) {
+                    Tree result = addSpringProperty(ctx, tree, "springdoc.api-docs.path", "/v3/api-docs");
+                    result = addSpringProperty(ctx, result, "springdoc.swagger-ui.path", "/swagger-ui.html");
+                    if (docketDefinition.groupName == null) {
+                        result = formatGroupProperties(ctx, result, "springdoc", docketDefinition);
+                    } else {
+                        result = addSpringProperty(ctx, result, "springdoc.group-configs[0]" + ".group", docketDefinition.groupName.toString());
+                        result = formatGroupProperties(ctx, result, "springdoc.group-configs[0]", docketDefinition);
                     }
+                    return result;
                 }
                 return super.visit(tree, ctx, parent);
             }
         });
     }
 
+    private static boolean isApplicationProperties(@Nullable Tree tree) {
+        return (tree instanceof Properties.File && "application.properties".equals(((Properties.File) tree).getSourcePath().getFileName().toString())) ||
+                (tree instanceof Yaml.Documents && ((Yaml.Documents) tree).getSourcePath().getFileName().toString().matches("application\\.ya*ml"));
+    }
+
     private static boolean canConfigureInProperties(DocketBeanAccumulator acc, DocketDefinition docketDefinition) {
-        return acc.hasProperties && (docketDefinition.groupName == null || docketDefinition.groupName instanceof J.Literal) && (docketDefinition.apis == null || docketDefinition.apis instanceof J.Literal) && (docketDefinition.paths == null || docketDefinition.paths instanceof J.Literal);
+        return acc.hasProperties &&
+                (docketDefinition.groupName == null || docketDefinition.groupName instanceof J.Literal) &&
+                (docketDefinition.apis == null || docketDefinition.apis instanceof J.Literal) &&
+                (docketDefinition.paths == null || docketDefinition.paths instanceof J.Literal);
     }
 
     private Tree formatGroupProperties(ExecutionContext ctx, Tree properties, String prefix, DocketDefinition docketDefinition) {
         if (docketDefinition.paths == null && docketDefinition.apis == null) {
-            properties = new AddSpringProperty(prefix + ".paths-to-match", "/**", null, null).getVisitor().visit(properties, ctx);
+            properties = addSpringProperty(ctx, properties, prefix + ".paths-to-match", "/**");
         } else {
-            if (docketDefinition.paths != null) {
-                properties = new AddSpringProperty(prefix + ".paths-to-match", ((J.Literal) docketDefinition.paths).getValueSource(), null, null).getVisitor().visit(properties, ctx);
+            if (docketDefinition.paths instanceof J.Literal && ((J.Literal) docketDefinition.paths).getValueSource() != null) {
+                properties = addSpringProperty(ctx, properties, prefix + ".paths-to-match", ((J.Literal) docketDefinition.paths).getValueSource());
             }
-            if (docketDefinition.paths != null) {
-                properties = new AddSpringProperty(prefix + ".packages-to-scan", ((J.Literal) docketDefinition.apis).getValueSource(), null, null).getVisitor().visit(properties, ctx);
+            if (docketDefinition.apis instanceof J.Literal) {
+                if (((J.Literal) docketDefinition.apis).getValueSource() != null) {
+                    properties = addSpringProperty(ctx, properties, prefix + ".packages-to-scan", ((J.Literal) docketDefinition.apis).getValueSource());
+                }
             }
         }
         return properties;
+    }
+
+    private static @NonNull Tree addSpringProperty(ExecutionContext ctx, Tree properties, String property, String value) {
+        return new AddSpringProperty(property, value, null, null).getVisitor().visitNonNull(properties, ctx);
     }
 
     private static TreeVisitor<?, ExecutionContext> isDocketJavaBeanConfiguration() {
@@ -181,10 +206,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                     @Override
                     public J.NewClass visitNewClass(J.NewClass newClass, DocketDefinition.Builder builder) {
                         J.NewClass nc = super.visitNewClass(newClass, builder);
-                        if (!builder.isValid()) {
-                            return nc;
-                        }
-                        if (!DOCKET_TYPEMATCHER.matches(newClass.getType()) ||
+                        if (builder.isValid() && !DOCKET_TYPEMATCHER.matches(newClass.getType()) ||
                                 !DOCUMENTATIONTYPE_TYPEMATCHER.matches(newClass.getArguments().get(0).getType()) ||
                                 !"SWAGGER_2".equals(((J.FieldAccess) newClass.getArguments().get(0)).getName().getSimpleName())) {
                             builder.invalidate();
@@ -195,21 +217,18 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, DocketDefinition.Builder builder) {
                         J.MethodInvocation mi = super.visitMethodInvocation(method, builder);
-                        if (!builder.isValid()) {
+                        if (!builder.isValid() || mi.getSelect() == null) {
                             return mi;
                         }
-                        if (mi.getSelect() != null &&
-                                APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
+                        if (APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                                 "paths".equals(mi.getSimpleName())) {
-                            ARGUMENT_EXTRACTOR.visit(mi.getArguments(), builder::addPath);
-                        } else if (mi.getSelect() != null &&
-                                APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
+                            PATHSELECTOR_ARGUMENT_EXTRACTOR.visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setPaths));
+                        } else if (APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                                 "apis".equals(mi.getSimpleName())) {
-                            ARGUMENT_EXTRACTOR.visit(mi.getArguments(), builder::addApi);
-                        } else if (mi.getSelect() != null &&
-                                DOCKET_TYPEMATCHER.matches(mi.getSelect().getType()) &&
+                            REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR.visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setApis));
+                        } else if (DOCKET_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                                 "groupName".equals(mi.getSimpleName())) {
-                            builder.setGroup(mi.getArguments().get(0));
+                            builder.setGroupName(mi.getArguments().get(0));
                         }
                         return mi;
                     }
@@ -222,35 +241,47 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         }
     }
 
-    private static class ArgumentExtractor extends JavaIsoVisitor<Consumer<Expression>> {
+    @Value
+    @EqualsAndHashCode(callSuper = false)
+    private static class ArgumentExtractor extends JavaIsoVisitor<ArgumentExtractor.ArgumentExtractorResult> {
+
+        TypeMatcher typeMatcher;
 
         @Override
-        public @Nullable J visit(@Nullable Tree tree, Consumer<Expression> consumer) {
-            return super.visit(tree, consumer);
+        public @Nullable J visit(@Nullable Tree tree, ArgumentExtractorResult argumentExtractorResult) {
+            if (argumentExtractorResult.builder.isValid() &&
+                    tree instanceof J.MethodInvocation &&
+                    ((J.MethodInvocation) tree).getSelect() != null &&
+                    typeMatcher.matches(((J.MethodInvocation) tree).getSelect().getType())) {
+                return super.visit(tree, argumentExtractorResult);
+            } else {
+                argumentExtractorResult.builder.invalidate();
+            }
+            return (J) tree;
         }
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, Consumer<Expression> consumer) {
-            new JavaIsoVisitor<Consumer<Expression>>() {
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ArgumentExtractorResult argumentExtractorResult) {
+            new JavaIsoVisitor<ArgumentExtractorResult>() {
                 @Override
-                public J.Literal visitLiteral(J.Literal literal, Consumer<Expression> consumer) {
-                    consumer.accept(literal);
-                    return super.visitLiteral(literal, consumer);
+                public J.Literal visitLiteral(J.Literal literal, ArgumentExtractorResult argumentExtractorResult) {
+                    argumentExtractorResult.success.accept(literal);
+                    return literal;
                 }
 
                 @Override
-                public J.Identifier visitIdentifier(J.Identifier identifier, Consumer<Expression> consumer) {
-                    consumer.accept(identifier);
-                    return super.visitIdentifier(identifier, consumer);
+                public J.Identifier visitIdentifier(J.Identifier identifier, ArgumentExtractorResult argumentExtractorResult) {
+                    argumentExtractorResult.success.accept(identifier);
+                    return identifier;
                 }
-
-                @Override
-                public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, Consumer<Expression> consumer) {
-                    consumer.accept(fieldAccess);
-                    return super.visitFieldAccess(fieldAccess, consumer);
-                }
-            }.visit(method.getArguments(), consumer);
+            }.visit(method.getArguments(), argumentExtractorResult);
             return method;
+        }
+
+        @Value
+        static class ArgumentExtractorResult {
+            DocketDefinition.Builder builder;
+            Consumer<Expression> success;
         }
     }
 
@@ -275,25 +306,20 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
             @Getter
             private boolean valid = true;
 
+            @Setter
+            @Nullable
             private Expression paths = null;
+
+            @Setter
+            @Nullable
             private Expression apis = null;
 
+            @Setter
+            @Nullable
             private Expression groupName = null;
 
             public void invalidate() {
                 valid = false;
-            }
-
-            public void addPath(Expression expression) {
-                paths = expression;
-            }
-
-            public void setGroup(Expression expression) {
-                groupName = expression;
-            }
-
-            public void addApi(Expression expression) {
-                apis = expression;
             }
 
             public DocketDefinition build() {
