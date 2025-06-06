@@ -116,7 +116,6 @@ recipeDependencies {
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-instrumentation:3.1.+")
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-brave:3.1.+")
 
-    //parserClasspath("org.springframework.plugin:spring-plugin-core:2.+")
     parserClasspath("org.springdoc:springdoc-openapi-starter-common:2.+")
 
     parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
@@ -131,10 +130,6 @@ recipeDependencies {
     parserClasspath("io.micrometer:micrometer-commons:1.11.+")
     parserClasspath("io.micrometer:micrometer-core:1.11.+")
     parserClasspath("io.micrometer:micrometer-observation:1.11.+")
-
-    //parserClasspath("io.springfox:springfox-core:3.+")
-    //parserClasspath("io.springfox:springfox-spring-web:3.+")
-    //parserClasspath("io.springfox:springfox-spi:3.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()

@@ -15,11 +15,7 @@
  */
 package org.openrewrite.java.spring.doc;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Value;
-import org.jspecify.annotations.NonNull;
+import lombok.*;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
@@ -101,40 +97,39 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                                 maybeRemoveImport("springfox.documentation.spring.web.plugins.Docket");
                                 if (canConfigureInProperties(acc, docketDefinition)) {
                                     return null;
-                                } else {
-                                    StringBuilder methodTemplateBuilder = new StringBuilder();
-                                    methodTemplateBuilder.append("@Bean\n")
-                                            .append("public GroupedOpenApi ").append(method.getSimpleName()).append("() {\n")
-                                            .append("return GroupedOpenApi.builder()\n");
-                                    if (docketDefinition.groupName == null) {
-                                        methodTemplateBuilder.append(".group(\"public\")\n");
-                                    } else {
-                                        String group = docketDefinition.groupName instanceof J.Literal ? "\"" + docketDefinition.groupName + "\"" : docketDefinition.groupName.toString();
-                                        methodTemplateBuilder.append(".group(").append(group).append(")\n");
-                                    }
-                                    if (docketDefinition.paths == null && docketDefinition.apis == null) {
-                                        methodTemplateBuilder.append(".pathsToMatch(\"/**\")\n");
-                                    } else {
-                                        if (docketDefinition.paths != null) {
-                                            String paths = docketDefinition.paths instanceof J.Literal ? "\"" + docketDefinition.paths + "\"" : docketDefinition.paths.toString();
-                                            methodTemplateBuilder.append(".pathsToMatch(").append(paths).append(")\n");
-                                        }
-                                        if (docketDefinition.apis != null) {
-                                            String apis = docketDefinition.apis instanceof J.Literal ? "\"" + docketDefinition.apis + "\"" : docketDefinition.apis.toString();
-                                            methodTemplateBuilder.append(".packagesToScan(").append(apis).append(")\n");
-                                        }
-                                    }
-                                    methodTemplateBuilder.append(".build();\n")
-                                            .append("}");
-
-                                    maybeAddImport("org.springdoc.core.models.GroupedOpenApi", false);
-                                    maybeAddImport("org.springframework.context.annotation.Bean", false);
-                                    return JavaTemplate.builder(methodTemplateBuilder.toString())
-                                            .contextSensitive()
-                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context", "springdoc-openapi-starter-common"))
-                                            .imports("org.springdoc.core.models.GroupedOpenApi", "org.springframework.context.annotation.Bean").build()
-                                            .apply(getCursor(), method.getCoordinates().replace());
                                 }
+                                StringBuilder methodTemplateBuilder = new StringBuilder();
+                                methodTemplateBuilder.append("@Bean\n")
+                                        .append("public GroupedOpenApi ").append(method.getSimpleName()).append("() {\n")
+                                        .append("return GroupedOpenApi.builder()\n");
+                                if (docketDefinition.groupName == null) {
+                                    methodTemplateBuilder.append(".group(\"public\")\n");
+                                } else {
+                                    String group = docketDefinition.groupName instanceof J.Literal ? "\"" + docketDefinition.groupName + "\"" : docketDefinition.groupName.toString();
+                                    methodTemplateBuilder.append(".group(").append(group).append(")\n");
+                                }
+                                if (docketDefinition.paths == null && docketDefinition.apis == null) {
+                                    methodTemplateBuilder.append(".pathsToMatch(\"/**\")\n");
+                                } else {
+                                    if (docketDefinition.paths != null) {
+                                        String paths = docketDefinition.paths instanceof J.Literal ? "\"" + docketDefinition.paths + "\"" : docketDefinition.paths.toString();
+                                        methodTemplateBuilder.append(".pathsToMatch(").append(paths).append(")\n");
+                                    }
+                                    if (docketDefinition.apis != null) {
+                                        String apis = docketDefinition.apis instanceof J.Literal ? "\"" + docketDefinition.apis + "\"" : docketDefinition.apis.toString();
+                                        methodTemplateBuilder.append(".packagesToScan(").append(apis).append(")\n");
+                                    }
+                                }
+                                methodTemplateBuilder.append(".build();\n")
+                                        .append("}");
+
+                                maybeAddImport("org.springdoc.core.models.GroupedOpenApi", false);
+                                maybeAddImport("org.springframework.context.annotation.Bean", false);
+                                return JavaTemplate.builder(methodTemplateBuilder.toString())
+                                        .contextSensitive()
+                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context", "springdoc-openapi-starter-common"))
+                                        .imports("org.springdoc.core.models.GroupedOpenApi", "org.springframework.context.annotation.Bean").build()
+                                        .apply(getCursor(), method.getCoordinates().replace());
                             }
                             return md;
                         }
@@ -183,7 +178,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         return properties;
     }
 
-    private static @NonNull Tree addSpringProperty(ExecutionContext ctx, Tree properties, String property, String value) {
+    private static Tree addSpringProperty(ExecutionContext ctx, Tree properties, String property, String value) {
         return new AddSpringProperty(property, value, null, null).getVisitor().visitNonNull(properties, ctx);
     }
 
@@ -191,19 +186,15 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         return and(new UsesType<>("springfox.documentation.spring.web.plugins.Docket", true), new UsesType<>("org.springframework.context.annotation.Bean", true));
     }
 
+    @RequiredArgsConstructor
     private static class JavaBeanConfigurationScanner extends JavaIsoVisitor<ExecutionContext> {
         private final DocketBeanAccumulator acc;
-
-        public JavaBeanConfigurationScanner(DocketBeanAccumulator acc) {
-            this.acc = acc;
-        }
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
             if (md.getLeadingAnnotations().stream().anyMatch(BEAN_ANNOTATIONMATCHER::matches) && DOCKET_TYPEMATCHER.matches(md.getReturnTypeExpression())) {
                 DocketDefinition.Builder docketDefinitionBuilder = new JavaIsoVisitor<DocketDefinition.Builder>() {
-
                     @Override
                     public J.NewClass visitNewClass(J.NewClass newClass, DocketDefinition.Builder builder) {
                         J.NewClass nc = super.visitNewClass(newClass, builder);
@@ -245,7 +236,6 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     @Value
     @EqualsAndHashCode(callSuper = false)
     private static class ArgumentExtractor extends JavaIsoVisitor<ArgumentExtractor.ArgumentExtractorResult> {
-
         TypeMatcher typeMatcher;
 
         @Override
@@ -255,9 +245,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                     ((J.MethodInvocation) tree).getSelect() != null &&
                     typeMatcher.matches(((J.MethodInvocation) tree).getSelect().getType())) {
                 return super.visit(tree, argumentExtractorResult);
-            } else {
-                argumentExtractorResult.builder.invalidate();
             }
+            argumentExtractorResult.builder.invalidate();
             return (J) tree;
         }
 
@@ -288,7 +277,6 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
     public static class DocketBeanAccumulator {
         public boolean hasProperties = false;
-
         public List<DocketDefinition> docketDefinitions = new ArrayList<>();
     }
 
