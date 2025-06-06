@@ -55,7 +55,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
     @Override
     public String getDescription() {
-        return "Migrate `Docket` to `GroupedOpenAPI`.";
+        return "Migrate a `Docket` bean to a `GroupedOpenAPI` bean preserving group name, packages and paths. " +
+                "When possible the recipe will prefer property based configuration.";
     }
 
     @Override
