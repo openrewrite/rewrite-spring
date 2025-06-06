@@ -129,7 +129,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                                     return JavaTemplate.builder(methodTemplateBuilder.toString())
                                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context", "springdoc-openapi-starter-common"))
                                             .imports("org.springdoc.core.models.GroupedOpenApi", "org.springframework.context.annotation.Bean").build()
-                                            .apply(getCursor(), method.getCoordinates().replace(), args.toArray(new Object[0]));
+                                            .apply(getCursor(), method.getCoordinates().replace(), args.toArray());
                                 }
                             }
                             return md;
