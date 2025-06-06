@@ -15,11 +15,7 @@
  */
 package org.openrewrite.java.spring.doc;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Value;
-import org.jspecify.annotations.NonNull;
+import lombok.*;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
