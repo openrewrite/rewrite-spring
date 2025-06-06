@@ -61,16 +61,17 @@ public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
-                maybeRemoveImport(BEAN_VALIDATOR_PLUGINS_CONFIGURATION);
 
                 AtomicBoolean changed = new AtomicBoolean(false);
                 List<J.Annotation> leadingAnnotations = new ArrayList<>();
                 for (J.Annotation a : c.getLeadingAnnotations()) {
                     if (a.getArguments() != null && IMPORT_MATCHER.matches(a)) {
                         if (a.getArguments().size() == 1 && isBeanValidator(a.getArguments().get(0))) {
+                            maybeRemoveImport(ANNOTATION_IMPORT);
+                            maybeRemoveImport(BEAN_VALIDATOR_PLUGINS_CONFIGURATION);
                             return (J.ClassDeclaration) new RemoveAnnotationVisitor(IMPORT_MATCHER).visitNonNull(c, ctx, getCursor().getParentOrThrow());
                         }
-                        List<Expression> argsWithoutBeanValidator = ListUtils.map(a.getArguments(), e -> {
+                        leadingAnnotations.add(a.withArguments(ListUtils.map(a.getArguments(), e -> {
                             if (e instanceof J.NewArray && ((J.NewArray) e).getInitializer() != null) {
                                 List<Expression> initializer = ((J.NewArray) e).getInitializer();
                                 for (Expression ex : initializer) {
@@ -81,14 +82,18 @@ public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
                                 }
                             }
                             return e;
-                        });
-                        leadingAnnotations.add(a.withArguments(argsWithoutBeanValidator));
+                        })));
                     } else {
                         leadingAnnotations.add(a);
                     }
                 }
 
-                return changed.get() ? c.withLeadingAnnotations(leadingAnnotations) : c;
+                if (changed.get()) {
+                    maybeRemoveImport(ANNOTATION_IMPORT);
+                    maybeRemoveImport(BEAN_VALIDATOR_PLUGINS_CONFIGURATION);
+                    return c.withLeadingAnnotations(leadingAnnotations);
+                }
+                return c;
             }
 
             private boolean isBeanValidator(Expression e) {

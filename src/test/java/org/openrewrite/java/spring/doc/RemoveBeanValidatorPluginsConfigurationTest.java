@@ -50,7 +50,6 @@ class RemoveBeanValidatorPluginsConfigurationTest implements RewriteTest {
               """,
             """
               import org.springframework.context.annotation.Configuration;
-              import org.springframework.context.annotation.Import;
 
               @Configuration
               class ApplicationConfiguration {}
@@ -75,7 +74,6 @@ class RemoveBeanValidatorPluginsConfigurationTest implements RewriteTest {
               """,
             """
               import org.springframework.context.annotation.Configuration;
-              import org.springframework.context.annotation.Import;
 
               @Configuration
               class ApplicationConfiguration {}
