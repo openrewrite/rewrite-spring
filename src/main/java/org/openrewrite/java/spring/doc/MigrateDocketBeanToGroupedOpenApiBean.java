@@ -15,7 +15,11 @@
  */
 package org.openrewrite.java.spring.doc;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.Value;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
@@ -97,39 +101,40 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                                 maybeRemoveImport("springfox.documentation.spring.web.plugins.Docket");
                                 if (canConfigureInProperties(acc, docketDefinition)) {
                                     return null;
-                                }
-                                StringBuilder methodTemplateBuilder = new StringBuilder();
-                                methodTemplateBuilder.append("@Bean\n")
-                                        .append("public GroupedOpenApi ").append(method.getSimpleName()).append("() {\n")
-                                        .append("return GroupedOpenApi.builder()\n");
-                                if (docketDefinition.groupName == null) {
-                                    methodTemplateBuilder.append(".group(\"public\")\n");
                                 } else {
-                                    String group = docketDefinition.groupName instanceof J.Literal ? "\"" + docketDefinition.groupName + "\"" : docketDefinition.groupName.toString();
-                                    methodTemplateBuilder.append(".group(").append(group).append(")\n");
-                                }
-                                if (docketDefinition.paths == null && docketDefinition.apis == null) {
-                                    methodTemplateBuilder.append(".pathsToMatch(\"/**\")\n");
-                                } else {
-                                    if (docketDefinition.paths != null) {
-                                        String paths = docketDefinition.paths instanceof J.Literal ? "\"" + docketDefinition.paths + "\"" : docketDefinition.paths.toString();
-                                        methodTemplateBuilder.append(".pathsToMatch(").append(paths).append(")\n");
+                                    StringBuilder methodTemplateBuilder = new StringBuilder();
+                                    List<Expression> args = new ArrayList<>();
+                                    methodTemplateBuilder.append("@Bean\n")
+                                            .append("public GroupedOpenApi ").append(method.getSimpleName()).append("() {\n")
+                                            .append("return GroupedOpenApi.builder()\n");
+                                    if (docketDefinition.groupName == null) {
+                                        methodTemplateBuilder.append(".group(\"public\")\n");
+                                    } else {
+                                        args.add(docketDefinition.groupName);
+                                        methodTemplateBuilder.append(".group(#{any()})\n");
                                     }
-                                    if (docketDefinition.apis != null) {
-                                        String apis = docketDefinition.apis instanceof J.Literal ? "\"" + docketDefinition.apis + "\"" : docketDefinition.apis.toString();
-                                        methodTemplateBuilder.append(".packagesToScan(").append(apis).append(")\n");
+                                    if (docketDefinition.paths == null && docketDefinition.apis == null) {
+                                        methodTemplateBuilder.append(".pathsToMatch(\"/**\")\n");
+                                    } else {
+                                        if (docketDefinition.paths != null) {
+                                            args.add(docketDefinition.paths);
+                                            methodTemplateBuilder.append(".pathsToMatch(#{any()})\n");
+                                        }
+                                        if (docketDefinition.apis != null) {
+                                            args.add(docketDefinition.apis);
+                                            methodTemplateBuilder.append(".packagesToScan(#{any()})\n");
+                                        }
                                     }
-                                }
-                                methodTemplateBuilder.append(".build();\n")
-                                        .append("}");
+                                    methodTemplateBuilder.append(".build();\n")
+                                            .append("}");
 
-                                maybeAddImport("org.springdoc.core.models.GroupedOpenApi", false);
-                                maybeAddImport("org.springframework.context.annotation.Bean", false);
-                                return JavaTemplate.builder(methodTemplateBuilder.toString())
-                                        .contextSensitive()
-                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context", "springdoc-openapi-starter-common"))
-                                        .imports("org.springdoc.core.models.GroupedOpenApi", "org.springframework.context.annotation.Bean").build()
-                                        .apply(getCursor(), method.getCoordinates().replace());
+                                    maybeAddImport("org.springdoc.core.models.GroupedOpenApi", false);
+                                    maybeAddImport("org.springframework.context.annotation.Bean", false);
+                                    return JavaTemplate.builder(methodTemplateBuilder.toString())
+                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context", "springdoc-openapi-starter-common"))
+                                            .imports("org.springdoc.core.models.GroupedOpenApi", "org.springframework.context.annotation.Bean").build()
+                                            .apply(getCursor(), method.getCoordinates().replace(), args.toArray(new Object[0]));
+                                }
                             }
                             return md;
                         }
