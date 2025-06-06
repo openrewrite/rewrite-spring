@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.doc;
 
 import lombok.*;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
@@ -63,7 +64,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(DocketBeanAccumulator acc) {
-        return Preconditions.check(or(isDocketJavaBeanConfiguration(), new IsPossibleSpringConfigFile()), new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(shouldVisit(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof J.CompilationUnit) {
@@ -82,7 +83,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
             return TreeVisitor.noop();
         }
         DocketDefinition docketDefinition = acc.docketDefinitions.get(0);
-        return Preconditions.check(or(isDocketJavaBeanConfiguration(), new IsPossibleSpringConfigFile()), new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(shouldVisit(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 boolean canConfigureInProperties = canConfigureInProperties(acc, docketDefinition);
@@ -102,6 +103,12 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                 return tree;
             }
         });
+    }
+
+    private static TreeVisitor<?, ExecutionContext> shouldVisit() {
+        return or(new IsPossibleSpringConfigFile(),
+                and(new UsesType<>("springfox.documentation.spring.web.plugins.Docket", true),
+                        new UsesType<>("org.springframework.context.annotation.Bean", true)));
     }
 
     private static boolean isApplicationProperties(@Nullable Tree tree) {
