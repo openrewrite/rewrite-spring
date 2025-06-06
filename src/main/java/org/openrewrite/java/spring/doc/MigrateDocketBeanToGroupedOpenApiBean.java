@@ -85,9 +85,10 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         return Preconditions.check(or(isDocketJavaBeanConfiguration(), new IsPossibleSpringConfigFile()), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                boolean canConfigureInProperties = canConfigureInProperties(acc, docketDefinition);
                 if (tree instanceof J.CompilationUnit) {
-                    return new DocketBeanVisitor(acc, docketDefinition).visitNonNull(tree, ctx);
-                } else if (isApplicationProperties(tree) && canConfigureInProperties(acc, docketDefinition)) {
+                    return new DocketBeanVisitor(canConfigureInProperties, docketDefinition).visitNonNull(tree, ctx);
+                } else if (isApplicationProperties(tree) && canConfigureInProperties) {
                     Tree result = addSpringProperty(ctx, tree, "springdoc.api-docs.path", "/v3/api-docs");
                     result = addSpringProperty(ctx, result, "springdoc.swagger-ui.path", "/swagger-ui.html");
                     if (docketDefinition.groupName == null) {
@@ -273,7 +274,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     @Value
     @EqualsAndHashCode(callSuper = false)
     private static class DocketBeanVisitor extends JavaIsoVisitor<ExecutionContext> {
-        DocketBeanAccumulator acc;
+        boolean removeMethod;
         DocketDefinition docketDefinition;
 
         @Override
@@ -286,7 +287,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                 maybeRemoveImport("springfox.documentation.spi.DocumentationType");
                 maybeRemoveImport("springfox.documentation.spring.web.plugins.Docket");
 
-                if (canConfigureInProperties(acc, docketDefinition)) {
+                if (removeMethod) {
                     maybeRemoveImport("org.springframework.context.annotation.Bean");
                     return null; // Remove the bean method when switching to properties
                 }
