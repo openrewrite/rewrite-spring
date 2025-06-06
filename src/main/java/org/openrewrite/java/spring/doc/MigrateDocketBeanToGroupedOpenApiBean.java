@@ -278,7 +278,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         DocketDefinition docketDefinition;
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+        public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
             if (service(AnnotationService.class).matches(getCursor(), BEAN_ANNOTATIONMATCHER) &&
                     DOCKET_TYPEMATCHER.matches(md.getReturnTypeExpression())) {
