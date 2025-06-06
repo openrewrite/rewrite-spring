@@ -154,6 +154,7 @@ dependencies {
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
+    testRuntimeOnly("io.springfox:springfox-bean-validators:3.+")
 
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")

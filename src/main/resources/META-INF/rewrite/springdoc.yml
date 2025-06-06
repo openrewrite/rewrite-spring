@@ -40,6 +40,7 @@ tags:
   - openapi
 recipeList:
   - org.openrewrite.openapi.swagger.SwaggerToOpenAPI
+  - org.openrewrite.java.spring.doc.RemoveBeanValidatorPluginsConfiguration
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: swagger.title
   - org.openrewrite.java.spring.DeleteSpringProperty:
@@ -49,6 +50,8 @@ recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: io.swagger.core.v3
       artifactId: swagger-annotations
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: '@springfox.documentation.swagger2.annotations.EnableSwagger2'
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
