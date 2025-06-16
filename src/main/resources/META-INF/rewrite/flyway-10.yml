@@ -21,14 +21,15 @@ description: >-
 tags:
   - flyway
 recipeList:
-  - org.openrewrite.java.flyway.MaybeAddFlywayModulePostgresql
+  - org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.flyway.MaybeAddFlywayModulePostgresql
-displayName: Add missing Flyway module for PostgreSQL `flyway-database-postgresql` (from Flyway 10)
+name: org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
+displayName: Add missing Flyway module for PostgreSQL
 description: >-
-  Multiple db modules formerly part of flyway core have been separated out in to their own modules for increased flexibility.
-  Full details can be found at https://github.com/flyway/flyway/issues/3780.
+  Database modules for Flyway 10 have been split out in to separate modules for maintainability.
+  Add the `flyway-database-postgresql` dependency if you are using PostgreSQL with Flyway 10,
+  as detailed on https://github.com/flyway/flyway/issues/3780.
 tags:
   - flyway
 preconditions:
