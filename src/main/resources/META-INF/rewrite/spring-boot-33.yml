@@ -60,6 +60,7 @@ recipeList:
       newVersion: 2.6.x
   - org.openrewrite.hibernate.MigrateToHibernate65
   - org.openrewrite.java.flyway.MigrateToFlyway10
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_6
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
