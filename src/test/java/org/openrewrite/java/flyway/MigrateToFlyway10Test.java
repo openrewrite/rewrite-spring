@@ -45,7 +45,7 @@ class MigrateToFlyway10Test implements RewriteTest {
               		<groupId>org.springframework.boot</groupId>
               		<artifactId>spring-boot-starter-parent</artifactId>
               		<version>3.3.12</version>
-              		<relativePath/> <!-- lookup parent from repository -->
+              		<relativePath/>
               	</parent>
               	<groupId>com.example</groupId>
               	<artifactId>demo</artifactId>
@@ -70,7 +70,7 @@ class MigrateToFlyway10Test implements RewriteTest {
               		<groupId>org.springframework.boot</groupId>
               		<artifactId>spring-boot-starter-parent</artifactId>
               		<version>3.3.12</version>
-              		<relativePath/> <!-- lookup parent from repository -->
+              		<relativePath/>
               	</parent>
               	<groupId>com.example</groupId>
               	<artifactId>demo</artifactId>
