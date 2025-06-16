@@ -59,6 +59,7 @@ recipeList:
       artifactId: "*"
       newVersion: 2.6.x
   - org.openrewrite.hibernate.MigrateToHibernate65
+  - org.openrewrite.java.flyway.MigrateToFlyway10
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
