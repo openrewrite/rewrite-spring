@@ -46,6 +46,31 @@ examples:
     language: groovy
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.flyway.MigrateToFlyway10
+examples:
+- description: ''
+  sources:
+  - before: "<project>\n\t<modelVersion>4.0.0</modelVersion>\n\t<parent>\n\t\t<groupId>org.springframework.boot</groupId>\n\
+      \t\t<artifactId>spring-boot-starter-parent</artifactId>\n\t\t<version>3.3.12</version>\n\
+      \t\t<relativePath/>\n\t</parent>\n\t<groupId>com.example</groupId>\n\t<artifactId>demo</artifactId>\n\
+      \t<version>0.0.1-SNAPSHOT</version>\n\t<dependencies>\n\t\t<dependency>\n\t\t\
+      \t<groupId>org.flywaydb</groupId>\n\t\t\t<artifactId>flyway-core</artifactId>\n\
+      \t\t</dependency>\n\t\t<dependency>\n\t\t\t<groupId>org.postgresql</groupId>\n\
+      \t\t\t<artifactId>postgresql</artifactId>\n\t\t\t<scope>runtime</scope>\n\t\t\
+      </dependency>\n\t</dependencies>\n</project>\n"
+    after: "<project>\n\t<modelVersion>4.0.0</modelVersion>\n\t<parent>\n\t\t<groupId>org.springframework.boot</groupId>\n\
+      \t\t<artifactId>spring-boot-starter-parent</artifactId>\n\t\t<version>3.3.12</version>\n\
+      \t\t<relativePath/>\n\t</parent>\n\t<groupId>com.example</groupId>\n\t<artifactId>demo</artifactId>\n\
+      \t<version>0.0.1-SNAPSHOT</version>\n\t<dependencies>\n\t\t<dependency>\n\t\t\
+      \t<groupId>org.flywaydb</groupId>\n\t\t\t<artifactId>flyway-core</artifactId>\n\
+      \t\t</dependency>\n\t\t<dependency>\n\t\t\t<groupId>org.flywaydb</groupId>\n\
+      \t\t\t<artifactId>flyway-database-postgresql</artifactId>\n\t\t</dependency>\n\
+      \t\t<dependency>\n\t\t\t<groupId>org.postgresql</groupId>\n\t\t\t<artifactId>postgresql</artifactId>\n\
+      \t\t\t<scope>runtime</scope>\n\t\t</dependency>\n\t</dependencies>\n</project>\n"
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.AddSpringProperty
 examples:
 - description: ''
