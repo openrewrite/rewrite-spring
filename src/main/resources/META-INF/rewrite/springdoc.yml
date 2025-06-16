@@ -92,8 +92,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_6
-displayName: Upgrade to SpringDoc 2.1
-description: Upgrade to SpringDoc v2.1.
+displayName: Upgrade to SpringDoc 2.6
+description: Upgrade to SpringDoc v2.6.
 tags:
   - springdoc
 recipeList:
@@ -105,8 +105,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_5
-displayName: Upgrade to SpringDoc 2.1
-description: Upgrade to SpringDoc v2.1.
+displayName: Upgrade to SpringDoc 2.5
+description: Upgrade to SpringDoc v2.5.
 tags:
   - springdoc
 recipeList:
@@ -118,8 +118,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_2
-displayName: Upgrade to SpringDoc 2.1
-description: Upgrade to SpringDoc v2.1.
+displayName: Upgrade to SpringDoc 2.2
+description: Upgrade to SpringDoc v2.2.
 tags:
   - springdoc
 recipeList:
