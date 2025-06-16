@@ -123,14 +123,14 @@ description: Upgrade to SpringDoc v2.1.
 tags:
   - springdoc
 recipeList:
-  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_1
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springdoc
       artifactId: "*"
       newVersion: 2.2.x
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_1
+name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2
 displayName: Upgrade to SpringDoc 2.1
 description: Upgrade to SpringDoc v2.1, as described in the [upgrade guide](https://springdoc.org/#migrating-from-springdoc-v1).
 tags:
