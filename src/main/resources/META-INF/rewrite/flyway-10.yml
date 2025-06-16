@@ -32,6 +32,7 @@ description: >-
   as detailed on https://github.com/flyway/flyway/issues/3780.
 tags:
   - flyway
+  - postgresql
 preconditions:
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.flywaydb
