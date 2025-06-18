@@ -31,7 +31,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13"))
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13", "mockito-core"))
           .recipe(new MigrateAuditorAwareToOptional());
     }
 
@@ -513,6 +513,29 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                       public Optional<String> getName() {
                           return Optional.ofNullable(name);
                       }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dontRewriteAuditorAwareMethodInvocation() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import static org.mockito.Mockito.mock;
+
+              import org.springframework.data.domain.AuditorAware;
+
+              import java.util.Optional;
+
+
+              public class Configuration {
+                  public AuditorAware<String> auditorAware() {
+                      return mock(AuditorAware.class);
                   }
               }
               """

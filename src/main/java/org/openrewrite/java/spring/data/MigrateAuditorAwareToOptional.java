@@ -140,7 +140,8 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 return super.visitReturn(return_, ctx);
             }
             if (expression instanceof J.MethodInvocation) {
-                if (((J.MethodInvocation) expression).getMethodType() != null && isOptional.matches(((J.MethodInvocation) expression).getMethodType().getReturnType())) {
+                JavaType.Method methodType = ((J.MethodInvocation) expression).getMethodType();
+                if (methodType != null && (isOptional.matches(methodType.getReturnType()) || isAuditorAware.matches(methodType.getReturnType()))) {
                     return return_;
                 }
                 maybeAddImport("java.util.Optional");
