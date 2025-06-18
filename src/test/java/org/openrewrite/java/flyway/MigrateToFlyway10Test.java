@@ -95,4 +95,67 @@ class MigrateToFlyway10Test implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void addMySQLDependency() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+              	<modelVersion>4.0.0</modelVersion>
+              	<parent>
+              		<groupId>org.springframework.boot</groupId>
+              		<artifactId>spring-boot-starter-parent</artifactId>
+              		<version>3.3.12</version>
+              		<relativePath/>
+              	</parent>
+              	<groupId>com.example</groupId>
+              	<artifactId>demo</artifactId>
+              	<version>0.0.1-SNAPSHOT</version>
+              	<dependencies>
+              		<dependency>
+              			<groupId>org.flywaydb</groupId>
+              			<artifactId>flyway-core</artifactId>
+              		</dependency>
+              		<dependency>
+              			<groupId>com.mysql</groupId>
+              			<artifactId>mysql-connector-j</artifactId>
+              			<scope>runtime</scope>
+              		</dependency>
+              	</dependencies>
+              </project>
+              """,
+            """
+              <project>
+              	<modelVersion>4.0.0</modelVersion>
+              	<parent>
+              		<groupId>org.springframework.boot</groupId>
+              		<artifactId>spring-boot-starter-parent</artifactId>
+              		<version>3.3.12</version>
+              		<relativePath/>
+              	</parent>
+              	<groupId>com.example</groupId>
+              	<artifactId>demo</artifactId>
+              	<version>0.0.1-SNAPSHOT</version>
+              	<dependencies>
+              		<dependency>
+              			<groupId>org.flywaydb</groupId>
+              			<artifactId>flyway-core</artifactId>
+              		</dependency>
+              		<dependency>
+              			<groupId>org.flywaydb</groupId>
+              			<artifactId>flyway-mysql</artifactId>
+              		</dependency>
+              		<dependency>
+              			<groupId>com.mysql</groupId>
+              			<artifactId>mysql-connector-j</artifactId>
+              			<scope>runtime</scope>
+              		</dependency>
+              	</dependencies>
+              </project>
+              """
+          )
+        );
+    }
 }

@@ -22,6 +22,7 @@ tags:
   - flyway
 recipeList:
   - org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
+  - org.openrewrite.java.flyway.AddFlywayModuleMySQL
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
@@ -45,4 +46,28 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.flywaydb
       artifactId: flyway-database-postgresql
+      acceptTransitive: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.flyway.AddFlywayModuleMySQL
+displayName: Add missing Flyway module for MySQL
+description: >-
+  Database modules for Flyway 10 have been split out into separate modules for maintainability.
+  Add the `flyway-mysql` dependency if you are using MySQL with Flyway 10,
+  as detailed on https://github.com/flyway/flyway/issues/3780.
+tags:
+  - flyway
+  - mysql
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.flywaydb
+      artifactIdPattern: flyway-core
+      version: "[10,)"
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: com.mysql
+      artifactIdPattern: mysql-connector-j
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-mysql
       acceptTransitive: true
