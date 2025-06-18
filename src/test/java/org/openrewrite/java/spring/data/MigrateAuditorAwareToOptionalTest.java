@@ -530,7 +530,6 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
 
               import org.springframework.data.domain.AuditorAware;
 
-              import java.util.Optional;
 
 
               public class Configuration {
