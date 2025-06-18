@@ -23,6 +23,7 @@ tags:
 recipeList:
   - org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
   - org.openrewrite.java.flyway.AddFlywayModuleMySQL
+  - org.openrewrite.java.flyway.AddFlywayModuleOracle
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
@@ -70,4 +71,28 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.flywaydb
       artifactId: flyway-mysql
+      acceptTransitive: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.flyway.AddFlywayModuleOracle
+displayName: Add missing Flyway module for Oracle
+description: >-
+  Database modules for Flyway 10 have been split out into separate modules for maintainability.
+  Add the `flyway-database-oracle` dependency if you are using Oracle with Flyway 10,
+  as detailed on https://github.com/flyway/flyway/issues/3780.
+tags:
+  - flyway
+  - oracle
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.flywaydb
+      artifactIdPattern: flyway-core
+      version: "[10,)"
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: com.oracle.database.jdbc
+      artifactIdPattern: ojdbc*
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-database-oracle
       acceptTransitive: true
