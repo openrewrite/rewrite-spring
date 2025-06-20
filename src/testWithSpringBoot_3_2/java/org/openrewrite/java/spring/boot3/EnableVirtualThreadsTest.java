@@ -47,7 +47,6 @@ class EnableVirtualThreadsTest implements RewriteTest {
     }
 
     @Test
-    @DocumentExample
     void enableVirtualThreadsYaml() {
         rewriteRun(
           //language=yaml

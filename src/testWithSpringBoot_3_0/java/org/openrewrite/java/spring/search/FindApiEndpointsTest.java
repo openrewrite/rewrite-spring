@@ -68,7 +68,6 @@ class FindApiEndpointsTest implements RewriteTest {
     }
 
     @Test
-    @DocumentExample
     void webClient() {
         rewriteRun(
           //language=java
