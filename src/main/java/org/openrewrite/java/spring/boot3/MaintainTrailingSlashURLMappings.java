@@ -57,11 +57,18 @@ public class MaintainTrailingSlashURLMappings extends ScanningRecipe<AtomicBoole
     public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean acc) {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                if (!acc.get()) {
-                    acc.set(FindWebConfigurer.find(cu));
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                if (!acc.get() && classDecl.getImplements() != null) {
+                    for (TypeTree impl : classDecl.getImplements()) {
+                        JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
+                        if (fullyQualified != null &&
+                                (WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()) ||
+                                        WEB_FLUX_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()))) {
+                            acc.set(true);
+                        }
+                    }
                 }
-                return cu;
+                return super.visitClassDeclaration(classDecl, ctx);
             }
         };
     }
@@ -74,33 +81,8 @@ public class MaintainTrailingSlashURLMappings extends ScanningRecipe<AtomicBoole
                 if (acc.get()) {
                     return new AddSetUseTrailingSlashMatch().getVisitor().visit(tree, ctx);
                 }
-
                 return new AddRouteTrailingSlash().getVisitor().visit(tree, ctx);
             }
         };
-    }
-
-    private static class FindWebConfigurer extends JavaIsoVisitor<AtomicBoolean> {
-        static boolean find(J j) {
-            return new FindWebConfigurer()
-                .reduce(j, new AtomicBoolean()).get();
-        }
-
-        @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, AtomicBoolean found) {
-            if (classDecl.getImplements() != null) {
-                for (TypeTree impl : classDecl.getImplements()) {
-                    JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
-                    if (fullyQualified != null &&
-                        (WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()) ||
-                         WEB_FLUX_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()))
-                    ) {
-                        found.set(true);
-                        return classDecl;
-                    }
-                }
-            }
-            return classDecl;
-        }
     }
 }
