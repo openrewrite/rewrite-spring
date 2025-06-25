@@ -1823,14 +1823,6 @@ examples:
   - after: |
       spring.threads.virtual.enabled=true
     language: properties
-- description: ''
-  sources:
-  - after: |
-      spring:
-        threads:
-          virtual:
-            enabled: true
-    language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.MaintainTrailingSlashURLMappings
@@ -3561,29 +3553,6 @@ examples:
       @Controller
       class PersonController {
           /*~~(GET /count)~~>*/@GetMapping("/count")
-          int count() {
-            return 42;
-          }
-      }
-    language: java
-- description: ''
-  sources:
-  - before: |
-      import org.springframework.web.bind.annotation.*;
-
-      @RequestMapping("/person")
-      class PersonController {
-          @GetMapping("/count")
-          int count() {
-            return 42;
-          }
-      }
-    after: |
-      import org.springframework.web.bind.annotation.*;
-
-      @RequestMapping("/person")
-      class PersonController {
-          /*~~(GET /person/count)~~>*/@GetMapping("/count")
           int count() {
             return 42;
           }
