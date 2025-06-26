@@ -24,6 +24,7 @@ recipeList:
   - org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
   - org.openrewrite.java.flyway.AddFlywayModuleMySQL
   - org.openrewrite.java.flyway.AddFlywayModuleOracle
+  - org.openrewrite.java.flyway.AddFlywayModuleSqlServer
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
@@ -95,4 +96,28 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.flywaydb
       artifactId: flyway-database-oracle
+      acceptTransitive: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.flyway.AddFlywayModuleSqlServer
+displayName: Add missing Flyway module for SQL Server
+description: >-
+  Database modules for Flyway 10 have been split out into separate modules for maintainability.
+  Add the `flyway-sqlserver` dependency if you are using SQL Server with Flyway 10,
+  as detailed on https://github.com/flyway/flyway/issues/3780.
+tags:
+  - flyway
+  - sqlserver
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.flywaydb
+      artifactIdPattern: flyway-core
+      version: "[10,)"
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: com.microsoft.sqlserver
+      artifactIdPattern: mssql-jdbc
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-sqlserver
       acceptTransitive: true
