@@ -52,7 +52,7 @@ recipeDependencies {
 
     parserClasspath("javax.persistence:javax.persistence-api:2.+")
     parserClasspath("javax.validation:validation-api:2.0.1.Final")
-    parserClasspath("org.junit.jupiter:junit-jupiter-api:latest.release")
+    parserClasspath("org.junit.jupiter:junit-jupiter-api:5.+")
 
     parserClasspath("org.springframework.boot:spring-boot:1.+")
     parserClasspath("org.springframework.boot:spring-boot:2.+")
