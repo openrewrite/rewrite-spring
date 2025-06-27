@@ -161,7 +161,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                         JavaTemplate webFluxTemplate = JavaTemplate.builder("#{any()}.setUseTrailingSlashMatch(true);")
                                 .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion()
-                                        .classpath("spring-webflux", "spring-context", "spring-web"))
+                                        .classpathFromResources(ctx, "spring-webflux-5", "spring-context-5", "spring-web-5"))
                                 .imports(WEB_MVC_PATH_MATCH_CONFIGURER,
                                         "org.springframework.web.reactive.config.WebFluxConfigurer",
                                         "org.springframework.context.annotation.Configuration")
