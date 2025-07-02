@@ -1,0 +1,26 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+########################################################################################################################
+# Spring Data JPA 3.4
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.data.UpgradeSpringDataJPA_3_4
+displayName: Migrate to Spring Data JPA 3.4
+description: Migrate applications to the latest Spring Data JPA 3.4 release.
+recipeList:
+  - org.openrewrite.java.spring.data.UpgradeSpringData_2_7
+  - org.openrewrite.java.spring.data.MigrateQueryToNativeQuery
