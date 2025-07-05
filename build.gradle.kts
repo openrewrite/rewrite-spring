@@ -90,7 +90,6 @@ recipeDependencies {
     parserClasspath("org.springframework.data:spring-data-commons:1.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
-    parserClasspath("org.springframework.data:spring-data-jpa:3.4.+")
     parserClasspath("org.springframework.data:spring-data-mongodb:2.2.+")
     parserClasspath("org.mongodb:mongo-java-driver:3.12.+")
 
@@ -155,6 +154,7 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
+    testRuntimeOnly("org.springframework.data:spring-data-jpa:3.4.7")
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly("io.springfox:springfox-core:3.+")
     testRuntimeOnly("io.springfox:springfox-spring-web:3.+")

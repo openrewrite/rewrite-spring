@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.data;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -33,8 +32,7 @@ class MigrateQueryToNativeQueryTest implements RewriteTest {
         // See: https://docs.openrewrite.org/authoring-recipes/recipe-testing#specifying-the-classpath-for-dependencies
         // See also: https://docs.openrewrite.org/authoring-recipes/multiple-versions
         spec.recipe(new MigrateQueryToNativeQuery())
-          .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-data-jpa-3.4.+"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-data-jpa-3.4.7"));
     }
 
     @DocumentExample
