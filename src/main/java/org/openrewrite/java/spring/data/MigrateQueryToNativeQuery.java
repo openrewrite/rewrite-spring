@@ -34,6 +34,7 @@ public class MigrateQueryToNativeQuery extends Recipe {
 
     private static final String DATA_JPA_QUERY_FQN = "org.springframework.data.jpa.repository.Query";
     private static final String DATA_JPA_NATIVE_QUERY_FQN = "org.springframework.data.jpa.repository.NativeQuery";
+    private static final Annotated.Matcher MATCHER = new Annotated.Matcher("@" + DATA_JPA_QUERY_FQN + "(nativeQuery = true)");
 
     @Override
     public String getDisplayName() {
@@ -62,8 +63,7 @@ public class MigrateQueryToNativeQuery extends Recipe {
                     public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                         J.Annotation an = super.visitAnnotation(annotation, ctx);
 
-                        if (!new Annotated.Matcher("@" + DATA_JPA_QUERY_FQN + "(nativeQuery = true)")
-                                .get(getCursor())
+                        if (!MATCHER.get(getCursor())
                                 .filter(a -> a.getAttribute("nativeQuery")
                                         .filter(l -> "true".equals(l.getString()))
                                         .isPresent())
