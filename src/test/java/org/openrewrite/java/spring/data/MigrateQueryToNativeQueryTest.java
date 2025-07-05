@@ -170,5 +170,4 @@ class MigrateQueryToNativeQueryTest implements RewriteTest {
           )
         );
     }
-
 }
