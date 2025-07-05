@@ -154,7 +154,6 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
-    testRuntimeOnly("org.springframework.data:spring-data-jpa:3.4.7")
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly("io.springfox:springfox-core:3.+")
     testRuntimeOnly("io.springfox:springfox-spring-web:3.+")
@@ -274,6 +273,7 @@ dependencies {
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.boot:spring-boot:3.4.+")
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-context:6.2.+")
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-web:6.2.+")
+    "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.data:spring-data-jpa:3.4.7")
     "testWithSpringBoot_3_4RuntimeOnly"("jakarta.validation:jakarta.validation-api:3.0.+")
 
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
