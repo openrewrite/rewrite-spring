@@ -18,9 +18,8 @@
 # Spring Data JPA 3.4
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.data.UpgradeSpringDataJPA_3_4
-displayName: Migrate to Spring Data JPA 3.4
-description: Migrate applications to the latest Spring Data JPA 3.4 release.
+name: org.openrewrite.java.spring.data.UpgradeSpringData_3_4
+displayName: Migrate to Spring Data 3.4
+description: Migrate applications to the latest Spring Data 3.4 release.
 recipeList:
-  - org.openrewrite.java.spring.data.UpgradeSpringData_2_7
   - org.openrewrite.java.spring.data.MigrateQueryToNativeQuery
