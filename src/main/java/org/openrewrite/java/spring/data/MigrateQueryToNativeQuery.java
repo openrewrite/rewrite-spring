@@ -72,8 +72,7 @@ public class MigrateQueryToNativeQuery extends Recipe {
                         }
 
                         an = (J.Annotation) new RemoveAnnotationAttribute(DATA_JPA_QUERY_FQN, "nativeQuery")
-                                .getVisitor()
-                                .visitNonNull(an, ctx, getCursor().getParentOrThrow());
+                                .getVisitor().visitNonNull(an, ctx, getCursor().getParentOrThrow());
                         an = (J.Annotation) new ChangeType(DATA_JPA_QUERY_FQN, DATA_JPA_NATIVE_QUERY_FQN, false)
                                 .getVisitor().visitNonNull(an, ctx, getCursor().getParentOrThrow());
                         maybeRemoveImport(DATA_JPA_QUERY_FQN);
