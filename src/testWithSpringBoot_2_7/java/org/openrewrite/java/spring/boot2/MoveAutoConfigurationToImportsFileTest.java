@@ -249,8 +249,8 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/548")
+    @Test
     void dontChangeAnnotationsOnAutoConfigurationClasses() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion().classpath("spring-boot-autoconfigure", "spring-context")),

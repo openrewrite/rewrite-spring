@@ -39,8 +39,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class UseTlsAmqpConnectionString extends Recipe {
     private static final String PREFIX_AMQP = "amqp";
     private static final String PREFIX_AMQP_SECURE = "amqps";
@@ -137,8 +137,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
         };
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     static class UseTlsAmqpConnectionStringYaml extends Recipe {
         String propertyKey;
 
@@ -237,8 +237,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
         }
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     static class UseTlsAmqpConnectionStringProperties extends Recipe {
         String propertyKey;
 

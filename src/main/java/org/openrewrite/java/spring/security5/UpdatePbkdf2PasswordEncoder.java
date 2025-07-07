@@ -34,8 +34,8 @@ import java.util.*;
 import static org.openrewrite.Tree.randomId;
 import static org.openrewrite.java.spring.internal.LocalVariableUtils.resolveExpression;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class UpdatePbkdf2PasswordEncoder extends Recipe {
 
     private static final String PBKDF2_PASSWORD_ENCODER_CLASS = "org.springframework.security.crypto.password.Pbkdf2PasswordEncoder";

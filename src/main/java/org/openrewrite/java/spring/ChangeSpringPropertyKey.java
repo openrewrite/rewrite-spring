@@ -40,8 +40,8 @@ import static java.util.regex.Pattern.quote;
  * This composite recipe will change a spring application property key across YAML and properties files.
  * It also changes property keys in @Value annotations.
  */
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class ChangeSpringPropertyKey extends Recipe {
 
     @Override

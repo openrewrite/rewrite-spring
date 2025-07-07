@@ -30,8 +30,8 @@ class UpgradeSpringDoc2Test implements RewriteTest {
         spec.recipeFromResources("org.openrewrite.java.springdoc.UpgradeSpringDoc_2");
     }
 
-    @Test
     @DocumentExample
+    @Test
     void upgradeMaven() {
         rewriteRun(
           pomXml(

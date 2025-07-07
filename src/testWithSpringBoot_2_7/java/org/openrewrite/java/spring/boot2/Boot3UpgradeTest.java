@@ -44,8 +44,8 @@ class Boot3UpgradeTest implements RewriteTest {
     }
 
     @DocumentExample
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/486")
+    @Test
     void xmlBindMissing() {
         rewriteRun(
           mavenProject("project",

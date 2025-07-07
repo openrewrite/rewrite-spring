@@ -38,8 +38,8 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
           );
     }
 
-    @Test
     @DocumentExample
+    @Test
     void upgradeSpringCloudVersion() {
         rewriteRun(
           mavenProject("project",

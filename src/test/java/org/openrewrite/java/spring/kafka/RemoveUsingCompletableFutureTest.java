@@ -32,8 +32,8 @@ class RemoveUsingCompletableFutureTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-kafka-2.9"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void usingCompletableFuture() {
         //noinspection UnnecessaryLocalVariable
         rewriteRun(

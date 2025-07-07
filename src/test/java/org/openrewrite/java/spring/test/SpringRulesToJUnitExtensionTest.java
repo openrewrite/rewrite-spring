@@ -36,9 +36,9 @@ class SpringRulesToJUnitExtensionTest implements RewriteTest {
           );
     }
 
-    @Test
-    @DocumentExample
     @Disabled
+    @DocumentExample
+    @Test
     void migrateWithSpringBootTestPresent() {
         rewriteRun(
           //language=java
@@ -76,8 +76,8 @@ class SpringRulesToJUnitExtensionTest implements RewriteTest {
         );
     }
 
-    @Test
     @Disabled
+    @Test
     void migrateSingleAnnotation() {
         rewriteRun(
           //language=java

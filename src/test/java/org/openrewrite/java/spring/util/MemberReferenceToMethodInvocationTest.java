@@ -33,8 +33,8 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void singleArgWithoutParameterNameRetained() {
         //language=java
         rewriteRun(

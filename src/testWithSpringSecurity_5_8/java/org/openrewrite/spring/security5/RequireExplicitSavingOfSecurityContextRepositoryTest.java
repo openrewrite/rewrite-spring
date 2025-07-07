@@ -273,8 +273,8 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
         );
     }
 
-    @Test
     @SuppressWarnings("CodeBlock2Expr")
+    @Test
     void onlyInChainWithBlockBody() {
         // language=java
         rewriteRun(

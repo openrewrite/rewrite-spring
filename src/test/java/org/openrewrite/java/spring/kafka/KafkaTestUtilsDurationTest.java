@@ -34,8 +34,8 @@ class KafkaTestUtilsDurationTest implements RewriteTest {
           ));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void adoptDuration() {
         //noinspection deprecation
         rewriteRun(

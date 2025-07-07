@@ -32,8 +32,8 @@ class MigrateSpringAssertTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-5"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void migrateSpringAssert() {
         rewriteRun(
           //language=java
