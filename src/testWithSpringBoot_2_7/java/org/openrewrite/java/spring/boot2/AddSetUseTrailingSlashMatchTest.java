@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,6 +30,40 @@ class AddSetUseTrailingSlashMatchTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion().classpath("spring-webmvc", "spring-webflux", "spring-web", "spring-context"))
           .recipe(new AddSetUseTrailingSlashMatch());
+    }
+
+    @DocumentExample
+    @Test
+    void addConfigurePathMatchMethodForWebMvcConfigurer() {
+        rewriteRun(
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              @Configuration
+              public class MyWebConfiguration implements WebMvcConfigurer {
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              @Configuration
+              public class MyWebConfiguration implements WebMvcConfigurer {
+                  @Override
+                  public void configurePathMatch(PathMatchConfigurer configurer) {
+                      configurer.setUseTrailingSlashMatch(true);
+                  }
+              }
+              """
+          )
+        );
     }
 
     @Test
@@ -68,40 +102,6 @@ class AddSetUseTrailingSlashMatchTest implements RewriteTest {
               public class MyWebConfig implements WebFluxConfigurer {
                   @Override
                   public void configurePathMatching(PathMatchConfigurer configurer) {
-                      configurer.setUseTrailingSlashMatch(true);
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void addConfigurePathMatchMethodForWebMvcConfigurer() {
-        rewriteRun(
-          java(
-            """
-              package com.example.demo;
-
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-              @Configuration
-              public class MyWebConfiguration implements WebMvcConfigurer {
-              }
-              """,
-            """
-              package com.example.demo;
-
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-              @Configuration
-              public class MyWebConfiguration implements WebMvcConfigurer {
-                  @Override
-                  public void configurePathMatch(PathMatchConfigurer configurer) {
                       configurer.setUseTrailingSlashMatch(true);
                   }
               }

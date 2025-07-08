@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,8 +39,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class UseTlsAmqpConnectionString extends Recipe {
     private static final String PREFIX_AMQP = "amqp";
     private static final String PREFIX_AMQP_SECURE = "amqps";
@@ -137,8 +137,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
         };
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     static class UseTlsAmqpConnectionStringYaml extends Recipe {
         String propertyKey;
 
@@ -237,8 +237,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
         }
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     static class UseTlsAmqpConnectionStringProperties extends Recipe {
         String propertyKey;
 

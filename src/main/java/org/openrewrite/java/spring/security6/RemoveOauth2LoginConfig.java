@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,8 +21,8 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.RemoveMethodInvocationsVisitor;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.spring.RemoveMethodInvocationsVisitor;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -41,8 +41,8 @@ public class RemoveOauth2LoginConfig extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "`oauth2Login()` is a Spring Security feature that allows users to authenticate with an OAuth2 or OpenID" +
-                " Connect 1.0 provider. When a user is authenticated using this feature, they are granted a set of " +
+        return "`oauth2Login()` is a Spring Security feature that allows users to authenticate with an OAuth2 or OpenID " +
+                "Connect 1.0 provider. When a user is authenticated using this feature, they are granted a set of " +
                 "authorities that determines what actions they are allowed to perform within the application.\n" +
                 "\n" +
                 "In Spring Security 5, the default authority given to a user authenticated with an OAuth2 or OpenID " +

@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,16 +34,14 @@ import static java.util.Objects.requireNonNull;
 public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private static final String MSG_FLATTEN_CHAIN = "http-security-dsl-flatten-invocation-chain";
-
     private static final String MSG_TOP_INVOCATION = "top-method-invocation";
 
-    public static final String FQN_CUSTOMIZER = "org.springframework.security.config.Customizer";
+    private static final String FQN_CUSTOMIZER = "org.springframework.security.config.Customizer";
+    private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE = JavaType.ShallowClass.build(FQN_CUSTOMIZER);
 
-    private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE =
-            (JavaType.ShallowClass) JavaType.buildType(FQN_CUSTOMIZER);
+    private static final MethodMatcher XSS_PROTECTION_ENABLED = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.XXssConfig xssProtectionEnabled(boolean)");
 
     private final String securityFqn;
-
     private final Collection<String> convertableMethods;
 
     /**
@@ -65,12 +63,12 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
-            Map<String, String> argReplacements) {
+                                       Map<String, String> argReplacements) {
         this(securityFqn, convertableMethods, argReplacements, new HashMap<>());
     }
 
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
-            Map<String, String> argReplacements, Map<String, String> methodRenames) {
+                                       Map<String, String> argReplacements, Map<String, String> methodRenames) {
         this.securityFqn = securityFqn;
         this.convertableMethods = convertableMethods;
         this.argReplacements = argReplacements;
@@ -129,7 +127,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(paramName, paramType), chain);
         return new J.Lambda(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
                 new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, Collections.singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
-                Space.build(" ", Collections.emptyList()),
+                Space.build(" ", emptyList()),
                 body,
                 JavaType.Primitive.Void
         );
@@ -144,6 +142,24 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         J.MethodInvocation invocation = null;
         for (J.MethodInvocation inv : chain) {
             invocation = inv.withSelect(select);
+            if (XSS_PROTECTION_ENABLED.matches(invocation)) {
+                if (J.Literal.isLiteralValue(invocation.getArguments().get(0), false)) {
+                    invocation = invocation.withName(invocation.getName().withSimpleName("disable")).withArguments(null);
+                    JavaType.Method methodType = invocation.getMethodType();
+                    if (methodType != null) {
+                        methodType = methodType.withParameterNames(emptyList()).withParameterTypes(emptyList());
+                        invocation = invocation.withMethodType(methodType).withName(invocation.getName().withType(methodType));
+                    }
+                } else {
+                    // Enabled by default; but returning `null` will cause issues, so we use `and()` as a placeholder
+                    invocation = invocation.withName(invocation.getName().withSimpleName("and")).withArguments(null);
+                    JavaType.Method methodType = invocation.getMethodType();
+                    if (methodType != null) {
+                        methodType = methodType.withParameterNames(emptyList()).withParameterTypes(emptyList());
+                        invocation = invocation.withMethodType(methodType).withName(invocation.getName().withType(methodType));
+                    }
+                }
+            }
             select = invocation;
         }
         // Check if top-level invocation to remove the prefix as the prefix is space before the root call, i.e. before httpSecurity identifier. We don't want to have inside the lambda
@@ -161,17 +177,17 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (type != null) {
             JavaType.FullyQualified declaringType = type.getDeclaringType();
             return securityFqn.equals(declaringType.getFullyQualifiedName()) &&
-                    (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
-                    convertableMethods.contains(m.getSimpleName());
+                   (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
+                   convertableMethods.contains(m.getSimpleName());
         }
         return false;
     }
 
     private boolean hasHandleableArg(J.MethodInvocation m) {
         return argReplacements.containsKey(m.getSimpleName()) &&
-                m.getMethodType() != null &&
-                m.getMethodType().getParameterTypes().size() == 1 &&
-                !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
+               m.getMethodType() != null &&
+               m.getMethodType().getParameterTypes().size() == 1 &&
+               !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
     }
 
     private Optional<JavaType.Method> createDesiredReplacement(J.MethodInvocation m) {
@@ -255,7 +271,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             }
         }
         if (cursor == null || chain.isEmpty()) {
-            return Collections.emptyList();
+            return emptyList();
         }
         if (!(cursor.getValue() instanceof J.MethodInvocation)) {
             // top invocation is at the end of the chain - mark it. We'd need to strip off prefix from this invocation later
@@ -268,8 +284,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private boolean isAndMethod(J.MethodInvocation method) {
         return "and".equals(method.getSimpleName()) &&
-                (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty) &&
-                TypeUtils.isAssignableTo(securityFqn, method.getType());
+               (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty) &&
+               TypeUtils.isAssignableTo(securityFqn, method.getType());
     }
 
     private boolean isDisableMethod(J.MethodInvocation method) {
@@ -279,7 +295,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private J.MethodInvocation createDefaultsCall() {
         JavaType.Method methodType = new JavaType.Method(null, 9, CUSTOMIZER_SHALLOW_TYPE, "withDefaults",
                 new JavaType.GenericTypeVariable(null, "T", JavaType.GenericTypeVariable.Variance.INVARIANT, null),
-                null, null, null, null);
+                null, null, null, null, Collections.emptyList(), Collections.emptyList());
         maybeAddImport(methodType.getDeclaringType().getFullyQualifiedName(), methodType.getName());
         return new J.MethodInvocation(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, null,
                 new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), "withDefaults", null, null),

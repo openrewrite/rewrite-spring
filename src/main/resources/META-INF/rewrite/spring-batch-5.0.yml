@@ -1,11 +1,11 @@
 #
-# Copyright 2022 the original author or authors.
+# Copyright 2024 the original author or authors.
 # <p>
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # <p>
-# https://www.apache.org/licenses/LICENSE-2.0
+# https://docs.moderne.io/licensing/moderne-source-available-license
 # <p>
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 
@@ -33,6 +34,7 @@ recipeList:
   - org.openrewrite.java.spring.batch.MigrateStepBuilderFactory
   - org.openrewrite.java.spring.batch.MigrateItemWriterWrite
   - org.openrewrite.java.spring.batch.RemoveDefaultBatchConfigurer
+  - org.openrewrite.java.spring.batch.UpgradeSkipPolicyParameterType
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.metrics.BatchMetrics
       newFullyQualifiedTypeName: org.springframework.batch.core.observability.BatchMetrics
@@ -42,6 +44,10 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.configuration.annotation.ScopeConfiguration
       newFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.ScopeConfiguration
+  - org.openrewrite.java.spring.batch.ConvertReceiveTypeWhenCallStepExecutionMethod
+  - org.openrewrite.java.spring.batch.JobParameterToString
+  - org.openrewrite.java.spring.batch.MigrateJobParameter
+  - org.openrewrite.java.spring.batch.MigrateMethodAnnotatedByBatchAPI
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.batch.ListenerSupportClassToInterface
@@ -63,3 +69,13 @@ recipeList:
   - org.openrewrite.java.spring.batch.ReplaceSupportClassWithItsInterface:
       fullyQualifiedClassName: org.springframework.batch.repeat.listener.RepeatListenerSupport
       fullyQualifiedInterfaceName: org.springframework.batch.repeat.RepeatListener
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.batch.UpgradeSkipPolicyParameterType
+displayName: Change the type of `skipCount` parameter in `SkipPolicy` from `int` to `long`
+description: The `skipCount` parameter in `org.springframework.batch.core.step.skip.SkipPolicy#shouldSkip` has been changed from `int` to `long`, this recipe updates the parameter type in the implementing classes.
+recipeList:
+  - org.openrewrite.java.spring.ChangeMethodParameter:
+      methodPattern: org.springframework.batch.core.step.skip.SkipPolicy shouldSkip(java.lang.Throwable, int)
+      parameterIndex: 1
+      parameterType: long

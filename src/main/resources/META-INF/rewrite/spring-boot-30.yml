@@ -1,11 +1,11 @@
 #
-# Copyright 2023 the original author or authors.
+# Copyright 2024 the original author or authors.
 # <p>
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # <p>
-# https://www.apache.org/licenses/LICENSE-2.0
+# https://docs.moderne.io/licensing/moderne-source-available-license
 # <p>
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
@@ -29,6 +30,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
   - org.openrewrite.java.migrate.UpgradeToJava17
+  - org.openrewrite.java.migrate.jakarta.UpdateJakartaAnnotations2
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
@@ -58,7 +60,7 @@ recipeList:
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: ^7.4
       addIfMissing: false
-  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
+  - org.openrewrite.java.migrate.jakarta.JakartaEE10
   - org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
   - org.openrewrite.java.spring.boot2.MoveAutoConfigurationToImportsFile
   - org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
@@ -67,9 +69,10 @@ recipeList:
   - org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
   - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
-  - org.openrewrite.java.spring.boot3.UpgradeSpringDoc_2
   - org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
   - org.openrewrite.java.spring.boot3.RemoveSolrAutoConfigurationExclude
+  - org.openrewrite.java.spring.boot3.MigrateWebMvcTagsToObservationConvention
+  - org.openrewrite.java.spring.framework.BeanMethodReturnNull
   - org.openrewrite.java.spring.batch.SpringBatch4To5Migration
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0
   - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_3_0
@@ -77,6 +80,8 @@ recipeList:
   - org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2
   - org.openrewrite.hibernate.MigrateToHibernate61
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
@@ -92,7 +97,6 @@ recipeList:
       propertyKey: management.endpoint.env.additional-keys-to-sanitize
 
 ---
-
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
 displayName: Rename `server.max-http-header-size` to `server.max-http-request-header-size`
@@ -132,82 +136,7 @@ recipeList:
       oldGroupId: org.thymeleaf.extras
       oldArtifactId: thymeleaf-extras-springsecurity5
       newArtifactId: thymeleaf-extras-springsecurity6
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.UpgradeSpringDoc_2
-displayName: Upgrade to springdoc-openapi 2
-description: >-
-  Migrate applications to the latest spring-doc 2 release. This recipe will modify an
-  application's build files and make changes code changes for removed/updated APIs.
-  See the [upgrade guide](https://springdoc.org/#migrating-from-springdoc-v1)
-tags:
-  - spring
-recipeList:
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-data-rest
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-groovy
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-hateoas
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-javadoc
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-kotlin
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springdoc
-      artifactId: springdoc-openapi-security
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-common
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-webmvc-core
-      newArtifactId: springdoc-openapi-starter-webmvc-api
-      newVersion: 2.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-webflux-core
-      newArtifactId: springdoc-openapi-starter-webflux-api
-      newVersion: 2.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-ui
-      newArtifactId: springdoc-openapi-starter-webmvc-ui
-      newVersion: 2.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-webflux-ui
-      newArtifactId: springdoc-openapi-starter-webflux-ui
-      newVersion: 2.x
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springdoc.core.SpringDocUtils
-      newFullyQualifiedTypeName: org.springdoc.core.utils.SpringDocUtils
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springdoc.api.annotations.ParameterObject
-      newFullyQualifiedTypeName: org.springdoc.core.annotations.ParameterObject
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springdoc.core.GroupedOpenApi
-      newFullyQualifiedTypeName: org.springdoc.core.models.GroupedOpenApi
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springdoc.core.customizers.OpenApiCustomiser
-      newFullyQualifiedTypeName: org.springdoc.core.customizers.OpenApiCustomizer
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springdoc.core.Constants
-      newFullyQualifiedTypeName: org.springdoc.core.utils.Constants
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springdoc.core.SwaggerUiConfigParameters
-      newFullyQualifiedTypeName: org.springdoc.core.properties.SwaggerUiConfigParameters
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: org.springdoc.core.models.GroupedOpenApi.Builder addOpenApiCustomiser(..)
-      newMethodName: addOpenApiCustomizer
-      matchOverrides: true
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
@@ -234,3 +163,34 @@ recipeList:
       oldArtifactId: metrics-servlets
       newArtifactId: metrics-jakarta-servlets
       newVersion: 4.2.x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.MigrateSapCfJavaLoggingSupport
+displayName: Migrate SAP cloud foundry logging support to Spring Boot 3.x
+description: Migrate SAP cloud foundry logging support from `cf-java-logging-support-servlet` to `cf-java-logging-support-servlet-jakarta`, to use Jakarta with Spring Boot 3.
+tags:
+  - spring
+  - boot
+  - sap
+  - cloudfoundry
+  - logging
+recipeList:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.sap.hcp.cf.logging
+      oldArtifactId: cf-java-logging-support-servlet
+      newArtifactId: cf-java-logging-support-servlet-jakarta
+      newVersion: "[3.7.0,4)"
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
+displayName: Upgrade MyBatis to Spring Boot 3.0
+description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 3.0.
+recipeList:
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_7
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mybatis.spring.boot
+      artifactId: "*"
+      newVersion: 3.0.2
+      overrideManagedVersion: true

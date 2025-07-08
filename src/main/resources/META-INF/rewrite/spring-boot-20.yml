@@ -1,11 +1,11 @@
 #
-# Copyright 2023 the original author or authors.
+# Copyright 2024 the original author or authors.
 # <p>
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # <p>
-# https://www.apache.org/licenses/LICENSE-2.0
+# https://docs.moderne.io/licensing/moderne-source-available-license
 # <p>
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,8 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 2.0.x
-  - org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
+# Disabled because it causes problems in some builds
+#  - org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: 4.x
       addIfMissing: false
@@ -70,6 +71,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHibernateConstraintsToJavax
   - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
+  - org.openrewrite.java.spring.boot2.MaybeAddSpringBootStarterActuator
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
   - org.openrewrite.java.spring.ChangeSpringPropertyValue:
@@ -81,6 +83,9 @@ recipeList:
       oldValue: false
       newValue: "off"
   - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
+  - org.openrewrite.apache.commons.lang.UpgradeApacheCommonsLang_2_3
+  - org.openrewrite.java.spring.data.MigrateAuditorAwareToOptional
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_0
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
@@ -168,16 +173,30 @@ recipeList:
       onlyIfUsing: org.hibernate.validator.constraints.*
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
-displayName: Spring Boot 2.x best practices
-description: Applies best practices to Spring Boot 2 applications.
-tags:
-  - spring
-  - boot
+name: org.openrewrite.java.spring.boot2.MaybeAddSpringBootStarterActuator
+displayName: Replace `micrometer-spring-legacy` with `spring-boot-starter-actuator`
+description: Replace deprecated `micrometer-spring-legacy` with `spring-boot-starter-actuator`
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: io.micrometer
+      artifactIdPattern: micrometer-spring-legacy
 recipeList:
-  - org.openrewrite.java.spring.NoRequestMappingAnnotation
-  - org.openrewrite.java.spring.ImplicitWebAnnotationNames
-  - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
-  - org.openrewrite.java.spring.NoAutowiredOnConstructor
-  - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
-  - org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: io.micrometer
+      artifactId: micrometer-spring-legacy
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-actuator
+      version: 2.0.x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_0
+displayName: Upgrade MyBatis to Spring Boot 2.0
+description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 2.0.
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mybatis.spring.boot
+      artifactId: "*"
+      newVersion: 2.0.1
+      overrideManagedVersion: true

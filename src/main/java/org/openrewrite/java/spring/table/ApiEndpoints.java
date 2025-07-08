@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,8 +25,7 @@ import org.openrewrite.Recipe;
 public class ApiEndpoints extends DataTable<ApiEndpoints.Row> {
 
     public ApiEndpoints(Recipe recipe) {
-        super(recipe, Row.class, ApiEndpoints.class.getName(),
-                "API endpoints", "The API endpoints that applications expose.");
+        super(recipe, "API endpoints", "The API endpoints that applications expose.");
     }
 
     @Value
@@ -34,6 +33,10 @@ public class ApiEndpoints extends DataTable<ApiEndpoints.Row> {
         @Column(displayName = "Source path",
                 description = "The path to the source file containing the API endpoint definition.")
         String sourcePath;
+
+        @Column(displayName = "Method Signature",
+                description = "The method signature of the API endpoint.")
+        String methodSignature;
 
         @Column(displayName = "Method name",
                 description = "The name of the method that defines the API endpoint.")
@@ -46,5 +49,9 @@ public class ApiEndpoints extends DataTable<ApiEndpoints.Row> {
         @Column(displayName = "Path",
                 description = "The path of the API endpoint.")
         String path;
+
+        @Column(displayName = "Leading Annotations",
+                description = "The Leading annotations of the API endpoint.")
+        String leadingAnnotations;
     }
 }

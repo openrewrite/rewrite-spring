@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,18 +41,20 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
+            """
+              import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+              class Foo extends DefaultBatchConfigurer {
+                  @Override
+                  public void setDataSource(javax.sql.DataSource dataSource) {
+                      // Datasource ignored; this method and comment should be removed
+                  }
+              }
+              """,
                 """
-            import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
-            class Foo extends DefaultBatchConfigurer {
-                @Override
-                public void setDataSource(javax.sql.DataSource dataSource) {
-                    // Datasource ignored; this method and comment should be removed
-                }
-            }
-            """, """
-            class Foo {
-            }
-            """)
+              class Foo {
+              }
+              """
+          )
         );
     }
 
@@ -61,22 +63,24 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
+            """
+              import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+              class Foo extends DefaultBatchConfigurer {
+                  Foo() {
+                      super();
+                  }
+
+                  @Override
+                  public void setDataSource(javax.sql.DataSource dataSource) {
+                      super.setDataSource(dataSource);
+                  }
+              }
+              """,
                 """
-            import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
-            class Foo extends DefaultBatchConfigurer {
-                Foo() {
-                    super();
-                }
-                        
-                @Override
-                public void setDataSource(javax.sql.DataSource dataSource) {
-                    super.setDataSource(dataSource);
-                }
-            }
-            """, """
-            class Foo {
-            }
-            """)
+              class Foo {
+              }
+              """
+          )
         );
     }
 
@@ -85,23 +89,25 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
+            """
+              import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+              class Foo extends DefaultBatchConfigurer {
+                  @Override
+                  public void setDataSource(javax.sql.DataSource dataSource) {
+                      super.setDataSource(dataSource);
+                      System.out.println("Additional statements should ensure method is not removed");
+                  }
+              }
+              """,
                 """
-            import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
-            class Foo extends DefaultBatchConfigurer {
-                @Override
-                public void setDataSource(javax.sql.DataSource dataSource) {
-                    super.setDataSource(dataSource);
-                    System.out.println("Additional statements should ensure method is not removed");
-                }
-            }
-            """, """
-            class Foo {
-                /*~~(TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed)~~>*/
-                public void setDataSource(javax.sql.DataSource dataSource) {
-                    System.out.println("Additional statements should ensure method is not removed");
-                }
-            }
-            """)
+              class Foo {
+                  /*~~(TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed)~~>*/
+                  public void setDataSource(javax.sql.DataSource dataSource) {
+                      System.out.println("Additional statements should ensure method is not removed");
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -110,35 +116,38 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
-                """
-            package bar;
-            public interface Bar {
-                void baz();
-            }
-            """),
+            """
+              package bar;
+              public interface Bar {
+                  void baz();
+              }
+              """
+          ),
           java(
-                """
-            import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
-            class Foo extends DefaultBatchConfigurer implements bar.Bar {
-                @Override
-                public void setDataSource(javax.sql.DataSource dataSource) {
-                    // Datasource ignored; this method and comment should be removed
-                }
-                
-                @Override
-                public void baz() {
-                    // Comment only, still retained
-                }
-            }
-            """, """
-            class Foo implements bar.Bar {
+            """
+              import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+              class Foo extends DefaultBatchConfigurer implements bar.Bar {
+                  @Override
+                  public void setDataSource(javax.sql.DataSource dataSource) {
+                      // Datasource ignored; this method and comment should be removed
+                  }
 
-                @Override
-                public void baz() {
-                    // Comment only, still retained
-                }
-            }
-            """)
+                  @Override
+                  public void baz() {
+                      // Comment only, still retained
+                  }
+              }
+              """,
+                """
+              class Foo implements bar.Bar {
+
+                  @Override
+                  public void baz() {
+                      // Comment only, still retained
+                  }
+              }
+              """
+          )
         );
     }
 
@@ -147,18 +156,20 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
         // language=java
         rewriteRun(
           java(
+            """
+              import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
+              import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+              class FooConfig  {
+                  public BatchConfigurer bean(javax.sql.DataSource dataSource) {
+                      return new DefaultBatchConfigurer(dataSource);
+                  }
+              }
+              """,
                 """
-            import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
-            import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
-            class FooConfig  {
-                public BatchConfigurer bean(javax.sql.DataSource dataSource) {
-                    return new DefaultBatchConfigurer(dataSource);
-                }
-            }
-            """, """
-            class FooConfig {
-            }
-            """)
+              class FooConfig {
+              }
+              """
+          )
         );
     }
 }

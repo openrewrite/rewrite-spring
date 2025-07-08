@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -87,7 +87,7 @@ public class MigrateItemWriterWrite extends Recipe {
                 m = JavaTemplate.builder("#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                                .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                         .imports("org.springframework.batch.item.Chunk")
                         .build()
                         .apply(
@@ -102,7 +102,7 @@ public class MigrateItemWriterWrite extends Recipe {
                                         .collect(Collectors.joining(" ")),
                                 chunkTypeParameter,
                                 paramName,
-                                m.getBody() == null ? "" : m.getBody().print(getCursor()));
+                                m.getBody() == null ? ";" : m.getBody().print(getCursor()));
 
                 maybeAddImport("org.springframework.batch.item.Chunk");
                 maybeRemoveImport("java.util.List");

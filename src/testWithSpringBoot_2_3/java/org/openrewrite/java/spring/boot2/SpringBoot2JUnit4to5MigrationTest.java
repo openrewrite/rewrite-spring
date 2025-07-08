@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,16 +46,16 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
           java(
             """
               package org.springframework.samples.petclinic.system;
-                            
+
               import org.junit.Test;
               import org.junit.runner.RunWith;
               import org.springframework.boot.test.context.SpringBootTest;
               import org.springframework.test.context.junit4.SpringRunner;
-                            
+
               @SpringBootTest
               @RunWith(SpringRunner.class)
               public class ProductionConfigurationTests {
-                            
+
                   @Test
                   public void testFindAll() {
                   }
@@ -63,13 +63,13 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
               """,
             """
               package org.springframework.samples.petclinic.system;
-                            
+
               import org.junit.jupiter.api.Test;
               import org.springframework.boot.test.context.SpringBootTest;
-                            
+
               @SpringBootTest
               public class ProductionConfigurationTests {
-                            
+
                   @Test
                   public void testFindAll() {
                   }

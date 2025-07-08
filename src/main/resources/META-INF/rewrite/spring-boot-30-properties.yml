@@ -1,11 +1,11 @@
 #
-# Copyright 2023 the original author or authors.
+# Copyright 2024 the original author or authors.
 # <p>
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # <p>
-# https://www.apache.org/licenses/LICENSE-2.0
+# https://docs.moderne.io/licensing/moderne-source-available-license
 # <p>
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
@@ -605,6 +606,9 @@ recipeList:
       oldPropertyKey: management.trace.http.include
       newPropertyKey: management.httpexchanges.recording.include
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.trace.include
+      newPropertyKey: management.httpexchanges.recording.include
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.undertow.allow-encoded-slash
       newPropertyKey: server.undertow.decode-slash
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -640,6 +644,9 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.cassandra.pool.idle-timeout
       newPropertyKey: spring.cassandra.pool.idle-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.cassandra.pool.max-queue-size
+      newPropertyKey: spring.cassandra.request.throttler.max-queue-size
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.cassandra.port
       newPropertyKey: spring.cassandra.port
@@ -748,4 +755,122 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.redis.username
       newPropertyKey: spring.data.redis.username
+
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.atlas.num-threads
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.graphql.autotime.enabled
+      comment: "This property is deprecated: Should be applied at the ObservationRegistry level."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.graphql.autotime.percentiles
+      comment: "This property is deprecated: Should be applied at the ObservationRegistry level."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.graphql.autotime.percentiles-histogram
+      comment: "This property is deprecated: Should be applied at the ObservationRegistry level."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.web.client.request.autotime.enabled
+      comment: "This property is deprecated: Should be applied at the ObservationRegistry level."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.web.client.request.autotime.percentiles
+      comment: "This property is deprecated: Should be applied at the ObservationRegistry level."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.web.client.request.autotime.percentiles-histogram
+      comment: "This property is deprecated: Should be applied at the ObservationRegistry level."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.web.server.request.autotime.enabled
+      comment: "This property is deprecated: Should be applied at the ObservationRegistry level."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.web.server.request.autotime.percentiles
+      comment: "This property is deprecated: Should be applied at the ObservationRegistry level."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.web.server.request.autotime.percentiles-histogram
+      comment: "This property is deprecated: Should be applied at the ObservationRegistry level."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.web.server.request.ignore-trailing-slash
+      comment: "This property is deprecated: Not needed anymore, direct instrumentation in Spring MVC."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: server.max-http-header-size
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: server.netty.max-chunk-size
+      comment: "This property is deprecated: Deprecated for removal in Reactor Netty"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: server.servlet.session.cookie.comment
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.banner.image.bitdepth
+      comment: "This property is deprecated: Support for image banners has been removed."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.banner.image.height
+      comment: "This property is deprecated: Support for image banners has been removed."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.banner.image.invert
+      comment: "This property is deprecated: Support for image banners has been removed."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.banner.image.location
+      comment: "This property is deprecated: Support for image banners has been removed."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.banner.image.margin
+      comment: "This property is deprecated: Support for image banners has been removed."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.banner.image.pixelmode
+      comment: "This property is deprecated: Support for image banners has been removed."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.banner.image.width
+      comment: "This property is deprecated: Support for image banners has been removed."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.elasticsearch.webclient.max-in-memory-size
+      comment: "This property is deprecated: Reactive Elasticsearch client no longer uses WebClient."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.flyway.baseline-migration-prefix
+      comment: "This property is deprecated: Removed in Flyway 9.0"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jpa.hibernate.use-new-id-generator-mappings
+      comment: "This property is deprecated: Hibernate no longer supports disabling the use of new ID generator mappings."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.mvc.date-format
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.mvc.ignore-default-model-on-redirect
+      comment: "This property is deprecated: Deprecated for removal in Spring MVC"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.jedis.pool.enabled
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.jedis.pool.max-active
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.jedis.pool.max-idle
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.jedis.pool.max-wait
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.jedis.pool.min-idle
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.jedis.pool.time-between-eviction-runs
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.lettuce.pool.enabled
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.lettuce.pool.max-active
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.lettuce.pool.max-idle
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.lettuce.pool.max-wait
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.lettuce.pool.min-idle
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.redis.lettuce.pool.time-between-eviction-runs
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.webflux.multipart.streaming
+      comment: "This property is deprecated: Replaced by the PartEventHttpMessageReader and the PartEvent API."
 

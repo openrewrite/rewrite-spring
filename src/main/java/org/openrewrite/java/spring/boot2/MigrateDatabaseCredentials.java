@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,8 +60,8 @@ public class MigrateDatabaseCredentials extends Recipe {
         );
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     static class MigrateDatabaseCredentialsForToolYaml extends Recipe {
         @Language("markdown")
         String tool;
@@ -83,15 +83,15 @@ public class MigrateDatabaseCredentials extends Recipe {
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                     if (FindProperty.find(documents, "spring." + tool + ".username", true).isEmpty() &&
                             FindProperty.find(documents, "spring." + tool + ".password", true).isEmpty()) {
-                        doAfterVisit(new FindProperty("spring." + tool + ".url", true).getVisitor());
+                        doAfterVisit(new FindProperty("spring." + tool + ".url", true, null).getVisitor());
                     }
                     return documents;
                 }
             }, new YamlVisitor<ExecutionContext>() {
                 @Override
                 public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
-                    doAfterVisit(new MergeYaml("$.spring." + tool, "username: ${spring.datasource.username}", true, null, null).getVisitor());
-                    doAfterVisit(new MergeYaml("$.spring." + tool, "password: ${spring.datasource.password}", true, null, null).getVisitor());
+                    doAfterVisit(new MergeYaml("$.spring." + tool, "username: ${spring.datasource.username}", true, null, null, null, null, null).getVisitor());
+                    doAfterVisit(new MergeYaml("$.spring." + tool, "password: ${spring.datasource.password}", true, null, null, null, null, null).getVisitor());
                     doAfterVisit(new CoalesceProperties().getVisitor());
                     return documents;
                 }
@@ -99,8 +99,8 @@ public class MigrateDatabaseCredentials extends Recipe {
         }
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     static class MigrateDatabaseCredentialsForToolProperties extends Recipe {
         @Language("markdown")
         String tool;

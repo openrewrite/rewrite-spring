@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,7 +15,8 @@
  */
 package org.openrewrite.java.spring;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -31,6 +32,8 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonList;
 import static org.openrewrite.Tree.randomId;
 
+@EqualsAndHashCode(callSuper = false)
+@Value
 public class ExpandProperties extends Recipe {
 
     @Option(displayName = "Source file mask",
@@ -38,7 +41,7 @@ public class ExpandProperties extends Recipe {
             example = "**/application*.yml",
             required = false)
     @Nullable
-    private final String sourceFileMask;
+    private String sourceFileMask;
 
     @Override
     public String getDisplayName() {
@@ -48,15 +51,6 @@ public class ExpandProperties extends Recipe {
     @Override
     public String getDescription() {
         return "Expand YAML properties to not use the dot syntax shortcut.";
-    }
-
-    public ExpandProperties() {
-        this.sourceFileMask = null;
-    }
-
-    @JsonCreator
-    public ExpandProperties(String sourceFileMask) {
-        this.sourceFileMask = sourceFileMask;
     }
 
     @Override
@@ -140,11 +134,13 @@ public class ExpandProperties extends Recipe {
                                                 Markers.EMPTY,
                                                 Yaml.Scalar.Style.PLAIN,
                                                 null,
+                                                null,
                                                 key.substring(key.indexOf('.') + 1)),
                                         "",
                                         e.getValue()
                                 )
                         ),
+                        null,
                         null,
                         null
                 ));
@@ -173,13 +169,14 @@ public class ExpandProperties extends Recipe {
                             keyMappings.getValue().stream().flatMap(duplicateMapping -> duplicateMapping.getEntries().stream())
                                     .collect(Collectors.toList()),
                             null,
+                            null,
                             null
                     );
                     Yaml.Mapping.Entry newEntry = autoFormat(
                             new Yaml.Mapping.Entry(randomId(),
                                     "",
                                     Markers.EMPTY,
-                                    new Yaml.Scalar(randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, keyMappings.getKey()),
+                                    new Yaml.Scalar(randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, null, keyMappings.getKey()),
                                     "", newMapping),
                             ctx, getCursor());
 

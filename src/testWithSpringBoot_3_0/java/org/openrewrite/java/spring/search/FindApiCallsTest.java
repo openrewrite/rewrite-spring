@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,34 +32,6 @@ class FindApiCallsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new FindApiCalls())
           .parser(JavaParser.fromJavaVersion().classpath("spring-webflux", "spring-web", "spring-boot"));
-    }
-
-    @Test
-    void webClient() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.web.reactive.function.client.WebClient;
-              class Test {
-                  WebClient.Builder webClientBuilder;
-                  void test() {
-                      webClientBuilder.build()
-                        .get()
-                        .uri(base() + "/getThing");
-                        
-                      webClientBuilder.build()
-                        .post()
-                        .uri(base() + "/postThing");
-                  }
-                  
-                  String base() {
-                      return "https://base";
-                  }
-              }
-              """
-          )
-        );
     }
 
     @DocumentExample
@@ -89,6 +61,34 @@ class FindApiCallsTest implements RewriteTest {
                   void test() {
                       /*~~(GET base() + "/getThing")~~>*/restTemplate.getForObject(base() + "/getThing", String.class);
                       /*~~(POST base() + "/postThing")~~>*/restTemplate.postForEntity(base() + "/postThing", null, String.class);
+                  }
+                  
+                  String base() {
+                      return "https://base";
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void webClient() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.reactive.function.client.WebClient;
+              class Test {
+                  WebClient.Builder webClientBuilder;
+                  void test() {
+                      webClientBuilder.build()
+                        .get()
+                        .uri(base() + "/getThing");
+                        
+                      webClientBuilder.build()
+                        .post()
+                        .uri(base() + "/postThing");
                   }
                   
                   String base() {

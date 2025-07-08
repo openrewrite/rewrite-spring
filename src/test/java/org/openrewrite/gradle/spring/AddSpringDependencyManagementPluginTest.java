@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,11 +41,10 @@ class AddSpringDependencyManagementPluginTest implements RewriteTest {
                   id "java"
                   id "org.springframework.boot" version "1.5.22.RELEASE"
               }
-              
               repositories {
                   mavenCentral()
               }
-              
+              dependencyManagement { }
               dependencies {
                   compile "org.springframework.boot:spring-boot-starter-web"
               }
@@ -56,11 +55,10 @@ class AddSpringDependencyManagementPluginTest implements RewriteTest {
                   id "org.springframework.boot" version "1.5.22.RELEASE"
                   id "io.spring.dependency-management" version "1.0.6.RELEASE"
               }
-              
               repositories {
                   mavenCentral()
               }
-              
+              dependencyManagement { }
               dependencies {
                   compile "org.springframework.boot:spring-boot-starter-web"
               }
@@ -81,11 +79,10 @@ class AddSpringDependencyManagementPluginTest implements RewriteTest {
                   id "java"
                   id "org.springframework.boot" version "2.6.15"
               }
-              
+
               repositories {
                   mavenCentral()
               }
-              
               dependencies {
                   implementation platform("org.springframework.boot:spring-boot-starter-dependencies:2.6.15")
                   implementation "org.springframework.boot:spring-boot-starter-web"

@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,6 +35,18 @@ import java.util.List;
 
 public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
+    private static final String JAVAX_SQL_DATA_SOURCE = "javax.sql.DataSource";
+    private static final List<String> WELL_KNOW_DATA_SOURCE_TYPES = Arrays.asList(
+            "com.zaxxer.hikari.HikariDataSource",
+            "javax.persistence.EntityManagerFactory",
+            "liquibase.integration.spring.SpringLiquibase",
+            "org.jooq.DSLContext",
+            "org.springframework.jdbc.core.JdbcTemplate",
+            "org.springframework.jdbc.core.JdbcOperations",
+            "org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations",
+            "org.springframework.orm.jpa.AbstractEntityManagerFactoryBean"
+    );
+
     @Override
     public String getDisplayName() {
         return "Adds `@DependsOnDatabaseInitialization` to Spring Beans and Components depending on `javax.sql.DataSource`";
@@ -43,16 +55,15 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
     @Override
     public String getDescription() {
         return "Beans of certain well-known types, such as `JdbcTemplate`, will be ordered so that they are initialized " +
-                "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
-                "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
-                "initialized after the database has been initialized. See the " +
-                "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
-                "for more.";
+               "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
+               "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
+               "initialized after the database has been initialized. See the " +
+               "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
+               "for more.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        String javaxDataSourceFqn = "javax.sql.DataSource";
         AnnotationMatcher dataSourceAnnotationMatcher = new AnnotationMatcher("@org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
         AnnotationMatcher beanAnnotationMatcher = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
         List<AnnotationMatcher> componentAnnotationMatchers = Arrays.asList(
@@ -60,16 +71,6 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 new AnnotationMatcher("@org.springframework.stereotype.Component"),
                 new AnnotationMatcher("@org.springframework.stereotype.Service"),
                 new AnnotationMatcher("@org.springframework.boot.test.context.TestComponent"));
-
-        List<String> wellKnowDataSourceTypes = Arrays.asList(
-                "javax.persistence.EntityManagerFactory",
-                "liquibase.integration.spring.SpringLiquibase",
-                "org.jooq.DSLContext",
-                "org.springframework.jdbc.core.JdbcTemplate",
-                "org.springframework.jdbc.core.JdbcOperations",
-                "org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations",
-                "org.springframework.orm.jpa.AbstractEntityManagerFactoryBean"
-        );
 
         return Preconditions.check(Preconditions.or(
                 new UsesType<>("org.springframework.stereotype.Repository", false),
@@ -84,16 +85,16 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
                 if (method.getMethodType() != null) {
                     if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md) &&
-                            requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
+                        requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
                         md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
-                            .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-boot-2.*"))
-                            .build()
-                            .apply(
-                                getCursor(),
-                                md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
-                            );
+                                .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-boot-2.*"))
+                                .build()
+                                .apply(
+                                        getCursor(),
+                                        md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                                );
                         maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
                     }
                 }
@@ -104,16 +105,16 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd) &&
-                        requiresInitializationAnnotation(cd.getType())) {
+                    requiresInitializationAnnotation(cd.getType())) {
                     cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
-                        .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                        .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-boot-2.*"))
-                        .build()
-                        .apply(
-                            getCursor(),
-                            cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
-                        );
+                            .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-boot-2.*"))
+                            .build()
+                            .apply(
+                                    getCursor(),
+                                    cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                            );
                     maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
                 }
                 return cd;
@@ -175,12 +176,12 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             }
 
             private boolean isDataSourceType(@Nullable JavaType type) {
-                return TypeUtils.isAssignableTo(javaxDataSourceFqn, type);
+                return TypeUtils.isAssignableTo(JAVAX_SQL_DATA_SOURCE, type);
             }
 
             private boolean isWellKnownDataSourceInitializationType(@Nullable JavaType type) {
                 if (type != null) {
-                    for (String wellKnowDataSourceType : wellKnowDataSourceTypes) {
+                    for (String wellKnowDataSourceType : WELL_KNOW_DATA_SOURCE_TYPES) {
                         if (TypeUtils.isAssignableTo(wellKnowDataSourceType, type)) {
                             return true;
                         }

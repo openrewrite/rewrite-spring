@@ -1,11 +1,11 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,10 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-/**
- * @author Alex Boyko
- */
-@SuppressWarnings({"RedundantThrows", "SpringJavaInjectionPointsAutowiringInspection", "UnnecessaryLocalVariable"})
+@SuppressWarnings({"RedundantThrows", "UnnecessaryLocalVariable"})
 class WebSecurityConfigurerAdapterTest implements RewriteTest {
 
     @Override
@@ -45,15 +42,15 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
           java(
             """
               package com.example.websecuritydemo;
-              
+
               import static org.springframework.security.config.Customizer.withDefaults;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-              
+
                   @Override
                   protected void configure(HttpSecurity http) throws Exception {
                       http
@@ -62,24 +59,24 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           )
                           .httpBasic(withDefaults());
                   }
-              
+
                   void someMethod() {}
-              
+
               }
               """,
             """
               package com.example.websecuritydemo;
-              
+
               import static org.springframework.security.config.Customizer.withDefaults;
-              
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+
               @Configuration
               public class SecurityConfiguration {
-              
+
                   @Bean
                   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http
@@ -89,9 +86,9 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           .httpBasic(withDefaults());
                       return http.build();
                   }
-              
+
                   void someMethod() {}
-              
+
               }
               """
           )
@@ -105,13 +102,13 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
           java(
             """
               package com.example.websecuritydemo;
-              
+
               import static org.springframework.security.config.Customizer.withDefaults;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              
+
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-              
+
                   @Override
                   protected void configure(HttpSecurity http) throws Exception {
                       http
@@ -120,7 +117,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           )
                           .httpBasic(withDefaults());
                   }
-              
+
               }
               """
           )
@@ -136,10 +133,10 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.web.builders.WebSecurity;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-              
+
                   @Override
                   public void configure(WebSecurity web) {
                       web.ignoring().antMatchers("/ignore1", "/ignore2");
@@ -151,10 +148,10 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.WebSecurity;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-              
+
               @Configuration
               public class SecurityConfiguration {
-              
+
                   @Bean
                   WebSecurityCustomizer webSecurityCustomizer() {
                       return (web) -> {
@@ -177,10 +174,10 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
               import org.springframework.security.ldap.userdetails.PersonContextMapper;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-              
+
                   @Override
                   protected void configure(AuthenticationManagerBuilder auth) {
                       auth
@@ -197,10 +194,10 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
               import org.springframework.security.ldap.userdetails.PersonContextMapper;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-              
+
                   /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
                   protected void configure(AuthenticationManagerBuilder auth) {
                       auth
@@ -217,22 +214,22 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void overrideUnapplicableMethod() {
+    void overrideInapplicableMethod() {
         //language=java
         rewriteRun(
           java(
             """
               import static org.springframework.security.config.Customizer.withDefaults;
-              
+
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.authentication.AuthenticationManager;
               import org.springframework.security.core.userdetails.UserDetailsService;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-              
+
                   @Override
                   protected void configure(HttpSecurity http) throws Exception {
                       http
@@ -241,12 +238,12 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           )
                           .httpBasic(withDefaults());
                   }
-              
+
                   @Override
                   public UserDetailsService userDetailsServiceBean() throws Exception  {
                       return null;
                   }
-              
+
                   @Override
                   public AuthenticationManager authenticationManagerBean() throws Exception {
                       return null;
@@ -255,16 +252,16 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               """,
             """
               import static org.springframework.security.config.Customizer.withDefaults;
-              
+
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.authentication.AuthenticationManager;
               import org.springframework.security.core.userdetails.UserDetailsService;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-              
+
                   @Override
                   protected void configure(HttpSecurity http) throws Exception {
                       http
@@ -273,12 +270,12 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           )
                           .httpBasic(withDefaults());
                   }
-              
+
                   /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
                   public UserDetailsService userDetailsServiceBean() throws Exception  {
                       return null;
                   }
-              
+
                   /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
                   public AuthenticationManager authenticationManagerBean() throws Exception {
                       return null;
@@ -290,7 +287,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void unapplicableMethodInvocation() {
+    void inapplicableMethodInvocation() {
         //language=java
         rewriteRun(
           java(
@@ -299,10 +296,10 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-              
+
                   @Override
                   protected void configure(HttpSecurity http) {
                       System.out.println(getApplicationContext());
@@ -312,21 +309,21 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           )
                           .httpBasic(withDefaults());
                   }
-              
+
                   public void someMethod() {}
               }
               """,
             """
               import static org.springframework.security.config.Customizer.withDefaults;
-              
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+
               @Configuration
               public class SecurityConfiguration {
-              
+
                   @Bean
                   SecurityFilterChain filterChain(HttpSecurity http) {
                       System.out.println(getApplicationContext());
@@ -337,7 +334,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           .httpBasic(withDefaults());
                       return http.build();
                   }
-              
+
                   public void someMethod() {}
               }
               """
@@ -355,10 +352,10 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-              
+
                   @Override
                   protected void configure(HttpSecurity http) throws Exception {
                       http
@@ -367,7 +364,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           )
                           .httpBasic(withDefaults());
                   }
-              
+
                   @Configuration
                   public class InnerSecurityConfiguration {
                       protected void configure() throws Exception {
@@ -378,15 +375,15 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               """,
             """
               import static org.springframework.security.config.Customizer.withDefaults;
-              
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              
+
               @Configuration
               public class SecurityConfiguration {
-              
+
                   @Bean
                   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       http
@@ -396,7 +393,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           .httpBasic(withDefaults());
                       return http.build();
                   }
-              
+
                   @Configuration
                   public class InnerSecurityConfiguration {
                       protected void configure() throws Exception {
@@ -410,104 +407,13 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void multipleClasses() throws Exception {
+    void multipleClasses() {
         rewriteRun(
           //language=java
           java(
             """
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.core.annotation.Order;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-            import org.springframework.security.core.userdetails.UserDetailsService;
-            import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-            
-            @EnableWebSecurity
-            public class MultiHttpSecurityConfig {
-                @Bean
-                public UserDetailsService userDetailsService() throws Exception {
-                    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-                    return manager;
-                }
-            
-                @Configuration
-                @Order(1)
-                public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
-                    protected void configure(HttpSecurity http) throws Exception {
-                        http
-                            .antMatcher("/api/**")
-                            .authorizeRequests()
-                                .anyRequest().hasRole("ADMIN")
-                                .and()
-                            .httpBasic();
-                    }
-                }
-            
-                @Configuration
-                public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-            
-                    @Override
-                    protected void configure(HttpSecurity http) throws Exception {
-                        http
-                            .authorizeRequests()
-                                .anyRequest().authenticated()
-                                .and()
-                            .formLogin();
-                    }
-                }
-            }
-            """,
-            """
-            import org.springframework.context.annotation.Bean;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.core.userdetails.UserDetailsService;
-            import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-            import org.springframework.security.web.SecurityFilterChain;
-            
-            @EnableWebSecurity
-            public class MultiHttpSecurityConfig {
-                @Bean
-                public UserDetailsService userDetailsService() throws Exception {
-                    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-                    return manager;
-                }
-            
-                @Bean
-                SecurityFilterChain apiWebSecurityConfigurationSecurityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .antMatcher("/api/**")
-                            .authorizeRequests()
-                            .anyRequest().hasRole("ADMIN")
-                            .and()
-                            .httpBasic();
-                    return http.build();
-                }
-            
-                @Bean
-                SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                            .authorizeRequests()
-                            .anyRequest().authenticated()
-                            .and()
-                            .formLogin();
-                    return http.build();
-                }
-            }
-            """
-          )
-        );
-    }
-
-    @Test
-    void multipleClassesNoFlattening() throws Exception {
-        rewriteRun(
-          //language=java
-          java(
-              """
               import org.springframework.context.annotation.Bean;
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.core.annotation.Order;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -515,21 +421,18 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.core.userdetails.UserDetailsService;
               import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-              
+
               @EnableWebSecurity
               public class MultiHttpSecurityConfig {
-                  private int a;
-              
                   @Bean
                   public UserDetailsService userDetailsService() throws Exception {
                       InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
                       return manager;
                   }
-              
+
                   @Configuration
                   @Order(1)
                   public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
-                      private String a;
                       protected void configure(HttpSecurity http) throws Exception {
                           http
                               .antMatcher("/api/**")
@@ -539,10 +442,11 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                               .httpBasic();
                       }
                   }
-              
+
                   @Configuration
+                  @ConditionalOnProperty(prefix = "x.y", value = "enabled", havingValue = "true", matchIfMissing = true)
                   public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-              
+
                       @Override
                       protected void configure(HttpSecurity http) throws Exception {
                           http
@@ -556,6 +460,108 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               """,
             """
               import org.springframework.context.annotation.Bean;
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+              import org.springframework.core.annotation.Order;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.core.userdetails.UserDetailsService;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @EnableWebSecurity
+              public class MultiHttpSecurityConfig {
+                  @Bean
+                  public UserDetailsService userDetailsService() throws Exception {
+                      InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                      return manager;
+                  }
+
+                  @Bean
+                  @Order(1)
+                  SecurityFilterChain apiWebSecurityConfigurationSecurityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .antMatcher("/api/**")
+                              .authorizeRequests()
+                              .anyRequest().hasRole("ADMIN")
+                              .and()
+                              .httpBasic();
+                      return http.build();
+                  }
+
+                  @Bean
+                  @ConditionalOnProperty(prefix = "x.y", value = "enabled", havingValue = "true", matchIfMissing = true)
+                  SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
+                      http
+                              .authorizeRequests()
+                              .anyRequest().authenticated()
+                              .and()
+                              .formLogin();
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void multipleClassesNoFlattening() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.core.annotation.Order;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.core.userdetails.UserDetailsService;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+              @EnableWebSecurity
+              public class MultiHttpSecurityConfig {
+                  private int a;
+
+                  @Bean
+                  public UserDetailsService userDetailsService() throws Exception {
+                      InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+                      return manager;
+                  }
+
+                  @Configuration
+                  @Order(1)
+                  @ConditionalOnProperty(prefix = "x.y", value = "enabled", havingValue = "true", matchIfMissing = true)
+                  public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+                      private String a;
+                      protected void configure(HttpSecurity http) throws Exception {
+                          http
+                              .antMatcher("/api/**")
+                              .authorizeRequests()
+                                  .anyRequest().hasRole("ADMIN")
+                                  .and()
+                              .httpBasic();
+                      }
+                  }
+
+                  @Configuration
+                  public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+
+                      @Override
+                      protected void configure(HttpSecurity http) throws Exception {
+                          http
+                              .authorizeRequests()
+                                  .anyRequest().authenticated()
+                                  .and()
+                              .formLogin();
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.core.annotation.Order;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -563,22 +569,23 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               import org.springframework.security.core.userdetails.UserDetailsService;
               import org.springframework.security.provisioning.InMemoryUserDetailsManager;
               import org.springframework.security.web.SecurityFilterChain;
-              
+
               @EnableWebSecurity
               public class MultiHttpSecurityConfig {
                   private int a;
-              
+
                   @Bean
                   public UserDetailsService userDetailsService() throws Exception {
                       InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
                       return manager;
                   }
-              
+
                   @Configuration
                   @Order(1)
+                  @ConditionalOnProperty(prefix = "x.y", value = "enabled", havingValue = "true", matchIfMissing = true)
                   public static class ApiWebSecurityConfigurationAdapter {
                       private String a;
-              
+
                       @Bean
                       SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                           http
@@ -590,7 +597,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                           return http.build();
                       }
                   }
-              
+
                   @Bean
                   SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http) throws Exception {
                       http
@@ -607,19 +614,19 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void inMemoryConfig() throws Exception {
+    void inMemoryConfig() {
         rewriteRun(
           //language=java
           java(
             """
               package com.example.websecuritydemo;
-              
+
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.core.userdetails.User;
               import org.springframework.security.core.userdetails.UserDetails;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
@@ -632,13 +639,13 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               """,
             """
               package com.example.websecuritydemo;
-              
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.core.userdetails.User;
               import org.springframework.security.core.userdetails.UserDetails;
               import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-              
+
               @Configuration
               public class SecurityConfiguration {
                   @Bean
@@ -654,19 +661,19 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void inMemoryConfigWithUserBuilder() throws Exception {
+    void inMemoryConfigWithUserBuilder() {
         rewriteRun(
-            //language=java
+          //language=java
           java(
             """
               package com.example.websecuritydemo;
-              
+
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.core.userdetails.User;
               import org.springframework.security.core.userdetails.User.UserBuilder;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
@@ -678,13 +685,13 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               """,
             """
               package com.example.websecuritydemo;
-              
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.core.userdetails.User;
               import org.springframework.security.core.userdetails.User.UserBuilder;
               import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-              
+
               @Configuration
               public class SecurityConfiguration {
                   @Bean
@@ -699,17 +706,17 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void inMemoryConfigWithUserString() throws Exception {
+    void inMemoryConfigWithUserString() {
         rewriteRun(
           //language=java
           java(
             """
               package com.example.websecuritydemo;
-              
+
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-              
+
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
@@ -720,12 +727,12 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               """,
             """
               package com.example.websecuritydemo;
-              
+
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.core.userdetails.User;
               import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-              
+
               @Configuration
               public class SecurityConfiguration {
                   @Bean

@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,75 @@ import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
+
+    @DocumentExample
+    @Test
+    void shouldBuildCorrectPomModelAfterUpdateTo3x() {
+        rewriteRun(
+          spec -> spec.recipe(new UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3")),
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>explicit-deps-app</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <repositories>
+                      <repository>
+                          <id>spring-milestone</id>
+                          <url>https://repo.spring.io/milestone</url>
+                          <snapshots>
+                              <enabled>false</enabled>
+                          </snapshots>
+                      </repository>
+                  </repositories>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                          <version>2.7.3</version>
+                      </dependency>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-test</artifactId>
+                          <version>2.7.3</version>
+                          <scope>test</scope>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """,
+            """
+              <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>explicit-deps-app</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <repositories>
+                      <repository>
+                          <id>spring-milestone</id>
+                          <url>https://repo.spring.io/milestone</url>
+                          <snapshots>
+                              <enabled>false</enabled>
+                          </snapshots>
+                      </repository>
+                  </repositories>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-web</artifactId>
+                          <version>3.0.0-M3</version>
+                      </dependency>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-test</artifactId>
+                          <version>3.0.0-M3</version>
+                          <scope>test</scope>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
+        );
+    }
 
     @Test
     void shouldUpdateExplicitDependenciesTo30() {
@@ -796,75 +865,6 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                 </project>
                 """
             )
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void shouldBuildCorrectPomModelAfterUpdateTo3x() {
-        rewriteRun(
-          spec -> spec.recipe(new UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0-M3")),
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <groupId>com.example</groupId>
-                  <artifactId>explicit-deps-app</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <repositories>
-                      <repository>
-                          <id>spring-milestone</id>
-                          <url>https://repo.spring.io/milestone</url>
-                          <snapshots>
-                              <enabled>false</enabled>
-                          </snapshots>
-                      </repository>
-                  </repositories>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-web</artifactId>
-                          <version>2.7.3</version>
-                      </dependency>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-test</artifactId>
-                          <version>2.7.3</version>
-                          <scope>test</scope>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """,
-            """
-              <project>
-                  <groupId>com.example</groupId>
-                  <artifactId>explicit-deps-app</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <repositories>
-                      <repository>
-                          <id>spring-milestone</id>
-                          <url>https://repo.spring.io/milestone</url>
-                          <snapshots>
-                              <enabled>false</enabled>
-                          </snapshots>
-                      </repository>
-                  </repositories>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-web</artifactId>
-                          <version>3.0.0-M3</version>
-                      </dependency>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-test</artifactId>
-                          <version>3.0.0-M3</version>
-                          <scope>test</scope>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """
           )
         );
     }

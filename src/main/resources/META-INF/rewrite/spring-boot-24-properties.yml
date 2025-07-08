@@ -1,11 +1,11 @@
 #
-# Copyright 2023 the original author or authors.
+# Copyright 2024 the original author or authors.
 # <p>
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # <p>
-# https://www.apache.org/licenses/LICENSE-2.0
+# https://docs.moderne.io/licensing/moderne-source-available-license
 # <p>
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
@@ -22,9 +23,6 @@ tags:
   - spring
   - boot
 recipeList:
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.server.servlet.context-path
-      newPropertyKey: management.server.base-path
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: logging.file.clean-history-on-start
       newPropertyKey: logging.logback.rollingpolicy.clean-history-on-start
@@ -41,9 +39,8 @@ recipeList:
       oldPropertyKey: logging.pattern.rolling-file-name
       newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.profiles
-      newPropertyKey: spring.config.activate.on-profile
-      except: [ active, default, group, include ]
+      oldPropertyKey: management.server.servlet.context-path
+      newPropertyKey: management.server.base-path
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.mongodb.grid-fs-database
       newPropertyKey: spring.data.mongodb.gridfs.database
@@ -65,6 +62,10 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.mvc.locale-resolver
       newPropertyKey: spring.web.locale-resolver
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.profiles
+      newPropertyKey: spring.config.activate.on-profile
+      except: [ active, default, group, include ]
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.resources.add-mappings
       newPropertyKey: spring.web.resources.add-mappings
@@ -134,4 +135,20 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.resources.static-locations
       newPropertyKey: spring.web.resources.static-locations
+
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.data.neo4j.auto-index
+      comment: "This property is deprecated: Automatic index creation is no longer supported."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.data.neo4j.embedded.enabled
+      comment: "This property is deprecated: Embedded mode is no longer supported, please use Testcontainers instead."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.data.neo4j.open-in-view
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.data.neo4j.use-native-types
+      comment: "This property is deprecated: Native type support is now built-in."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.resources.chain.html-application-cache
+      comment: "This property is deprecated: The appcache manifest feature is being removed from browsers."
 

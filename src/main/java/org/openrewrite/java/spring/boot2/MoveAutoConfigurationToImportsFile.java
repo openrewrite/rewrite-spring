@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,8 +37,8 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoConfigurationToImportsFile.Accumulator> {
     private static final String AUTOCONFIGURATION_FILE = "org.springframework.boot.autoconfigure.AutoConfiguration.imports";
     private static final String ENABLE_AUTO_CONFIG_KEY = "org.springframework.boot.autoconfigure.EnableAutoConfiguration";
@@ -276,8 +276,8 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
         }
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     private static class AddAutoConfigurationAnnotation extends JavaIsoVisitor<ExecutionContext> {
         private static final String AUTO_CONFIGURATION_FQN = "org.springframework.boot.autoconfigure.AutoConfiguration";
         private static final String CONFIGURATION_FQN = "org.springframework.context.annotation.Configuration";

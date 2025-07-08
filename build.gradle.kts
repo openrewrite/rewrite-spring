@@ -1,11 +1,12 @@
 plugins {
     id("org.openrewrite.build.recipe-library") version "latest.release"
+    id("org.openrewrite.build.moderne-source-available-license") version "latest.release"
 }
 
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0", "3_2", "3_3")
+val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0", "3_2", "3_3", "3_4")
 val springSecurityVersions: List<String> = listOf("5_7", "5_8", "6_2")
 
 val sourceSetNames: Map<String, List<String>> = mapOf(
@@ -48,9 +49,10 @@ configurations {
 }
 
 recipeDependencies {
+
     parserClasspath("javax.persistence:javax.persistence-api:2.+")
     parserClasspath("javax.validation:validation-api:2.0.1.Final")
-    parserClasspath("org.junit.jupiter:junit-jupiter-api:latest.release")
+    parserClasspath("org.junit.jupiter:junit-jupiter-api:5.+")
 
     parserClasspath("org.springframework.boot:spring-boot:1.+")
     parserClasspath("org.springframework.boot:spring-boot:2.+")
@@ -60,6 +62,8 @@ recipeDependencies {
     parserClasspath("org.springframework.boot:spring-boot-actuator:2.+")
     parserClasspath("org.springframework.boot:spring-boot-actuator:2.5.+")
     parserClasspath("org.springframework.boot:spring-boot-test:2.+")
+
+    parserClasspath("org.springframework:spring-jdbc:4.1.+")
 
     parserClasspath("org.springframework:spring-beans:4.+")
     parserClasspath("org.springframework:spring-beans:5.+")
@@ -82,13 +86,16 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-webflux:5.+")
     parserClasspath("org.springframework:spring-webmvc:5.+")
 
-    parserClasspath("org.springframework.data:spring-data-commons:2.+")
+    parserClasspath("org.springframework.data:spring-data-commons:2.7.+")
+    parserClasspath("org.springframework.data:spring-data-commons:1.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.+")
     parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
+    parserClasspath("org.springframework.data:spring-data-mongodb:2.2.+")
+    parserClasspath("org.mongodb:mongo-java-driver:3.12.+")
 
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
-    parserClasspath("org.springframework.batch:spring-batch-core:5.+")
-    parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
+    parserClasspath("org.springframework.batch:spring-batch-core:5.1.+")
+    parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.1.+")
 
     parserClasspath("org.springframework:spring-messaging:5.+")
     parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
@@ -109,11 +116,20 @@ recipeDependencies {
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-instrumentation:3.1.+")
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-brave:3.1.+")
 
+    parserClasspath("org.springdoc:springdoc-openapi-starter-common:2.+")
+
     parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     parserClasspath("net.minidev:json-smart:2.4.+")
 
     parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.1.+")
     parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
+
+    parserClasspath("jakarta.servlet:jakarta.servlet-api:6.1.+")
+    parserClasspath("jakarta.validation:jakarta.validation-api:3.0.+")
+
+    parserClasspath("io.micrometer:micrometer-commons:1.11.+")
+    parserClasspath("io.micrometer:micrometer-core:1.11.+")
+    parserClasspath("io.micrometer:micrometer-observation:1.11.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
@@ -126,7 +142,6 @@ dependencies {
     implementation("org.openrewrite:rewrite-yaml")
     implementation("org.openrewrite:rewrite-gradle")
     implementation("org.openrewrite:rewrite-maven")
-    implementation("org.openrewrite:rewrite-templating:$rewriteVersion")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
@@ -137,27 +152,22 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-micrometer:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
-    runtimeOnly("org.openrewrite.recipe:rewrite-reactive-streams:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
-    annotationProcessor("org.openrewrite:rewrite-templating:$rewriteVersion")
-    compileOnly("com.google.errorprone:error_prone_core:2.19.1") {
-        exclude("com.google.auto.service", "auto-service-annotations")
-    }
-    implementation("org.mongodb:mongo-java-driver:3.12.+")
-    implementation("org.springframework.data:spring-data-mongodb:2.2.+"){
-        because("We only require the classes (for refaster style recipes), not the dependencies")
-        exclude(group = "org.springframework")
-    }
-
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
+    testRuntimeOnly("io.springfox:springfox-core:3.+")
+    testRuntimeOnly("io.springfox:springfox-spring-web:3.+")
+    testRuntimeOnly("io.springfox:springfox-spi:3.+")
     testRuntimeOnly(gradleApi())
+    testRuntimeOnly("io.springfox:springfox-bean-validators:3.+")
 
+    testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
 
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
     testImplementation("org.openrewrite:rewrite-java-17")
+    testImplementation("org.openrewrite:rewrite-kotlin")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
@@ -202,7 +212,9 @@ dependencies {
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework:spring-webmvc:5.3.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-core:5.5.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-config:5.5.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-config:5.8.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-web:5.5.+")
+    "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-web:5.8.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-ldap:5.5.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-oauth2-client:5.5.+")
     "testWithSpringBoot_2_4RuntimeOnly"("org.springframework.security:spring-security-oauth2-resource-server:5.5.+")
@@ -218,6 +230,9 @@ dependencies {
 
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework.boot:spring-boot-actuator:2.5.+")
     "testWithSpringBoot_2_5RuntimeOnly"("org.springframework:spring-web:5.3.+")
+
+    "testWithSpringBoot_2_6RuntimeOnly"("org.springdoc:springdoc-openapi-common:1.+")
+    "testWithSpringBoot_2_6RuntimeOnly"("io.swagger.core.v3:swagger-models:2.+")
 
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringBoot_2_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")
@@ -237,6 +252,7 @@ dependencies {
     "testWithSpringBoot_2_7RuntimeOnly"("jakarta.xml.bind:jakarta.xml.bind-api:2.3.3")
 
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-actuator:3.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-context:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework:spring-web:6.0.+")
@@ -249,9 +265,16 @@ dependencies {
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-config:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-web:6.0.+")
     "testWithSpringBoot_3_0RuntimeOnly"("org.springframework.security:spring-security-ldap:6.0.+")
+    "testWithSpringBoot_3_0RuntimeOnly"("jakarta.servlet:jakarta.servlet-api:6.1.+")
 
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter:3.2.+")
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")
+
+    "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.boot:spring-boot:3.4.+")
+    "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-context:6.2.+")
+    "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-web:6.2.+")
+    "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.data:spring-data-jpa:3.4.7")
+    "testWithSpringBoot_3_4RuntimeOnly"("jakarta.validation:jakarta.validation-api:3.0.+")
 
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework.boot:spring-boot-starter:2.7.+")

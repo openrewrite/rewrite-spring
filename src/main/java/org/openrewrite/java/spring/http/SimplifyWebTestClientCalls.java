@@ -1,11 +1,11 @@
 /*
  * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,12 +23,17 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.J.Literal;
-import org.openrewrite.java.tree.J.MethodInvocation;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+
+import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 public class SimplifyWebTestClientCalls extends Recipe {
 
-    private static final MethodMatcher IS_EQUAL_TO_INT_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(int)");
+    private static final MethodMatcher IS_EQUAL_TO_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(..)");
 
     @Override
     public String getDisplayName() {
@@ -42,12 +47,12 @@ public class SimplifyWebTestClientCalls extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>(IS_EQUAL_TO_INT_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(IS_EQUAL_TO_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public MethodInvocation visitMethodInvocation(MethodInvocation method, ExecutionContext ctx) {
-                MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                if (IS_EQUAL_TO_INT_MATCHER.matches(m.getMethodType())) {
-                    int statusCode = (int) ((Literal) m.getArguments().get(0)).getValue();
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
+                if (IS_EQUAL_TO_MATCHER.matches(m.getMethodType())) {
+                    final int statusCode = extractStatusCode(m.getArguments().get(0));
                     switch (statusCode) {
                         case 200:
                             return replaceMethod(m, "isOk()");
@@ -80,9 +85,75 @@ public class SimplifyWebTestClientCalls extends Recipe {
                 return m;
             }
 
-            private MethodInvocation replaceMethod(MethodInvocation method, String methodName) {
-                JavaTemplate template = JavaTemplate.builder(methodName).build();
-                return template.apply(getCursor(), method.getCoordinates().replaceMethod());
+            private int extractStatusCode(Expression expression) {
+                if (expression instanceof J.FieldAccess) {
+                    //isEqualTo(HttpStatus.OK)
+                    J.FieldAccess fa = (J.FieldAccess) expression;
+                    if (fa.getTarget() instanceof J.Identifier) {
+                        if ("HttpStatus".equals(((J.Identifier) fa.getTarget()).getSimpleName())) {
+                            switch (fa.getSimpleName()) {
+                                case "OK":
+                                    return 200;
+                                case "CREATED":
+                                    return 201;
+                                case "ACCEPTED":
+                                    return 202;
+                                case "NO_CONTENT":
+                                    return 204;
+                                case "FOUND":
+                                    return 302;
+                                case "SEE_OTHER":
+                                    return 303;
+                                case "NOT_MODIFIED":
+                                    return 304;
+                                case "TEMPORARY_REDIRECT":
+                                    return 307;
+                                case "PERMANENT_REDIRECT":
+                                    return 308;
+                                case "BAD_REQUEST":
+                                    return 400;
+                                case "UNAUTHORIZED":
+                                    return 401;
+                                case "FORBIDDEN":
+                                    return 403;
+                                case "NOT_FOUND":
+                                    return 404;
+                            }
+                        }
+                    }
+                } else if (expression instanceof J.Literal) {
+                    //isEqualTo(200)
+                    Object raw = ((J.Literal) expression).getValue();
+                    if (raw instanceof Integer) {
+                        return (int) raw;
+                    }
+                } else if (expression instanceof J.MethodInvocation) {
+                    //isEqualTo(HttpStatus.valueOf(200))
+                    //isEqualTo(HttpStatusCode.valueOf(200))
+                    J.MethodInvocation methodInvocation = (J.MethodInvocation) expression;
+                    List<Expression> arguments = methodInvocation.getArguments();
+                    if (arguments.size() == 1 && arguments.get(0) instanceof J.Literal) {
+                        Object raw = ((J.Literal) arguments.get(0)).getValue();
+                        if (raw instanceof Integer) {
+                            return (int) raw;
+                        }
+                    }
+                }
+                return -1;
+            }
+
+            private J.MethodInvocation replaceMethod(J.MethodInvocation method, String methodName) {
+                maybeRemoveImport("org.springframework.http.HttpStatus");
+                maybeRemoveImport("org.springframework.http.HttpStatusCode");
+                J.MethodInvocation methodInvocation = JavaTemplate.apply(methodName, getCursor(), method.getCoordinates().replaceMethod());
+                JavaType.Method type = methodInvocation
+                        .getMethodType()
+                        .withParameterNames(emptyList())
+                        .withParameterTypes(emptyList());
+                return methodInvocation
+                        .withArguments(emptyList())
+                        .withMethodType(type)
+                        .withName(methodInvocation.getName().withType(type));
             }
         });
     }

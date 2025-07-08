@@ -1,11 +1,11 @@
 /*
  * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.Tree;
 import org.openrewrite.java.AnnotationMatcher;
+import org.openrewrite.java.trait.Annotated;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.trait.SimpleTraitMatcher;
 import org.openrewrite.trait.Trait;
@@ -27,8 +28,6 @@ import org.openrewrite.xml.XPathMatcher;
 import org.openrewrite.xml.tree.Xml;
 
 import java.util.Optional;
-
-import static org.openrewrite.java.trait.Traits.annotated;
 
 @Value
 public class SpringBean implements Trait<Tree> {
@@ -43,7 +42,7 @@ public class SpringBean implements Trait<Tree> {
                     .map(Xml.Attribute::getValueAsString)
                     .orElse(null);
         } else if (getTree() instanceof J.Annotation) {
-            return annotated("org.springframework.context.annotation.Bean")
+            return new Annotated.Matcher("org.springframework.context.annotation.Bean")
                     .get(cursor)
                     .flatMap(a -> a.getDefaultAttribute("name"))
                     .map(name -> name.getValue(String.class))

@@ -1,11 +1,11 @@
 /*
  * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode())
-          .parser(JavaParser.fromJavaVersion().classpath("spring-web", "spring-webmvc"));
+          .parser(JavaParser.fromJavaVersion().classpath("spring-web", "spring-webmvc", "jspecify"));
     }
 
     @DocumentExample
@@ -43,9 +43,9 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-              
+
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-              
+
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
                       // Imagine we log or manipulate the status here somehow
@@ -59,11 +59,56 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-              
+
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-              
+
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+                      // Imagine we log or manipulate the status here somehow
+                      return super.handleExceptionInternal(ex, body, headers, status, request);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migrateHttpStatustoHttpStatusCodeWithAnnotatedArguments() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.jspecify.annotations.Nullable;
+              import org.springframework.http.HttpHeaders;
+              import org.springframework.http.HttpStatus;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.context.request.WebRequest;
+              import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+              class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+                  @Override
+                  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
+                      @Nullable HttpStatus status, WebRequest request) {
+                      // Imagine we log or manipulate the status here somehow
+                      return super.handleExceptionInternal(ex, body, headers, status, request);
+                  }
+              }
+              """,
+            """
+              import org.jspecify.annotations.Nullable;
+              import org.springframework.http.HttpHeaders;
+              import org.springframework.http.HttpStatusCode;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.context.request.WebRequest;
+              import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+              class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+                  @Override
+                  protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
+                      @Nullable HttpStatusCode status, WebRequest request) {
                       // Imagine we log or manipulate the status here somehow
                       return super.handleExceptionInternal(ex, body, headers, status, request);
                   }
@@ -84,9 +129,9 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-              
+
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-              
+
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
                       int value = status.value();
@@ -100,9 +145,9 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-              
+
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-              
+
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
                       int value = status.value();
@@ -125,9 +170,9 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-              
+
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-              
+
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
                       HttpStatus enumValue = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -142,9 +187,9 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-              
+
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-              
+
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
                       HttpStatus enumValue = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -167,9 +212,9 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-              
+
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-              
+
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(
                       Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
@@ -183,9 +228,9 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.context.request.WebRequest;
               import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-              
+
               class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-              
+
                   @Override
                   protected ResponseEntity<Object> handleExceptionInternal(
                       Exception ex, Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request) {

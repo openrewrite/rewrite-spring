@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -29,6 +30,9 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
 public class MigrateWebMvcConfigurerAdapter extends Recipe {
+    private static final String WEB_MVC_CONFIGURER_ADAPTER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter";
+    private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
+
     @Override
     public String getDisplayName() {
         return "Replace `WebMvcConfigurerAdapter` with `WebMvcConfigurer`";
@@ -42,11 +46,13 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter", false), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(WEB_MVC_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
+            private final JavaType WEB_MVC_CONFIGURER_TYPE = JavaType.buildType(WEB_MVC_CONFIGURER);
+
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter")) {
+                if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
                     cd = cd.withExtends(null);
                     updateCursor(cd);
                     // This is an interesting one... WebMvcConfigurerAdapter implements WebMvcConfigurer
@@ -57,24 +63,57 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                         updateCursor(cd);
                     }
                     cd = JavaTemplate.builder("WebMvcConfigurer")
-                                    .contextSensitive()
-                                    .imports("org.springframework.web.servlet.config.annotation.WebMvcConfigurer")
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpathFromResources(ctx, "spring-webmvc-5.*"))
-                                    .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
+                            .contextSensitive()
+                            .imports(WEB_MVC_CONFIGURER)
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-webmvc-5"))
+                            .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
                     updateCursor(cd);
                     cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor().getParentOrThrow());
-                    maybeRemoveImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter");
-                    maybeAddImport("org.springframework.web.servlet.config.annotation.WebMvcConfigurer");
+                    maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
+                    maybeAddImport(WEB_MVC_CONFIGURER);
                 }
                 return cd;
+            }
+
+            @Override
+            public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
+                if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
+                    if (newClass.getClazz() instanceof J.Identifier) {
+                        J.Identifier identifier = (J.Identifier) newClass.getClazz();
+                        newClass = newClass.withClazz(identifier
+                                .withType(WEB_MVC_CONFIGURER_TYPE)
+                                .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
+                        );
+                    }
+                    maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
+                    maybeAddImport(WEB_MVC_CONFIGURER);
+                }
+                return super.visitNewClass(newClass, ctx);
+            }
+
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
+                if (md.getMethodType() != null && TypeUtils.isOfClassType(md.getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
+                    if (md.getReturnTypeExpression() instanceof J.Identifier) {
+                        J.Identifier identifier = (J.Identifier) md.getReturnTypeExpression();
+                        md = md.withReturnTypeExpression(identifier
+                                .withType(WEB_MVC_CONFIGURER_TYPE)
+                                .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
+                        );
+                    }
+
+                    maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
+                    maybeAddImport(WEB_MVC_CONFIGURER);
+                }
+                return super.visitMethodDeclaration(md, ctx);
             }
 
             class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
                 final MethodMatcher wm = new MethodMatcher("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter *(..)");
 
                 @Override
-                public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                     J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                     if (wm.matches(method.getMethodType())) {
                         return null;

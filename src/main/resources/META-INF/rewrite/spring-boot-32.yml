@@ -1,11 +1,11 @@
 #
-# Copyright 2023 the original author or authors.
+# Copyright 2024 the original author or authors.
 # <p>
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # <p>
-# https://www.apache.org/licenses/LICENSE-2.0
+# https://docs.moderne.io/licensing/moderne-source-available-license
 # <p>
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2
@@ -47,9 +48,14 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 3.2.x
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: commons-codec
+      artifactId: commons-codec
+      version: 1.7.x
+      onlyIfUsing: org.apache.commons.codec..*
+      acceptTransitive: true
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_2
-  - org.openrewrite.java.spring.boot3.EnableVirtualThreads
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_1
   - org.openrewrite.java.spring.cloud2023.UpgradeSpringCloud_2023
   - org.openrewrite.java.ChangeType:
@@ -71,21 +77,10 @@ recipeList:
       groupId: org.springdoc
       artifactId: "*"
       newVersion: 2.5.x
-  - org.openrewrite.hibernate.MigrateToHibernate63
+  - org.openrewrite.hibernate.MigrateToHibernate64
   - org.openrewrite.java.spring.boot3.RelocateLauncherClasses
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.EnableVirtualThreads
-displayName: Enable Virtual Threads on Java 21
-description: Set `spring.threads.virtual.enabled` to `true` in `application.properties` or `application.yml`.
-preconditions:
-  - org.openrewrite.java.search.HasJavaVersion:
-      version: 21.X
-recipeList:
-  - org.openrewrite.java.spring.AddSpringProperty:
-      property: spring.threads.virtual.enabled
-      value: true
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_2
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_5
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -105,3 +100,16 @@ recipeList:
       find: org.springframework.boot.loader.WarLauncher
       replace: org.springframework.boot.loader.launch.WarLauncher
       plaintextOnly: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_2
+displayName: Upgrade MyBatis to Spring Boot 3.2
+description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 3.2.
+recipeList:
+  - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mybatis.spring.boot
+      artifactId: "*"
+      newVersion: 3.0.3
+      overrideManagedVersion: true

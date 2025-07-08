@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,8 +25,7 @@ import org.openrewrite.Recipe;
 public class SpringComponents extends DataTable<SpringComponents.Row> {
 
     public SpringComponents(Recipe recipe) {
-        super(recipe, Row.class, SpringComponents.class.getName(),
-                "Spring component definitions",
+        super(recipe, "Spring component definitions",
                 "Classes defined with a form of a Spring `@Component` stereotype and types returned from `@Bean` annotated methods.");
     }
 

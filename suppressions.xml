@@ -2,11 +2,30 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
     <suppress>
         <notes><![CDATA[
-   file name: spring-data-mongodb-2.2.12.RELEASE.jar
-   ]]>
-        These are required to be able to migrate away from the vulnerable dependencies
+        file name: spring-data-mongodb-2.2.12.RELEASE.jar
+        reason: referenced only. Not on the runtime classpath.
+        ]]>
         </notes>
         <packageUrl regex="true">^pkg:maven/org\.springframework\.data/spring-data-mongodb@.*$</packageUrl>
         <cve>CVE-2022-22980</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+        file name: mongo-java-driver-3.12.14.jar
+        reason: referenced only. Not on the runtime classpath.§
+        ]]></notes>
+        <sha1>850383a126cdc5b363fa9ffc780037f6ebeee704</sha1>
+        <cpe>cpe:/a:mongodb:mongodb</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: rewrite-logging-frameworks-2.19.0-SNAPSHOT.jar: log4j-1.2.17.jar
+    sev: CRITICAL
+    reason: This is a false positive. Used for identifying log4j vulnerabilities.
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
+        <cve>CVE-2022-23302</cve>
+        <cve>CVE-2023-26464</cve>
+        <cve>CVE-2021-4104</cve>
     </suppress>
 </suppressions>

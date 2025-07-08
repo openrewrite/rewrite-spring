@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,6 +33,40 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
             .classpath("spring-webmvc", "spring-webflux", "spring-web", "spring-context"));
     }
 
+    @DocumentExample
+    @Test
+    void noConfigOverridden() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.web.bind.annotation.*;
+
+              @RestController
+              public class ExampleController {
+
+                  @GetMapping("/get")
+                  public String getExample() {
+                      return "This is a GET example.";
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.bind.annotation.*;
+
+              @RestController
+              public class ExampleController {
+
+                  @GetMapping({"/get", "/get/"})
+                  public String getExample() {
+                      return "This is a GET example.";
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void noChangeWithConfigOverriddenByWebMvcConfigurer() {
         //language=java
@@ -43,7 +77,7 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
 
               @RestController
               public class ExampleController {
-                
+
                   @GetMapping("/get")
                   public String getExample() {
                       return "This is a GET example.";
@@ -71,6 +105,7 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
 
     @Test
     void addSetUseTrailingSlashMatchForWebMvcConfigurer() {
+        //language=java
         rewriteRun(
           java(
             """
@@ -78,7 +113,7 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
 
               @RestController
               public class ExampleController {
-                
+
                   @GetMapping("/get")
                   public String getExample() {
                       return "This is a GET example.";
@@ -118,14 +153,15 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
 
     @Test
     void noChangeWithConfigOverriddenByWebFluxConfigurer() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.web.bind.annotation.*;
-                
+
               @RestController
               public class ExampleController {
-                
+
                   @GetMapping("/get")
                   public String getExample() {
                       return "This is a GET example.";
@@ -153,14 +189,15 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
 
     @Test
     void addSetUseTrailingSlashForWebFluxConfigurer() {
+        //language=java
         rewriteRun(
           java(
             """
               import org.springframework.web.bind.annotation.*;
-                
+
               @RestController
               public class ExampleController {
-                
+
                   @GetMapping("/get")
                   public String getExample() {
                       return "This is a GET example.";
@@ -191,39 +228,6 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
                   @Override
                   public void configurePathMatching(PathMatchConfigurer configurer) {
                       configurer.setUseTrailingSlashMatch(true);
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void noConfigOverridden() {
-        rewriteRun(
-          java(
-            """
-              import org.springframework.web.bind.annotation.*;
-                
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping("/get")
-                  public String getExample() {
-                      return "This is a GET example.";
-                  }
-              }
-              """,
-            """
-              import org.springframework.web.bind.annotation.*;
-                
-              @RestController
-              public class ExampleController {
-                
-                  @GetMapping({"/get", "/get/"})
-                  public String getExample() {
-                      return "This is a GET example.";
                   }
               }
               """

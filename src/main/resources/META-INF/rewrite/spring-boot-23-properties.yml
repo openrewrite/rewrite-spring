@@ -1,11 +1,11 @@
 #
-# Copyright 2023 the original author or authors.
+# Copyright 2024 the original author or authors.
 # <p>
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # <p>
-# https://www.apache.org/licenses/LICENSE-2.0
+# https://docs.moderne.io/licensing/moderne-source-available-license
 # <p>
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_3
@@ -22,6 +23,12 @@ tags:
   - spring
   - boot
 recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.health.probes.enabled
+      newPropertyKey: management.endpoint.health.probes.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.distribution.sla
+      newPropertyKey: management.metrics.distribution.slo
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.jetty.acceptors
       newPropertyKey: server.jetty.threads.acceptors
@@ -136,10 +143,146 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.webflux.date-format
       newPropertyKey: spring.webflux.format.date
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.health.probes.enabled
-      newPropertyKey: management.endpoint.health.probes.enabled
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.metrics.distribution.sla
-      newPropertyKey: management.metrics.distribution.slo
+
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.ganglia.protocol-version
+      comment: "This property is deprecated: No longer used by Micrometer."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.ganglia.rate-units
+      comment: "This property is deprecated: No longer used by Micrometer."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.stackdriver.num-threads
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.wavefront.connect-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.wavefront.read-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.couchbase.bucket.name
+      comment: "This property is deprecated: A bucket is no longer auto-configured."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.couchbase.bucket.password
+      comment: "This property is deprecated: A bucket is no longer auto-configured."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.couchbase.env.bootstrap.http-direct-port
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.couchbase.env.bootstrap.http-ssl-port
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.couchbase.env.endpoints.key-value
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.couchbase.env.timeouts.socket-connect
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.data.cassandra.jmx-enabled
+      comment: "This property is deprecated: Cassandra no longer provides JMX metrics."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.data.cassandra.pool.pool-timeout
+      comment: "This property is deprecated: No longer available."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.data.couchbase.consistency
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.data.solr.repositories.enabled
+      comment: "This property is deprecated: Spring Data Solr is deprecated."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.elasticsearch.jest.connection-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.elasticsearch.jest.multi-threaded
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.elasticsearch.jest.password
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.elasticsearch.jest.proxy.host
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.elasticsearch.jest.proxy.port
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.elasticsearch.jest.read-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.elasticsearch.jest.username
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson.joda-date-time-format
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.allow-multiple-lrc
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.asynchronous2-pc
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.background-recovery-interval-seconds
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.current-node-only-recovery
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.debug-zero-resource-transaction
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.default-transaction-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.disable-jmx
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.exception-analyzer
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.filter-log-status
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.force-batching-enabled
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.forced-write-enabled
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.graceful-shutdown-interval
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.jndi-transaction-synchronization-registry-name
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.jndi-user-transaction-name
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.journal
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.log-part1-filename
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.log-part2-filename
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.max-log-size-in-mb
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.resource-configuration-filename
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.server-id
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.skip-corrupted-logs
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jta.bitronix.properties.warn-about-zero-resource-transaction
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.rabbitmq.listener.simple.transaction-size
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.rabbitmq.publisher-confirms
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
 

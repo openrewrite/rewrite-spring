@@ -1,11 +1,11 @@
 /*
  * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,13 +32,20 @@ class Boot3UpgradeTest implements RewriteTest {
         spec
           .recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0")
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-context", "spring-data-jpa", "spring-web",
-              "spring-boot", "spring-core", "persistence-api", "validation-api", "xml.bind-api"));
+            .classpath(
+              "spring-context",
+              "spring-data-jpa",
+              "spring-web",
+              "spring-boot",
+              "spring-core",
+              "persistence-api",
+              "validation-api",
+              "xml.bind-api"));
     }
 
     @DocumentExample
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/486")
+    @Test
     void xmlBindMissing() {
         rewriteRun(
           mavenProject("project",
@@ -50,18 +57,18 @@ class Boot3UpgradeTest implements RewriteTest {
                   <groupId>org.springframework.samples</groupId>
                   <artifactId>spring-petclinic</artifactId>
                   <version>2.7.3</version>
-
+                
                   <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
                     <version>2.7.3</version>
                   </parent>
                   <name>petclinic</name>
-
+                
                   <properties>
                     <java.version>1.8</java.version>
                   </properties>
-
+                
                   <dependencies>
                     <dependency>
                       <groupId>org.springframework.boot</groupId>
@@ -84,18 +91,18 @@ class Boot3UpgradeTest implements RewriteTest {
                   <groupId>org.springframework.samples</groupId>
                   <artifactId>spring-petclinic</artifactId>
                   <version>2.7.3</version>
-
+                
                   <parent>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-parent</artifactId>
                     <version>3.0.13</version>
                   </parent>
                   <name>petclinic</name>
-
+                
                   <properties>
                     <java.version>17</java.version>
                   </properties>
-
+                
                   <dependencies>
                     <dependency>
                       <groupId>jakarta.xml.bind</groupId>

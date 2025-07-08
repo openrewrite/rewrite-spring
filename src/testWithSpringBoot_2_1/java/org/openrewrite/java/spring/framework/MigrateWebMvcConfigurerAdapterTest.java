@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,8 +28,8 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-webmvc-5.*", "spring-core-5.*", "spring-web-5.*"))
+        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-webmvc-5", "spring-core-5", "spring-web-5"))
           .recipe(new MigrateWebMvcConfigurerAdapter());
     }
 
@@ -39,30 +39,57 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
         rewriteRun(
           //language=java
           java(
+            """
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+              public class CustomMvcConfigurer extends WebMvcConfigurerAdapter {
+                  private final String someArg;
+                  public CustomMvcConfigurer(String someArg) {
+                      super();
+                      this.someArg = someArg;
+                  }
+              }
+              """,
                 """
-            package a.b.c;
-            
-            import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-            
-            public class CustomMvcConfigurer extends WebMvcConfigurerAdapter {
-                private final String someArg;
-                public CustomMvcConfigurer(String someArg) {
-                    super();
-                    this.someArg = someArg;
-                }
-            }
-            """, """
-            package a.b.c;
-            
-            import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-            
-            public class CustomMvcConfigurer implements WebMvcConfigurer {
-                private final String someArg;
-                public CustomMvcConfigurer(String someArg) {
-                    this.someArg = someArg;
-                }
-            }
-            """)
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              public class CustomMvcConfigurer implements WebMvcConfigurer {
+                  private final String someArg;
+                  public CustomMvcConfigurer(String someArg) {
+                      this.someArg = someArg;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void transformBean() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+              class WebConfig {
+                  WebMvcConfigurerAdapter forwardToIndex() {
+                      return new WebMvcConfigurerAdapter() {
+                      };
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              class WebConfig {
+                  WebMvcConfigurer forwardToIndex() {
+                      return new WebMvcConfigurer() {
+                      };
+                  }
+              }
+              """
+          )
         );
     }
 }

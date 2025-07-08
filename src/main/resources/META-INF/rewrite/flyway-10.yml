@@ -1,0 +1,123 @@
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.flyway.MigrateToFlyway10
+displayName: Migrate to Flyway 10
+description: >-
+  Migrate to Flyway 10.
+  See details at [Flyway V10 has landed](https://documentation.red-gate.com/fd/flyway-v10-has-landed-222627771.html).
+tags:
+  - flyway
+recipeList:
+  - org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
+  - org.openrewrite.java.flyway.AddFlywayModuleMySQL
+  - org.openrewrite.java.flyway.AddFlywayModuleOracle
+  - org.openrewrite.java.flyway.AddFlywayModuleSqlServer
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
+displayName: Add missing Flyway module for PostgreSQL
+description: >-
+  Database modules for Flyway 10 have been split out in to separate modules for maintainability.
+  Add the `flyway-database-postgresql` dependency if you are using PostgreSQL with Flyway 10,
+  as detailed on https://github.com/flyway/flyway/issues/3780.
+tags:
+  - flyway
+  - postgresql
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.flywaydb
+      artifactIdPattern: flyway-core
+      version: "[10,)"
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.postgresql
+      artifactIdPattern: postgresql
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-database-postgresql
+      acceptTransitive: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.flyway.AddFlywayModuleMySQL
+displayName: Add missing Flyway module for MySQL
+description: >-
+  Database modules for Flyway 10 have been split out into separate modules for maintainability.
+  Add the `flyway-mysql` dependency if you are using MySQL with Flyway 10,
+  as detailed on https://github.com/flyway/flyway/issues/3780.
+tags:
+  - flyway
+  - mysql
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.flywaydb
+      artifactIdPattern: flyway-core
+      version: "[10,)"
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: com.mysql
+      artifactIdPattern: mysql-connector-j
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-mysql
+      acceptTransitive: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.flyway.AddFlywayModuleOracle
+displayName: Add missing Flyway module for Oracle
+description: >-
+  Database modules for Flyway 10 have been split out into separate modules for maintainability.
+  Add the `flyway-database-oracle` dependency if you are using Oracle with Flyway 10,
+  as detailed on https://github.com/flyway/flyway/issues/3780.
+tags:
+  - flyway
+  - oracle
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.flywaydb
+      artifactIdPattern: flyway-core
+      version: "[10,)"
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: com.oracle.database.jdbc
+      artifactIdPattern: ojdbc*
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-database-oracle
+      acceptTransitive: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.flyway.AddFlywayModuleSqlServer
+displayName: Add missing Flyway module for SQL Server
+description: >-
+  Database modules for Flyway 10 have been split out into separate modules for maintainability.
+  Add the `flyway-sqlserver` dependency if you are using SQL Server with Flyway 10,
+  as detailed on https://github.com/flyway/flyway/issues/3780.
+tags:
+  - flyway
+  - sqlserver
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.flywaydb
+      artifactIdPattern: flyway-core
+      version: "[10,)"
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: com.microsoft.sqlserver
+      artifactIdPattern: mssql-jdbc
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-sqlserver
+      acceptTransitive: true

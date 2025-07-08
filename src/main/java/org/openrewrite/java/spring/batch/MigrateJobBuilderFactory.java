@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -60,17 +61,17 @@ public class MigrateJobBuilderFactory extends Recipe {
                     doAfterVisit(new MigrateJobBuilderFactory.RemoveJobBuilderFactoryVisitor(clazz, enclosingMethod));
 
                     return JavaTemplate
-                        .builder("new JobBuilder(#{any(java.lang.String)}, jobRepository)")
-                        .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-batch-core-5.+"))
-                        .imports("org.springframework.batch.core.repository.JobRepository",
-                            "org.springframework.batch.core.job.builder.JobBuilder")
-                        .build().apply(
-                            getCursor(),
-                            method.getCoordinates().replace(),
-                            method.getArguments().get(0)
-                        );
+                            .builder("new JobBuilder(#{any(java.lang.String)}, jobRepository)")
+                            .contextSensitive()
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-batch-core-5.1.+"))
+                            .imports("org.springframework.batch.core.repository.JobRepository",
+                                    "org.springframework.batch.core.job.builder.JobBuilder")
+                            .build().apply(
+                                    getCursor(),
+                                    method.getCoordinates().replace(),
+                                    method.getArguments().get(0)
+                            );
                 }
                 return super.visitMethodInvocation(method, ctx);
             }
@@ -109,7 +110,7 @@ public class MigrateJobBuilderFactory extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDecl, ExecutionContext ctx) {
+        public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDecl, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(methodDecl, ctx);
 
             if (!enclosingMethod.equals(md) && !md.isConstructor()) {
@@ -136,7 +137,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                             "org.springframework.batch.core.job.builder.JobBuilder",
                             "org.springframework.batch.core.Step")
                     .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-batch-core-5.+"))
+                            .classpathFromResources(ctx, "spring-batch-core-5.1.+"))
                     .build();
 
             md = paramsTemplate.apply(getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
@@ -149,14 +150,14 @@ public class MigrateJobBuilderFactory extends Recipe {
 
         private boolean isJobRepositoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
-                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                    "org.springframework.batch.core.repository.JobRepository");
+                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                           "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
-                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                    "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
+                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                           "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
         }
     }
 }

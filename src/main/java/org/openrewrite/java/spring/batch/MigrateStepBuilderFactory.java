@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -80,7 +80,7 @@ public class MigrateStepBuilderFactory extends Recipe {
         }
 
         @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
+        public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
             // Add JobRepository parameter to method if StepBuilderFactory.get(..) is used further down
             if (!FindMethods.find(md, STEP_BUILDER_FACTORY_GET).isEmpty()) {
                 List<Object> params = md.getParameters().stream()
@@ -98,7 +98,7 @@ public class MigrateStepBuilderFactory extends Recipe {
                     J.VariableDeclarations vdd = JavaTemplate.builder("JobRepository jobRepository")
                             .contextSensitive()
                             .imports("org.springframework.batch.core.repository.JobRepository")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
                             .build()
                             .<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
                             .getParameters().get(0).withPrefix(parametersEmpty ? Space.EMPTY : Space.SINGLE_SPACE);
@@ -120,13 +120,13 @@ public class MigrateStepBuilderFactory extends Recipe {
         private boolean isJobRepositoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                    "org.springframework.batch.core.repository.JobRepository");
+                           "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                    "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
+                           "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
         }
     }
 
@@ -142,7 +142,7 @@ public class MigrateStepBuilderFactory extends Recipe {
                 return JavaTemplate.builder("new StepBuilder(#{any(java.lang.String)}, jobRepository)")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                                .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                         .imports("org.springframework.batch.core.step.builder.StepBuilder")
                         .build()
                         .apply(getCursor(), mi.getCoordinates().replace(), mi.getArguments().get(0));

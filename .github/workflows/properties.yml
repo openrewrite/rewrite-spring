@@ -3,8 +3,9 @@ name: Generate Spring Boot property migration recipes
 
 on:
   workflow_dispatch: {}
-  schedule:
-    - cron: 0 11 * * MON
+# Hold off on incomplete migration recipes for now
+#  schedule:
+#    - cron: 0 11 * * MON
 
 jobs:
   update-migrations:
@@ -34,7 +35,7 @@ jobs:
           branch: migrations/${{ env.NOW }}
           title: "[Auto] Spring Boot property migration recipes as of ${{ env.NOW }}"
           body: |
-            [Auto] Old GroupId migrations as of ${{ env.NOW }}.
+            [Auto] Spring Boot property migration recipes as of ${{ env.NOW }}.
           commit-message: "[Auto] Spring Boot property migration recipes as of ${{ env.NOW }}"
           labels: enhancement
       - name: Check outputs

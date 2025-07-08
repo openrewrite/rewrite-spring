@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,7 +64,6 @@ class MigrateProjectTest implements RewriteTest {
                         <maven.compiler.source>17</maven.compiler.source>
                         <maven.compiler.target>17</maven.compiler.target>
                     </properties>
-                                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.cloud</groupId>
@@ -92,7 +91,6 @@ class MigrateProjectTest implements RewriteTest {
                         <maven.compiler.source>17</maven.compiler.source>
                         <maven.compiler.target>17</maven.compiler.target>
                     </properties>
-                                
                     <dependencies>
                         <dependency>
                             <groupId>io.micrometer</groupId>
@@ -112,28 +110,30 @@ class MigrateProjectTest implements RewriteTest {
     void migrateProperties() {
         rewriteRun(
           mavenProject("project",
-            //language=properties
-            properties(
-              """
-                spring.sleuth.baggage.correlation-enabled=true
-                """,
-              """
-                management.tracing.baggage.correlation.enabled=true
-                """,
-              s -> s.path("src/main/resources/application.properties")
-            ),
-            //language=yaml
-            yaml(
-              """
-                spring:
-                    sleuth:
-                        baggage:
-                            correlation-enabled: true
-                """,
-              """
-                management.tracing.baggage.correlation.enabled: true
-                """,
-              s -> s.path("src/main/resources/application.yml")
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.sleuth.baggage.correlation-enabled=true
+                  """,
+                """
+                  management.tracing.baggage.correlation.enabled=true
+                  """,
+                s -> s.path("src/main/resources/application.properties")
+              ),
+              //language=yaml
+              yaml(
+                """
+                  spring:
+                      sleuth:
+                          baggage:
+                              correlation-enabled: true
+                  """,
+                """
+                  management.tracing.baggage.correlation.enabled: true
+                  """,
+                s -> s.path("src/main/resources/application.yml")
+              )
             )
           )
         );
@@ -148,7 +148,6 @@ class MigrateProjectTest implements RewriteTest {
               java(
                 """
                   import org.springframework.cloud.sleuth.annotation.NewSpan;
-
                   class A {
                       @NewSpan
                       void m() {
@@ -157,7 +156,6 @@ class MigrateProjectTest implements RewriteTest {
                   """,
                 """
                   import io.micrometer.tracing.annotation.NewSpan;
-                                    
                   class A {
                       @NewSpan
                       void m() {
@@ -182,7 +180,6 @@ class MigrateProjectTest implements RewriteTest {
                         <maven.compiler.source>17</maven.compiler.source>
                         <maven.compiler.target>17</maven.compiler.target>
                     </properties>
-                                
                     <dependencies>
                         <dependency>
                             <groupId>org.springframework.cloud</groupId>
@@ -212,7 +209,6 @@ class MigrateProjectTest implements RewriteTest {
                             <maven.compiler.source>17</maven.compiler.source>
                             <maven.compiler.target>17</maven.compiler.target>
                         </properties>
-                                    
                         <dependencies>
                             <dependency>
                                 <groupId>io.micrometer</groupId>

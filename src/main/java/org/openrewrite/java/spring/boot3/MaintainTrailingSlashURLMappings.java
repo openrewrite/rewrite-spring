@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,10 +40,10 @@ public class MaintainTrailingSlashURLMappings extends ScanningRecipe<AtomicBoole
 
     @Override
     public String getDescription() {
-        return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing" +
-               " slash matching configuration option has been deprecated and its default value set to false. " +
-               "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both" +
-               " `GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
+        return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing " +
+               "slash matching configuration option has been deprecated and its default value set to false. " +
+               "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both " +
+               "`GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
                "anymore by default and will result in an HTTP 404 error. This recipe is to maintain trailing slash in " +
                "all HTTP url mappings.";
     }
@@ -57,11 +57,18 @@ public class MaintainTrailingSlashURLMappings extends ScanningRecipe<AtomicBoole
     public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean acc) {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                if (!acc.get()) {
-                    acc.set(FindWebConfigurer.find(cu));
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                if (!acc.get() && classDecl.getImplements() != null) {
+                    for (TypeTree impl : classDecl.getImplements()) {
+                        JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
+                        if (fullyQualified != null &&
+                                (WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()) ||
+                                        WEB_FLUX_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()))) {
+                            acc.set(true);
+                        }
+                    }
                 }
-                return cu;
+                return super.visitClassDeclaration(classDecl, ctx);
             }
         };
     }
@@ -74,33 +81,8 @@ public class MaintainTrailingSlashURLMappings extends ScanningRecipe<AtomicBoole
                 if (acc.get()) {
                     return new AddSetUseTrailingSlashMatch().getVisitor().visit(tree, ctx);
                 }
-
                 return new AddRouteTrailingSlash().getVisitor().visit(tree, ctx);
             }
         };
-    }
-
-    private static class FindWebConfigurer extends JavaIsoVisitor<AtomicBoolean> {
-        static boolean find(J j) {
-            return new FindWebConfigurer()
-                .reduce(j, new AtomicBoolean()).get();
-        }
-
-        @Override
-        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, AtomicBoolean found) {
-            if (classDecl.getImplements() != null) {
-                for (TypeTree impl : classDecl.getImplements()) {
-                    JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(impl.getType());
-                    if (fullyQualified != null &&
-                        (WEB_MVC_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()) ||
-                         WEB_FLUX_CONFIGURER.equals(fullyQualified.getFullyQualifiedName()))
-                    ) {
-                        found.set(true);
-                        return classDecl;
-                    }
-                }
-            }
-            return classDecl;
-        }
     }
 }

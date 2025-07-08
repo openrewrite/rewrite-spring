@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,9 +20,10 @@ import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.StringUtils;
-import org.openrewrite.properties.ChangePropertyValue;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
+
+import java.util.regex.Pattern;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
@@ -63,13 +64,13 @@ public class ChangeSpringPropertyValue extends Recipe {
 
     @Option(displayName = "Use relaxed binding",
             description = "Whether to match the `propertyKey` using [relaxed binding](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding) " +
-                    "rules. Default is `true`. Set to `false` to use exact matching.",
+                          "rules. Default is `true`. Set to `false` to use exact matching.",
             required = false)
     @Nullable
     Boolean relaxedBinding;
 
     @Override
-    public Validated validate() {
+    public Validated<Object> validate() {
         return super.validate().and(
                 Validated.test("oldValue", "is required if `regex` is enabled", oldValue,
                         value -> !(Boolean.TRUE.equals(regex) && StringUtils.isNullOrEmpty(value))));
@@ -77,10 +78,9 @@ public class ChangeSpringPropertyValue extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        ChangePropertyValue changeProperties = new ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
-        org.openrewrite.yaml.ChangePropertyValue changeYaml =
-                new org.openrewrite.yaml.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding, null);
-
+        Recipe changeProperties = new org.openrewrite.properties.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
+        String yamlValue = quoteValue(newValue) ? "\"" + newValue + "\"" : newValue;
+        Recipe changeYaml = new org.openrewrite.yaml.ChangePropertyValue(propertyKey, yamlValue, oldValue, regex, relaxedBinding, null);
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
@@ -92,5 +92,10 @@ public class ChangeSpringPropertyValue extends Recipe {
                 return tree;
             }
         };
+    }
+
+    private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");
+    private boolean quoteValue(String value) {
+        return scalarNeedsAQuote.matcher(value).matches();
     }
 }

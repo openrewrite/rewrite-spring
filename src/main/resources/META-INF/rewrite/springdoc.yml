@@ -1,11 +1,11 @@
 #
 # Copyright 2024 the original author or authors.
 # <p>
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # <p>
-# https://www.apache.org/licenses/LICENSE-2.0
+# https://docs.moderne.io/licensing/moderne-source-available-license
 # <p>
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,7 @@ tags:
 recipeList:
   - org.openrewrite.java.springdoc.SwaggerToSpringDoc
   - org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
+  - org.openrewrite.java.springdoc.MigrateSpringdocCommon
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -39,6 +40,7 @@ tags:
   - openapi
 recipeList:
   - org.openrewrite.openapi.swagger.SwaggerToOpenAPI
+  - org.openrewrite.java.spring.doc.RemoveBeanValidatorPluginsConfiguration
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: swagger.title
   - org.openrewrite.java.spring.DeleteSpringProperty:
@@ -48,6 +50,9 @@ recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: io.swagger.core.v3
       artifactId: swagger-annotations
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: '@springfox.documentation.swagger2.annotations.EnableSwagger2'
+  - org.openrewrite.java.spring.doc.MigrateDocketBeanToGroupedOpenApiBean
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -67,19 +72,71 @@ recipeList:
       artifactId: "*"
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springdoc
-      artifactId: springdoc-openapi-starter-webmvc-ui
+      artifactId: springdoc-openapi-ui
       version: 1.5.x # aligns with spring boot 2.6
 
+# Compatibility matrix: https://springdoc.org/#what-is-the-compatibility-matrix-of-springdoc-openapi-with-spring-boot
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_8
+displayName: Upgrade to SpringDoc 2.8
+description: Upgrade to SpringDoc v2.8.
+tags:
+  - springdoc
+recipeList:
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_6
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 2.8.x
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_6
+displayName: Upgrade to SpringDoc 2.6
+description: Upgrade to SpringDoc v2.6.
+tags:
+  - springdoc
+recipeList:
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_5
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 2.6.x
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_5
+displayName: Upgrade to SpringDoc 2.5
+description: Upgrade to SpringDoc v2.5.
+tags:
+  - springdoc
+recipeList:
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_2
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 2.5.x
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_2
+displayName: Upgrade to SpringDoc 2.2
+description: Upgrade to SpringDoc v2.2.
+tags:
+  - springdoc
+recipeList:
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 2.2.x
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2
-displayName: Upgrade SpringDoc
-description: Upgrade to SpringDoc v2.
+displayName: Upgrade to SpringDoc 2.1
+description: Upgrade to SpringDoc v2.1, as described in the [upgrade guide](https://springdoc.org/#migrating-from-springdoc-v1).
 tags:
   - springdoc
 recipeList:
   - org.openrewrite.openapi.swagger.UseJakartaSwaggerArtifacts
-  # https://springdoc.org/#migrating-from-springdoc-v1
   # "classes/annotations changes"
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.SpringDocUtils
@@ -99,40 +156,32 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.SwaggerUiConfigParameters
       newFullyQualifiedTypeName: org.springdoc.core.properties.SwaggerUiConfigParameters
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springdoc.core.models.GroupedOpenApi.Builder addOpenApiCustomiser(..)
+      newMethodName: addOpenApiCustomizer
+      matchOverrides: true
   # "The following table describes the main modules changes"
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-data-rest
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-groovy
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-hateoas
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-javadoc
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-kotlin
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-security
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springdoc
       oldArtifactId: springdoc-openapi-common
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-data-rest
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-groovy
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-hateoas
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-javadoc
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-kotlin
-      newArtifactId: springdoc-openapi-starter-common
-      newVersion: 2.1.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springdoc
-      oldArtifactId: springdoc-openapi-security
       newArtifactId: springdoc-openapi-starter-common
       newVersion: 2.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
@@ -160,3 +209,22 @@ recipeList:
       groupId: org.springdoc
       artifactId: "*"
       newVersion: 2.1.x
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.MigrateSpringdocCommon
+displayName: Migrate from springdoc-openapi-common to springdoc-openapi-starter-common
+description: Migrate from springdoc-openapi-common to springdoc-openapi-starter-common.
+tags:
+  - springdoc
+  - openapi
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springdoc.core.customizers.OpenApiCustomiser
+      newFullyQualifiedTypeName: org.springdoc.core.customizers.OpenApiCustomizer
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springdoc.core.GroupedOpenApi.Builder addOpenApiCustomiser(..)
+      newMethodName: addOpenApiCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springdoc.core.GroupedOpenApi
+      newFullyQualifiedTypeName: org.springdoc.core.models.GroupedOpenApi

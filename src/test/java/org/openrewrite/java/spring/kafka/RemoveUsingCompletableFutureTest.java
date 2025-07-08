@@ -1,11 +1,11 @@
 /*
  * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,8 +32,8 @@ class RemoveUsingCompletableFutureTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-kafka-2.9"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void usingCompletableFuture() {
         //noinspection UnnecessaryLocalVariable
         rewriteRun(
@@ -45,10 +45,10 @@ class RemoveUsingCompletableFutureTest implements RewriteTest {
               import org.springframework.kafka.core.KafkaOperations2;
               import org.springframework.kafka.support.SendResult;
               import java.util.concurrent.CompletableFuture;
-              
+
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
-                      KafkaOperations2<String, String> kafkaOperations2 = kafkaOperations.usingCompletableFuture();
+                      KafkaOperations2<String, String> k2 = kafkaOperations.usingCompletableFuture();
                   }
               }
               """,
@@ -57,10 +57,10 @@ class RemoveUsingCompletableFutureTest implements RewriteTest {
               import org.springframework.kafka.core.KafkaOperations;
               import org.springframework.kafka.support.SendResult;
               import java.util.concurrent.CompletableFuture;
-              
+
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
-                      KafkaOperations<String, String> kafkaOperations2 = kafkaOperations;
+                      KafkaOperations<String, String> k2 = kafkaOperations;
                   }
               }
               """

@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,29 +31,6 @@ class MigrateLoggingSystemPropertyConstantsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateLoggingSystemPropertyConstants())
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
-    }
-
-    @Test
-    void doNotUpdateCurrentAPIs() {
-        //language=java 
-        rewriteRun(
-          java(
-            """
-              package org.test;
-
-              import org.springframework.boot.logging.LoggingSystemProperties;
-
-              import static org.springframework.boot.logging.LoggingSystemProperties.CONSOLE_LOG_PATTERN;
-              
-              class Test {
-                  void method() {
-                      String valueA = LoggingSystemProperties.EXCEPTION_CONVERSION_WORD;
-                      String valueB = CONSOLE_LOG_PATTERN;
-                  }
-              }
-              """
-          )
-        );
     }
 
     @DocumentExample
@@ -89,6 +66,29 @@ class MigrateLoggingSystemPropertyConstantsTest implements RewriteTest {
                       String valueC = LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_FILE_SIZE;
                       String valueD = LogbackLoggingSystemProperties.ROLLINGPOLICY_TOTAL_SIZE_CAP;
                       String valueE = LogbackLoggingSystemProperties.ROLLINGPOLICY_FILE_NAME_PATTERN;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotUpdateCurrentAPIs() {
+        //language=java 
+        rewriteRun(
+          java(
+            """
+              package org.test;
+
+              import org.springframework.boot.logging.LoggingSystemProperties;
+
+              import static org.springframework.boot.logging.LoggingSystemProperties.CONSOLE_LOG_PATTERN;
+              
+              class Test {
+                  void method() {
+                      String valueA = LoggingSystemProperties.EXCEPTION_CONVERSION_WORD;
+                      String valueB = CONSOLE_LOG_PATTERN;
                   }
               }
               """

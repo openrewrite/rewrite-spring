@@ -1,11 +1,11 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import java.util.Arrays;
+import java.util.List;
 
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
@@ -189,7 +189,7 @@ class UseTlsAmqpConnectionStringTest implements RewriteTest {
     @Test
     void profileSpecific() {
         rewriteRun(
-          spec -> spec.recipe(new UseTlsAmqpConnectionString("my.custom.addresses", 5672, 5671, "my.custom.ssl.enabled", Arrays.asList("**/application*.yml", "**/application*.yaml", "**/application*.properties"))),
+          spec -> spec.recipe(new UseTlsAmqpConnectionString("my.custom.addresses", 5672, 5671, "my.custom.ssl.enabled", List.of("**/application*.yml", "**/application*.yaml", "**/application*.properties"))),
           yaml(
             """
               my:

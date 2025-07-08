@@ -1,11 +1,11 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,10 +68,10 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
 
     @Override
     public String getDescription() {
-        return "Spring Integration now reuses an available `TaskScheduler` rather than configuring its own. In a" +
-                " typical application setup relying on the auto-configuration, this means that Spring Integration" +
-                " uses the auto-configured task scheduler that has a pool size of 1. To restore Spring Integration’s" +
-                " default of 10 threads, use the `spring.task.scheduling.pool.size` property.";
+        return "Spring Integration now reuses an available `TaskScheduler` rather than configuring its own. In a " +
+                "typical application setup relying on the auto-configuration, this means that Spring Integration " +
+                "uses the auto-configured task scheduler that has a pool size of 1. To restore Spring Integration’s " +
+                "default of 10 threads, use the `spring.task.scheduling.pool.size` property.";
     }
 
     private boolean isApplicableMavenProject(Xml.Document maven) {

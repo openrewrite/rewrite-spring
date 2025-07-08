@@ -1,11 +1,11 @@
 /*
  * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,15 +30,15 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
     public void defaults(RecipeSpec spec) {
         spec.recipe(new HttpComponentsClientHttpRequestFactoryReadTimeout())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-beans-5",
-            "spring-boot-3.1",
-            "spring-web-5",
+            "spring-beans-5.3",
+            "spring-boot-3",
+            "spring-web-5.3",
             "httpclient5",
             "httpcore5"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void migrateHttpComponentsClientHttpRequestFactoryReadTimeout() {
         rewriteRun(
           //language=java

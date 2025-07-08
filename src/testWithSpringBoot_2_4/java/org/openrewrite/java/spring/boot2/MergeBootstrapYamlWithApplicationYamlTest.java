@@ -1,11 +1,11 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
+ * https://docs.moderne.io/licensing/moderne-source-available-license
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,15 +15,14 @@
  */
 package org.openrewrite.java.spring.boot2;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.srcMainResources;
+import static org.openrewrite.test.SourceSpecs.other;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-@Disabled
 class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
 
     @Override
@@ -32,25 +31,99 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     }
 
     @Test
-    void mergeBootstrap() {
+    void mergeBootstrapYAML() {
         rewriteRun(
           srcMainResources(
             //language=yaml
             yaml(
               """
-                spring:
-                  application.name: main
-                ---
-                spring:
-                  config:
-                    activate:
-                      on-profile: test
-                name: test
+                spring.application.name: main
                 """,
               """
                 spring.application.name: main
+                name: test
+                """,
+              spec -> spec.path("application.yaml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: test
+                """,
+              null,
+              spec -> spec.path("bootstrap.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void mergeBootstrapYML() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              """
+                spring.application.name: main
+                name: test
+                """,
+              spec -> spec.path("application.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: test
+                """,
+              null,
+              spec -> spec.path("bootstrap.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void mergeMultipleBootstrapDocuments() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              """
+                spring.application.name: main
+                name: test
+                other.document: true
+                """,
+              spec -> spec.path("application.yaml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: test
                 ---
-                spring.config.activate.on-profile: test
+                other:
+                  document: true
+                """,
+              null,
+              spec -> spec.path("bootstrap.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void createsApplicationYaml() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              null,
+              """
+                spring.application.name: main
                 name: test
                 """,
               spec -> spec.path("application.yaml")
@@ -59,15 +132,118 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             yaml(
               """
                 spring.application:
-                  name: not the name
-                ---
-                spring:
-                    config:
-                        activate:
-                            on-profile: test
+                  name: main
                 name: test
                 """,
               null,
+              spec -> spec.path("bootstrap.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotMergeExistingKeys() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              """
+                spring.application.name: main
+                """,
+              spec -> spec.path("application.yaml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                spring.application:
+                  name: override
+                ---
+                spring.application.name: override
+                ---
+                spring:
+                  application:
+                    name: override
+                """,
+              null,
+              spec -> spec.path("bootstrap.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotMergeProfileSpecificDocuments() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring:
+                  application.name: main
+                """,
+              """
+                spring.application.name: main
+                name: test
+                """,
+              spec -> spec.path("application.yaml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: test
+                ---
+                spring.config.activate.on-profile: test
+                name: profile-test
+                other:
+                  document: false
+                """,
+              null,
+              spec -> spec.path("bootstrap.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotMergeWhenNotValidApplicationYaml() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            other("""
+                spring:
+                  application.name: main
+                """,
+              spec -> spec.path("application.yaml")),
+            //language=yaml
+            yaml(
+              """
+                name: test
+                """,
+              spec -> spec.path("bootstrap.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotMergeWhenNotValidBootstrapYaml() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml("""
+                spring:
+                  application.name: main
+                """,
+              spec -> spec.path("application.yaml")),
+            //language=yaml
+            other(
+              """
+                name: test
+                """,
               spec -> spec.path("bootstrap.yaml")
             )
           )

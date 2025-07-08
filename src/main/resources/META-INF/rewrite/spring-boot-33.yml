@@ -1,11 +1,11 @@
 #
 # Copyright 2024 the original author or authors.
 # <p>
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # <p>
-# https://www.apache.org/licenses/LICENSE-2.0
+# https://docs.moderne.io/licensing/moderne-source-available-license
 # <p>
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
@@ -52,29 +53,64 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.graalvm.buildtools.native
       newVersion: 0.10.x
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: com.datastax.oss
-      newGroupId: org.apache.cassandra
-      oldArtifactId: "*"
+  - org.openrewrite.java.spring.boot3.ChangeCassandraGroupId
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springdoc
       artifactId: "*"
       newVersion: 2.6.x
+  - org.openrewrite.hibernate.MigrateToHibernate65
+  - org.openrewrite.java.flyway.MigrateToFlyway10
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_6
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.SpringBoot3BestPractices
-displayName: Spring Boot 3.x best practices
-description: Applies best practices to Spring Boot 3 applications.
-tags:
-  - spring
-  - boot
+name: org.openrewrite.java.spring.boot3.ChangeCassandraGroupId
+displayName: Change `com.datastax.oss` to `org.apache.cassandra`
+description: Change `groupId` from `com.datastax.oss` to `org.apache.cassandra` and adopt the Spring Boot 3.3 managed version.
 recipeList:
-  - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
-  - org.openrewrite.java.migrate.UpgradeToJava21 # Allows for virtual threads
-  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
-  # Replace literals with constants and simplify MediaType parse calls
-  - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithHttpHeadersConstants
-  - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants
-  - org.openrewrite.java.spring.http.SimplifyMediaTypeParseCalls
-  - org.openrewrite.java.spring.http.SimplifyWebTestClientCalls
+  # Use explicit artifactIds as opposed to a wildcard, as we do not wish to change `com.datastax.oss:native-protocol`
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-bom
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-core
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-core-shaded
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-mapper-processor
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-mapper-runtime
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-query-builder
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-test-infra
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-metrics-micrometer
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.datastax.oss
+      oldArtifactId: java-driver-metrics-microprofile
+      newGroupId: org.apache.cassandra
+      newVersion: 4.18.x
