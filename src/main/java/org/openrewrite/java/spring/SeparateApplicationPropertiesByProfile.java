@@ -39,7 +39,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
     @Override
     public String getDescription() {
-        return "Separating `application.properties` into separate files based on profiles while appending to any existing `application-profile.properties`.";
+        return "Separating `application.properties` into separate files based on profiles.";
     }
 
     @Override
@@ -60,35 +60,62 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 String sourcePath = PathUtils.separatorsToUnix(propertyFile.getSourcePath().toString());
                 String[] pathArray = sourcePath.split("/");
 
+                // Find the module path by looking for src/main/resources
+                String modulePath = findModulePath(sourcePath);
+
+                // Get or create the module info
+                ModulePropertyInfo moduleInfo = acc.moduleProperties.computeIfAbsent(
+                        modulePath,
+                        k -> new ModulePropertyInfo()
+                );
+
                 if (propertyFile.getSourcePath().endsWith("application.properties")) {
-                    acc.pathToApplicationProperties = getPathToApplicationProperties(pathArray);
-                    acc.propertyFileContent = getNewApplicationPropertyFileInfo(propertyFile.getContent());
+                    moduleInfo.pathToApplicationProperties = getPathToApplicationProperties(pathArray);
+                    moduleInfo.propertyFileContent = getNewApplicationPropertyFileInfo(propertyFile.getContent());
                 }
 
                 if (propertyFile.getSourcePath().getFileName().toString().matches("application-[^/]+\\.properties")) {
-                    acc.fileNameToFilePath.put(pathArray[pathArray.length - 1], sourcePath);
+                    moduleInfo.fileNameToFilePath.put(pathArray[pathArray.length - 1], sourcePath);
                 }
 
                 return tree;
+            }
+
+            private String findModulePath(String sourcePath) {
+                // This finds the path up to src/main/resources
+                String[] parts = sourcePath.split("/");
+                for (int i = 0; i < parts.length; i++) {
+                    if (parts[i].equals("src") &&
+                            i + 2 < parts.length &&
+                            parts[i+1].equals("main") &&
+                            parts[i+2].equals("resources")) {
+                        return String.join("/", Arrays.copyOfRange(parts, 0, i));
+                    }
+                }
+                return ""; // fallback
             }
         };
     }
 
     @Override
     public Collection<? extends SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
-        if (acc.propertyFileContent.isEmpty()) {
-            return Collections.emptyList();
-        }
-
         Set<SourceFile> newApplicationPropertiesFiles = new HashSet<>();
 
-        for (Map.Entry<String, List<Properties.Content>> entry : acc.propertyFileContent.entrySet()) {
-            if (!acc.fileNameToFilePath.containsKey(entry.getKey())) {
-                newApplicationPropertiesFiles.
-                        add(new CreatePropertiesFile(acc.pathToApplicationProperties + entry.getKey(), "", null).
-                                generate(new AtomicBoolean(true), ctx).
-                                iterator().
-                                next());
+        for (ModulePropertyInfo moduleInfo : acc.moduleProperties.values()) {
+            if (moduleInfo.propertyFileContent.isEmpty()) {
+                continue;
+            }
+
+            for (Map.Entry<String, List<Properties.Content>> entry : moduleInfo.propertyFileContent.entrySet()) {
+                if (!moduleInfo.fileNameToFilePath.containsKey(entry.getKey())) {
+                    newApplicationPropertiesFiles.add(
+                            new CreatePropertiesFile(
+                                    moduleInfo.pathToApplicationProperties + entry.getKey(),
+                                    "",
+                                    null
+                            ).generate(new AtomicBoolean(true), ctx).iterator().next()
+                    );
+                }
             }
         }
 
@@ -100,15 +127,34 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         return new PropertiesVisitor<ExecutionContext>() {
             @Override
             public Properties visitFile(Properties.File file, ExecutionContext ctx) {
-                if (acc.propertyFileContent.isEmpty()) {
+                String sourcePath = PathUtils.separatorsToUnix(file.getSourcePath().toString());
+                String modulePath = findModulePath(sourcePath);
+
+                ModulePropertyInfo moduleInfo = acc.moduleProperties.get(modulePath);
+                if (moduleInfo == null || moduleInfo.propertyFileContent.isEmpty()) {
                     return file;
                 }
 
                 String[] filePathArray = file.getSourcePath().toString().split("/");
                 String fileName = filePathArray[filePathArray.length - 1];
 
-                return fileName.matches("application.properties") ? deleteFromApplicationProperties(file) :
-                        appendToExistingPropertiesFile(file, acc.propertyFileContent.get(fileName));
+                return fileName.matches("application.properties") ?
+                        deleteFromApplicationProperties(file) :
+                        appendToExistingPropertiesFile(file, moduleInfo.propertyFileContent.get(fileName));
+            }
+
+            private String findModulePath(String sourcePath) {
+                // Same implementation as in scanner
+                String[] parts = sourcePath.split("/");
+                for (int i = 0; i < parts.length; i++) {
+                    if (parts[i].equals("src") &&
+                            i + 2 < parts.length &&
+                            parts[i+1].equals("main") &&
+                            parts[i+2].equals("resources")) {
+                        return String.join("/", Arrays.copyOfRange(parts, 0, i));
+                    }
+                }
+                return ""; // fallback
             }
         };
     }
@@ -172,6 +218,12 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
     }
 
     public static class Accumulator {
+        // Map from module path to its property file info
+        Map<String, ModulePropertyInfo> moduleProperties = new HashMap<>();
+    }
+
+
+    public static class ModulePropertyInfo {
         String pathToApplicationProperties = "";
         Map<String, String> fileNameToFilePath = new HashMap<>();
         Map<String, List<Properties.Content>> propertyFileContent = new HashMap<>();
