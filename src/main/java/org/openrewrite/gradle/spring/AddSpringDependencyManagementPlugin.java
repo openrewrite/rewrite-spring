@@ -31,8 +31,8 @@ import org.openrewrite.marker.SearchResult;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class AddSpringDependencyManagementPlugin extends Recipe {
     @Override
     public String getDisplayName() {

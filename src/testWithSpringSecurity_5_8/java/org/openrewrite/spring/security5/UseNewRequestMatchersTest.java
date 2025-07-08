@@ -437,8 +437,8 @@ class UseNewRequestMatchersTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/463")
+    @Test
     void shouldUseCorrectTypeAfterAuthorizeHttpRequestsChain() {
         //language=java
         rewriteRun(
@@ -478,8 +478,8 @@ class UseNewRequestMatchersTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/463")
+    @Test
     void shouldUseCorrectTypeAfterAuthorizeHttpRequestsChainDsl() {
         //language=java
         rewriteRun(

@@ -28,8 +28,8 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class ReplaceSupportClassWithItsInterface extends Recipe {
 
     @Override

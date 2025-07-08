@@ -39,8 +39,8 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
           ));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void changeKafkaOperationsSendReturnType() {
         //noinspection deprecation
         rewriteRun(

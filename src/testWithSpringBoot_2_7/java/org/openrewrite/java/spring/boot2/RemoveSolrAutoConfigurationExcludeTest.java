@@ -33,8 +33,8 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void removeFromArray() {
         rewriteRun(
           //language=java

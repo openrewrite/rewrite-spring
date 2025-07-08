@@ -27,8 +27,8 @@ import org.openrewrite.java.spring.boot2.ConvertToSecurityDslVisitor;
 import java.util.Arrays;
 import java.util.Collection;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class OAuth2ResourceServerLambdaDsl extends Recipe {
     private static final String FQN_OAUTH2_CLIENT_CONFIGURER = "org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer";
 

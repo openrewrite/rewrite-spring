@@ -191,8 +191,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         }
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     private static class ArgumentExtractor extends JavaIsoVisitor<ArgumentExtractor.ArgumentExtractorResult> {
 
         List<MethodMatcher> methodMatchers;
@@ -276,8 +276,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         }
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     private static class DocketBeanVisitor extends JavaIsoVisitor<ExecutionContext> {
         boolean removeMethod;
         DocketDefinition docketDefinition;

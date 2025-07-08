@@ -254,9 +254,9 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
-    @Test
     @Disabled
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/436")
+    @Test
     void loggingFileSubpropertiesYaml() {
         rewriteRun(
           spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-22-properties.yml", "org.openrewrite.java.spring.boot2.SpringBootProperties_2_2"),
@@ -287,8 +287,8 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/231")
+    @Test
     void changeValueAnnotation() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
@@ -326,8 +326,8 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/231")
+    @Test
     void changeConditionalOnPropertyAnnotation() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("foo", "bar", List.of("baz")))

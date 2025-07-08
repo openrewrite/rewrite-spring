@@ -28,8 +28,8 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class UseNewSecurityMatchers extends Recipe {
 
     private static final String HTTP_SECURITY_CLASS = "org.springframework.security.config.annotation.web.builders.HttpSecurity";

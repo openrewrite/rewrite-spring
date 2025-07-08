@@ -34,8 +34,8 @@ class ListenableToCompletableFutureTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6", "spring-kafka-2"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void addListenableFutureCallback() {
         //language=java
         rewriteRun(

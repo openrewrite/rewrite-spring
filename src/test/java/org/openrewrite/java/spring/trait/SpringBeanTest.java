@@ -31,9 +31,9 @@ class SpringBeanTest implements RewriteTest {
           .asVisitor(bean -> SearchResult.found(bean.getTree(), bean.getName()))));
     }
 
+    @DocumentExample
     @SuppressWarnings("SpringXmlModelInspection")
     @Test
-    @DocumentExample
     void xmlConfiguration() {
         rewriteRun(
           xml(

@@ -34,8 +34,8 @@ class MigrateSpringdocCommonTest implements RewriteTest {
           ));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void fixCustomiserAndGroupedOpenApi() {
         // language=java
         rewriteRun(

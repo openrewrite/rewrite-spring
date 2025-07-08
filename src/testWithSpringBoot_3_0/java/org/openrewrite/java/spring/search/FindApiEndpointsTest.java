@@ -33,8 +33,8 @@ class FindApiEndpointsTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpath("spring-web", "spring-context"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void withinController() {
         rewriteRun(
           //language=java

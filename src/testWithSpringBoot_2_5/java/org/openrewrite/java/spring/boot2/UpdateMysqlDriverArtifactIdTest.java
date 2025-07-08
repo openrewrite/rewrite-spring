@@ -141,8 +141,8 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
         }
     }
 
-    @Nested
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/375")
+    @Nested
     class Gradle {
 
         @DocumentExample

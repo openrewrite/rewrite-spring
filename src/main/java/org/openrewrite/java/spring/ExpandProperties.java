@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonList;
 import static org.openrewrite.Tree.randomId;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class ExpandProperties extends Recipe {
 
     @Option(displayName = "Source file mask",

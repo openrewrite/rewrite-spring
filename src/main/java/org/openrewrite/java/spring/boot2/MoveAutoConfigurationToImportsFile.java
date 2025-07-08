@@ -37,8 +37,8 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoConfigurationToImportsFile.Accumulator> {
     private static final String AUTOCONFIGURATION_FILE = "org.springframework.boot.autoconfigure.AutoConfiguration.imports";
     private static final String ENABLE_AUTO_CONFIG_KEY = "org.springframework.boot.autoconfigure.EnableAutoConfiguration";
@@ -276,8 +276,8 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
         }
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     private static class AddAutoConfigurationAnnotation extends JavaIsoVisitor<ExecutionContext> {
         private static final String AUTO_CONFIGURATION_FQN = "org.springframework.boot.autoconfigure.AutoConfiguration";
         private static final String CONFIGURATION_FQN = "org.springframework.context.annotation.Configuration";
