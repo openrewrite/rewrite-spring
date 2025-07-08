@@ -2667,6 +2667,29 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.data.MigrateQueryToNativeQuery
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.data.jpa.repository.Query;
+
+      interface Test {
+
+          @Query(value = "select * from foo", nativeQuery = true)
+          void customQuery();
+      }
+    after: |
+      import org.springframework.data.jpa.repository.NativeQuery;
+
+      interface Test {
+
+          @NativeQuery("select * from foo")
+          void customQuery();
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.MigrateQuerydslJpaRepository
 examples:
 - description: ''
