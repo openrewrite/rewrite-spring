@@ -35,8 +35,8 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<UpgradeExplicitSpringBootDependencies.Accumulator> {
 
     private static final String SPRINGBOOT_GROUP = "org.springframework.boot";

@@ -49,7 +49,7 @@ class GeneratePropertiesMigratorConfiguration {
         releasesDir.mkdirs();
 
         File[] listing = releasesDir.listFiles();
-        Set<String> latestPatchReleases = Arrays.asList(args).contains("offline") ?
+        Set<String> latestPatchReleases = List.of(args).contains("offline") ?
           (listing == null ? emptySet() :
             Arrays.stream(listing).map(File::getName).collect(toSet())) :
           springBootReleases.latestPatchReleases();

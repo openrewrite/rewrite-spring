@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.Tree;
 import org.openrewrite.java.AnnotationMatcher;
+import org.openrewrite.java.trait.Annotated;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.trait.SimpleTraitMatcher;
 import org.openrewrite.trait.Trait;
@@ -27,8 +28,6 @@ import org.openrewrite.xml.XPathMatcher;
 import org.openrewrite.xml.tree.Xml;
 
 import java.util.Optional;
-
-import static org.openrewrite.java.trait.Traits.annotated;
 
 @Value
 public class SpringBean implements Trait<Tree> {
@@ -43,7 +42,7 @@ public class SpringBean implements Trait<Tree> {
                     .map(Xml.Attribute::getValueAsString)
                     .orElse(null);
         } else if (getTree() instanceof J.Annotation) {
-            return annotated("org.springframework.context.annotation.Bean")
+            return new Annotated.Matcher("org.springframework.context.annotation.Bean")
                     .get(cursor)
                     .flatMap(a -> a.getDefaultAttribute("name"))
                     .map(name -> name.getValue(String.class))

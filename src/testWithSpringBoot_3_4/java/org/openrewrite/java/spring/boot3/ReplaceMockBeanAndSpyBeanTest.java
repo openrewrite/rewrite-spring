@@ -197,6 +197,41 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     }
 
     @Test
+    void replacesMockBeanWithMockitoBeanAndSpyBeanWithMockitoSpyBeanResolvingProperlyMockResetImport() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.MockBean;
+              import org.springframework.boot.test.mock.mockito.MockReset;
+              import org.springframework.boot.test.mock.mockito.SpyBean;
+
+              public class SomeTest {
+                  @SpyBean(reset = MockReset.NONE)
+                  private String someService;
+
+                  @MockBean(reset = MockReset.NONE)
+                  private String someMockService;
+              }
+              """,
+            """
+              import org.springframework.test.context.bean.override.mockito.MockReset;
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+              import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+
+              public class SomeTest {
+                  @MockitoSpyBean(reset = MockReset.NONE)
+                  private String someService;
+
+                  @MockitoBean(reset = MockReset.NONE)
+                  private String someMockService;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void replacesSpyBeanWithMockitoSpyBean() {
         rewriteRun(
           //language=java

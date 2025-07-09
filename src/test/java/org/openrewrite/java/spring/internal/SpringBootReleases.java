@@ -42,7 +42,7 @@ class SpringBootReleases {
         this.includeReleaseCandidates = includeReleaseCandidates;
     }
     public Stream<ModuleDownload> download(String version) {
-        List<String> denyList = Arrays.asList("sample", "gradle", "experimental", "legacy",
+        List<String> denyList = List.of("sample", "gradle", "experimental", "legacy",
                 "maven", "tests", "spring-boot-versions");
         HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
 

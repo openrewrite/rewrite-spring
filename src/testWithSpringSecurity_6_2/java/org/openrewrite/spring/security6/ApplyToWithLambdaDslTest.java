@@ -185,8 +185,8 @@ class ApplyToWithLambdaDslTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/468")
+    @Test
     void customDslWithStaticFactoryMethod() {
         //language=java
         rewriteRun(

@@ -52,7 +52,7 @@ recipeDependencies {
 
     parserClasspath("javax.persistence:javax.persistence-api:2.+")
     parserClasspath("javax.validation:validation-api:2.0.1.Final")
-    parserClasspath("org.junit.jupiter:junit-jupiter-api:latest.release")
+    parserClasspath("org.junit.jupiter:junit-jupiter-api:5.+")
 
     parserClasspath("org.springframework.boot:spring-boot:1.+")
     parserClasspath("org.springframework.boot:spring-boot:2.+")
@@ -116,6 +116,8 @@ recipeDependencies {
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-instrumentation:3.1.+")
 //    parserClasspath("org.springframework.cloud:spring-cloud-sleuth-brave:3.1.+")
 
+    parserClasspath("org.springdoc:springdoc-openapi-starter-common:2.+")
+
     parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     parserClasspath("net.minidev:json-smart:2.4.+")
 
@@ -153,7 +155,11 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
+    testRuntimeOnly("io.springfox:springfox-core:3.+")
+    testRuntimeOnly("io.springfox:springfox-spring-web:3.+")
+    testRuntimeOnly("io.springfox:springfox-spi:3.+")
     testRuntimeOnly(gradleApi())
+    testRuntimeOnly("io.springfox:springfox-bean-validators:3.+")
 
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
@@ -267,6 +273,7 @@ dependencies {
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.boot:spring-boot:3.4.+")
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-context:6.2.+")
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-web:6.2.+")
+    "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.data:spring-data-jpa:3.4.7")
     "testWithSpringBoot_3_4RuntimeOnly"("jakarta.validation:jakarta.validation-api:3.0.+")
 
     "testWithSpringSecurity_5_7RuntimeOnly"("org.springframework:spring-context:5.3.+")

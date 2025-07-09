@@ -561,8 +561,8 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/479")
+    @Test
     void ignoreLombokConstructors() {
         //language=java
         rewriteRun(

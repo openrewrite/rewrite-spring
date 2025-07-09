@@ -49,8 +49,8 @@ public class OutputCaptureExtension extends Recipe {
                 new UsesType<>("org.springframework.boot.test.rule.OutputCapture", false)
         ), new JavaIsoVisitor<ExecutionContext>() {
 
-            @SneakyThrows
             @Override
+            @SneakyThrows
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 

@@ -33,8 +33,8 @@ class UseJpaRepositoryGetReferenceByIdTest implements RewriteTest {
           .recipeFromResource("/META-INF/rewrite/spring-data-27.yml", "org.openrewrite.java.spring.data.UseJpaRepositoryGetReferenceById");
     }
 
-    @Test
     @DocumentExample
+    @Test
     void matchAndUpdateReferences() {
         //language=java
         rewriteRun(

@@ -35,8 +35,8 @@ import java.util.Objects;
 
 import static org.openrewrite.java.spring.internal.LocalVariableUtils.resolveExpression;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class UpdateSCryptPasswordEncoder extends Recipe {
 
     private static final String SCRYPT_PASSWORD_ENCODER_CLASS = "org.springframework.security.crypto.scrypt.SCryptPasswordEncoder";

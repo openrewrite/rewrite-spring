@@ -28,8 +28,8 @@ class UpgradeSpringOauth2AuthorizationServerTest implements RewriteTest {
         spec.recipeFromResources("org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_7");
     }
 
-    @Test
     @DocumentExample
+    @Test
     void verifyDependencyUpgrades() {
         rewriteRun(
           // language=xml

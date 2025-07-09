@@ -46,3 +46,7 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.mock.mockito.SpyBean
       newFullyQualifiedTypeName: org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.mock.mockito.MockReset
+      newFullyQualifiedTypeName: org.springframework.test.context.bean.override.mockito.MockReset

@@ -40,8 +40,6 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6", "spring-test-6"));
     }
 
-    @DocumentExample
-    @ParameterizedTest
     @CsvSource({
       "200,isOk()",
       "201,isCreated()",
@@ -57,6 +55,8 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
       "403,isForbidden()",
       "404,isNotFound()"
     })
+    @DocumentExample
+    @ParameterizedTest
     void replacesAllIntStatusCodes(String httpStatus, String method) {
         rewriteRun(
           //language=java
@@ -243,7 +243,6 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @CsvSource({
       "OK,isOk()",
       "CREATED,isCreated()",
@@ -259,6 +258,7 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
       "FORBIDDEN,isForbidden()",
       "NOT_FOUND,isNotFound()"
     })
+    @ParameterizedTest
     void usesIsOkForHttpStatusValue(String httpStatus, String method) {
         rewriteRun(
           //language=java

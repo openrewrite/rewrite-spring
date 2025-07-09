@@ -27,8 +27,8 @@ import org.openrewrite.yaml.tree.Yaml;
  * A recipe to remove a property (or matching property group) from Spring configuration files. This recipe supports deleting properties from
  * ".properties" and YAML files.
  */
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class DeleteSpringProperty extends Recipe {
 
     @Option(displayName = "Property key",

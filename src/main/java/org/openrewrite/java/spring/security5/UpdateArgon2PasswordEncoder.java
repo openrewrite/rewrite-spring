@@ -35,8 +35,8 @@ import java.util.Objects;
 
 import static org.openrewrite.java.spring.internal.LocalVariableUtils.resolveExpression;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class UpdateArgon2PasswordEncoder extends Recipe {
 
     private static final String ARGON2_PASSWORD_ENCODER_CLASS = "org.springframework.security.crypto.argon2.Argon2PasswordEncoder";

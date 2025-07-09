@@ -37,8 +37,8 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
             "httpcore5"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void migrateHttpComponentsClientHttpRequestFactoryReadTimeout() {
         rewriteRun(
           //language=java

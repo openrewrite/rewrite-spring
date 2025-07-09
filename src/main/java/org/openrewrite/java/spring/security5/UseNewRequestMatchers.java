@@ -31,8 +31,8 @@ import org.openrewrite.java.tree.JavaType;
 
 import static java.util.stream.Collectors.joining;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class UseNewRequestMatchers extends Recipe {
 
     private static final String CLAZZ = "org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry";

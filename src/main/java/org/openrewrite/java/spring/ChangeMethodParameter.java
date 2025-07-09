@@ -40,8 +40,8 @@ import static org.openrewrite.Tree.randomId;
  * After modifying method parameters using this recipe, you may also need to modify
  * the method definition as needed to avoid compilation errors.
  */
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class ChangeMethodParameter extends Recipe {
 
     /**

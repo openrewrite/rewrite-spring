@@ -20,7 +20,7 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import java.util.Arrays;
+import java.util.List;
 
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
@@ -189,7 +189,7 @@ class UseTlsAmqpConnectionStringTest implements RewriteTest {
     @Test
     void profileSpecific() {
         rewriteRun(
-          spec -> spec.recipe(new UseTlsAmqpConnectionString("my.custom.addresses", 5672, 5671, "my.custom.ssl.enabled", Arrays.asList("**/application*.yml", "**/application*.yaml", "**/application*.properties"))),
+          spec -> spec.recipe(new UseTlsAmqpConnectionString("my.custom.addresses", 5672, 5671, "my.custom.ssl.enabled", List.of("**/application*.yml", "**/application*.yaml", "**/application*.properties"))),
           yaml(
             """
               my:

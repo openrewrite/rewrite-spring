@@ -34,8 +34,8 @@ import org.openrewrite.yaml.tree.Yaml;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class UseTlsJdbcConnectionString extends Recipe {
     @Option(
             displayName = "Property key",
@@ -109,8 +109,8 @@ public class UseTlsJdbcConnectionString extends Recipe {
         };
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     static class UseTlsJdbcConnectionStringYaml extends Recipe {
         String propertyKey;
 
@@ -176,8 +176,8 @@ public class UseTlsJdbcConnectionString extends Recipe {
         }
     }
 
-    @Value
     @EqualsAndHashCode(callSuper = false)
+    @Value
     static class UseTlsJdbcConnectionStringProperties extends Recipe {
         String propertyKey;
 

@@ -35,8 +35,8 @@ class MigrateRequestMappingOnFeignClientTest implements RewriteTest {
             "spring-cloud-openfeign-core"));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void migrateRequestMappingAnnotation() {
         rewriteRun(
           //language=java

@@ -107,8 +107,8 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
         );
     }
 
-    @Test
     @SuppressWarnings("StringConcatenationMissingWhitespace")
+    @Test
     void givenConstructsStringAndContextWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() {
         //language=java
         rewriteRun(

@@ -28,8 +28,8 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.marker.SearchResult;
 
-@Value
 @EqualsAndHashCode(callSuper = false)
+@Value
 public class FindApiEndpoints extends Recipe {
 
     transient ApiEndpoints apis = new ApiEndpoints(this);

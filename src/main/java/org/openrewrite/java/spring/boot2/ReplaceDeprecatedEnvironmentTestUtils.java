@@ -76,8 +76,8 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             return id;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
+        @SuppressWarnings("unchecked")
         public ReplaceEnvironmentUtilsMarker withId(UUID id) {
             return new ReplaceEnvironmentUtilsMarker(templateString, parameters, id);
         }

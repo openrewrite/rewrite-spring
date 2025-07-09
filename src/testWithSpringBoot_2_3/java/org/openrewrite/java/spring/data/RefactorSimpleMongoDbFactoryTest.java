@@ -32,8 +32,8 @@ class RefactorSimpleMongoDbFactoryTest implements RewriteTest {
     }
 
     @DocumentExample
-    @Test
     @SuppressWarnings("deprecation")
+    @Test
     void constructorWithAttribute() {
         //language=java
         rewriteRun(

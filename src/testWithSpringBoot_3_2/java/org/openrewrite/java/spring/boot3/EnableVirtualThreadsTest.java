@@ -31,8 +31,8 @@ class EnableVirtualThreadsTest implements RewriteTest {
           .allSources(source -> source.markers(javaVersion(21)));
     }
 
-    @Test
     @DocumentExample
+    @Test
     void enableVirtualThreadsProperties() {
         rewriteRun(
           //language=properties
@@ -47,7 +47,6 @@ class EnableVirtualThreadsTest implements RewriteTest {
     }
 
     @Test
-    @DocumentExample
     void enableVirtualThreadsYaml() {
         rewriteRun(
           //language=yaml

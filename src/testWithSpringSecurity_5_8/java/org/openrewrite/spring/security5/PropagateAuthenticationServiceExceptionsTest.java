@@ -35,8 +35,8 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
     }
 
     @DocumentExample
-    @Test
     @SuppressWarnings("DataFlowIssue")
+    @Test
     void removeCallWithTrueLiteral() {
         // language=java
         rewriteRun(
