@@ -213,8 +213,11 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
     private boolean isSeparator(Properties.Content c) {
         return c instanceof Properties.Comment &&
                ((Properties.Comment) c).getMessage().equals("---") &&
-               ((((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("HASH_TAG"))) ||
-                ((Properties.Comment) c).getDelimiter().equals(Properties.Comment.Delimiter.valueOf("EXCLAMATION_MARK")));
+                ((((Properties.Comment) c).getDelimiter() ==
+                        Properties.Comment.Delimiter.valueOf("HASH_TAG")) ||
+
+                        ((Properties.Comment) c).getDelimiter() ==
+                                Properties.Comment.Delimiter.valueOf("EXCLAMATION_MARK"));
     }
 
     public static class Accumulator {
