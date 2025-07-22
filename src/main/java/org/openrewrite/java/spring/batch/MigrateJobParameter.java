@@ -92,12 +92,13 @@ public class MigrateJobParameter extends Recipe {
                             multiVariable = new JNewClassOfMap().visitVariableDeclarations(multiVariable, ctx);
                             maybeAddImport("java.util.Map");
                             return multiVariable.withTypeExpression(TypeTree.build("Map<String, JobParameter<?>>")
-                                            .withPrefix(multiVariable.getTypeExpression().getPrefix()))
+                                    .withPrefix(multiVariable.getTypeExpression().getPrefix()))
                                     .withType(JavaType.buildType("java.util.Map"));
-                        } else if (defineMapEntryTypeWithJobParameter(multiVariable.getType())) {
+                        }
+                        if (defineMapEntryTypeWithJobParameter(multiVariable.getType())) {
                             maybeAddImport("java.util.Map");
                             return multiVariable.withTypeExpression(TypeTree.build("Map.Entry<String, JobParameter<?>>")
-                                            .withPrefix(multiVariable.getTypeExpression().getPrefix()))
+                                    .withPrefix(multiVariable.getTypeExpression().getPrefix()))
                                     .withType(JavaType.buildType("java.util.Map.Entry"));
                         }
                         return multiVariable;
@@ -130,9 +131,11 @@ public class MigrateJobParameter extends Recipe {
                     private @Nullable String typeString(@Nullable JavaType javaType) {
                         if (javaType instanceof JavaType.Primitive) {
                             return ((JavaType.Primitive) javaType).name();
-                        } else if (javaType instanceof JavaType.Class) {
+                        }
+                        if (javaType instanceof JavaType.Class) {
                             return ((JavaType.Class) javaType).getClassName();
-                        } else if (javaType instanceof JavaType.Array) {
+                        }
+                        if (javaType instanceof JavaType.Array) {
                             return javaType.toString();
                         }
                         return null;

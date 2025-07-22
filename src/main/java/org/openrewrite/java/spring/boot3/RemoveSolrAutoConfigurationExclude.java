@@ -71,7 +71,8 @@ public class RemoveSolrAutoConfigurationExclude extends Recipe {
                                 }
                                 if (isSolrAutoConfigurationClassReference(as.getAssignment())) {
                                     return null;
-                                } else if (as.getAssignment() instanceof J.NewArray) {
+                                }
+                                if (as.getAssignment() instanceof J.NewArray) {
                                     J.NewArray array = (J.NewArray) as.getAssignment();
                                     List<Expression> newInitializer = ListUtils.map(array.getInitializer(),
                                             expr -> isSolrAutoConfigurationClassReference(expr) ? null : expr);

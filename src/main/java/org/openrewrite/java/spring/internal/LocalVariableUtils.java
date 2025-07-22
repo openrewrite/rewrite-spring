@@ -48,9 +48,8 @@ public class LocalVariableUtils {
         if (Objects.equals(owner, localRootType)) {
             Expression resolvedVariable = resolveVariable(fieldType.getName(), cursor);
             return resolvedVariable != null ? resolvedVariable : expression;
-        } else {
-            return expression;
         }
+        return expression;
     }
 
     private static @Nullable JavaType getRootOwner(Cursor cursor) {
@@ -58,24 +57,25 @@ public class LocalVariableUtils {
         Object parentValue = parent.getValue();
         if (parentValue instanceof SourceFile) {
             return null;
-        } else if (parentValue instanceof J.MethodDeclaration) {
-            return getRootOwner(((J.MethodDeclaration) parentValue).getMethodType());
-        } else {
-            return getRootOwner(((J.ClassDeclaration) parentValue).getType());
         }
+        if (parentValue instanceof J.MethodDeclaration) {
+            return getRootOwner(((J.MethodDeclaration) parentValue).getMethodType());
+        }
+        return getRootOwner(((J.ClassDeclaration) parentValue).getType());
     }
 
     private static JavaType getRootOwner(JavaType type) {
         if (type instanceof JavaType.Variable) {
             return getRootOwner(((JavaType.Variable) type).getOwner());
-        } else if (type instanceof JavaType.Method) {
+        }
+        if (type instanceof JavaType.Method) {
             return getRootOwner(((JavaType.Method) type).getDeclaringType());
-        } else if (type instanceof JavaType.FullyQualified) {
+        }
+        if (type instanceof JavaType.FullyQualified) {
             JavaType.FullyQualified owner = ((JavaType.FullyQualified) type).getOwningClass();
             return owner != null ? getRootOwner(owner) : type;
-        } else {
-            return type;
         }
+        return type;
     }
 
     /**
@@ -91,7 +91,8 @@ public class LocalVariableUtils {
         J value = cursor.getValue();
         if (value instanceof SourceFile) {
             return null;
-        } else if (value instanceof J.MethodDeclaration) {
+        }
+        if (value instanceof J.MethodDeclaration) {
             found = findVariable(((J.MethodDeclaration) value).getParameters(), name);
         } else if (value instanceof J.Block) {
             J.Block block = (J.Block) value;

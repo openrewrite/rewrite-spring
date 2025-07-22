@@ -124,9 +124,8 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
 
         if (!newImportFiles.isEmpty()) {
             return newImportFiles;
-        } else {
-            return Collections.emptyList();
         }
+        return Collections.emptyList();
     }
 
     @Override
@@ -271,9 +270,8 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
 
         if (merged.size() != original.size()) {
             return plainText.withText(String.join("\n", merged));
-        } else {
-            return before;
         }
+        return before;
     }
 
     @EqualsAndHashCode(callSuper = false)

@@ -84,50 +84,47 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                     if (DEFAULT_CONSTRUCTOR_MATCHER.matches(newClass)) {
                         maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
                         return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                    } else {
-                        List<Expression> arguments = newClass.getArguments();
-                        if (ONE_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
-                            Expression secret = arguments.get(0);
-                            maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
-                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET)) {
-                                return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                            } else {
-                                String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(DEFAULT_HASH_WIDTH);
-                                maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", algorithm);
-                                return newConstructorTemplate(ctx, algorithm).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), newIntLiteral(DEFAULT_ITERATIONS));
-                            }
-                        } else if (TWO_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
-                            Expression secret = arguments.get(0);
-                            Expression saltLength = arguments.get(1);
-                            maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
-                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET) &&
-                                    resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
-                                return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                            } else {
-                                String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(DEFAULT_HASH_WIDTH);
-                                maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", algorithm);
-                                return newConstructorTemplate(ctx, algorithm).apply(getCursor(), newClass.getCoordinates().replace(), secret, saltLength, newIntLiteral(DEFAULT_ITERATIONS));
-                            }
-                        } else if (THREE_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
-                            Expression secret = arguments.get(0);
-                            Expression iterations = arguments.get(1);
-                            Expression hashWidth = arguments.get(2);
-                            Integer knownHashWidth = hashWidth instanceof J.Literal && hashWidth.getType() == JavaType.Primitive.Int ? (Integer) ((J.Literal) hashWidth).getValue() : null;
-                            maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
-                            if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET) &&
-                                    resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS) &&
-                                    DEFAULT_HASH_WIDTH.equals(knownHashWidth)) {
-                                return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                            } else {
-                                String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(knownHashWidth);
-                                if (algorithm != null) {
-                                    maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", algorithm);
-                                    return newConstructorTemplate(ctx, algorithm).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), iterations);
-                                } else {
-                                    return newDeprecatedConstructorTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), iterations, hashWidth);
-                                }
-                            }
+                    }
+                    List<Expression> arguments = newClass.getArguments();
+                    if (ONE_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
+                        Expression secret = arguments.get(0);
+                        maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
+                        if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET)) {
+                            return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                         }
+                        String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(DEFAULT_HASH_WIDTH);
+                        maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", algorithm);
+                        return newConstructorTemplate(ctx, algorithm).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), newIntLiteral(DEFAULT_ITERATIONS));
+                    }
+                    if (TWO_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
+                        Expression secret = arguments.get(0);
+                        Expression saltLength = arguments.get(1);
+                        maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
+                        if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET) &&
+                                resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
+                            return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
+                        }
+                        String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(DEFAULT_HASH_WIDTH);
+                        maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", algorithm);
+                        return newConstructorTemplate(ctx, algorithm).apply(getCursor(), newClass.getCoordinates().replace(), secret, saltLength, newIntLiteral(DEFAULT_ITERATIONS));
+                    }
+                    if (THREE_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
+                        Expression secret = arguments.get(0);
+                        Expression iterations = arguments.get(1);
+                        Expression hashWidth = arguments.get(2);
+                        Integer knownHashWidth = hashWidth instanceof J.Literal && hashWidth.getType() == JavaType.Primitive.Int ? (Integer) ((J.Literal) hashWidth).getValue() : null;
+                        maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
+                        if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET) &&
+                                resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS) &&
+                                DEFAULT_HASH_WIDTH.equals(knownHashWidth)) {
+                            return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
+                        }
+                        String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(knownHashWidth);
+                        if (algorithm != null) {
+                            maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", algorithm);
+                            return newConstructorTemplate(ctx, algorithm).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), iterations);
+                        }
+                        return newDeprecatedConstructorTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), iterations, hashWidth);
                     }
                 }
                 return j;

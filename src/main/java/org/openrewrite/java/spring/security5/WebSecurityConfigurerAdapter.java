@@ -464,11 +464,10 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 visited.add(a);
                 if (fqn.equals(a.getFullyQualifiedName())) {
                     return true;
-                } else {
-                    boolean metaAnnotated = isMetaAnnotated(a, fqn, visited);
-                    if (metaAnnotated) {
-                        return true;
-                    }
+                }
+                boolean metaAnnotated = isMetaAnnotated(a, fqn, visited);
+                if (metaAnnotated) {
+                    return true;
                 }
             }
         }

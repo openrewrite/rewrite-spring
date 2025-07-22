@@ -61,9 +61,11 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                         REQUIRE_EXPLICIT_SAVE_MATCHER.matches(method) &&
                         isTrue(method.getArguments().get(0))) {
                     return ToBeRemoved.withMarker(method);
-                } else if (method.getSelect() instanceof J.MethodInvocation && ToBeRemoved.hasMarker(method.getSelect())) {
+                }
+                if (method.getSelect() instanceof J.MethodInvocation && ToBeRemoved.hasMarker(method.getSelect())) {
                     return method.withSelect(((J.MethodInvocation) method.getSelect()).getSelect());
-                } else if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker) &&
+                }
+                if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker) &&
                         method.getSelect() != null && TypeUtils.isAssignableTo(HTTP_SECURITY_TYPE, method.getSelect().getType())) {
                     if (method.getArguments().stream().allMatch(ToBeRemoved::hasMarker)) {
                         return ToBeRemoved.withMarker(method);

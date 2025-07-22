@@ -57,7 +57,8 @@ public class CommentOutSpringPropertyKey extends Recipe {
                 stopAfterPreVisit();
                 if (tree instanceof Properties.File) {
                     return changeProperties.getVisitor().visit(tree, ctx);
-                } else if (tree instanceof Yaml.Documents) {
+                }
+                if (tree instanceof Yaml.Documents) {
                     return changeYaml.getVisitor().visit(tree, ctx);
                 }
                 return tree;
