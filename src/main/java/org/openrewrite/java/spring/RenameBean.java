@@ -205,7 +205,8 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
                             Expression assignmentExpr = beanNameAssignment.getAssignment();
                             if (assignmentExpr instanceof J.Literal) {
                                 return new BeanSearchResult(true, (String) ((J.Literal) assignmentExpr).getValue());
-                            } else if (assignmentExpr instanceof J.NewArray) {
+                            }
+                            if (assignmentExpr instanceof J.NewArray) {
                                 List<Expression> initializers = ((J.NewArray) assignmentExpr).getInitializer();
                                 if (initializers != null) {
                                     for (Expression initExpr : initializers) {
@@ -283,9 +284,11 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
 
                     if (annotationParent instanceof J.MethodDeclaration) {
                         return isRelevantType(((J.MethodDeclaration) annotationParent).getMethodType().getReturnType());
-                    } else if (annotationParent instanceof J.ClassDeclaration) {
+                    }
+                    if (annotationParent instanceof J.ClassDeclaration) {
                         return isRelevantType(((J.ClassDeclaration) annotationParent).getType());
-                    } else if (annotationParent instanceof J.VariableDeclarations) {
+                    }
+                    if (annotationParent instanceof J.VariableDeclarations) {
                         return isRelevantType(((J.VariableDeclarations) annotationParent).getType());
                     }
                 }
@@ -376,7 +379,8 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
     private static boolean contains(Expression assignment, String oldName) {
         if (assignment instanceof J.Literal) {
             return oldName.equals(((J.Literal) assignment).getValue());
-        } else if (assignment instanceof J.NewArray) {
+        }
+        if (assignment instanceof J.NewArray) {
             J.NewArray newArrayAssignment = (J.NewArray) assignment;
             if (newArrayAssignment.getInitializer() == null) {
                 return false;

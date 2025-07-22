@@ -112,7 +112,8 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
                     if (arg instanceof J.Literal) {
                         J.Literal literal = (J.Literal) arg;
                         return (String) literal.getValue();
-                    } else if (arg instanceof J.Assignment) {
+                    }
+                    if (arg instanceof J.Assignment) {
                         J.Assignment assignment = (J.Assignment) arg;
                         if (assignment.getVariable() instanceof J.Identifier) {
                             J.Identifier variable = (J.Identifier) assignment.getVariable();

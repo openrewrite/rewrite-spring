@@ -41,7 +41,8 @@ public class SpringBean implements Trait<Tree> {
                     .findFirst()
                     .map(Xml.Attribute::getValueAsString)
                     .orElse(null);
-        } else if (getTree() instanceof J.Annotation) {
+        }
+        if (getTree() instanceof J.Annotation) {
             return new Annotated.Matcher("org.springframework.context.annotation.Bean")
                     .get(cursor)
                     .flatMap(a -> a.getDefaultAttribute("name"))

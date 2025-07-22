@@ -99,14 +99,17 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
                 if (argument instanceof J.Literal) {
                     //noinspection ConstantConditions
                     return (String) ((J.Literal) argument).getValue();
-                } else if (argument instanceof J.Assignment) {
+                }
+                if (argument instanceof J.Assignment) {
                     J.Assignment arg = (J.Assignment) argument;
                     if (((J.Identifier) arg.getVariable()).getSimpleName().equals(key)) {
                         if (arg.getAssignment() instanceof J.FieldAccess) {
                             return ((J.FieldAccess) arg.getAssignment()).getSimpleName();
-                        } else if (arg.getAssignment() instanceof J.Identifier) {
+                        }
+                        if (arg.getAssignment() instanceof J.Identifier) {
                             return ((J.Identifier) arg.getAssignment()).getSimpleName();
-                        } else if (arg.getAssignment() instanceof J.Literal) {
+                        }
+                        if (arg.getAssignment() instanceof J.Literal) {
                             //noinspection ConstantConditions
                             return (String) ((J.Literal) arg.getAssignment()).getValue();
                         }

@@ -79,28 +79,28 @@ public class UpdateSCryptPasswordEncoder extends Recipe {
                     if (DEFAULT_CONSTRUCTOR_MATCHER.matches(newClass)) {
                         maybeAddImport(SCRYPT_PASSWORD_ENCODER_CLASS);
                         return newV41FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                    } else {
-                        List<Expression> arguments = newClass.getArguments();
-                        if (FULL_CONSTRUCTOR_MATCHER.matches(newClass)) {
-                            Expression cpuCost = arguments.get(0);
-                            Expression memoryCost = arguments.get(1);
-                            Expression parallelization = arguments.get(2);
-                            Expression keyLength = arguments.get(3);
-                            Expression saltLength = arguments.get(4);
-                            maybeAddImport(SCRYPT_PASSWORD_ENCODER_CLASS);
-                            if (resolvedValueMatchesLiteral(cpuCost, DEFAULT_CPU_COST) &&
-                                    resolvedValueMatchesLiteral(memoryCost, DEFAULT_MEMORY_COST) &&
-                                    resolvedValueMatchesLiteral(parallelization, DEFAULT_PARALLELIZATION) &&
-                                    resolvedValueMatchesLiteral(keyLength, DEFAULT_KEY_LENGTH) &&
-                                    resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
-                                return newV58FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                            } else if (resolvedValueMatchesLiteral(cpuCost, DEFAULT_V41_CPU_COST) &&
-                                    resolvedValueMatchesLiteral(memoryCost, DEFAULT_V41_MEMORY_COST) &&
-                                    resolvedValueMatchesLiteral(parallelization, DEFAULT_V41_PARALLELIZATION) &&
-                                    resolvedValueMatchesLiteral(keyLength, DEFAULT_V41_KEY_LENGTH) &&
-                                    resolvedValueMatchesLiteral(saltLength, DEFAULT_V41_SALT_LENGTH)) {
-                                return newV41FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                            }
+                    }
+                    List<Expression> arguments = newClass.getArguments();
+                    if (FULL_CONSTRUCTOR_MATCHER.matches(newClass)) {
+                        Expression cpuCost = arguments.get(0);
+                        Expression memoryCost = arguments.get(1);
+                        Expression parallelization = arguments.get(2);
+                        Expression keyLength = arguments.get(3);
+                        Expression saltLength = arguments.get(4);
+                        maybeAddImport(SCRYPT_PASSWORD_ENCODER_CLASS);
+                        if (resolvedValueMatchesLiteral(cpuCost, DEFAULT_CPU_COST) &&
+                                resolvedValueMatchesLiteral(memoryCost, DEFAULT_MEMORY_COST) &&
+                                resolvedValueMatchesLiteral(parallelization, DEFAULT_PARALLELIZATION) &&
+                                resolvedValueMatchesLiteral(keyLength, DEFAULT_KEY_LENGTH) &&
+                                resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
+                            return newV58FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
+                        }
+                        if (resolvedValueMatchesLiteral(cpuCost, DEFAULT_V41_CPU_COST) &&
+                                resolvedValueMatchesLiteral(memoryCost, DEFAULT_V41_MEMORY_COST) &&
+                                resolvedValueMatchesLiteral(parallelization, DEFAULT_V41_PARALLELIZATION) &&
+                                resolvedValueMatchesLiteral(keyLength, DEFAULT_V41_KEY_LENGTH) &&
+                                resolvedValueMatchesLiteral(saltLength, DEFAULT_V41_SALT_LENGTH)) {
+                            return newV41FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                         }
                     }
                 }

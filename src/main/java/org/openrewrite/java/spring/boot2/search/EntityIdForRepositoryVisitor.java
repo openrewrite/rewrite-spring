@@ -144,28 +144,27 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
                             int idx = params.indexOf(idType);
                             if (idx < 0 || astParams == null || astParams.size() <= idx) {
                                 return typeDecl.withName(typeDecl.getName().withMarkers(typeDecl.getName().getMarkers().addIfAbsent(createMarker(domainIdType))));
-                            } else {
-                                astParams.set(idx, astParams.get(idx).withMarkers(astParams.get(idx).getMarkers().addIfAbsent(createMarker(domainIdType))));
-                                return typeDecl.withTypeParameters(astParams);
                             }
-                        } else {
-                            if (typeDecl.getExtends() != null && repoTypeChain.get(1).equals(typeDecl.getExtends().getType())) {
-                                return typeDecl.withExtends(markTypeParam(typeDecl.getExtends(), idTypeIndex, createMarker(domainIdType)));
-                            } else if (typeDecl.getImplements() != null) {
-                                final int finalIdTypeIndex = idTypeIndex;
-                                final int finalIdTypeIndexInChain = idTypeIndexInChain;
-                                AtomicBoolean hasMarker = new AtomicBoolean(false);
-                                J.ClassDeclaration newTypeDecl = typeDecl.withImplements(ListUtils.map(typeDecl.getImplements(), it -> {
-                                    JavaType.FullyQualified interfaceType = TypeUtils.asFullyQualified(it.getType());
-                                    if (repoTypeChain.get(1).equals(interfaceType)) {
-                                        hasMarker.set(true);
-                                        return markTypeParam(it, finalIdTypeIndexInChain == 1 ? finalIdTypeIndex : -1, createMarker(domainIdType));
-                                    }
-                                    return it;
-                                }));
-                                if (hasMarker.get()) {
-                                    return newTypeDecl;
+                            astParams.set(idx, astParams.get(idx).withMarkers(astParams.get(idx).getMarkers().addIfAbsent(createMarker(domainIdType))));
+                            return typeDecl.withTypeParameters(astParams);
+                        }
+                        if (typeDecl.getExtends() != null && repoTypeChain.get(1).equals(typeDecl.getExtends().getType())) {
+                            return typeDecl.withExtends(markTypeParam(typeDecl.getExtends(), idTypeIndex, createMarker(domainIdType)));
+                        }
+                        if (typeDecl.getImplements() != null) {
+                            final int finalIdTypeIndex = idTypeIndex;
+                            final int finalIdTypeIndexInChain = idTypeIndexInChain;
+                            AtomicBoolean hasMarker = new AtomicBoolean(false);
+                            J.ClassDeclaration newTypeDecl = typeDecl.withImplements(ListUtils.map(typeDecl.getImplements(), it -> {
+                                JavaType.FullyQualified interfaceType = TypeUtils.asFullyQualified(it.getType());
+                                if (repoTypeChain.get(1).equals(interfaceType)) {
+                                    hasMarker.set(true);
+                                    return markTypeParam(it, finalIdTypeIndexInChain == 1 ? finalIdTypeIndex : -1, createMarker(domainIdType));
                                 }
+                                return it;
+                            }));
+                            if (hasMarker.get()) {
+                                return newTypeDecl;
                             }
                         }
                         return typeDecl.withName(typeDecl.getName().withMarkers(typeDecl.getName().getMarkers().addIfAbsent(createMarker(domainIdType))));

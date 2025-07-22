@@ -229,7 +229,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     public boolean isApplicableTopLevelMethodInvocation(J.MethodInvocation m) {
         if (isApplicableMethod(m)) {
             return true;
-        } else if (m.getSelect() instanceof J.MethodInvocation) {
+        }
+        if (m.getSelect() instanceof J.MethodInvocation) {
             return isApplicableTopLevelMethodInvocation((J.MethodInvocation) m.getSelect());
         }
         return false;

@@ -69,9 +69,8 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     method = super.visitMethodDeclaration(method, ctx);
                     doAfterVisit(new RefineMethod(method));
                     return method;
-                } else {
-                    return super.visitMethodDeclaration(method, ctx);
                 }
+                return super.visitMethodDeclaration(method, ctx);
 
             }
         };

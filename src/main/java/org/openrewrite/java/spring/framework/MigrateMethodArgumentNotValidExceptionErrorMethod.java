@@ -63,7 +63,8 @@ public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context-6.+", "spring-web-6.+"))
                             .build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
-                } else if (ERRORS_TO_STRING_LIST_WITH_LOCALE.matches(m)) {
+                }
+                if (ERRORS_TO_STRING_LIST_WITH_LOCALE.matches(m)) {
                     maybeAddImport("org.springframework.web.util.BindErrorUtils");
                     Expression messageSourceArg = m.getArguments().get(1);
                     if (messageSourceArg instanceof J.Literal) { // null
@@ -78,7 +79,8 @@ public class MigrateMethodArgumentNotValidExceptionErrorMethod extends Recipe {
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context-6.+", "spring-web-6.+"))
                             .build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), messageSourceArg, m.getArguments().get(2));
-                } else if (RESOLVE_ERROR_MESSAGES.matches(m)) {
+                }
+                if (RESOLVE_ERROR_MESSAGES.matches(m)) {
                     maybeAddImport("org.springframework.web.util.BindErrorUtils");
                     return JavaTemplate.builder("BindErrorUtils.resolve(#{any()}.getAllErrors(), #{any()}, #{any()})")
                             .imports("org.springframework.web.util.BindErrorUtils")

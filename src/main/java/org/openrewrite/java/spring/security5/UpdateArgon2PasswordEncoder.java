@@ -80,28 +80,28 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
                         maybeAddImport(ARGON2_PASSWORD_ENCODER_CLASS);
 
                         return newV52FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                    } else {
-                        List<Expression> arguments = newClass.getArguments();
-                        if (FULL_CONSTRUCTOR_MATCHER.matches(newClass)) {
-                            Expression saltLength = arguments.get(0);
-                            Expression hashLength = arguments.get(1);
-                            Expression parallelism = arguments.get(2);
-                            Expression memory = arguments.get(3);
-                            Expression iterations = arguments.get(4);
-                            maybeAddImport(ARGON2_PASSWORD_ENCODER_CLASS);
-                            if (resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH) &&
-                                    resolvedValueMatchesLiteral(hashLength, DEFAULT_HASH_LENGTH) &&
-                                    resolvedValueMatchesLiteral(parallelism, DEFAULT_PARALLELISM) &&
-                                    resolvedValueMatchesLiteral(memory, DEFAULT_MEMORY) &&
-                                    resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS)) {
-                                return newV58FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                            } else if (resolvedValueMatchesLiteral(saltLength, DEFAULT_V52_SALT_LENGTH) &&
-                                    resolvedValueMatchesLiteral(hashLength, DEFAULT_V52_HASH_LENGTH) &&
-                                    resolvedValueMatchesLiteral(parallelism, DEFAULT_V52_PARALLELISM) &&
-                                    resolvedValueMatchesLiteral(memory, DEFAULT_V52_MEMORY) &&
-                                    resolvedValueMatchesLiteral(iterations, DEFAULT_V52_ITERATIONS)) {
-                                return newV52FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
-                            }
+                    }
+                    List<Expression> arguments = newClass.getArguments();
+                    if (FULL_CONSTRUCTOR_MATCHER.matches(newClass)) {
+                        Expression saltLength = arguments.get(0);
+                        Expression hashLength = arguments.get(1);
+                        Expression parallelism = arguments.get(2);
+                        Expression memory = arguments.get(3);
+                        Expression iterations = arguments.get(4);
+                        maybeAddImport(ARGON2_PASSWORD_ENCODER_CLASS);
+                        if (resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH) &&
+                                resolvedValueMatchesLiteral(hashLength, DEFAULT_HASH_LENGTH) &&
+                                resolvedValueMatchesLiteral(parallelism, DEFAULT_PARALLELISM) &&
+                                resolvedValueMatchesLiteral(memory, DEFAULT_MEMORY) &&
+                                resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS)) {
+                            return newV58FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
+                        }
+                        if (resolvedValueMatchesLiteral(saltLength, DEFAULT_V52_SALT_LENGTH) &&
+                                resolvedValueMatchesLiteral(hashLength, DEFAULT_V52_HASH_LENGTH) &&
+                                resolvedValueMatchesLiteral(parallelism, DEFAULT_V52_PARALLELISM) &&
+                                resolvedValueMatchesLiteral(memory, DEFAULT_V52_MEMORY) &&
+                                resolvedValueMatchesLiteral(iterations, DEFAULT_V52_ITERATIONS)) {
+                            return newV52FactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                         }
                     }
                 }
