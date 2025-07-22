@@ -142,8 +142,7 @@ public class OutputCaptureExtension extends Recipe {
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
                     .build();
-            m = matchesTemplate.apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), variableName);
-            return m;
+            return matchesTemplate.apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), variableName);
         }
     }
 

@@ -50,7 +50,7 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
-                c = c.withImplements(
+                return c.withImplements(
                         ListUtils.map(c.getImplements(), i -> {
                             if (TypeUtils.isOfClassType(i.getType(), DEPRECATED_INTERFACE_FQN)) {
                                 maybeAddImport("org.springframework.boot.web.server.WebServerFactoryCustomizer");
@@ -61,8 +61,6 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
                             return i;
                         })
                 );
-
-                return c;
             }
 
             private J.ParameterizedType getWebFactoryCustomizerIdentifier(ExecutionContext ctx) {
