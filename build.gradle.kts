@@ -321,7 +321,8 @@ sourceSetNames.forEach { sourceSet, versions ->
             jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
             testClassesDirs = sourceSetReference.output.classesDirs
             classpath = sourceSetReference.runtimeClasspath
-            shouldRunAfter(tasks.test)
+            maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+            forkEvery = 0
         }
         tasks.check {
             dependsOn(testTask)
@@ -330,6 +331,12 @@ sourceSetNames.forEach { sourceSet, versions ->
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+        forkEvery = 0
+    }
+    
     val generatePropertyMigrationRecipes by registering(JavaExec::class) {
         group = "generate"
         description = "Generate Spring Boot property migration recipes."
