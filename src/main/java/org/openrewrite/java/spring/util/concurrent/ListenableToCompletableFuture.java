@@ -30,10 +30,9 @@ public class ListenableToCompletableFuture extends JavaIsoVisitor<ExecutionConte
         cu = (J.CompilationUnit) new ChangeMethodName(
                 "org.springframework.util.concurrent.ListenableFuture addCallback(..)", "whenComplete", true, true)
                 .getVisitor().visit(cu, ctx, getCursor().getParent());
-        cu = (J.CompilationUnit) new ChangeType(
+        return (J.CompilationUnit) new ChangeType(
                 "org.springframework.util.concurrent.ListenableFuture",
                 "java.util.concurrent.CompletableFuture", null)
                 .getVisitor().visit(cu, ctx, getCursor().getParent());
-        return cu;
     }
 }
