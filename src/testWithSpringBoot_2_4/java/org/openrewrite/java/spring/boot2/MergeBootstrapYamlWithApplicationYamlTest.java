@@ -50,7 +50,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
               """
                 name: test
                 """,
-              null,
+              doesNotExist(),
               spec -> spec.path("bootstrap.yaml")
             )
           )
@@ -77,7 +77,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
               """
                 name: test
                 """,
-              null,
+              doesNotExist(),
               spec -> spec.path("bootstrap.yml")
             )
           )
@@ -108,7 +108,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 other:
                   document: true
                 """,
-              null,
+              doesNotExist(),
               spec -> spec.path("bootstrap.yaml")
             )
           )
@@ -121,7 +121,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
           srcMainResources(
             //language=yaml
             yaml(
-              null,
+              doesNotExist(),
               """
                 spring.application.name: main
                 name: test
@@ -135,7 +135,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                   name: main
                 name: test
                 """,
-              null,
+              doesNotExist(),
               spec -> spec.path("bootstrap.yaml")
             )
           )
@@ -168,7 +168,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                   application:
                     name: override
                 """,
-              null,
+              doesNotExist(),
               spec -> spec.path("bootstrap.yaml")
             )
           )
@@ -201,7 +201,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 other:
                   document: false
                 """,
-              null,
+              doesNotExist(),
               spec -> spec.path("bootstrap.yaml")
             )
           )
