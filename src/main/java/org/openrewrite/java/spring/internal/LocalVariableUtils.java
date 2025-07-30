@@ -24,11 +24,12 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 // TODO Add in some form to the `rewrite-java` module
 public class LocalVariableUtils {
@@ -106,11 +107,11 @@ public class LocalVariableUtils {
         } else if (value instanceof J.ForLoop) {
             found = findVariable(((J.ForLoop) value).getControl().getInit(), name);
         } else if (value instanceof J.Try && ((J.Try) value).getResources() != null) {
-            found = findVariable(((J.Try) value).getResources().stream().map(J.Try.Resource::getVariableDeclarations).collect(Collectors.toList()), name);
+            found = findVariable(((J.Try) value).getResources().stream().map(J.Try.Resource::getVariableDeclarations).collect(toList()), name);
         } else if (value instanceof J.Lambda) {
             found = findVariable(((J.Lambda) value).getParameters().getParameters(), name);
         } else if (value instanceof J.VariableDeclarations) {
-            found = findVariable(Collections.singletonList(((J.VariableDeclarations) value)), name);
+            found = findVariable(singletonList(((J.VariableDeclarations) value)), name);
         }
         return found.map(f -> f.isFinal ? f.variable.getInitializer() : null).orElseGet(() -> resolveVariable0(name, value, cursor.getParentTreeCursor()));
     }

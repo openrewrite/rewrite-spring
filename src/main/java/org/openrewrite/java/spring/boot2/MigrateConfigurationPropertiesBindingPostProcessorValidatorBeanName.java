@@ -20,7 +20,6 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,7 +103,7 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 NEW_FQN,
                                 id.getType(),
-                                Collections.emptyList()));
+                                emptyList()));
 
                 maybeRemoveImport(ORIGINAL_FQN);
                 maybeAddImport(NEW_FQN);

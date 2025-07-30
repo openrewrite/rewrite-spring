@@ -20,7 +20,6 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,7 +93,7 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 EMBEDDED_DATABASE_CONNECTION_FNQ,
                                 fieldType == null ? null : fieldType.getType(),
-                                Collections.emptyList()));
+                                emptyList()));
             }
             return id;
         }

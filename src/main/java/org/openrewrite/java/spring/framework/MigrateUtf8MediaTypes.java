@@ -20,7 +20,6 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,7 +91,7 @@ public class MigrateUtf8MediaTypes extends Recipe {
                                     updateDeprecatedFields.get(id.getSimpleName()),
                                     mediaTypeFqn,
                                     null,
-                                    Collections.emptyList()));
+                                    emptyList()));
                 }
                 return id;
             }

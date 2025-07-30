@@ -29,8 +29,9 @@ import org.openrewrite.java.search.FindImplementations;
 import org.openrewrite.java.tree.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.nCopies;
 
 public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
@@ -279,7 +280,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
                     private Statement getMultiKeyValueStatement(ExecutionContext ctx, CoordinateBuilder.Statement coords, List<J> args, J.Identifier returnIdentifier) {
                         String keyValueVarArg = "#{any(io.micrometer.common.KeyValue)}";
-                        String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(args.size(), keyValueVarArg));
+                        String keyValueVarArgsCombined = String.join(", ", nCopies(args.size(), keyValueVarArg));
                         return JavaTemplate.builder("#{any()}.and(" + keyValueVarArgsCombined + ")")
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                 .build()

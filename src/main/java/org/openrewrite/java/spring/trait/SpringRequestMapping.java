@@ -27,10 +27,11 @@ import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.trait.SimpleTraitMatcher;
 import org.openrewrite.trait.Trait;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -67,7 +68,7 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
         List<String> pathEndings = new Annotated(cursor)
                 .getDefaultAttribute(null)
                 .map(Literal::getStrings)
-                .orElse(Collections.singletonList(""));
+                .orElse(singletonList(""));
 
         StringBuilder result = new StringBuilder();
         for (int j = 0; j < pathPrefixes.size(); j++) {
@@ -89,7 +90,7 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
             return "";
         }
         return method
-                .withLeadingAnnotations(Collections.emptyList())
+                .withLeadingAnnotations(emptyList())
                 .withBody(null)
                 .printTrimmed(cursor);
     }

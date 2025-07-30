@@ -35,6 +35,7 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.*;
 
+import static java.util.Collections.singleton;
 import static org.openrewrite.java.MethodMatcher.methodPattern;
 
 @EqualsAndHashCode(callSuper = false)
@@ -57,7 +58,7 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
 
     private static final String FQN_COMPONENT = "org.springframework.stereotype.Component";
 
-    private static final Set<String> JUST_QUALIFIER = Collections.singleton(FQN_QUALIFIER);
+    private static final Set<String> JUST_QUALIFIER = singleton(FQN_QUALIFIER);
     private static final Set<String> BEAN_METHOD_ANNOTATIONS = new HashSet<String>() {{
         add(FQN_QUALIFIER);
         add(FQN_BEAN);
@@ -297,7 +298,7 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
 
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                Expression beanNameExpression = getBeanNameExpression(Collections.singleton(annotation), types);
+                Expression beanNameExpression = getBeanNameExpression(singleton(annotation), types);
 
                 if (beanNameExpression != null && annotationParentMatchesBeanType()) {
                     if (beanNameExpression instanceof J.Literal) {

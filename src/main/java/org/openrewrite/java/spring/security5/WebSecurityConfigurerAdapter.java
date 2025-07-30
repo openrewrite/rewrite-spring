@@ -29,9 +29,9 @@ import org.openrewrite.marker.SearchResult;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Alex Boyko
@@ -172,7 +172,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         .map(J.VariableDeclarations.class::cast)
                         .flatMap(vd -> vd.getVariables().stream())
                         .map(v -> v.getName().getSimpleName())
-                        .collect(Collectors.toSet());
+                        .collect(toSet());
             }
 
             private Set<String> getAllMethodSignatures(J.ClassDeclaration c) {
@@ -180,7 +180,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         .filter(J.MethodDeclaration.class::isInstance)
                         .map(J.MethodDeclaration.class::cast)
                         .map(this::simpleMethodSignature)
-                        .collect(Collectors.toSet());
+                        .collect(toSet());
             }
 
             private String simpleMethodSignature(J.MethodDeclaration method) {
@@ -280,7 +280,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         for (JavaType pt : type.getParameterTypes()) {
                             maybeRemoveImport(TypeUtils.asFullyQualified(pt));
                         }
-                        type = type.withParameterTypes(Collections.emptyList()).withParameterNames(Collections.emptyList());
+                        type = type.withParameterTypes(emptyList()).withParameterNames(emptyList());
                     }
                 }
                 Space returnPrefix = m.getReturnTypeExpression() == null ? Space.EMPTY : m.getReturnTypeExpression().getPrefix();
@@ -297,7 +297,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
 
                 if (!keepParams) {
-                    m = m.withParameters(Collections.emptyList());
+                    m = m.withParameters(emptyList());
                 }
 
                 maybeAddImport(inmemoryAuthConfigType);

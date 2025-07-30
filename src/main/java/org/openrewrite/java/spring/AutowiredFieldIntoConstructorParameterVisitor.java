@@ -29,12 +29,14 @@ import org.openrewrite.java.tree.J.VariableDeclarations;
 import org.openrewrite.java.tree.JavaType.FullyQualified;
 import org.openrewrite.marker.Markers;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 
 @RequiredArgsConstructor
@@ -51,7 +53,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                     .filter(J.MethodDeclaration.class::isInstance)
                     .map(J.MethodDeclaration.class::cast)
                     .filter(MethodDeclaration::isConstructor)
-                    .collect(Collectors.toList());
+                    .collect(toList());
             boolean applicable = false;
             if (constructors.isEmpty()) {
                 applicable = true;
@@ -67,7 +69,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                                 .anyMatch(AUTOWIRED::equals)
                         )
                         .limit(2)
-                        .collect(Collectors.toList());
+                        .collect(toList());
                 if (autowiredConstructors.size() == 1) {
                     MethodDeclaration c = autowiredConstructors.get(0);
                     getCursor().putMessage("applicableConstructor", autowiredConstructors.get(0));
@@ -120,7 +122,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             if (mv != multiVariable && multiVariable.getTypeExpression() != null) {
                 if (mv.getModifiers().stream().noneMatch(m -> m.getType() == J.Modifier.Type.Final)) {
                     Space prefix = Space.firstPrefix(mv.getVariables());
-                    J.Modifier m = new J.Modifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, J.Modifier.Type.Final, Collections.emptyList());
+                    J.Modifier m = new J.Modifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, J.Modifier.Type.Final, emptyList());
                     if (mv.getModifiers().isEmpty()) {
                         mv = mv.withTypeExpression(mv.getTypeExpression().withPrefix(prefix));
                     } else {
@@ -213,9 +215,9 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
         public MethodDeclaration visitMethodDeclaration(MethodDeclaration method, ExecutionContext p) {
             J.MethodDeclaration md = super.visitMethodDeclaration(method, p);
             if (md == this.constructor && md.getBody() != null) {
-                List<J> params = md.getParameters().stream().filter(s -> !(s instanceof J.Empty)).collect(Collectors.toList());
+                List<J> params = md.getParameters().stream().filter(s -> !(s instanceof J.Empty)).collect(toList());
                 String paramsStr = Stream.concat(params.stream()
-                        .map(s -> "#{}"), Stream.of(methodType + " " + fieldName)).collect(Collectors.joining(", "));
+                        .map(s -> "#{}"), Stream.of(methodType + " " + fieldName)).collect(joining(", "));
 
                 md = JavaTemplate.builder(paramsStr)
                     .contextSensitive()
