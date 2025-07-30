@@ -79,7 +79,7 @@ public class MigrateJobParameter extends Recipe {
                         method = super.visitMethodInvocation(method, ctx);
                         if (method.getType() != null &&
                                 method.getType().isAssignableFrom(Pattern.compile("java.util.Map")) &&
-                                method.getName().getSimpleName().equals("of") && method.getArguments().size() % 2 == 0) {
+                                "of".equals(method.getName().getSimpleName()) && method.getArguments().size() % 2 == 0) {
                             return method.withTypeParameters(null);
                         }
                         return method;

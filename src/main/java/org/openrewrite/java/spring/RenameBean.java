@@ -321,7 +321,7 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
             Expression variable = ((J.Assignment) argumentExpression).getVariable();
             if (variable instanceof J.Identifier) {
                 String variableName = ((J.Identifier) variable).getSimpleName();
-                if (variableName.equals("name") || variableName.equals("value")) {
+                if ("name".equals(variableName) || "value".equals(variableName)) {
                     return (J.Assignment) argumentExpression;
                 }
             }

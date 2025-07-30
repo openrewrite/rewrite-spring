@@ -290,7 +290,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                         J.MethodDeclaration enclosingMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
-                        if (enclosingMethod != null && enclosingMethod.getSimpleName().equals("getHighCardinalityKeyValues")) {
+                        if (enclosingMethod != null && "getHighCardinalityKeyValues".equals(enclosingMethod.getSimpleName())) {
                             if (m.getMethodType() != null && TypeUtils.isOfType(m.getMethodType().getDeclaringType(), JavaType.buildType(HTTPSERVLETREQUEST_FQ))) {
                                 getCursor().putMessageOnFirstEnclosing(J.MethodDeclaration.class, "addHttpServletRequest", true);
                             }
