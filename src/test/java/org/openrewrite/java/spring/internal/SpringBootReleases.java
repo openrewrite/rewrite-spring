@@ -24,9 +24,10 @@ import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Stream.empty;
 
 class SpringBootReleases {
@@ -174,7 +175,7 @@ class SpringBootReleases {
      */
     public Set<String> latestPatchReleases() {
         return allReleases().stream()
-                .collect(Collectors.groupingBy(v -> {
+                .collect(groupingBy(v -> {
                     String[] versionParts = v.split("\\.");
                     return versionParts[0] + "." + versionParts[1];
                 }))
@@ -204,7 +205,7 @@ class SpringBootReleases {
                         }).orElseThrow(() -> new IllegalStateException("Patch list should not be empty"))
                 )
                 .sorted()
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .collect(toCollection(LinkedHashSet::new));
     }
 
     public String latestMatchingVersion(String version) {

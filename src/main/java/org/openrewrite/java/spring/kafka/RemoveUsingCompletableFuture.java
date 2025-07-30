@@ -20,7 +20,7 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.RemoveMethodInvocationsVisitor;
 
-import java.util.Collections;
+import static java.util.Collections.singletonList;
 
 public class RemoveUsingCompletableFuture extends Recipe {
 
@@ -36,6 +36,6 @@ public class RemoveUsingCompletableFuture extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new RemoveMethodInvocationsVisitor(Collections.singletonList("org.springframework.kafka.core.KafkaOperations usingCompletableFuture()"));
+        return new RemoveMethodInvocationsVisitor(singletonList("org.springframework.kafka.core.KafkaOperations usingCompletableFuture()"));
     }
 }

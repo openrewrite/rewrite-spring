@@ -21,7 +21,6 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -115,7 +114,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 NEW_FQN,
                                 id.getType(),
-                                Collections.emptyList()));
+                                emptyList()));
 
                 J.CompilationUnit cu = getCursor().firstEnclosing(J.CompilationUnit.class);
                 if (cu != null) {

@@ -31,7 +31,9 @@ import org.openrewrite.java.tree.TypeTree;
 
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
 
 public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
@@ -125,19 +127,19 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .apply(getCursor(), method.getBody().getCoordinates().firstStatement(), paramName);
 
 
-            methodDeclaration = methodDeclaration.withParameters(Collections.singletonList(vdd))
+            methodDeclaration = methodDeclaration.withParameters(singletonList(vdd))
                     .withMethodType(method.getMethodType()
-                            .withParameterTypes(Collections.singletonList(vdd.getType())));
+                            .withParameterTypes(singletonList(vdd.getType())));
 
 
             maybeAddImport("org.springframework.batch.item.Chunk");
             String annotations = method.getLeadingAnnotations().stream().map(a -> a.print(getCursor())).reduce((a1, a2) -> a1 + "\n" + a2).orElse("");
             String methodModifiers = method.getModifiers().stream()
                     .map(J.Modifier::toString)
-                    .collect(Collectors.joining(" "));
+                    .collect(joining(" "));
             String parameterModifiers = parameter.getModifiers().stream()
                     .map(J.Modifier::toString)
-                    .collect(Collectors.joining(" "));
+                    .collect(joining(" "));
             String throwz = Optional.ofNullable(method.getThrows()).flatMap(throwsList -> throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e -> " throws " + e)).orElse("");
             String body = method.getBody() == null ? "" : methodDeclaration.getBody().print(getCursor());
             return JavaTemplate.builder(String.format("%s\n %s void write(%s Chunk" + chunkType + " %s)%s %s", annotations, methodModifiers, parameterModifiers, "_chunk", throwz, body))

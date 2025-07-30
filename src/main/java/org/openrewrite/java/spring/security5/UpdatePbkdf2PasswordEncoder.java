@@ -29,8 +29,12 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
+import static java.util.Collections.unmodifiableMap;
 import static org.openrewrite.Tree.randomId;
 import static org.openrewrite.java.spring.internal.LocalVariableUtils.resolveExpression;
 
@@ -58,7 +62,7 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
         map.put(160, "PBKDF2WithHmacSHA1");
         map.put(DEFAULT_HASH_WIDTH, "PBKDF2WithHmacSHA256");
         map.put(512, "PBKDF2WithHmacSHA512");
-        HASH_WIDTH_TO_ALGORITHM_MAP = Collections.unmodifiableMap(map);
+        HASH_WIDTH_TO_ALGORITHM_MAP = unmodifiableMap(map);
     }
 
     @Override

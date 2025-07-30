@@ -30,10 +30,11 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Space;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static java.util.Collections.singleton;
 
 /**
  * Replace method declaration @RequestMapping annotations with the associated variant
@@ -60,7 +61,7 @@ public class NoRequestMappingAnnotation extends Recipe {
 
     @Override
     public Set<String> getTags() {
-        return Collections.singleton("RSPEC-S4488");
+        return singleton("RSPEC-S4488");
     }
 
     @Override

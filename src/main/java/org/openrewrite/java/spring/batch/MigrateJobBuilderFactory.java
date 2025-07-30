@@ -28,7 +28,9 @@ import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 public class MigrateJobBuilderFactory extends Recipe {
     private static final MethodMatcher JOB_BUILDER_FACTORY = new MethodMatcher(
@@ -119,7 +121,7 @@ public class MigrateJobBuilderFactory extends Recipe {
 
             List<Object> params = md.getParameters().stream()
                     .filter(j -> !(j instanceof J.Empty) && !isJobBuilderFactoryParameter(j))
-                    .collect(Collectors.toList());
+                    .collect(toList());
 
             if (params.isEmpty() && md.isConstructor()) {
                 //noinspection DataFlowIssue
@@ -131,7 +133,7 @@ public class MigrateJobBuilderFactory extends Recipe {
             }
 
             JavaTemplate paramsTemplate = JavaTemplate
-                    .builder(params.stream().map(p -> "#{}").collect(Collectors.joining(", ")))
+                    .builder(params.stream().map(p -> "#{}").collect(joining(", ")))
                     .contextSensitive()
                     .imports("org.springframework.batch.core.repository.JobRepository",
                             "org.springframework.batch.core.job.builder.JobBuilder",

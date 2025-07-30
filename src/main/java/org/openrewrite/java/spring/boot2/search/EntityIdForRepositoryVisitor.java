@@ -28,6 +28,8 @@ import org.openrewrite.marker.SearchResult;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.Collections.emptyList;
+
 /**
  * Adds a marker to an AST if Spring Data Repository invalid domain ID type is discovered. The marker is over the AST
  * node of an ID type if it is available in the AST. Alternatively it would over the class name the repository extends
@@ -72,7 +74,7 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
     private J.ClassDeclaration handleRepoType(J.ClassDeclaration typeDecl) {
         JavaType.FullyQualified type = TypeUtils.asFullyQualified(typeDecl.getType());
         if (type != null) {
-            List<JavaType.FullyQualified> repoTypeChain = findRepoTypeChain(type, Collections.emptyList());
+            List<JavaType.FullyQualified> repoTypeChain = findRepoTypeChain(type, emptyList());
             if (repoTypeChain != null) {
                 JavaType domainType = null;
                 JavaType idType = null;

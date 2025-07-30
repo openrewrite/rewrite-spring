@@ -27,7 +27,7 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
 
 public class MigrateJpaSort extends Recipe {
 
@@ -66,7 +66,7 @@ public class MigrateJpaSort extends Recipe {
                     String template = newClass.getArguments().stream()
                             .map(arg -> TypeUtils.asFullyQualified(arg.getType()))
                             .map(type -> "#{any(" + (type == null ? "" : type.getFullyQualifiedName()) + ")}")
-                            .collect(Collectors.joining(",", "JpaSort.of(", ")"));
+                            .collect(joining(",", "JpaSort.of(", ")"));
 
                     return JavaTemplate.builder(template)
                         .contextSensitive()

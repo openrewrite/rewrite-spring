@@ -23,8 +23,9 @@ import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 public class JdbcTemplateQueryForLongMigration extends Recipe {
 
@@ -73,7 +74,7 @@ public class JdbcTemplateQueryForLongMigration extends Recipe {
                                 Tree.randomId(),
                                 Space.EMPTY,
                                 Markers.EMPTY,
-                                Collections.emptyList(),
+                                emptyList(),
                                 "Long",
                                 JavaType.ShallowClass.build("java.lang.Long"),
                                 null
@@ -84,7 +85,7 @@ public class JdbcTemplateQueryForLongMigration extends Recipe {
                                         Tree.randomId(),
                                         Space.EMPTY,
                                         Markers.EMPTY,
-                                        Collections.emptyList(),
+                                        emptyList(),
                                         "class",
                                         JavaType.ShallowClass.build("java.lang.Class"),
                                         null),

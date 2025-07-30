@@ -27,9 +27,9 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.openrewrite.Tree.randomId;
 
 @EqualsAndHashCode(callSuper = false)
@@ -167,7 +167,7 @@ public class ExpandProperties extends Recipe {
                             Markers.EMPTY,
                             null,
                             keyMappings.getValue().stream().flatMap(duplicateMapping -> duplicateMapping.getEntries().stream())
-                                    .collect(Collectors.toList()),
+                                    .collect(toList()),
                             null,
                             null,
                             null
@@ -191,7 +191,7 @@ public class ExpandProperties extends Recipe {
                         return ent;
                     }));
                     //noinspection ConstantConditions
-                    mapping = mapping.withEntries(ListUtils.insertAll(mapping.getEntries(), insertIndex.get(), Collections.singletonList(newEntry)));
+                    mapping = mapping.withEntries(ListUtils.insertAll(mapping.getEntries(), insertIndex.get(), singletonList(newEntry)));
                 }
             }
             return super.visitMapping(mapping, ctx);

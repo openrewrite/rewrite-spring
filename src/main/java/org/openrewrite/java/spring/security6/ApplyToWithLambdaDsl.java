@@ -23,16 +23,17 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.spring.boot2.ConvertToSecurityDslVisitor;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Collections.singletonList;
 
 public class ApplyToWithLambdaDsl extends Recipe {
 
     private static final String FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER =
             "org.springframework.security.config.annotation.AbstractConfiguredSecurityBuilder";
 
-    private static final Collection<String> APPLICABLE_METHOD_NAMES = Collections.singletonList("apply");
+    private static final Collection<String> APPLICABLE_METHOD_NAMES = singletonList("apply");
 
     private static final Map<String, String> ARG_REPLACEMENTS = new HashMap<String, String>() {{
         put("apply", null);

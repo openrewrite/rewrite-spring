@@ -26,6 +26,8 @@ import org.openrewrite.yaml.tree.Yaml;
 import java.nio.file.Path;
 import java.util.*;
 
+import static java.util.Collections.singletonList;
+
 public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApplicationYamlByProfile.ApplicationProfiles> {
 
     @Override
@@ -66,7 +68,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                                     assert profileDoc != null;
                                     profiles.add(yaml
                                             .withId(Tree.randomId())
-                                            .withDocuments(Collections.singletonList(profileDoc.withExplicit(false)))
+                                            .withDocuments(singletonList(profileDoc.withExplicit(false)))
                                             .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profileName + ".yml")));
                                     return null;
                                 }

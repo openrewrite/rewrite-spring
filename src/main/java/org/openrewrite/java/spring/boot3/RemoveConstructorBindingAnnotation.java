@@ -32,8 +32,8 @@ import org.openrewrite.marker.Markers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.openrewrite.Tree.randomId;
 
 /**
@@ -66,7 +66,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                         .filter(org.openrewrite.java.tree.J.MethodDeclaration.class::isInstance)
                         .map(org.openrewrite.java.tree.J.MethodDeclaration.class::cast)
                         .filter(J.MethodDeclaration::isConstructor)
-                        .collect(Collectors.toList());
+                        .collect(toList());
 
                 if (constructors.size() == 1) {
                     Optional<J.Annotation> bindingAnnotation = constructors.get(0).getLeadingAnnotations().stream()

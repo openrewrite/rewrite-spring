@@ -27,8 +27,9 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class UpdateRequestCache extends Recipe {
 
@@ -109,7 +110,7 @@ public class UpdateRequestCache extends Recipe {
                         arg = template.apply(
                             new Cursor(getCursor(), arg),
                             arg.getCoordinates().replace());
-                        return method.withArguments(Collections.singletonList(arg));
+                        return method.withArguments(singletonList(arg));
                     }
 
                     return method;

@@ -32,10 +32,12 @@ import org.openrewrite.text.PlainTextParser;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.sort;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toSet;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
@@ -109,7 +111,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
             }
 
             List<String> finalList = new ArrayList<>(entry.getValue().getAutoConfigurations());
-            Collections.sort(finalList);
+            sort(finalList);
 
             PlainTextParser parser = new PlainTextParser();
             PlainText brandNewFile = parser.parse(String.join("\n", finalList))
@@ -125,12 +127,12 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
         if (!newImportFiles.isEmpty()) {
             return newImportFiles;
         }
-        return Collections.emptyList();
+        return emptyList();
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
-        Set<Path> mergeTargets = acc.getExistingImportFiles().stream().filter(acc.getTargetImports()::containsKey).collect(Collectors.toSet());
+        Set<Path> mergeTargets = acc.getExistingImportFiles().stream().filter(acc.getTargetImports()::containsKey).collect(toSet());
         if (mergeTargets.isEmpty() && acc.getAllFoundConfigs().isEmpty() && acc.getExistingSpringFactories().isEmpty()) {
             return TreeVisitor.noop();
         }
