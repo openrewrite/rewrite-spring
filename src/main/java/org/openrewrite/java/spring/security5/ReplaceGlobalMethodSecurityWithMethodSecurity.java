@@ -29,7 +29,8 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
     private static final AnnotationMatcher ENABLE_GLOBAL_METHOD_SECURITY_MATCHER =
@@ -77,7 +78,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                             if (oldArgs.stream().noneMatch(this::hasPrePostEnabled)) {
                                 newArgs.add(replacementAnnotation.getArguments().get(0));
                             } else {
-                                newArgs = oldArgs.stream().filter(arg -> !hasPrePostEnabled(arg)).collect(Collectors.toList());
+                                newArgs = oldArgs.stream().filter(arg -> !hasPrePostEnabled(arg)).collect(toList());
                             }
                             return autoFormat(replacementAnnotation.withArguments(newArgs), ctx);
                         }
@@ -87,7 +88,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                     private boolean hasPrePostEnabled(Expression arg) {
                         if (arg instanceof J.Assignment) {
                             J.Assignment assignment = (J.Assignment) arg;
-                            return ((J.Identifier) assignment.getVariable()).getSimpleName().equals("prePostEnabled") &&
+                            return "prePostEnabled".equals(((J.Identifier) assignment.getVariable()).getSimpleName()) &&
                                    RemoveMethodInvocationsVisitor.isTrue(assignment.getAssignment());
                         }
                         return false;

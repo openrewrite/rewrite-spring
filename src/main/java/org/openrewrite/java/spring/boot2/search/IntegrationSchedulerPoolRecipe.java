@@ -45,7 +45,10 @@ import org.openrewrite.yaml.tree.Yaml;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Alex Boyko
@@ -80,7 +83,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
 
         List<ResolvedDependency> deps = maven.getMarkers().findFirst(MavenResolutionResult.class)
                 .orElseThrow(() -> new IllegalStateException("Maven visitors should not be visiting XML documents without a Maven marker"))
-                .getDependencies().getOrDefault(Scope.Compile, Collections.emptyList());
+                .getDependencies().getOrDefault(Scope.Compile, emptyList());
 
         boolean boot25 = false;
         boolean si = false;
@@ -113,7 +116,8 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (!(tree instanceof SourceFile)) {
                     return tree;
-                } else if (tree.getMarkers().findFirst(CommentAdded.class).isPresent()) {
+                }
+                if (tree.getMarkers().findFirst(CommentAdded.class).isPresent()) {
                     // already processed in a previous cycle
                     tree.getMarkers().findFirst(JavaProject.class).ifPresent(acc.getProcessedProjects()::add);
                     tree.getMarkers().findFirst(JavaProject.class).ifPresent(acc.getApplicableProjects()::remove);
@@ -169,7 +173,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
     public TreeVisitor<?, ExecutionContext> getVisitor(JavaProjects acc) {
         Set<Path> sourcesToComment = acc.getSourceToCommentByProject().entrySet().stream()
                 .filter(e -> acc.getApplicableProjects().contains(e.getKey()))
-                .map(Map.Entry::getValue).collect(Collectors.toSet());
+                .map(Map.Entry::getValue).collect(toSet());
 
         if (sourcesToComment.isEmpty()) {
             return TreeVisitor.noop();
@@ -195,10 +199,9 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
                                 int idx = file.getContent().indexOf(entry);
                                 if (idx >= 0) {
                                     Properties.Comment comment = new Properties.Comment(Tree.randomId(), "\n", Markers.EMPTY, Properties.Comment.Delimiter.HASH_TAG, PROPS_MIGRATION_MESSAGE);
-                                    return file.withContent(ListUtils.insertAll(file.getContent(), idx, Collections.singletonList(comment)));
-                                } else {
-                                    throw new RuntimeException("Entry must be present in the properties file!");
+                                    return file.withContent(ListUtils.insertAll(file.getContent(), idx, singletonList(comment)));
                                 }
+                                throw new RuntimeException("Entry must be present in the properties file!");
                             }
                         }.visitNonNull(source, ctx);
                         source = source.withMarkers(source.getMarkers().addIfAbsent(new CommentAdded(Tree.randomId())));

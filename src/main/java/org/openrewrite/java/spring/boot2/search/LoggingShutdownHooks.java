@@ -27,9 +27,9 @@ import org.openrewrite.maven.tree.Scope;
 import org.openrewrite.semver.DependencyMatcher;
 import org.openrewrite.xml.tree.Xml;
 
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -74,7 +74,7 @@ public class LoggingShutdownHooks extends ScanningRecipe<AtomicBoolean> {
                     return document;
                 }
                 DependencyMatcher matcher = requireNonNull(DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue());
-                for (ResolvedDependency d : getResolutionResult().getDependencies().getOrDefault(Scope.Compile, Collections.emptyList())) {
+                for (ResolvedDependency d : getResolutionResult().getDependencies().getOrDefault(Scope.Compile, emptyList())) {
                     if (matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())) {
                         acc.set(true);
                     }

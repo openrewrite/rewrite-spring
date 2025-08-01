@@ -25,14 +25,15 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.spring.boot2.ConvertToSecurityDslVisitor;
 
 import java.util.Collection;
-import java.util.Collections;
+
+import static java.util.Collections.singletonList;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
 public class OAuth2ClientLambdaDsl extends Recipe {
     private static final String FQN_OAUTH2_CLIENT_CONFIGURER = "org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2ClientConfigurer";
 
-    private static final Collection<String> APPLICABLE_METHODS = Collections.singletonList("authorizationCodeGrant");
+    private static final Collection<String> APPLICABLE_METHODS = singletonList("authorizationCodeGrant");
 
     @Override
     public String getDisplayName() {

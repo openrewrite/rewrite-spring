@@ -49,7 +49,7 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
               spec -> spec.path("application.yml").noTrim()
             ),
             yaml(
-              null,
+              doesNotExist(),
               "name: test",
               spec -> spec.path("application-test.yml")
             )

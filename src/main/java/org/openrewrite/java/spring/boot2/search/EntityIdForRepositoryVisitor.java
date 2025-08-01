@@ -28,6 +28,8 @@ import org.openrewrite.marker.SearchResult;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.Collections.emptyList;
+
 /**
  * Adds a marker to an AST if Spring Data Repository invalid domain ID type is discovered. The marker is over the AST
  * node of an ID type if it is available in the AST. Alternatively it would over the class name the repository extends
@@ -72,7 +74,7 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
     private J.ClassDeclaration handleRepoType(J.ClassDeclaration typeDecl) {
         JavaType.FullyQualified type = TypeUtils.asFullyQualified(typeDecl.getType());
         if (type != null) {
-            List<JavaType.FullyQualified> repoTypeChain = findRepoTypeChain(type, Collections.emptyList());
+            List<JavaType.FullyQualified> repoTypeChain = findRepoTypeChain(type, emptyList());
             if (repoTypeChain != null) {
                 JavaType domainType = null;
                 JavaType idType = null;
@@ -144,28 +146,27 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
                             int idx = params.indexOf(idType);
                             if (idx < 0 || astParams == null || astParams.size() <= idx) {
                                 return typeDecl.withName(typeDecl.getName().withMarkers(typeDecl.getName().getMarkers().addIfAbsent(createMarker(domainIdType))));
-                            } else {
-                                astParams.set(idx, astParams.get(idx).withMarkers(astParams.get(idx).getMarkers().addIfAbsent(createMarker(domainIdType))));
-                                return typeDecl.withTypeParameters(astParams);
                             }
-                        } else {
-                            if (typeDecl.getExtends() != null && repoTypeChain.get(1).equals(typeDecl.getExtends().getType())) {
-                                return typeDecl.withExtends(markTypeParam(typeDecl.getExtends(), idTypeIndex, createMarker(domainIdType)));
-                            } else if (typeDecl.getImplements() != null) {
-                                final int finalIdTypeIndex = idTypeIndex;
-                                final int finalIdTypeIndexInChain = idTypeIndexInChain;
-                                AtomicBoolean hasMarker = new AtomicBoolean(false);
-                                J.ClassDeclaration newTypeDecl = typeDecl.withImplements(ListUtils.map(typeDecl.getImplements(), it -> {
-                                    JavaType.FullyQualified interfaceType = TypeUtils.asFullyQualified(it.getType());
-                                    if (repoTypeChain.get(1).equals(interfaceType)) {
-                                        hasMarker.set(true);
-                                        return markTypeParam(it, finalIdTypeIndexInChain == 1 ? finalIdTypeIndex : -1, createMarker(domainIdType));
-                                    }
-                                    return it;
-                                }));
-                                if (hasMarker.get()) {
-                                    return newTypeDecl;
+                            astParams.set(idx, astParams.get(idx).withMarkers(astParams.get(idx).getMarkers().addIfAbsent(createMarker(domainIdType))));
+                            return typeDecl.withTypeParameters(astParams);
+                        }
+                        if (typeDecl.getExtends() != null && repoTypeChain.get(1).equals(typeDecl.getExtends().getType())) {
+                            return typeDecl.withExtends(markTypeParam(typeDecl.getExtends(), idTypeIndex, createMarker(domainIdType)));
+                        }
+                        if (typeDecl.getImplements() != null) {
+                            final int finalIdTypeIndex = idTypeIndex;
+                            final int finalIdTypeIndexInChain = idTypeIndexInChain;
+                            AtomicBoolean hasMarker = new AtomicBoolean(false);
+                            J.ClassDeclaration newTypeDecl = typeDecl.withImplements(ListUtils.map(typeDecl.getImplements(), it -> {
+                                JavaType.FullyQualified interfaceType = TypeUtils.asFullyQualified(it.getType());
+                                if (repoTypeChain.get(1).equals(interfaceType)) {
+                                    hasMarker.set(true);
+                                    return markTypeParam(it, finalIdTypeIndexInChain == 1 ? finalIdTypeIndex : -1, createMarker(domainIdType));
                                 }
+                                return it;
+                            }));
+                            if (hasMarker.get()) {
+                                return newTypeDecl;
                             }
                         }
                         return typeDecl.withName(typeDecl.getName().withMarkers(typeDecl.getName().getMarkers().addIfAbsent(createMarker(domainIdType))));

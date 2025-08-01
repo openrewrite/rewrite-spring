@@ -29,6 +29,7 @@ import org.openrewrite.marker.Markup;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
 public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
@@ -90,7 +91,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                                 .withName(m.getName().withSimpleName(newMethodType.getName()))
                                 .withArguments(ListUtils.concat(
                                                 keepArg ? m.getArguments().get(0) : null,
-                                                Collections.singletonList(chain.isEmpty() ?
+                                                singletonList(chain.isEmpty() ?
                                                         createDefaultsCall() :
                                                         createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
                                         )
@@ -126,7 +127,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         J.Identifier param = createIdentifier(paramName, paramType);
         J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(paramName, paramType), chain);
         return new J.Lambda(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
-                new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, Collections.singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
+                new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
                 Space.build(" ", emptyList()),
                 body,
                 JavaType.Primitive.Void
@@ -196,12 +197,12 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             return Optional.empty();
         }
         JavaType.Parameterized customizerArgType = new JavaType.Parameterized(null,
-                CUSTOMIZER_SHALLOW_TYPE, Collections.singletonList(methodType.getReturnType()));
+                CUSTOMIZER_SHALLOW_TYPE, singletonList(methodType.getReturnType()));
         boolean keepArg = keepArg(m.getSimpleName());
         List<String> paramNames = keepArg ? ListUtils.concat(methodType.getParameterNames(), "arg1") :
-                Collections.singletonList("arg0");
+                singletonList("arg0");
         List<JavaType> paramTypes = keepArg ? ListUtils.concat(methodType.getParameterTypes(), customizerArgType) :
-                Collections.singletonList(customizerArgType);
+                singletonList(customizerArgType);
         return Optional.of(methodType.withReturnType(methodType.getDeclaringType())
                 .withName(methodRenames.getOrDefault(methodType.getName(), methodType.getName()))
                 .withParameterNames(paramNames)
@@ -229,7 +230,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     public boolean isApplicableTopLevelMethodInvocation(J.MethodInvocation m) {
         if (isApplicableMethod(m)) {
             return true;
-        } else if (m.getSelect() instanceof J.MethodInvocation) {
+        }
+        if (m.getSelect() instanceof J.MethodInvocation) {
             return isApplicableTopLevelMethodInvocation((J.MethodInvocation) m.getSelect());
         }
         return false;
@@ -295,7 +297,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private J.MethodInvocation createDefaultsCall() {
         JavaType.Method methodType = new JavaType.Method(null, 9, CUSTOMIZER_SHALLOW_TYPE, "withDefaults",
                 new JavaType.GenericTypeVariable(null, "T", JavaType.GenericTypeVariable.Variance.INVARIANT, null),
-                null, null, null, null, Collections.emptyList(), Collections.emptyList());
+                null, null, null, null, emptyList(), emptyList());
         maybeAddImport(methodType.getDeclaringType().getFullyQualifiedName(), methodType.getName());
         return new J.MethodInvocation(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, null,
                 new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), "withDefaults", null, null),

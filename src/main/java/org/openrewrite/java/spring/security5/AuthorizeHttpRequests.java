@@ -78,7 +78,8 @@ public class AuthorizeHttpRequests extends Recipe {
                         if (MATCH_AUTHORIZE_REQUESTS.matches(methodType)) {
                             changeTypesAfterVisit();
                             return processAuthorizeRequests(m);
-                        } else if (MATCH_ACCESS_DECISION_MANAGER.matches(methodType)) {
+                        }
+                        if (MATCH_ACCESS_DECISION_MANAGER.matches(methodType)) {
                             changeTypesAfterVisit();
                             return processAccessDecisionManager(m, ctx);
                         }

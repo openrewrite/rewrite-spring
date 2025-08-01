@@ -26,9 +26,10 @@ import org.openrewrite.maven.tree.Scope;
 import org.openrewrite.semver.DependencyMatcher;
 import org.openrewrite.xml.tree.Xml;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static java.util.Collections.emptyList;
 
 public class AddLoggingPatternLevelForSleuth extends ScanningRecipe<AtomicBoolean> {
     @Override
@@ -53,7 +54,7 @@ public class AddLoggingPatternLevelForSleuth extends ScanningRecipe<AtomicBoolea
             public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
                 if (!acc.get()) {
                     DependencyMatcher matcher = DependencyMatcher.build("org.springframework.cloud:spring-cloud-starter-sleuth:X").getValue();
-                    List<ResolvedDependency> dependencies = getResolutionResult().getDependencies().getOrDefault(Scope.Compile, Collections.emptyList());
+                    List<ResolvedDependency> dependencies = getResolutionResult().getDependencies().getOrDefault(Scope.Compile, emptyList());
                     acc.set(dependencies.stream().anyMatch(d -> matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())));
                 }
                 return document;

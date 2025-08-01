@@ -26,7 +26,7 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
 
 public class EnvironmentAcceptsProfiles extends Recipe {
     private static final MethodMatcher MATCHER = new MethodMatcher("org.springframework.core.env.Environment acceptsProfiles(java.lang.String...)");
@@ -51,7 +51,7 @@ public class EnvironmentAcceptsProfiles extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             if (MATCHER.matches(method)) {
                 maybeAddImport("org.springframework.core.env.Profiles");
-                String template = "Profiles.of(" + method.getArguments().stream().map(a -> "#{any(java.lang.String)}").collect(Collectors.joining(",")) + ")";
+                String template = "Profiles.of(" + method.getArguments().stream().map(a -> "#{any(java.lang.String)}").collect(joining(",")) + ")";
                 method = JavaTemplate.builder(template)
                     .imports("org.springframework.core.env.Profiles", "org.springframework.core.env.Environment")
                     .javaParser(JavaParser.fromJavaVersion()

@@ -29,7 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
 
@@ -170,7 +171,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         }
 
         private String conditionalClassNameFromCandidates(List<String> conditionalCandidates) {
-            return "Condition" + conditionalCandidates.stream().sorted().map(this::getSimpleName).collect(Collectors.joining("Or"));
+            return "Condition" + conditionalCandidates.stream().sorted().map(this::getSimpleName).collect(joining("Or"));
         }
 
         private String anyConditionClassTemplate(List<String> conditionalIdentifiers, String parameterFormatString) {

@@ -26,8 +26,9 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class MigrateLocalServerPortAnnotation extends Recipe {
     private static final AnnotationMatcher LOCAL_SERVER_PORT_MATCHER =
@@ -62,7 +63,7 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
 
     @Override
     public List<Recipe> getRecipeList() {
-        return Collections.singletonList(new AddDependency(
+        return singletonList(new AddDependency(
             "org.springframework.boot",
             "spring-boot-starter-web",
             "2.0.x",

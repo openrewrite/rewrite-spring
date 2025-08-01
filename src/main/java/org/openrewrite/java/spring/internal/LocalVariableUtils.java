@@ -24,11 +24,12 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 // TODO Add in some form to the `rewrite-java` module
 public class LocalVariableUtils {
@@ -48,9 +49,8 @@ public class LocalVariableUtils {
         if (Objects.equals(owner, localRootType)) {
             Expression resolvedVariable = resolveVariable(fieldType.getName(), cursor);
             return resolvedVariable != null ? resolvedVariable : expression;
-        } else {
-            return expression;
         }
+        return expression;
     }
 
     private static @Nullable JavaType getRootOwner(Cursor cursor) {
@@ -58,24 +58,25 @@ public class LocalVariableUtils {
         Object parentValue = parent.getValue();
         if (parentValue instanceof SourceFile) {
             return null;
-        } else if (parentValue instanceof J.MethodDeclaration) {
-            return getRootOwner(((J.MethodDeclaration) parentValue).getMethodType());
-        } else {
-            return getRootOwner(((J.ClassDeclaration) parentValue).getType());
         }
+        if (parentValue instanceof J.MethodDeclaration) {
+            return getRootOwner(((J.MethodDeclaration) parentValue).getMethodType());
+        }
+        return getRootOwner(((J.ClassDeclaration) parentValue).getType());
     }
 
     private static JavaType getRootOwner(JavaType type) {
         if (type instanceof JavaType.Variable) {
             return getRootOwner(((JavaType.Variable) type).getOwner());
-        } else if (type instanceof JavaType.Method) {
+        }
+        if (type instanceof JavaType.Method) {
             return getRootOwner(((JavaType.Method) type).getDeclaringType());
-        } else if (type instanceof JavaType.FullyQualified) {
+        }
+        if (type instanceof JavaType.FullyQualified) {
             JavaType.FullyQualified owner = ((JavaType.FullyQualified) type).getOwningClass();
             return owner != null ? getRootOwner(owner) : type;
-        } else {
-            return type;
         }
+        return type;
     }
 
     /**
@@ -91,7 +92,8 @@ public class LocalVariableUtils {
         J value = cursor.getValue();
         if (value instanceof SourceFile) {
             return null;
-        } else if (value instanceof J.MethodDeclaration) {
+        }
+        if (value instanceof J.MethodDeclaration) {
             found = findVariable(((J.MethodDeclaration) value).getParameters(), name);
         } else if (value instanceof J.Block) {
             J.Block block = (J.Block) value;
@@ -105,11 +107,11 @@ public class LocalVariableUtils {
         } else if (value instanceof J.ForLoop) {
             found = findVariable(((J.ForLoop) value).getControl().getInit(), name);
         } else if (value instanceof J.Try && ((J.Try) value).getResources() != null) {
-            found = findVariable(((J.Try) value).getResources().stream().map(J.Try.Resource::getVariableDeclarations).collect(Collectors.toList()), name);
+            found = findVariable(((J.Try) value).getResources().stream().map(J.Try.Resource::getVariableDeclarations).collect(toList()), name);
         } else if (value instanceof J.Lambda) {
             found = findVariable(((J.Lambda) value).getParameters().getParameters(), name);
         } else if (value instanceof J.VariableDeclarations) {
-            found = findVariable(Collections.singletonList(((J.VariableDeclarations) value)), name);
+            found = findVariable(singletonList(((J.VariableDeclarations) value)), name);
         }
         return found.map(f -> f.isFinal ? f.variable.getInitializer() : null).orElseGet(() -> resolveVariable0(name, value, cursor.getParentTreeCursor()));
     }

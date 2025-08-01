@@ -168,7 +168,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                 if (a.getArguments() != null) {
                     a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                         if (arg instanceof J.Assignment &&
-                            ((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName().equals("name") &&
+                            "name".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName()) &&
                             ((J.Assignment) arg).getAssignment() instanceof J.Literal) {
                             J.Assignment assignment = (J.Assignment) arg;
                             J.Literal literal = (J.Literal) assignment.getAssignment();

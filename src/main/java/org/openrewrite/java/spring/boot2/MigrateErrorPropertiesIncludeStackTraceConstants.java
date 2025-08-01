@@ -23,7 +23,6 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -122,7 +121,7 @@ public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
                                 updateDeprecatedFields.get(id.getSimpleName()),
                                 ORIGINAL_FQN,
                                 ORIGINAL_FQN,
-                                Collections.emptyList()));
+                                emptyList()));
             }
             return id;
         }

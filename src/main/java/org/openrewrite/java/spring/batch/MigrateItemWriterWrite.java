@@ -27,10 +27,11 @@ import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
 
 public class MigrateItemWriterWrite extends Recipe {
 
@@ -74,7 +75,7 @@ public class MigrateItemWriterWrite extends Recipe {
                                         .map(it -> it.print(getCursor())),
                                 Stream.of("@Override"))
                         .distinct()
-                        .collect(Collectors.joining("\n"));
+                        .collect(joining("\n"));
 
                 m = new UpdateListMethodInvocations(paramName).visitMethodDeclaration(m, ctx);
                 updateCursor(m);
@@ -96,10 +97,10 @@ public class MigrateItemWriterWrite extends Recipe {
                                 annotationsWithOverride,
                                 m.getModifiers().stream()
                                         .map(J.Modifier::toString)
-                                        .collect(Collectors.joining(" ")),
+                                        .collect(joining(" ")),
                                 parameter.getModifiers().stream()
                                         .map(J.Modifier::toString)
-                                        .collect(Collectors.joining(" ")),
+                                        .collect(joining(" ")),
                                 chunkTypeParameter,
                                 paramName,
                                 m.getBody() == null ? ";" : m.getBody().print(getCursor()));
@@ -204,7 +205,7 @@ public class MigrateItemWriterWrite extends Recipe {
         private static J.Identifier newGetItemsIdentifier() {
             return new J.Identifier(
                     Tree.randomId(),
-                    Space.EMPTY, Markers.EMPTY, Collections.emptyList(),
+                    Space.EMPTY, Markers.EMPTY, emptyList(),
                     GET_ITEMS_METHOD,
                     null, null);
         }

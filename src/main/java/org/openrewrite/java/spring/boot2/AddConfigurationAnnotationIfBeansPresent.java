@@ -83,7 +83,8 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
         for (J.Modifier m : classDecl.getModifiers()) {
             if (m.getType() == J.Modifier.Type.Abstract) {
                 return false;
-            } else if (m.getType() == J.Modifier.Type.Static) {
+            }
+            if (m.getType() == J.Modifier.Type.Static) {
                 isStatic = true;
             }
         }

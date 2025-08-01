@@ -28,9 +28,11 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeBootstrapYamlWithApplicationYaml.Accumulator> {
 
@@ -82,10 +84,10 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                     .findFirst();
             if (newApplicationYaml.isPresent()) {
                 acc.applicationYaml = newApplicationYaml.get();
-                return Collections.singletonList(newApplicationYaml.get());
+                return singletonList(newApplicationYaml.get());
             }
         }
-        return Collections.emptyList();
+        return emptyList();
     }
 
     @Override

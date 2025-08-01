@@ -27,11 +27,11 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Marker;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static org.openrewrite.Tree.randomId;
 
 public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
@@ -61,14 +61,16 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                         REQUIRE_EXPLICIT_SAVE_MATCHER.matches(method) &&
                         isTrue(method.getArguments().get(0))) {
                     return ToBeRemoved.withMarker(method);
-                } else if (method.getSelect() instanceof J.MethodInvocation && ToBeRemoved.hasMarker(method.getSelect())) {
+                }
+                if (method.getSelect() instanceof J.MethodInvocation && ToBeRemoved.hasMarker(method.getSelect())) {
                     return method.withSelect(((J.MethodInvocation) method.getSelect()).getSelect());
-                } else if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker) &&
+                }
+                if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker) &&
                         method.getSelect() != null && TypeUtils.isAssignableTo(HTTP_SECURITY_TYPE, method.getSelect().getType())) {
                     if (method.getArguments().stream().allMatch(ToBeRemoved::hasMarker)) {
                         return ToBeRemoved.withMarker(method);
                     }
-                    return method.withArguments(method.getArguments().stream().filter(a -> !ToBeRemoved.hasMarker(a)).collect(Collectors.toList()));
+                    return method.withArguments(method.getArguments().stream().filter(a -> !ToBeRemoved.hasMarker(a)).collect(toList()));
                 }
                 return method;
             }
@@ -99,14 +101,14 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                 block = super.visitBlock(block, ctx);
                 List<Statement> statements = block.getStatements();
                 if (!statements.isEmpty() && statements.stream().allMatch(ToBeRemoved::hasMarker)) {
-                    return ToBeRemoved.withMarker(block.withStatements(Collections.emptyList()));
+                    return ToBeRemoved.withMarker(block.withStatements(emptyList()));
                 }
                 if (statements.stream().anyMatch(ToBeRemoved::hasMarker)) {
                     //noinspection DataFlowIssue
                     return block.withStatements(statements.stream()
                             .filter(s -> !ToBeRemoved.hasMarker(s) || s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.MethodInvocation)
                             .map(s -> s instanceof J.MethodInvocation && ToBeRemoved.hasMarker(s) ? ((J.MethodInvocation) s).getSelect().withPrefix(s.getPrefix()) : s)
-                            .collect(Collectors.toList()));
+                            .collect(toList()));
                 }
                 return block;
             }

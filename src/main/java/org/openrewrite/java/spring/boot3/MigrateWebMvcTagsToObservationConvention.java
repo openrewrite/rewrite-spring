@@ -29,8 +29,9 @@ import org.openrewrite.java.search.FindImplementations;
 import org.openrewrite.java.tree.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.nCopies;
 
 public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
@@ -216,7 +217,8 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                             .build()
                                             .apply(getCursor(), coords.replace(), returnIdentifier, createKeyValue);
-                                } else if (TAGS_AND_STRING_ARRAY.matches(init) || TAGS_OF_STRING_ARRAY.matches(init)) {
+                                }
+                                if (TAGS_AND_STRING_ARRAY.matches(init) || TAGS_OF_STRING_ARRAY.matches(init)) {
                                     List<J> args = new ArrayList<>();
                                     for (int i = 0; i < init.getArguments().size(); i += 2) {
                                         args.add(JavaTemplate.builder("KeyValue.of(#{any(java.lang.String)}, #{any(java.lang.String)})")
@@ -226,7 +228,8 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                                 .apply(getCursor(), coords.replace(), init.getArguments().get(i), init.getArguments().get(i + 1)));
                                     }
                                     return getMultiKeyValueStatement(ctx, coords, args, returnIdentifier);
-                                } else if (TAGS_AND_TAG_ARRAY.matches(init) || TAGS_OF_TAG_ARRAY.matches(init)) {
+                                }
+                                if (TAGS_AND_TAG_ARRAY.matches(init) || TAGS_OF_TAG_ARRAY.matches(init)) {
                                     List<Expression> validArgs = ListUtils.map(init.getArguments(), expression -> {
                                         if (expression instanceof J.MethodInvocation && ((J.MethodInvocation) expression).getMethodType() != null && TypeUtils.isOfType(((J.MethodInvocation) expression).getMethodType().getDeclaringType(), JavaType.buildType(WEBMVCTAGS_FQ))) {
                                             //noinspection DataFlowIssue
@@ -257,7 +260,8 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
                                     }
                                     return getMultiKeyValueStatement(ctx, coords, args, returnIdentifier);
-                                } else if (TAGS_AND_TAG_ITERABLE.matches(init) || TAGS_OF_TAG_ITERABLE.matches(init)) {
+                                }
+                                if (TAGS_AND_TAG_ITERABLE.matches(init) || TAGS_OF_TAG_ITERABLE.matches(init)) {
                                     Expression iterable = init.getArguments().get(0);
                                     String template = "for (Tag tag : #{any()}) {\n" +
                                             "    #{any()}.and(KeyValue.of(tag.getKey(), tag.getValue()));\n" +
@@ -276,7 +280,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
                     private Statement getMultiKeyValueStatement(ExecutionContext ctx, CoordinateBuilder.Statement coords, List<J> args, J.Identifier returnIdentifier) {
                         String keyValueVarArg = "#{any(io.micrometer.common.KeyValue)}";
-                        String keyValueVarArgsCombined = String.join(", ", Collections.nCopies(args.size(), keyValueVarArg));
+                        String keyValueVarArgsCombined = String.join(", ", nCopies(args.size(), keyValueVarArg));
                         return JavaTemplate.builder("#{any()}.and(" + keyValueVarArgsCombined + ")")
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "micrometer-commons-1.11.+"))
                                 .build()
@@ -287,7 +291,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                         J.MethodDeclaration enclosingMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
-                        if (enclosingMethod != null && enclosingMethod.getSimpleName().equals("getHighCardinalityKeyValues")) {
+                        if (enclosingMethod != null && "getHighCardinalityKeyValues".equals(enclosingMethod.getSimpleName())) {
                             if (m.getMethodType() != null && TypeUtils.isOfType(m.getMethodType().getDeclaringType(), JavaType.buildType(HTTPSERVLETREQUEST_FQ))) {
                                 getCursor().putMessageOnFirstEnclosing(J.MethodDeclaration.class, "addHttpServletRequest", true);
                             }

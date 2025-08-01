@@ -69,7 +69,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof J.CompilationUnit) {
                     return new JavaBeanConfigurationScanner(acc).visitNonNull(tree, ctx);
-                } else if (isApplicationProperties(tree)) {
+                }
+                if (isApplicationProperties(tree)) {
                     acc.hasProperties = true;
                 }
                 return super.visit(tree, ctx);
@@ -89,7 +90,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                 boolean canConfigureInProperties = canConfigureInProperties(acc, docketDefinition);
                 if (tree instanceof J.CompilationUnit) {
                     return new DocketBeanVisitor(canConfigureInProperties, docketDefinition).visitNonNull(tree, ctx);
-                } else if (isApplicationProperties(tree) && canConfigureInProperties) {
+                }
+                if (isApplicationProperties(tree) && canConfigureInProperties) {
                     Tree result = addSpringProperty(ctx, tree, "springdoc.api-docs.path", "/v3/api-docs");
                     result = addSpringProperty(ctx, result, "springdoc.swagger-ui.path", "/swagger-ui.html");
                     if (docketDefinition.groupName == null) {

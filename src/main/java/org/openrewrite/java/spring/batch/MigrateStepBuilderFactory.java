@@ -26,9 +26,10 @@ import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 public class MigrateStepBuilderFactory extends Recipe {
 
@@ -85,7 +86,7 @@ public class MigrateStepBuilderFactory extends Recipe {
             if (!FindMethods.find(md, STEP_BUILDER_FACTORY_GET).isEmpty()) {
                 List<Object> params = md.getParameters().stream()
                         .filter(j -> !(j instanceof J.Empty) && !isJobBuilderFactoryParameter(j))
-                        .collect(Collectors.toList());
+                        .collect(toList());
 
                 if (params.isEmpty() && md.isConstructor()) {
                     //noinspection DataFlowIssue
@@ -103,9 +104,9 @@ public class MigrateStepBuilderFactory extends Recipe {
                             .<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
                             .getParameters().get(0).withPrefix(parametersEmpty ? Space.EMPTY : Space.SINGLE_SPACE);
                     if (parametersEmpty) {
-                        md = md.withParameters(Collections.singletonList(vdd))
+                        md = md.withParameters(singletonList(vdd))
                                 .withMethodType(md.getMethodType()
-                                        .withParameterTypes(Collections.singletonList(vdd.getType())));
+                                        .withParameterTypes(singletonList(vdd.getType())));
                     } else {
                         md = md.withParameters(ListUtils.concat(md.getParameters(), vdd))
                                 .withMethodType(md.getMethodType()

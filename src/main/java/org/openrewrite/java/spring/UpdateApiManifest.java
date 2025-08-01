@@ -26,15 +26,22 @@ import org.openrewrite.text.PlainTextParser;
 import org.openrewrite.text.PlainTextVisitor;
 
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 @Incubating(since = "4.12.0")
 public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManifest> {
     private static final List<AnnotationMatcher> REST_ENDPOINTS = Stream.of("Request", "Get", "Post", "Put", "Delete", "Patch")
             .map(method -> new AnnotationMatcher("@org.springframework.web.bind.annotation." + method + "Mapping"))
-            .collect(Collectors.toList());
+            .collect(toList());
 
     @Override
     public String getDisplayName() {
@@ -68,7 +75,7 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
 
     @Override
     public Collection<SourceFile> generate(ApiManifest acc, ExecutionContext ctx) {
-        return acc.isGenerate() ? Collections.singletonList(generateManifest(acc.getApis())) : Collections.emptyList();
+        return acc.isGenerate() ? singletonList(generateManifest(acc.getApis())) : emptyList();
     }
 
     @Override
@@ -99,14 +106,17 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
                 if (argument instanceof J.Literal) {
                     //noinspection ConstantConditions
                     return (String) ((J.Literal) argument).getValue();
-                } else if (argument instanceof J.Assignment) {
+                }
+                if (argument instanceof J.Assignment) {
                     J.Assignment arg = (J.Assignment) argument;
                     if (((J.Identifier) arg.getVariable()).getSimpleName().equals(key)) {
                         if (arg.getAssignment() instanceof J.FieldAccess) {
                             return ((J.FieldAccess) arg.getAssignment()).getSimpleName();
-                        } else if (arg.getAssignment() instanceof J.Identifier) {
+                        }
+                        if (arg.getAssignment() instanceof J.Identifier) {
                             return ((J.Identifier) arg.getAssignment()).getSimpleName();
-                        } else if (arg.getAssignment() instanceof J.Literal) {
+                        }
+                        if (arg.getAssignment() instanceof J.Literal) {
                             //noinspection ConstantConditions
                             return (String) ((J.Literal) arg.getAssignment()).getValue();
                         }
@@ -139,7 +149,7 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
                                                 .map(classMapping -> getArg(classMapping, "value", ""))
                                                 .orElse(null))
                                         .filter(Objects::nonNull)
-                                        .collect(Collectors.joining("/")) +
+                                        .collect(joining("/")) +
                                         getArg(mapping, "value", "");
                         path = path.replace("//", "/");
 

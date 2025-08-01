@@ -35,6 +35,7 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.*;
 
+import static java.util.Collections.singleton;
 import static org.openrewrite.java.MethodMatcher.methodPattern;
 
 @EqualsAndHashCode(callSuper = false)
@@ -57,7 +58,7 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
 
     private static final String FQN_COMPONENT = "org.springframework.stereotype.Component";
 
-    private static final Set<String> JUST_QUALIFIER = Collections.singleton(FQN_QUALIFIER);
+    private static final Set<String> JUST_QUALIFIER = singleton(FQN_QUALIFIER);
     private static final Set<String> BEAN_METHOD_ANNOTATIONS = new HashSet<String>() {{
         add(FQN_QUALIFIER);
         add(FQN_BEAN);
@@ -205,7 +206,8 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
                             Expression assignmentExpr = beanNameAssignment.getAssignment();
                             if (assignmentExpr instanceof J.Literal) {
                                 return new BeanSearchResult(true, (String) ((J.Literal) assignmentExpr).getValue());
-                            } else if (assignmentExpr instanceof J.NewArray) {
+                            }
+                            if (assignmentExpr instanceof J.NewArray) {
                                 List<Expression> initializers = ((J.NewArray) assignmentExpr).getInitializer();
                                 if (initializers != null) {
                                     for (Expression initExpr : initializers) {
@@ -283,9 +285,11 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
 
                     if (annotationParent instanceof J.MethodDeclaration) {
                         return isRelevantType(((J.MethodDeclaration) annotationParent).getMethodType().getReturnType());
-                    } else if (annotationParent instanceof J.ClassDeclaration) {
+                    }
+                    if (annotationParent instanceof J.ClassDeclaration) {
                         return isRelevantType(((J.ClassDeclaration) annotationParent).getType());
-                    } else if (annotationParent instanceof J.VariableDeclarations) {
+                    }
+                    if (annotationParent instanceof J.VariableDeclarations) {
                         return isRelevantType(((J.VariableDeclarations) annotationParent).getType());
                     }
                 }
@@ -294,7 +298,7 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
 
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                Expression beanNameExpression = getBeanNameExpression(Collections.singleton(annotation), types);
+                Expression beanNameExpression = getBeanNameExpression(singleton(annotation), types);
 
                 if (beanNameExpression != null && annotationParentMatchesBeanType()) {
                     if (beanNameExpression instanceof J.Literal) {
@@ -318,7 +322,7 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
             Expression variable = ((J.Assignment) argumentExpression).getVariable();
             if (variable instanceof J.Identifier) {
                 String variableName = ((J.Identifier) variable).getSimpleName();
-                if (variableName.equals("name") || variableName.equals("value")) {
+                if ("name".equals(variableName) || "value".equals(variableName)) {
                     return (J.Assignment) argumentExpression;
                 }
             }
@@ -376,7 +380,8 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
     private static boolean contains(Expression assignment, String oldName) {
         if (assignment instanceof J.Literal) {
             return oldName.equals(((J.Literal) assignment).getValue());
-        } else if (assignment instanceof J.NewArray) {
+        }
+        if (assignment instanceof J.NewArray) {
             J.NewArray newArrayAssignment = (J.NewArray) assignment;
             if (newArrayAssignment.getInitializer() == null) {
                 return false;
