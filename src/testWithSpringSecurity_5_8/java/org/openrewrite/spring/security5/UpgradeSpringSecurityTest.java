@@ -31,8 +31,8 @@ class UpgradeSpringSecurityTest implements RewriteTest {
           .recipeFromResources("org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8");
     }
 
-    @Test
     @Issue("https://github.com/openrewrite/rewrite-spring/pull/757")
+    @Test
     void canBeUpgradedIfAuthenticationManagerBuilderConfigurationPresent() {
         rewriteRun(
           //language=java
