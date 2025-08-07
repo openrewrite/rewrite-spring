@@ -24,6 +24,7 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.dependencies.search.ModuleHasDependency;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -55,11 +56,11 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
     @Override
     public String getDescription() {
         return "Beans of certain well-known types, such as `JdbcTemplate`, will be ordered so that they are initialized " +
-               "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
-               "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
-               "initialized after the database has been initialized. See the " +
-               "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
-               "for more.";
+                "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
+                "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
+                "initialized after the database has been initialized. See the " +
+                "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
+                "for more.";
     }
 
     @Override
@@ -72,123 +73,127 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 new AnnotationMatcher("@org.springframework.stereotype.Service"),
                 new AnnotationMatcher("@org.springframework.boot.test.context.TestComponent"));
 
-        return Preconditions.check(Preconditions.or(
-                new UsesType<>("org.springframework.stereotype.Repository", false),
-                new UsesType<>("org.springframework.stereotype.Repository", false),
-                new UsesType<>("org.springframework.stereotype.Component", false),
-                new UsesType<>("org.springframework.stereotype.Service", false),
-                new UsesType<>("org.springframework.boot.test.context.TestComponent", false),
-                new UsesType<>("org.springframework.context.annotation.Bean", false)
-        ), new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                if (method.getMethodType() != null) {
-                    if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md) &&
-                        requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
-                        md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
-                                .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                                .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-boot-2.*"))
-                                .build()
-                                .apply(
-                                        getCursor(),
-                                        md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
-                                );
-                        maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
-                    }
-                }
-                return md;
-            }
-
-            @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd) &&
-                    requiresInitializationAnnotation(cd.getType())) {
-                    cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
-                            .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*"))
-                            .build()
-                            .apply(
-                                    getCursor(),
-                                    cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
-                            );
-                    maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
-                }
-                return cd;
-            }
-
-            private boolean isComponent(J.ClassDeclaration cd) {
-                for (J.Annotation classAnno : cd.getLeadingAnnotations()) {
-                    for (AnnotationMatcher componentMatcher : componentAnnotationMatchers) {
-                        if (componentMatcher.matches(classAnno)) {
-                            return true;
+        return Preconditions.check(
+                Preconditions.and(
+                        new ModuleHasDependency("org.springframework.boot", "spring-boot", null, "[2.5.0,)", null).getVisitor(),
+                        Preconditions.or(
+                                new UsesType<>("org.springframework.stereotype.Repository", false),
+                                new UsesType<>("org.springframework.stereotype.Repository", false),
+                                new UsesType<>("org.springframework.stereotype.Component", false),
+                                new UsesType<>("org.springframework.stereotype.Service", false),
+                                new UsesType<>("org.springframework.boot.test.context.TestComponent", false),
+                                new UsesType<>("org.springframework.context.annotation.Bean", false)
+                        )
+                ), new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
+                        if (method.getMethodType() != null) {
+                            if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md) &&
+                                    requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
+                                md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
+                                        .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
+                                        .javaParser(JavaParser.fromJavaVersion()
+                                                .classpathFromResources(ctx, "spring-boot-2.*"))
+                                        .build()
+                                        .apply(
+                                                getCursor(),
+                                                md.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                                        );
+                                maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
+                            }
                         }
+                        return md;
                     }
-                }
-                return false;
-            }
 
-            private boolean isBean(J.MethodDeclaration methodDeclaration) {
-                for (J.Annotation leadingAnnotation : methodDeclaration.getLeadingAnnotations()) {
-                    if (beanAnnotationMatcher.matches(leadingAnnotation)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-            private boolean isInitializationAnnoPresent(@Nullable List<J.Annotation> annotations) {
-                return annotations != null && annotations.stream().anyMatch(dataSourceAnnotationMatcher::matches);
-            }
-
-            private boolean requiresInitializationAnnotation(@Nullable JavaType type) {
-                if (type == null) {
-                    return false;
-                }
-                if (isWellKnownDataSourceInitializationType(type)) {
-                    return false;
-                }
-                if (type instanceof JavaType.FullyQualified) {
-                    JavaType.FullyQualified fq = (JavaType.FullyQualified) type;
-                    // type fields
-                    for (JavaType.Variable var : fq.getMembers()) {
-                        if (isDataSourceType(var.getType())) {
-                            return true;
+                    @Override
+                    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                        J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
+                        if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd) &&
+                                requiresInitializationAnnotation(cd.getType())) {
+                            cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
+                                    .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-boot-2.*"))
+                                    .build()
+                                    .apply(
+                                            getCursor(),
+                                            cd.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                                    );
+                            maybeAddImport("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
                         }
+                        return cd;
                     }
-                    // type methods
-                    for (JavaType.Method method : fq.getMethods()) {
-                        if (isDataSourceType(method.getReturnType())) {
-                            return true;
+
+                    private boolean isComponent(J.ClassDeclaration cd) {
+                        for (J.Annotation classAnno : cd.getLeadingAnnotations()) {
+                            for (AnnotationMatcher componentMatcher : componentAnnotationMatchers) {
+                                if (componentMatcher.matches(classAnno)) {
+                                    return true;
+                                }
+                            }
                         }
-                        for (JavaType parameterType : method.getParameterTypes()) {
-                            if (isDataSourceType(parameterType)) {
+                        return false;
+                    }
+
+                    private boolean isBean(J.MethodDeclaration methodDeclaration) {
+                        for (J.Annotation leadingAnnotation : methodDeclaration.getLeadingAnnotations()) {
+                            if (beanAnnotationMatcher.matches(leadingAnnotation)) {
                                 return true;
                             }
                         }
+                        return false;
                     }
-                }
-                return false;
-            }
 
-            private boolean isDataSourceType(@Nullable JavaType type) {
-                return TypeUtils.isAssignableTo(JAVAX_SQL_DATA_SOURCE, type);
-            }
+                    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+                    private boolean isInitializationAnnoPresent(@Nullable List<J.Annotation> annotations) {
+                        return annotations != null && annotations.stream().anyMatch(dataSourceAnnotationMatcher::matches);
+                    }
 
-            private boolean isWellKnownDataSourceInitializationType(@Nullable JavaType type) {
-                if (type != null) {
-                    for (String wellKnowDataSourceType : WELL_KNOW_DATA_SOURCE_TYPES) {
-                        if (TypeUtils.isAssignableTo(wellKnowDataSourceType, type)) {
-                            return true;
+                    private boolean requiresInitializationAnnotation(@Nullable JavaType type) {
+                        if (type == null) {
+                            return false;
                         }
+                        if (isWellKnownDataSourceInitializationType(type)) {
+                            return false;
+                        }
+                        if (type instanceof JavaType.FullyQualified) {
+                            JavaType.FullyQualified fq = (JavaType.FullyQualified) type;
+                            // type fields
+                            for (JavaType.Variable var : fq.getMembers()) {
+                                if (isDataSourceType(var.getType())) {
+                                    return true;
+                                }
+                            }
+                            // type methods
+                            for (JavaType.Method method : fq.getMethods()) {
+                                if (isDataSourceType(method.getReturnType())) {
+                                    return true;
+                                }
+                                for (JavaType parameterType : method.getParameterTypes()) {
+                                    if (isDataSourceType(parameterType)) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        return false;
                     }
-                }
-                return false;
-            }
-        });
+
+                    private boolean isDataSourceType(@Nullable JavaType type) {
+                        return TypeUtils.isAssignableTo(JAVAX_SQL_DATA_SOURCE, type);
+                    }
+
+                    private boolean isWellKnownDataSourceInitializationType(@Nullable JavaType type) {
+                        if (type != null) {
+                            for (String wellKnowDataSourceType : WELL_KNOW_DATA_SOURCE_TYPES) {
+                                if (TypeUtils.isAssignableTo(wellKnowDataSourceType, type)) {
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    }
+                });
     }
 }
