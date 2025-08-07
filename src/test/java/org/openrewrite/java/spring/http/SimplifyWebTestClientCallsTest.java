@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.http;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.kotlin.KotlinParser;
@@ -55,7 +54,6 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
       "403,isForbidden()",
       "404,isNotFound()"
     })
-    @DocumentExample
     @ParameterizedTest
     void replacesAllIntStatusCodes(String httpStatus, String method) {
         rewriteRun(
