@@ -75,7 +75,8 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
         return Preconditions.check(
                 Preconditions.and(
-                        new ModuleHasDependency("org.springframework.boot", "spring-boot", null, "[2.5.0,)", null).getVisitor(),
+                        // we just check for the presence of the spring-boot dependency, not a specific version as ModuleHasDependency does not support version ranges
+                        new ModuleHasDependency("org.springframework.boot", "spring-boot", null, null, null).getVisitor(),
                         Preconditions.or(
                                 new UsesType<>("org.springframework.stereotype.Repository", false),
                                 new UsesType<>("org.springframework.stereotype.Repository", false),
