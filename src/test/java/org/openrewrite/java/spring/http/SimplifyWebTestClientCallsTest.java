@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.http;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.kotlin.KotlinParser;
@@ -37,6 +38,48 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6", "spring-test-6"))
           .parser(KotlinParser.builder()
             .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6", "spring-test-6"));
+    }
+
+    @DocumentExample
+    @Test
+    void replaceKotlinInt() {
+        rewriteRun(
+          //language=kotlin
+          kotlin(
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient
+
+              class Test {
+                  val webClient: WebTestClient = WebTestClient.bindToServer().build()
+                  fun someMethod() {
+                    webClient
+                        .post()
+                        .uri("/some/url")
+                        .bodyValue("someValue")
+                        .exchange()
+                        .expectStatus()
+                        .isEqualTo(200)
+                  }
+              }
+              """,
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient
+
+              class Test {
+                  val webClient: WebTestClient = WebTestClient.bindToServer().build()
+                  fun someMethod() {
+                    webClient
+                        .post()
+                        .uri("/some/url")
+                        .bodyValue("someValue")
+                        .exchange()
+                        .expectStatus()
+                        .isOk()
+                  }
+              }
+              """
+          )
+        );
     }
 
     @CsvSource({
@@ -91,47 +134,6 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
                   }
               }
               """.formatted(method)
-          )
-        );
-    }
-
-    @Test
-    void replaceKotlinInt() {
-        rewriteRun(
-          //language=kotlin
-          kotlin(
-            """
-              import org.springframework.test.web.reactive.server.WebTestClient
-
-              class Test {
-                  val webClient: WebTestClient = WebTestClient.bindToServer().build()
-                  fun someMethod() {
-                    webClient
-                        .post()
-                        .uri("/some/url")
-                        .bodyValue("someValue")
-                        .exchange()
-                        .expectStatus()
-                        .isEqualTo(200)
-                  }
-              }
-              """,
-            """
-              import org.springframework.test.web.reactive.server.WebTestClient
-
-              class Test {
-                  val webClient: WebTestClient = WebTestClient.bindToServer().build()
-                  fun someMethod() {
-                    webClient
-                        .post()
-                        .uri("/some/url")
-                        .bodyValue("someValue")
-                        .exchange()
-                        .expectStatus()
-                        .isOk()
-                  }
-              }
-              """
           )
         );
     }
