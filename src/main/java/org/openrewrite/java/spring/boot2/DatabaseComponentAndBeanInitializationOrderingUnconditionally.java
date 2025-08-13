@@ -85,7 +85,7 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
                 if (method.getMethodType() != null) {
                     if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md) &&
-                        requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
+                            requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
                         md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                                 .javaParser(JavaParser.fromJavaVersion()
@@ -105,7 +105,7 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd) &&
-                    requiresInitializationAnnotation(cd.getType())) {
+                        requiresInitializationAnnotation(cd.getType())) {
                     cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                             .javaParser(JavaParser.fromJavaVersion()

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
@@ -25,13 +26,27 @@ import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implements RewriteTest {
+class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest {
+
+    private static final @Language("xml") String POM_WITH_SPRING_BOOT_25 = """
+      <project>
+          <groupId>com.example</groupId>
+          <artifactId>foo</artifactId>
+          <version>1.0.0</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot</artifactId>
+              <version>2.5.1</version>
+            </dependency>
+          </dependencies>
+      </project>
+      """;
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec
           .recipeFromResources("org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering")
-          //.recipe(new DatabaseComponentAndBeanInitializationOrderingUnconditionally())
           .parser(JavaParser.fromJavaVersion()
             .classpath("spring-beans", "spring-context", "spring-boot", "spring-jdbc", "spring-orm", "jooq", "persistence-api", "jaxb-api"));
     }
@@ -41,23 +56,8 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
     void dslContextBeanShouldNotBeAnnotated() {
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 import org.jooq.impl.DSL;
@@ -116,26 +116,10 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
 
     @Test
     void jdbcOperationsBeanShouldNotBeAnnotated() {
-        //language=java
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 import javax.sql.DataSource;
@@ -160,26 +144,10 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
 
     @Test
     void namedParameterJdbcOperationsBeanShouldNotBeAnnotated() {
-        //language=java
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 import javax.sql.DataSource;
@@ -204,26 +172,10 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
 
     @Test
     void abstractEntityManagerFactoryBeanShouldNotBeAnnotated() {
-        //language=java
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
@@ -247,26 +199,10 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
 
     @Test
     void entityManagerFactoryBeanShouldNotBeAnnotated() {
-        //language=java
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 import javax.persistence.Persistence;
@@ -290,32 +226,17 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
 
     @Test
     void nonDataSourceBeanShouldNotBeAnnotated() {
-        //language=java
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 public class MyService {
                 }
                 """
             ),
+            //language=java
             java(
               """
                 import org.springframework.context.annotation.Configuration;
@@ -337,26 +258,10 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
 
     @Test
     void beanDeclarationForBeanHavingMethodWithDataSourceParameter() {
-        //language=java
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 import javax.sql.DataSource;
@@ -366,6 +271,7 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
                 }
                 """
             ),
+            //language=java
             java(
               """
                 import org.springframework.context.annotation.Configuration;
@@ -402,26 +308,10 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
 
     @Test
     void beanDeclarationForBeanDependingOnDataSourceInConfiguration() {
-        //language=java
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 import javax.sql.DataSource;
@@ -437,6 +327,7 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
                 }
                 """
             ),
+            //language=java
             java(
               """
                 import javax.sql.DataSource;
@@ -475,26 +366,10 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
 
     @Test
     void beanDeclarationForThirdPartyDataSourceInitialization() {
-        //language=java
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 package com.db.magic;
@@ -510,6 +385,7 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
                 }
                 """
             ),
+            //language=java
             java(
               """
                 package com.my.dbinit;
@@ -552,26 +428,10 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
 
     @Test
     void componentDoesDdl() {
-        //language=java
         rewriteRun(
           mavenProject("project-maven",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <groupId>com.example</groupId>
-                    <artifactId>foo</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot</artifactId>
-                        <version>2.5.1</version>
-                      </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=java
             java(
               """
                 import javax.sql.DataSource;
@@ -624,6 +484,7 @@ class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implemen
                 </project>
                 """
             ),
+            //language=java
             java(
               """
                 import org.jooq.impl.DSL;
