@@ -119,3 +119,19 @@ recipeList:
       artifactId: "*"
       newVersion: 2.2.0
       overrideManagedVersion: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering
+displayName: Adds `@DependsOnDatabaseInitialization` to Spring Beans and Components depending on `javax.sql.DataSource`
+description: >-
+  Beans of certain well-known types, such as `JdbcTemplate`, will be ordered so that they are initialized after the database has been initialized.
+  If you have a bean that works with the `DataSource` directly, annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is initialized after the database has been initialized.
+  See the [release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) for more.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot
+      version: '[2.5.0,)'
+recipeList:
+  - org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrderingUnconditionally

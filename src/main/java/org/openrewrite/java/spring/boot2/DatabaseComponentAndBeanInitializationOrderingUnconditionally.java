@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
+public class DatabaseComponentAndBeanInitializationOrderingUnconditionally extends Recipe {
 
     private static final String JAVAX_SQL_DATA_SOURCE = "javax.sql.DataSource";
     private static final List<String> WELL_KNOW_DATA_SOURCE_TYPES = Arrays.asList(
@@ -49,17 +49,18 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Adds `@DependsOnDatabaseInitialization` to Spring Beans and Components depending on `javax.sql.DataSource`";
+        return "Unconditionally adds `@DependsOnDatabaseInitialization` to Spring Beans and Components depending on `javax.sql.DataSource`";
     }
 
     @Override
     public String getDescription() {
         return "Beans of certain well-known types, such as `JdbcTemplate`, will be ordered so that they are initialized " +
-               "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
-               "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
-               "initialized after the database has been initialized. See the " +
-               "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
-               "for more.";
+                "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
+                "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
+                "initialized after the database has been initialized. See the " +
+                "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
+                "for more. This recipe will not check if the `@DependsOnDatabaseInitialization` annotation is on the classpath. " +
+                "This recipe is best combined with a precondition, as seen in `DatabaseComponentAndBeanInitializationOrdering`.";
     }
 
     @Override
@@ -85,7 +86,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
                 J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
                 if (method.getMethodType() != null) {
                     if (!isInitializationAnnoPresent(md.getLeadingAnnotations()) && isBean(md) &&
-                        requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
+                            requiresInitializationAnnotation(method.getMethodType().getReturnType())) {
                         md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                                 .javaParser(JavaParser.fromJavaVersion()
@@ -105,7 +106,7 @@ public class DatabaseComponentAndBeanInitializationOrdering extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (!isInitializationAnnoPresent(cd.getLeadingAnnotations()) && isComponent(cd) &&
-                    requiresInitializationAnnotation(cd.getType())) {
+                        requiresInitializationAnnotation(cd.getType())) {
                     cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                             .javaParser(JavaParser.fromJavaVersion()
