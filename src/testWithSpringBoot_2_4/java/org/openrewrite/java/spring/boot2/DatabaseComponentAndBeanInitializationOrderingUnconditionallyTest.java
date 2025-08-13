@@ -25,11 +25,13 @@ import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest {
+class DatabaseComponentAndBeanInitializationOrderingUnconditionallyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new DatabaseComponentAndBeanInitializationOrdering())
+        spec
+          .recipeFromResources("org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering")
+          //.recipe(new DatabaseComponentAndBeanInitializationOrderingUnconditionally())
           .parser(JavaParser.fromJavaVersion()
             .classpath("spring-beans", "spring-context", "spring-boot", "spring-jdbc", "spring-orm", "jooq", "persistence-api", "jaxb-api"));
     }
