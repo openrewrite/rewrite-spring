@@ -59,7 +59,8 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
                 "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
                 "initialized after the database has been initialized. See the " +
                 "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
-                "for more. This recipe will not check if the `@DependsOnDatabaseInitialization` annotation is on the classpath.";
+                "for more. This recipe will not check if the `@DependsOnDatabaseInitialization` annotation is on the classpath. " +
+                "This recipe is best combined with a precondition, as seen in `DatabaseComponentAndBeanInitializationOrdering`.";
     }
 
     @Override
