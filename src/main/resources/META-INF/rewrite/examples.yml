@@ -901,6 +901,8 @@ examples:
           }
       }
     language: java
+  - before: project-maven
+    language: mavenProject
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.GetErrorAttributes
