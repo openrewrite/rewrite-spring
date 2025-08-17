@@ -28,3 +28,4 @@ description: >-
 recipeList:
   - org.openrewrite.java.spring.PropertiesToKebabCaseYaml
   - org.openrewrite.java.spring.PropertiesToKebabCaseProperties
+  
