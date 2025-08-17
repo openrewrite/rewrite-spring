@@ -119,3 +119,21 @@ recipeList:
       artifactId: "*"
       newVersion: 2.2.0
       overrideManagedVersion: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateDatabaseCredentials
+displayName: Migrate flyway and liquibase credentials
+description: >-
+  If you currently define a `spring.flyway.url` or `spring.liquibase.url` you may need to provide
+  additional username and password properties. In earlier versions of Spring Boot, these settings were
+  derived from `spring.datasource` properties but this turned out to be problematic for people that
+  provided their own `DataSource` beans.
+recipeList:
+  - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentialsForToolYaml:
+      tool: flyway
+  - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentialsForToolProperties:
+      tool: flyway
+  - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentialsForToolYaml:
+      tool: liquibase
+  - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentialsForToolProperties:
+      tool: liquibase

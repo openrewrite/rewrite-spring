@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -26,7 +27,9 @@ import static org.openrewrite.yaml.Assertions.yaml;
 class PropertiesToKebabCaseTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new PropertiesToKebabCase());
+        spec.recipeFromResource(
+          "/META-INF/rewrite/properties-to-kebab-case.yml",
+          "org.openrewrite.java.spring.PropertiesToKebabCase");
     }
 
     @Test
