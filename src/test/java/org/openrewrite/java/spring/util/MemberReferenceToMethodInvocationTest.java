@@ -54,8 +54,8 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
               class A {
                   void test(ListenableFuture<String> future) {
                       future.addCallback(
-                          (String string) -> System.out.println(string),
-                          (Object object) -> System.err.println(object));
+                          (String x) -> System.out.println(x),
+                          (Object x) -> System.err.println(x));
                   }
               }
               """
