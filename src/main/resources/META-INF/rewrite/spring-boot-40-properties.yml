@@ -28,12 +28,6 @@ recipeList:
       oldPropertyKey: management.logging.export.enabled
       newPropertyKey: management.opentelemetry.logging.export.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.observations.annotations.long-lask-timer.enabled
-      newPropertyKey: management.metrics.observations.ignored-meters
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.otlp.logging
-      newPropertyKey: management.opentelemetry.logging.export
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.compression
       newPropertyKey: management.opentelemetry.logging.export.compression
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -54,19 +48,4 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.transport
       newPropertyKey: management.opentelemetry.logging.export.transport
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: server.servlet.encoding.charset
-      newPropertyKey: spring.servlet.encoding.charset
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: server.servlet.encoding.enabled
-      newPropertyKey: spring.servlet.encoding.enabled
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: server.servlet.encoding.force
-      newPropertyKey: spring.servlet.encoding.force
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: server.servlet.encoding.force-request
-      newPropertyKey: spring.servlet.encoding.force-request
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: server.servlet.encoding.force-response
-      newPropertyKey: spring.servlet.encoding.force-response
 
