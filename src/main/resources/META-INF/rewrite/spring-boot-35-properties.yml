@@ -106,4 +106,3 @@ recipeList:
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: management.signalfx.metrics.export.uri
       comment: "This property is deprecated: Deprecated in Micrometer 1.15.0"
-
