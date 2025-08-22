@@ -18,12 +18,15 @@ package org.openrewrite.java.spring.boot3;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.properties.tree.Properties;
 
 public class UseReactorContextPropagation extends Recipe {
 	@Override
@@ -37,18 +40,25 @@ public class UseReactorContextPropagation extends Recipe {
 	}
 
 	private static final String SPRING_BOOT_APPLICATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
-	private static final MethodMatcher MATCHER = new MethodMatcher("reactor.hooks.Hooks enableAutomaticContextPropagation()");
+	private static final MethodMatcher MATCHER = new MethodMatcher("reactor.core.publisher.Hooks enableAutomaticContextPropagation()");
 
 	@Override
 	public TreeVisitor<?, ExecutionContext> getVisitor() {
-		return Preconditions.check(
+		return
+			Preconditions.check(
 			new UsesType<>(SPRING_BOOT_APPLICATION, true),
 			new JavaIsoVisitor<ExecutionContext>(){
 				@Override
 				public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
 					J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
 					if (MATCHER.matches(mi)) {
+						// remove unused import
+						maybeRemoveImport("reactor.core.publisher.Hooks");
+
+						// add 'context-propagation' into spring property
 						doAfterVisit(new AddSpringProperty("spring.reactor.context-propagation", "true", null, null).getVisitor());
+
+						// remove Method call
 						return null;
 					}
 					return mi;

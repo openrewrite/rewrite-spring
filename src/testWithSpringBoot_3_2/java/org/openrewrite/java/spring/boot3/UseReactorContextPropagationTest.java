@@ -15,60 +15,80 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import static org.openrewrite.java.Assertions.java;
-import static org.openrewrite.properties.Assertions.*;
+import static org.openrewrite.java.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.properties.Assertions.properties;
+
 public class UseReactorContextPropagationTest implements RewriteTest {
 
-	@Override
-	public void defaults(RecipeSpec spec) {
-		spec.recipe(new UseReactorContextPropagation())
-		  .parser(JavaParser.fromJavaVersion().classpath("spring-boot"));
-	}
+    @Override
+    public void defaults(RecipeSpec spec) {
+        spec.recipe(new UseReactorContextPropagation());
+    }
 
-	@DocumentExample
-	@Test
-	void replaceMethodCallWithProperty() {
-		rewriteRun(
-		  //language=java
-		  spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.UseReactorContextPropagation"),
-		  java(
-			"""
-		 	import reactor.core.publisher.Hooks;
-		 	import org.springframework.boot.SpringApplication;
-		 	import org.springframework.boot.autoconfigure.SpringBootApplication;
+    @DocumentExample
+    @Test
+    void replaceMethodCallWithProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new UseReactorContextPropagation()),
+          java(
+            """
+              package org.springframework.boot.autoconfigure;
+              public @interface SpringBootApplication {}
+              """
+          ),
+          java(
+            """
+              package org.springframework.boot;
+              public class SpringApplication {
+                  public static void run(Class<?> cls, String[] args) {}
+              }
+              """
+          ),
+          java(
+            """
+              package reactor.core.publisher;
+              public class Hooks {
+                  public static void enableAutomaticContextPropagation() {}
+              }
+              """
+          ),
+          java(
+            """
+              import reactor.core.publisher.Hooks;
+              import org.springframework.boot.SpringApplication;
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-		 	@SpringBootApplication
-		 	public class MyApp{
-		 		public static void main(String[] args) {
-		 			Hooks.enableAutomaticContextPropagation();
-		 			SpringApplication.run(MyApplication.class, args);
-				}
-			}
-		 	""",
-			"""
-		  	import reactor.core.publisher.Hooks;
-		 	import org.springframework.boot.SpringApplication;
-		 	import org.springframework.boot.autoconfigure.SpringBootApplication;
+              @SpringBootApplication
+              public class MyApplication {
+                  public static void main(String[] args) {
+                      Hooks.enableAutomaticContextPropagation();
+                      SpringApplication.run(MyApplication.class, args);
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.SpringApplication;
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-		  	@SpringBootApplication
-		  	public class MyApp {
-		  		public static void main(String[] args) {
-		  			SpringApplication.run(MyApplication.class, args);
-		  		}
-			}
-		  	"""
-		  ),
-		  properties(
-			"",
-			"spring.reactor.context-propagation=true"
-		  )
-		);
-	}
+              @SpringBootApplication
+              public class MyApplication {
+                  public static void main(String[] args) {
+                      SpringApplication.run(MyApplication.class, args);
+                  }
+              }
+              """
+          ),
+          properties(
+            "",
+            "spring.reactor.context-propagation=true",
+            spec -> spec.path("application.properties")
+          )
+        );
+    }
 }
