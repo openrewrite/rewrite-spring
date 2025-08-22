@@ -324,25 +324,3 @@ recipeList:
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.flyway.clean-on-validation-error
       comment: "This property is deprecated: Deprecated in Flyway 10.18"
----
-# Todo figure out this test
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_4_Test
-displayName: Migrate Spring Boot properties to 3.4
-description: Migrate properties found in `application.properties` and `application.yml`.
-causesAnotherCycle: true
-tags:
-  - spring
-  - boot
-recipeList:
-  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
-      propertyKey: management.endpoint.auditevents.enabled
-      newValue: read-only
-      oldValue: true
-  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
-      propertyKey: management.endpoint.auditevents.enabled
-      newValue: none
-      oldValue: false
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.endpoint.auditevents.enabled
-      newPropertyKey: management.endpoint.auditevents.access
