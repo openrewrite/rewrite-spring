@@ -1,9 +1,10 @@
-package org.openrewrite.java.spring.boot3;
+package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
@@ -41,15 +42,17 @@ class SpringBootProperties34Test implements RewriteTest {
     @Test
     void enabledTrueToAccessReadOnly() {
         rewriteRun(
-          //language=properties
-          properties(
-            """
-              management.endpoint.auditevents.enabled=true
-              """,
-            """
-              management.endpoint.auditevents.access=read-only
-              """,
-            s -> s.path("src/main/resources/application.properties")
+          srcMainResources(
+            //language=properties
+            properties(
+              """
+                management.endpoint.auditevents.enabled=true
+                """,
+              """
+                management.endpoint.auditevents.access=read-only
+                """,
+              s -> s.path("src/main/resources/application.properties")
+            )
           )
         );
     }
@@ -57,20 +60,22 @@ class SpringBootProperties34Test implements RewriteTest {
     @Test
     void enableVirtualThreadsYaml() {
         rewriteRun(
-          //language=yaml
-          yaml("""
-              management:
-                endpoint:
-                  auditevents:
-                    enabled: true
-              """,
-            """
-              management:
-                endpoint:
-                  auditevents:
-                    access: read-only
-              """,
-            s -> s.path("src/main/resources/application.yml")
+          srcMainResources(
+            //language=yaml
+            yaml("""
+                management:
+                  endpoint:
+                    auditevents:
+                      enabled: true
+                """,
+              """
+                management:
+                  endpoint:
+                    auditevents:
+                      access: read-only
+                """,
+              s -> s.path("src/main/resources/application.yml")
+            )
           )
         );
     }
