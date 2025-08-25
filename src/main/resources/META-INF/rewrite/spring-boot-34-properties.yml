@@ -24,6 +24,41 @@ tags:
   - spring
   - boot
 recipeList:
+  - org.openrewrite.java.spring.boot3.SpringBootProperties_3_4_EnabledToAccess
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.endpoints.enabled-by-default
+      newPropertyKey: management.endpoints.access.default
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.gson.lenient
+      newPropertyKey: spring.gson.strictness
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.kafka.retry.topic.delay
+      newPropertyKey: spring.kafka.retry.topic.backoff.delay
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.kafka.retry.topic.max-delay
+      newPropertyKey: spring.kafka.retry.topic.backoff.maxDelay
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.kafka.retry.topic.multiplier
+      newPropertyKey: spring.kafka.retry.topic.backoff.multiplier
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.kafka.retry.topic.random-back-off
+      newPropertyKey: spring.kafka.retry.topic.backoff.random
+
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.datasource.oracleucp.connection-wait-timeout
+      comment: "This property is deprecated and will be removed in future Spring Boot versions"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.flyway.clean-on-validation-error
+      comment: "This property is deprecated: Deprecated in Flyway 10.18"
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_4_EnabledToAccess
+displayName: Migrate Enabled to Access Spring Boot Properties
+description: Migrate properties found in `application.properties` and `application.yml`, specifically converting 'enabled' to 'access'
+tags:
+  - spring
+  - boot
+recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.endpoint.auditevents.enabled
       newPropertyKey: management.endpoint.auditevents.access
@@ -299,28 +334,3 @@ recipeList:
       propertyKey: management.endpoint.threaddump.access
       newValue: none
       oldValue: false
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.endpoints.enabled-by-default
-      newPropertyKey: management.endpoints.access.default
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.gson.lenient
-      newPropertyKey: spring.gson.strictness
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.kafka.retry.topic.delay
-      newPropertyKey: spring.kafka.retry.topic.backoff.delay
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.kafka.retry.topic.max-delay
-      newPropertyKey: spring.kafka.retry.topic.backoff.maxDelay
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.kafka.retry.topic.multiplier
-      newPropertyKey: spring.kafka.retry.topic.backoff.multiplier
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.kafka.retry.topic.random-back-off
-      newPropertyKey: spring.kafka.retry.topic.backoff.random
-
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.datasource.oracleucp.connection-wait-timeout
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.flyway.clean-on-validation-error
-      comment: "This property is deprecated: Deprecated in Flyway 10.18"
