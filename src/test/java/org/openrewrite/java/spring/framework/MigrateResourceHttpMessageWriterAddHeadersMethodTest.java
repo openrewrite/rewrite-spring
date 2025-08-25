@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -39,7 +38,6 @@ class MigrateResourceHttpMessageWriterAddHeadersMethodTest implements RewriteTes
 
     @DocumentExample
     @Test
-    @Disabled("This was removed as part of 5.0: https://github.com/spring-projects/spring-framework/commit/76fe5f6fce3a62b12537415e49d4c3ed17af9393")
     void migrateResourceHttpMessageWriterAddHeadersMethod() {
         rewriteRun(
           // language=java
