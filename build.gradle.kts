@@ -6,7 +6,7 @@ plugins {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0", "3_2", "3_3", "3_4", "3_5")
+val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0", "3_2", "3_3", "3_4")
 val springSecurityVersions: List<String> = listOf("5_7", "5_8", "6_2")
 
 val sourceSetNames: Map<String, List<String>> = mapOf(
