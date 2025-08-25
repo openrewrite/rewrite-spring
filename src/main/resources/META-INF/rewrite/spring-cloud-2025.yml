@@ -16,7 +16,7 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.cloud2024.UpgradeSpringCloud_2025
+name: org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025
 displayName: Migrate to Spring Cloud 2025
 description: Migrate applications to the latest Spring Cloud 2025 (Northfields) release.
 tags:

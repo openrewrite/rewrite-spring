@@ -27,7 +27,7 @@ tags:
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_5
-  - org.openrewrite.java.spring.cloud2024.UpgradeSpringCloud_2025
+  - org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
