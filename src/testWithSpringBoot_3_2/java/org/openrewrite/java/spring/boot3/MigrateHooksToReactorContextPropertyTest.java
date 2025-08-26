@@ -23,7 +23,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.properties.Assertions.properties;
 
-public class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
+class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

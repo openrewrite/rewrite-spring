@@ -108,13 +108,12 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<AtomicB
 
     private static class HooksRemovalVisitor extends JavaIsoVisitor<ExecutionContext> {
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+        public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
 
             // Only remove if we're in a @SpringBootApplication class
             if (HOOKS_MATCHER.matches(mi)) {
                 maybeRemoveImport(HOOKS_TYPE);
-
                 return null;
             }
 
