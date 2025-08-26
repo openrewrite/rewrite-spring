@@ -15,14 +15,8 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.jspecify.annotations.Nullable;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.ScanningRecipe;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
@@ -31,98 +25,100 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static org.openrewrite.Preconditions.and;
 
 public class MigrateHooksToReactorContextProperty extends ScanningRecipe<AtomicBoolean> {
-	@Override
-	public String getDisplayName() {
-		return "Use `spring.reactor.context-propagation` property";
-	}
+    @Override
+    public String getDisplayName() {
+        return "Use `spring.reactor.context-propagation` property";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Replace `Hooks.enableAutomaticContextPropagation()` with `spring.reactor.context-propagation=true`.";
-	}
+    @Override
+    public String getDescription() {
+        return "Replace `Hooks.enableAutomaticContextPropagation()` with `spring.reactor.context-propagation=true`.";
+    }
 
-	@Override
-	public AtomicBoolean getInitialValue(ExecutionContext ctx) {
-		return new AtomicBoolean(false);
-	}
+    @Override
+    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
+        return new AtomicBoolean(false);
+    }
 
-	private static final String SPRING_BOOT_APPLICATION_FQN = "org.springframework.boot.autoconfigure.SpringBootApplication";
-	private static final String HOOKS_TYPE = "reactor.core.publisher.Hooks";
-	private static final MethodMatcher HOOKS_MATCHER = new MethodMatcher("reactor.core.publisher.Hooks enableAutomaticContextPropagation()");
+    private static final String SPRING_BOOT_APPLICATION_FQN = "org.springframework.boot.autoconfigure.SpringBootApplication";
+    private static final String HOOKS_TYPE = "reactor.core.publisher.Hooks";
+    private static final MethodMatcher HOOKS_MATCHER = new MethodMatcher("reactor.core.publisher.Hooks enableAutomaticContextPropagation()");
 
-	@Override
-	public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean foundHooksInSpringApp) {
-		return Preconditions.check(
-			and(
-				new UsesType<>(SPRING_BOOT_APPLICATION_FQN, true),
-				new UsesType<>(HOOKS_TYPE, true)
-			),
-			new JavaIsoVisitor<ExecutionContext>() {
-				@Override
-				public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-					J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean foundHooksInSpringApp) {
+        return Preconditions.check(
+                and(
+                        new UsesType<>(SPRING_BOOT_APPLICATION_FQN, true),
+                        new UsesType<>(HOOKS_TYPE, true)
+                ),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
 
-					if (HOOKS_MATCHER.matches(mi)) {
-						foundHooksInSpringApp.set(true);
-					}
+                        if (HOOKS_MATCHER.matches(mi)) {
+                            foundHooksInSpringApp.set(true);
+                        }
 
-					return mi;
-				}
-			}
-		);
-	}
+                        return mi;
+                    }
+                }
+        );
+    }
 
-	@Override
-	public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean foundHooksInSpringApp) {
-		if (!foundHooksInSpringApp.get()) {
-			return TreeVisitor.noop();
-		}
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean foundHooksInSpringApp) {
+        if (!foundHooksInSpringApp.get()) {
+            return TreeVisitor.noop();
+        }
 
-		return new TreeVisitor<Tree, ExecutionContext>() {
-			@Override
-			public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-				if (tree instanceof J.CompilationUnit) {
-					return new HooksRemovalVisitor().visitNonNull(tree, ctx);
-				}
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof J.CompilationUnit) {
+                    return new HooksRemovalVisitor().visitNonNull(tree, ctx);
+                }
 
-				if (isApplicationProperties(tree)) {
-					return addSpringProperty(ctx, tree, "spring.reactor.context-propagation", "true");
-				}
+                if (isApplicationProperties(tree)) {
+                    return addSpringProperty(ctx, tree, "spring.reactor.context-propagation", "true");
+                }
 
-				return tree;
-			}
-		};
-	}
+                return tree;
+            }
+        };
+    }
 
-	private static boolean isApplicationProperties(@Nullable Tree tree) {
-		return (tree instanceof Properties.File &&
-			"application.properties".equals(((Properties.File)tree).getSourcePath().getFileName().toString())) ||
-			(tree instanceof Yaml.Documents &&
-				((Yaml.Documents)tree).getSourcePath().getFileName().toString().matches("application\\.ya*ml"));
-	}
+    private static boolean isApplicationProperties(@Nullable Tree tree) {
+        return (tree instanceof Properties.File &&
+                "application.properties".equals(((Properties.File) tree).getSourcePath().getFileName().toString())) ||
+                (tree instanceof Yaml.Documents &&
+                        ((Yaml.Documents) tree).getSourcePath().getFileName().toString().matches("application\\.ya*ml"));
+    }
 
-	private static Tree addSpringProperty(ExecutionContext ctx, Tree properties, String property, String value) {
-		return new AddSpringProperty(property, value, null, null)
-			.getVisitor()
-			.visitNonNull(properties, ctx);
-	}
+    private static Tree addSpringProperty(ExecutionContext ctx, Tree properties, String property, String value) {
+        return new AddSpringProperty(property, value, null, null)
+                .getVisitor()
+                .visitNonNull(properties, ctx);
+    }
 
-	private static class HooksRemovalVisitor extends JavaIsoVisitor<ExecutionContext> {
-		@Override
-		public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-			J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+    private static class HooksRemovalVisitor extends JavaIsoVisitor<ExecutionContext> {
+        @Override
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
 
-			// Only remove if we're in a @SpringBootApplication class
-			if (HOOKS_MATCHER.matches(mi)) {
-				maybeRemoveImport(HOOKS_TYPE);
+            // Only remove if we're in a @SpringBootApplication class
+            if (HOOKS_MATCHER.matches(mi)) {
+                maybeRemoveImport(HOOKS_TYPE);
 
-				return null;
-			}
+                return null;
+            }
 
-			return mi;
-		}
-	}
+            return mi;
+        }
+    }
 }
