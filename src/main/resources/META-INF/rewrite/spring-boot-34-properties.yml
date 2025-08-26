@@ -26,17 +26,6 @@ tags:
 recipeList:
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_4_EnabledToAccess
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.endpoints.enabled-by-default
-      newPropertyKey: management.endpoints.access.default
-  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
-      propertyKey: management.endpoints.access.default
-      newValue: read-only
-      oldValue: true
-  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
-      propertyKey: management.endpoints.access.default
-      newValue: none
-      oldValue: false
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.gson.lenient
       newPropertyKey: spring.gson.strictness
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -67,6 +56,17 @@ tags:
   - spring
   - boot
 recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.endpoints.enabled-by-default
+      newPropertyKey: management.endpoints.access.default
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
+      propertyKey: management.endpoints.access.default
+      newValue: read-only
+      oldValue: true
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
+      propertyKey: management.endpoints.access.default
+      newValue: none
+      oldValue: false
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.endpoint.auditevents.enabled
       newPropertyKey: management.endpoint.auditevents.access
