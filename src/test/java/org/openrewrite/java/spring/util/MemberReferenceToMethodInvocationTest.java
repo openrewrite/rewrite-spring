@@ -62,4 +62,60 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void methodReferenceWithoutArguments() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.Optional;
+
+              class A {
+                  void test() {
+                      byte[] result = Optional.of("Test").map(String::getBytes).orElse(null);
+                  }
+              }
+              """,
+            """
+              import java.util.Optional;
+
+              class A {
+                  void test() {
+                      byte[] result = Optional.of("Test").map((String string) -> string.getBytes()).orElse(null);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void thisMethodReferenceWithoutArguments() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.Optional;
+              import java.util.function.Supplier;
+
+              class A {
+                  public Supplier<String> getString() {
+                      return super::toString;
+                  }
+              }
+              """,
+            """
+              import java.util.Optional;
+              import java.util.function.Supplier;
+
+              class A {
+                  public Supplier<String> getString() {
+                      return () -> super.toString();
+                  }
+              }
+              """
+          )
+        );
+    }
 }
