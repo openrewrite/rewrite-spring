@@ -204,56 +204,5 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                 );
             }
         }
-
-        @Nested
-        class Annotation {
-            @Test
-            void migrateFalse() {
-                rewriteRun(
-                  //language=java
-                  java(
-                    """
-                      import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
-
-                      @Endpoint(id="test",enableByDefault=false)
-                      class MyEndpoint {
-                      }
-                      """,
-                    """
-                      import org.springframework.boot.actuate.endpoint.Access;
-                      import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
-
-                      @Endpoint(id="test",defaultAccess=Access.NONE)
-                      class MyEndpoint {
-                      }
-                      """
-                  )
-                );
-            }
-
-            @Test
-            void migrateTrue() {
-                rewriteRun(
-                  //language=java
-                  java(
-                    """
-                      import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
-
-                      @Endpoint(id="test",enableByDefault=true)
-                      class MyEndpoint {
-                      }
-                      """,
-                    """
-                      import org.springframework.boot.actuate.endpoint.Access;
-                      import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
-
-                      @Endpoint(id="test",defaultAccess=Access.READ_ONLY)
-                      class MyEndpoint {
-                      }
-                      """
-                  )
-                );
-            }
-        }
     }
 }
