@@ -271,6 +271,10 @@ dependencies {
     "testWithSpringBoot_3_2RuntimeOnly"("org.springframework.boot:spring-boot-starter-test:3.2.+")
 
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.boot:spring-boot:3.4.+")
+    "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.boot:spring-boot-starter-actuator:3.4.+") {
+        exclude(group = "com.fasterxml.jackson.core", module = "*")
+        exclude(group = "com.fasterxml.jackson.datatype", module = "*")
+    }
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-context:6.2.+")
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework:spring-web:6.2.+")
     "testWithSpringBoot_3_4RuntimeOnly"("org.springframework.data:spring-data-jpa:3.4.7")
