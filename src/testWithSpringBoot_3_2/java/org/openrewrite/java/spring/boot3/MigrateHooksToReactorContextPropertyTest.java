@@ -24,18 +24,18 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.properties.Assertions.properties;
 
-public class UseReactorContextPropagationTest implements RewriteTest {
+public class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new UseReactorContextPropagation());
+        spec.recipe(new MigrateHooksToReactorContextProperty());
     }
 
     @DocumentExample
     @Test
     void replaceMethodCallWithProperty() {
         rewriteRun(
-          spec -> spec.recipe(new UseReactorContextPropagation()),
+          spec -> spec.recipe(new MigrateHooksToReactorContextProperty()),
           java(
             """
               package org.springframework.boot.autoconfigure;
