@@ -91,7 +91,7 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
     }
 
     @Test
-    void thisMethodReferenceWithoutArguments() {
+    void superMethodReferenceWithoutArguments() {
         //language=java
         rewriteRun(
           java(
