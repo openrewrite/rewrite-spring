@@ -16,6 +16,8 @@
 package org.openrewrite.java.spring.util;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -90,8 +92,9 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
         );
     }
 
-    @Test
-    void superMethodReferenceWithoutArguments() {
+    @ParameterizedTest
+    @ValueSource(strings = {"this", "super"})
+    void superMethodReferenceWithoutArguments(String qualifier) {
         //language=java
         rewriteRun(
           java(
@@ -101,20 +104,20 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
 
               class A {
                   public Supplier<String> getString() {
-                      return super::toString;
+                      return %s::toString;
                   }
               }
-              """,
+              """.formatted(qualifier),
             """
               import java.util.Optional;
               import java.util.function.Supplier;
 
               class A {
                   public Supplier<String> getString() {
-                      return () -> super.toString();
+                      return () -> %s.toString();
                   }
               }
-              """
+              """.formatted(qualifier)
           )
         );
     }
