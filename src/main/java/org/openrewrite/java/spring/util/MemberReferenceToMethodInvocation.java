@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.util;
 
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.VariableNameUtils;
@@ -37,11 +38,23 @@ public class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionCont
         }
 
         List<Param> args = getLambdaArgNames(mr.getMethodType());
-        String templateCode = String.format("(%s) -> %s.%s(%s)",
-                args.stream().map(Param::toString).collect(joining(", ")),
-                mr.getContaining(),
-                mr.getReference().getSimpleName(),
-                args.stream().map(Param::getName).collect(joining(", ")));
+        String templateCode;
+        if (!mr.getMethodType().getParameterTypes().isEmpty()) {
+            templateCode = String.format("(%s) -> %s.%s(%s)",
+                    args.stream().map(Param::toString).collect(joining(", ")),
+                    mr.getContaining(),
+                    mr.getReference().getSimpleName(),
+                    args.stream().map(Param::getName).collect(joining(", ")));
+        } else if (mr.getContaining() instanceof J.Identifier && ("this".equals(((J.Identifier) mr.getContaining()).getSimpleName()) || "super".equals(((J.Identifier) mr.getContaining()).getSimpleName()))) {
+            templateCode = String.format("() -> %s.%s()",
+                    mr.getContaining(),
+                    mr.getReference().getSimpleName());
+        } else {
+            templateCode = String.format("(%s) -> %s.%s()",
+                    args.stream().map(Param::toString).collect(joining(", ")),
+                    args.get(0).getName(),
+                    mr.getReference().getSimpleName());
+        }
         return JavaTemplate.builder(templateCode)
                 .contextSensitive()
                 .build().apply(getCursor(), mr.getCoordinates().replace())
@@ -58,6 +71,12 @@ public class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionCont
                 name = typeString.substring(typeString.lastIndexOf('.') + 1).toLowerCase();
             }
             String uniqueVariableName = VariableNameUtils.generateVariableName(name, getCursor(), VariableNameUtils.GenerationStrategy.INCREMENT_NUMBER);
+
+            params.add(new Param(type, uniqueVariableName));
+        }
+        if (params.isEmpty()) {
+            JavaType.FullyQualified type = methodType.getDeclaringType();
+            String uniqueVariableName = VariableNameUtils.generateVariableName(StringUtils.uncapitalize(type.getClassName()), getCursor(), VariableNameUtils.GenerationStrategy.INCREMENT_NUMBER);
 
             params.add(new Param(type, uniqueVariableName));
         }
