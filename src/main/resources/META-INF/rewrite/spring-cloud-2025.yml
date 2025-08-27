@@ -1,0 +1,126 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025
+displayName: Migrate to Spring Cloud 2025
+description: Migrate applications to the latest Spring Cloud 2025 (Northfields) release.
+tags:
+  - spring
+  - cloud
+recipeList:
+  - org.openrewrite.java.spring.cloud2024.UpgradeSpringCloud_2024
+  - org.openrewrite.java.spring.cloud2025.DependencyUpgrades
+  - org.openrewrite.java.spring.cloud2025.UpdateGatewayForSpringCloud_2025
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.cloud2025.DependencyUpgrades
+displayName: Upgrade dependencies to Spring Cloud 2025
+description: Upgrade dependencies to Spring Cloud 2025 from prior 2024.x version.
+tags:
+  - spring
+  - cloud
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: "*"
+      newVersion: 4.3.x
+      overrideManagedVersion: false
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-parent
+      newVersion: 2025.0.x
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-dependencies
+      newVersion: 2025.0.x
+      overrideManagedVersion: false
+
+  # circuitbreaker, kubernetes & task follow a different versioning scheme
+  # https://docs.spring.io/spring-cloud-release/reference/2025.0/
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-circuitbreaker-*
+      newVersion: 3.3.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-circuitbreaker-*
+      newVersion: 3.3.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-kubernetes-*
+      newVersion: 3.3.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-kubernetes-*
+      newVersion: 3.3.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-task-*
+      newVersion: 3.3.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-task-*
+      newVersion: 3.3.x
+      overrideManagedVersion: false
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.cloud2025.UpdateGatewayForSpringCloud_2025
+displayName: Upgrade to Sky framework 3.5.x Update Gateway Dependency Coordinates
+description: Update the Gateway artifact ID for Spring Cloud 2025 compatibility.
+tags:
+  - spring
+  - cloud
+  - gateway
+recipeList:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-gateway-server
+      newGroupId: org.springframework.cloud
+      newArtifactId: spring-cloud-gateway-server-webflux
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-starter-gateway
+      newGroupId: org.springframework.cloud
+      newArtifactId: spring-cloud-starter-gateway-server-webflux
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-gateway-server-mvc
+      newGroupId: org.springframework.cloud
+      newArtifactId: spring-cloud-gateway-server-webmvc
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-starter-gateway-mvc
+      newGroupId: org.springframework.cloud
+      newArtifactId: spring-cloud-starter-gateway-server-webmvc
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-gateway-webflux
+      newGroupId: org.springframework.cloud
+      newArtifactId: spring-cloud-gateway-proxyexchange-webflux
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-gateway-mvc
+      newGroupId: org.springframework.cloud
+      newArtifactId: spring-cloud-gateway-proxyexchange-webmvc
