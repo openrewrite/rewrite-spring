@@ -60,7 +60,7 @@ class MigrateDatabaseCredentialsForToolYaml extends Recipe {
             public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
                 doAfterVisit(new MergeYaml("$.spring." + tool, "username: ${spring.datasource.username}", true, null, null, null, null, null).getVisitor());
                 doAfterVisit(new MergeYaml("$.spring." + tool, "password: ${spring.datasource.password}", true, null, null, null, null, null).getVisitor());
-                doAfterVisit(new CoalesceProperties().getVisitor());
+                doAfterVisit(new CoalesceProperties(null, null).getVisitor());
                 return documents;
             }
         });
