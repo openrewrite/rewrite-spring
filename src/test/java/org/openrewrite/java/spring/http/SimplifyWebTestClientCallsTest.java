@@ -40,63 +40,7 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6", "spring-test-6"));
     }
 
-    @CsvSource({
-      "200,isOk()",
-      "201,isCreated()",
-      "202,isAccepted()",
-      "204,isNoContent()",
-      "302,isFound()",
-      "303,isSeeOther()",
-      "304,isNotModified()",
-      "307,isTemporaryRedirect()",
-      "308,isPermanentRedirect()",
-      "400,isBadRequest()",
-      "401,isUnauthorized()",
-      "403,isForbidden()",
-      "404,isNotFound()"
-    })
     @DocumentExample
-    @ParameterizedTest
-    void replacesAllIntStatusCodes(String httpStatus, String method) {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.test.web.reactive.server.WebTestClient;
-
-              class Test {
-                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
-                  void someMethod() {
-                    webClient
-                        .post()
-                        .uri("/some/url")
-                        .bodyValue("someValue")
-                        .exchange()
-                        .expectStatus()
-                        .isEqualTo(%s);
-                  }
-              }
-              """.formatted(httpStatus),
-            """
-              import org.springframework.test.web.reactive.server.WebTestClient;
-
-              class Test {
-                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
-                  void someMethod() {
-                    webClient
-                        .post()
-                        .uri("/some/url")
-                        .bodyValue("someValue")
-                        .exchange()
-                        .expectStatus()
-                        .%s;
-                  }
-              }
-              """.formatted(method)
-          )
-        );
-    }
-
     @Test
     void replaceKotlinInt() {
         rewriteRun(
@@ -134,6 +78,62 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @CsvSource({
+      "200,isOk()",
+      "201,isCreated()",
+      "202,isAccepted()",
+      "204,isNoContent()",
+      "302,isFound()",
+      "303,isSeeOther()",
+      "304,isNotModified()",
+      "307,isTemporaryRedirect()",
+      "308,isPermanentRedirect()",
+      "400,isBadRequest()",
+      "401,isUnauthorized()",
+      "403,isForbidden()",
+      "404,isNotFound()"
+    })
+    @ParameterizedTest
+    void replacesAllIntStatusCodes(String httpStatus, String method) {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient;
+
+              class Test {
+                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
+                  void someMethod() {
+                    webClient
+                        .post()
+                        .uri("/some/url")
+                        .bodyValue("someValue")
+                        .exchange()
+                        .expectStatus()
+                        .isEqualTo(%s);
+                  }
+              }
+              """.formatted(httpStatus),
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient;
+
+              class Test {
+                  private final WebTestClient webClient = WebTestClient.bindToServer().build();
+                  void someMethod() {
+                    webClient
+                        .post()
+                        .uri("/some/url")
+                        .bodyValue("someValue")
+                        .exchange()
+                        .expectStatus()
+                        .%s;
+                  }
+              }
+              """.formatted(method)
           )
         );
     }

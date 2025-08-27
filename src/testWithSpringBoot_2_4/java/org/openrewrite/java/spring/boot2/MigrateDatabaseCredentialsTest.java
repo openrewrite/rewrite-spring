@@ -27,7 +27,7 @@ class MigrateDatabaseCredentialsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateDatabaseCredentials());
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.MigrateDatabaseCredentials");
     }
 
     @DocumentExample

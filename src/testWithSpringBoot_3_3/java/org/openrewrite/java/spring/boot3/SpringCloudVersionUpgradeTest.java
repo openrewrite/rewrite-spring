@@ -77,8 +77,9 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
                 </project>
                 """,
               spec -> spec.after(actual -> {
-                  assertThat(actual).containsPattern("<version>3.3.\\d+</version>");
-                  assertThat(actual).containsPattern("<spring-cloud.version>2023.0.\\d+</spring-cloud.version>");
+                  assertThat(actual)
+                          .containsPattern("<version>3.3.\\d+</version>")
+                          .containsPattern("<spring-cloud.version>2023.0.\\d+</spring-cloud.version>");
                   return actual;
               })
             )

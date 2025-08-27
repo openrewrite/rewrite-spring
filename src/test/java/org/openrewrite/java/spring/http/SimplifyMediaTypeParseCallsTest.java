@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.http;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -33,7 +32,6 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.+", "spring-core-6.+"));
     }
 
-    @DocumentExample
     @ParameterizedTest
     @ValueSource(strings = {
       "ALL_VALUE",

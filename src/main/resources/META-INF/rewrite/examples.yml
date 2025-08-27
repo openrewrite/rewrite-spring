@@ -901,6 +901,8 @@ examples:
           }
       }
     language: java
+  - before: project-maven
+    language: mavenProject
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.GetErrorAttributes
@@ -3413,6 +3415,43 @@ examples:
           }
       }
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.http.SimplifyWebTestClientCalls
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.test.web.reactive.server.WebTestClient
+
+      class Test {
+          val webClient: WebTestClient = WebTestClient.bindToServer().build()
+          fun someMethod() {
+            webClient
+                .post()
+                .uri("/some/url")
+                .bodyValue("someValue")
+                .exchange()
+                .expectStatus()
+                .isEqualTo(200)
+          }
+      }
+    after: |
+      import org.springframework.test.web.reactive.server.WebTestClient
+
+      class Test {
+          val webClient: WebTestClient = WebTestClient.bindToServer().build()
+          fun someMethod() {
+            webClient
+                .post()
+                .uri("/some/url")
+                .bodyValue("someValue")
+                .exchange()
+                .expectStatus()
+                .isOk()
+          }
+      }
+    language: kotlin
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.kafka.KafkaTestUtilsDuration

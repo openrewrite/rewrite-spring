@@ -52,6 +52,7 @@ tags:
   - boot
 recipeList:
   # These steps go above & beyond what's needed for a pure upgrade, and are not be included with 3.x upgrades themselves
+  - org.openrewrite.java.spring.PropertiesToKebabCase
   - org.openrewrite.java.spring.boot3.EnableVirtualThreads
   - org.openrewrite.java.spring.framework.BeanMethodsNotPublic # Intentionally not in 2.x
   # Replace literals with constants and simplify MediaType parse calls

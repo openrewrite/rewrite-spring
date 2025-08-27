@@ -34,7 +34,7 @@ public class MigrateQueryToNativeQuery extends Recipe {
 
     private static final String DATA_JPA_QUERY_FQN = "org.springframework.data.jpa.repository.Query";
     private static final String DATA_JPA_NATIVE_QUERY_FQN = "org.springframework.data.jpa.repository.NativeQuery";
-    private static final Annotated.Matcher MATCHER = new Annotated.Matcher("@" + DATA_JPA_QUERY_FQN + "(nativeQuery = true)");
+    private static final Annotated.Matcher MATCHER = new Annotated.Matcher("@" + DATA_JPA_QUERY_FQN + "(nativeQuery=true)");
 
     @Override
     public String getDisplayName() {
