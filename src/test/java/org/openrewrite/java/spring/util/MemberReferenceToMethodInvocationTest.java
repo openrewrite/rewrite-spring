@@ -32,7 +32,7 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(toRecipe(MemberReferenceToMethodInvocation::new))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6", "spring-boot-autoconfigure-3.+"));
     }
 
     @DocumentExample
@@ -84,7 +84,7 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
 
               class A {
                   void test() {
-                      byte[] result = Optional.of("Test").map((String string) -> string.getBytes()).orElse(null);
+                      byte[] result = Optional.of("Test").map(string -> string.getBytes()).orElse(null);
                   }
               }
               """
@@ -118,6 +118,41 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
                   }
               }
               """.formatted(qualifier)
+          )
+        );
+    }
+
+    @Test
+    void typesArePresent() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.boot.autoconfigure.kafka.KafkaConnectionDetails;
+              import java.util.List;
+              import java.util.Optional;
+
+              public class KafkaConfig {
+                  public List<String> getProducerServers(KafkaConnectionDetails connectionDetails) {
+                      return Optional.ofNullable(connectionDetails)
+                          .map(KafkaConnectionDetails::getProducerBootstrapServers)
+                          .orElse(null);
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.kafka.KafkaConnectionDetails;
+              import java.util.List;
+              import java.util.Optional;
+
+              public class KafkaConfig {
+                  public List<String> getProducerServers(KafkaConnectionDetails connectionDetails) {
+                      return Optional.ofNullable(connectionDetails)
+                          .map(details -> details.getProducerBootstrapServers())
+                          .orElse(null);
+                  }
+              }
+              """
           )
         );
     }
