@@ -20,6 +20,7 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.trait.MethodAccess;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.MethodCall;
 
