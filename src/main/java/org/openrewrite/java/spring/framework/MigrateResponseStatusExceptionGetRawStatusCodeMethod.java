@@ -20,7 +20,7 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.trait.Traits;
+import org.openrewrite.java.trait.MethodAccess;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.MethodCall;
 
@@ -37,7 +37,7 @@ public class MigrateResponseStatusExceptionGetRawStatusCodeMethod extends Recipe
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Traits.methodAccess("org.springframework.web.server.ResponseStatusException getRawStatusCode()")
+        return new MethodAccess.Matcher("org.springframework.web.server.ResponseStatusException getRawStatusCode()")
                 .asVisitor((mc, ctx) -> {
                     MethodCall tree = mc.getTree();
                     if (tree instanceof J.MethodInvocation) {
