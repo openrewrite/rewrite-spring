@@ -38,8 +38,8 @@ class UpgradeSpringCloud2025Test implements RewriteTest {
     void renameProperty() {
         rewriteRun(
           mavenProject("project",
-            //language=xml
             pomXml(
+              //language=xml
               """
                 <project>
                     <modelVersion>4.0.0</modelVersion>
@@ -55,14 +55,16 @@ class UpgradeSpringCloud2025Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(pom -> pom)
+              spec -> spec.after(pom -> assertThat(pom)
+                .containsPattern("4\\.3\\.\\d+")
+                .actual())
             ),
             srcMainResources(
               //language=properties
               properties(
                 "spring.cloud.gateway.proxy=foo",
                 "spring.cloud.gateway.proxy-exchange.webflux=foo",
-                spec ->spec.path("application.properties")
+                spec -> spec.path("application.properties")
               )
             )
           )
