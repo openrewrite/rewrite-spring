@@ -205,6 +205,3 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
       newPropertyKey: spring.cloud.gateway.proxy-exchange-webmvc
-
-
-

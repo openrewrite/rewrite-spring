@@ -16,14 +16,46 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
+import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.maven.Assertions.pomXml;
 
 class UpgradeSpringBoot_3_5Test implements RewriteTest {
 
+    @Override
+    public void defaults(RecipeSpec spec) {
+        spec.recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5");
+    }
+
+    @DocumentExample
     @Test
-    void loadRecipeYamlToTriggerValidation() {
+    void upgradeVersion() {
         rewriteRun(
-          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5")
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>fooservice</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.4.9</version>
+                        <relativePath/>
+                    </parent>
+                </project>
+                """,
+              spec -> spec.after(actual ->
+                assertThat(actual).containsPattern("<version>3.5.\\d+</version>").actual())
+            )
+          )
         );
     }
 }
