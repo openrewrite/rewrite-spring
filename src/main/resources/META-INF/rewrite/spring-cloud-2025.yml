@@ -97,27 +97,27 @@ tags:
   - spring
   - cloud
 recipeList:
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-gateway-server
       newArtifactId: spring-cloud-gateway-server-webflux
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-gateway-server-mvc
       newArtifactId: spring-cloud-gateway-server-webmvc
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-starter-gateway-server
       newArtifactId: spring-cloud-starter-gateway-server-webflux
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-starter-gateway-server-mvc
       newArtifactId: spring-cloud-starter-gateway-server-webmvc
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-gateway-mvc
       newArtifactId: spring-cloud-gateway-proxyexchange-webmvc
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-gateway-webflux
       newArtifactId: spring-cloud-gateway-proxyexchange-webflux
@@ -147,9 +147,9 @@ tags:
   - spring
   - cloud
 preconditions:
-  - org.openrewrite.maven.search.FindDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-gateway-webflux
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.cloud
+      artifactIdPattern: spring-cloud-gateway-webflux
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
@@ -164,9 +164,9 @@ tags:
   - spring
   - cloud
 preconditions:
-  - org.openrewrite.maven.search.FindDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-gateway-proxyexchange-webflux
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.cloud
+      artifactIdPattern: spring-cloud-gateway-proxyexchange-webflux
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
@@ -181,9 +181,9 @@ tags:
   - spring
   - cloud
 preconditions:
-  - org.openrewrite.maven.search.FindDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-gateway-mvc
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.cloud
+      artifactIdPattern: spring-cloud-gateway-mvc
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
@@ -198,9 +198,9 @@ tags:
   - spring
   - cloud
 preconditions:
-  - org.openrewrite.maven.search.FindDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-gateway-proxyexchange-webmvc
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.cloud
+      artifactIdPattern: spring-cloud-gateway-proxyexchange-webmvc
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
