@@ -134,6 +134,7 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway
       newPropertyKey: spring.cloud.gateway.server.webflux
+      except: ["proxy"]
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.mvc
       newPropertyKey: spring.cloud.gateway.server.webmvc
