@@ -117,7 +117,6 @@ class UpdateGradleTest implements RewriteTest {
                   return after + "\n";
               }).afterRecipe(gradlew -> {
                   assertThat(gradlew.getFileAttributes())
-                    .isNotNull()
                     .matches(FileAttributes::isReadable);
                   assertThat(gradlew.getFileAttributes().isExecutable()).isTrue();
               })
@@ -208,7 +207,7 @@ class UpdateGradleTest implements RewriteTest {
                   assertThat(after).isNotBlank();
                   return after + "\n";
               }).afterRecipe(gradlew -> {
-                  assertThat(gradlew.getFileAttributes()).isNotNull()
+                  assertThat(gradlew.getFileAttributes())
                       .matches(FileAttributes::isReadable);
                   assertThat(gradlew.getFileAttributes().isExecutable()).isTrue();
               })
