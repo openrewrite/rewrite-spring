@@ -84,8 +84,8 @@ public class MigrateStepBuilderFactory extends Recipe {
         public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
             // Add JobRepository parameter to method if StepBuilderFactory.get(..) is used further down
             if (!FindMethods.find(md, STEP_BUILDER_FACTORY_GET).isEmpty()) {
-                List<Object> params = md.getParameters().stream()
-                        .filter(j -> !(j instanceof J.Empty) && !isJobBuilderFactoryParameter(j))
+                List<Statement> params = md.getParameters().stream()
+                        .filter(j -> !(j instanceof J.Empty) && !isStepBuilderFactoryParameter(j))
                         .collect(toList());
 
                 if (params.isEmpty() && md.isConstructor()) {
@@ -95,7 +95,7 @@ public class MigrateStepBuilderFactory extends Recipe {
 
                 if (md.getParameters().stream().noneMatch(this::isJobRepositoryParameter) && !md.isConstructor()) {
                     maybeAddImport("org.springframework.batch.core.repository.JobRepository");
-                    boolean parametersEmpty = md.getParameters().isEmpty() || md.getParameters().get(0) instanceof J.Empty;
+                    boolean parametersEmpty = params.isEmpty() || params.get(0) instanceof J.Empty;
                     J.VariableDeclarations vdd = JavaTemplate.builder("JobRepository jobRepository")
                             .contextSensitive()
                             .imports("org.springframework.batch.core.repository.JobRepository")
@@ -108,7 +108,7 @@ public class MigrateStepBuilderFactory extends Recipe {
                                 .withMethodType(md.getMethodType()
                                         .withParameterTypes(singletonList(vdd.getType())));
                     } else {
-                        md = md.withParameters(ListUtils.concat(md.getParameters(), vdd))
+                        md = md.withParameters(ListUtils.concat(params, vdd))
                                 .withMethodType(md.getMethodType()
                                         .withParameterTypes(ListUtils.concat(md.getMethodType().getParameterTypes(), vdd.getType())));
                     }
@@ -124,7 +124,7 @@ public class MigrateStepBuilderFactory extends Recipe {
                            "org.springframework.batch.core.repository.JobRepository");
         }
 
-        private boolean isJobBuilderFactoryParameter(Statement statement) {
+        private boolean isStepBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
                            "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");

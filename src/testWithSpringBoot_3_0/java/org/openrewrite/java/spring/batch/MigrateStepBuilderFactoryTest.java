@@ -85,6 +85,48 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
     }
 
     @Test
+    void replaceMethodInjectedStepBuilderFactoryWithTasklet() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Step myStep(StepBuilderFactory stepBuilderFactory, Tasklet myTasklet, StepBuilderFactory anotherFactory) {
+                      return stepBuilderFactory.get("myStep")
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Step myStep( Tasklet myTasklet, JobRepository jobRepository) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void replaceStepBuilderFactoryWithChunk() {
         // language=java
         rewriteRun(
