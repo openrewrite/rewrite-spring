@@ -3021,6 +3021,29 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.MigrateClientHttpResponseGetRawStatusCodeMethod
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.http.client.ClientHttpResponse;
+
+      class A {
+          public int someMethod(ClientHttpResponse response) {
+              return response.getRawStatusCode();
+          }
+      }
+    after: |
+      import org.springframework.http.client.ClientHttpResponse;
+
+      class A {
+          public int someMethod(ClientHttpResponse response) {
+              return response.getStatusCode().value();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateHandlerInterceptor
 examples:
 - description: ''
