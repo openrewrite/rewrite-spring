@@ -115,7 +115,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
               class MyJobConfig {
 
                   @Bean
-                  Step myStep( Tasklet myTasklet, JobRepository jobRepository) {
+                  Step myStep(Tasklet myTasklet, JobRepository jobRepository) {
                       return new StepBuilder("myStep", jobRepository)
                               .tasklet(myTasklet)
                               .build();
