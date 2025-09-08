@@ -23,6 +23,7 @@ tags:
   - spring
   - cloud
 recipeList:
+  # Do not chain previous versions of Spring Cloud; leave inclusion up to Spring Boot migrations to avoid duplicates
   - org.openrewrite.java.spring.cloud2025.DependencyUpgrades
   - org.openrewrite.java.spring.cloud2025.SpringCloudGatewayDeprecatedModulesAndStarters
   - org.openrewrite.java.spring.cloud2025.SpringCloudGatewayProperties
