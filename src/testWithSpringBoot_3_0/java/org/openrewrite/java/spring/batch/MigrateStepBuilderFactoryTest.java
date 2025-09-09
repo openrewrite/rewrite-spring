@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -77,6 +78,33 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
                       return new StepBuilder("myStep", jobRepository)
                               .tasklet(myTasklet)
                               .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    // See https://github.com/openrewrite/rewrite/discussions/6016
+    void genericsTypeProblem() {
+        rewriteRun(
+          spec -> spec.recipe(new MigrateStepBuilderFactory())
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+              "spring-batch-core-5.1.+"
+            )),
+          java(
+            // language=java
+            """
+              import org.springframework.batch.core.step.builder.StepBuilder;
+
+              class MyConfig {
+
+                  void hello() {
+                      new StepBuilder("myStep")
+                              .startLimit(123)
+                              .chunk(123) // if you comment this line out, there is no type complaint
+                              ;
                   }
               }
               """
