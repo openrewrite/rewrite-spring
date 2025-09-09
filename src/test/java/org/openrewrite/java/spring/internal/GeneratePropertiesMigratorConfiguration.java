@@ -56,7 +56,7 @@ class GeneratePropertiesMigratorConfiguration {
         for (String version : latestPatchReleases) {
             Version semanticVersion = new Version(version);
             // We only need to scan one outdated version to prevent duplicate migration recipes
-            if (semanticVersion.compareTo(new Version("3.1")) < 0) {
+            if (semanticVersion.compareTo(new Version("3.3")) < 0) {
                 continue;
             }
             var versionDir = new File(releasesDir, version);
@@ -80,7 +80,7 @@ class GeneratePropertiesMigratorConfiguration {
                 continue;
             }
             var majorMinor = version.split("\\.");
-            if (semanticVersion.compareTo(new Version("3.2")) < 0) {
+            if (semanticVersion.compareTo(new Version("3.5")) < 0) {
                 // Don't override manual fixes to the unsupported 2.x and 3.0 versions anymore
                 continue;
             }
