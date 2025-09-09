@@ -123,10 +123,14 @@ class SpringBootReleases {
                             .matcher(new String(responseBody));
 
                     while (releaseMatcher.find()) {
-                        if ("..".equals(releaseMatcher.group(1))) {
+                        String release = releaseMatcher.group(1);
+                        if ("..".equals(release)) {
                             continue;
                         }
-                        releases.add(releaseMatcher.group(1));
+                        if ((release.contains("-RC") || release.contains("-M")) && !includeReleaseCandidates) {
+                            continue;
+                        }
+                        releases.add(release);
                     }
                 }
 
