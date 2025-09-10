@@ -20,8 +20,9 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.properties.Assertions.properties;
+import static org.openrewrite.yaml.Assertions.yaml;
 
 class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
 
@@ -86,6 +87,47 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
           properties(
             "",
             "spring.reactor.context-propagation=true",
+            spec -> spec.path("application.properties")
+          )
+        );
+    }
+
+    @Test
+    void shouldNotAddPropertyWhenNoHooksPresent() {
+        rewriteRun(
+          spec -> spec.recipe(new MigrateHooksToReactorContextProperty()),
+          java(
+            """
+              package org.springframework.boot.autoconfigure;
+              public @interface SpringBootApplication {}
+              """
+          ),
+          java(
+            """
+              package org.springframework.boot;
+              public class SpringApplication {
+                  public static void run(Class<?> cls, String[] args) {}
+              }
+              """
+          ),
+          java(
+            """
+              import org.springframework.boot.SpringApplication;
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication
+              public class MyApplication {
+                  public static void main(String[] args) {
+                      // No Hooks.enableAutomaticContextPropagation() here
+                      SpringApplication.run(MyApplication.class, args);
+                  }
+              }
+              """
+          ),
+          properties(
+            """
+              server.port=8080
+              """,
             spec -> spec.path("application.properties")
           )
         );
