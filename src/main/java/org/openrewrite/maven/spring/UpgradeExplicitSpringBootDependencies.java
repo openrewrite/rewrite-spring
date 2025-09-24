@@ -145,12 +145,6 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
     public Collection<? extends SourceFile> generate(Accumulator acc, Collection<SourceFile> generatedInThisCycle, ExecutionContext ctx) {
         List<MavenRepository> repositories = acc.getRepositories();
         repositories.add(MavenRepository.builder()
-                .id("repository.spring.milestone")
-                .uri("https://repo.spring.io/milestone")
-                .releases(true)
-                .snapshots(true)
-                .build());
-        repositories.add(MavenRepository.builder()
                 .id("spring-snapshot")
                 .uri("https://repo.spring.io/snapshot")
                 .releases(false)
