@@ -31,7 +31,7 @@ class MigrateLoggingSystemPropertyConstantsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateLoggingSystemPropertyConstants())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.4"));
     }
 
     @DocumentExample

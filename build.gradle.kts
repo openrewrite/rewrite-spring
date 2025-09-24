@@ -97,7 +97,6 @@ recipeDependencies {
     testParserClasspath("io.projectreactor:reactor-core:3.6.3")
     testParserClasspath("io.swagger.core.v3:swagger-models:2.+")
     testParserClasspath("jakarta.persistence:jakarta.persistence-api:2.2.3")
-    testParserClasspath("jakarta.servlet:jakarta.servlet-api:6.1.+")
     testParserClasspath("jakarta.validation:jakarta.validation-api:2.0.2")
     testParserClasspath("jakarta.validation:jakarta.validation-api:3.0.+")
     testParserClasspath("jakarta.xml.bind:jakarta.xml.bind-api:2.3.3")
@@ -111,6 +110,7 @@ recipeDependencies {
     testParserClasspath("org.jooq:jooq:3.14.15")
     testParserClasspath("org.mongodb:mongo-java-driver:3.12.+")
     testParserClasspath("org.springdoc:springdoc-openapi-common:1.+")
+    testParserClasspath("org.hibernate.validator:hibernate-validator:6.0.23.Final")
 
     testParserClasspath("org.springframework.batch:spring-batch-core:4.+")
     testParserClasspath("org.springframework.batch:spring-batch-core:5.+")
@@ -187,6 +187,7 @@ recipeDependencies {
     testParserClasspath("org.springframework:spring-messaging:5.3.39")
     testParserClasspath("org.springframework:spring-orm:5.3.+")
     testParserClasspath("org.springframework:spring-test:5.3.+")
+    testParserClasspath("org.springframework:spring-tx:4.1.+")
     testParserClasspath("org.springframework:spring-web:4.+")
     testParserClasspath("org.springframework:spring-web:5.1.+")
     testParserClasspath("org.springframework:spring-web:5.2.+")

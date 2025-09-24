@@ -32,7 +32,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot", "spring-boot-starter-actuator"))
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3"))
           .recipeFromResource(
             "/META-INF/rewrite/spring-boot-34-properties.yml",
             "org.openrewrite.java.spring.boot3.SpringBootProperties_3_4");

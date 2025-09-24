@@ -31,7 +31,12 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new RemoveSolrAutoConfigurationExclude())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-2.2",
+            "spring-security-core-5.1",
+            "spring-security-web-5.1",
+            "jakarta.servlet-api-6",
+            "spring-boot-autoconfigure-2.3"));
     }
 
     @DocumentExample
