@@ -29,7 +29,7 @@ class JobParameterToStringTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch-core-4.3.+", "spring-batch-infrastructure-4.3.+", "spring-beans-4.3.+"))
+            "spring-batch-core-4.3.+", "spring-batch-infrastructure-4.3.10", "spring-beans-4.3.+"))
           .recipe(new JobParameterToString());
     }
 
