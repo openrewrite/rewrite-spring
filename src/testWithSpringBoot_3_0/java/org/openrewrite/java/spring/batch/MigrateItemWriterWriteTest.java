@@ -33,7 +33,7 @@ class MigrateItemWriterWriteTest implements RewriteTest {
         spec.recipe(new MigrateItemWriterWrite())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-batch-core-4.3.+", "spring-batch-infrastructure-4.3.+", "spring-beans-4.3.30.RELEASE"));
+              "spring-batch-core-4.3.+", "spring-batch-infrastructure-4.3.10", "spring-beans-4.3.30.RELEASE"));
     }
 
     @DocumentExample

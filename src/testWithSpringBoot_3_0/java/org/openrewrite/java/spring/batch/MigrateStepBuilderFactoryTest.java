@@ -31,7 +31,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
         spec.recipe(new MigrateStepBuilderFactory())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-batch-core-4.3.+",
-            "spring-batch-infrastructure-4.3.+",
+            "spring-batch-infrastructure-4.3.10",
             "spring-beans-4.3.30.RELEASE",
             "spring-context-4.3.30.RELEASE"
           ));

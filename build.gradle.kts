@@ -134,11 +134,13 @@ recipeDependencies {
 
     testParserClasspath("io.projectreactor:reactor-core:3.6.3")
     testParserClasspath("org.apache.kafka:kafka-clients:3.2.3")
-    testParserClasspath("org.springframework.batch:spring-batch-infrastructure:4.3.10")
     testParserClasspath("org.springframework.cloud:spring-cloud-openfeign-core:4.1.0")
     testParserClasspath("org.springframework:spring-messaging:5.3.39")
     testParserClasspath("org.springframework:spring-web:6.1.8")
     testParserClasspath("org.springframework:spring-webflux:6.1.16")
+
+    // Only needed for `testWithSpringBoot_3_0`
+//    testParserClasspath("org.springframework.batch:spring-batch-infrastructure:4.3.10")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
