@@ -131,6 +131,14 @@ recipeDependencies {
     parserClasspath("io.micrometer:micrometer-commons:1.11.+")
     parserClasspath("io.micrometer:micrometer-core:1.11.+")
     parserClasspath("io.micrometer:micrometer-observation:1.11.+")
+
+    testParserClasspath("io.projectreactor:reactor-core:3.6.3")
+    testParserClasspath("org.apache.kafka:kafka-clients:3.2.3")
+    testParserClasspath("org.springframework.batch:spring-batch-infrastructure:4.3.10")
+    testParserClasspath("org.springframework.cloud:spring-cloud-openfeign-core:4.1.0")
+    testParserClasspath("org.springframework:spring-messaging:5.3.39")
+    testParserClasspath("org.springframework:spring-web:6.1.8")
+    testParserClasspath("org.springframework:spring-webflux:6.1.16")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
