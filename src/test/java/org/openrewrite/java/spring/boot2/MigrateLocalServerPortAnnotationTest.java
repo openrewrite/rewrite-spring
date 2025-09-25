@@ -29,7 +29,7 @@ class MigrateLocalServerPortAnnotationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateLocalServerPortAnnotation())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-1"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/116")
