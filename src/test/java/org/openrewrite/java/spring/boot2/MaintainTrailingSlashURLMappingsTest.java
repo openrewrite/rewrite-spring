@@ -31,7 +31,7 @@ class MaintainTrailingSlashURLMappingsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MaintainTrailingSlashURLMappings())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-webmvc", "spring-webflux", "spring-web", "spring-context"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-webmvc", "spring-webflux", "spring-web-5", "spring-context-5"));
     }
 
     @DocumentExample

@@ -31,7 +31,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MoveAutoConfigurationToImportsFile(false))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context-5"));
     }
 
     @DocumentExample
@@ -154,7 +154,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
     void preserveFactoriesFileWhenRequested() {
         rewriteRun(
             spec -> spec.recipe(new MoveAutoConfigurationToImportsFile(true))
-                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context")),
+                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context-5")),
           text(
             """
             org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
@@ -203,7 +203,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
     @Test
     void changeAnnotationsOnConfigurationClasses() {
         rewriteRun(
-          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context")),
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context-5")),
           text(
             """
               org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
@@ -254,7 +254,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
     @Test
     void dontChangeAnnotationsOnAutoConfigurationClasses() {
         rewriteRun(
-          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure", "spring-context")),
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure", "spring-context-5")),
           text(
             """
               org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\

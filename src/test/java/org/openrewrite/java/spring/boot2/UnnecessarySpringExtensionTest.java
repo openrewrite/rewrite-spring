@@ -36,7 +36,7 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UnnecessarySpringExtension())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-context", "spring-test", "spring-boot-test", "junit-jupiter-api", "spring-boot-test-autoconfigure", "spring-batch-test"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5", "spring-test", "spring-boot-test", "junit-jupiter-api", "spring-boot-test-autoconfigure", "spring-batch-test"));
     }
 
     @DocumentExample

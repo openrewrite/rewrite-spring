@@ -29,7 +29,7 @@ class AddSetUseTrailingSlashMatchTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-webmvc", "spring-webflux", "spring-web", "spring-context"))
+        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-webmvc", "spring-webflux", "spring-web-5", "spring-context-5"))
           .recipe(new AddSetUseTrailingSlashMatch());
     }
 

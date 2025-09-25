@@ -32,12 +32,12 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
         spec.recipe(new ConfigurationOverEnableSecurity(false))
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans",
-              "spring-context",
-              "spring-boot",
-              "spring-security",
-              "spring-web",
-              "spring-core"));
+              "spring-beans-5",
+              "spring-context-5",
+              "spring-boot-2",
+              "spring-security-config-5.8",
+              "spring-web-5",
+              "spring-core-5"));
     }
 
     @DocumentExample

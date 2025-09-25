@@ -30,14 +30,14 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
         spec.recipe(new HeadersConfigurerLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans",
-              "spring-context",
-              "spring-boot",
+              "spring-beans-5",
+              "spring-context-5",
+              "spring-boot-2",
               "spring-security-config-5.8.+",
               "spring-security-web-5.8.+",
-              "spring-web",
+              "spring-web-5",
               "tomcat-embed",
-              "spring-core"
+              "spring-core-5"
             ));
     }
 

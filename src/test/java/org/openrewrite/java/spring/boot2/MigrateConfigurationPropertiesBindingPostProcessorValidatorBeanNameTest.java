@@ -31,7 +31,7 @@ class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest im
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot", "spring-beans", "spring-core", "spring-context"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2", "spring-beans-5", "spring-core-5", "spring-context-5"));
     }
 
     @DocumentExample

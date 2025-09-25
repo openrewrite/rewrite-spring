@@ -29,7 +29,7 @@ class ServerHttpSecurityLambdaDslTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ServerHttpSecurityLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "tomcat-embed", "spring-core"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-context-5", "spring-boot-2", "spring-security", "spring-web-5", "tomcat-embed", "spring-core-5"));
     }
 
     @DocumentExample

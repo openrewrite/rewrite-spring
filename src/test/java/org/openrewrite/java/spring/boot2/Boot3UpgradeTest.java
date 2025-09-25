@@ -34,11 +34,11 @@ class Boot3UpgradeTest implements RewriteTest {
           .recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0")
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-context",
+              "spring-context-5",
               "spring-data-jpa",
-              "spring-web",
-              "spring-boot",
-              "spring-core",
+              "spring-web-5",
+              "spring-boot-2",
+              "spring-core-5",
               "persistence-api",
               "validation-api",
               "xml.bind-api"));
