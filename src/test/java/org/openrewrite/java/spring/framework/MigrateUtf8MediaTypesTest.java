@@ -30,7 +30,8 @@ class MigrateUtf8MediaTypesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateUtf8MediaTypes())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core", "spring-web"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-core-5", "spring-web-5"));
     }
 
     @DocumentExample

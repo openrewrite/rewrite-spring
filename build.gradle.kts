@@ -108,6 +108,7 @@ recipeDependencies {
     testParserClasspath("org.apache.tomcat.embed:tomcat-embed-core:9.0.+")
     testParserClasspath("org.hamcrest:hamcrest:2.2")
     testParserClasspath("org.jooq:jooq:3.14.15")
+    testParserClasspath("org.jspecify:jspecify:1.0.0")
     testParserClasspath("org.mongodb:mongo-java-driver:3.12.+")
     testParserClasspath("org.springdoc:springdoc-openapi-common:1.+")
     testParserClasspath("org.hibernate.validator:hibernate-validator:6.0.23.Final")
