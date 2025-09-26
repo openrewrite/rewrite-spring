@@ -33,7 +33,7 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(toRecipe(() -> new AutowiredFieldIntoConstructorParameterVisitor("demo.A", "a")))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+"));
     }
 
     @DocumentExample
