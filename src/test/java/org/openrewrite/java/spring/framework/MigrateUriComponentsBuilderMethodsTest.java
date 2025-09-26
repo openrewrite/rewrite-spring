@@ -31,7 +31,7 @@ class MigrateUriComponentsBuilderMethodsTest implements RewriteTest {
         spec
           .recipe(new MigrateUriComponentsBuilderMethods())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-web-5.+"));
+            "spring-web-6.+"));
     }
 
     @DocumentExample
