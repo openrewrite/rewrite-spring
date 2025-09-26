@@ -30,7 +30,7 @@ class RestTemplateBuilderRequestFactoryTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new RestTemplateBuilderRequestFactory())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2", "spring-web-5", "spring-core-5"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-1", "spring-web-4", "spring-core-4"));
     }
 
     @DocumentExample

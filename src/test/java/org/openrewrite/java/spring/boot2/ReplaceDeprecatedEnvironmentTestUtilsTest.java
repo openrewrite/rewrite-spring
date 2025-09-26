@@ -30,7 +30,7 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ReplaceDeprecatedEnvironmentTestUtils())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-core-5", "spring-context-5", "spring-boot-test", "spring-web-5"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-core-5", "spring-context-5", "spring-boot-test-1", "spring-web-5"));
     }
 
     @DocumentExample

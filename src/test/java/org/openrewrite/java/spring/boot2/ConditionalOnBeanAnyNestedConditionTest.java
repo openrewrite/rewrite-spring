@@ -31,7 +31,7 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ConditionalOnBeanAnyNestedCondition())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure", "spring-context-5"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-1", "spring-context-5"));
     }
 
     @DocumentExample
