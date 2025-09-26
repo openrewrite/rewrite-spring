@@ -29,7 +29,8 @@ class MigrateActuatorMediaTypeToApiVersionTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateActuatorMediaTypeToApiVersion())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-actuator", "spring-web-5", "spring-core-5"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-actuator-2.5", "spring-web-5", "spring-core-5"));
     }
 
     @DocumentExample
