@@ -31,7 +31,8 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-webmvc", "javax.servlet-api"))
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-webmvc-5.3", "javax.servlet-api-4"))
           .recipe(new MigrateHandlerInterceptor());
     }
 

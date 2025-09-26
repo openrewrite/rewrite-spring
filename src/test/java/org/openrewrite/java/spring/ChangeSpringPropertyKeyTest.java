@@ -31,14 +31,6 @@ import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
 class ChangeSpringPropertyKeyTest implements RewriteTest {
-
-    @Override
-    public void defaults(RecipeSpec spec) {
-        spec.beforeRecipe(sources -> {
-
-        });
-    }
-
     @DocumentExample
     @Test
     void changeLastKey() {
