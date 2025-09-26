@@ -29,7 +29,10 @@ class OAuth2LoginLambdaDslTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new OAuth2LoginLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "tomcat-embed", "spring-core"));
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-beans", "spring-context", "spring-boot", "spring-web", "spring-core",
+              "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
+              "tomcat-embed"));
     }
 
     @DocumentExample
