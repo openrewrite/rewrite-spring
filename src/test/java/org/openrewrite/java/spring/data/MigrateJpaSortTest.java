@@ -30,7 +30,7 @@ class MigrateJpaSortTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateJpaSort())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "javax.persistence-api", "spring-data-jpa", "spring-data-commons"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "javax.persistence-api-2.+", "spring-data-jpa-2.+", "spring-data-commons-2.7.+"));
     }
 
     @DocumentExample
@@ -65,7 +65,6 @@ class MigrateJpaSortTest implements RewriteTest {
         );
     }
 
-    @Disabled("see an error: AST contains missing or invalid type information")
     @Test
     void constructorWithAttributeArray() {
         rewriteRun(

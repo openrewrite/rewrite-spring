@@ -38,7 +38,7 @@ class AddsStarterValidationTest implements RewriteTest {
           ).parser(
             JavaParser.fromJavaVersion()
               .logCompilationWarningsAndErrors(true)
-              .classpathFromResources(new InMemoryExecutionContext(), "validation-api"));
+              .classpathFromResources(new InMemoryExecutionContext(), "validation-api-2.0.1.Final"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/306")

@@ -30,7 +30,7 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JdbcTemplateObjectArrayArgToVarArgs())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc", "spring-tx", "spring-beans", "spring-core"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc-4.1.+", "spring-tx-4.1.+", "spring-beans-5.+", "spring-core-5.+"));
     }
 
     //language=java

@@ -29,7 +29,7 @@ class MigrateInstantiationAwareBeanPostProcessorAdapterTest implements RewriteTe
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateInstantiationAwareBeanPostProcessorAdapter())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+"));
     }
 
     @DocumentExample

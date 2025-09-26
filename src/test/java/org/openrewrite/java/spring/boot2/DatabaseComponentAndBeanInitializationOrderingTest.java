@@ -50,8 +50,8 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
           .recipeFromResources("org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering")
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans-5", "spring-context-5", "spring-boot-2", "spring-jdbc", "spring-orm",
-              "jooq-3", "jakarta.persistence-api-2"));
+              "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.+", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
+              "jooq-3.14.15", "jakarta.persistence-api-2.2.3"));
     }
 
     @DocumentExample

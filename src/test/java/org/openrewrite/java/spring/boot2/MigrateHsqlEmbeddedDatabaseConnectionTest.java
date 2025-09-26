@@ -30,7 +30,7 @@ class MigrateHsqlEmbeddedDatabaseConnectionTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateHsqlEmbeddedDatabaseConnection())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.+"));
     }
 
     @DocumentExample

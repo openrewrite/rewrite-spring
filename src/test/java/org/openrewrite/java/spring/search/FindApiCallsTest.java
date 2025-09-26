@@ -32,7 +32,7 @@ class FindApiCallsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new FindApiCalls())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-webflux", "spring-web", "spring-boot"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-webflux-5.+", "spring-web-5.+", "spring-boot-3.+"));
     }
 
     @DocumentExample

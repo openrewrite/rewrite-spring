@@ -29,7 +29,7 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest implements RewriteTes
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateErrorPropertiesIncludeStackTraceConstants())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.+"));
     }
 
     @DocumentExample

@@ -31,7 +31,7 @@ class Boot2UpgradeTest implements RewriteTest {
         spec
           .recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0")
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "hibernate-validator"));
+            .classpathFromResources(new InMemoryExecutionContext(), "hibernate-validator-6.0.23.Final"));
     }
 
     @Test

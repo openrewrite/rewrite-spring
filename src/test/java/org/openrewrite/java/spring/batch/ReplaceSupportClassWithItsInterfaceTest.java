@@ -31,7 +31,8 @@ class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
         spec
           .recipeFromResource("/META-INF/rewrite/spring-batch-5.0.yml", "org.openrewrite.java.spring.batch.ListenerSupportClassToInterface")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch", "spring-boot", "spring-beans", "spring-core", "spring-context"));
+            "spring-batch-core-4", "spring-batch-infrastructure-4",
+            "spring-boot-2.+", "spring-beans-5.+", "spring-core-5.+", "spring-context-5.+"));
     }
 
     @DocumentExample

@@ -29,7 +29,7 @@ class RefactorSimpleMongoDbFactoryTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.data.UpgradeSpringData_2_3")
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-mongodb", "mongo-java-driver"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-data-mongodb-2.2.+", "mongo-java-driver-3.12.+"));
     }
 
     @DocumentExample

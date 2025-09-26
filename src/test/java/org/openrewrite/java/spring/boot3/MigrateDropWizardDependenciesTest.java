@@ -32,7 +32,7 @@ class MigrateDropWizardDependenciesTest implements RewriteTest {
             .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
             .activateRecipes("org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies"))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot", "spring-context", "spring-beans"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3.+", "spring-context-5.+", "spring-beans-5.+"));
     }
 
     @Test

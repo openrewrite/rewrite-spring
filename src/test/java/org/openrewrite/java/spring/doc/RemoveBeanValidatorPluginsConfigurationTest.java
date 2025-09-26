@@ -31,7 +31,7 @@ class RemoveBeanValidatorPluginsConfigurationTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new RemoveBeanValidatorPluginsConfiguration())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-context", "springfox-bean-validators"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.+", "springfox-bean-validators-3.+"));
     }
 
     @DocumentExample

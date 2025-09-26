@@ -31,7 +31,7 @@ class FindApiEndpointsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new FindApiEndpoints())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web", "spring-context"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.+", "spring-context-5.+"));
     }
 
     @DocumentExample

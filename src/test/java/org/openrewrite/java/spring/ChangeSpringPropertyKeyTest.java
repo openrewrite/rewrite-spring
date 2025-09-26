@@ -284,7 +284,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeValueAnnotation() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+")),
           java(
             """
               import org.springframework.beans.factory.annotation.Value;
@@ -323,7 +323,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeConditionalOnPropertyAnnotation() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("foo", "bar", List.of("baz")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.+")),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

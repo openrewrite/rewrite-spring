@@ -33,7 +33,7 @@ class RenameNimbusdsJsonObjectPackageNameTest implements RewriteTest {
             .scanRuntimeClasspath("org.openrewrite.java.spring")
             .build()
             .activateRecipes("org.openrewrite.java.spring.security5.RenameNimbusdsJsonObjectPackageName"))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "nimbus-jose-jwt"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "nimbus-jose-jwt-9.13"));
     }
 
     @DocumentExample

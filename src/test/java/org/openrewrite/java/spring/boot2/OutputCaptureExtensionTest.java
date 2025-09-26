@@ -31,7 +31,7 @@ class OutputCaptureExtensionTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new OutputCaptureExtension())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test-1", "hamcrest-2", "junit-4"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test-1.+", "hamcrest-2.2", "junit-4.+"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/46")

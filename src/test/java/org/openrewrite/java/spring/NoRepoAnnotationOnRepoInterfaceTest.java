@@ -29,7 +29,7 @@ class NoRepoAnnotationOnRepoInterfaceTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new NoRepoAnnotationOnRepoInterface())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context", "spring-beans", "spring-data"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.+", "spring-beans-5.+", "spring-data-commons-2.7.+"));
     }
 
     @DocumentExample
