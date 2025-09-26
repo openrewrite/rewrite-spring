@@ -30,7 +30,9 @@ class ConfigurationOverEnableSecurityTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ConfigurationOverEnableSecurity(false))
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-beans", "spring-context", "spring-boot", "spring-security", "spring-web", "spring-core"));
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-beans-6", "spring-context-6", "spring-boot-3", "spring-web-6", "spring-core-6",
+              "spring-security-core-6", "spring-security-config-6"));
     }
 
     @DocumentExample
