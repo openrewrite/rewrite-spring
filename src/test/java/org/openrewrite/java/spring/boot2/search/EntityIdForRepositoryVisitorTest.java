@@ -33,7 +33,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>()))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-data"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-data-commons-2"));
     }
 
     @Test
@@ -42,8 +42,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Employee {
@@ -53,17 +51,13 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
               interface EmployeeRepository {}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Number.class)
               interface EmployeeRepository {}
@@ -78,8 +72,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             public class Employee {
                 String id;
             }
@@ -87,9 +79,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
               interface EmployeeRepository {}
@@ -104,8 +94,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Employee {
@@ -115,9 +103,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.NoRepositoryBean;
+                import org.springframework.data.repository.NoRepositoryBean;
               import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
@@ -134,8 +120,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Employee {
@@ -145,17 +129,13 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Long.class)
               interface EmployeeRepository {}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long.class)
               interface EmployeeRepository {}
@@ -170,8 +150,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Employee {
@@ -181,17 +159,13 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Double.class)
               interface EmployeeRepository {}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = /*~~(Expected Domain Type ID is 'java.lang.Integer')~~>*/Double.class)
               interface EmployeeRepository {}
@@ -206,8 +180,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Employee {
@@ -217,9 +189,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = CharSequence.class)
               interface EmployeeRepository {}
@@ -234,8 +204,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Employee {
@@ -245,9 +213,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = String.class)
               interface EmployeeRepository {}
@@ -262,8 +228,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Employee {
@@ -273,9 +237,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Integer.class)
               interface EmployeeRepository {}
@@ -290,8 +252,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -301,16 +261,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.Repository;
+                import org.springframework.data.repository.Repository;
 
               interface CustomerRepository extends Repository<Customer, Long>{}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.Repository;
+                import org.springframework.data.repository.Repository;
 
               interface CustomerRepository extends Repository<Customer, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long>{}
               """
@@ -324,8 +280,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -335,16 +289,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.Repository;
+                import org.springframework.data.repository.Repository;
 
               interface CustomerRepository<T extends Customer, ID extends Long> extends Repository<T, ID>{}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.Repository;
+                import org.springframework.data.repository.Repository;
 
               interface CustomerRepository<T extends Customer, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/ID extends Long> extends Repository<T, ID>{}
               """
@@ -358,8 +308,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -369,8 +317,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             import org.springframework.data.repository.NoRepositoryBean;
             import org.springframework.data.repository.Repository;
 
@@ -380,14 +326,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              interface MyConcreteRepository extends MyIntermediateRepository<Customer, Long>{}
+                interface MyConcreteRepository extends MyIntermediateRepository<Customer, Long>{}
               """,
             """
-              package demo;
-
-              interface MyConcreteRepository extends MyIntermediateRepository<Customer, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long>{}
+                interface MyConcreteRepository extends MyIntermediateRepository<Customer, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long>{}
               """
           )
         );
@@ -399,8 +341,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -410,8 +350,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             import org.springframework.data.repository.NoRepositoryBean;
             import org.springframework.data.repository.Repository;
 
@@ -421,14 +359,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              interface MyOtherConcreteRepository1 extends MyOtherIntermediateRepository1<Customer>{}
+                interface MyOtherConcreteRepository1 extends MyOtherIntermediateRepository1<Customer>{}
               """,
             """
-              package demo;
-
-              interface MyOtherConcreteRepository1 extends /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/MyOtherIntermediateRepository1<Customer>{}
+                interface MyOtherConcreteRepository1 extends /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/MyOtherIntermediateRepository1<Customer>{}
               """
           )
         );
@@ -440,8 +374,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -451,8 +383,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             import org.springframework.data.repository.NoRepositoryBean;
             import org.springframework.data.repository.Repository;
 
@@ -462,14 +392,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long>{}
               """,
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long>{}
               """
           )
         );
@@ -481,8 +407,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -492,8 +416,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             import org.springframework.data.repository.NoRepositoryBean;
             import org.springframework.data.repository.Repository;
 
@@ -503,14 +425,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String>{}
               """,
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, String>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, String>{}
               """
 
           )
@@ -523,8 +441,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -534,8 +450,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             import org.springframework.data.repository.NoRepositoryBean;
             import org.springframework.data.repository.Repository;
 
@@ -545,8 +459,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             import org.springframework.data.repository.NoRepositoryBean;
             import org.springframework.data.repository.Repository;
 
@@ -556,14 +468,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, Customer>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, Customer>{}
               """,
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
               """
           )
         );
@@ -575,8 +483,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -586,8 +492,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             import org.springframework.data.repository.NoRepositoryBean;
             import org.springframework.data.repository.Repository;
 
@@ -597,14 +501,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository1<Long, Customer>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository1<Long, Customer>{}
               """,
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository1</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository1</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
               """
           )
         );
@@ -616,8 +516,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -627,8 +525,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             import org.springframework.data.repository.NoRepositoryBean;
             import org.springframework.data.repository.Repository;
 
@@ -638,14 +534,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String, Long, Customer>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String, Long, Customer>{}
               """,
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
               """
           )
         );
@@ -657,8 +549,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Customer {
@@ -668,8 +558,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             import org.springframework.data.repository.NoRepositoryBean;
             import org.springframework.data.repository.Repository;
 
@@ -679,26 +567,18 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
                 """
-            package demo;
-
             interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, Long, Customer>{}
             """,
             """
-            package demo;
-
             interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
             """
           ),
           java(
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long>{}
+                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long>{}
               """,
             """
-              package demo;
-
-              interface MyOtherConcreteRepository2 extends /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/MyOtherIntermediateRepository2<Long>{}
+                interface MyOtherConcreteRepository2 extends /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/MyOtherIntermediateRepository2<Long>{}
               """
           )
         );
@@ -710,8 +590,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public record Employee(@Id String id) {}
@@ -719,17 +597,13 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
               interface EmployeeRepository {}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Number.class)
               interface EmployeeRepository {}
@@ -744,8 +618,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public record Employee(@Id String id) {}
@@ -753,9 +625,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = String.class)
               interface EmployeeRepository {}
@@ -770,8 +640,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Person {
@@ -781,25 +649,19 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-            package demo;
-
             public class Employee extends Person {
             }
             """
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
               interface EmployeeRepository {}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Number.class)
               interface EmployeeRepository {}
@@ -814,8 +676,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Person {
@@ -825,8 +685,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-            package demo;
-
             public class Employee extends Person {
                 String id;
             }
@@ -834,9 +692,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
               interface EmployeeRepository {}
@@ -853,8 +709,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           },
           java(
             """
-            package demo;
-
             public class Employee {
                 String id;
             }
@@ -862,17 +716,13 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
               interface EmployeeRepository {}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Number.class)
               interface EmployeeRepository {}
@@ -891,8 +741,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           },
           java(
             """
-            package demo;
-
             public class Person {
                 String id;
             }
@@ -900,25 +748,19 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-            package demo;
-
             public class Employee extends Person {
             }
             """
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
               interface EmployeeRepository {}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Number.class)
               interface EmployeeRepository {}
@@ -935,8 +777,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           },
           java(
             """
-            package demo;
-
             public class Employee {
                 String id;
             }
@@ -944,9 +784,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
               interface EmployeeRepository {}
@@ -968,8 +806,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           },
           java(
             """
-            package demo;
-
             import org.springframework.data.annotation.Id;
 
             public class Employee {
@@ -979,17 +815,13 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = Number.class)
               interface EmployeeRepository {}
               """,
             """
-              package demo;
-
-              import org.springframework.data.repository.RepositoryDefinition;
+                import org.springframework.data.repository.RepositoryDefinition;
 
               @RepositoryDefinition(domainClass = Employee.class, idClass = /*~~([Overridden marker]  DomainType ID must be 'java.lang.String')~~>*/Number.class)
               interface EmployeeRepository {}
