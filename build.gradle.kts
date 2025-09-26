@@ -95,6 +95,10 @@ recipeDependencies {
 
     testParserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     testParserClasspath("io.projectreactor:reactor-core:3.6.3")
+    testParserClasspath("io.springfox:springfox-core:3.+")
+    testParserClasspath("io.springfox:springfox-spring-web:3.+")
+    testParserClasspath("io.springfox:springfox-spi:3.+")
+    testParserClasspath("io.springfox:springfox-bean-validators:3.+")
     testParserClasspath("io.swagger.core.v3:swagger-models:2.+")
     testParserClasspath("jakarta.persistence:jakarta.persistence-api:2.2.3")
     testParserClasspath("jakarta.validation:jakarta.validation-api:2.0.2")
@@ -227,11 +231,7 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
     testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
-    testRuntimeOnly("io.springfox:springfox-core:3.+")
-    testRuntimeOnly("io.springfox:springfox-spring-web:3.+")
-    testRuntimeOnly("io.springfox:springfox-spi:3.+")
     testRuntimeOnly(gradleApi())
-    testRuntimeOnly("io.springfox:springfox-bean-validators:3.+")
 
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
