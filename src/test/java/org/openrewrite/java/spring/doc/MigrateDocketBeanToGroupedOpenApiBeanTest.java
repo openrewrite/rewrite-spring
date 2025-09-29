@@ -37,7 +37,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
               "spring-core",
               "spring-context",
               "spring-beans",
-//              "spring-plugin-core",
+              "spring-plugin-core",
               "springfox-core",
               "springfox-spring-web",
               "springfox-spi"));

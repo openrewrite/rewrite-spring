@@ -158,6 +158,8 @@ recipeDependencies {
     testParserClasspath("org.springframework.data:spring-data-jpa:3.4.7")
     testParserClasspath("org.springframework.data:spring-data-mongodb:2.2.+")
 
+    testParserClasspath("org.springframework.plugin:spring-plugin-core:2.0.0.RELEASE")
+
     // TODO Reduce the number of 5.x versions, as likely we can use 5.8 only
     testParserClasspath("org.springframework.security:spring-security-config:5.1.+")
     testParserClasspath("org.springframework.security:spring-security-config:5.5.+")
