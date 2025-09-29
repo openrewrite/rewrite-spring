@@ -90,7 +90,7 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
                         md = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                                 .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                                 .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-boot-2.*"))
+                                        .classpathFromResources(ctx, "spring-boot-2.7"))
                                 .build()
                                 .apply(
                                         getCursor(),
@@ -110,7 +110,7 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
                     cd = JavaTemplate.builder("@DependsOnDatabaseInitialization")
                             .imports("org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization")
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*"))
+                                    .classpathFromResources(ctx, "spring-boot-2.7"))
                             .build()
                             .apply(
                                     getCursor(),
