@@ -21,18 +21,21 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
 class OAuth2ClientLambdaDslTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new OAuth2ClientLambdaDsl())
+        spec
+          .typeValidationOptions(TypeValidation.all().methodInvocations(false))
+          .recipe(new OAuth2ClientLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot",
-              "spring-beans", "spring-context", "spring-web", "spring-core",
-              "spring-security-core","spring-security-config","spring-security-web",
+              "spring-boot-2.4",
+              "spring-beans-5.3", "spring-context-5.3", "spring-web-5.3", "spring-core-5.3",
+              "spring-security-core-5.5","spring-security-config-5.5","spring-security-web-5.5",
               "tomcat-embed"));
     }
 

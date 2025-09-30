@@ -450,7 +450,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
     @Test
     void shouldUpdateIfSpringDependencyManagementAndExplicitVersion() {
         rewriteRun(
-          spec -> spec.recipe(new UpgradeExplicitSpringBootDependencies("2.7.X", "3.0.0")),
+          spec -> spec.recipe(new UpgradeExplicitSpringBootDependencies("2.7.x", "3.0.0")),
           mavenProject(
             "project",
             srcMainJava(
@@ -513,7 +513,7 @@ class UpgradeExplicitSpringBootDependenciesTest implements RewriteTest {
                             <dependency>
                                 <groupId>org.springframework.boot</groupId>
                                 <artifactId>spring-boot-dependencies</artifactId>
-                                <version>2.7.0</version>
+                                <version>3.0.0</version>
                                 <type>pom</type>
                                 <scope>import</scope>
                             </dependency>

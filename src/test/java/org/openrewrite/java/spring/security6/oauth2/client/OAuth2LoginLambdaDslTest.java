@@ -21,6 +21,7 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -30,8 +31,9 @@ class OAuth2LoginLambdaDslTest implements RewriteTest {
         spec.recipe(new OAuth2LoginLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans", "spring-context", "spring-boot", "spring-web", "spring-core",
-              "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
+              "spring-boot-2.4",
+              "spring-beans-5.3", "spring-context-5.3", "spring-web-5.3", "spring-webmvc-5.3", "spring-core-5.3",
+              "spring-security-core-5.5","spring-security-config-5.5","spring-security-web-5.5",
               "tomcat-embed"));
     }
 

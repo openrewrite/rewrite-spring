@@ -37,7 +37,7 @@ class ReplaceLiteralsTest implements RewriteTest {
             .activateRecipes(
               "org.openrewrite.java.spring.http.ReplaceStringLiteralsWithHttpHeadersConstants",
               "org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants"))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5").logCompilationWarningsAndErrors(true));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-4").logCompilationWarningsAndErrors(true));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/325")
