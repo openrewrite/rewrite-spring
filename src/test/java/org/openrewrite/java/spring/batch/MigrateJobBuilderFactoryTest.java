@@ -30,12 +30,12 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateJobBuilderFactory())
-          .parser(JavaParser.fromJavaVersion().logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-batch-core-5.+",
-              "spring-batch-infrastructure-5.+",
-              "spring-beans-5.+",
-              "spring-context-5.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-batch-core-5.+",
+            "spring-batch-infrastructure-5.+",
+            "spring-beans-5.+",
+            "spring-core-5.+",
+            "spring-context-5.+"));
     }
 
     @DocumentExample
@@ -52,7 +52,7 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
               import org.springframework.beans.factory.annotation.Autowired;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Autowired
                   private JobBuilderFactory jobBuilderFactory;
@@ -65,14 +65,14 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.batch.core.Job;
               import org.springframework.batch.core.Step;
               import org.springframework.batch.core.job.builder.JobBuilder;
               import org.springframework.batch.core.repository.JobRepository;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Bean
                   Job myJob(Step step, JobRepository jobRepository) {
@@ -98,7 +98,7 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
               import org.springframework.batch.core.repository.JobRepository;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Bean
                   Job myJob(Step step, JobRepository jobRepository) {
@@ -124,7 +124,7 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
               import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Bean
                   Job myJob(JobBuilderFactory jobBuilderFactory, Step step) {
@@ -134,14 +134,14 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.batch.core.Job;
               import org.springframework.batch.core.Step;
               import org.springframework.batch.core.job.builder.JobBuilder;
               import org.springframework.batch.core.repository.JobRepository;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Bean
                   Job myJob(Step step, JobRepository jobRepository) {
@@ -167,7 +167,7 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
               import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   private JobBuilderFactory jobBuilderFactory;
 
@@ -183,14 +183,14 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.batch.core.Job;
               import org.springframework.batch.core.Step;
               import org.springframework.batch.core.job.builder.JobBuilder;
               import org.springframework.batch.core.repository.JobRepository;
               import org.springframework.context.annotation.Bean;
 
-              public class MyJobConfig {
+              class MyJobConfig {
 
                   @Bean
                   Job myJob(Step step, JobRepository jobRepository) {
