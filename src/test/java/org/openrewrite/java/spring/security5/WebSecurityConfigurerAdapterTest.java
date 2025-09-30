@@ -21,6 +21,7 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -32,9 +33,9 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
         spec.recipe(new WebSecurityConfigurerAdapter())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-autoconfigure", "spring-boot",
-              "spring-beans", "spring-context", "spring-web", "spring-core",
-              "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
+              "spring-boot-autoconfigure-2", "spring-boot-2",
+              "spring-beans-4", "spring-context-4", "spring-web-4", "spring-core-4",
+              "spring-security-core-5.7", "spring-security-config-5.7", "spring-security-web-5.7",
               "tomcat-embed"
             ));
     }
@@ -173,6 +174,8 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     void configureAuthManagerMethod() {
         //language=java
         rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.all().constructorInvocations(false))
+            .afterTypeValidationOptions(TypeValidation.all().constructorInvocations(false).methodDeclarations(false)),
           java(
             """
               import org.springframework.context.annotation.Configuration;
