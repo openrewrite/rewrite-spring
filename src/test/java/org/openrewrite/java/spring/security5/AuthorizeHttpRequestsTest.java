@@ -31,9 +31,9 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
         spec.recipe(new AuthorizeHttpRequests())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot",
-              "spring-beans", "spring-context", "spring-web", "spring-core",
-              "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
+              "spring-boot-2",
+              "spring-beans-4", "spring-context-4", "spring-web-4", "spring-core-4",
+              "spring-security-core-5.7", "spring-security-config-5.7", "spring-security-web-5.7",
               "tomcat-embed"));
     }
 
