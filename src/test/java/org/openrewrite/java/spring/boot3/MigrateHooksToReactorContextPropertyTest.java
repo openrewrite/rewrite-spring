@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -27,7 +28,28 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateHooksToReactorContextProperty());
+        spec.recipe(new MigrateHooksToReactorContextProperty())
+          .parser(JavaParser.fromJavaVersion()
+            //language=java
+            .dependsOn(
+              """
+                package org.springframework.boot.autoconfigure;
+                public @interface SpringBootApplication {}
+                """,
+              """
+                package org.springframework.boot;
+                public class SpringApplication {
+                    public static void run(Class<?> cls, String[] args) {}
+                }
+                """,
+              """
+                package reactor.core.publisher;
+                public class Hooks {
+                    public static void enableAutomaticContextPropagation() {}
+                }
+                """
+            )
+          );
     }
 
     @DocumentExample
@@ -35,28 +57,6 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
     void replaceMethodCallWithProperty() {
         rewriteRun(
           spec -> spec.recipe(new MigrateHooksToReactorContextProperty()),
-          java(
-            """
-              package org.springframework.boot.autoconfigure;
-              public @interface SpringBootApplication {}
-              """
-          ),
-          java(
-            """
-              package org.springframework.boot;
-              public class SpringApplication {
-                  public static void run(Class<?> cls, String[] args) {}
-              }
-              """
-          ),
-          java(
-            """
-              package reactor.core.publisher;
-              public class Hooks {
-                  public static void enableAutomaticContextPropagation() {}
-              }
-              """
-          ),
           java(
             """
               import reactor.core.publisher.Hooks;
@@ -95,20 +95,6 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
     void shouldNotAddPropertyWhenNoHooksPresent() {
         rewriteRun(
           spec -> spec.recipe(new MigrateHooksToReactorContextProperty()),
-          java(
-            """
-              package org.springframework.boot.autoconfigure;
-              public @interface SpringBootApplication {}
-              """
-          ),
-          java(
-            """
-              package org.springframework.boot;
-              public class SpringApplication {
-                  public static void run(Class<?> cls, String[] args) {}
-              }
-              """
-          ),
           java(
             """
               import org.springframework.boot.SpringApplication;
