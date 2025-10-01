@@ -30,9 +30,7 @@ class UpdateEnableReactiveMethodSecurityTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UpdateEnableReactiveMethodSecurity())
-          .parser(JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-security-web-5.8",
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-security-web-5.8",
               "spring-security-config-5.8", "spring-context-5.3"));
     }
 

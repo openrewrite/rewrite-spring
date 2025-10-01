@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.boot2;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -29,10 +28,7 @@ class MigrateToWebServerFactoryCustomizerTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer"))
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-1.+", "spring-context-4.+", "spring-beans-4.+"));
     }
 

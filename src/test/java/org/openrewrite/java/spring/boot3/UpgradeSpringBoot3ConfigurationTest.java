@@ -31,11 +31,7 @@ class UpgradeSpringBoot3ConfigurationTest implements RewriteTest {
     @Test
     void moveMaxHttpHeaderSize() {
         rewriteRun(
-          spec -> spec.recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize")
-          ),
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize"),
           mavenProject("test",
             srcMainResources(
               properties(

@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,14 +29,7 @@ class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec
-          .recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes(
-              "org.openrewrite.java.spring.boot2.SpringBootProperties_2_4"
-            )
-          );
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.SpringBootProperties_2_4");
     }
 
     @DocumentExample
@@ -60,22 +52,22 @@ class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
               ),
               yaml(
                 """
-                      ---
-                      spring:
-                        profiles:
-                          active: dev
-                      ---
-                      spring:
-                        profiles: prod
+                  ---
+                  spring:
+                    profiles:
+                      active: dev
+                  ---
+                  spring:
+                    profiles: prod
                   """,
                 """
-                      ---
-                      spring:
-                        profiles:
-                          active: dev
-                      ---
-                      spring:
-                        config.activate.on-profile: prod
+                  ---
+                  spring:
+                    profiles:
+                      active: dev
+                  ---
+                  spring:
+                    config.activate.on-profile: prod
                   """
               )
             )

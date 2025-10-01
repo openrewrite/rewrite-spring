@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.boot2;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -31,14 +30,8 @@ class AddsStarterValidationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3")
-          ).parser(
-            JavaParser.fromJavaVersion()
-              .logCompilationWarningsAndErrors(true)
-              .classpathFromResources(new InMemoryExecutionContext(), "validation-api-2.0.1.Final"));
+          .recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3")
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "validation-api-2.0.1.Final"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/306")
@@ -50,7 +43,7 @@ class AddsStarterValidationTest implements RewriteTest {
               //language=Java
               java("""
                 import javax.validation.constraints.NotNull;
-                
+
                 class Foo {
                     @NotNull
                     String bar = "";

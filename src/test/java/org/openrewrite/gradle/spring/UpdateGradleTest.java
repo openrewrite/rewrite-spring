@@ -36,10 +36,7 @@ import static org.openrewrite.test.SourceSpecs.text;
 class UpdateGradleTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7"))
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7")
           .beforeRecipe(withToolingApi())
           .allSources(source -> source.markers(new BuildTool(Tree.randomId(), BuildTool.Type.Gradle, "6.7")));
     }
@@ -55,11 +52,11 @@ class UpdateGradleTest implements RewriteTest {
                   id "org.springframework.boot" version "2.6.15"
                   id "io.spring.dependency-management" version "1.0.11.RELEASE"
               }
-              
+
               repositories {
                   mavenCentral()
               }
-              
+
               dependencies {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
@@ -74,11 +71,11 @@ class UpdateGradleTest implements RewriteTest {
                   id "org.springframework.boot" version "%s"
                   id "io.spring.dependency-management" version "1.0.15.RELEASE"
               }
-              
+
               repositories {
                   mavenCentral()
               }
-              
+
               dependencies {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
@@ -146,11 +143,11 @@ class UpdateGradleTest implements RewriteTest {
                   id "java"
                   id "org.springframework.boot" version "2.6.15"
               }
-              
+
               repositories {
                   mavenCentral()
               }
-              
+
               dependencies {
                   implementation platform("org.springframework.boot:spring-boot-dependencies:2.6.15")
                   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -165,11 +162,11 @@ class UpdateGradleTest implements RewriteTest {
                   id "java"
                   id "org.springframework.boot" version "%s"
               }
-              
+
               repositories {
                   mavenCentral()
               }
-              
+
               dependencies {
                   implementation platform("org.springframework.boot:spring-boot-dependencies:%s")
                   implementation "org.springframework.boot:spring-boot-starter-web"

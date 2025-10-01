@@ -30,9 +30,9 @@ class UpdateRequestCacheTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UpdateRequestCache())
-          .parser(JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+",
+            "spring-security-web-5.8.+", "spring-security-config-5.8.+"));
     }
 
     @DocumentExample

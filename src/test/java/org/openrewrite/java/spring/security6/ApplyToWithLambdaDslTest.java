@@ -30,9 +30,8 @@ class ApplyToWithLambdaDslTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ApplyToWithLambdaDsl())
-          .parser(JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-security-config-6.2.+", "spring-security-web-6.2.+", "spring-context-5.+", "slf4j-api"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-security-config-6.2.+", "spring-security-web-6.2.+", "spring-context-5.+", "slf4j-api"));
     }
 
     @DocumentExample

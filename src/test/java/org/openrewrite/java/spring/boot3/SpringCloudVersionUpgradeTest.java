@@ -31,11 +31,7 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .expectedCyclesThatMakeChanges(2)
-          .recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3")
-          );
+          .recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3");
     }
 
     @DocumentExample
