@@ -16,6 +16,8 @@
 package org.openrewrite.java.spring.util;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -30,7 +32,7 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(toRecipe(MemberReferenceToMethodInvocation::new))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6", "spring-boot-autoconfigure-3.+"));
     }
 
     @DocumentExample
@@ -56,6 +58,98 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
                       future.addCallback(
                           (String x) -> System.out.println(x),
                           (Object x) -> System.err.println(x));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void methodReferenceWithoutArguments() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.Optional;
+
+              class A {
+                  void test() {
+                      byte[] result = Optional.of("Test").map(String::getBytes).orElse(null);
+                  }
+              }
+              """,
+            """
+              import java.util.Optional;
+
+              class A {
+                  void test() {
+                      byte[] result = Optional.of("Test").map(string -> string.getBytes()).orElse(null);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"this", "super"})
+    void superMethodReferenceWithoutArguments(String qualifier) {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.Optional;
+              import java.util.function.Supplier;
+
+              class A {
+                  public Supplier<String> getString() {
+                      return %s::toString;
+                  }
+              }
+              """.formatted(qualifier),
+            """
+              import java.util.Optional;
+              import java.util.function.Supplier;
+
+              class A {
+                  public Supplier<String> getString() {
+                      return () -> %s.toString();
+                  }
+              }
+              """.formatted(qualifier)
+          )
+        );
+    }
+
+    @Test
+    void typesArePresent() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.boot.autoconfigure.kafka.KafkaConnectionDetails;
+              import java.util.List;
+              import java.util.Optional;
+
+              public class KafkaConfig {
+                  public List<String> getProducerServers(KafkaConnectionDetails connectionDetails) {
+                      return Optional.ofNullable(connectionDetails)
+                          .map(KafkaConnectionDetails::getProducerBootstrapServers)
+                          .orElse(null);
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.kafka.KafkaConnectionDetails;
+              import java.util.List;
+              import java.util.Optional;
+
+              public class KafkaConfig {
+                  public List<String> getProducerServers(KafkaConnectionDetails connectionDetails) {
+                      return Optional.ofNullable(connectionDetails)
+                          .map(details -> details.getProducerBootstrapServers())
+                          .orElse(null);
                   }
               }
               """

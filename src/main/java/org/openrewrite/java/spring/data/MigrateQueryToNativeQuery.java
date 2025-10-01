@@ -63,11 +63,7 @@ public class MigrateQueryToNativeQuery extends Recipe {
                     public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                         J.Annotation an = super.visitAnnotation(annotation, ctx);
 
-                        if (!MATCHER.get(getCursor())
-                                .filter(a -> a.getAttribute("nativeQuery")
-                                        .filter(l -> "true".equals(l.getString()))
-                                        .isPresent())
-                                .isPresent()) {
+                        if (!MATCHER.get(getCursor()).isPresent()) {
                             return an;
                         }
 
