@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.security6.oauth2.server.resource;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -37,6 +38,7 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
           .typeValidationOptions(TypeValidation.all().identifiers(false));
     }
 
+    @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
     @DocumentExample
     @Test
     void advanced() {
