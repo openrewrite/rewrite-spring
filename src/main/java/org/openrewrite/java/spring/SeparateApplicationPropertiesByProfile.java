@@ -28,7 +28,9 @@ import org.openrewrite.properties.tree.Properties;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.stream.Stream;
 
 @Value
@@ -121,7 +123,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                     // 3. Use withMarkers() to attach it to the new file
                     SourceFile newFileWithMarker = newFile.withMarkers(
                             // Markers.build() creates the container for our marker
-                            Markers.build(Collections.singletonList(projectMarker))
+                            Markers.build(singletonList(projectMarker))
                     );
 
                     // 4. Add the file *with the new marker* to our results
@@ -161,7 +163,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
     private Properties appendToExistingPropertiesFile(Properties.File file, List<Properties.Content> contentToAppend) {
         return file.withContent(
                 Stream.concat(file.getContent().stream(), contentToAppend.stream()).
-                        collect(Collectors.toList()));
+                        collect(toList()));
     }
 
     private Properties deleteFromApplicationProperties(Properties.File applicationProperties) {
@@ -196,8 +198,8 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         List<Properties.Content> list = new ArrayList<>();
         while (index < contentList.size() && !isSeparator(contentList.get(index))) {
             if (contentList.get(index) instanceof Properties.Entry &&
-                    ((Properties.Entry) contentList.get(index)).getKey().equals
-                            ("spring.config.activate.on-profile")) {
+                    "spring.config.activate.on-profile".equals
+                            (((Properties.Entry) contentList.get(index)).getKey())) {
                 list.add(0, contentList.get(index));
             } else {
                 list.add(contentList.get(index));
@@ -213,7 +215,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
     private boolean isSeparator(Properties.Content c) {
         return c instanceof Properties.Comment &&
-                ((Properties.Comment) c).getMessage().equals("---") &&
+                "---".equals(((Properties.Comment) c).getMessage()) &&
                 ((((Properties.Comment) c).getDelimiter() ==
                         Properties.Comment.Delimiter.valueOf("HASH_TAG")) ||
 
@@ -231,6 +233,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         String pathToApplicationProperties = "";
         Map<String, String> fileNameToFilePath = new HashMap<>();
         Map<String, List<Properties.Content>> propertyFileContent = new HashMap<>();
+
         @Nullable
         JavaProject javaProject;
     }

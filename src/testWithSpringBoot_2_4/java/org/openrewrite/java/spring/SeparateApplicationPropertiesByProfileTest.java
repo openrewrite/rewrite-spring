@@ -127,8 +127,8 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                 sourceSpecs -> sourceSpecs.path("application.properties")
               ),
               properties(
-                null,
-                """
+                doesNotExist(),
+                """,
                   app.config.currentEnvironment=LOCAL
                   """,
                 sourceSpecs -> sourceSpecs.path("application-local.properties")
@@ -198,7 +198,7 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                 sourceSpecs -> sourceSpecs.path("application.properties")
               ),
               properties(
-                null,
+                doesNotExist(),
                 //language=properties
                 """
                   app.config.currentEnvironment=LOCAL
@@ -206,7 +206,7 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                 sourceSpecs -> sourceSpecs.path("application-local.properties")
               ),
               properties(
-                null,
+                doesNotExist(),
                 //language=properties
                 """
                   #### XX Configuration ####
@@ -274,7 +274,7 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                 sourceSpecs -> sourceSpecs.path("folder1/folder2/application.properties")
               ),
               properties(
-                null,
+                doesNotExist(),
                 //language=properties
                 """
                   app.config.currentEnvironment=LOCAL
@@ -282,7 +282,7 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                 sourceSpecs -> sourceSpecs.path("folder1/folder2/application-local.properties")
               ),
               properties(
-                null,
+                doesNotExist(),
                 //language=properties
                 """
                   #### XX Configuration ####
@@ -315,7 +315,7 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                   spec -> spec.path("application.properties")
                 ),
                 properties(
-                  null,
+                  doesNotExist(),
                   """
                     dev.service=true
                     """,
