@@ -31,10 +31,10 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
         spec.recipe(new MigrateWebMvcTagsToObservationConvention())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "micrometer-core",
-            "spring-boot-actuator-3",
-            "spring-context-6",
+            "spring-boot-actuator-3.0",
+            "spring-context-6.0",
             "spring-beans-6",
-            "spring-web-6",
+            "spring-web-6.0",
             "jakarta.servlet-api"));
     }
 
