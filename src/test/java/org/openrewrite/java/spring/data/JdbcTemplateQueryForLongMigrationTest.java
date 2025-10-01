@@ -29,7 +29,7 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JdbcTemplateQueryForLongMigration())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc-4", "spring-beans"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc-4", "spring-beans-5.+"));
     }
 
     @DocumentExample
