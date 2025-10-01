@@ -30,13 +30,10 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration")
-          )
+          .recipeFromResources("org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration")
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test", "junit", "spring-test", "spring-context-5"));
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-test-2", "junit-4", "spring-test-5", "spring-context-5"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/43")
