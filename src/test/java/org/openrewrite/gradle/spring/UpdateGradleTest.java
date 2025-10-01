@@ -18,7 +18,6 @@ package org.openrewrite.gradle.spring;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.FileAttributes;
 import org.openrewrite.Tree;
-import org.openrewrite.config.Environment;
 import org.openrewrite.marker.BuildTool;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
