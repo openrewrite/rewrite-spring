@@ -75,9 +75,9 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
                             if (sourceFile != null) {
                                 Optional<JavaProject> javaProject = sourceFile.getMarkers().findFirst(JavaProject.class);
                                 if (javaProject.isPresent()) {
-                                    acc.getProjectsWithHooks().add(javaProject.get());
+                                    acc.projectsWithHooks.add(javaProject.get());
                                 } else {
-                                    acc.setHasHooksInSingleProject(true);
+                                    acc.hasHooksInSingleProject = true;
                                 }
 
                                 getCursor().putMessageOnFirstEnclosing(JavaSourceFile.class, "has-hooks", true);
@@ -91,7 +91,7 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(ProjectsWithHooks acc) {
-        if (acc.getProjectsWithHooks().isEmpty() && !acc.isHasHooksInSingleProject()) {
+        if (acc.projectsWithHooks.isEmpty() && !acc.hasHooksInSingleProject) {
             return TreeVisitor.noop();
         }
 
@@ -117,8 +117,8 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
                     boolean shouldProcess = false;
 
                     if (currentProject.isPresent()) {
-                        shouldProcess = acc.getProcessedProjects().contains(currentProject.get());
-                    } else if (acc.isHasHooksInSingleProject()) {
+                        shouldProcess = acc.processedProjects.contains(currentProject.get());
+                    } else if (acc.hasHooksInSingleProject) {
                         shouldProcess = true;
                     }
 
@@ -132,14 +132,14 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
 
                     if (currentProject.isPresent()) {
                         JavaProject project = currentProject.get();
-                        if (acc.getProjectsWithHooks().contains(project) &&
-                                !acc.getProcessedProjects().contains(project)) {
-                            acc.getProcessedProjects().add(project);
+                        if (acc.projectsWithHooks.contains(project) &&
+                                !acc.processedProjects.contains(project)) {
+                            acc.processedProjects.add(project);
                             shouldAddProperty = true;
                         }
-                    } else if (acc.isHasHooksInSingleProject() && !acc.isPropertiesProcessedForSingleProject()) {
+                    } else if (acc.hasHooksInSingleProject && !acc.propertiesProcessedForSingleProject) {
                         // single project or testing environment
-                        acc.setPropertiesProcessedForSingleProject(true);
+                        acc.propertiesProcessedForSingleProject = true;
                         shouldAddProperty = true;
                     }
 
@@ -193,7 +193,6 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
         }
     }
 
-    @Data
     public static class ProjectsWithHooks {
         Set<JavaProject> projectsWithHooks = new HashSet<>();
         Set<JavaProject> processedProjects = new HashSet<>();
