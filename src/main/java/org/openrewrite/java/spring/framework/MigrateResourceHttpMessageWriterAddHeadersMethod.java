@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
@@ -52,8 +53,11 @@ public class MigrateResourceHttpMessageWriterAddHeadersMethod extends Recipe {
                                     " #{any(org.springframework.http.MediaType)}," +
                                     " #{any(java.util.Map)})" +
                                     ".block()")
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.2", "spring-core-6"))
                             .build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect(),
+                            .apply(getCursor(),
+                                    m.getCoordinates().replace(),
+                                    m.getSelect(),
                                     m.getArguments().get(0),
                                     m.getArguments().get(1),
                                     m.getArguments().get(2),

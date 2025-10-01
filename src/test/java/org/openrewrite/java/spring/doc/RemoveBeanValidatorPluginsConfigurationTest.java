@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.doc;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -30,7 +31,7 @@ class RemoveBeanValidatorPluginsConfigurationTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new RemoveBeanValidatorPluginsConfiguration())
           .parser(JavaParser.fromJavaVersion()
-            .classpath("spring-context", "springfox-bean-validators"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.+", "springfox-bean-validators-3.+"));
     }
 
     @DocumentExample

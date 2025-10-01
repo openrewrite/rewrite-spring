@@ -31,7 +31,7 @@ class SpringRulesToJUnitExtensionTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new SpringRulesToJUnitExtension())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test", "spring-test")
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test-1.5.+", "spring-test-5.3.+")
             .dependsOn("package org.junit; public @interface ClassRule {}", "package org.junit; public @interface Rule {}")
           );
     }
