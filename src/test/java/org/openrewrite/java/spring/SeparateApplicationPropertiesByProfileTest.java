@@ -30,48 +30,6 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
         spec.recipe(new SeparateApplicationPropertiesByProfile());
     }
 
-    @Test
-    void noApplicationProperties() {
-        rewriteRun(
-          mavenProject("parent",
-            srcMainResources(
-              properties(
-                //language=properties
-                """
-                  spring.application.name=Openrewrite-PR-Service
-                  #PR-Service
-
-                  base-url.PR-services=http://my.url.com
-                  exchange-token=1234567890
-                  exchange-tokens=${base-url.PR-services}/exchange-token
-                  """,
-                sourceSpecs -> sourceSpecs.path("application-dev.properties"))
-            )
-          )
-        );
-    }
-
-    @Test
-    void noSeparateProfile() {
-        rewriteRun(
-          mavenProject("parent",
-            srcMainResources(
-              properties(
-                //language=properties
-                """
-                  spring.application.name=Openrewrite-PR-Service
-                  #PR-Service
-
-                  base-url.PR-services=http://my.url.com
-                  exchange-token=1234567890
-                  exchange-tokens=${base-url.PR-services}/exchange-token
-                  """,
-                sourceSpecs -> sourceSpecs.path("application.properties"))
-            )
-          )
-        );
-    }
-
     @DocumentExample
     @Test
     void separateProfileWithAppend() {
@@ -143,6 +101,48 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                   """,
                 sourceSpecs -> sourceSpecs.path("application-prod.properties")
               )
+            )
+          )
+        );
+    }
+
+    @Test
+    void noApplicationProperties() {
+        rewriteRun(
+          mavenProject("parent",
+            srcMainResources(
+              properties(
+                //language=properties
+                """
+                  spring.application.name=Openrewrite-PR-Service
+                  #PR-Service
+
+                  base-url.PR-services=http://my.url.com
+                  exchange-token=1234567890
+                  exchange-tokens=${base-url.PR-services}/exchange-token
+                  """,
+                sourceSpecs -> sourceSpecs.path("application-dev.properties"))
+            )
+          )
+        );
+    }
+
+    @Test
+    void noSeparateProfile() {
+        rewriteRun(
+          mavenProject("parent",
+            srcMainResources(
+              properties(
+                //language=properties
+                """
+                  spring.application.name=Openrewrite-PR-Service
+                  #PR-Service
+
+                  base-url.PR-services=http://my.url.com
+                  exchange-token=1234567890
+                  exchange-tokens=${base-url.PR-services}/exchange-token
+                  """,
+                sourceSpecs -> sourceSpecs.path("application.properties"))
             )
           )
         );
