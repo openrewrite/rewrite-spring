@@ -72,7 +72,7 @@ public class KafkaTestUtilsDuration extends Recipe {
                             if (arg == millis) {
                                 newParameterTypes.set(index, durationType);
                                 maybeAddImport(JAVA_TIME_DURATION);
-                                return JavaTemplate.builder("Duration.ofMillis(#{})")
+                                return JavaTemplate.builder("Duration.ofMillis(#{any()})")
                                         .imports(JAVA_TIME_DURATION)
                                         .build()
                                         .apply(new Cursor(getCursor(), arg), arg.getCoordinates().replace(), millis);

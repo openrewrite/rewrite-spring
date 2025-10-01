@@ -44,7 +44,7 @@ class KafkaTestUtilsDurationTest implements RewriteTest {
             """
               import org.apache.kafka.clients.consumer.Consumer;
               import org.springframework.kafka.test.utils.KafkaTestUtils;
-              
+
               class Foo {
                   void bar(Consumer<String, String> consumer) {
                       KafkaTestUtils.getRecords(consumer, 1000L);
@@ -57,15 +57,52 @@ class KafkaTestUtilsDurationTest implements RewriteTest {
             """
               import org.apache.kafka.clients.consumer.Consumer;
               import org.springframework.kafka.test.utils.KafkaTestUtils;
-              
+
               import java.time.Duration;
-              
+
               class Foo {
                   void bar(Consumer<String, String> consumer) {
                       KafkaTestUtils.getRecords(consumer, Duration.ofMillis(1000L));
                       KafkaTestUtils.getRecords(consumer, Duration.ofMillis(1000L), 1);
                       KafkaTestUtils.getSingleRecord(consumer, "topic", Duration.ofMillis(1000L));
                       KafkaTestUtils.getOneRecord("topic", "key", "value", 1, true, true, Duration.ofMillis(1000L));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void adoptDurationParameter() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.apache.kafka.clients.consumer.Consumer;
+              import org.springframework.kafka.test.utils.KafkaTestUtils;
+
+              class Foo {
+                  void bar(Consumer<String, String> consumer, long duration) {
+                      KafkaTestUtils.getRecords(consumer, duration);
+                      KafkaTestUtils.getRecords(consumer, duration, 1);
+                      KafkaTestUtils.getSingleRecord(consumer, "topic", duration);
+                      KafkaTestUtils.getOneRecord("topic", "key", "value", 1, true, true, duration);
+                  }
+              }
+              """,
+            """
+              import org.apache.kafka.clients.consumer.Consumer;
+              import org.springframework.kafka.test.utils.KafkaTestUtils;
+
+              import java.time.Duration;
+
+              class Foo {
+                  void bar(Consumer<String, String> consumer, long duration) {
+                      KafkaTestUtils.getRecords(consumer, Duration.ofMillis(duration));
+                      KafkaTestUtils.getRecords(consumer, Duration.ofMillis(duration), 1);
+                      KafkaTestUtils.getSingleRecord(consumer, "topic", Duration.ofMillis(duration));
+                      KafkaTestUtils.getOneRecord("topic", "key", "value", 1, true, true, Duration.ofMillis(duration));
                   }
               }
               """
