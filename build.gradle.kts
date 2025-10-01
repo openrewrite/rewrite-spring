@@ -239,6 +239,9 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-kotlin")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
+
+    // Needed for `org.openrewrite.java.spring.http.ReplaceLiteralsTest` to read constant values
+    testRuntimeOnly("org.springframework:spring-web:6.+")
 }
 
 tasks {

@@ -31,13 +31,8 @@ class ReplaceLiteralsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes(
-              "org.openrewrite.java.spring.http.ReplaceStringLiteralsWithHttpHeadersConstants",
-              "org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants"))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-4").logCompilationWarningsAndErrors(true));
+          .recipeFromResources("org.openrewrite.java.spring.boot3.ReplaceStringLiteralsWithConstants")
+          .parser(JavaParser.fromJavaVersion().classpath("spring-web"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/325")
