@@ -85,11 +85,7 @@ public class MigrateStepBuilderFactory extends Recipe {
         public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
             // Add JobRepository parameter to method if StepBuilderFactory.get(..) is used further down
             if (!FindMethods.find(md, STEP_BUILDER_FACTORY_GET).isEmpty()) {
-                List<Statement> params = ListUtils.mapFirst(
-                        ListUtils.filter(md.getParameters(), j -> !isStepBuilderFactoryParameter(j)),
-                        arg -> arg.withPrefix(Space.EMPTY)
-                );
-
+                List<Statement> params = ListUtils.filter(md.getParameters(), j -> !isStepBuilderFactoryParameter(j));
                 if (params.isEmpty() && md.isConstructor()) {
                     return null;
                 }
