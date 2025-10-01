@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.batch;
 
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -26,7 +25,6 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 
 class MigrateStepBuilderFactoryTest implements RewriteTest {
-
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateStepBuilderFactory())
@@ -86,7 +84,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
     }
 
     @Test
-    // See https://github.com/openrewrite/rewrite/discussions/6016
+        // See https://github.com/openrewrite/rewrite/discussions/6016
     void genericsTypeProblem() {
         rewriteRun(
           spec -> spec.recipe(new MigrateStepBuilderFactory())
