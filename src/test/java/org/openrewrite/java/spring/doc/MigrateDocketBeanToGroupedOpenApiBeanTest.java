@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.doc;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -30,10 +31,14 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateDocketBeanToGroupedOpenApiBean())
-          .parser(JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
-            .classpath("spring-core", "spring-context", "spring-beans", "spring-plugin-core", "springfox-core", "springfox-spring-web", "springfox-spi"));
-
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-core",
+            "spring-context",
+            "spring-beans",
+            "spring-plugin-core",
+            "springfox-core",
+            "springfox-spring-web",
+            "springfox-spi"));
     }
 
     @DocumentExample

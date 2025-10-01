@@ -60,8 +60,8 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
     @Override
     public String getDescription() {
         return "Upgrades dependencies according to the specified version of spring boot. " +
-               "Spring boot has many direct and transitive dependencies. When a module has an explicit dependency on " +
-               "one of these it may also need to be upgraded to match the version used by spring boot.";
+                "Spring boot has many direct and transitive dependencies. When a module has an explicit dependency on " +
+                "one of these it may also need to be upgraded to match the version used by spring boot.";
     }
 
     @Data
@@ -85,7 +85,7 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
                 if (isManagedDependencyTag()) {
                     ResolvedManagedDependency managedDependency = findManagedDependency(resultTag);
                     if (managedDependency != null && SPRINGBOOT_GROUP.equals(managedDependency.getGroupId()) &&
-                        satisfiesOldVersionPattern(managedDependency.getVersion())) {
+                            satisfiesOldVersionPattern(managedDependency.getVersion())) {
                         return SearchResult.found(resultTag);
                     }
                 }
@@ -93,7 +93,7 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
                 if (isDependencyTag()) {
                     ResolvedDependency dependency = findDependency(resultTag);
                     if ((dependency != null) && SPRINGBOOT_GROUP.equals(dependency.getGroupId()) &&
-                        satisfiesOldVersionPattern(dependency.getVersion())) {
+                            satisfiesOldVersionPattern(dependency.getVersion())) {
                         return SearchResult.found(resultTag);
                     }
                 }
@@ -145,18 +145,6 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
     public Collection<? extends SourceFile> generate(Accumulator acc, Collection<SourceFile> generatedInThisCycle, ExecutionContext ctx) {
         List<MavenRepository> repositories = acc.getRepositories();
         repositories.add(MavenRepository.builder()
-                .id("repository.spring.milestone")
-                .uri("https://repo.spring.io/milestone")
-                .releases(true)
-                .snapshots(true)
-                .build());
-        repositories.add(MavenRepository.builder()
-                .id("spring-snapshot")
-                .uri("https://repo.spring.io/snapshot")
-                .releases(false)
-                .snapshots(true)
-                .build());
-        repositories.add(MavenRepository.builder()
                 .id("spring-release")
                 .uri("https://repo.spring.io/release")
                 .releases(true)
@@ -191,7 +179,7 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
         return Preconditions.check(precondition(), new MavenIsoVisitor<ExecutionContext>() {
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
-                if(acc.mavenDownloadingException != null) {
+                if (acc.mavenDownloadingException != null) {
                     return acc.mavenDownloadingException.warn(document);
                 }
                 return super.visitDocument(document, ctx);

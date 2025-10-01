@@ -35,9 +35,9 @@ class SimplifyWebTestClientCallsTest implements RewriteTest {
         spec
           .recipe(new SimplifyWebTestClientCalls())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6", "spring-test-6"))
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.+", "spring-test-6.+"))
           .parser(KotlinParser.builder()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6", "spring-test-6"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.+", "spring-test-6.+"));
     }
 
     @DocumentExample
