@@ -121,7 +121,7 @@ recipeDependencies {
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
     testParserClasspath("org.springframework.batch:spring-batch-test:4.3.+")
 
-    testParserClasspath("org.springframework.boot:spring-boot-actuator:2.4.+")
+    testParserClasspath("org.springframework.boot:spring-boot-actuator:2.1.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.0.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.4.+")
     testParserClasspath("org.springframework.boot:spring-boot-autoconfigure:1.5.+")

@@ -30,7 +30,8 @@ class MigrateDiskSpaceHealthIndicatorConstructorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateDiskSpaceHealthIndicatorConstructor())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-actuator-2.4", "spring-core-5"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-actuator-2.1", "spring-core-5"));
     }
 
     @DocumentExample
