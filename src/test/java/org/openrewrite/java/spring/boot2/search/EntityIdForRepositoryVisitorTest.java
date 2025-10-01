@@ -326,10 +326,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-                interface MyConcreteRepository extends MyIntermediateRepository<Customer, Long>{}
+              interface MyConcreteRepository extends MyIntermediateRepository<Customer, Long>{}
               """,
             """
-                interface MyConcreteRepository extends MyIntermediateRepository<Customer, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long>{}
+              interface MyConcreteRepository extends MyIntermediateRepository<Customer, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long>{}
               """
           )
         );
@@ -359,10 +359,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-                interface MyOtherConcreteRepository1 extends MyOtherIntermediateRepository1<Customer>{}
+              interface MyOtherConcreteRepository1 extends MyOtherIntermediateRepository1<Customer>{}
               """,
             """
-                interface MyOtherConcreteRepository1 extends /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/MyOtherIntermediateRepository1<Customer>{}
+              interface MyOtherConcreteRepository1 extends /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/MyOtherIntermediateRepository1<Customer>{}
               """
           )
         );
@@ -392,10 +392,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long>{}
               """,
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long>{}
               """
           )
         );
@@ -425,10 +425,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String>{}
               """,
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, String>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, String>{}
               """
 
           )
@@ -468,10 +468,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, Customer>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, Customer>{}
               """,
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
               """
           )
         );
@@ -501,10 +501,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository1<Long, Customer>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository1<Long, Customer>{}
               """,
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository1</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository1</*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
               """
           )
         );
@@ -534,10 +534,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String, Long, Customer>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String, Long, Customer>{}
               """,
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long, String, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
               """
           )
         );
@@ -575,10 +575,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           ),
           java(
             """
-                interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long>{}
+              interface MyOtherConcreteRepository2 extends MyOtherIntermediateRepository2<Long>{}
               """,
             """
-                interface MyOtherConcreteRepository2 extends /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/MyOtherIntermediateRepository2<Long>{}
+              interface MyOtherConcreteRepository2 extends /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/MyOtherIntermediateRepository2<Long>{}
               """
           )
         );
