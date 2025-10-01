@@ -15,28 +15,23 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import lombok.Data;
-import lombok.Value;
-import lombok.With;
-import org.jspecify.annotations.Nullable;
+import lombok.EqualsAndHashCode;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.RemoveMethodInvocationsVisitor;
 import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
-import org.openrewrite.marker.Marker;
-import org.openrewrite.properties.tree.Properties;
-import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
+import static java.util.Collections.singletonList;
 import static org.openrewrite.Preconditions.and;
 
 public class MigrateHooksToReactorContextProperty extends ScanningRecipe<MigrateHooksToReactorContextProperty.ProjectsWithHooks> {
@@ -69,18 +64,11 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-
                         if (HOOKS_MATCHER.matches(mi)) {
                             JavaSourceFile sourceFile = getCursor().firstEnclosing(JavaSourceFile.class);
                             if (sourceFile != null) {
-                                Optional<JavaProject> javaProject = sourceFile.getMarkers().findFirst(JavaProject.class);
-                                if (javaProject.isPresent()) {
-                                    acc.projectsWithHooks.add(javaProject.get());
-                                } else {
-                                    acc.hasHooksInSingleProject = true;
-                                }
-
-                                getCursor().putMessageOnFirstEnclosing(JavaSourceFile.class, "has-hooks", true);
+                                sourceFile.getMarkers().findFirst(JavaProject.class)
+                                        .ifPresent(project -> acc.projectsWithHooks.add(project));
                             }
                         }
                         return mi;
@@ -91,120 +79,35 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(ProjectsWithHooks acc) {
-        if (acc.projectsWithHooks.isEmpty() && !acc.hasHooksInSingleProject) {
+        if (acc.projectsWithHooks.isEmpty()) {
             return TreeVisitor.noop();
         }
-
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+            public Tree preVisit(Tree tree, ExecutionContext ctx) {
+                stopAfterPreVisit();
 
-                if (!(tree instanceof SourceFile)) {
+                // Only process files in projects where Hooks were found
+                Optional<JavaProject> currentProject = tree.getMarkers().findFirst(JavaProject.class);
+                if (!acc.projectsWithHooks.contains(currentProject.orElse(null))) {
                     return tree;
                 }
 
-                SourceFile sourceFile = (SourceFile) tree;
-
-                // check already processed.
-                if (sourceFile.getMarkers().findFirst(PropertyAdded.class).isPresent()) {
-                    return tree;
+                // Remove Hooks.enableAutomaticContextPropagation() calls from Java source files
+                if (tree instanceof JavaSourceFile) {
+                    return new RemoveMethodInvocationsVisitor(singletonList("reactor.core.publisher.Hooks enableAutomaticContextPropagation()"))
+                            .visitNonNull(tree, ctx);
                 }
 
-                Optional<JavaProject> currentProject = sourceFile.getMarkers().findFirst(JavaProject.class);
-
-                if (tree instanceof J.CompilationUnit) {
-
-                    boolean shouldProcess = false;
-
-                    if (currentProject.isPresent()) {
-                        shouldProcess = acc.processedProjects.contains(currentProject.get());
-                    } else if (acc.hasHooksInSingleProject) {
-                        shouldProcess = true;
-                    }
-
-                    if (shouldProcess) {
-                        return new HooksRemovalVisitor().visitNonNull(tree, ctx);
-                    }
-                }
-
-                if (isApplicationProperties(tree)) {
-                    boolean shouldAddProperty = false;
-
-                    if (currentProject.isPresent()) {
-                        JavaProject project = currentProject.get();
-                        if (acc.projectsWithHooks.contains(project) &&
-                                !acc.processedProjects.contains(project)) {
-                            acc.processedProjects.add(project);
-                            shouldAddProperty = true;
-                        }
-                    } else if (acc.hasHooksInSingleProject && !acc.propertiesProcessedForSingleProject) {
-                        // single project or testing environment
-                        acc.propertiesProcessedForSingleProject = true;
-                        shouldAddProperty = true;
-                    }
-
-                    if (shouldAddProperty) {
-                        Tree result = addSpringProperty(ctx, tree);
-
-                        if (result instanceof SourceFile) {
-                            result = ((SourceFile) result).withMarkers(
-                                    ((SourceFile) result).getMarkers().addIfAbsent(new PropertyAdded(Tree.randomId()))
-                            );
-                        }
-                        return result;
-                    }
-                }
-
-                return tree;
+                return new AddSpringProperty("spring.reactor.context-propagation", "true", null, null)
+                        .getVisitor()
+                        .visitNonNull(tree, ctx);
             }
         };
     }
 
-    private static boolean isApplicationProperties(@Nullable Tree tree) {
-        if (tree instanceof Properties.File) {
-            String fileName = ((Properties.File) tree).getSourcePath().getFileName().toString();
-            return "application.properties".equals(fileName) || fileName.matches("application-.*\\.properties");
-        }
-
-        if (tree instanceof Yaml.Documents) {
-            String fileName = ((Yaml.Documents) tree).getSourcePath().getFileName().toString();
-            return fileName.matches("application(-.*)?\\.(yml|yaml)");
-        }
-
-        return false;
-    }
-
-    private static Tree addSpringProperty(ExecutionContext ctx, Tree properties) {
-        return new AddSpringProperty("spring.reactor.context-propagation", "true", null, null)
-                .getVisitor().visitNonNull(properties, ctx);
-    }
-
-    private static class HooksRemovalVisitor extends JavaIsoVisitor<ExecutionContext> {
-        @Override
-        public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-            J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-
-            if (HOOKS_MATCHER.matches(mi)) {
-                maybeRemoveImport(HOOKS_TYPE);
-                return null;
-            }
-
-            return mi;
-        }
-    }
-
+    @EqualsAndHashCode
     public static class ProjectsWithHooks {
         Set<JavaProject> projectsWithHooks = new HashSet<>();
-        Set<JavaProject> processedProjects = new HashSet<>();
-
-        boolean hasHooksInSingleProject = false; // single project or has no markers
-        boolean propertiesProcessedForSingleProject = false;
     }
-
-    @Value
-    @With
-    static class PropertyAdded implements Marker {
-        UUID id;
-    }
-
 }
