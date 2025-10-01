@@ -51,8 +51,8 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
     }
 
     private static final String SPRING_BOOT_APPLICATION_FQN = "org.springframework.boot.autoconfigure.SpringBootApplication";
-    private static final String HOOKS_TYPE = "reactor.core.publisher.Hooks";
-    private static final MethodMatcher HOOKS_MATCHER = new MethodMatcher("reactor.core.publisher.Hooks enableAutomaticContextPropagation()");
+    private static final String HOOKS_PATTERN = "reactor.core.publisher.Hooks enableAutomaticContextPropagation()";
+    private static final MethodMatcher HOOKS_MATCHER = new MethodMatcher(HOOKS_PATTERN);
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(ProjectsWithHooks acc) {
@@ -95,8 +95,7 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
 
                 // Remove Hooks.enableAutomaticContextPropagation() calls from Java source files
                 if (tree instanceof JavaSourceFile) {
-                    return new RemoveMethodInvocationsVisitor(singletonList("reactor.core.publisher.Hooks enableAutomaticContextPropagation()"))
-                            .visitNonNull(tree, ctx);
+                    return new RemoveMethodInvocationsVisitor(singletonList(HOOKS_PATTERN)).visitNonNull(tree, ctx);
                 }
 
                 return new AddSpringProperty("spring.reactor.context-propagation", "true", null, null)
