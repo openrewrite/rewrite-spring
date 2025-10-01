@@ -21,7 +21,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.properties.Assertions.properties;
 
 class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
@@ -57,36 +57,42 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
     void replaceMethodCallWithProperty() {
         rewriteRun(
           spec -> spec.recipe(new MigrateHooksToReactorContextProperty()),
-          java(
-            """
-              import reactor.core.publisher.Hooks;
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
+          mavenProject("project",
+            srcMainJava(
+              java(
+                """
+                  import reactor.core.publisher.Hooks;
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-              @SpringBootApplication
-              public class MyApplication {
-                  public static void main(String[] args) {
-                      Hooks.enableAutomaticContextPropagation();
-                      SpringApplication.run(MyApplication.class, args);
+                  @SpringBootApplication
+                  public class MyApplication {
+                      public static void main(String[] args) {
+                          Hooks.enableAutomaticContextPropagation();
+                          SpringApplication.run(MyApplication.class, args);
+                      }
                   }
-              }
-              """,
-            """
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
+                  """,
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-              @SpringBootApplication
-              public class MyApplication {
-                  public static void main(String[] args) {
-                      SpringApplication.run(MyApplication.class, args);
+                  @SpringBootApplication
+                  public class MyApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(MyApplication.class, args);
+                      }
                   }
-              }
-              """
-          ),
-          properties(
-            "",
-            "spring.reactor.context-propagation=true",
-            spec -> spec.path("application.properties")
+                  """
+              )
+            ),
+            srcTestResources(
+              properties(
+                "",
+                "spring.reactor.context-propagation=true",
+                spec -> spec.path("application.properties")
+              )
+            )
           )
         );
     }
@@ -95,25 +101,31 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
     void shouldNotAddPropertyWhenNoHooksPresent() {
         rewriteRun(
           spec -> spec.recipe(new MigrateHooksToReactorContextProperty()),
-          java(
-            """
-              import org.springframework.boot.SpringApplication;
-              import org.springframework.boot.autoconfigure.SpringBootApplication;
+          mavenProject("project",
+            srcMainJava(
+              java(
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-              @SpringBootApplication
-              public class MyApplication {
-                  public static void main(String[] args) {
-                      // No Hooks.enableAutomaticContextPropagation() here
-                      SpringApplication.run(MyApplication.class, args);
+                  @SpringBootApplication
+                  public class MyApplication {
+                      public static void main(String[] args) {
+                          // No Hooks.enableAutomaticContextPropagation() here
+                          SpringApplication.run(MyApplication.class, args);
+                      }
                   }
-              }
-              """
-          ),
-          properties(
-            """
-              server.port=8080
-              """,
-            spec -> spec.path("application.properties")
+                  """
+              )
+            ),
+            srcTestResources(
+              properties(
+                """
+                  server.port=8080
+                  """,
+                spec -> spec.path("application.properties")
+              )
+            )
           )
         );
     }
