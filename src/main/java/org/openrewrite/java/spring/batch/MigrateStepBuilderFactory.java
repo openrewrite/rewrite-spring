@@ -30,7 +30,6 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 
 public class MigrateStepBuilderFactory extends Recipe {
 
