@@ -28,6 +28,7 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
@@ -67,7 +68,7 @@ public class MigrateStepBuilderFactory extends Recipe {
             if (!FindMethods.find(classDeclaration, STEP_BUILDER_FACTORY_GET).isEmpty()) {
                 cd = cd.withBody(cd.getBody().withStatements(ListUtils.map(cd.getBody().getStatements(), statement -> {
                     if (statement instanceof J.VariableDeclarations &&
-                        ((J.VariableDeclarations) statement).getTypeExpression() != null) {
+                            ((J.VariableDeclarations) statement).getTypeExpression() != null) {
                         if (TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getTypeExpression().getType(),
                                 "org.springframework.batch.core.configuration.annotation.StepBuilderFactory")) {
                             return null;
@@ -85,16 +86,14 @@ public class MigrateStepBuilderFactory extends Recipe {
             // Add JobRepository parameter to method if StepBuilderFactory.get(..) is used further down
             if (!FindMethods.find(md, STEP_BUILDER_FACTORY_GET).isEmpty()) {
                 List<Statement> params = ListUtils.mapFirst(
-                        md.getParameters().stream()
-                                .filter(j -> !(j instanceof J.Empty) && !isStepBuilderFactoryParameter(j))
-                                .collect(toList()),
+                        ListUtils.filter(md.getParameters(), j -> !isStepBuilderFactoryParameter(j)),
                         arg -> arg.withPrefix(Space.EMPTY)
                 );
 
                 if (params.isEmpty() && md.isConstructor()) {
-                    //noinspection DataFlowIssue
                     return null;
                 }
+                params = ListUtils.mapFirst(params, p -> p.withPrefix(md.getParameters().get(0).getPrefix().withComments(emptyList())));
 
                 if (md.getParameters().stream().noneMatch(this::isJobRepositoryParameter) && !md.isConstructor()) {
                     maybeAddImport("org.springframework.batch.core.repository.JobRepository");
@@ -107,14 +106,13 @@ public class MigrateStepBuilderFactory extends Recipe {
                             .<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
                             .getParameters().get(0).withPrefix(parametersEmpty ? Space.EMPTY : Space.SINGLE_SPACE);
                     if (parametersEmpty) {
-                        md = md.withParameters(singletonList(vdd))
+                        return md.withParameters(singletonList(vdd))
                                 .withMethodType(md.getMethodType()
                                         .withParameterTypes(singletonList(vdd.getType())));
-                    } else {
-                        md = md.withParameters(ListUtils.concat(params, vdd))
-                                .withMethodType(md.getMethodType()
-                                        .withParameterTypes(ListUtils.concat(md.getMethodType().getParameterTypes(), vdd.getType())));
                     }
+                    return md.withParameters(ListUtils.concat(params, vdd))
+                            .withMethodType(md.getMethodType()
+                                    .withParameterTypes(ListUtils.concat(md.getMethodType().getParameterTypes(), vdd.getType())));
                 }
             }
 
@@ -123,14 +121,14 @@ public class MigrateStepBuilderFactory extends Recipe {
 
         private boolean isJobRepositoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
-                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                           "org.springframework.batch.core.repository.JobRepository");
+                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                            "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isStepBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
-                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                           "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
+                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                            "org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
         }
     }
 

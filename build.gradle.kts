@@ -6,7 +6,7 @@ plugins {
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 
-val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0", "3_2", "3_3", "3_4")
+val springBootVersions: List<String> = listOf("1_5", "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", "2_7", "3_0", "3_2", "3_3", "3_4", "3_5")
 val springSecurityVersions: List<String> = listOf("5_7", "5_8", "6_2")
 
 val sourceSetNames: Map<String, List<String>> = mapOf(
@@ -131,6 +131,16 @@ recipeDependencies {
     parserClasspath("io.micrometer:micrometer-commons:1.11.+")
     parserClasspath("io.micrometer:micrometer-core:1.11.+")
     parserClasspath("io.micrometer:micrometer-observation:1.11.+")
+
+    testParserClasspath("io.projectreactor:reactor-core:3.6.3")
+    testParserClasspath("org.apache.kafka:kafka-clients:3.2.3")
+    testParserClasspath("org.springframework.cloud:spring-cloud-openfeign-core:4.1.0")
+    testParserClasspath("org.springframework:spring-messaging:5.3.39")
+    testParserClasspath("org.springframework:spring-web:6.1.8")
+    testParserClasspath("org.springframework:spring-webflux:6.1.16")
+
+    // Only needed for `testWithSpringBoot_3_0`
+//    testParserClasspath("org.springframework.batch:spring-batch-infrastructure:4.3.10")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
