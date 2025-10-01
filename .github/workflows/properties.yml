@@ -3,9 +3,8 @@ name: Generate Spring Boot property migration recipes
 
 on:
   workflow_dispatch: {}
-# Hold off on incomplete migration recipes for now
-#  schedule:
-#    - cron: 0 11 * * MON
+  schedule:
+    - cron: 0 11 * * TUE
 
 jobs:
   update-migrations:
@@ -17,7 +16,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
 
       # Generate Spring Boot property migrations recipes

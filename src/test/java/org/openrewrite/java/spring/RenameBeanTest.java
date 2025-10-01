@@ -30,9 +30,7 @@ class RenameBeanTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .recipe(new RenameBean("sample.MyType", "foo", "bar"))
-          .parser(
-            JavaParser.fromJavaVersion()
-              .logCompilationWarningsAndErrors(true)
+          .parser(JavaParser.fromJavaVersion()
               //language=java
               .dependsOn(
                 """

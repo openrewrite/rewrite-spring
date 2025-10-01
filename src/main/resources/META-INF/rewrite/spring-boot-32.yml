@@ -83,6 +83,7 @@ recipeList:
       artifactId: "*"
       newVersion: 2.5.x
   - org.openrewrite.hibernate.MigrateToHibernate64
+  - org.openrewrite.java.spring.boot3.MigrateHooksToReactorContextProperty
   - org.openrewrite.java.spring.boot3.RelocateLauncherClasses
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_2
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_5

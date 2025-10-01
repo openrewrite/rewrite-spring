@@ -565,7 +565,7 @@ examples:
       import org.springframework.beans.factory.annotation.Autowired;
       import org.springframework.context.annotation.Bean;
 
-      public class MyJobConfig {
+      class MyJobConfig {
 
           @Autowired
           private JobBuilderFactory jobBuilderFactory;
@@ -584,7 +584,7 @@ examples:
       import org.springframework.batch.core.repository.JobRepository;
       import org.springframework.context.annotation.Bean;
 
-      public class MyJobConfig {
+      class MyJobConfig {
 
           @Bean
           Job myJob(Step step, JobRepository jobRepository) {
@@ -1491,22 +1491,22 @@ examples:
       spring.profiles.active=production
       spring.config.activate.on-profile=dev
     language: properties
-  - before: |2
-          ---
-          spring:
-            profiles:
-              active: dev
-          ---
-          spring:
-            profiles: prod
-    after: |2
-          ---
-          spring:
-            profiles:
-              active: dev
-          ---
-          spring:
-            config.activate.on-profile: prod
+  - before: |
+      ---
+      spring:
+        profiles:
+          active: dev
+      ---
+      spring:
+        profiles: prod
+    after: |
+      ---
+      spring:
+        profiles:
+          active: dev
+      ---
+      spring:
+        config.activate.on-profile: prod
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
@@ -1854,6 +1854,39 @@ examples:
           }
       }
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot3.MigrateHooksToReactorContextProperty
+examples:
+- description: ''
+  sources:
+  - before: |
+      import reactor.core.publisher.Hooks;
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class MyApplication {
+          public static void main(String[] args) {
+              Hooks.enableAutomaticContextPropagation();
+              SpringApplication.run(MyApplication.class, args);
+          }
+      }
+    after: |
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class MyApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(MyApplication.class, args);
+          }
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - after: spring.reactor.context-propagation=true
+    language: properties
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
@@ -2522,6 +2555,29 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
+examples:
+- description: ''
+  sources:
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>fooservice</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <parent>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-parent</artifactId>
+              <version>3.4.9</version>
+              <relativePath/>
+          </parent>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing
 examples:
 - description: ''
@@ -2588,6 +2644,33 @@ examples:
           String getPostById(@PathVariable("postId") Long postId);
       }
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025
+examples:
+- description: ''
+  sources:
+  - before: project
+    language: mavenProject
+  - before: spring.cloud.gateway.proxy=foo
+    after: spring.cloud.gateway.proxy-exchange.webflux=foo
+    language: properties
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>fooservice</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.cloud</groupId>
+                  <artifactId>spring-cloud-gateway-webflux</artifactId>
+                  <version>4.2.4</version>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.JdbcTemplateQueryForLongMigration
@@ -3016,6 +3099,29 @@ examples:
               byte[] decoded3 = Base64.getDecoder().decode(key);
               String encoded4 = Base64.getUrlEncoder().encodeToString(key.getBytes(StandardCharsets.UTF_8));
               byte[] decoded4 = Base64.getUrlDecoder().decode(key);
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.MigrateClientHttpResponseGetRawStatusCodeMethod
+examples:
+- description: ''
+  sources:
+  - before: |
+      import org.springframework.http.client.ClientHttpResponse;
+
+      class A {
+          public int someMethod(ClientHttpResponse response) {
+              return response.getRawStatusCode();
+          }
+      }
+    after: |
+      import org.springframework.http.client.ClientHttpResponse;
+
+      class A {
+          public int someMethod(ClientHttpResponse response) {
+              return response.getStatusCode().value();
           }
       }
     language: java
@@ -4575,22 +4681,13 @@ examples:
 - description: ''
   parameters:
   - 2.7.X
-  - 3.0.0-M3
+  - 3.0.0
   sources:
   - before: |
       <project>
           <groupId>com.example</groupId>
           <artifactId>explicit-deps-app</artifactId>
           <version>0.0.1-SNAPSHOT</version>
-          <repositories>
-              <repository>
-                  <id>spring-milestone</id>
-                  <url>https://repo.spring.io/milestone</url>
-                  <snapshots>
-                      <enabled>false</enabled>
-                  </snapshots>
-              </repository>
-          </repositories>
           <dependencies>
               <dependency>
                   <groupId>org.springframework.boot</groupId>
@@ -4610,25 +4707,16 @@ examples:
           <groupId>com.example</groupId>
           <artifactId>explicit-deps-app</artifactId>
           <version>0.0.1-SNAPSHOT</version>
-          <repositories>
-              <repository>
-                  <id>spring-milestone</id>
-                  <url>https://repo.spring.io/milestone</url>
-                  <snapshots>
-                      <enabled>false</enabled>
-                  </snapshots>
-              </repository>
-          </repositories>
           <dependencies>
               <dependency>
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-starter-web</artifactId>
-                  <version>3.0.0-M3</version>
+                  <version>3.0.0</version>
               </dependency>
               <dependency>
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-starter-test</artifactId>
-                  <version>3.0.0-M3</version>
+                  <version>3.0.0</version>
                   <scope>test</scope>
               </dependency>
           </dependencies>

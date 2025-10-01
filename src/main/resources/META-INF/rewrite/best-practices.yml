@@ -55,6 +55,20 @@ recipeList:
   - org.openrewrite.java.spring.PropertiesToKebabCase
   - org.openrewrite.java.spring.boot3.EnableVirtualThreads
   - org.openrewrite.java.spring.framework.BeanMethodsNotPublic # Intentionally not in 2.x
+  - org.openrewrite.java.spring.boot3.ReplaceStringLiteralsWithConstants
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.ReplaceStringLiteralsWithConstants
+displayName: Replace String literals with Spring constants
+description: Replace String literals with Spring constants where applicable.
+tags:
+  - spring
+  - boot
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework
+      artifactIdPattern: spring-web
+recipeList:
   # Replace literals with constants and simplify MediaType parse calls
   - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithHttpHeadersConstants
   - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants

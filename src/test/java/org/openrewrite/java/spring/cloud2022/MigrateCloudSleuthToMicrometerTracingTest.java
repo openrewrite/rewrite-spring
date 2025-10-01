@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.cloud2022;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -29,13 +28,8 @@ class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder()
-            .scanRuntimeClasspath("org.openrewrite.java.spring")
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing"))
-          .parser(JavaParser.fromJavaVersion()
-            .logCompilationWarningsAndErrors(true)
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-cloud-sleuth-api"));
+        spec.recipeFromResources("org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing")
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-cloud-sleuth-api-3.1.+"));
     }
 
     @DocumentExample
@@ -46,14 +40,14 @@ class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
           java(
             """
               import org.springframework.cloud.sleuth.Tracer;
-              
+
               public class SessionInfoOperator {
                   private Tracer tracer;
-              
+
                   public SessionInfoOperator(Tracer tracer) {
                       this.tracer = tracer;
                   }
-              
+
                   public boolean getSessionInfo(String key) {
                       return tracer.currentSpan().isNoop();
                   }
@@ -61,14 +55,14 @@ class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
               """,
             """
               import io.micrometer.tracing.Tracer;
-              
+
               public class SessionInfoOperator {
                   private Tracer tracer;
-              
+
                   public SessionInfoOperator(Tracer tracer) {
                       this.tracer = tracer;
                   }
-              
+
                   public boolean getSessionInfo(String key) {
                       return tracer.currentSpan().isNoop();
                   }
@@ -88,7 +82,7 @@ class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
               import org.springframework.cloud.sleuth.exporter.SpanIgnoringSpanFilter;
 
               import java.util.List;
-              
+
               public class SessionInfoOperator {
                   private SpanFilter filter = new SpanIgnoringSpanFilter(List.of(), List.of());
               }
@@ -98,7 +92,7 @@ class MigrateCloudSleuthToMicrometerTracingTest implements RewriteTest {
               import io.micrometer.tracing.exporter.SpanIgnoringSpanExportingPredicate;
 
               import java.util.List;
-              
+
               public class SessionInfoOperator {
                   private SpanExportingPredicate filter = new SpanIgnoringSpanExportingPredicate(List.of(), List.of());
               }
