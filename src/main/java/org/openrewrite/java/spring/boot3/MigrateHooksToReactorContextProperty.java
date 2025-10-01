@@ -15,6 +15,9 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Data;
+import lombok.Value;
+import lombok.With;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -34,10 +37,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.openrewrite.Preconditions.and;
-
-import lombok.Data;
-import lombok.Value;
-import lombok.With;
 
 public class MigrateHooksToReactorContextProperty extends ScanningRecipe<MigrateHooksToReactorContextProperty.ProjectsWithHooks> {
 	@Override
@@ -164,7 +163,7 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
 	private static boolean isApplicationProperties(@Nullable Tree tree) {
 		if (tree instanceof Properties.File){
 			String fileName = ((Properties.File) tree).getSourcePath().getFileName().toString();
-			return fileName.equals("application.properties") || fileName.matches("application-.*\\.properties");
+			return "application.properties".equals(fileName) || fileName.matches("application-.*\\.properties");
 		}
 
 		if (tree instanceof Yaml.Documents){

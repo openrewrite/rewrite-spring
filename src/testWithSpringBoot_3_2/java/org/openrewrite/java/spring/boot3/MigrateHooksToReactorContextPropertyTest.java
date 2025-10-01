@@ -20,9 +20,7 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static org.openrewrite.java.Assertions.*;
-import static org.openrewrite.properties.Assertions.properties;
-import static org.openrewrite.yaml.Assertions.yaml;
+import static org.openrewrite.java.Assertions.java;
 
 class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
 
