@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.cloud2022;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -36,6 +37,40 @@ class MigrateProjectTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-cloud-sleuth-api-3.*"));
+    }
+
+    @DocumentExample
+    @Test
+    void migrateProperties() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.sleuth.baggage.correlation-enabled=true
+                  """,
+                """
+                  management.tracing.baggage.correlation.enabled=true
+                  """,
+                s -> s.path("src/main/resources/application.properties")
+              ),
+              //language=yaml
+              yaml(
+                """
+                  spring:
+                      sleuth:
+                          baggage:
+                              correlation-enabled: true
+                  """,
+                """
+                  management.tracing.baggage.correlation.enabled: true
+                  """,
+                s -> s.path("src/main/resources/application.yml")
+              )
+            )
+          )
+        );
     }
 
     @Test
@@ -95,39 +130,6 @@ class MigrateProjectTest implements RewriteTest {
                 </project>
                 """.formatted(micrometerVersion);
                 })
-            )
-          )
-        );
-    }
-
-    @Test
-    void migrateProperties() {
-        rewriteRun(
-          mavenProject("project",
-            srcMainResources(
-              //language=properties
-              properties(
-                """
-                  spring.sleuth.baggage.correlation-enabled=true
-                  """,
-                """
-                  management.tracing.baggage.correlation.enabled=true
-                  """,
-                s -> s.path("src/main/resources/application.properties")
-              ),
-              //language=yaml
-              yaml(
-                """
-                  spring:
-                      sleuth:
-                          baggage:
-                              correlation-enabled: true
-                  """,
-                """
-                  management.tracing.baggage.correlation.enabled: true
-                  """,
-                s -> s.path("src/main/resources/application.yml")
-              )
             )
           )
         );
