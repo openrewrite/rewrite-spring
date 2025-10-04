@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,6 +31,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
         spec.recipe(new MergeBootstrapYamlWithApplicationYaml());
     }
 
+    @DocumentExample
     @Test
     void mergeBootstrapYAML() {
         rewriteRun(
