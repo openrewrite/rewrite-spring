@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2.search;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Tree;
 import org.openrewrite.java.JavaParser;
@@ -36,6 +37,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-data-commons-2"));
     }
 
+    @DocumentExample
     @Test
     void invalidDomainId_string_number() {
         //language=java

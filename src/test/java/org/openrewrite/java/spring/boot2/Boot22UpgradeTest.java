@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -34,6 +35,7 @@ class Boot22UpgradeTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "hibernate-validator-6.0.23.Final"));
     }
 
+    @DocumentExample
     @Test
     void addJavaxValidationApi() {
         rewriteRun(
