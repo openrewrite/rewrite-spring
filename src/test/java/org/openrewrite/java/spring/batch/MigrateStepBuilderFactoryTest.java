@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.batch;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -25,13 +26,12 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 
 class MigrateStepBuilderFactoryTest implements RewriteTest {
-
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateStepBuilderFactory())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch-core-4.3.+",
-            "spring-batch-infrastructure-4.3.10",
+            "spring-batch-core-4.3",
+            "spring-batch-infrastructure-4.3",
             "spring-beans-4.3.30.RELEASE",
             "spring-context-4.3.30.RELEASE"
           ));
@@ -77,6 +77,29 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
                       return new StepBuilder("myStep", jobRepository)
                               .tasklet(myTasklet)
                               .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite/discussions/6016")
+    @Test
+    void genericsTypeProblem() {
+        rewriteRun(
+          spec -> spec.recipe(new MigrateStepBuilderFactory()),
+          java(
+            // language=java
+            """
+              import org.springframework.batch.core.step.builder.StepBuilder;
+
+              class MyConfig {
+
+                  void hello() {
+                      new StepBuilder("myStep")
+                              .startLimit(123)
+                              .chunk(123);
                   }
               }
               """
