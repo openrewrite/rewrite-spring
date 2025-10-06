@@ -49,3 +49,14 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 3.5.x
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.UpdatePrometheusPushgateway
+displayName: Update Prometheus Pushgateway Dependency Coordinates
+description: Update the Prometheus Pushgateway artifact ID for Spring Boot 3.5 compatibility.
+recipeList:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: io.prometheus
+      oldArtifactId: simpleclient_pushgateway
+      newGroupId: io.prometheus
+      newArtifactId: prometheus-metrics-exporter-pushgateway
