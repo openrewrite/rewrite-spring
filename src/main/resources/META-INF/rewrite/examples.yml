@@ -15,7 +15,7 @@
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
 examples:
-- description: ''
+- description: '`AddSpringDependencyManagementPluginTest#addIfPresent`'
   sources:
   - before: |
       plugins {
@@ -48,7 +48,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.flyway.MigrateToFlyway10
 examples:
-- description: ''
+- description: '`MigrateToFlyway10Test#addPostgresDependency`'
   sources:
   - before: "<project>\n\t<modelVersion>4.0.0</modelVersion>\n\t<parent>\n\t\t<groupId>org.springframework.boot</groupId>\n\
       \t\t<artifactId>spring-boot-starter-parent</artifactId>\n\t\t<version>3.3.12</version>\n\
@@ -73,7 +73,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.AddSpringProperty
 examples:
-- description: ''
+- description: '`AddSpringPropertyTest#addNestedIntoExisting`'
   parameters:
   - server.servlet.path
   - /tmp/my-server-path
@@ -99,7 +99,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.ChangeMethodParameter
 examples:
-- description: ''
+- description: '`ChangeMethodParameterTest#primitive`'
   parameters:
   - foo.Foo#bar(..)
   - long
@@ -122,7 +122,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.ChangeSpringPropertyKey
 examples:
-- description: ''
+- description: '`ChangeSpringPropertyKeyTest#changeLastKey`'
   parameters:
   - server.servlet-path
   - server.servlet.path
@@ -132,6 +132,7 @@ examples:
       server.servlet-path=/tmp/my-server-path
     after: |
       server.servlet.path=/tmp/my-server-path
+    path: application.properties
     language: properties
   - before: |
       server:
@@ -144,7 +145,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.ChangeSpringPropertyValue
 examples:
-- description: ''
+- description: '`ChangeSpringPropertyValueTest#propFile`'
   parameters:
   - server.port
   - '8081'
@@ -159,7 +160,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.CommentOutSpringPropertyKey
 examples:
-- description: ''
+- description: '`CommentOutSpringPropertyKeyTest#yamlComment`'
   parameters:
   - server.port
   - This property has been removed.
@@ -173,7 +174,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.DeleteSpringProperty
 examples:
-- description: ''
+- description: '`DeleteSpringPropertyKeyTest#deleteOnlyKey`'
   parameters:
   - server.servlet-path
   sources:
@@ -188,7 +189,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.ExpandProperties
 examples:
-- description: ''
+- description: '`ExpandPropertiesTest#expandProperties`'
   parameters:
   - 'null'
   sources:
@@ -203,12 +204,13 @@ examples:
         application:
           name: main
           description: a description
+    path: application.yml
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.ImplicitWebAnnotationNames
 examples:
-- description: ''
+- description: '`ImplicitWebAnnotationNamesTest#removeUnnecessaryAnnotationArgument`'
   sources:
   - before: |
       import org.springframework.http.ResponseEntity;
@@ -243,7 +245,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.NoRepoAnnotationOnRepoInterface
 examples:
-- description: ''
+- description: '`NoRepoAnnotationOnRepoInterfaceTest#simpleCase`'
   sources:
   - before: |
       import org.springframework.stereotype.Repository;
@@ -260,7 +262,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.NoRequestMappingAnnotation
 examples:
-- description: ''
+- description: '`NoRequestMappingAnnotationTest#requestMapping`'
   sources:
   - before: |
       import java.util.*;
@@ -325,9 +327,23 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.PropertiesToKebabCase
+examples:
+- description: '`PropertiesToKebabCaseTest#singleFlatProperty`'
+  sources:
+  - before: spring.main.showBanner=true
+    after: spring.main.show-banner=true
+    path: application.properties
+    language: properties
+  - before: 'spring.main.showBanner: true'
+    after: 'spring.main.show-banner: true'
+    path: application.yaml
+    language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.RenameBean
 examples:
-- description: ''
+- description: '`BeanMethods#impliedName`'
   parameters: &id001
   - sample.MyType
   - foo
@@ -358,7 +374,7 @@ examples:
           }
       }
     language: java
-- description: ''
+- description: '`BeanClasses#impliedName`'
   parameters:
   - sample.Foo
   - foo
@@ -383,7 +399,7 @@ examples:
       class Bar {
       }
     language: java
-- description: ''
+- description: '`Usages#parameterUsage`'
   parameters: *id001
   sources:
   - before: |
@@ -419,9 +435,29 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.SeparateApplicationYamlByProfile
+examples:
+- description: '`SeparateApplicationYamlByProfileTest#separateProfile`'
+  sources:
+  - after: 'name: test'
+    path: application-test.yml
+    language: yaml
+  - before: |
+      name: main
+      ---
+      spring:
+        config:
+          activate:
+            on-profile: test
+      name: test
+    after: |
+      name: main
+    language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.amqp.UseTlsAmqpConnectionString
 examples:
-- description: ''
+- description: '`UseTlsAmqpConnectionStringTest#useTls`'
   parameters:
   - 'null'
   - '5672'
@@ -434,6 +470,7 @@ examples:
     after: |
       spring.rabbitmq.addresses=host1:5671
       spring.rabbitmq.ssl.enabled=true
+    path: application.properties
     language: properties
   - before: |
       spring:
@@ -445,12 +482,13 @@ examples:
           addresses: host1:5671
           ssl:
             enabled: true
+    path: application.yml
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.ConvertReceiveTypeWhenCallStepExecutionMethod
 examples:
-- description: ''
+- description: '`ConvertReceiveTypeWhenCallStepExecutionMethodTest#methodReferenceToLambda`'
   sources:
   - before: |
       package test;
@@ -481,7 +519,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.JobParameterToString
 examples:
-- description: ''
+- description: '`JobParameterToStringTest#insertGetValueBeforeToString`'
   sources:
   - before: |
       import org.springframework.batch.core.JobParameters;
@@ -504,7 +542,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.ListenerSupportClassToInterface
 examples:
-- description: ''
+- description: '`ReplaceSupportClassWithItsInterfaceTest#replaceChunkListenerSupport`'
   sources:
   - before: |
       import org.springframework.batch.core.listener.ChunkListenerSupport;
@@ -523,7 +561,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.MigrateItemWriterWrite
 examples:
-- description: ''
+- description: '`MigrateItemWriterWriteTest#replaceItemWriterWriteMethod`'
   sources:
   - before: |
       import java.util.List;
@@ -556,7 +594,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.MigrateJobBuilderFactory
 examples:
-- description: ''
+- description: '`MigrateJobBuilderFactoryTest#replaceAutowiredJobBuilderFactory`'
   sources:
   - before: |
       import org.springframework.batch.core.Job;
@@ -598,7 +636,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.MigrateJobParameter
 examples:
-- description: ''
+- description: '`MigrateJobParameterTest#addClassArguments`'
   sources:
   - before: |
       import org.springframework.batch.core.JobParameter;
@@ -639,7 +677,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.MigrateMethodAnnotatedByBatchAPI
 examples:
-- description: ''
+- description: '`MigrateMethodAnnotatedByBatchAPITest#fixMethodArguments`'
   sources:
   - before: |
       import java.util.List;
@@ -674,7 +712,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.MigrateStepBuilderFactory
 examples:
-- description: ''
+- description: '`MigrateStepBuilderFactoryTest#replaceStepBuilderFactoryWithTasket`'
   sources:
   - before: |
       import org.springframework.batch.core.Step;
@@ -716,7 +754,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.RemoveDefaultBatchConfigurer
 examples:
-- description: ''
+- description: '`RemoveDefaultBatchConfigurerTest#removeSetDataSourceWithCommentOnly`'
   sources:
   - before: |
       import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
@@ -734,7 +772,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.UpgradeSkipPolicyParameterType
 examples:
-- description: ''
+- description: '`UpgradeSkipPolicyParameterTypeTest#replaceParameter`'
   sources:
   - before: |
       import org.springframework.batch.core.step.skip.SkipLimitExceededException;
@@ -761,7 +799,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.AddConfigurationAnnotationIfBeansPresent
 examples:
-- description: ''
+- description: '`AddConfigurationAnnotationIfBeansPresentTest#enableWebSecurityWithBeans`'
   sources:
   - before: |
       import org.springframework.context.annotation.Bean;
@@ -786,7 +824,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
 examples:
-- description: ''
+- description: '`ConditionalOnBeanAnyNestedConditionTest#twoConditionalAnnotationsWithSameMultipleClassCandidatesReversed`'
   sources:
   - before: |
       import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -850,7 +888,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering
 examples:
-- description: ''
+- description: '`DatabaseComponentAndBeanInitializationOrderingTest#dslContextBeanShouldNotBeAnnotated`'
   sources:
   - before: |
       import org.jooq.impl.DSL;
@@ -907,7 +945,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.GetErrorAttributes
 examples:
-- description: ''
+- description: '`GetErrorAttributesTest#whenLiteralTrueUseDefaultsIncludingStacktraceEnum`'
   sources:
   - before: |
       import org.springframework.boot.web.servlet.error.ErrorAttributes;
@@ -949,7 +987,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.HeadersConfigurerLambdaDsl
 examples:
-- description: ''
+- description: '`HeadersConfigurerLambdaDslTest#simpleContentSecurityPolicy`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -987,7 +1025,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl
 examples:
-- description: ''
+- description: '`HttpSecurityLambdaDslTest#simple`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -1022,9 +1060,26 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.MergeBootstrapYamlWithApplicationYaml
+examples:
+- description: '`MergeBootstrapYamlWithApplicationYamlTest#mergeBootstrapYAML`'
+  sources:
+  - before: |
+      name: test
+    path: bootstrap.yaml
+    language: yaml
+  - before: |
+      spring.application.name: main
+    after: |
+      spring.application.name: main
+      name: test
+    path: application.yaml
+    language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateActuatorMediaTypeToApiVersion
 examples:
-- description: ''
+- description: '`MigrateActuatorMediaTypeToApiVersionTest#fromConstantToEnumVal`'
   sources:
   - before: |
       import org.springframework.boot.actuate.endpoint.http.ActuatorMediaType;
@@ -1047,7 +1102,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
 examples:
-- description: ''
+- description: '`MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest#updateFieldAccess`'
   sources:
   - before: |
       import org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor;
@@ -1070,7 +1125,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateDatabaseCredentials
 examples:
-- description: ''
+- description: '`MigrateDatabaseCredentialsTest#yamlMigration`'
   sources:
   - before: |
       spring:
@@ -1086,7 +1141,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateDiskSpaceHealthIndicatorConstructor
 examples:
-- description: ''
+- description: '`MigrateDiskSpaceHealthIndicatorConstructorTest#changeDeprecatedConstructor`'
   sources:
   - before: |
       import org.springframework.boot.actuate.system.DiskSpaceHealthIndicator;
@@ -1122,7 +1177,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateErrorPropertiesIncludeStackTraceConstants
 examples:
-- description: ''
+- description: '`MigrateErrorPropertiesIncludeStackTraceConstantsTest#updateFieldAccessToRecommendedReplacements`'
   sources:
   - before: |
       package org.test;
@@ -1149,7 +1204,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateHsqlEmbeddedDatabaseConnection
 examples:
-- description: ''
+- description: '`MigrateHsqlEmbeddedDatabaseConnectionTest#updateFieldAccess`'
   sources:
   - before: |
       import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
@@ -1172,7 +1227,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateLoggingSystemPropertyConstants
 examples:
-- description: ''
+- description: '`MigrateLoggingSystemPropertyConstantsTest#updateFieldAccess`'
   sources:
   - before: |
       package org.test;
@@ -1207,7 +1262,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateMultipartConfigFactory
 examples:
-- description: ''
+- description: '`MigrateMultipartConfigFactoryTest#changeDeprecatedMethods`'
   sources:
   - before: |
       import org.springframework.boot.web.servlet.MultipartConfigFactory;
@@ -1243,7 +1298,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateRestTemplateBuilderTimeoutByInt
 examples:
-- description: ''
+- description: '`MigrateRestTemplateBuilderTimeoutByIntTest#changeDeprecatedMethods`'
   sources:
   - before: |
       import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -1272,7 +1327,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
 examples:
-- description: ''
+- description: '`MigrateToWebServerFactoryCustomizerTest#migrateToWebServerFactoryCustomizer`'
   sources:
   - before: |
       import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
@@ -1301,7 +1356,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
 examples:
-- description: ''
+- description: '`ReplaceDeprecatedEnvironmentTestUtilsTest#givenHasStringVariableWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties`'
   sources:
   - before: |
       package com.mycompany;
@@ -1334,7 +1389,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.ReplaceExtendWithAndContextConfiguration
 examples:
-- description: ''
+- description: '`ReplaceExtendWithAndContextConfigurationTest#extendWithContextConfigurationRemovedWithConfigurationClass`'
   sources:
   - before: |
       package org.example;
@@ -1368,7 +1423,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
 examples:
-- description: ''
+- description: '`RestTemplateBuilderRequestFactoryTest#useSupplierArgument`'
   sources:
   - before: |
       import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -1393,9 +1448,25 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.SamlRelyingPartyPropertyApplicationPropertiesMove
+examples:
+- description: '`SamlRelyingPartyPropertyApplicationPropertiesMoveTest#movePropertyTestSingle`'
+  sources:
+  - before: |
+      spring.security.saml2.relyingparty.registration.idpone.identityprovider.entity-id=https://idpone.com
+      spring.security.saml2.relyingparty.registration.idpone.identityprovider.sso-url=https://idpone.com
+      spring.security.saml2.relyingparty.registration.idpone.identityprovider.verification.credentials.certificate-location=classpath:saml/idpone.crt
+    after: |
+      spring.security.saml2.relyingparty.registration.idpone.assertingparty.entity-id=https://idpone.com
+      spring.security.saml2.relyingparty.registration.idpone.assertingparty.sso-url=https://idpone.com
+      spring.security.saml2.relyingparty.registration.idpone.assertingparty.verification.credentials.certificate-location=classpath:saml/idpone.crt
+    path: application.properties
+    language: properties
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
 examples:
-- description: ''
+- description: '`ServerHttpSecurityLambdaDslTest#simple`'
   sources:
   - before: |
       import org.springframework.context.annotation.Bean;
@@ -1434,7 +1505,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.SpringBootMavenPluginMigrateAgentToAgents
 examples:
-- description: ''
+- description: '`SpringBootMavenPluginMigrateAgentToAgentsTest#migrateAgentToAgents`'
   sources:
   - before: |
       <project>
@@ -1478,7 +1549,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
 examples:
-- description: ''
+- description: '`UpgradeSpringBoot2ConfigurationTest#activateOnProfileDoNotMoveActivate`'
   sources:
   - before: test
     language: mavenProject
@@ -1512,7 +1583,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
 examples:
-- description: ''
+- description: '`UnnecessarySpringExtensionTest#removeSpringExtensionIfSpringBootTestIsPresent`'
   sources:
   - before: |
       import org.junit.jupiter.api.extension.ExtendWith;
@@ -1532,9 +1603,171 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
+examples:
+- description: '`Boot2UpgradeTest#addJavaxValidationApi`'
+  sources:
+  - before: |
+      package org.springframework.samples.petclinic.vet;
+
+      import org.hibernate.validator.constraints.NotEmpty;
+
+      public class Vet {
+          @NotEmpty
+          private String lastName;
+      }
+    after: |
+      package org.springframework.samples.petclinic.vet;
+
+      import javax.validation.constraints.NotEmpty;
+
+      public class Vet {
+          @NotEmpty
+          private String lastName;
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - before: |
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>org.springframework.samples</groupId>
+        <artifactId>spring-petclinic</artifactId>
+        <version>1.5.22.RELEASE</version>
+
+        <parent>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-parent</artifactId>
+          <version>1.5.22.RELEASE</version>
+        </parent>
+        <name>petclinic</name>
+
+        <properties>
+          <java.version>1.8</java.version>
+        </properties>
+
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+          </dependency>
+        </dependencies>
+      </project>
+    after: |
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>org.springframework.samples</groupId>
+        <artifactId>spring-petclinic</artifactId>
+        <version>1.5.22.RELEASE</version>
+
+        <parent>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-parent</artifactId>
+          <version>2.0.9.RELEASE</version>
+        </parent>
+        <name>petclinic</name>
+
+        <properties>
+          <java.version>1.8</java.version>
+        </properties>
+
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+          </dependency>
+        </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
+examples:
+- description: '`Boot22UpgradeTest#addJavaxValidationApi`'
+  sources:
+  - before: |
+      package org.springframework.samples.petclinic.vet;
+
+      import org.hibernate.validator.constraints.NotEmpty;
+
+      public class Vet {
+          @NotEmpty
+          private String lastName;
+      }
+    after: |
+      package org.springframework.samples.petclinic.vet;
+
+      import javax.validation.constraints.NotEmpty;
+
+      public class Vet {
+          @NotEmpty
+          private String lastName;
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - before: |
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>org.springframework.samples</groupId>
+        <artifactId>spring-petclinic</artifactId>
+        <version>2.2.13.RELEASE</version>
+
+        <parent>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-parent</artifactId>
+          <version>2.2.13.RELEASE</version>
+        </parent>
+        <name>petclinic</name>
+
+        <properties>
+          <java.version>1.8</java.version>
+        </properties>
+
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+          </dependency>
+        </dependencies>
+      </project>
+    after: |
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>org.springframework.samples</groupId>
+        <artifactId>spring-petclinic</artifactId>
+        <version>2.2.13.RELEASE</version>
+
+        <parent>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-parent</artifactId>
+          <version>2.3.12.RELEASE</version>
+        </parent>
+        <name>petclinic</name>
+
+        <properties>
+          <java.version>1.8</java.version>
+        </properties>
+
+        <dependencies>
+          <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+          </dependency>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+          </dependency>
+        </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
 examples:
-- description: ''
+- description: '`Maven#switchArtifactIdAndUpdateVersionNumber`'
   sources:
   - before: |
       <project>
@@ -1568,7 +1801,7 @@ examples:
       </project>
     path: pom.xml
     language: xml
-- description: ''
+- description: '`Gradle#switchArtifactIdAndUpdateVersionNumber`'
   sources:
   - before: |
       plugins {
@@ -1604,9 +1837,46 @@ examples:
     language: groovy
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
+examples:
+- description: '`UpdateGradleTest#upgradeGradleWrapperAndPlugins`'
+  sources:
+  - before: |
+      plugins {
+          id "java"
+          id "org.springframework.boot" version "2.6.15"
+          id "io.spring.dependency-management" version "1.0.11.RELEASE"
+      }
+
+      repositories {
+          mavenCentral()
+      }
+
+      dependencies {
+          implementation "org.springframework.boot:spring-boot-starter-web"
+      }
+    path: build.gradle
+    language: groovy
+  - before: |
+      distributionBase=GRADLE_USER_HOME
+      distributionPath=wrapper/dists
+      distributionUrl=https\://services.gradle.org/distributions/gradle-6.7-bin.zip
+      zipStoreBase=GRADLE_USER_HOME
+      zipStorePath=wrapper/dists
+    after: |
+      distributionBase=GRADLE_USER_HOME
+      distributionPath=wrapper/dists
+      distributionUrl=https\://services.gradle.org/distributions/gradle-6.9.4-bin.zip
+      zipStoreBase=GRADLE_USER_HOME
+      zipStorePath=wrapper/dists
+      distributionSha256Sum=3e240228538de9f18772a574e99a0ba959e83d6ef351014381acd9631781389a
+    path: gradle/wrapper/gradle-wrapper.properties
+    language: properties
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.search.CustomizingJooqDefaultConfiguration
 examples:
-- description: ''
+- description: '`CustomizingJooqDefaultConfigurationTest#jooqSettings`'
   sources:
   - before: |
       import org.jooq.conf.Settings;
@@ -1637,9 +1907,78 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.search.IntegrationSchedulerPoolRecipe
+examples:
+- description: '`IntegrationSchedulerPoolRecipeTest#noSchedulerProperty`'
+  sources:
+  - before: |
+      package demo;
+
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class ExampleApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(ExampleApplication.class, args);
+          }
+      }
+    after: |
+      package demo;
+
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      // TODO: Scheduler thread pool size for Spring Integration either in properties or config server
+      @SpringBootApplication
+      public class ExampleApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(ExampleApplication.class, args);
+          }
+      }
+    language: java
+  - before: sample
+    language: mavenProject
+  - before: server.port=5674
+    path: application.properties
+    language: properties
+  - before: |
+      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+          <modelVersion>4.0.0</modelVersion>
+          <parent>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-parent</artifactId>
+              <version>2.4.13</version>
+              <relativePath/> <!-- lookup parent from repository -->
+          </parent>
+          <groupId>com.example</groupId>
+          <artifactId>acme</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter</artifactId>
+              </dependency>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-integration</artifactId>
+              </dependency>
+
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-test</artifactId>
+                  <scope>test</scope>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.AddRouteTrailingSlash
 examples:
-- description: ''
+- description: '`AddRouteTrailingSlashTest#simpleCase`'
   sources:
   - before: |
       import org.springframework.web.bind.annotation.*;
@@ -1668,7 +2007,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.AddSetUseTrailingSlashMatch
 examples:
-- description: ''
+- description: '`AddSetUseTrailingSlashMatchTest#addConfigurePathMatchMethodForWebMvcConfigurer`'
   sources:
   - before: |
       package com.example.demo;
@@ -1698,7 +2037,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.AddValidToNestedConfigProperties
 examples:
-- description: ''
+- description: '`AddValidToNestedConfigPropertiesTest#addValidToNestedProperties`'
   sources:
   - before: |
       package com.example.demo;
@@ -1735,7 +2074,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
 examples:
-- description: ''
+- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurity`'
   parameters:
   - 'false'
   sources:
@@ -1752,7 +2091,7 @@ examples:
       @EnableWebSecurity
       class A {}
     language: java
-- description: ''
+- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurityForceAdd`'
   parameters:
   - 'true'
   sources:
@@ -1773,7 +2112,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty
 examples:
-- description: ''
+- description: '`DowngradeServletApiWhenUsingJettyTest#downgradeApiWhenUsingJetty`'
   sources:
   - before: |
       <project>
@@ -1820,16 +2159,17 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.EnableVirtualThreads
 examples:
-- description: ''
+- description: '`EnableVirtualThreadsTest#enableVirtualThreadsProperties`'
   sources:
   - after: |
       spring.threads.virtual.enabled=true
+    path: src/main/resources/application.properties
     language: properties
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.MaintainTrailingSlashURLMappings
 examples:
-- description: ''
+- description: '`MaintainTrailingSlashURLMappingsTest#noConfigOverridden`'
   sources:
   - before: |
       import org.springframework.web.bind.annotation.*;
@@ -1858,7 +2198,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.MigrateHooksToReactorContextProperty
 examples:
-- description: ''
+- description: '`MigrateHooksToReactorContextPropertyTest#replaceMethodCallWithProperty`'
   sources:
   - before: |
       import reactor.core.publisher.Hooks;
@@ -1886,12 +2226,13 @@ examples:
   - before: project
     language: mavenProject
   - after: spring.reactor.context-propagation=true
+    path: application.properties
     language: properties
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.MigrateMaxHttpHeaderSize
 examples:
-- description: ''
+- description: '`UpgradeSpringBoot3ConfigurationTest#moveMaxHttpHeaderSize`'
   sources:
   - before: test
     language: mavenProject
@@ -1901,6 +2242,7 @@ examples:
     after: |
       # application.properties
       server.max-http-request-header-size=10KB
+    path: src/main/resources/application.properties
     language: properties
   - before: |2
           server:
@@ -1908,12 +2250,13 @@ examples:
     after: |2
           server:
             max-http-request-header-size: 10KB
+    path: src/main/resources/application.yml
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.MigrateWebMvcTagsToObservationConvention
 examples:
-- description: ''
+- description: '`MigrateWebMvcTagsToObservationConventionTest#shouldMigrateWebMvcTagsProviderToDefaultServerRequestObservationConvention`'
   sources:
   - before: |
       import io.micrometer.core.instrument.Tag;
@@ -1962,7 +2305,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.PreciseBeanType
 examples:
-- description: ''
+- description: '`PreciseBeanTypeTest#simplestCase`'
   sources:
   - before: |
       import org.springframework.context.annotation.Bean;
@@ -1990,7 +2333,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.RemoveConstructorBindingAnnotation
 examples:
-- description: ''
+- description: '`RemoveConstructorBindingAnnotationTest#topLevelTypeAnnotation`'
   sources:
   - before: |
       import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -2015,7 +2358,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
 examples:
-- description: ''
+- description: '`RemoveEnableBatchProcessingTest#removeSpringBatchAnnotation`'
   sources:
   - before: |
       import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -2036,7 +2379,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.RemoveSolrAutoConfigurationExclude
 examples:
-- description: ''
+- description: '`RemoveSolrAutoConfigurationExcludeTest#removeFromArray`'
   sources:
   - before: |
       import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -2058,7 +2401,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.ReplaceMockBeanAndSpyBean
 examples:
-- description: ''
+- description: '`ReplaceMockBeanAndSpyBeanTest#replacesMockBeanWithMockitoBean`'
   sources:
   - before: |
       import org.springframework.boot.test.mock.mockito.MockBean;
@@ -2079,7 +2422,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderMethods
 examples:
-- description: ''
+- description: '`ReplaceRestTemplateBuilderMethodsTest#replacesSetConnectTimeout`'
   sources:
   - before: |
       import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -2102,7 +2445,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
 examples:
-- description: ''
+- description: '`Boot3UpgradeTest#xmlBindMissing`'
   sources:
   - before: |
       package org.springframework.samples.petclinic.vet;
@@ -2493,31 +2836,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
 examples:
-- description: ''
-  sources:
-  - before: project
-    language: mavenProject
-  - before: |
-      <project>
-          <modelVersion>4.0.0</modelVersion>
-          <groupId>com.example</groupId>
-          <artifactId>fooservice</artifactId>
-          <version>1.0-SNAPSHOT</version>
-          <dependencyManagement>
-              <dependencies>
-                  <dependency>
-                      <groupId>com.datastax.oss</groupId>
-                      <artifactId>java-driver-bom</artifactId>
-                      <version>4.17.0</version>
-                      <type>pom</type>
-                      <scope>import</scope>
-                  </dependency>
-              </dependencies>
-          </dependencyManagement>
-      </project>
-    path: pom.xml
-    language: xml
-- description: ''
+- description: '`SpringCloudVersionUpgradeTest#upgradeSpringCloudVersion`'
   sources:
   - before: project
     language: mavenProject
@@ -2553,11 +2872,35 @@ examples:
       </project>
     path: pom.xml
     language: xml
+- description: '`SpringDataStaxCassandraTest#groupIdChangeCassandraBom`'
+  sources:
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>fooservice</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>com.datastax.oss</groupId>
+                      <artifactId>java-driver-bom</artifactId>
+                      <version>4.17.0</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+      </project>
+    path: pom.xml
+    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
 examples:
-- description: ''
+- description: '`UpgradeSpringBoot_3_5Test#upgradeVersion`'
   sources:
   - before: project
     language: mavenProject
@@ -2578,9 +2921,48 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
+examples:
+- description: '`AddLoggingPatternLevelForSleuthTest#addLoggingPatternWhenUsingSleuth`'
+  sources:
+  - before: project
+    language: mavenProject
+  - before: foo=bar
+    after: |
+      foo=bar
+      # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
+      logging.pattern.level="%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    path: src/main/resources/application.properties
+    language: properties
+  - before: |2
+          <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>explicit-deps-app</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.cloud</groupId>
+                  <artifactId>spring-cloud-starter-sleuth</artifactId>
+                  <version>3.0.0</version>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+  - after: |
+      logging:
+        pattern:
+          # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
+          level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    path: src/main/resources/application.yml
+    language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing
 examples:
-- description: ''
+- description: '`MigrateCloudSleuthToMicrometerTracingTest#migrateTracer`'
   sources:
   - before: |
       import org.springframework.cloud.sleuth.Tracer;
@@ -2611,11 +2993,30 @@ examples:
           }
       }
     language: java
+- description: '`MigrateProjectTest#migrateProperties`'
+  sources:
+  - before: project
+    language: mavenProject
+  - before: |
+      spring.sleuth.baggage.correlation-enabled=true
+    after: |
+      management.tracing.baggage.correlation.enabled=true
+    path: src/main/resources/application.properties
+    language: properties
+  - before: |
+      spring:
+          sleuth:
+              baggage:
+                  correlation-enabled: true
+    after: |
+      management.tracing.baggage.correlation.enabled: true
+    path: src/main/resources/application.yml
+    language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.MigrateRequestMappingOnFeignClient
 examples:
-- description: ''
+- description: '`MigrateRequestMappingOnFeignClientTest#migrateRequestMappingAnnotation`'
   sources:
   - before: |
       import org.springframework.cloud.openfeign.FeignClient;
@@ -2648,12 +3049,13 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025
 examples:
-- description: ''
+- description: '`UpgradeSpringCloud2025Test#renameProperty`'
   sources:
   - before: project
     language: mavenProject
   - before: spring.cloud.gateway.proxy=foo
     after: spring.cloud.gateway.proxy-exchange.webflux=foo
+    path: application.properties
     language: properties
   - before: |
       <project>
@@ -2675,7 +3077,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.JdbcTemplateQueryForLongMigration
 examples:
-- description: ''
+- description: '`JdbcTemplateQueryForLongMigrationTest#simpleTransformation`'
   sources:
   - before: |
       import org.springframework.jdbc.core.JdbcTemplate;
@@ -2700,7 +3102,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.MigrateAuditorAwareToOptional
 examples:
-- description: ''
+- description: '`MigrateAuditorAwareToOptionalTest#rewriteImplementation`'
   sources:
   - before: |
       import org.springframework.data.domain.AuditorAware;
@@ -2727,7 +3129,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.MigrateJpaSort
 examples:
-- description: ''
+- description: '`MigrateJpaSortTest#constructorWithAttribute`'
   sources:
   - before: |
       import org.springframework.data.jpa.domain.JpaSort;
@@ -2754,7 +3156,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.MigrateQueryToNativeQuery
 examples:
-- description: ''
+- description: '`MigrateQueryToNativeQueryTest#nativeQueryToBeMigrated`'
   sources:
   - before: |
       import org.springframework.data.jpa.repository.Query;
@@ -2777,7 +3179,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.MigrateQuerydslJpaRepository
 examples:
-- description: ''
+- description: '`MigrateQuerydslJpaRepositoryTest#newClasses`'
   sources:
   - before: |
       import javax.persistence.EntityManager;
@@ -2810,7 +3212,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
 examples:
-- description: ''
+- description: '`RefactorSimpleMongoDbFactoryTest#constructorWithAttribute`'
   sources:
   - before: |
       import org.springframework.data.mongodb.MongoDbFactory;
@@ -2836,7 +3238,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.UseJpaRepositoryGetReferenceById
 examples:
-- description: ''
+- description: '`UseJpaRepositoryGetReferenceByIdTest#matchAndUpdateReferences`'
   sources:
   - before: |
       import foo.*;
@@ -2871,7 +3273,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.UseTlsJdbcConnectionString
 examples:
-- description: ''
+- description: '`UseTlsJdbcConnectionStringTest#useTls`'
   parameters:
   - 'null'
   - '5021'
@@ -2896,7 +3298,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.doc.MigrateDocketBeanToGroupedOpenApiBean
 examples:
-- description: ''
+- description: '`MigrateDocketBeanToGroupedOpenApiBeanTest#rewriteSingleDocketToApplicationYml`'
   sources:
   - before: |
       package org.project.example;
@@ -2934,12 +3336,13 @@ examples:
         swagger-ui:
           path: /swagger-ui.html
         paths-to-match: "/**"
+    path: application.yaml
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.doc.RemoveBeanValidatorPluginsConfiguration
 examples:
-- description: ''
+- description: '`RemoveBeanValidatorPluginsConfigurationTest#removeImportWithBeanValidatorPluginsConfiguration`'
   sources:
   - before: |
       import org.springframework.context.annotation.Configuration;
@@ -2959,7 +3362,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.BeanMethodReturnNull
 examples:
-- description: ''
+- description: '`BeanMethodReturnNullTest#transformReturnType`'
   sources:
   - before: |
       import org.springframework.context.annotation.Bean;
@@ -2981,9 +3384,69 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.BeanMethodsNotPublic
+examples:
+- description: '`BeanMethodsNotPublicTest#removePublicModifierFromBeanMethods`'
+  sources:
+  - before: |
+      import a.b.c.DataSource;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Primary;
+
+      public class DatabaseConfiguration {
+
+          // primary comments
+          @Primary
+          @Bean
+          public DataSource dataSource() {
+              return new DataSource();
+          }
+
+          @Bean // comments
+          public final DataSource dataSource2() {
+              return new DataSource();
+          }
+
+          @Bean
+          // comments
+          public static DataSource dataSource3() {
+              return new DataSource();
+          }
+      }
+    after: |
+      import a.b.c.DataSource;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Primary;
+
+      public class DatabaseConfiguration {
+
+          // primary comments
+          @Primary
+          @Bean
+          DataSource dataSource() {
+              return new DataSource();
+          }
+
+          @Bean // comments
+          final DataSource dataSource2() {
+              return new DataSource();
+          }
+
+          @Bean // comments
+          static DataSource dataSource3() {
+              return new DataSource();
+          }
+      }
+    language: java
+  - before: |
+      package a.b.c;
+      public class DataSource {}
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.EnvironmentAcceptsProfiles
 examples:
-- description: ''
+- description: '`EnvironmentAcceptsProfilesTest#acceptsSingleProfile`'
   sources:
   - before: |
       import org.springframework.core.env.Environment;
@@ -3007,7 +3470,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryReadTimeout
 examples:
-- description: ''
+- description: '`HttpComponentsClientHttpRequestFactoryReadTimeoutTest#migrateHttpComponentsClientHttpRequestFactoryReadTimeout`'
   sources:
   - before: |
       import org.apache.hc.core5.http.config.Registry;
@@ -3063,9 +3526,72 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.JdbcTemplateObjectArrayArgToVarArgs
+examples:
+- description: '`JdbcTemplateObjectArrayArgToVarArgsTest#reOrderQueryForObjectArgs`'
+  sources:
+  - before: |
+      package abc;
+      import org.springframework.jdbc.core.JdbcTemplate;
+      import java.util.List;
+
+      public class MyDao {
+
+          final JdbcTemplate jdbcTemplate;
+
+          public MyDao(JdbcTemplate jdbcTemplate) {
+              this.jdbcTemplate = jdbcTemplate;
+          }
+
+          public User getUser(String first, String last) {
+              Object[] args = new Object[]{first, last};
+              return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, User.class);
+          }
+
+          public User getUser2(String first, String last) {
+              Object[] args = new Object[]{first, last};
+               return jdbcTemplate.queryForObject("", args, (resultSet, i) -> {
+                  User user = new User();
+                  user.setName(resultSet.getString("NAME"));
+                  user.setAge(resultSet.getInt("AGE"));
+                  return user;
+              });
+          }
+      }
+    after: |
+      package abc;
+      import org.springframework.jdbc.core.JdbcTemplate;
+      import java.util.List;
+
+      public class MyDao {
+
+          final JdbcTemplate jdbcTemplate;
+
+          public MyDao(JdbcTemplate jdbcTemplate) {
+              this.jdbcTemplate = jdbcTemplate;
+          }
+
+          public User getUser(String first, String last) {
+              Object[] args = new Object[]{first, last};
+              return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, args);
+          }
+
+          public User getUser2(String first, String last) {
+              Object[] args = new Object[]{first, last};
+               return jdbcTemplate.queryForObject("", (resultSet, i) -> {
+                  User user = new User();
+                  user.setName(resultSet.getString("NAME"));
+                  user.setAge(resultSet.getInt("AGE"));
+                  return user;
+              }, args);
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateBase64Utils
 examples:
-- description: ''
+- description: '`MigrateBase64UtilsTest#encodeDecode`'
   sources:
   - before: |
       import java.nio.charset.StandardCharsets;
@@ -3106,7 +3632,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateClientHttpResponseGetRawStatusCodeMethod
 examples:
-- description: ''
+- description: '`MigrateClientHttpResponseGetRawStatusCodeMethodTest#migratesMethodIntoChain`'
   sources:
   - before: |
       import org.springframework.http.client.ClientHttpResponse;
@@ -3129,7 +3655,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateHandlerInterceptor
 examples:
-- description: ''
+- description: '`MigrateHandlerInterceptorTest#migrateHandlerInterceptorAdapter`'
   sources:
   - before: |
       import javax.servlet.http.*;
@@ -3178,7 +3704,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateHandlerResultHasExceptionHandlerMethod
 examples:
-- description: ''
+- description: '`MigrateHandlerResultHasExceptionHandlerMethodTest#migrateWithinIfStatement`'
   sources:
   - before: |
       import org.springframework.web.reactive.HandlerResult;
@@ -3203,7 +3729,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateHandlerResultSetExceptionHandlerMethod
 examples:
-- description: ''
+- description: '`MigrateHandlerResultSetExceptionHandlerMethodTest#migrateHandlerResultSetExceptionHandlerMethodParameterIsInlineLambdaFunction`'
   sources:
   - before: |
       import org.springframework.web.reactive.HandlerResult;
@@ -3228,7 +3754,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
 examples:
-- description: ''
+- description: '`MigrateInstantiationAwareBeanPostProcessorAdapterTest#migrateInterface`'
   sources:
   - before: |
       import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
@@ -3245,7 +3771,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateMethodArgumentNotValidExceptionErrorMethod
 examples:
-- description: ''
+- description: '`MigrateMethodArgumentNotValidExceptionErrorMethodTest#migrateResourceHttpMessageWriterAddHeadersMethod`'
   sources:
   - before: |
       import org.springframework.context.MessageSource;
@@ -3286,7 +3812,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateResourceHttpMessageWriterAddHeadersMethod
 examples:
-- description: ''
+- description: '`MigrateResourceHttpMessageWriterAddHeadersMethodTest#migrateResourceHttpMessageWriterAddHeadersMethod`'
   sources:
   - before: |
       import org.springframework.web.reactive.HandlerResult;
@@ -3321,7 +3847,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode
 examples:
-- description: ''
+- description: '`MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest#migrateHttpStatustoHttpStatusCode`'
   sources:
   - before: |
       import org.springframework.http.HttpHeaders;
@@ -3358,7 +3884,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateResponseStatusException
 examples:
-- description: ''
+- description: '`MigrateResponseStatusExceptionTest#migrateResponseStatusExceptionGetStatusMethod`'
   sources:
   - before: |
       import org.springframework.http.HttpStatus;
@@ -3383,7 +3909,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateSpringAssert
 examples:
-- description: ''
+- description: '`MigrateSpringAssertTest#migrateSpringAssert`'
   sources:
   - before: |
       class A {
@@ -3404,7 +3930,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateUriComponentsBuilderMethods
 examples:
-- description: ''
+- description: '`MigrateUriComponentsBuilderMethodsTest#migrateUriComponentsBuilderMethods`'
   sources:
   - before: |
       import java.net.InetSocketAddress;
@@ -3437,7 +3963,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateUtf8MediaTypes
 examples:
-- description: ''
+- description: '`MigrateUtf8MediaTypesTest#updateFieldAccess`'
   sources:
   - before: |
       import org.springframework.http.MediaType;
@@ -3466,7 +3992,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateWebExchangeBindExceptionResolveErrorMethod
 examples:
-- description: ''
+- description: '`MigrateWebExchangeBindExceptionResolveErrorMethodTest#migrateResourceHttpMessageWriterAddHeadersMethod`'
   sources:
   - before: |
       import org.springframework.context.MessageSource;
@@ -3499,7 +4025,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateWebMvcConfigurerAdapter
 examples:
-- description: ''
+- description: '`MigrateWebMvcConfigurerAdapterTest#transformSimple`'
   sources:
   - before: |
       import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -3525,7 +4051,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.http.SimplifyWebTestClientCalls
 examples:
-- description: ''
+- description: '`SimplifyWebTestClientCallsTest#replaceKotlinInt`'
   sources:
   - before: |
       import org.springframework.test.web.reactive.server.WebTestClient
@@ -3562,7 +4088,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.kafka.KafkaTestUtilsDuration
 examples:
-- description: ''
+- description: '`KafkaTestUtilsDurationTest#adoptDuration`'
   sources:
   - before: |
       import org.apache.kafka.clients.consumer.Consumer;
@@ -3595,7 +4121,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_3_0
 examples:
-- description: ''
+- description: '`KafkaOperationsSendReturnTypeTest#changeKafkaOperationsSendReturnType`'
   sources:
   - before: |
       import org.springframework.kafka.core.KafkaOperations;
@@ -3638,7 +4164,7 @@ examples:
           }
       }
     language: java
-- description: ''
+- description: '`RemoveUsingCompletableFutureTest#usingCompletableFuture`'
   sources:
   - before: |
       import org.springframework.kafka.core.KafkaTemplate;
@@ -3668,7 +4194,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.search.FindApiCalls
 examples:
-- description: ''
+- description: '`FindApiCallsTest#restTemplate`'
   sources:
   - before: |
       import org.springframework.web.client.RestTemplate;
@@ -3701,7 +4227,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.search.FindApiEndpoints
 examples:
-- description: ''
+- description: '`FindApiEndpointsTest#withinController`'
   sources:
   - before: |
       import org.springframework.stereotype.Controller;
@@ -3730,7 +4256,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.AuthorizeHttpRequests
 examples:
-- description: ''
+- description: '`AuthorizeHttpRequestsTest#noArgAuthorizeRequests`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -3781,7 +4307,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.RenameNimbusdsJsonObjectPackageName
 examples:
-- description: ''
+- description: '`RenameNimbusdsJsonObjectPackageNameTest#renamePackage`'
   sources:
   - before: |
       import com.nimbusds.jose.shaded.json.JSONObject;
@@ -3820,7 +4346,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurity
 examples:
-- description: ''
+- description: '`ReplaceGlobalMethodSecurityWithMethodSecurityTest#replaceWithPrePostEnabled`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -3839,7 +4365,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.UpdateArgon2PasswordEncoder
 examples:
-- description: ''
+- description: '`UpdateArgon2PasswordEncoderTest#replaceDefaultConstructorCall`'
   sources:
   - before: |
       import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
@@ -3862,7 +4388,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.UpdatePbkdf2PasswordEncoder
 examples:
-- description: ''
+- description: '`UpdatePbkdf2PasswordEncoderTest#replaceDefaultConstructorCall`'
   sources:
   - before: |
       import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
@@ -3885,7 +4411,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.UpdateSCryptPasswordEncoder
 examples:
-- description: ''
+- description: '`UpdateSCryptPasswordEncoderTest#replaceDefaultConstructorCall`'
   sources:
   - before: |
       import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
@@ -3908,7 +4434,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_7
 examples:
-- description: ''
+- description: '`UpgradeSpringOauth2AuthorizationServerTest#verifyDependencyUpgrades`'
   sources:
   - before: |
       <project>
@@ -3954,7 +4480,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.UseNewRequestMatchers
 examples:
-- description: ''
+- description: '`UseNewRequestMatchersTest#migratesMvcMatchersWithMvcPatterns`'
   sources:
   - before: |
       package com.example;
@@ -3997,7 +4523,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.UseNewSecurityMatchers
 examples:
-- description: ''
+- description: '`UseNewSecurityMatchersTest#migrateAntMatcher`'
   sources:
   - before: |
       package com.example;
@@ -4048,7 +4574,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security5.WebSecurityConfigurerAdapter
 examples:
-- description: ''
+- description: '`WebSecurityConfigurerAdapterTest#configureHttpSecurityMethod`'
   sources:
   - before: |
       package com.example.websecuritydemo;
@@ -4104,7 +4630,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.ApplyToWithLambdaDsl
 examples:
-- description: ''
+- description: '`ApplyToWithLambdaDslTest#someConfigAndBuild`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -4137,7 +4663,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions
 examples:
-- description: ''
+- description: '`PropagateAuthenticationServiceExceptionsTest#removeCallWithTrueLiteral`'
   sources:
   - before: |
       import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
@@ -4161,7 +4687,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.RemoveFilterSecurityInterceptorOncePerRequest
 examples:
-- description: ''
+- description: '`RemoveFilterSecurityInterceptorOncePerRequestTest#removeFilterSecurityInterceptorOncePerRequestWithFalse`'
   sources:
   - before: |
       import org.springframework.http.HttpMethod;
@@ -4211,7 +4737,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.RemoveOauth2LoginConfig
 examples:
-- description: ''
+- description: '`RemoveOauth2LoginConfigTest#removeUnneededConfigFromEndOfCallChain`'
   sources:
   - before: |
       import org.springframework.context.annotation.Bean;
@@ -4265,7 +4791,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository
 examples:
-- description: ''
+- description: '`RequireExplicitSavingOfSecurityContextRepositoryTest#firstInChain`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -4297,7 +4823,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.UpdateEnableReactiveMethodSecurity
 examples:
-- description: ''
+- description: '`UpdateEnableReactiveMethodSecurityTest#removeUseAuthorizationManager`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
@@ -4316,7 +4842,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.UpdateRequestCache
 examples:
-- description: ''
+- description: '`UpdateRequestCacheTest#security5Default`'
   sources:
   - before: |
       import org.springframework.context.annotation.Bean;
@@ -4382,7 +4908,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.UseSha256InRememberMe
 examples:
-- description: ''
+- description: '`UseSha256InRememberMeTest#removeExplicitEncodingAlgorithmOnly`'
   sources:
   - before: |
       import org.springframework.security.core.userdetails.UserDetailsService;
@@ -4447,7 +4973,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.oauth2.client.OAuth2ClientLambdaDsl
 examples:
-- description: ''
+- description: '`OAuth2ClientLambdaDslTest#simple`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -4484,7 +5010,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.oauth2.client.OAuth2LoginLambdaDsl
 examples:
-- description: ''
+- description: '`OAuth2LoginLambdaDslTest#advanced`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -4526,7 +5052,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.security6.oauth2.server.resource.OAuth2ResourceServerLambdaDsl
 examples:
-- description: ''
+- description: '`OAuth2ResourceServerLambdaDslTest#advanced`'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -4568,7 +5094,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.test.SpringRulesToJUnitExtension
 examples:
-- description: ''
+- description: '`SpringRulesToJUnitExtensionTest#migrateWithSpringBootTestPresent`'
   sources:
   - before: |
       import org.springframework.boot.test.context.SpringBootTest;
@@ -4602,7 +5128,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.springdoc.MigrateSpringdocCommon
 examples:
-- description: ''
+- description: '`MigrateSpringdocCommonTest#fixCustomiserAndGroupedOpenApi`'
   sources:
   - before: |
       import io.swagger.v3.oas.models.OpenAPI;
@@ -4651,7 +5177,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.springdoc.UpgradeSpringDoc_2
 examples:
-- description: ''
+- description: '`UpgradeSpringDoc2Test#upgradeMaven`'
   sources:
   - before: |
       <project>
@@ -4678,7 +5204,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.maven.spring.UpgradeExplicitSpringBootDependencies
 examples:
-- description: ''
+- description: '`UpgradeExplicitSpringBootDependenciesTest#shouldBuildCorrectPomModelAfterUpdateTo3x`'
   parameters:
   - 2.7.X
   - 3.0.0

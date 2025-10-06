@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.cloud2022;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,6 +31,7 @@ class AddLoggingPatternLevelForSleuthTest implements RewriteTest {
         spec.recipe(new AddLoggingPatternLevelForSleuth());
     }
 
+    @DocumentExample
     @Test
     void addLoggingPatternWhenUsingSleuth() {
         rewriteRun(

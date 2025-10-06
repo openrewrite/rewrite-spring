@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -28,6 +29,7 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
         spec.recipe(new SeparateApplicationYamlByProfile());
     }
 
+    @DocumentExample
     @Test
     void separateProfile() {
         rewriteRun(

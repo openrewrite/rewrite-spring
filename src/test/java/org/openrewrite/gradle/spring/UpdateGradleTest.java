@@ -16,6 +16,7 @@
 package org.openrewrite.gradle.spring;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.FileAttributes;
 import org.openrewrite.Tree;
 import org.openrewrite.marker.BuildTool;
@@ -40,6 +41,7 @@ class UpdateGradleTest implements RewriteTest {
           .allSources(source -> source.markers(new BuildTool(Tree.randomId(), BuildTool.Type.Gradle, "6.7")));
     }
 
+    @DocumentExample
     @Test
     void upgradeGradleWrapperAndPlugins() {
         rewriteRun(
