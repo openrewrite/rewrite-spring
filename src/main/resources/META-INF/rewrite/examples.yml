@@ -327,6 +327,20 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.PropertiesToKebabCase
+examples:
+- description: '`PropertiesToKebabCaseTest#singleFlatProperty`'
+  sources:
+  - before: spring.main.showBanner=true
+    after: spring.main.show-banner=true
+    path: application.properties
+    language: properties
+  - before: 'spring.main.showBanner: true'
+    after: 'spring.main.show-banner: true'
+    path: application.yaml
+    language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.RenameBean
 examples:
 - description: '`BeanMethods#impliedName`'
@@ -419,6 +433,26 @@ examples:
           }
       }
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.SeparateApplicationYamlByProfile
+examples:
+- description: '`SeparateApplicationYamlByProfileTest#separateProfile`'
+  sources:
+  - after: 'name: test'
+    path: application-test.yml
+    language: yaml
+  - before: |
+      name: main
+      ---
+      spring:
+        config:
+          activate:
+            on-profile: test
+      name: test
+    after: |
+      name: main
+    language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.amqp.UseTlsAmqpConnectionString
@@ -1026,6 +1060,23 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.MergeBootstrapYamlWithApplicationYaml
+examples:
+- description: '`MergeBootstrapYamlWithApplicationYamlTest#mergeBootstrapYAML`'
+  sources:
+  - before: |
+      name: test
+    path: bootstrap.yaml
+    language: yaml
+  - before: |
+      spring.application.name: main
+    after: |
+      spring.application.name: main
+      name: test
+    path: application.yaml
+    language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateActuatorMediaTypeToApiVersion
 examples:
 - description: '`MigrateActuatorMediaTypeToApiVersionTest#fromConstantToEnumVal`'
@@ -1397,6 +1448,22 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.SamlRelyingPartyPropertyApplicationPropertiesMove
+examples:
+- description: '`SamlRelyingPartyPropertyApplicationPropertiesMoveTest#movePropertyTestSingle`'
+  sources:
+  - before: |
+      spring.security.saml2.relyingparty.registration.idpone.identityprovider.entity-id=https://idpone.com
+      spring.security.saml2.relyingparty.registration.idpone.identityprovider.sso-url=https://idpone.com
+      spring.security.saml2.relyingparty.registration.idpone.identityprovider.verification.credentials.certificate-location=classpath:saml/idpone.crt
+    after: |
+      spring.security.saml2.relyingparty.registration.idpone.assertingparty.entity-id=https://idpone.com
+      spring.security.saml2.relyingparty.registration.idpone.assertingparty.sso-url=https://idpone.com
+      spring.security.saml2.relyingparty.registration.idpone.assertingparty.verification.credentials.certificate-location=classpath:saml/idpone.crt
+    path: application.properties
+    language: properties
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
 examples:
 - description: '`ServerHttpSecurityLambdaDslTest#simple`'
@@ -1536,6 +1603,168 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
+examples:
+- description: '`Boot2UpgradeTest#addJavaxValidationApi`'
+  sources:
+  - before: |
+      package org.springframework.samples.petclinic.vet;
+
+      import org.hibernate.validator.constraints.NotEmpty;
+
+      public class Vet {
+          @NotEmpty
+          private String lastName;
+      }
+    after: |
+      package org.springframework.samples.petclinic.vet;
+
+      import javax.validation.constraints.NotEmpty;
+
+      public class Vet {
+          @NotEmpty
+          private String lastName;
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - before: |
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>org.springframework.samples</groupId>
+        <artifactId>spring-petclinic</artifactId>
+        <version>1.5.22.RELEASE</version>
+
+        <parent>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-parent</artifactId>
+          <version>1.5.22.RELEASE</version>
+        </parent>
+        <name>petclinic</name>
+
+        <properties>
+          <java.version>1.8</java.version>
+        </properties>
+
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+          </dependency>
+        </dependencies>
+      </project>
+    after: |
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>org.springframework.samples</groupId>
+        <artifactId>spring-petclinic</artifactId>
+        <version>1.5.22.RELEASE</version>
+
+        <parent>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-parent</artifactId>
+          <version>2.0.9.RELEASE</version>
+        </parent>
+        <name>petclinic</name>
+
+        <properties>
+          <java.version>1.8</java.version>
+        </properties>
+
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+          </dependency>
+        </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3
+examples:
+- description: '`Boot22UpgradeTest#addJavaxValidationApi`'
+  sources:
+  - before: |
+      package org.springframework.samples.petclinic.vet;
+
+      import org.hibernate.validator.constraints.NotEmpty;
+
+      public class Vet {
+          @NotEmpty
+          private String lastName;
+      }
+    after: |
+      package org.springframework.samples.petclinic.vet;
+
+      import javax.validation.constraints.NotEmpty;
+
+      public class Vet {
+          @NotEmpty
+          private String lastName;
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - before: |
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>org.springframework.samples</groupId>
+        <artifactId>spring-petclinic</artifactId>
+        <version>2.2.13.RELEASE</version>
+
+        <parent>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-parent</artifactId>
+          <version>2.2.13.RELEASE</version>
+        </parent>
+        <name>petclinic</name>
+
+        <properties>
+          <java.version>1.8</java.version>
+        </properties>
+
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+          </dependency>
+        </dependencies>
+      </project>
+    after: |
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>org.springframework.samples</groupId>
+        <artifactId>spring-petclinic</artifactId>
+        <version>2.2.13.RELEASE</version>
+
+        <parent>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-parent</artifactId>
+          <version>2.3.12.RELEASE</version>
+        </parent>
+        <name>petclinic</name>
+
+        <properties>
+          <java.version>1.8</java.version>
+        </properties>
+
+        <dependencies>
+          <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+          </dependency>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+          </dependency>
+        </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
 examples:
 - description: '`Maven#switchArtifactIdAndUpdateVersionNumber`'
@@ -1608,6 +1837,43 @@ examples:
     language: groovy
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
+examples:
+- description: '`UpdateGradleTest#upgradeGradleWrapperAndPlugins`'
+  sources:
+  - before: |
+      plugins {
+          id "java"
+          id "org.springframework.boot" version "2.6.15"
+          id "io.spring.dependency-management" version "1.0.11.RELEASE"
+      }
+
+      repositories {
+          mavenCentral()
+      }
+
+      dependencies {
+          implementation "org.springframework.boot:spring-boot-starter-web"
+      }
+    path: build.gradle
+    language: groovy
+  - before: |
+      distributionBase=GRADLE_USER_HOME
+      distributionPath=wrapper/dists
+      distributionUrl=https\://services.gradle.org/distributions/gradle-6.7-bin.zip
+      zipStoreBase=GRADLE_USER_HOME
+      zipStorePath=wrapper/dists
+    after: |
+      distributionBase=GRADLE_USER_HOME
+      distributionPath=wrapper/dists
+      distributionUrl=https\://services.gradle.org/distributions/gradle-6.9.4-bin.zip
+      zipStoreBase=GRADLE_USER_HOME
+      zipStorePath=wrapper/dists
+      distributionSha256Sum=3e240228538de9f18772a574e99a0ba959e83d6ef351014381acd9631781389a
+    path: gradle/wrapper/gradle-wrapper.properties
+    language: properties
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.search.CustomizingJooqDefaultConfiguration
 examples:
 - description: '`CustomizingJooqDefaultConfigurationTest#jooqSettings`'
@@ -1639,6 +1905,75 @@ examples:
           }
       }
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.search.IntegrationSchedulerPoolRecipe
+examples:
+- description: '`IntegrationSchedulerPoolRecipeTest#noSchedulerProperty`'
+  sources:
+  - before: |
+      package demo;
+
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication
+      public class ExampleApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(ExampleApplication.class, args);
+          }
+      }
+    after: |
+      package demo;
+
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      // TODO: Scheduler thread pool size for Spring Integration either in properties or config server
+      @SpringBootApplication
+      public class ExampleApplication {
+          public static void main(String[] args) {
+              SpringApplication.run(ExampleApplication.class, args);
+          }
+      }
+    language: java
+  - before: sample
+    language: mavenProject
+  - before: server.port=5674
+    path: application.properties
+    language: properties
+  - before: |
+      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+          <modelVersion>4.0.0</modelVersion>
+          <parent>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-parent</artifactId>
+              <version>2.4.13</version>
+              <relativePath/> <!-- lookup parent from repository -->
+          </parent>
+          <groupId>com.example</groupId>
+          <artifactId>acme</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter</artifactId>
+              </dependency>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-integration</artifactId>
+              </dependency>
+
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-test</artifactId>
+                  <scope>test</scope>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.AddRouteTrailingSlash
@@ -2586,6 +2921,45 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
+examples:
+- description: '`AddLoggingPatternLevelForSleuthTest#addLoggingPatternWhenUsingSleuth`'
+  sources:
+  - before: project
+    language: mavenProject
+  - before: foo=bar
+    after: |
+      foo=bar
+      # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
+      logging.pattern.level="%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    path: src/main/resources/application.properties
+    language: properties
+  - before: |2
+          <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>explicit-deps-app</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.cloud</groupId>
+                  <artifactId>spring-cloud-starter-sleuth</artifactId>
+                  <version>3.0.0</version>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+  - after: |
+      logging:
+        pattern:
+          # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
+          level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    path: src/main/resources/application.yml
+    language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing
 examples:
 - description: '`MigrateCloudSleuthToMicrometerTracingTest#migrateTracer`'
@@ -2619,6 +2993,25 @@ examples:
           }
       }
     language: java
+- description: '`MigrateProjectTest#migrateProperties`'
+  sources:
+  - before: project
+    language: mavenProject
+  - before: |
+      spring.sleuth.baggage.correlation-enabled=true
+    after: |
+      management.tracing.baggage.correlation.enabled=true
+    path: src/main/resources/application.properties
+    language: properties
+  - before: |
+      spring:
+          sleuth:
+              baggage:
+                  correlation-enabled: true
+    after: |
+      management.tracing.baggage.correlation.enabled: true
+    path: src/main/resources/application.yml
+    language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.MigrateRequestMappingOnFeignClient
@@ -2991,6 +3384,66 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.BeanMethodsNotPublic
+examples:
+- description: '`BeanMethodsNotPublicTest#removePublicModifierFromBeanMethods`'
+  sources:
+  - before: |
+      import a.b.c.DataSource;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Primary;
+
+      public class DatabaseConfiguration {
+
+          // primary comments
+          @Primary
+          @Bean
+          public DataSource dataSource() {
+              return new DataSource();
+          }
+
+          @Bean // comments
+          public final DataSource dataSource2() {
+              return new DataSource();
+          }
+
+          @Bean
+          // comments
+          public static DataSource dataSource3() {
+              return new DataSource();
+          }
+      }
+    after: |
+      import a.b.c.DataSource;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Primary;
+
+      public class DatabaseConfiguration {
+
+          // primary comments
+          @Primary
+          @Bean
+          DataSource dataSource() {
+              return new DataSource();
+          }
+
+          @Bean // comments
+          final DataSource dataSource2() {
+              return new DataSource();
+          }
+
+          @Bean // comments
+          static DataSource dataSource3() {
+              return new DataSource();
+          }
+      }
+    language: java
+  - before: |
+      package a.b.c;
+      public class DataSource {}
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.EnvironmentAcceptsProfiles
 examples:
 - description: '`EnvironmentAcceptsProfilesTest#acceptsSingleProfile`'
@@ -3068,6 +3521,69 @@ examples:
                           return clientHttpRequestFactory;
                       })
                       .build();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.JdbcTemplateObjectArrayArgToVarArgs
+examples:
+- description: '`JdbcTemplateObjectArrayArgToVarArgsTest#reOrderQueryForObjectArgs`'
+  sources:
+  - before: |
+      package abc;
+      import org.springframework.jdbc.core.JdbcTemplate;
+      import java.util.List;
+
+      public class MyDao {
+
+          final JdbcTemplate jdbcTemplate;
+
+          public MyDao(JdbcTemplate jdbcTemplate) {
+              this.jdbcTemplate = jdbcTemplate;
+          }
+
+          public User getUser(String first, String last) {
+              Object[] args = new Object[]{first, last};
+              return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, User.class);
+          }
+
+          public User getUser2(String first, String last) {
+              Object[] args = new Object[]{first, last};
+               return jdbcTemplate.queryForObject("", args, (resultSet, i) -> {
+                  User user = new User();
+                  user.setName(resultSet.getString("NAME"));
+                  user.setAge(resultSet.getInt("AGE"));
+                  return user;
+              });
+          }
+      }
+    after: |
+      package abc;
+      import org.springframework.jdbc.core.JdbcTemplate;
+      import java.util.List;
+
+      public class MyDao {
+
+          final JdbcTemplate jdbcTemplate;
+
+          public MyDao(JdbcTemplate jdbcTemplate) {
+              this.jdbcTemplate = jdbcTemplate;
+          }
+
+          public User getUser(String first, String last) {
+              Object[] args = new Object[]{first, last};
+              return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, args);
+          }
+
+          public User getUser2(String first, String last) {
+              Object[] args = new Object[]{first, last};
+               return jdbcTemplate.queryForObject("", (resultSet, i) -> {
+                  User user = new User();
+                  user.setName(resultSet.getString("NAME"));
+                  user.setAge(resultSet.getInt("AGE"));
+                  return user;
+              }, args);
           }
       }
     language: java
