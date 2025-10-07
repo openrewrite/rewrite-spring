@@ -42,7 +42,7 @@ public class MigrateItemWriterWrite extends Recipe {
 
     @Override
     public String getDescription() {
-        return "`JobBuilderFactory` was deprecated in spring-batch 5.x: replaced by `JobBuilder`.";
+        return "In `ItemWriter` the signature of the `write()` method has changed in spring-batch 5.x.";
     }
 
     private static final MethodMatcher ITEM_WRITER_MATCHER = new MethodMatcher("org.springframework.batch.item.ItemWriter write(java.util.List)", true);
