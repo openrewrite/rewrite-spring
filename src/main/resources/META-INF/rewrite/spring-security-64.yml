@@ -1,5 +1,5 @@
 #
-# Copyright 2024 the original author or authors.
+# Copyright 2025 the original author or authors.
 # <p>
 # Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2
-displayName: Migrate to Spring Security 6.2
+name: org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_4
+displayName: Migrate to Spring Security 6.4
 description: >-
-  Migrate applications to the latest Spring Security 6.2 release. This recipe will modify an
+  Migrate applications to the latest Spring Security 6.4 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions.
 tags:
@@ -29,11 +29,10 @@ recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: "*"
-      newVersion: 6.2.x
+      newVersion: 6.4.x
       overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: spring-security-oauth2-authorization-server
-      newVersion: 1.2.x
+      newVersion: 1.4.x
       overrideManagedVersion: false
-  - org.openrewrite.java.spring.security6.ApplyToWithLambdaDsl

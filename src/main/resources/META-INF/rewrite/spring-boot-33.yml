@@ -28,6 +28,7 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2
+  - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_3
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_3
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
