@@ -16,18 +16,18 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0
-displayName: Migrate to Spring Boot 4.0
+name: org.openrewrite.java.spring.security7.UpgradeSpringSecurity_7_0
+displayName: Migrate to Spring Security 7.0
 description: >-
-  Migrate applications to the latest Spring Boot 4.0 release. This recipe will modify an application's build files,
-  make changes to deprecated/preferred APIs.
+  Migrate applications to the latest Spring Security 7.0 release. This recipe will modify an
+  application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
+  changes between versions.
 tags:
   - spring
-  - boot
+  - security
 recipeList:
-  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
-  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
-  - org.openrewrite.java.spring.security7.UpgradeSpringSecurity_7_0
-  - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
-  - org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
-  - org.openrewrite.java.testing.testcontainers.Testcontainers2Migration
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.security
+      artifactId: "*"
+      newVersion: 7.0.x
+      overrideManagedVersion: false
