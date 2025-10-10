@@ -26,7 +26,6 @@ tags:
   - spring
   - security
 recipeList:
-  - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: "*"
