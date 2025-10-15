@@ -204,7 +204,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
             if (argumentExtractorResult.builder.isValid() &&
                     tree instanceof J.MethodInvocation &&
                     ((J.MethodInvocation) tree).getSelect() != null &&
-                    methodMatchers.stream().anyMatch(e -> e.matches(((J.MethodInvocation) tree)))) {
+                    methodMatchers.stream().anyMatch(e -> e.matches((J.MethodInvocation) tree))) {
                 return super.visit(tree, argumentExtractorResult);
             }
             argumentExtractorResult.builder.invalidate();
@@ -237,7 +237,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     }
 
     public static class DocketBeanAccumulator {
-        public boolean hasProperties = false;
+        public boolean hasProperties;
         public List<DocketDefinition> docketDefinitions = new ArrayList<>();
     }
 
@@ -258,15 +258,15 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
             @Setter
             @Nullable
-            private Expression paths = null;
+            private Expression paths;
 
             @Setter
             @Nullable
-            private Expression apis = null;
+            private Expression apis;
 
             @Setter
             @Nullable
-            private Expression groupName = null;
+            private Expression groupName;
 
             public void invalidate() {
                 valid = false;

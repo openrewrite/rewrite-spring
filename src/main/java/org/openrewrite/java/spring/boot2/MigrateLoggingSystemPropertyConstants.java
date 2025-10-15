@@ -133,7 +133,7 @@ public class MigrateLoggingSystemPropertyConstants extends Recipe {
 
         private boolean isTargetFieldType(J.Identifier identifier) {
             if (identifier.getFieldType() != null) {
-                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified((identifier.getFieldType()).getOwner());
+                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(identifier.getFieldType().getOwner());
                 return fqn != null && ORIGINAL_FQN.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
             }
             return false;

@@ -54,7 +54,7 @@ public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
 
         private static boolean isTargetFieldType(J.Identifier identifier) {
             if (identifier.getFieldType() != null) {
-                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified((identifier.getFieldType()).getOwner());
+                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(identifier.getFieldType().getOwner());
                 return fqn != null && ORIGINAL_FQN.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
             }
             return false;

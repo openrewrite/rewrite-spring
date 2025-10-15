@@ -117,7 +117,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 expression = (Expression) new MemberReferenceToMethodInvocation().visitNonNull(memberReference, ctx, new Cursor(getCursor(), expression).getParent());
             }
             if (expression instanceof J.Lambda) {
-                J.Lambda lambda = ((J.Lambda) expression);
+                J.Lambda lambda = (J.Lambda) expression;
                 J body = lambda.getBody();
                 if (body instanceof J.MethodInvocation &&
                         (((J.MethodInvocation) body).getMethodType() != null && isOptional.matches(((J.MethodInvocation) body).getMethodType().getReturnType()))) {

@@ -74,7 +74,7 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
         Map<String, String> springBootDependenciesMap = new HashMap<>();
 
         @Nullable
-        MavenDownloadingException mavenDownloadingException = null;
+        MavenDownloadingException mavenDownloadingException;
     }
 
     private TreeVisitor<?, ExecutionContext> precondition() {

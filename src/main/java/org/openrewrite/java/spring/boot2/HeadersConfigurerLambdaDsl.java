@@ -35,10 +35,12 @@ public final class HeadersConfigurerLambdaDsl extends Recipe {
             "contentSecurityPolicy", "referrerPolicy", "permissionsPolicy", "crossOriginOpenerPolicy",
             "crossOriginEmbedderPolicy", "crossOriginResourcePolicy");
 
-    private static final Map<String, String> ARG_REPLACEMENTS = new HashMap<String, String>() {{
-        put("contentSecurityPolicy", "policyDirectives");
-        put("referrerPolicy", "policy");
-    }};
+    private static final Map<String, String> ARG_REPLACEMENTS;
+    static {
+        ARG_REPLACEMENTS = new HashMap<String, String>();
+        ARG_REPLACEMENTS.put("contentSecurityPolicy", "policyDirectives");
+        ARG_REPLACEMENTS.put("referrerPolicy", "policy");
+    }
 
     @Override
     public String getDisplayName() {

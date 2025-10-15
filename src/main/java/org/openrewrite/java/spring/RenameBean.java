@@ -42,15 +42,11 @@ import static org.openrewrite.java.MethodMatcher.methodPattern;
 @Value
 public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionContext>>> {
 
-    @Option(required = false, example = "foo.MyType")
-    @Nullable
-    String type;
+    @Option(required = false, example = "foo.MyType") @Nullable String type;
 
-    @Option(example = "fooBean")
-    String oldName;
+    @Option(example = "fooBean") String oldName;
 
-    @Option(example = "barBean")
-    String newName;
+    @Option(example = "barBean") String newName;
 
     private static final String FQN_QUALIFIER = "org.springframework.beans.factory.annotation.Qualifier";
 
@@ -59,15 +55,19 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
     private static final String FQN_COMPONENT = "org.springframework.stereotype.Component";
 
     private static final Set<String> JUST_QUALIFIER = singleton(FQN_QUALIFIER);
-    private static final Set<String> BEAN_METHOD_ANNOTATIONS = new HashSet<String>() {{
-        add(FQN_QUALIFIER);
-        add(FQN_BEAN);
-    }};
+    private static final Set<String> BEAN_METHOD_ANNOTATIONS;
+    static {
+        BEAN_METHOD_ANNOTATIONS = new HashSet<String>();
+        BEAN_METHOD_ANNOTATIONS.add(FQN_QUALIFIER);
+        BEAN_METHOD_ANNOTATIONS.add(FQN_BEAN);
+    }
 
-    private static final Set<String> BEAN_TYPE_ANNOTATIONS = new HashSet<String>() {{
-        add(FQN_QUALIFIER);
-        add(FQN_COMPONENT);
-    }};
+    private static final Set<String> BEAN_TYPE_ANNOTATIONS;
+    static {
+        BEAN_TYPE_ANNOTATIONS = new HashSet<String>();
+        BEAN_TYPE_ANNOTATIONS.add(FQN_QUALIFIER);
+        BEAN_TYPE_ANNOTATIONS.add(FQN_COMPONENT);
+    }
 
     @Override
     public String getDisplayName() {

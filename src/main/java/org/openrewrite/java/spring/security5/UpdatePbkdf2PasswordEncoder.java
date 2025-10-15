@@ -137,7 +137,7 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J j = super.visitMethodInvocation(method, ctx);
-                if (j instanceof J.MethodInvocation && VERSION5_5_FACTORY_MATCHER.matches(((J.MethodInvocation) j))) {
+                if (j instanceof J.MethodInvocation && VERSION5_5_FACTORY_MATCHER.matches((J.MethodInvocation) j)) {
                     maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
                     method = (J.MethodInvocation) j;
                     return newFactoryMethodTemplate(ctx).apply(getCursor(), method.getCoordinates().replace());

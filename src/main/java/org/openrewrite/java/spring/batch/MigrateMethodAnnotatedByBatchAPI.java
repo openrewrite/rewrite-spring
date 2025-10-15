@@ -48,13 +48,13 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
     }
 
-    private static final Set<String> annotatedMethods = new HashSet<String>() {
-        {
-            add("org.springframework.batch.core.annotation.OnWriteError");
-            add("org.springframework.batch.core.annotation.BeforeWrite");
-            add("org.springframework.batch.core.annotation.AfterWrite");
-        }
-    };
+    private static final Set<String> annotatedMethods;
+    static {
+        annotatedMethods = new HashSet<String>();
+        annotatedMethods.add("org.springframework.batch.core.annotation.OnWriteError");
+        annotatedMethods.add("org.springframework.batch.core.annotation.BeforeWrite");
+        annotatedMethods.add("org.springframework.batch.core.annotation.AfterWrite");
+    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -90,7 +90,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                 return super.visitMethodDeclaration(method, ctx);
             }
             Optional<J.VariableDeclarations> parameterOptional = method.getParameters().stream()
-                    .filter(parameter -> parameter instanceof J.VariableDeclarations)
+                    .filter(J.VariableDeclarations.class::isInstance)
                     .map(parameter -> ((J.VariableDeclarations) parameter))
                     .filter(parameter -> parameter.getType().isAssignableFrom(Pattern.compile("java.util.List")))
                     .findFirst();
@@ -99,7 +99,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             }
             J.VariableDeclarations parameter = parameterOptional.get();
             String chunkTypeParameter = null;
-            if ((parameter.getTypeExpression() instanceof J.ParameterizedType)) {
+            if (parameter.getTypeExpression() instanceof J.ParameterizedType) {
                 if (((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() != null) {
                     chunkTypeParameter = ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters().get(0).toString();
                 } else {

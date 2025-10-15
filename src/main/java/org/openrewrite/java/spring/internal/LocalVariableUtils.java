@@ -111,7 +111,7 @@ public class LocalVariableUtils {
         } else if (value instanceof J.Lambda) {
             found = findVariable(((J.Lambda) value).getParameters().getParameters(), name);
         } else if (value instanceof J.VariableDeclarations) {
-            found = findVariable(singletonList(((J.VariableDeclarations) value)), name);
+            found = findVariable(singletonList((J.VariableDeclarations) value), name);
         }
         return found.map(f -> f.isFinal ? f.variable.getInitializer() : null).orElseGet(() -> resolveVariable0(name, value, cursor.getParentTreeCursor()));
     }

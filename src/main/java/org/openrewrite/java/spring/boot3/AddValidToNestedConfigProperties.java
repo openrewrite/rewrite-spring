@@ -54,7 +54,7 @@ public class AddValidToNestedConfigProperties extends Recipe {
                         new UsesType<>(VALIDATED, true)
                 ),
                 new JavaIsoVisitor<ExecutionContext>() {
-                    boolean visitedTopLevelClass = false;
+                    boolean visitedTopLevelClass;
 
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {

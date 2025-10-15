@@ -189,7 +189,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
 
         private final J.MethodInvocation selfMethodInvocation;
 
-        private boolean isFound = false;
+        private boolean isFound;
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {

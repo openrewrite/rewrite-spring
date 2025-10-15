@@ -129,10 +129,10 @@ public class ConfigurationOverEnableSecurity extends Recipe {
             }
 
             private boolean isExcluded(Set<J.Annotation> securityAnnotations) {
-                return (securityAnnotations.stream()
+                return securityAnnotations.stream()
                         .map(a -> TypeUtils.asFullyQualified(a.getType()))
                         .filter(Objects::nonNull)
-                        .anyMatch(it -> EXCLUSIONS.contains(it.getFullyQualifiedName())));
+                        .anyMatch(it -> EXCLUSIONS.contains(it.getFullyQualifiedName()));
             }
         });
     }

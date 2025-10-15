@@ -100,7 +100,7 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
 
         private boolean isTargetFieldType(J.Identifier identifier) {
             if (identifier.getFieldType() != null) {
-                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified((identifier.getFieldType()).getOwner());
+                JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(identifier.getFieldType().getOwner());
                 return fqn != null && EMBEDDED_DATABASE_CONNECTION_FNQ.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
             }
             return false;
