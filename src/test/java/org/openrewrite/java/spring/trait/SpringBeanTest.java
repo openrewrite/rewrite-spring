@@ -15,12 +15,15 @@
  */
 package org.openrewrite.java.spring.trait;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.marker.SearchResult;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.xml.Assertions.xml;
 
 class SpringBeanTest implements RewriteTest {
@@ -28,7 +31,27 @@ class SpringBeanTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(RewriteTest.toRecipe(() -> new SpringBean.Matcher()
-          .asVisitor(bean -> SearchResult.found(bean.getTree(), bean.getName()))));
+            .asVisitor(bean -> SearchResult.found(bean.getTree(), bean.getName()))))
+          .parser(JavaParser.fromJavaVersion().dependsOn(
+            //language=java
+            """
+              package org.springframework.context.annotation;
+
+              public @interface Bean {}
+              """,
+            //language=java
+            """
+              package org.springframework.context.annotation;
+
+              public @interface Configuration {}
+              """,
+            //language=java
+            """
+              package com.example;
+
+              public class UserService { }
+              """
+          ));
     }
 
     @DocumentExample
@@ -70,4 +93,88 @@ class SpringBeanTest implements RewriteTest {
           )
         );
     }
+
+    @Nested
+    class JavaConfig {
+        @Test
+        void defaultName() {
+            rewriteRun(
+              java(
+                //language=java
+                """
+                  package com.example;
+
+                  import org.springframework.context.annotation.Bean;
+                  import org.springframework.context.annotation.Configuration;
+
+                  @Configuration
+                  public class BeansConfiguration {
+                      @Bean
+                      public UserService userService() {
+                          UserService bean = new UserService();
+                          return bean;
+                      }
+                  }
+                  """,
+                //language=java
+                """
+                                  package com.example;
+
+                  import org.springframework.context.annotation.Bean;
+                  import org.springframework.context.annotation.Configuration;
+
+                  @Configuration
+                  public class BeansConfiguration {
+                      /*~~(userService)~~>*/@Bean
+                      public UserService userService() {
+                          UserService bean = new UserService();
+                          return bean;
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void expliciteName() {
+            rewriteRun(
+              java(
+                //language=java
+                """
+                  package com.example;
+
+                  import org.springframework.context.annotation.Bean;
+                  import org.springframework.context.annotation.Configuration;
+
+                  @Configuration
+                  public class BeansConfiguration {
+                      @Bean(name="testName")
+                      public UserService userService() {
+                          UserService bean = new UserService();
+                          return bean;
+                      }
+                  }
+                  """,
+                //language=java
+                """
+                  package com.example;
+
+                  import org.springframework.context.annotation.Bean;
+                  import org.springframework.context.annotation.Configuration;
+
+                  @Configuration
+                  public class BeansConfiguration {
+                      /*~~(testName)~~>*/@Bean(name="testName")
+                      public UserService userService() {
+                          UserService bean = new UserService();
+                          return bean;
+                      }
+                  }
+                  """
+              )
+            );
+        }
+    }
+
 }
