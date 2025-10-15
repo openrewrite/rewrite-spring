@@ -22,6 +22,7 @@ import org.openrewrite.Tree;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.trait.Annotated;
+import org.openrewrite.java.trait.Literal;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.trait.SimpleTraitMatcher;
 import org.openrewrite.trait.Trait;
@@ -47,7 +48,7 @@ public class SpringBean implements Trait<Tree> {
             return new Annotated.Matcher("org.springframework.context.annotation.Bean")
                     .lower(cursor).findFirst()
                     .flatMap(a -> a.getDefaultAttribute("name"))
-                    .map(name -> name.getValue(String.class))
+                    .map(Literal::getString)
                     .orElse(((J.MethodDeclaration) getTree()).getSimpleName());
         }
         return null;

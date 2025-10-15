@@ -108,27 +108,25 @@ class SpringBeanTest implements RewriteTest {
                   import org.springframework.context.annotation.Configuration;
 
                   @Configuration
-                  public class BeansConfiguration {
+                  class BeansConfiguration {
                       @Bean
-                      public UserService userService() {
-                          UserService bean = new UserService();
-                          return bean;
+                      UserService userService() {
+                          return new UserService();
                       }
                   }
                   """,
                 //language=java
                 """
-                                  package com.example;
+                  package com.example;
 
                   import org.springframework.context.annotation.Bean;
                   import org.springframework.context.annotation.Configuration;
 
                   @Configuration
-                  public class BeansConfiguration {
+                  class BeansConfiguration {
                       /*~~(userService)~~>*/@Bean
-                      public UserService userService() {
-                          UserService bean = new UserService();
-                          return bean;
+                      UserService userService() {
+                          return new UserService();
                       }
                   }
                   """
@@ -137,7 +135,7 @@ class SpringBeanTest implements RewriteTest {
         }
 
         @Test
-        void expliciteName() {
+        void explicitName() {
             rewriteRun(
               java(
                 //language=java
@@ -148,11 +146,10 @@ class SpringBeanTest implements RewriteTest {
                   import org.springframework.context.annotation.Configuration;
 
                   @Configuration
-                  public class BeansConfiguration {
+                  class BeansConfiguration {
                       @Bean(name="testName")
-                      public UserService userService() {
-                          UserService bean = new UserService();
-                          return bean;
+                      UserService userService() {
+                          return new UserService();
                       }
                   }
                   """,
@@ -164,11 +161,10 @@ class SpringBeanTest implements RewriteTest {
                   import org.springframework.context.annotation.Configuration;
 
                   @Configuration
-                  public class BeansConfiguration {
+                  class BeansConfiguration {
                       /*~~(testName)~~>*/@Bean(name="testName")
-                      public UserService userService() {
-                          UserService bean = new UserService();
-                          return bean;
+                      UserService userService() {
+                          return new UserService();
                       }
                   }
                   """
