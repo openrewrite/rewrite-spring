@@ -88,7 +88,7 @@ public class AddRouteTrailingSlash extends Recipe {
                                     return JavaTemplate.builder("value = {#{any(String)}, #{any(String)}}")
                                             .contextSensitive()
                                             .build()
-                                            .<J.Annotation>apply(getCursor(),
+                                            .apply(getCursor(),
                                                     anno.getCoordinates().replaceArguments(),
                                                     (Object[]) buildTwoStringsArray(str)).getArguments().get(0);
                                 }

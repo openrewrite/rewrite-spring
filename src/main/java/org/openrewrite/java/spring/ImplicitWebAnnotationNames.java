@@ -97,7 +97,7 @@ public class ImplicitWebAnnotationNames extends Recipe {
 
                 a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                     Cursor varDecsCursor = getCursor().getParentOrThrow();
-                    J.VariableDeclarations.NamedVariable namedVariable = varDecsCursor.<J.VariableDeclarations>getValue().getVariables().get(0);
+                    J.VariableDeclarations.NamedVariable namedVariable = varDecsCursor.getValue().getVariables().get(0);
                     if (arg instanceof J.Assignment) {
                         J.Assignment assignment = (J.Assignment) arg;
                         if (assignment.getVariable() instanceof J.Identifier && assignment.getAssignment() instanceof J.Literal) {

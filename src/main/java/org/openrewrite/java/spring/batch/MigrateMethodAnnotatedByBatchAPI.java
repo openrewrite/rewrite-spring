@@ -115,7 +115,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
-                    .<J.MethodDeclaration>apply(getCursor(), method.getCoordinates().replaceParameters())
+                    .apply(getCursor(), method.getCoordinates().replaceParameters())
                     .getParameters().get(0).withPrefix(Space.EMPTY);
             vdd = vdd.withTypeExpression(TypeTree.build("org.springframework.batch.item.Chunk")).withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
 
