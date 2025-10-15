@@ -42,7 +42,8 @@ public class SpringBean implements Trait<Tree> {
                     .findFirst()
                     .map(Xml.Attribute::getValueAsString)
                     .orElse(null);
-        } else if (getTree() instanceof J.MethodDeclaration) {
+        }
+        if (getTree() instanceof J.MethodDeclaration) {
             return new Annotated.Matcher("org.springframework.context.annotation.Bean")
                     .lower(cursor).findFirst()
                     .flatMap(a -> a.getDefaultAttribute("name"))
@@ -75,7 +76,8 @@ public class SpringBean implements Trait<Tree> {
                 if (springBean.matches(cursor)) {
                     return new SpringBean(cursor);
                 }
-            } else if (value instanceof J.MethodDeclaration) {
+            }
+            if (value instanceof J.MethodDeclaration) {
                 AnnotationService annotationService = new AnnotationService();
                 AnnotationMatcher beanAnnotation = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
                 if (annotationService.matches(cursor, beanAnnotation)) {
