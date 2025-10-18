@@ -19,8 +19,8 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_7
-displayName: Migrate to Spring Data 2.7
-description: Migrate applications to the latest Spring Data 2.7 release.
+displayName: Migrate to Spring Data JPA 2.7
+description: Migrate applications to the latest Spring Data JPA 2.7 release.
 recipeList:
   - org.openrewrite.java.spring.data.UseJpaRepositoryGetReferenceById
 ---
