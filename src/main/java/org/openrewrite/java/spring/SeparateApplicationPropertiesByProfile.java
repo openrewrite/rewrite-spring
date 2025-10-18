@@ -146,7 +146,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         int index = 0;
         while (index < contentList.size()) {
             if (isSeparator(contentList.get(index))) {
-                List<Properties.Content> newContent = getContentForNewFile(contentList, ++index);
+                List<Properties.Content> newContent = extractProfileContent(contentList, ++index);
                 if (!newContent.isEmpty() && newContent.get(0) instanceof Properties.Entry) {
                     String profileName = ((Properties.Entry) newContent.get(0)).getValue().getText();
                     map.put(applicationProperties.resolveSibling(String.format("application-%s.properties", profileName)),
@@ -158,12 +158,11 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         return map;
     }
 
-    private List<Properties.Content> getContentForNewFile(List<Properties.Content> contentList, int index) {
+    private List<Properties.Content> extractProfileContent(List<Properties.Content> contentList, int index) {
         List<Properties.Content> list = new ArrayList<>();
         while (index < contentList.size() && !isSeparator(contentList.get(index))) {
             if (contentList.get(index) instanceof Properties.Entry &&
-                    "spring.config.activate.on-profile".equals
-                            (((Properties.Entry) contentList.get(index)).getKey())) {
+                    "spring.config.activate.on-profile".equals(((Properties.Entry) contentList.get(index)).getKey())) {
                 list.add(0, contentList.get(index));
             } else {
                 list.add(contentList.get(index));
