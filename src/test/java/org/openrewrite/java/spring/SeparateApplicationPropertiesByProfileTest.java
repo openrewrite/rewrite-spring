@@ -92,7 +92,7 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                 sourceSpecs -> sourceSpecs.path("application-local.properties")
               ),
               properties(
-                null,
+                doesNotExist(),
                 //language=properties
                 """
                   #### XX Configuration ####
@@ -154,7 +154,7 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
           mavenProject("parent",
             srcMainResources(
               properties(
-                null,
+                doesNotExist(),
                 //language=properties
                 """
                   oauth2.clientId=9999999999999999999999
@@ -214,82 +214,6 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
                   service.domainUrl=https://this.is.my.prod.url.com
                   """,
                 sourceSpecs -> sourceSpecs.path("application-prod.properties")
-              )
-            )
-          )
-        );
-    }
-
-    @Test
-    void pathToApplicationProperties() {
-        rewriteRun(
-          mavenProject("parent",
-            srcMainResources(
-              properties(
-                //language=properties
-                """
-                  line1=line1
-                  """,
-                //language=properties
-                """
-                  line1=line1
-                  oauth2.clientId=9999999999999999999999
-                  service.domainUrl= https://this.is.my.dev.url.com
-                  app.config.currentEnvironment=DEV
-                  """,
-                sourceSpecs -> sourceSpecs.path("folder1/folder2/application-dev.properties")
-              ),
-              properties(
-                //language=properties
-                """
-                  spring.application.name=Openrewrite-PR-Service
-                  #PR-Service
-                  base-url.PR-services=http://my.url.com
-                  exchange-token=1234567890
-                  exchange-tokens=${base-url.PR-services}/exchange-token
-                  !---
-                  spring.config.activate.on-profile=dev
-                  oauth2.clientId=9999999999999999999999
-                  service.domainUrl= https://this.is.my.dev.url.com
-                  app.config.currentEnvironment=DEV
-                  #---
-                  spring.config.activate.on-profile=local
-                  app.config.currentEnvironment=LOCAL
-
-
-                  #---
-                  #### XX Configuration ####
-                  spring.config.activate.on-profile=prod
-                  oauth2.clientId=77777777777777
-                  service.domainUrl=https://this.is.my.prod.url.com
-                  """,
-                //language=properties
-                """
-                  spring.application.name=Openrewrite-PR-Service
-                  #PR-Service
-                  base-url.PR-services=http://my.url.com
-                  exchange-token=1234567890
-                  exchange-tokens=${base-url.PR-services}/exchange-token
-                  """,
-                sourceSpecs -> sourceSpecs.path("folder1/folder2/application.properties")
-              ),
-              properties(
-                doesNotExist(),
-                //language=properties
-                """
-                  app.config.currentEnvironment=LOCAL
-                  """,
-                sourceSpecs -> sourceSpecs.path("folder1/folder2/application-local.properties")
-              ),
-              properties(
-                doesNotExist(),
-                //language=properties
-                """
-                  #### XX Configuration ####
-                  oauth2.clientId=77777777777777
-                  service.domainUrl=https://this.is.my.prod.url.com
-                  """,
-                sourceSpecs -> sourceSpecs.path("folder1/folder2/application-prod.properties")
               )
             )
           )

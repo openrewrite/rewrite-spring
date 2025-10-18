@@ -21,16 +21,18 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.marker.Markers;
-import org.openrewrite.properties.CreatePropertiesFile;
+import org.openrewrite.properties.PropertiesParser;
 import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.tree.Properties;
 
+import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
+
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-
-import java.util.stream.Stream;
+import static org.openrewrite.properties.tree.Properties.Comment.Delimiter.EXCLAMATION_MARK;
+import static org.openrewrite.properties.tree.Properties.Comment.Delimiter.HASH_TAG;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -66,72 +68,38 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                     return tree;
                 }
 
-                String sourcePath = PathUtils.separatorsToUnix(propertyFile.getSourcePath().toString());
-                String[] pathArray = sourcePath.split("/");
-
                 // Get or create the module info using the JavaProject marker as the key
-                ModulePropertyInfo moduleInfo = acc.moduleProperties.computeIfAbsent(
-                        javaProject.get(),
-                        k -> new ModulePropertyInfo()
-                );
-
-                if (moduleInfo.javaProject == null) {
-                    moduleInfo.javaProject = javaProject.get();
-                }
-
+                ModulePropertyInfo moduleInfo = acc.moduleProperties.computeIfAbsent(javaProject.get(), k -> new ModulePropertyInfo());
                 if (propertyFile.getSourcePath().endsWith("application.properties")) {
-                    moduleInfo.pathToApplicationProperties = getPathToApplicationProperties(pathArray);
-                    moduleInfo.propertyFileContent = getNewApplicationPropertyFileInfo(propertyFile.getContent());
+                    moduleInfo.applicationProperties = propertyFile.getSourcePath();
+                    moduleInfo.extractedProfileProperties = getNewApplicationPropertyFileInfo(propertyFile);
 
+                } else if (propertyFile.getSourcePath().getFileName().toString().matches("application-[^/]+\\.properties")) {
+                    moduleInfo.existingProfileProperties.add(propertyFile.getSourcePath());
                 }
-
-                if (propertyFile.getSourcePath().getFileName().toString().matches("application-[^/]+\\.properties")) {
-                    moduleInfo.fileNameToFilePath.put(pathArray[pathArray.length - 1], sourcePath);
-                }
-
                 return tree;
             }
         };
     }
 
 
-
     @Override
     public Collection<? extends SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
-        Set<SourceFile> newApplicationPropertiesFiles = new HashSet<>();
-
-        // Change the loop to iterate over the entrySet to access the full module info
-        for (ModulePropertyInfo moduleInfo : acc.moduleProperties.values()) {
-            if (moduleInfo.propertyFileContent.isEmpty() || moduleInfo.javaProject == null) {
-                continue;
-            }
-
-            for (Map.Entry<String, List<Properties.Content>> entry : moduleInfo.propertyFileContent.entrySet()) {
-                if (!moduleInfo.fileNameToFilePath.containsKey(entry.getKey())) {
-
-                    // 1. Generate the new file as before
-                    SourceFile newFile = new CreatePropertiesFile(
-                            moduleInfo.pathToApplicationProperties + entry.getKey(),
-                            "",
-                            null
-                    ).generate(new AtomicBoolean(true), ctx).iterator().next();
-
-                    // 2. Get the stored project marker
-                    JavaProject projectMarker = moduleInfo.javaProject;
-
-                    // 3. Use withMarkers() to attach it to the new file
-                    SourceFile newFileWithMarker = newFile.withMarkers(
-                            // Markers.build() creates the container for our marker
-                            Markers.build(singletonList(projectMarker))
-                    );
-
-                    // 4. Add the file *with the new marker* to our results
-                    newApplicationPropertiesFiles.add(newFileWithMarker);
+        Set<SourceFile> newSourceFiles = new HashSet<>();
+        PropertiesParser propertiesParser = PropertiesParser.builder().build();
+        for (Map.Entry<JavaProject, ModulePropertyInfo> entry : acc.moduleProperties.entrySet()) {
+            JavaProject javaProject = entry.getKey();
+            ModulePropertyInfo moduleInfo = entry.getValue();
+            for (Path fileToCreate : moduleInfo.extractedProfileProperties.keySet()) {
+                if (!moduleInfo.existingProfileProperties.contains(fileToCreate)) {
+                    newSourceFiles.addAll(propertiesParser.parse("")
+                            .map(brandNewFile -> (SourceFile) brandNewFile.withSourcePath(fileToCreate)
+                                    .withMarkers(Markers.build(singletonList(javaProject))))
+                            .collect(toList()));
                 }
             }
         }
-
-        return newApplicationPropertiesFiles;
+        return newSourceFiles;
     }
 
     @Override
@@ -145,24 +113,22 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 }
 
                 ModulePropertyInfo moduleInfo = acc.moduleProperties.get(javaProject.get());
-                if (moduleInfo == null || moduleInfo.propertyFileContent.isEmpty()) {
+                if (moduleInfo == null) {
                     return file;
                 }
 
-                String[] filePathArray = file.getSourcePath().toString().split("/");
-                String fileName = filePathArray[filePathArray.length - 1];
-
-                return fileName.matches("application.properties") ?
+                return file.getSourcePath().endsWith("application.properties") ?
                         deleteFromApplicationProperties(file) :
-                        appendToExistingPropertiesFile(file, moduleInfo.propertyFileContent.get(fileName));
+                        appendToExistingPropertiesFile(file, moduleInfo.extractedProfileProperties.get(file.getSourcePath()));
             }
         };
     }
 
-    private Properties appendToExistingPropertiesFile(Properties.File file, List<Properties.Content> contentToAppend) {
-        return file.withContent(
-                Stream.concat(file.getContent().stream(), contentToAppend.stream()).
-                        collect(toList()));
+    private Properties appendToExistingPropertiesFile(Properties.File file, @Nullable List<Properties.Content> contentToAppend) {
+        if (contentToAppend == null || contentToAppend.isEmpty()) {
+            return file;
+        }
+        return file.withContent(Stream.concat(file.getContent().stream(), contentToAppend.stream()).collect(toList()));
     }
 
     private Properties deleteFromApplicationProperties(Properties.File applicationProperties) {
@@ -177,14 +143,18 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 applicationProperties.withContent(newContent);
     }
 
-    private Map<String, List<Properties.Content>> getNewApplicationPropertyFileInfo(List<Properties.Content> contentList) {
-        Map<String, List<Properties.Content>> map = new HashMap<>();
+    private Map<Path, List<Properties.Content>> getNewApplicationPropertyFileInfo(Properties.File propertyFile) {
+        Path applicationProperties = propertyFile.getSourcePath();
+        List<Properties.Content> contentList = propertyFile.getContent();
+
+        Map<Path, List<Properties.Content>> map = new HashMap<>();
         int index = 0;
         while (index < contentList.size()) {
             if (isSeparator(contentList.get(index))) {
                 List<Properties.Content> newContent = getContentForNewFile(contentList, ++index);
                 if (!newContent.isEmpty() && newContent.get(0) instanceof Properties.Entry) {
-                    map.put("application-" + ((Properties.Entry) newContent.get(0)).getValue().getText() + ".properties",
+                    String profileName = ((Properties.Entry) newContent.get(0)).getValue().getText();
+                    map.put(applicationProperties.resolveSibling(String.format("application-%s.properties", profileName)),
                             newContent.subList(1, newContent.size()));
                 }
             }
@@ -208,18 +178,11 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         return list;
     }
 
-    private String getPathToApplicationProperties(String[] pathArray) {
-        return pathArray.length == 1 ? "" : String.join("/", Arrays.copyOfRange(pathArray, 0, pathArray.length - 1)) + "/";
-    }
-
     private boolean isSeparator(Properties.Content c) {
         return c instanceof Properties.Comment &&
                 "---".equals(((Properties.Comment) c).getMessage()) &&
-                ((((Properties.Comment) c).getDelimiter() ==
-                        Properties.Comment.Delimiter.valueOf("HASH_TAG")) ||
-
-                        ((Properties.Comment) c).getDelimiter() ==
-                                Properties.Comment.Delimiter.valueOf("EXCLAMATION_MARK"));
+                ((((Properties.Comment) c).getDelimiter() == HASH_TAG) ||
+                        ((Properties.Comment) c).getDelimiter() == EXCLAMATION_MARK);
     }
 
     public static class Accumulator {
@@ -229,11 +192,8 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
 
     public static class ModulePropertyInfo {
-        String pathToApplicationProperties = "";
-        Map<String, String> fileNameToFilePath = new HashMap<>();
-        Map<String, List<Properties.Content>> propertyFileContent = new HashMap<>();
-
-        @Nullable
-        JavaProject javaProject;
+        @Nullable Path applicationProperties;
+        Set<Path> existingProfileProperties = new HashSet<>();
+        Map<Path, List<Properties.Content>> extractedProfileProperties = new HashMap<>();
     }
 }
