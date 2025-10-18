@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.properties.PropertiesParser;
@@ -27,7 +28,7 @@ import org.openrewrite.properties.tree.Properties;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -71,9 +72,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 // Get or create the module info using the JavaProject marker as the key
                 ModulePropertyInfo moduleInfo = acc.moduleProperties.computeIfAbsent(javaProject.get(), k -> new ModulePropertyInfo());
                 if (propertyFile.getSourcePath().endsWith("application.properties")) {
-                    moduleInfo.applicationProperties = propertyFile.getSourcePath();
-                    moduleInfo.extractedProfileProperties = getNewApplicationPropertyFileInfo(propertyFile);
-
+                    moduleInfo.extractedProfileProperties = extractPropertiesPerProfile(propertyFile);
                 } else if (propertyFile.getSourcePath().getFileName().toString().matches("application-[^/]+\\.properties")) {
                     moduleInfo.existingProfileProperties.add(propertyFile.getSourcePath());
                 }
@@ -117,33 +116,29 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                     return file;
                 }
 
-                return file.getSourcePath().endsWith("application.properties") ?
-                        deleteFromApplicationProperties(file) :
-                        appendToExistingPropertiesFile(file, moduleInfo.extractedProfileProperties.get(file.getSourcePath()));
+                if (file.getSourcePath().endsWith("application.properties")) {
+                    // Remove profile-specific sections
+                    return file.withContent(ListUtils.filter(file.getContent(), new Predicate<Properties.Content>() {
+                        boolean beforeSeparator = true;
+
+                        @Override
+                        public boolean test(Properties.Content c) {
+                            if (isSeparator(c)) {
+                                beforeSeparator = false;
+                            }
+                            return beforeSeparator;
+                        }
+                    }));
+                }
+
+                // Append extracted content to (now) existing profile-specific files
+                return file.withContent(ListUtils.concatAll(file.getContent(),
+                        moduleInfo.extractedProfileProperties.get(file.getSourcePath())));
             }
         };
     }
 
-    private Properties appendToExistingPropertiesFile(Properties.File file, @Nullable List<Properties.Content> contentToAppend) {
-        if (contentToAppend == null || contentToAppend.isEmpty()) {
-            return file;
-        }
-        return file.withContent(Stream.concat(file.getContent().stream(), contentToAppend.stream()).collect(toList()));
-    }
-
-    private Properties deleteFromApplicationProperties(Properties.File applicationProperties) {
-        List<Properties.Content> newContent = new ArrayList<>();
-        for (Properties.Content c : applicationProperties.getContent()) {
-            if (isSeparator(c)) {
-                break;
-            }
-            newContent.add(c);
-        }
-        return applicationProperties.getContent().equals(newContent) ? applicationProperties :
-                applicationProperties.withContent(newContent);
-    }
-
-    private Map<Path, List<Properties.Content>> getNewApplicationPropertyFileInfo(Properties.File propertyFile) {
+    private Map<Path, List<Properties.Content>> extractPropertiesPerProfile(Properties.File propertyFile) {
         Path applicationProperties = propertyFile.getSourcePath();
         List<Properties.Content> contentList = propertyFile.getContent();
 
@@ -190,9 +185,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
         Map<JavaProject, ModulePropertyInfo> moduleProperties = new HashMap<>();
     }
 
-
     public static class ModulePropertyInfo {
-        @Nullable Path applicationProperties;
         Set<Path> existingProfileProperties = new HashSet<>();
         Map<Path, List<Properties.Content>> extractedProfileProperties = new HashMap<>();
     }
