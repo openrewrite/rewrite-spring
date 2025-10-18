@@ -25,8 +25,17 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.health.mongo.enabled
+      newPropertyKey: management.health.mongodb.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.logging.export.enabled
       newPropertyKey: management.opentelemetry.logging.export.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.mongo.command.enabled
+      newPropertyKey: management.metrics.mongodb.command.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.mongo.connectionpool.enabled
+      newPropertyKey: management.metrics.mongodb.connectionpool.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.observations.annotations.long-lask-timer.enabled
       newPropertyKey: management.metrics.observations.ignored-meters
@@ -69,4 +78,121 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.servlet.encoding.force-response
       newPropertyKey: spring.servlet.encoding.force-response
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.dao.exceptiontranslation.enabled
+      newPropertyKey: spring.persistence.exceptiontranslation.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.additional-hosts
+      newPropertyKey: spring.mongodb.additional-hosts
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.authentication-database
+      newPropertyKey: spring.mongodb.authentication-database
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.database
+      newPropertyKey: spring.mongodb.database
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.host
+      newPropertyKey: spring.mongodb.host
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.password
+      newPropertyKey: spring.mongodb.password
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.port
+      newPropertyKey: spring.mongodb.port
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.protocol
+      newPropertyKey: spring.mongodb.protocol
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.replica-set-name
+      newPropertyKey: spring.mongodb.replica-set-name
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.ssl.bundle
+      newPropertyKey: spring.mongodb.ssl.bundle
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.ssl.enabled
+      newPropertyKey: spring.mongodb.ssl.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.uri
+      newPropertyKey: spring.mongodb.uri
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.username
+      newPropertyKey: spring.mongodb.username
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.data.mongodb.uuid-representation
+      newPropertyKey: spring.mongodb.representation.uuid
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.kafka.retry.topic.backoff.random
+      newPropertyKey: spring.kafka.retry.topic.backoff.jitter
 
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.api-token
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.api-token-type
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.application.cluster-name
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.application.custom-tags
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.application.name
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.application.service-name
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.application.shard-name
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.metrics.export.batch-size
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.metrics.export.connect-timeout
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.metrics.export.enabled
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.metrics.export.global-prefix
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.metrics.export.read-timeout
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.metrics.export.report-day-distribution
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.metrics.export.report-hour-distribution
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.metrics.export.report-minute-distribution
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.metrics.export.step
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.sender.batch-size
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.sender.flush-interval
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.sender.max-queue-size
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.sender.message-size
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.source
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.trace-derived-custom-tag-keys
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.tracing.export.enabled
+      comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.wavefront.uri
+      comment: "This property is deprecated: Wavefront is end-of-life."
