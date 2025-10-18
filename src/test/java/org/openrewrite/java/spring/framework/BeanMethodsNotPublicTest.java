@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.framework;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
@@ -33,6 +34,7 @@ class BeanMethodsNotPublicTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.+"));
     }
 
+    @DocumentExample
     @Test
     void removePublicModifierFromBeanMethods() {
         //language=java

@@ -20,7 +20,9 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.Tree;
 import org.openrewrite.java.AnnotationMatcher;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.trait.Annotated;
+import org.openrewrite.java.trait.Literal;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.trait.SimpleTraitMatcher;
 import org.openrewrite.trait.Trait;
@@ -42,12 +44,12 @@ public class SpringBean implements Trait<Tree> {
                     .map(Xml.Attribute::getValueAsString)
                     .orElse(null);
         }
-        if (getTree() instanceof J.Annotation) {
+        if (getTree() instanceof J.MethodDeclaration) {
             return new Annotated.Matcher("org.springframework.context.annotation.Bean")
-                    .get(cursor)
+                    .lower(cursor).findFirst()
                     .flatMap(a -> a.getDefaultAttribute("name"))
-                    .map(name -> name.getValue(String.class))
-                    .orElse(null);
+                    .map(Literal::getString)
+                    .orElse(((J.MethodDeclaration) getTree()).getSimpleName());
         }
         return null;
     }
@@ -75,10 +77,12 @@ public class SpringBean implements Trait<Tree> {
                 if (springBean.matches(cursor)) {
                     return new SpringBean(cursor);
                 }
-            } else if (value instanceof J.Annotation) {
+            }
+            if (value instanceof J.MethodDeclaration) {
+                AnnotationService annotationService = new AnnotationService();
                 AnnotationMatcher beanAnnotation = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
-                if (beanAnnotation.matches((J.Annotation) value)) {
-                    return new SpringBean(cursor.getParentTreeCursor());
+                if (annotationService.matches(cursor, beanAnnotation)) {
+                    return new SpringBean(cursor);
                 }
             }
             return null;
