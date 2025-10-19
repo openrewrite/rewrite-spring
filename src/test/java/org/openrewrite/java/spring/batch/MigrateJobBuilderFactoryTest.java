@@ -43,7 +43,10 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     void replaceAutowiredJobBuilderFactory() {
         // language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
+          spec -> spec.typeValidationOptions(TypeValidation.builder()
+            .methodDeclarations(false)
+            .identifiers(false)
+            .build()),
           java(
             """
               import org.springframework.batch.core.Job;
@@ -116,7 +119,10 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     void replaceJobBuilderFactory() {
         // language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
+          spec -> spec.typeValidationOptions(TypeValidation.builder()
+            .methodDeclarations(false)
+            .identifiers(false)
+            .build()),
           java(
             """
               import org.springframework.batch.core.Job;
@@ -159,7 +165,10 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     void replaceJobBuilderFactoryInsideConstructor() {
         // language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
+          spec -> spec.typeValidationOptions(TypeValidation.builder()
+            .methodDeclarations(false)
+            .identifiers(false)
+            .build()),
           java(
             """
               import org.springframework.batch.core.Job;
