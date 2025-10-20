@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.batch;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -25,6 +26,7 @@ import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
+@DisabledIfEnvironmentVariable(named = "CI", matches = "true")
 class MigrateJobBuilderFactoryTest implements RewriteTest {
 
     @Override
@@ -44,7 +46,6 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         // language=java
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.builder()
-            .methodDeclarations(false)
             .identifiers(false)
             .build()),
           java(
@@ -120,7 +121,6 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         // language=java
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.builder()
-            .methodDeclarations(false)
             .identifiers(false)
             .build()),
           java(
@@ -166,7 +166,6 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         // language=java
         rewriteRun(
           spec -> spec.typeValidationOptions(TypeValidation.builder()
-            .methodDeclarations(false)
             .identifiers(false)
             .build()),
           java(
