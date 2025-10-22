@@ -19,13 +19,15 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.JavaCoordinates;
+import org.openrewrite.java.tree.TypeUtils;
 
 public class TransformApiInfo extends Recipe {
 
@@ -64,7 +66,8 @@ public class TransformApiInfo extends Recipe {
             if (termsOfServiceUrl.matches(m)) {
                 m = JavaTemplate.builder("termsOfService(#{any(String)})")
                         .build()
-                        .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
+                        .apply(getCursor(), m.getCoordinates().replaceMethod(), m.getArguments().get(0));
+                return m;
             }
 
             // Transform contact(new Contact(...)) to contact(new Contact().name(...).url(...).email(...))
@@ -75,10 +78,10 @@ public class TransformApiInfo extends Recipe {
                     if (contactConstructor.matches(newContact) && newContact.getArguments().size() == 3) {
                         maybeAddImport("io.swagger.v3.oas.models.info.Contact");
                         maybeRemoveImport("springfox.documentation.service.Contact");
-                        m = JavaTemplate.builder("contact(new Contact().name(#{any(String)}).url(#{any(String)}).email(#{any(String)}))")
+                        return JavaTemplate.builder("contact(new Contact().name(#{any(String)}).url(#{any(String)}).email(#{any(String)}))")
                                 .imports("io.swagger.v3.oas.models.info.Contact")
                                 .build()
-                                .apply(getCursor(), m.getCoordinates().replace(),
+                                .apply(getCursor(), m.getCoordinates().replaceMethod(),
                                         newContact.getArguments().get(0),
                                         newContact.getArguments().get(1),
                                         newContact.getArguments().get(2));
@@ -86,36 +89,37 @@ public class TransformApiInfo extends Recipe {
                 }
             }
 
-            // Handle license and licenseUrl together
-            // This is more complex - we need to look at the chain and combine license() and licenseUrl()
-            if (license.matches(m)) {
-                // Check if the next method call in the chain is licenseUrl
-                J.MethodInvocation parent = getCursor().getParentTreeCursor().getValue();
-                if (parent instanceof J.MethodInvocation && licenseUrl.matches(parent)) {
-                    // This will be handled by the licenseUrl case below
-                    return m;
-                }
-            }
+            if (license.matches(m) || licenseUrl.matches(m)) {
+                maybeAddImport("io.swagger.v3.oas.models.info.License");
 
-            if (licenseUrl.matches(m)) {
-                // Look for the previous license() call in the chain
-                if (m.getSelect() instanceof J.MethodInvocation) {
-                    J.MethodInvocation select = (J.MethodInvocation) m.getSelect();
-                    if (license.matches(select)) {
-                        maybeAddImport("io.swagger.v3.oas.models.info.License");
-                        m = JavaTemplate.builder("license(new License().name(#{any(String)}).url(#{any(String)}))")
-                                .imports("io.swagger.v3.oas.models.info.License")
-                                .build()
-                                .apply(getCursor(), m.getCoordinates().replace(),
-                                        select.getArguments().get(0),
-                                        m.getArguments().get(0));
+                JavaCoordinates coords = m.getCoordinates().replaceMethod(); // effectively final
+                J.MethodInvocation newLicense = getCursor().computeMessageIfAbsent("license", k -> {
+                    return JavaTemplate.builder("license(new License())")
+                            .imports("io.swagger.v3.oas.models.info.License")
+                            .build()
+                            .apply(getCursor(), coords);
                     }
+                );
+
+                Expression arg = m.getArguments().get(0);
+                if (license.matches(m)) {
+                    // add .name(...) to the chain
+                    m = JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.name(#{any(String)})")
+                            .imports("io.swagger.v3.oas.models.info.License")
+                            .build()
+                            .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense, arg);
+                } else {
+                    // add .url(...) to the chain
+                    m = JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.url(#{any(String)})")
+                            .imports("io.swagger.v3.oas.models.info.License")
+                            .build()
+                            .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense, arg);
                 }
+                return m;
             }
 
-            // Remove .build() call and transform new ApiInfoBuilder() to new Info()
+            // Remove .build() call
             if (build.matches(m) && m.getSelect() instanceof J.MethodInvocation) {
-                // Return just the select (the chain without .build())
                 return (J.MethodInvocation) m.getSelect();
             }
 
@@ -136,6 +140,19 @@ public class TransformApiInfo extends Recipe {
             }
 
             return n;
+        }
+
+        @Override
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
+
+            // Transform return type from ApiInfo to Info
+            if (TypeUtils.isOfClassType(md.getType(), "springfox.documentation.service.ApiInfo")) {
+                ChangeType changeType = new ChangeType("springfox.documentation.service.ApiInfo", "io.swagger.v3.oas.models.info.Info", true);
+                md = (J.MethodDeclaration) changeType.getVisitor().visitNonNull(md, ctx);
+            }
+
+            return md;
         }
     }
 }

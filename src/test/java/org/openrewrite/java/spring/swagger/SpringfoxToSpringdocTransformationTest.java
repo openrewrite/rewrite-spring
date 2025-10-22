@@ -45,39 +45,6 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
         rewriteRun(
           spec -> spec.recipe(new TransformApiInfo()),
           mavenProject("project",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>com.example</groupId>
-                    <artifactId>swagger-app</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>io.springfox</groupId>
-                            <artifactId>springfox-core</artifactId>
-                            <version>3.0.0</version>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """,
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>com.example</groupId>
-                    <artifactId>swagger-app</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>io.swagger.core.v3</groupId>
-                            <artifactId>swagger-core</artifactId>
-                            <version>2.2.39</version>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """
-            ),
             //language=java
             java(
               """
