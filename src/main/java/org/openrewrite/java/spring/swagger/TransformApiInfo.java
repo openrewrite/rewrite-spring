@@ -107,13 +107,13 @@ public class TransformApiInfo extends Recipe {
                     m = JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.name(#{any(String)})")
                             .imports("io.swagger.v3.oas.models.info.License")
                             .build()
-                            .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense, arg);
+                            .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense.getArguments().get(0), arg);
                 } else {
                     // add .url(...) to the chain
                     m = JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.url(#{any(String)})")
                             .imports("io.swagger.v3.oas.models.info.License")
                             .build()
-                            .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense, arg);
+                            .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense.getArguments().get(0), arg);
                 }
                 return m;
             }
