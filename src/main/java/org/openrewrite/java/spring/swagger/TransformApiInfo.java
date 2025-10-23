@@ -24,8 +24,8 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.TypeUtils;
 
@@ -64,10 +64,9 @@ public class TransformApiInfo extends Recipe {
 
             // Transform termsOfServiceUrl to termsOfService
             if (termsOfServiceUrl.matches(m)) {
-                m = JavaTemplate.builder("termsOfService(#{any(String)})")
+                return JavaTemplate.builder("termsOfService(#{any(String)})")
                         .build()
                         .apply(getCursor(), m.getCoordinates().replaceMethod(), m.getArguments().get(0));
-                return m;
             }
 
             // Transform contact(new Contact(...)) to contact(new Contact().name(...).url(...).email(...))
@@ -93,29 +92,26 @@ public class TransformApiInfo extends Recipe {
                 maybeAddImport("io.swagger.v3.oas.models.info.License");
 
                 JavaCoordinates coords = m.getCoordinates().replaceMethod(); // effectively final
-                J.MethodInvocation newLicense = getCursor().computeMessageIfAbsent("license", k -> {
-                    return JavaTemplate.builder("license(new License())")
-                            .imports("io.swagger.v3.oas.models.info.License")
-                            .build()
-                            .apply(getCursor(), coords);
-                    }
+                J.MethodInvocation newLicense = getCursor().computeMessageIfAbsent("license", k ->
+                        JavaTemplate.builder("license(new License())")
+                                .imports("io.swagger.v3.oas.models.info.License")
+                                .build()
+                                .apply(getCursor(), coords)
                 );
 
                 Expression arg = m.getArguments().get(0);
                 if (license.matches(m)) {
                     // add .name(...) to the chain
-                    m = JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.name(#{any(String)})")
-                            .imports("io.swagger.v3.oas.models.info.License")
-                            .build()
-                            .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense.getArguments().get(0), arg);
-                } else {
-                    // add .url(...) to the chain
-                    m = JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.url(#{any(String)})")
+                    return JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.name(#{any(String)})")
                             .imports("io.swagger.v3.oas.models.info.License")
                             .build()
                             .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense.getArguments().get(0), arg);
                 }
-                return m;
+                // add .url(...) to the chain
+                return JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.url(#{any(String)})")
+                        .imports("io.swagger.v3.oas.models.info.License")
+                        .build()
+                        .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense.getArguments().get(0), arg);
             }
 
             // Remove .build() call
@@ -133,7 +129,7 @@ public class TransformApiInfo extends Recipe {
             if (apiInfoBuilderConstructor.matches(n)) {
                 maybeAddImport("io.swagger.v3.oas.models.info.Info");
                 maybeRemoveImport("springfox.documentation.builders.ApiInfoBuilder");
-                n = JavaTemplate.builder("new Info()")
+                return JavaTemplate.builder("new Info()")
                         .imports("io.swagger.v3.oas.models.info.Info")
                         .build()
                         .apply(getCursor(), n.getCoordinates().replace());
@@ -149,7 +145,7 @@ public class TransformApiInfo extends Recipe {
             // Transform return type from ApiInfo to Info
             if (TypeUtils.isOfClassType(md.getType(), "springfox.documentation.service.ApiInfo")) {
                 ChangeType changeType = new ChangeType("springfox.documentation.service.ApiInfo", "io.swagger.v3.oas.models.info.Info", true);
-                md = (J.MethodDeclaration) changeType.getVisitor().visitNonNull(md, ctx);
+                return (J.MethodDeclaration) changeType.getVisitor().visitNonNull(md, ctx);
             }
 
             return md;

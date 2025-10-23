@@ -24,7 +24,6 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.mavenProject;
-import static org.openrewrite.maven.Assertions.pomXml;
 
 class SpringfoxToSpringdocTransformationTest implements RewriteTest {
 
