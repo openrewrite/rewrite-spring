@@ -19,15 +19,15 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.ChangeType;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaCoordinates;
 import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class TransformApiInfo extends Recipe {
 
@@ -58,67 +58,63 @@ public class TransformApiInfo extends Recipe {
         private final MethodMatcher contactConstructor = new MethodMatcher("springfox.documentation.service.Contact <constructor>(String, String, String)");
         private final MethodMatcher build = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder build()");
 
+        // accumulator for AppInfoBuilder methods
+        private static class Accumulator {
+            private final Map<String, Function<J.MethodInvocation, String>> transformations = new HashMap<>();
+            private final Map<String, J.MethodInvocation> methodInvocations = new HashMap<>();
+            private final BiFunction<J.MethodInvocation, J.MethodInvocation, String> licenseTransformer =
+                    (name, url) -> {
+                        if (name == null && url == null) {
+                            return "";
+                        }
+                        StringBuilder sb = new StringBuilder(".license(new License()");
+                        if (name != null) {
+                            sb.append(".name(\"").append(name.getArguments().get(0)).append("\")");
+                        }
+                        if (url != null) {
+                            sb.append(".url(\"").append(url.getArguments().get(0)).append("\")");
+                        }
+                        sb.append(')');
+                        return sb.toString();
+                    };
+
+            private Accumulator() {
+                transformations.put("termsOfServiceUrl", mi -> String.format("termsOfService(\"%s\")", mi.getArguments().get(0)));
+                transformations.put("license", mi -> String.format("name(\"%s\")", mi.getArguments().get(0)));
+                transformations.put("licenseUrl", mi -> String.format("url(\"%s\")", mi.getArguments().get(0)));
+                transformations.put("contact", mi -> {
+                    J.NewClass c = (J.NewClass) mi.getArguments().get(0);
+                    return String.format("contact(new Contact().name(\"%s\").url(\"%s\").email(\"%s\"))", c.getArguments().get(0), c.getArguments().get(1), c.getArguments().get(2));
+                });
+            }
+
+            public void add(J.MethodInvocation mi) {
+                if (!"build".equals(mi.getSimpleName())) {
+                    methodInvocations.put(mi.getSimpleName(), mi);
+                }
+            }
+
+            public String toTemplate() {
+
+                // special case for license and licenseUrl
+                J.MethodInvocation licenseMi = methodInvocations.remove("license");
+                J.MethodInvocation licenseUrlMi = methodInvocations.remove("licenseUrl");
+                String licenseFormat = licenseTransformer.apply(licenseMi, licenseUrlMi);
+
+                String template = methodInvocations.entrySet().stream()
+                        .map(e -> transformations.getOrDefault(e.getKey(),
+                                m -> String.format("%s(\"%s\")",m.getSimpleName(),m.getArguments().get(0))).apply(e.getValue()))
+                        .collect(java.util.stream.Collectors.joining("."));
+
+                return licenseFormat.isEmpty() ? template : template.concat(licenseFormat);
+            }
+        }
+        Accumulator accumulator = new Accumulator();
+
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-
-            // Transform termsOfServiceUrl to termsOfService
-            if (termsOfServiceUrl.matches(m)) {
-                return JavaTemplate.builder("termsOfService(#{any(String)})")
-                        .build()
-                        .apply(getCursor(), m.getCoordinates().replaceMethod(), m.getArguments().get(0));
-            }
-
-            // Transform contact(new Contact(...)) to contact(new Contact().name(...).url(...).email(...))
-            if (contact.matches(m) && !m.getArguments().isEmpty()) {
-                Expression arg = m.getArguments().get(0);
-                if (arg instanceof J.NewClass) {
-                    J.NewClass newContact = (J.NewClass) arg;
-                    if (contactConstructor.matches(newContact) && newContact.getArguments().size() == 3) {
-                        maybeAddImport("io.swagger.v3.oas.models.info.Contact");
-                        maybeRemoveImport("springfox.documentation.service.Contact");
-                        return JavaTemplate.builder("contact(new Contact().name(#{any(String)}).url(#{any(String)}).email(#{any(String)}))")
-                                .imports("io.swagger.v3.oas.models.info.Contact")
-                                .build()
-                                .apply(getCursor(), m.getCoordinates().replaceMethod(),
-                                        newContact.getArguments().get(0),
-                                        newContact.getArguments().get(1),
-                                        newContact.getArguments().get(2));
-                    }
-                }
-            }
-
-            if (license.matches(m) || licenseUrl.matches(m)) {
-                maybeAddImport("io.swagger.v3.oas.models.info.License");
-
-                JavaCoordinates coords = m.getCoordinates().replaceMethod(); // effectively final
-                J.MethodInvocation newLicense = getCursor().computeMessageIfAbsent("license", k ->
-                        JavaTemplate.builder("license(new License())")
-                                .imports("io.swagger.v3.oas.models.info.License")
-                                .build()
-                                .apply(getCursor(), coords)
-                );
-
-                Expression arg = m.getArguments().get(0);
-                if (license.matches(m)) {
-                    // add .name(...) to the chain
-                    return JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.name(#{any(String)})")
-                            .imports("io.swagger.v3.oas.models.info.License")
-                            .build()
-                            .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense.getArguments().get(0), arg);
-                }
-                // add .url(...) to the chain
-                return JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.License)}.url(#{any(String)})")
-                        .imports("io.swagger.v3.oas.models.info.License")
-                        .build()
-                        .apply(getCursor(), newLicense.getCoordinates().replace(), newLicense.getArguments().get(0), arg);
-            }
-
-            // Remove .build() call
-            if (build.matches(m) && m.getSelect() instanceof J.MethodInvocation) {
-                return (J.MethodInvocation) m.getSelect();
-            }
-
+            accumulator.add(m);
             return m;
         }
 
@@ -128,9 +124,13 @@ public class TransformApiInfo extends Recipe {
 
             if (apiInfoBuilderConstructor.matches(n)) {
                 maybeAddImport("io.swagger.v3.oas.models.info.Info");
+                maybeAddImport("io.swagger.v3.oas.models.info.License");
+                maybeAddImport("io.swagger.v3.oas.models.info.Contact");
                 maybeRemoveImport("springfox.documentation.builders.ApiInfoBuilder");
                 return JavaTemplate.builder("new Info()")
                         .imports("io.swagger.v3.oas.models.info.Info")
+                        .imports("io.swagger.v3.oas.models.info.License")
+                        .imports("io.swagger.v3.oas.models.info.Contact")
                         .build()
                         .apply(getCursor(), n.getCoordinates().replace());
             }
@@ -144,6 +144,7 @@ public class TransformApiInfo extends Recipe {
 
             // Transform return type from ApiInfo to Info
             if (TypeUtils.isOfClassType(md.getType(), "springfox.documentation.service.ApiInfo")) {
+                // doAfterVisit here...
                 ChangeType changeType = new ChangeType("springfox.documentation.service.ApiInfo", "io.swagger.v3.oas.models.info.Info", true);
                 return (J.MethodDeclaration) changeType.getVisitor().visitNonNull(md, ctx);
             }

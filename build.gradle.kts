@@ -92,11 +92,11 @@ recipeDependencies {
     parserClasspath("io.micrometer:micrometer-commons:1.11.+")
     parserClasspath("io.micrometer:micrometer-core:1.11.+")
     parserClasspath("io.micrometer:micrometer-observation:1.11.+")
+    parserClasspath("io.springfox:springfox-swagger2:3.+")
 
     testParserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     testParserClasspath("io.projectreactor:reactor-core:3.6.3")
     testParserClasspath("io.springfox:springfox-core:3.+")
-    testParserClasspath("io.springfox:springfox-swagger2:3.+")
     testParserClasspath("io.springfox:springfox-spring-web:3.+")
     testParserClasspath("io.springfox:springfox-spi:3.+")
     testParserClasspath("io.springfox:springfox-bean-validators:3.+")
