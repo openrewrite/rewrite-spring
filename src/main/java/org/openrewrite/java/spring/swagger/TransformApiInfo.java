@@ -51,12 +51,6 @@ public class TransformApiInfo extends Recipe {
 
     private static class TransformApiInfoVisitor extends JavaIsoVisitor<ExecutionContext> {
         private final MethodMatcher apiInfoBuilderConstructor = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder <constructor>()");
-        private final MethodMatcher termsOfServiceUrl = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder termsOfServiceUrl(String)");
-        private final MethodMatcher licenseUrl = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder licenseUrl(String)");
-        private final MethodMatcher license = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder license(String)");
-        private final MethodMatcher contact = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder contact(springfox.documentation.service.Contact)");
-        private final MethodMatcher contactConstructor = new MethodMatcher("springfox.documentation.service.Contact <constructor>(String, String, String)");
-        private final MethodMatcher build = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder build()");
 
         // accumulator for AppInfoBuilder methods
         private static class Accumulator {
