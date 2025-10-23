@@ -16,7 +16,7 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_4_0
+name: org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0
 displayName: Migrate to Spring Boot 4.0
 description: >-
   Migrate applications to the latest Spring Boot 4.0 release. This recipe will modify an application's build files,
