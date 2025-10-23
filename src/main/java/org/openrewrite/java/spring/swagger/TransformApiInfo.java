@@ -19,7 +19,10 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.*;
+import org.openrewrite.java.ChangeType;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
@@ -28,6 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static java.util.stream.Collectors.joining;
 
 public class TransformApiInfo extends Recipe {
 
@@ -98,7 +103,7 @@ public class TransformApiInfo extends Recipe {
                 String template = methodInvocations.entrySet().stream()
                         .map(e -> transformations.getOrDefault(e.getKey(),
                                 m -> String.format("%s(\"%s\")",m.getSimpleName(),m.getArguments().get(0))).apply(e.getValue()))
-                        .collect(java.util.stream.Collectors.joining("."));
+                        .collect(joining("."));
 
                 return licenseFormat.isEmpty() ? template : template.concat(licenseFormat);
             }
