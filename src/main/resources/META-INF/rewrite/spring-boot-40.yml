@@ -27,3 +27,5 @@ tags:
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
   - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
+  - org.openrewrite.java.testing.junit6.JUnit5to6Migration
+  - org.openrewrite.java.jackson.UpgradeJackson_2_3
