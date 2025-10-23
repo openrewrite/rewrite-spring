@@ -435,6 +435,56 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.SeparateApplicationPropertiesByProfile
+examples:
+- description: '`SeparateApplicationPropertiesByProfileTest#separateProfileWithAppend`'
+  sources:
+  - before: parent
+    language: mavenProject
+  - after: |
+      app.config.currentEnvironment=LOCAL
+    path: application-local.properties
+    language: properties
+  - before: |
+      line1=line1
+    after: |
+      line1=line1
+      oauth2.clientId=9999999999999999999999
+      service.domainUrl= https://this.is.my.dev.url.com
+      app.config.currentEnvironment=DEV
+    path: application-dev.properties
+    language: properties
+  - before: |
+      spring.application.name=Openrewrite-PR-Service
+      #PR-Service
+      base-url.PR-services=http://my.url.com
+      exchange-token=1234567890
+      exchange-tokens=${base-url.PR-services}/exchange-token
+      !---
+      spring.config.activate.on-profile=dev
+      oauth2.clientId=9999999999999999999999
+      service.domainUrl= https://this.is.my.dev.url.com
+      app.config.currentEnvironment=DEV
+      #---
+      spring.config.activate.on-profile=local
+      app.config.currentEnvironment=LOCAL
+
+
+      #---
+      #### XX Configuration ####
+      spring.config.activate.on-profile=prod
+      oauth2.clientId=77777777777777
+      service.domainUrl=https://this.is.my.prod.url.com
+    after: |
+      spring.application.name=Openrewrite-PR-Service
+      #PR-Service
+      base-url.PR-services=http://my.url.com
+      exchange-token=1234567890
+      exchange-tokens=${base-url.PR-services}/exchange-token
+    path: application.properties
+    language: properties
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.SeparateApplicationYamlByProfile
 examples:
 - description: '`SeparateApplicationYamlByProfileTest#separateProfile`'
