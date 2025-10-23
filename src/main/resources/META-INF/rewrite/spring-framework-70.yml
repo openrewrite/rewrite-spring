@@ -14,12 +14,16 @@
 # limitations under the License.
 #
 
-########################################################################################################################
-# Spring Data JPA 3.4
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.data.UpgradeSpringData_3_4
-displayName: Migrate to Spring Data JPA 3.4
-description: Migrate applications to the latest Spring Data JPA 3.4 release.
+name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
+displayName: Migrate to Spring Framework 7.0
+description: Migrate applications to the latest Spring Framework 7.0 release.
 recipeList:
-  - org.openrewrite.java.spring.data.MigrateQueryToNativeQuery
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_2
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework
+      artifactId: "*"
+      newVersion: 7.0.x
+  - org.openrewrite.java.testing.junit6.JUnit5to6Migration
+  - org.openrewrite.java.jackson.UpgradeJackson_2_3

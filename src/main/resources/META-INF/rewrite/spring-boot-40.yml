@@ -14,12 +14,17 @@
 # limitations under the License.
 #
 
-########################################################################################################################
-# Spring Data JPA 3.4
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.data.UpgradeSpringData_3_4
-displayName: Migrate to Spring Data JPA 3.4
-description: Migrate applications to the latest Spring Data JPA 3.4 release.
+name: org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0
+displayName: Migrate to Spring Boot 4.0
+description: >-
+  Migrate applications to the latest Spring Boot 4.0 release. This recipe will modify an application's build files,
+  make changes to deprecated/preferred APIs.
+tags:
+  - spring
+  - boot
 recipeList:
-  - org.openrewrite.java.spring.data.MigrateQueryToNativeQuery
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
+  - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
