@@ -29,7 +29,7 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec
+        spec.recipe(new TransformApiInfo())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
               "springfox-core-3.+",
@@ -42,7 +42,6 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
     @Test
     void transformApiInfo() {
         rewriteRun(
-          spec -> spec.recipe(new TransformApiInfo()),
           mavenProject("project",
             //language=java
             java(
