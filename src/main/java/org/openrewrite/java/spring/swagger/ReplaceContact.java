@@ -31,7 +31,7 @@ public class ReplaceContact extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Replace SpringDoc `Contact` with Swagger `Contact`";
+        return "Replace SpringFox's `Contact` with Swagger's `Contact`";
     }
 
     @Override

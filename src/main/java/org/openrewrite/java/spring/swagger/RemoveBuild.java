@@ -29,12 +29,12 @@ public class RemoveBuild extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Replace SpringDoc `Contact` with Swagger `Contact`";
+        return "Remove `ApiInfoBuilder.build()`";
     }
 
     @Override
     public String getDescription() {
-        return "Replace three argument constructor with immutable builder.";
+        return "Remove SpringFox's `ApiInfoBuilder.build()` ahead of migration to Swagger's `Info`.";
     }
 
     @Override

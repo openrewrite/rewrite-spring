@@ -34,12 +34,12 @@ public class ReplaceLicenseUrl extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Transform SpringFox `ApiInfo` to Swagger v3 `Info`";
+        return "Replace SpringFox's `license` and `licenseUrl`";
     }
 
     @Override
     public String getDescription() {
-        return "Transforms SpringFox `ApiInfoBuilder` to Swagger v3 `Info` fluent API pattern.";
+        return "Replace SpringFox's license methods with Swaggers immutable `new License().name(String).url(String)`.";
     }
 
     @Override
