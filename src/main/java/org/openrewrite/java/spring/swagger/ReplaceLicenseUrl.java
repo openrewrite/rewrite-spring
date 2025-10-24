@@ -19,10 +19,11 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.*;
-import org.openrewrite.marker.Markers;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReplaceLicenseUrl extends Recipe {
     private static final MethodMatcher LICENSE_MATCHER = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder license(String)");
@@ -67,22 +68,13 @@ public class ReplaceLicenseUrl extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
 
-                Expression license;
-                Expression licenseUrl;
                 if (LICENSE_MATCHER.matches(mi)) {
-                    license = mi.getArguments().get(0);
-                    licenseUrl = getCursor().pollNearestMessage("LICENSE_URL");
-                    if (licenseUrl == null) {
-                        return replaceLicense(mi, ctx, nameOnyTemplate(), mi.getSelect(), license);
-                    }
-                    // Combine license and url
-                    return replaceLicense(mi, ctx, fullTemplate(), mi.getSelect(), license, licenseUrl);
+                    return replaceLicense(mi, ctx, mi.getArguments().get(0), getCursor().pollNearestMessage("LICENSE_URL"));
                 }
                 if (LICENSEURL_MATCHER.matches(mi)) {
-                    license = getCursor().pollNearestMessage("LICENSE");
-                    licenseUrl = mi.getArguments().get(0);
+                    Expression license = getCursor().pollNearestMessage("LICENSE");
                     if (license == null) {
-                        return replaceLicense(mi, ctx, urlOnlyTemplate(), mi.getSelect(), licenseUrl);
+                        return replaceLicense(mi, ctx, null, mi.getArguments().get(0));
                     }
                     // Remove the method itself already
                     return mi.getSelect().withPrefix(mi.getPrefix());
@@ -90,37 +82,30 @@ public class ReplaceLicenseUrl extends Recipe {
                 return mi;
             }
 
-            private String fullTemplate() {
-                return makeTemplate(true, true);
-            }
-
-            private String nameOnyTemplate() {
-                return makeTemplate(true, false);
-            }
-
-            private String urlOnlyTemplate() {
-                return makeTemplate(false, true);
-            }
-
-            private String makeTemplate(boolean withName, boolean withUrl) {
+            private J.MethodInvocation replaceLicense(
+                    J.MethodInvocation mi,
+                    ExecutionContext ctx,
+                    @Nullable Expression license,
+                    @Nullable Expression licenseUrl) {
                 StringBuilder sb = new StringBuilder("#{any(io.swagger.v3.oas.models.info.Info)}\n.license(new License()");
-                if (withName) {
+                List<Object> args = new ArrayList<>();
+                args.add(mi.getSelect());
+                if (license != null) {
                     sb.append(".name(#{any(String)})");
+                    args.add(license);
                 }
-                if (withUrl) {
+                if (licenseUrl != null) {
                     sb.append(".url(#{any(String)})");
+                    args.add(licenseUrl);
                 }
                 sb.append(')');
-                return sb.toString();
-            }
 
-            private J.MethodInvocation replaceLicense(J.MethodInvocation mi, ExecutionContext ctx, String template, Object... args) {
                 maybeAddImport("io.swagger.v3.oas.models.info.License");
-                return JavaTemplate.builder(template)
+                return JavaTemplate.builder(sb.toString())
                         .imports("io.swagger.v3.oas.models.info.License")
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
                         .build()
-                        .apply(getCursor(), mi.getCoordinates().replace(), args);
+                        .apply(getCursor(), mi.getCoordinates().replace(), args.toArray());
             }
         });
     }
