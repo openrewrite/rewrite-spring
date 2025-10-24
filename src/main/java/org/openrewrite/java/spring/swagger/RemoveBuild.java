@@ -43,7 +43,7 @@ public class RemoveBuild extends Recipe {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 if (BUILD_MATCHER.matches(method)) {
-                    return maybeAutoFormat(method, method.getSelect().withPrefix(method.getPrefix()), ctx);
+                    return autoFormat(method.getSelect().withPrefix(method.getPrefix()), ctx);
                 }
                 return super.visitMethodInvocation(method, ctx);
             }
