@@ -39,7 +39,7 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void transformApiInfo() {
+    void transformApiInfoBuilder() {
         rewriteRun(
           mavenProject("project",
             //language=java
@@ -84,4 +84,103 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void transformInterruptedApiInfoBuilder() {
+        rewriteRun(
+          mavenProject("project",
+            //language=java
+            java(
+              """
+                import springfox.documentation.service.ApiInfo;
+                import springfox.documentation.service.Contact;
+                import springfox.documentation.builders.ApiInfoBuilder;
+
+                class Test {
+                    ApiInfo apiInfo() {
+                      ApiInfoBuilder builder = new ApiInfoBuilder()
+                          .title("Springfox petstore API")
+                          .description("Lorem Ipsum")
+                          .termsOfServiceUrl("http://springfox.io")
+                          .contact(new Contact("springfox", "", ""))
+                          .license("Apache License Version 2.0");
+                      return builder
+                          .licenseUrl("https://github.com/springfox/springfox/blob/master/LICENSE")
+                          .version("2.0")
+                          .build();
+                    }
+                }
+                """,
+              """
+                import io.swagger.v3.oas.models.info.Contact;
+                import io.swagger.v3.oas.models.info.Info;
+                import io.swagger.v3.oas.models.info.License;
+
+                class Test {
+                    Info apiInfo() {
+                      Info builder = new Info()
+                          .title("Springfox petstore API")
+                          .description("Lorem Ipsum")
+                          .termsOfService("http://springfox.io")
+                          .contact(new Contact().name("springfox").url("").email(""));
+                      return builder
+                          .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
+                          .version("2.0");
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void transformApiInfoBuilderWithPartialLicense() {
+        rewriteRun(
+          mavenProject("project",
+            //language=java
+            java(
+              """
+                import springfox.documentation.service.ApiInfo;
+                import springfox.documentation.service.Contact;
+                import springfox.documentation.builders.ApiInfoBuilder;
+
+                class Test {
+                    ApiInfo apiInfo() {
+                      ApiInfoBuilder builder = new ApiInfoBuilder()
+                          .title("Springfox petstore API")
+                          .description("Lorem Ipsum")
+                          .termsOfServiceUrl("http://springfox.io")
+                          .contact(new Contact("springfox", "", ""))
+                          .license("Apache License Version 2.0");
+                      return builder
+                          .licenseUrl("https://github.com/springfox/springfox/blob/master/LICENSE")
+                          .version("2.0")
+                          .build();
+                    }
+                }
+                """,
+              """
+                import io.swagger.v3.oas.models.info.Contact;
+                import io.swagger.v3.oas.models.info.Info;
+                import io.swagger.v3.oas.models.info.License;
+
+                class Test {
+                    Info apiInfo() {
+                      Info builder = new Info()
+                          .title("Springfox petstore API")
+                          .description("Lorem Ipsum")
+                          .termsOfService("http://springfox.io")
+                          .contact(new Contact().name("springfox").url("").email(""));
+                      return builder
+                          .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
+                          .version("2.0");
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
 }
