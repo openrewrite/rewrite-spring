@@ -77,7 +77,8 @@ public class ReplaceLicenseUrl extends Recipe {
                     }
                     // Combine license and url
                     return replaceLicense(mi, ctx, fullTemplate(), mi.getSelect(), license, licenseUrl);
-                } else if (LICENSEURL_MATCHER.matches(mi)) {
+                }
+                if (LICENSEURL_MATCHER.matches(mi)) {
                     license = getCursor().pollNearestMessage("LICENSE");
                     licenseUrl = mi.getArguments().get(0);
                     if (license == null) {
@@ -113,13 +114,13 @@ public class ReplaceLicenseUrl extends Recipe {
                 return sb.toString();
             }
 
-            private J replaceLicense(J.MethodInvocation mi, ExecutionContext ctx, String template, Expression... args) {
+            private J.MethodInvocation replaceLicense(J.MethodInvocation mi, ExecutionContext ctx, String template, Object... args) {
                 maybeAddImport("io.swagger.v3.oas.models.info.License");
-                return ((J.MethodInvocation) JavaTemplate.builder(template)
+                return JavaTemplate.builder(template)
                         .imports("io.swagger.v3.oas.models.info.License")
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
                         .build()
-                        .apply(getCursor(), mi.getCoordinates().replace(), args));
+                        .apply(getCursor(), mi.getCoordinates().replace(), args);
             }
         });
     }
