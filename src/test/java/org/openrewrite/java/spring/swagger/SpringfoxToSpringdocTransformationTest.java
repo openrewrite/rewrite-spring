@@ -71,12 +71,12 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
                 class Test {
                     Info apiInfo() {
                       return new Info()
-                              .title("Springfox petstore API")
-                              .description("Lorem Ipsum")
-                              .termsOfService("http://springfox.io")
-                              .contact(new Contact().name("springfox").url("").email(""))
-                              .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
-                              .version("2.0");
+                          .title("Springfox petstore API")
+                          .description("Lorem Ipsum")
+                          .termsOfService("http://springfox.io")
+                          .contact(new Contact().name("springfox").url("").email(""))
+                          .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
+                          .version("2.0");
                     }
                 }
                 """
@@ -122,9 +122,9 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
                           .title("Springfox petstore API")
                           .description("Lorem Ipsum")
                           .termsOfService("http://springfox.io")
-                          .contact(new Contact().name("springfox").url("").email(""));
-                      return builder
+                          .contact(new Contact().name("springfox").url("").email(""))
                           .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
+                      return builder
                           .version("2.0");
                     }
                 }
@@ -135,7 +135,7 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
     }
 
     @Test
-    void transformApiInfoBuilderWithPartialLicense() {
+    void transformApiInfoBuilderWithLicenseNameOnly() {
         rewriteRun(
           mavenProject("project",
             //language=java
@@ -171,6 +171,95 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
                           .termsOfService("http://springfox.io")
                           .contact(new Contact().name("springfox").url("").email(""))
                           .license(new License().name("Apache License Version 2.0"))
+                          .version("2.0");
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void transformApiInfoBuilderWithLicenseUrlOnly() {
+        rewriteRun(
+          mavenProject("project",
+            //language=java
+            java(
+              """
+                import springfox.documentation.service.ApiInfo;
+                import springfox.documentation.service.Contact;
+                import springfox.documentation.builders.ApiInfoBuilder;
+
+                class Test {
+                    ApiInfo apiInfo() {
+                      ApiInfoBuilder builder = new ApiInfoBuilder()
+                          .title("Springfox petstore API")
+                          .description("Lorem Ipsum")
+                          .termsOfServiceUrl("http://springfox.io")
+                          .contact(new Contact("springfox", "", ""))
+                          .licenseUrl("https://github.com/springfox/springfox/blob/master/LICENSE")
+                          .version("2.0")
+                          .build();
+                    }
+                }
+                """,
+              """
+                import io.swagger.v3.oas.models.info.Contact;
+                import io.swagger.v3.oas.models.info.Info;
+                import io.swagger.v3.oas.models.info.License;
+
+                class Test {
+                    Info apiInfo() {
+                      Info builder = new Info()
+                          .title("Springfox petstore API")
+                          .description("Lorem Ipsum")
+                          .termsOfService("http://springfox.io")
+                          .contact(new Contact().name("springfox").url("").email(""))
+                          .license(new License().url("https://github.com/springfox/springfox/blob/master/LICENSE")
+                          .version("2.0");
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void transformApiInfoBuilderWithNoLicense() {
+        rewriteRun(
+          mavenProject("project",
+            //language=java
+            java(
+              """
+                import springfox.documentation.service.ApiInfo;
+                import springfox.documentation.service.Contact;
+                import springfox.documentation.builders.ApiInfoBuilder;
+
+                class Test {
+                    ApiInfo apiInfo() {
+                      ApiInfoBuilder builder = new ApiInfoBuilder()
+                          .title("Springfox petstore API")
+                          .description("Lorem Ipsum")
+                          .termsOfServiceUrl("http://springfox.io")
+                          .contact(new Contact("springfox", "", ""))
+                          .version("2.0")
+                          .build();
+                    }
+                }
+                """,
+              """
+                import io.swagger.v3.oas.models.info.Contact;
+                import io.swagger.v3.oas.models.info.Info;
+
+                class Test {
+                    Info apiInfo() {
+                      Info builder = new Info()
+                          .title("Springfox petstore API")
+                          .description("Lorem Ipsum")
+                          .termsOfService("http://springfox.io")
+                          .contact(new Contact().name("springfox").url("").email(""))
                           .version("2.0");
                     }
                 }

@@ -16,17 +16,13 @@
 package org.openrewrite.java.spring.swagger;
 
 import org.jspecify.annotations.Nullable;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.*;
+import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
+
+import java.util.UUID;
 
 public class ReplaceLicenseUrl extends Recipe {
     private static final MethodMatcher LICENSE_MATCHER = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder license(String)");
@@ -46,32 +42,84 @@ public class ReplaceLicenseUrl extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         TreeVisitor<?, ExecutionContext> preconditions = Preconditions.or(new UsesMethod<>(LICENSE_MATCHER), new UsesMethod<>(LICENSEURL_MATCHER));
         return Preconditions.check(preconditions, new JavaVisitor<ExecutionContext>() {
-            @Nullable Expression license;
-            @Nullable Expression licenseUrl;
+            @Override
+            public J visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                // Extract and store values or cursor
+                Cursor mdCursor = getCursor();
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                        if (LICENSE_MATCHER.matches(mi)) {
+                            mdCursor.putMessage("LICENSE", mi.getArguments().get(0));
+                        } else if (LICENSEURL_MATCHER.matches(mi)) {
+                            mdCursor.putMessage("LICENSE_URL", mi.getArguments().get(0));
+                        }
+                        return mi;
+                    }
+                }.visit(method, ctx, getCursor().getParentOrThrow());
+
+                // Now replace any downstream method invocations
+                return super.visitMethodDeclaration(method, ctx);
+            }
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+
+                Expression license;
+                Expression licenseUrl;
                 if (LICENSE_MATCHER.matches(mi)) {
                     license = mi.getArguments().get(0);
+                    licenseUrl = getCursor().pollNearestMessage("LICENSE_URL");
+                    if (licenseUrl == null) {
+                        return replaceLicense(mi, ctx, nameOnyTemplate(), mi.getSelect(), license);
+                    }
+                    // Combine license and url
+                    return replaceLicense(mi, ctx, fullTemplate(), mi.getSelect(), license, licenseUrl);
                 } else if (LICENSEURL_MATCHER.matches(mi)) {
+                    license = getCursor().pollNearestMessage("LICENSE");
                     licenseUrl = mi.getArguments().get(0);
-                } else {
-                    return mi;
+                    if (license == null) {
+                        return replaceLicense(mi, ctx, urlOnlyTemplate(), mi.getSelect(), licenseUrl);
+                    }
+                    // Remove the method itself already
+                    return mi.getSelect().withPrefix(mi.getPrefix());
                 }
+                return mi;
+            }
 
-                // Combine `license` & `licenseUrl`
-                if (license != null && licenseUrl != null) {
-                    maybeAddImport("io.swagger.v3.oas.models.info.License");
-                    return JavaTemplate.builder("#{any(io.swagger.v3.oas.models.info.Info)}\n.license(new License().name(#{any(String)}).url(#{any(String)}))")
-                            .imports("io.swagger.v3.oas.models.info.License")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
-                            .build()
-                            .apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect(), license, licenseUrl);
+            private String fullTemplate() {
+                return makeTemplate(true, true);
+            }
+
+            private String nameOnyTemplate() {
+                return makeTemplate(true, false);
+            }
+
+            private String urlOnlyTemplate() {
+                return makeTemplate(false, true);
+            }
+
+            private String makeTemplate(boolean withName, boolean withUrl) {
+                StringBuilder sb = new StringBuilder("#{any(io.swagger.v3.oas.models.info.Info)}\n.license(new License()");
+                if (withName) {
+                    sb.append(".name(#{any(String)})");
                 }
+                if (withUrl) {
+                    sb.append(".url(#{any(String)})");
+                }
+                sb.append(')');
+                return sb.toString();
+            }
 
-                // Remove the method itself already
-                return mi.getSelect().withPrefix(mi.getPrefix());
+            private J replaceLicense(J.MethodInvocation mi, ExecutionContext ctx, String template, Expression... args) {
+                maybeAddImport("io.swagger.v3.oas.models.info.License");
+                return ((J.MethodInvocation) JavaTemplate.builder(template)
+                        .imports("io.swagger.v3.oas.models.info.License")
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
+                        .build()
+                        .apply(getCursor(), mi.getCoordinates().replace(), args));
             }
         });
     }
