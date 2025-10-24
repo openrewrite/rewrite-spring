@@ -101,7 +101,6 @@ recipeDependencies {
     testParserClasspath("io.springfox:springfox-spring-web:3.+")
     testParserClasspath("io.springfox:springfox-spi:3.+")
     testParserClasspath("io.springfox:springfox-bean-validators:3.+")
-    testParserClasspath("io.swagger.core.v3:swagger-core:2.+")
     testParserClasspath("jakarta.persistence:jakarta.persistence-api:2.2.3")
     testParserClasspath("jakarta.validation:jakarta.validation-api:2.0.2")
     testParserClasspath("jakarta.validation:jakarta.validation-api:3.0.+")
