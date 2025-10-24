@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.swagger;
 
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -25,10 +24,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JRightPadded;
-import org.openrewrite.java.tree.Space;
 
 public class ReplaceContact extends Recipe {
     private static final MethodMatcher CONTACT_MATCHER = new MethodMatcher("springfox.documentation.service.Contact <constructor>(String, String, String)");

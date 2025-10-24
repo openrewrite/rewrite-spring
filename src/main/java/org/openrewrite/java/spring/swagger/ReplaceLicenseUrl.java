@@ -27,8 +27,6 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JRightPadded;
-import org.openrewrite.java.tree.Space;
 
 public class ReplaceLicenseUrl extends Recipe {
     private static final MethodMatcher LICENSE_MATCHER = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder license(String)");

@@ -102,12 +102,13 @@ public class TransformApiInfo extends Recipe {
 
                 String template = methodInvocations.entrySet().stream()
                         .map(e -> transformations.getOrDefault(e.getKey(),
-                                m -> String.format("%s(\"%s\")",m.getSimpleName(),m.getArguments().get(0))).apply(e.getValue()))
+                                m -> String.format("%s(\"%s\")", m.getSimpleName(), m.getArguments().get(0))).apply(e.getValue()))
                         .collect(joining("."));
 
                 return licenseFormat.isEmpty() ? template : template.concat(licenseFormat);
             }
         }
+
         Accumulator accumulator = new Accumulator();
 
         @Override
