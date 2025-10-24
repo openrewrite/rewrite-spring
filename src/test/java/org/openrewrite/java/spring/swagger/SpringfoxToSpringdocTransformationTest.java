@@ -29,12 +29,11 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new TransformApiInfo())
+        spec
+//          .recipe(new TransformApiInfo())
+          .recipeFromResources("org.openrewrite.java.springdoc.ApiInfoBuilderToInfo")
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(),
-              "springfox-core-3.+",
-              "swagger-core-2.+"
-            )
+            .classpathFromResources(new InMemoryExecutionContext(), "springfox-core-3.+")
           );
     }
 
@@ -72,12 +71,12 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
                 class Test {
                     Info apiInfo() {
                       return new Info()
-                          .title("Springfox petstore API")
-                          .description("Lorem Ipsum")
-                          .termsOfService("http://springfox.io")
-                          .contact(new Contact().name("springfox").url("").email(""))
-                          .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
-                          .version("2.0");
+                              .title("Springfox petstore API")
+                              .description("Lorem Ipsum")
+                              .termsOfService("http://springfox.io")
+                              .contact(new Contact().name("springfox").url("").email(""))
+                              .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
+                              .version("2.0");
                     }
                 }
                 """
