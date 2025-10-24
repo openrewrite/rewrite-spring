@@ -228,3 +228,25 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.GroupedOpenApi
       newFullyQualifiedTypeName: org.springdoc.core.models.GroupedOpenApi
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.ApiInfoBuilderToInfo
+displayName: Migrate `ApiInfoBuilder` to `Info`
+description: Migrate SpringDoc's `ApiInfoBuilder` to Swagger's `Info`.
+tags:
+  - springdoc
+  - openapi
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: springfox.documentation.builders.ApiInfoBuilder termsOfServiceUrl(String)
+      newMethodName: termsOfService
+  - org.openrewrite.java.spring.swagger.ReplaceContact
+  - org.openrewrite.java.spring.swagger.ReplaceLicenseUrl
+  - org.openrewrite.java.spring.swagger.RemoveBuild
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: springfox.documentation.service.ApiInfo
+      newFullyQualifiedTypeName: io.swagger.v3.oas.models.info.Info
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: springfox.documentation.builders.ApiInfoBuilder
+      newFullyQualifiedTypeName: io.swagger.v3.oas.models.info.Info
