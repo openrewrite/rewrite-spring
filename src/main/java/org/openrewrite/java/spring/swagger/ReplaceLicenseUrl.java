@@ -71,7 +71,7 @@ public class ReplaceLicenseUrl extends Recipe {
                 }
 
                 // Remove the method itself already
-                return mi.getSelect();
+                return mi.getSelect().withPrefix(mi.getPrefix());
             }
         });
     }

@@ -152,9 +152,7 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
                           .description("Lorem Ipsum")
                           .termsOfServiceUrl("http://springfox.io")
                           .contact(new Contact("springfox", "", ""))
-                          .license("Apache License Version 2.0");
-                      return builder
-                          .licenseUrl("https://github.com/springfox/springfox/blob/master/LICENSE")
+                          .license("Apache License Version 2.0")
                           .version("2.0")
                           .build();
                     }
@@ -171,9 +169,8 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
                           .title("Springfox petstore API")
                           .description("Lorem Ipsum")
                           .termsOfService("http://springfox.io")
-                          .contact(new Contact().name("springfox").url("").email(""));
-                      return builder
-                          .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
+                          .contact(new Contact().name("springfox").url("").email(""))
+                          .license(new License().name("Apache License Version 2.0"))
                           .version("2.0");
                     }
                 }
