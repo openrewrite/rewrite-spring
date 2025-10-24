@@ -37,7 +37,7 @@ recipeList:
       oldPropertyKey: management.metrics.mongo.connectionpool.enabled
       newPropertyKey: management.metrics.mongodb.connectionpool.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.observations.annotations.long-lask-timer.enabled
+      oldPropertyKey: management.observations.long-task-timer.enabled
       newPropertyKey: management.metrics.observations.ignored-meters
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging
@@ -121,8 +121,62 @@ recipeList:
       oldPropertyKey: spring.data.mongodb.uuid-representation
       newPropertyKey: spring.mongodb.representation.uuid
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.client.connect-timeout
+      newPropertyKey: spring.http.clients.connect-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.client.factory
+      newPropertyKey: spring.http.clients.imperative.factory
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.client.read-timeout
+      newPropertyKey: spring.http.clients.read-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.client.redirects
+      newPropertyKey: spring.http.clients.redirects
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.client.ssl.bundle
+      newPropertyKey: spring.http.clients.ssl.bundle
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.reactiveclient.connect-timeout
+      newPropertyKey: spring.http.clients.connect-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.reactiveclient.connector
+      newPropertyKey: spring.http.clients.reactive.connector
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.reactiveclient.read-timeout
+      newPropertyKey: spring.http.clients.read-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.reactiveclient.redirects
+      newPropertyKey: spring.http.clients.redirects
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.http.reactiveclient.ssl.bundle
+      newPropertyKey: spring.http.clients.ssl.bundle
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.jackson.read
+      newPropertyKey: spring.jackson.json.read
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.jackson.write
+      newPropertyKey: spring.jackson.json.write
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.retry.topic.backoff.random
       newPropertyKey: spring.kafka.retry.topic.backoff.jitter
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.session.redis.cleanup-cron
+      newPropertyKey: spring.session.data.redis.cleanup-cron
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.session.redis.configure-action
+      newPropertyKey: spring.session.data.redis.configure-action
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.session.redis.flush-mode
+      newPropertyKey: spring.session.data.redis.flush-mode
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.session.redis.namespace
+      newPropertyKey: spring.session.data.redis.namespace
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.session.redis.repository-type
+      newPropertyKey: spring.session.data.redis.repository-type
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.session.redis.save-mode
+      newPropertyKey: spring.session.data.redis.save-mode
 
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: management.wavefront.api-token
@@ -196,3 +250,61 @@ recipeList:
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: management.wavefront.uri
       comment: "This property is deprecated: Wavefront is end-of-life."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson.generator
+      comment: "This property is deprecated: Partially replaced by 'spring.jackson.json.read'."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson.parser
+      comment: "This property is deprecated: Partially replaced by 'spring.jackson.json.write'."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.constructor-detector
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.datatype.enum
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.datatype.json-node
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.date-format
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.default-leniency
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.default-property-inclusion
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.deserialization
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.generator
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.locale
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.mapper
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.parser
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.property-naming-strategy
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.serialization
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.time-zone
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.jackson2.visibility
+      comment: "This property is deprecated: Deprecated in favor of Jackson 3"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.neo4j.pool.metrics-enabled
+      comment: "This property is deprecated: Use 'management.metrics.enable' to restrict certain metrics."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.test.observability.auto-configure
+      comment: "This property is deprecated: Superseded by 'spring.test.metrics.export' and 'spring.test.tracing.export'."
+
