@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class SecurityContextToSecuritySchemeTest implements RewriteTest {
+class SecurityContextToSecuritySchemeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -37,7 +37,7 @@ public class SecurityContextToSecuritySchemeTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void testApiKeyToSecurityScheme() {
+    void apiKeyToSecurityScheme() {
         rewriteRun(
           //language=java
           java(
