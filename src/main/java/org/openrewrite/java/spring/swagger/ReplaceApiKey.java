@@ -25,7 +25,6 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaCoordinates;
 
 public class ReplaceApiKey extends Recipe {
     private static final MethodMatcher APIKEY_MATCHER = new MethodMatcher("springfox.documentation.service.ApiKey <constructor>(String, String, String)");
@@ -64,7 +63,8 @@ public class ReplaceApiKey extends Recipe {
 
                 if ("cookie".equalsIgnoreCase(passAs)) {
                     return "SecurityScheme.In.COOKIE";
-                } else if ("query".equalsIgnoreCase(passAs)) {
+                }
+                if ("query".equalsIgnoreCase(passAs)) {
                     return "SecurityScheme.In.QUERY";
                 }
                 return "SecurityScheme.In.HEADER";
