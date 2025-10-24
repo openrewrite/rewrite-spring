@@ -25,7 +25,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.mavenProject;
 
-class SpringfoxToSpringdocTransformationTest implements RewriteTest {
+class ApiInfoBuilderToInfoTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
