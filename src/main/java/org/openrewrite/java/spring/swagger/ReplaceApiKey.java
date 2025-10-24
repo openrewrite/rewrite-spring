@@ -24,6 +24,7 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaCoordinates;
 
 public class ReplaceApiKey extends Recipe {
     private static final MethodMatcher APIKEY_MATCHER = new MethodMatcher("springfox.documentation.service.ApiKey <constructor>(String, String, String)");
@@ -45,30 +46,29 @@ public class ReplaceApiKey extends Recipe {
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 if (APIKEY_MATCHER.matches(newClass)) {
-                    J.Literal passAs = passAsToSecuritySchemeIn((J.Literal) newClass.getArguments().get(2));
+                    String inValue = passAsToSecuritySchemeIn(newClass.getArguments().get(2));
                     maybeRemoveImport("springfox.documentation.service.ApiKey");
                     maybeAddImport("io.swagger.v3.oas.models.security.SecurityScheme");
-                    return JavaTemplate.builder("new SecurityScheme()\n.type(SecurityScheme.Type.APIKEY)\n.name(#{any(String)})\n.in(#{any(String)})")
+                    return JavaTemplate.builder("new SecurityScheme()\n.type(SecurityScheme.Type.APIKEY)\n.name(#{any(String)})\n.in(" + inValue + ")")
                             .imports("io.swagger.v3.oas.models.security.SecurityScheme")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
                             .build()
-                            .apply(getCursor(), newClass.getCoordinates().replace(), newClass.getArguments().get(1), passAs);
+                            .apply(getCursor(), newClass.getCoordinates().replace(), newClass.getArguments().get(1));
                 }
                 return super.visitNewClass(newClass, ctx);
             }
+
+            private String passAsToSecuritySchemeIn(Expression passAsExpr) {
+                String passAs = ((J.Literal) passAsExpr).getValueSource();
+
+                if ("cookie".equalsIgnoreCase(passAs)) {
+                    return "SecurityScheme.In.COOKIE";
+                } else if ("query".equalsIgnoreCase(passAs)) {
+                    return "SecurityScheme.In.QUERY";
+                }
+                return "SecurityScheme.In.HEADER";
+            }
         });
-    }
-
-    private static J.Literal passAsToSecuritySchemeIn(J.Literal passAsLiteral) {
-        String passAs = passAsLiteral.getValueSource();
-
-        if ("cookie".equalsIgnoreCase(passAs)) {
-            return passAsLiteral.withValueSource("SecurityScheme.In.COOKIE");
-        };
-        if ("query".equalsIgnoreCase(passAs)) {
-            return passAsLiteral.withValueSource("SecurityScheme.In.QUERY");
-        };
-        return passAsLiteral.withValueSource("SecurityScheme.In.HEADER");
     }
 
 }
