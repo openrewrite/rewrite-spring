@@ -250,3 +250,17 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: springfox.documentation.builders.ApiInfoBuilder
       newFullyQualifiedTypeName: io.swagger.v3.oas.models.info.Info
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.SecurityContextToSecurityScheme
+displayName: Migrate SpringDoc security model to Swagger security model
+description: Migrate SpringDoc's security model to Swagger's security model.
+tags:
+  - springdoc
+  - openapi
+recipeList:
+  - org.openrewrite.java.spring.swagger.ReplaceApiKey
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: springfox.documentation.service.ApiKey
+      newFullyQualifiedTypeName: io.swagger.v3.oas.models.security.SecurityScheme
