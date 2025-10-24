@@ -45,10 +45,10 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
             //language=java
             java(
               """
-                package com.example;
                 import springfox.documentation.service.ApiInfo;
                 import springfox.documentation.service.Contact;
                 import springfox.documentation.builders.ApiInfoBuilder;
+
                 class Test {
                     ApiInfo apiInfo() {
                       return new ApiInfoBuilder()
@@ -64,10 +64,10 @@ class SpringfoxToSpringdocTransformationTest implements RewriteTest {
                 }
                 """,
               """
-                package com.example;
                 import io.swagger.v3.oas.models.info.Contact;
                 import io.swagger.v3.oas.models.info.Info;
                 import io.swagger.v3.oas.models.info.License;
+
                 class Test {
                     Info apiInfo() {
                       return new Info()
