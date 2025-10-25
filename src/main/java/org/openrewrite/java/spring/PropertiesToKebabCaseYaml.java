@@ -22,7 +22,7 @@ import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
 @EqualsAndHashCode(callSuper = false)
-class PropertiesToKebabCaseYaml extends Recipe {
+public class PropertiesToKebabCaseYaml extends Recipe {
     @Override
     public String getDisplayName() {
         return "Normalize Spring `application*.{yml,yaml}` properties to kebab-case";

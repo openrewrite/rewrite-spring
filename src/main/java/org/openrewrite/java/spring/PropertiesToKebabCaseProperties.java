@@ -22,7 +22,7 @@ import org.openrewrite.properties.PropertiesIsoVisitor;
 import org.openrewrite.properties.tree.Properties;
 
 @EqualsAndHashCode(callSuper = false)
-class PropertiesToKebabCaseProperties extends Recipe {
+public class PropertiesToKebabCaseProperties extends Recipe {
     @Override
     public String getDisplayName() {
         return "Normalize Spring `application*.properties` properties to kebab-case";

@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.intellij.lang.annotations.Language;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Option;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -29,7 +30,10 @@ import org.openrewrite.properties.tree.Properties;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
-class MigrateDatabaseCredentialsForToolProperties extends Recipe {
+public class MigrateDatabaseCredentialsForToolProperties extends Recipe {
+    @Option(displayName = "Tool",
+            description = "The database migration tool to configure credentials for.",
+            valid = {"flyway", "liquibase"})
     @Language("markdown")
     String tool;
 

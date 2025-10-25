@@ -18,10 +18,7 @@ package org.openrewrite.java.spring.boot2;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.intellij.lang.annotations.Language;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.yaml.CoalesceProperties;
 import org.openrewrite.yaml.MergeYaml;
 import org.openrewrite.yaml.YamlVisitor;
@@ -30,7 +27,11 @@ import org.openrewrite.yaml.tree.Yaml;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
-class MigrateDatabaseCredentialsForToolYaml extends Recipe {
+public class MigrateDatabaseCredentialsForToolYaml extends Recipe {
+
+    @Option(displayName = "Tool",
+            description = "The database migration tool to configure credentials for.",
+            valid = {"flyway", "liquibase"})
     @Language("markdown")
     String tool;
 
