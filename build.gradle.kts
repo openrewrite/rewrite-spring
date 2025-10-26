@@ -228,5 +228,6 @@ tasks {
         description = "Generate Spring Boot property migration recipes."
         mainClass = "org.openrewrite.java.spring.internal.GeneratePropertiesMigratorConfiguration"
         classpath = sourceSets.getByName("test").runtimeClasspath
+        finalizedBy("licenseFormat")
     }
 }
