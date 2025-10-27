@@ -48,8 +48,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
                 Tree t = tree;
                 t = replaceApiKey(ctx, t);
-                t = replaceAuthorizationScope(ctx, t);
-                return t;
+                return replaceAuthorizationScope(ctx, t);
             }
 
             private Tree replaceApiKey(ExecutionContext ctx, Tree t) {
