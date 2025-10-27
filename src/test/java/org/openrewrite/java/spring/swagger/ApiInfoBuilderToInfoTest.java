@@ -29,7 +29,7 @@ class ApiInfoBuilderToInfoTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .recipeFromResources("org.openrewrite.java.springdoc.ApiInfoBuilderToInfo")
+          .recipe(new ApiInfoBuilderToInfo())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(), "springfox-core-3.+")
           );
