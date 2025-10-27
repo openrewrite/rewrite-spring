@@ -53,9 +53,7 @@ public class ApiInfoBuilderToInfo extends Recipe {
                 Tree t = tree;
                 t = replaceContact(ctx, t);
                 t = replaceLicense(ctx, t);
-                t = removeBuild(ctx, t);
-
-                return t;
+                return removeBuild(ctx, t);
             }
 
             private Tree removeBuild(ExecutionContext ctx, Tree t) {

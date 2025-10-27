@@ -2886,6 +2886,30 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
 examples:
+- description: '`SpringDataStaxCassandraTest#groupIdChangeCassandraBom`'
+  sources:
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>fooservice</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>com.datastax.oss</groupId>
+                      <artifactId>java-driver-bom</artifactId>
+                      <version>4.17.0</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+      </project>
+    path: pom.xml
+    language: xml
 - description: '`SpringCloudVersionUpgradeTest#upgradeSpringCloudVersion`'
   sources:
   - before: project
@@ -2914,30 +2938,6 @@ examples:
                       <groupId>org.springframework.cloud</groupId>
                       <artifactId>spring-cloud-dependencies</artifactId>
                       <version>${spring-cloud.version}</version>
-                      <type>pom</type>
-                      <scope>import</scope>
-                  </dependency>
-              </dependencies>
-          </dependencyManagement>
-      </project>
-    path: pom.xml
-    language: xml
-- description: '`SpringDataStaxCassandraTest#groupIdChangeCassandraBom`'
-  sources:
-  - before: project
-    language: mavenProject
-  - before: |
-      <project>
-          <modelVersion>4.0.0</modelVersion>
-          <groupId>com.example</groupId>
-          <artifactId>fooservice</artifactId>
-          <version>1.0-SNAPSHOT</version>
-          <dependencyManagement>
-              <dependencies>
-                  <dependency>
-                      <groupId>com.datastax.oss</groupId>
-                      <artifactId>java-driver-bom</artifactId>
-                      <version>4.17.0</version>
                       <type>pom</type>
                       <scope>import</scope>
                   </dependency>
@@ -5142,41 +5142,7 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.test.SpringRulesToJUnitExtension
-examples:
-- description: '`SpringRulesToJUnitExtensionTest#migrateWithSpringBootTestPresent`'
-  sources:
-  - before: |
-      import org.springframework.boot.test.context.SpringBootTest;
-      import org.springframework.test.context.junit4.rules.SpringClassRule;
-      import org.springframework.test.context.junit4.rules.SpringMethodRule;
-      import org.junit.ClassRule;
-      import org.junit.Rule;
-
-      @SpringBootTest
-      class SomeTest {
-
-          @ClassRule
-          public static final SpringClassRule springClassRule = new SpringClassRule();
-
-          @Rule
-          public final SpringMethodRule springMethodRule = new SpringMethodRule();
-
-      }
-    after: |
-      import org.junit.jupiter.api.extension.ExtendWith;
-      import org.springframework.boot.test.context.SpringBootTest;
-      import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-      @ExtendWith(SpringExtension.class)
-      @SpringBootTest
-      class SomeTest {
-
-      }
-    language: java
----
-type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.springdoc.ApiInfoBuilderToInfo
+recipeName: org.openrewrite.java.spring.swagger.ApiInfoBuilderToInfo
 examples:
 - description: '`ApiInfoBuilderToInfoTest#transformApiInfoBuilder`'
   sources:
@@ -5213,6 +5179,40 @@ examples:
                       .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
                       .version("2.0");
           }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.test.SpringRulesToJUnitExtension
+examples:
+- description: '`SpringRulesToJUnitExtensionTest#migrateWithSpringBootTestPresent`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.test.context.junit4.rules.SpringClassRule;
+      import org.springframework.test.context.junit4.rules.SpringMethodRule;
+      import org.junit.ClassRule;
+      import org.junit.Rule;
+
+      @SpringBootTest
+      class SomeTest {
+
+          @ClassRule
+          public static final SpringClassRule springClassRule = new SpringClassRule();
+
+          @Rule
+          public final SpringMethodRule springMethodRule = new SpringMethodRule();
+
+      }
+    after: |
+      import org.junit.jupiter.api.extension.ExtendWith;
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+      @ExtendWith(SpringExtension.class)
+      @SpringBootTest
+      class SomeTest {
+
       }
     language: java
 ---
