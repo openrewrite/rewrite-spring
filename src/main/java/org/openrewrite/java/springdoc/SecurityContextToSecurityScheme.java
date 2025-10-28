@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.swagger;
+package org.openrewrite.java.springdoc;
 
 import org.openrewrite.*;
 import org.openrewrite.java.*;
@@ -30,7 +30,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Replace elements of SpringFox's security with Swagger's security models.";
+        return "Replace elements of SpringFox's security with Swagger's security models";
     }
 
     @Override
