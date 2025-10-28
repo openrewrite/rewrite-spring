@@ -16,6 +16,8 @@
 package org.openrewrite.java.springdoc;
 
 import org.openrewrite.*;
+import org.openrewrite.analysis.constantfold.ConstantFold;
+import org.openrewrite.analysis.util.CursorUtil;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
@@ -60,7 +62,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                             String inValue = passAsToSecuritySchemeIn(newClass.getArguments().get(2));
                             maybeRemoveImport("springfox.documentation.service.ApiKey");
                             maybeAddImport("io.swagger.v3.oas.models.security.SecurityScheme");
-                            return JavaTemplate.builder("new SecurityScheme()\n.type(SecurityScheme.Type.APIKEY)\n.name(#{any(String)})\n.in(" + inValue + ")")
+                            return JavaTemplate.builder("new SecurityScheme()\n.type(SecurityScheme.Type.APIKEY)\n.name(#{any(String)})\n.in(" + inValue +")")
                                     .imports("io.swagger.v3.oas.models.security.SecurityScheme")
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
                                     .build()
@@ -70,15 +72,16 @@ public class SecurityContextToSecurityScheme extends Recipe {
                     }
 
                     private String passAsToSecuritySchemeIn(Expression passAsExpr) {
-                        String passAs = ((J.Literal) passAsExpr).getValueSource();
-
-                        if ("cookie".equalsIgnoreCase(passAs)) {
-                            return "SecurityScheme.In.COOKIE";
-                        }
-                        if ("query".equalsIgnoreCase(passAs)) {
-                            return "SecurityScheme.In.QUERY";
-                        }
-                        return "SecurityScheme.In.HEADER";
+                        return CursorUtil.findCursorForTree(getCursor(), passAsExpr)
+                                .bind(c -> ConstantFold.findConstantLiteralValue(c, String.class))
+                                .map(passAs -> {
+                                    switch (passAs) {
+                                        case "cookie": return "SecurityScheme.In.COOKIE";
+                                        case "query": return "SecurityScheme.In.QUERY";
+                                        default: return "SecurityScheme.In.HEADER";
+                                    }
+                                })
+                                .orSome("SecurityScheme.In.HEADER");
                     }
                 }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
             }
