@@ -69,3 +69,4 @@ recipeList:
   - org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderMethods
   - org.openrewrite.java.spring.boot3.AddValidToNestedConfigProperties
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_8
+  - org.openrewrite.java.spring.boot3.ReplaceMockBeanAndSpyBean
