@@ -37,7 +37,7 @@ class UpdateGradleTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7")
-          .beforeRecipe(withToolingApi())
+          .beforeRecipe(withToolingApi("8.14.3"))
           .allSources(source -> source.markers(new BuildTool(Tree.randomId(), BuildTool.Type.Gradle, "6.7")));
     }
 
