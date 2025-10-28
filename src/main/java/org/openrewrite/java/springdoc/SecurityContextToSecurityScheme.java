@@ -35,7 +35,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Replace ApiKey, AuthorizationScope, and SecurityScheme elements with Swagger's equivalents.";
+        return "Replace `ApiKey`, `AuthorizationScope`, and `SecurityScheme` elements with Swagger's equivalents.";
     }
 
     @Override
