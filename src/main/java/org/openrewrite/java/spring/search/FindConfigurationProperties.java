@@ -70,7 +70,11 @@ public class FindConfigurationProperties extends Recipe {
                         String marker = prefixInfo.isConstant
                                 ? "@ConfigurationProperties(" + prefixInfo.source + " = \"" + prefixInfo.value + "\")"
                                 : "@ConfigurationProperties(\"" + prefixInfo.value + "\")";
-                        c = SearchResult.found(c, marker);
+                        c = c.withLeadingAnnotations(
+                                c.getLeadingAnnotations().stream()
+                                        .map(a -> a == annotation ? SearchResult.found(a, marker) : a)
+                                        .collect(java.util.stream.Collectors.toList())
+                        );
                         break;
                     }
                 }
