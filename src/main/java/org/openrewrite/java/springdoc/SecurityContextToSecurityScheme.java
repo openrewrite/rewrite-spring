@@ -48,8 +48,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
             public Tree preVisit(Tree tree, ExecutionContext ctx) {
                 stopAfterPreVisit();
 
-                Tree t = tree;
-                t = replaceApiKey(ctx, t);
+                Tree t = replaceApiKey(ctx, tree);
                 return replaceAuthorizationScope(ctx, t);
             }
 
@@ -88,7 +87,6 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
             private Tree replaceAuthorizationScope(ExecutionContext ctx, Tree t) {
                 return Preconditions.check(new UsesMethod<>(AUTHORIZATION_SCOPE_MATCHER), new JavaVisitor<ExecutionContext>() {
-                    // Replace `Contact` constructor
                     @Override
                     public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                         if (AUTHORIZATION_SCOPE_MATCHER.matches(newClass)) {
