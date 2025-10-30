@@ -21,6 +21,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.SourceFile;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.spring.table.ConfigurationPropertiesTable;
 import org.openrewrite.java.tree.Expression;
@@ -45,7 +46,7 @@ public class FindConfigurationProperties extends Recipe {
     public String getDescription() {
         //language=markdown
         return "Find all classes annotated with `@ConfigurationProperties` and extract their prefix values. " +
-               "This is useful for discovering all externalized configuration properties in Spring Boot applications.";
+                "This is useful for discovering all externalized configuration properties in Spring Boot applications.";
     }
 
     @Override
@@ -68,13 +69,10 @@ public class FindConfigurationProperties extends Recipe {
                         ));
 
                         String marker = prefixInfo.isConstant ?
-                                "@ConfigurationProperties(" + prefixInfo.source + " = \"" + prefixInfo.value + "\")" : 
+                                "@ConfigurationProperties(" + prefixInfo.source + " = \"" + prefixInfo.value + "\")" :
                                 "@ConfigurationProperties(\"" + prefixInfo.value + "\")";
-                        c = c.withLeadingAnnotations(
-                                c.getLeadingAnnotations().stream()
-                                        .map(a -> a == annotation ? SearchResult.found(a, marker) : a)
-                                        .collect(java.util.stream.Collectors.toList())
-                        );
+                        c = c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(),
+                                a -> a == annotation ? SearchResult.found(a, marker) : a));
                         break;
                     }
                 }
