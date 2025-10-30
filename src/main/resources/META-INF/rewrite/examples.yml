@@ -5142,7 +5142,41 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.swagger.ApiInfoBuilderToInfo
+recipeName: org.openrewrite.java.spring.test.SpringRulesToJUnitExtension
+examples:
+- description: '`SpringRulesToJUnitExtensionTest#migrateWithSpringBootTestPresent`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.test.context.junit4.rules.SpringClassRule;
+      import org.springframework.test.context.junit4.rules.SpringMethodRule;
+      import org.junit.ClassRule;
+      import org.junit.Rule;
+
+      @SpringBootTest
+      class SomeTest {
+
+          @ClassRule
+          public static final SpringClassRule springClassRule = new SpringClassRule();
+
+          @Rule
+          public final SpringMethodRule springMethodRule = new SpringMethodRule();
+
+      }
+    after: |
+      import org.junit.jupiter.api.extension.ExtendWith;
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+      @ExtendWith(SpringExtension.class)
+      @SpringBootTest
+      class SomeTest {
+
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.springdoc.ApiInfoBuilderToInfo
 examples:
 - description: '`ApiInfoBuilderToInfoTest#transformApiInfoBuilder`'
   sources:
@@ -5179,40 +5213,6 @@ examples:
                       .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
                       .version("2.0");
           }
-      }
-    language: java
----
-type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.test.SpringRulesToJUnitExtension
-examples:
-- description: '`SpringRulesToJUnitExtensionTest#migrateWithSpringBootTestPresent`'
-  sources:
-  - before: |
-      import org.springframework.boot.test.context.SpringBootTest;
-      import org.springframework.test.context.junit4.rules.SpringClassRule;
-      import org.springframework.test.context.junit4.rules.SpringMethodRule;
-      import org.junit.ClassRule;
-      import org.junit.Rule;
-
-      @SpringBootTest
-      class SomeTest {
-
-          @ClassRule
-          public static final SpringClassRule springClassRule = new SpringClassRule();
-
-          @Rule
-          public final SpringMethodRule springMethodRule = new SpringMethodRule();
-
-      }
-    after: |
-      import org.junit.jupiter.api.extension.ExtendWith;
-      import org.springframework.boot.test.context.SpringBootTest;
-      import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-      @ExtendWith(SpringExtension.class)
-      @SpringBootTest
-      class SomeTest {
-
       }
     language: java
 ---
@@ -5261,6 +5261,32 @@ examples:
               @Override
               public void customise(OpenAPI openApi) {
               }
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.springdoc.SecurityContextToSecurityScheme
+examples:
+- description: '`SecurityContextToSecuritySchemeTest#apiKeyToSecurityScheme`'
+  sources:
+  - before: |
+      import springfox.documentation.service.ApiKey;
+
+      class Test {
+          ApiKey apiKey() {
+              return new ApiKey("api_key", "X-API-KEY", "header");
+          }
+      }
+    after: |
+      import io.swagger.v3.oas.models.security.SecurityScheme;
+
+      class Test {
+          SecurityScheme apiKey() {
+              return new SecurityScheme()
+                      .type(SecurityScheme.Type.APIKEY)
+                      .name("X-API-KEY")
+                      .in(SecurityScheme.In.HEADER);
           }
       }
     language: java
