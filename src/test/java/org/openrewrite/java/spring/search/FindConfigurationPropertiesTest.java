@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.search;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.table.ConfigurationPropertiesTable;
@@ -34,14 +35,15 @@ class FindConfigurationPropertiesTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.+"));
     }
 
+    @DocumentExample
     @Test
     void findConfigurationPropertiesWithValue() {
         rewriteRun(
           spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
               assertThat(rows).singleElement()
-                .matches(row -> row.getSourcePath().equals("test/MyProperties.java"))
-                .matches(row -> row.getClassType().equals("test.MyProperties"))
-                .matches(row -> row.getPrefix().equals("my.service"));
+                .matches(row -> "test/MyProperties.java".equals(row.getSourcePath()))
+                .matches(row -> "test.MyProperties".equals(row.getClassType()))
+                .matches(row -> "my.service".equals(row.getPrefix()));
           }).cycles(1).expectedCyclesThatMakeChanges(1),
           //language=java
           java(
@@ -106,9 +108,9 @@ class FindConfigurationPropertiesTest implements RewriteTest {
         rewriteRun(
           spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
               assertThat(rows).singleElement()
-                .matches(row -> row.getSourcePath().equals("test/ServerProperties.java"))
-                .matches(row -> row.getClassType().equals("test.ServerProperties"))
-                .matches(row -> row.getPrefix().equals("app.server"));
+                .matches(row -> "test/ServerProperties.java".equals(row.getSourcePath()))
+                .matches(row -> "test.ServerProperties".equals(row.getClassType()))
+                .matches(row -> "app.server".equals(row.getPrefix()));
           }).cycles(1).expectedCyclesThatMakeChanges(1),
           //language=java
           java(
@@ -155,9 +157,9 @@ class FindConfigurationPropertiesTest implements RewriteTest {
         rewriteRun(
           spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
               assertThat(rows).singleElement()
-                .matches(row -> row.getSourcePath().equals("test/DatabaseProperties.java"))
-                .matches(row -> row.getClassType().equals("test.DatabaseProperties"))
-                .matches(row -> row.getPrefix().equals("database.config"));
+                .matches(row -> "test/DatabaseProperties.java".equals(row.getSourcePath()))
+                .matches(row -> "test.DatabaseProperties".equals(row.getClassType()))
+                .matches(row -> "database.config".equals(row.getPrefix()));
           }).cycles(1).expectedCyclesThatMakeChanges(1),
           //language=java
           java(
@@ -204,9 +206,9 @@ class FindConfigurationPropertiesTest implements RewriteTest {
         rewriteRun(
           spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
               assertThat(rows).singleElement()
-                .matches(row -> row.getSourcePath().equals("test/KubernetesClientProperties.java"))
-                .matches(row -> row.getClassType().equals("test.KubernetesClientProperties"))
-                .matches(row -> row.getPrefix().equals("spring.cloud.kubernetes.client"));
+                .matches(row -> "test/KubernetesClientProperties.java".equals(row.getSourcePath()))
+                .matches(row -> "test.KubernetesClientProperties".equals(row.getClassType()))
+                .matches(row -> "spring.cloud.kubernetes.client".equals(row.getPrefix()));
           }).cycles(1).expectedCyclesThatMakeChanges(1).typeValidationOptions(TypeValidation.none()),
           //language=java
           java(
@@ -257,9 +259,9 @@ class FindConfigurationPropertiesTest implements RewriteTest {
         rewriteRun(
           spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
               assertThat(rows).singleElement()
-                .matches(row -> row.getSourcePath().equals("test/AppProperties.java"))
-                .matches(row -> row.getClassType().equals("test.AppProperties"))
-                .matches(row -> row.getPrefix().equals("app.config"));
+                .matches(row -> "test/AppProperties.java".equals(row.getSourcePath()))
+                .matches(row -> "test.AppProperties".equals(row.getClassType()))
+                .matches(row -> "app.config".equals(row.getPrefix()));
           }).cycles(1).expectedCyclesThatMakeChanges(1).typeValidationOptions(TypeValidation.none()),
           //language=java
           java(

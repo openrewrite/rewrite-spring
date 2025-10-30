@@ -27,6 +27,8 @@ tags:
 recipeList:
   - org.openrewrite.java.springdoc.SwaggerToSpringDoc
   - org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
+  - org.openrewrite.java.springdoc.ApiInfoBuilderToInfo
+  - org.openrewrite.java.springdoc.SecurityContextToSecurityScheme
   - org.openrewrite.java.springdoc.MigrateSpringdocCommon
 
 ---
