@@ -39,7 +39,7 @@ public class ApiInfoBuilderToInfo extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Migrate SpringDoc's `ApiInfoBuilder` to Swagger's `Info`.";
+        return "Migrate SpringFox's `ApiInfoBuilder` to Swagger's `Info`.";
     }
 
 
