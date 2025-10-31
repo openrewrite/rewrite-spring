@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.springdoc;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -86,6 +87,182 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
             class Test {
                 Scopes authorizationScope() {
                     return new Scopes().addString("global", "global scope");
+                }
+            }
+            """
+          )
+        );
+    }
+
+    @Test
+    void authorizationScopeListOfToChainedScopes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+            import springfox.documentation.service.AuthorizationScope;
+            import java.util.List;
+
+            class Test {
+                List<AuthorizationScope> authorizationScopes() {
+                    return List.of(
+                        new AuthorizationScope("read", "Read access"),
+                        new AuthorizationScope("write", "Write access"),
+                        new AuthorizationScope("admin", "Admin access")
+                    );
+                }
+            }
+            """,
+            """
+            import io.swagger.v3.oas.models.security.Scopes;
+
+            import java.util.List;
+
+            class Test {
+                Scopes authorizationScopes() {
+                    return new Scopes()
+                            .addString("read", "Read access")
+                            .addString("write", "Write access")
+                            .addString("admin", "Admin access");
+                }
+            }
+            """
+          )
+        );
+    }
+
+    @Test
+    void authorizationScopeArraysAsListToChainedScopes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+            import springfox.documentation.service.AuthorizationScope;
+            import java.util.Arrays;
+            import java.util.List;
+
+            class Test {
+                List<AuthorizationScope> authorizationScopes() {
+                    return Arrays.asList(
+                        new AuthorizationScope("read", "Read access"),
+                        new AuthorizationScope("write", "Write access"),
+                        new AuthorizationScope("admin", "Admin access")
+                    );
+                }
+            }
+            """,
+            """
+            import io.swagger.v3.oas.models.security.Scopes;
+
+            import java.util.Arrays;
+            import java.util.List;
+
+            class Test {
+                Scopes authorizationScopes() {
+                    return new Scopes()
+                            .addString("read", "Read access")
+                            .addString("write", "Write access")
+                            .addString("admin", "Admin access");
+                }
+            }
+            """
+          )
+        );
+    }
+
+    @Test
+    void authorizationScopeArrayInitializerToChainedScopes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+            import springfox.documentation.service.AuthorizationScope;
+
+            class Test {
+                AuthorizationScope[] authorizationScopes() {
+                    return new AuthorizationScope[] {
+                        new AuthorizationScope("read", "Read access"),
+                        new AuthorizationScope("write", "Write access"),
+                        new AuthorizationScope("admin", "Admin access")
+                    };
+                }
+            }
+            """,
+            """
+            import io.swagger.v3.oas.models.security.Scopes;
+
+            class Test {
+                Scopes authorizationScopes() {
+                    return new Scopes()
+                            .addString("read", "Read access")
+                            .addString("write", "Write access")
+                            .addString("admin", "Admin access");
+                }
+            }
+            """
+          )
+        );
+    }
+
+    @Test
+    void securityReferenceToSecurityRequirement() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+            import springfox.documentation.service.AuthorizationScope;
+            import springfox.documentation.service.SecurityReference;
+            import java.util.Arrays;
+
+            class Test {
+                SecurityReference securityReference() {
+                    return new SecurityReference("petstore-auth", new AuthorizationScope[] {
+                        new AuthorizationScope("read:pets", "Read access"),
+                        new AuthorizationScope("write:pets", "Write access")
+                    });
+                }
+            }
+            """,
+            """
+            import io.swagger.v3.oas.models.security.SecurityRequirement;
+            import java.util.Arrays;
+
+            class Test {
+                SecurityRequirement securityReference() {
+                    return new SecurityRequirement().addList("petstore-auth", Arrays.asList("read:pets", "write:pets"));
+                }
+            }
+            """
+          )
+        );
+    }
+
+    @Disabled("TODO: fix 'Scopes[]' and 'more than one cycle'")
+    @Test
+    void securityReferenceToSecurityRequirementAuthScopeArrayArg() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+            import springfox.documentation.service.AuthorizationScope;
+            import springfox.documentation.service.SecurityReference;
+            import java.util.Arrays;
+
+            class Test {
+                SecurityReference securityReference(AuthorizationScope[] scopes) {
+                    return new SecurityReference("petstore-auth", scopes);
+                }
+            }
+            """,
+            """
+            import io.swagger.v3.oas.models.security.Scopes;
+            import io.swagger.v3.oas.models.security.SecurityRequirement;
+            import java.util.Arrays;
+            import java.util.stream.Collectors;
+
+            class Test {
+                SecurityRequirement securityReference(Scopes scopes) {
+                    return new SecurityRequirement().addList("petstore-auth", scopes.keySet().stream().collect(Collectors.toList()));
                 }
             }
             """
