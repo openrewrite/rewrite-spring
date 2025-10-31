@@ -237,7 +237,6 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
         );
     }
 
-    @Disabled("TODO: fix 'Scopes[]' and 'more than one cycle'")
     @Test
     void securityReferenceToSecurityRequirementAuthScopeArrayArg() {
         rewriteRun(

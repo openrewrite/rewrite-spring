@@ -304,10 +304,12 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                 maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
                                 maybeAddImport("io.swagger.v3.oas.models.security.SecurityRequirement");
                                 maybeAddImport("java.util.stream.Collectors");
-
+                                scopesArg = ((J.Identifier) scopesArg).withType(JavaType.buildType("io.swagger.v3.oas.models.security.Scopes"))
+                                        .withFieldType(((J.Identifier) scopesArg).getFieldType().withType(JavaType.buildType("io.swagger.v3.oas.models.security.Scopes")));
                                 return JavaTemplate.builder("new SecurityRequirement().addList(#{any(String)}, #{any()}.keySet().stream().collect(Collectors.toList()))")
                                         .imports("io.swagger.v3.oas.models.security.SecurityRequirement", "java.util.stream.Collectors")
                                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
+                                        .contextSensitive()
                                         .build()
                                         .apply(getCursor(), newClass.getCoordinates().replace(), referenceName, scopesArg);
                             }
@@ -340,46 +342,50 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
             private Tree replaceScopeArraysAndLists(ExecutionContext ctx, Tree t) {
                 ArrayTypeMatcher<ExecutionContext> scopeArrayParam =
-                        new ArrayTypeMatcher<>("io.swagger.v3.oas.models.security.Scopes");
+                        new ArrayTypeMatcher<>("springfox.documentation.service.AuthorizationScope");
 
                 return Preconditions.check(scopeArrayParam, new JavaVisitor<ExecutionContext>() {
-                            @Override
-                            public J visitVariableDeclarations(J.VariableDeclarations declarations, ExecutionContext ctx) {
-                                J.VariableDeclarations decls = (J.VariableDeclarations) super.visitVariableDeclarations(declarations, ctx);
-                                JavaType varType = decls.getType();
+                    @Override
+                    public J visitVariableDeclarations(J.VariableDeclarations declarations, ExecutionContext ctx) {
+                        J.VariableDeclarations decls = (J.VariableDeclarations) super.visitVariableDeclarations(declarations, ctx);
+                        JavaType varType = decls.getType();
 
-                                // Check if type is Scopes[]
-                                if (varType instanceof JavaType.Array && decls.getTypeExpression() != null) {
-                                    JavaType.Array arrayType = (JavaType.Array) varType;
-                                    if (TypeUtils.isOfClassType(arrayType.getElemType(), "io.swagger.v3.oas.models.security.Scopes")) {
-                                        // Replace Scopes[] with Scopes (both syntax and type)
-                                        JavaType scopesType = arrayType.getElemType();
-                                        decls = decls.withTypeExpression(
-                                                        TypeTree.build("Scopes")
-                                                                .withPrefix(decls.getTypeExpression().getPrefix()))
-                                                .withType(scopesType);
-                                    }
-                                }
-
-                                // Check if type is List<Scopes>
-                                if (varType instanceof JavaType.Parameterized && decls.getTypeExpression() != null) {
-                                    JavaType.Parameterized paramType = (JavaType.Parameterized) varType;
-                                    if (TypeUtils.isOfClassType(paramType, "java.util.List") &&
-                                            paramType.getTypeParameters().size() == 1 &&
-                                            TypeUtils.isOfClassType(paramType.getTypeParameters().get(0), "io.swagger.v3.oas.models.security.Scopes")) {
-                                        // Replace List<Scopes> with Scopes (both syntax and type)
-                                        JavaType scopesType = paramType.getTypeParameters().get(0);
-                                        maybeRemoveImport("java.util.List");
-                                        decls = decls.withTypeExpression(
-                                                        TypeTree.build("Scopes")
-                                                                .withPrefix(decls.getTypeExpression().getPrefix()))
-                                                .withType(scopesType);
-                                    }
-                                }
-
-                                return decls;
+                        // Check if type is Scopes[]
+                        if (varType instanceof JavaType.Array && decls.getTypeExpression() != null) {
+                            JavaType.Array arrayType = (JavaType.Array) varType;
+                            if (TypeUtils.isOfClassType(arrayType.getElemType(), "springfox.documentation.service.AuthorizationScope")) {
+                                // Replace Scopes[] with Scopes (both syntax and type)
+                                JavaType scopesType = arrayType.getElemType();
+                                maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
+                                maybeAddImport("springfox.documentation.service.Scopes");
+                                decls = decls.withTypeExpression(
+                                                TypeTree.build("Scopes")
+                                                        .withPrefix(decls.getTypeExpression().getPrefix()))
+                                        .withType(scopesType);
                             }
-                        }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
+                        }
+
+                        // Check if type is List<Scopes>
+                        if (varType instanceof JavaType.Parameterized && decls.getTypeExpression() != null) {
+                            JavaType.Parameterized paramType = (JavaType.Parameterized) varType;
+                            if (TypeUtils.isOfClassType(paramType, "java.util.List") &&
+                                    paramType.getTypeParameters().size() == 1 &&
+                                    TypeUtils.isOfClassType(paramType.getTypeParameters().get(0), "springfox.documentation.service.AuthorizationScope")) {
+                                // Replace List<Scopes> with Scopes (both syntax and type)
+                                JavaType scopesType = paramType.getTypeParameters().get(0);
+                                maybeRemoveImport("java.util.List");
+                                maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
+                                maybeAddImport("springfox.documentation.service.Scopes");
+                                decls = decls.withTypeExpression(
+                                                TypeTree.build("Scopes")
+                                                        .withPrefix(decls.getTypeExpression().getPrefix()))
+                                        .withType(scopesType);
+                            }
+                        }
+
+                        return decls;
+                    }
+                }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
             }
         };
     }
@@ -403,6 +409,6 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         "springfox.documentation.service.AuthorizationScope",
                         "io.swagger.v3.oas.models.security.Scopes",
                         true)
-                );
+        );
     }
 }
