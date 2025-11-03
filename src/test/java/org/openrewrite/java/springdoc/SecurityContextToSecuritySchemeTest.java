@@ -67,7 +67,7 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
     }
 
     @Test
-    void AuthorizationScopeToScopes() {
+    void authorizationScopeToScopes() {
         rewriteRun(
           //language=java
           java(
