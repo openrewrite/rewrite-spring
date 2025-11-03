@@ -24,11 +24,11 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.SearchResult;
 
-class ArrayTypeMatcher<P> extends JavaIsoVisitor<P> {
+class MethodDeclArrayTypeParamMatcher<P> extends JavaIsoVisitor<P> {
 
     final String fqn;
 
-    ArrayTypeMatcher(String fullyQualifiedName) {
+    MethodDeclArrayTypeParamMatcher(String fullyQualifiedName) {
         this.fqn = fullyQualifiedName;
     }
 

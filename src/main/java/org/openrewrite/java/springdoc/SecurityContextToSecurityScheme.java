@@ -93,8 +93,8 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
             private Tree replaceAuthorizationScope(ExecutionContext ctx, Tree t) {
                 return Preconditions.check(new UsesMethod<>(AUTHORIZATION_SCOPE_MATCHER), new JavaVisitor<ExecutionContext>() {
-                    private final MethodMatcher LIST_OF = new MethodMatcher("java.util.List of(..)");
-                    private final MethodMatcher ARRAYS_AS_LIST = new MethodMatcher("java.util.Arrays asList(..)");
+                    private final MethodMatcher LIST_OF = new MethodMatcher("java.util.List of(springfox.documentation.service.AuthorizationScope...)");
+                    private final MethodMatcher ARRAYS_AS_LIST = new MethodMatcher("java.util.Arrays asList(springfox.documentation.service.AuthorizationScope...)");
 
                     @Override
                     public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
@@ -226,7 +226,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         return scopes;
                     }
 
-                    private J replaceWithChainedScopes(J node, List<ScopeInfo> scopes, ExecutionContext ctx) {
+                    private Expression replaceWithChainedScopes(Expression node, List<ScopeInfo> scopes, ExecutionContext ctx) {
                         maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
                         maybeAddImport("io.swagger.v3.oas.models.security.Scopes");
 
@@ -270,7 +270,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                             // Check if scopesArg is an inline array or a variable reference
                             if (scopesArg instanceof J.NewArray) {
                                 // Case 1: Inline array - extract scope names from the AuthorizationScope array
-                                List<Expression> scopeNames = extractScopeNames(scopesArg);
+                                List<Expression> scopeNames = extractScopeNames((J.NewArray)scopesArg);
 
                                 if (!scopeNames.isEmpty()) {
                                     maybeRemoveImport("springfox.documentation.service.SecurityReference");
@@ -317,19 +317,16 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         return super.visitNewClass(newClass, ctx);
                     }
 
-                    private List<Expression> extractScopeNames(Expression scopesArg) {
+                    private List<Expression> extractScopeNames(J.NewArray newArray) {
                         List<Expression> scopeNames = new ArrayList<>();
 
-                        if (scopesArg instanceof J.NewArray) {
-                            J.NewArray newArray = (J.NewArray) scopesArg;
-                            if (newArray.getInitializer() != null) {
-                                for (Expression expr : newArray.getInitializer()) {
-                                    if (expr instanceof J.NewClass) {
-                                        J.NewClass nc = (J.NewClass) expr;
-                                        if (AUTHORIZATION_SCOPE_MATCHER.matches(nc) && !nc.getArguments().isEmpty()) {
-                                            // Extract just the scope name (first argument)
-                                            scopeNames.add(nc.getArguments().get(0));
-                                        }
+                        if (newArray.getInitializer() != null) {
+                            for (Expression expr : newArray.getInitializer()) {
+                                if (expr instanceof J.NewClass) {
+                                    J.NewClass nc = (J.NewClass) expr;
+                                    if (AUTHORIZATION_SCOPE_MATCHER.matches(nc) && !nc.getArguments().isEmpty()) {
+                                        // Extract just the scope name (first argument)
+                                        scopeNames.add(nc.getArguments().get(0));
                                     }
                                 }
                             }
@@ -341,8 +338,8 @@ public class SecurityContextToSecurityScheme extends Recipe {
             }
 
             private Tree replaceScopeArraysAndLists(ExecutionContext ctx, Tree t) {
-                ArrayTypeMatcher<ExecutionContext> scopeArrayParam =
-                        new ArrayTypeMatcher<>("springfox.documentation.service.AuthorizationScope");
+                MethodDeclArrayTypeParamMatcher<ExecutionContext> scopeArrayParam =
+                        new MethodDeclArrayTypeParamMatcher<>("springfox.documentation.service.AuthorizationScope");
 
                 return Preconditions.check(scopeArrayParam, new JavaVisitor<ExecutionContext>() {
                     @Override
