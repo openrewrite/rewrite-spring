@@ -115,8 +115,6 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
             """
               import io.swagger.v3.oas.models.security.Scopes;
 
-              import java.util.List;
-
               class Test {
                   Scopes authorizationScopes() {
                       return new Scopes()
@@ -152,9 +150,6 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
               """,
             """
               import io.swagger.v3.oas.models.security.Scopes;
-
-              import java.util.Arrays;
-              import java.util.List;
 
               class Test {
                   Scopes authorizationScopes() {
