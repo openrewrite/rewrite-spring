@@ -194,27 +194,18 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
                     private boolean isPartOfCollection(Cursor cursor) {
                         // Check if this AuthorizationScope is part of a List.of, Arrays.asList, or array initializer
-                        Cursor parent = cursor.getParentTreeCursor();
-                        while (parent.getValue() instanceof J) {
-                            J parentTree = parent.getValue();
-                            if (parentTree instanceof J.MethodInvocation) {
-                                J.MethodInvocation mi = (J.MethodInvocation) parentTree;
-                                if (LIST_OF.matches(mi) || ARRAYS_AS_LIST.matches(mi)) {
-                                    return true;
-                                }
-                            } else if (parentTree instanceof J.NewArray) {
-                                return true;
-                            }
-                            parent = parent.getParentTreeCursor();
-                        }
-                        return false;
+                        J parentTree = cursor.getParentTreeCursor().getValue();
+                        return parentTree instanceof J.NewArray ||
+                                parentTree instanceof Expression &&
+                                        (LIST_OF.matches((Expression) parentTree) ||
+                                                ARRAYS_AS_LIST.matches((Expression) parentTree));
                     }
 
                     private boolean isPartOfSecurityReference(Cursor cursor) {
                         // Check if this array is an argument to a SecurityReference constructor
                         Cursor parent = cursor.getParentTreeCursor();
                         if (parent.getValue() instanceof J.NewClass) {
-                            J.NewClass newClass = (J.NewClass) parent.getValue();
+                            J.NewClass newClass = parent.getValue();
                             return SECURITY_REFERENCE_MATCHER.matches(newClass);
                         }
                         return false;
@@ -252,7 +243,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                 .imports("io.swagger.v3.oas.models.security.Scopes")
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
                                 .build()
-                                .apply(getCursor(), ((Expression) node).getCoordinates().replace(), templateArgs.toArray());
+                                .apply(getCursor(), node.getCoordinates().replace(), templateArgs.toArray());
                     }
 
                     class ScopeInfo {
@@ -318,7 +309,6 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                 return JavaTemplate.builder("new SecurityRequirement().addList(#{any(String)}, #{any()}.keySet().stream().collect(Collectors.toList()))")
                                         .imports("io.swagger.v3.oas.models.security.SecurityRequirement", "java.util.stream.Collectors")
                                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
-                                        .contextSensitive()
                                         .build()
                                         .apply(getCursor(), newClass.getCoordinates().replace(), referenceName, scopesArg);
                             }
@@ -361,7 +351,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                 JavaType scopesType = arrayType.getElemType();
                                 maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
                                 maybeAddImport("springfox.documentation.service.Scopes");
-                                decls = decls.withTypeExpression(
+                                return decls.withTypeExpression(
                                                 TypeTree.build("Scopes")
                                                         .withPrefix(decls.getTypeExpression().getPrefix()))
                                         .withType(scopesType);
@@ -379,7 +369,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                 maybeRemoveImport("java.util.List");
                                 maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
                                 maybeAddImport("springfox.documentation.service.Scopes");
-                                decls = decls.withTypeExpression(
+                                return decls.withTypeExpression(
                                                 TypeTree.build("Scopes")
                                                         .withPrefix(decls.getTypeExpression().getPrefix()))
                                         .withType(scopesType);
@@ -394,7 +384,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
             private TreeVisitor<J, ExecutionContext> findArrayParametersOfType(String elementType) {
                 return new JavaIsoVisitor<ExecutionContext>() {
                     @Override
-                    public  J preVisit(J tree, ExecutionContext ctx) {
+                    public J preVisit(J tree, ExecutionContext ctx) {
                         stopAfterPreVisit();
                         if (tree instanceof JavaSourceFile) {
                             for (JavaType.Method method : ((JavaSourceFile) tree).getTypesInUse().getDeclaredMethods()) {
