@@ -53,9 +53,8 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                 if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application.yml")) {
                     Set<Yaml.Documents> profiles = new HashSet<>(yaml.getDocuments().size());
 
-                    //noinspection unchecked
                     Yaml.Documents mainYaml = yaml.withDocuments(ListUtils.map(
-                            (List<Yaml.Document>) yaml.getDocuments(),
+                            yaml.getDocuments(),
                             doc -> {
                                 String profileName = FindProperty.find(doc, "spring.config.activate.on-profile", true).stream()
                                         .findAny()
