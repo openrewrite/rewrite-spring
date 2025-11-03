@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.springdoc;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -43,26 +42,26 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
           //language=java
           java(
             """
-            import springfox.documentation.service.ApiKey;
+              import springfox.documentation.service.ApiKey;
 
-            class Test {
-                ApiKey apiKey() {
-                    return new ApiKey("api_key", "X-API-KEY", "header");
-                }
-            }
-            """,
+              class Test {
+                  ApiKey apiKey() {
+                      return new ApiKey("api_key", "X-API-KEY", "header");
+                  }
+              }
+              """,
             """
-            import io.swagger.v3.oas.models.security.SecurityScheme;
+              import io.swagger.v3.oas.models.security.SecurityScheme;
 
-            class Test {
-                SecurityScheme apiKey() {
-                    return new SecurityScheme()
-                            .type(SecurityScheme.Type.APIKEY)
-                            .name("X-API-KEY")
-                            .in(SecurityScheme.In.HEADER);
-                }
-            }
-            """
+              class Test {
+                  SecurityScheme apiKey() {
+                      return new SecurityScheme()
+                              .type(SecurityScheme.Type.APIKEY)
+                              .name("X-API-KEY")
+                              .in(SecurityScheme.In.HEADER);
+                  }
+              }
+              """
           )
         );
     }
@@ -73,23 +72,23 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
           //language=java
           java(
             """
-            import springfox.documentation.service.AuthorizationScope;
+              import springfox.documentation.service.AuthorizationScope;
 
-            class Test {
-                AuthorizationScope authorizationScope() {
-                    return new AuthorizationScope("global", "global scope");
-                }
-            }
-            """,
+              class Test {
+                  AuthorizationScope authorizationScope() {
+                      return new AuthorizationScope("global", "global scope");
+                  }
+              }
+              """,
             """
-            import io.swagger.v3.oas.models.security.Scopes;
+              import io.swagger.v3.oas.models.security.Scopes;
 
-            class Test {
-                Scopes authorizationScope() {
-                    return new Scopes().addString("global", "global scope");
-                }
-            }
-            """
+              class Test {
+                  Scopes authorizationScope() {
+                      return new Scopes().addString("global", "global scope");
+                  }
+              }
+              """
           )
         );
     }
@@ -100,33 +99,33 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
           //language=java
           java(
             """
-            import springfox.documentation.service.AuthorizationScope;
-            import java.util.List;
+              import springfox.documentation.service.AuthorizationScope;
+              import java.util.List;
 
-            class Test {
-                List<AuthorizationScope> authorizationScopes() {
-                    return List.of(
-                        new AuthorizationScope("read", "Read access"),
-                        new AuthorizationScope("write", "Write access"),
-                        new AuthorizationScope("admin", "Admin access")
-                    );
-                }
-            }
-            """,
+              class Test {
+                  List<AuthorizationScope> authorizationScopes() {
+                      return List.of(
+                          new AuthorizationScope("read", "Read access"),
+                          new AuthorizationScope("write", "Write access"),
+                          new AuthorizationScope("admin", "Admin access")
+                      );
+                  }
+              }
+              """,
             """
-            import io.swagger.v3.oas.models.security.Scopes;
+              import io.swagger.v3.oas.models.security.Scopes;
 
-            import java.util.List;
+              import java.util.List;
 
-            class Test {
-                Scopes authorizationScopes() {
-                    return new Scopes()
-                            .addString("read", "Read access")
-                            .addString("write", "Write access")
-                            .addString("admin", "Admin access");
-                }
-            }
-            """
+              class Test {
+                  Scopes authorizationScopes() {
+                      return new Scopes()
+                              .addString("read", "Read access")
+                              .addString("write", "Write access")
+                              .addString("admin", "Admin access");
+                  }
+              }
+              """
           )
         );
     }
@@ -137,35 +136,35 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
           //language=java
           java(
             """
-            import springfox.documentation.service.AuthorizationScope;
-            import java.util.Arrays;
-            import java.util.List;
+              import springfox.documentation.service.AuthorizationScope;
+              import java.util.Arrays;
+              import java.util.List;
 
-            class Test {
-                List<AuthorizationScope> authorizationScopes() {
-                    return Arrays.asList(
-                        new AuthorizationScope("read", "Read access"),
-                        new AuthorizationScope("write", "Write access"),
-                        new AuthorizationScope("admin", "Admin access")
-                    );
-                }
-            }
-            """,
+              class Test {
+                  List<AuthorizationScope> authorizationScopes() {
+                      return Arrays.asList(
+                          new AuthorizationScope("read", "Read access"),
+                          new AuthorizationScope("write", "Write access"),
+                          new AuthorizationScope("admin", "Admin access")
+                      );
+                  }
+              }
+              """,
             """
-            import io.swagger.v3.oas.models.security.Scopes;
+              import io.swagger.v3.oas.models.security.Scopes;
 
-            import java.util.Arrays;
-            import java.util.List;
+              import java.util.Arrays;
+              import java.util.List;
 
-            class Test {
-                Scopes authorizationScopes() {
-                    return new Scopes()
-                            .addString("read", "Read access")
-                            .addString("write", "Write access")
-                            .addString("admin", "Admin access");
-                }
-            }
-            """
+              class Test {
+                  Scopes authorizationScopes() {
+                      return new Scopes()
+                              .addString("read", "Read access")
+                              .addString("write", "Write access")
+                              .addString("admin", "Admin access");
+                  }
+              }
+              """
           )
         );
     }
@@ -176,30 +175,30 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
           //language=java
           java(
             """
-            import springfox.documentation.service.AuthorizationScope;
+              import springfox.documentation.service.AuthorizationScope;
 
-            class Test {
-                AuthorizationScope[] authorizationScopes() {
-                    return new AuthorizationScope[] {
-                        new AuthorizationScope("read", "Read access"),
-                        new AuthorizationScope("write", "Write access"),
-                        new AuthorizationScope("admin", "Admin access")
-                    };
-                }
-            }
-            """,
+              class Test {
+                  AuthorizationScope[] authorizationScopes() {
+                      return new AuthorizationScope[] {
+                          new AuthorizationScope("read", "Read access"),
+                          new AuthorizationScope("write", "Write access"),
+                          new AuthorizationScope("admin", "Admin access")
+                      };
+                  }
+              }
+              """,
             """
-            import io.swagger.v3.oas.models.security.Scopes;
+              import io.swagger.v3.oas.models.security.Scopes;
 
-            class Test {
-                Scopes authorizationScopes() {
-                    return new Scopes()
-                            .addString("read", "Read access")
-                            .addString("write", "Write access")
-                            .addString("admin", "Admin access");
-                }
-            }
-            """
+              class Test {
+                  Scopes authorizationScopes() {
+                      return new Scopes()
+                              .addString("read", "Read access")
+                              .addString("write", "Write access")
+                              .addString("admin", "Admin access");
+                  }
+              }
+              """
           )
         );
     }
@@ -210,29 +209,29 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
           //language=java
           java(
             """
-            import springfox.documentation.service.AuthorizationScope;
-            import springfox.documentation.service.SecurityReference;
-            import java.util.Arrays;
+              import springfox.documentation.service.AuthorizationScope;
+              import springfox.documentation.service.SecurityReference;
+              import java.util.Arrays;
 
-            class Test {
-                SecurityReference securityReference() {
-                    return new SecurityReference("petstore-auth", new AuthorizationScope[] {
-                        new AuthorizationScope("read:pets", "Read access"),
-                        new AuthorizationScope("write:pets", "Write access")
-                    });
-                }
-            }
-            """,
+              class Test {
+                  SecurityReference securityReference() {
+                      return new SecurityReference("petstore-auth", new AuthorizationScope[] {
+                          new AuthorizationScope("read:pets", "Read access"),
+                          new AuthorizationScope("write:pets", "Write access")
+                      });
+                  }
+              }
+              """,
             """
-            import io.swagger.v3.oas.models.security.SecurityRequirement;
-            import java.util.Arrays;
+              import io.swagger.v3.oas.models.security.SecurityRequirement;
+              import java.util.Arrays;
 
-            class Test {
-                SecurityRequirement securityReference() {
-                    return new SecurityRequirement().addList("petstore-auth", Arrays.asList("read:pets", "write:pets"));
-                }
-            }
-            """
+              class Test {
+                  SecurityRequirement securityReference() {
+                      return new SecurityRequirement().addList("petstore-auth", Arrays.asList("read:pets", "write:pets"));
+                  }
+              }
+              """
           )
         );
     }
@@ -243,28 +242,28 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
           //language=java
           java(
             """
-            import springfox.documentation.service.AuthorizationScope;
-            import springfox.documentation.service.SecurityReference;
-            import java.util.Arrays;
+              import springfox.documentation.service.AuthorizationScope;
+              import springfox.documentation.service.SecurityReference;
+              import java.util.Arrays;
 
-            class Test {
-                SecurityReference securityReference(AuthorizationScope[] scopes) {
-                    return new SecurityReference("petstore-auth", scopes);
-                }
-            }
-            """,
+              class Test {
+                  SecurityReference securityReference(AuthorizationScope[] scopes) {
+                      return new SecurityReference("petstore-auth", scopes);
+                  }
+              }
+              """,
             """
-            import io.swagger.v3.oas.models.security.Scopes;
-            import io.swagger.v3.oas.models.security.SecurityRequirement;
-            import java.util.Arrays;
-            import java.util.stream.Collectors;
+              import io.swagger.v3.oas.models.security.Scopes;
+              import io.swagger.v3.oas.models.security.SecurityRequirement;
+              import java.util.Arrays;
+              import java.util.stream.Collectors;
 
-            class Test {
-                SecurityRequirement securityReference(Scopes scopes) {
-                    return new SecurityRequirement().addList("petstore-auth", scopes.keySet().stream().collect(Collectors.toList()));
-                }
-            }
-            """
+              class Test {
+                  SecurityRequirement securityReference(Scopes scopes) {
+                      return new SecurityRequirement().addList("petstore-auth", scopes.keySet().stream().collect(Collectors.toList()));
+                  }
+              }
+              """
           )
         );
     }
