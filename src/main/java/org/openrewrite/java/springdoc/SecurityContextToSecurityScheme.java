@@ -47,7 +47,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
         return new TreeVisitor<Tree, ExecutionContext>() {
 
             @Override
-            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext executionContext) {
+            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
                 return sourceFile instanceof JavaSourceFile;
             }
 

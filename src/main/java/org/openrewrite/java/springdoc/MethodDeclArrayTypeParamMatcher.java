@@ -16,7 +16,6 @@
 package org.openrewrite.java.springdoc;
 
 import org.jspecify.annotations.Nullable;
-import org.openrewrite.SourceFile;
 import org.openrewrite.Tree;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
