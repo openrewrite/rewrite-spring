@@ -45,6 +45,12 @@ public class SecurityContextToSecurityScheme extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
 
         return new TreeVisitor<Tree, ExecutionContext>() {
+
+            @Override
+            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext executionContext) {
+                return sourceFile instanceof JavaSourceFile;
+            }
+
             @Override
             public Tree preVisit(Tree tree, ExecutionContext ctx) {
                 stopAfterPreVisit();

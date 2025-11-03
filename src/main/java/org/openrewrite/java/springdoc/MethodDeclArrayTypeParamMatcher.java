@@ -16,6 +16,7 @@
 package org.openrewrite.java.springdoc;
 
 import org.jspecify.annotations.Nullable;
+import org.openrewrite.SourceFile;
 import org.openrewrite.Tree;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
@@ -33,7 +34,7 @@ class MethodDeclArrayTypeParamMatcher<P> extends JavaIsoVisitor<P> {
     }
 
     @Override
-    public J visit(@Nullable Tree tree, P p) {
+    public @Nullable J visit(@Nullable Tree tree, P p) {
         if (tree instanceof JavaSourceFile) {
             JavaSourceFile cu = (JavaSourceFile) tree;
             for (JavaType.Method method : cu.getTypesInUse().getDeclaredMethods()) {
