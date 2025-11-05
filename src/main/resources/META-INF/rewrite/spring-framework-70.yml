@@ -30,3 +30,6 @@ recipeList:
   - org.openrewrite.java.ReplaceAnnotation:
       annotationPatternToReplace: '@org.springframework.lang.Nullable'
       annotationTemplateToInsert: '@org.jspecify.annotations.Nullable'
+  - org.openrewrite.java.ReplaceAnnotation:
+      annotationPatternToReplace: '@org.springframework.lang.NonNull'
+      annotationTemplateToInsert: '@org.jspecify.annotations.NonNull'
