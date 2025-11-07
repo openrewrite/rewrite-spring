@@ -27,9 +27,4 @@ recipeList:
       newVersion: 7.0.x
   - org.openrewrite.java.testing.junit6.JUnit5to6Migration
   - org.openrewrite.java.jackson.UpgradeJackson_2_3
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: 'org.springframework.lang.Nullable'
-      newFullyQualifiedTypeName: 'org.jspecify.annotations.Nullable'
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: 'org.springframework.lang.NonNull'
-      newFullyQualifiedTypeName: 'org.jspecify.annotations.NonNull'
+  - org.openrewrite.java.jspecify.MigrateFromSpringFrameworkAnnotations
