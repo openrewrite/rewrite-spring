@@ -175,4 +175,30 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void doNotAddValidToLocalVariables() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @Bean
+                  public NestedProperties serviceProperties() {
+                      var serviceProperties = new NestedProperties();
+                      return serviceProperties;
+                  }
+              }
+              """
+          )
+        );
+    }
 }
