@@ -29,9 +29,6 @@ recipeList:
       oldPropertyKey: management.health.mongo.enabled
       newPropertyKey: management.health.mongodb.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.logging.export.enabled
-      newPropertyKey: management.opentelemetry.logging.export.enabled
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.mongo.command.enabled
       newPropertyKey: management.metrics.mongodb.command.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -42,28 +39,85 @@ recipeList:
       newPropertyKey: management.metrics.observations.ignored-meters
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging
-      newPropertyKey: management.opentelemetry.logging.export
+      newPropertyKey: management.opentelemetry.logging.export.otlp
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.compression
-      newPropertyKey: management.opentelemetry.logging.export.compression
+      newPropertyKey: management.opentelemetry.logging.export.otlp.compression
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.connect-timeout
-      newPropertyKey: management.opentelemetry.logging.export.connect-timeout
+      newPropertyKey: management.opentelemetry.logging.export.otlp.connect-timeout
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.endpoint
-      newPropertyKey: management.opentelemetry.logging.export.endpoint
+      newPropertyKey: management.opentelemetry.logging.export.otlp.endpoint
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.export.enabled
-      newPropertyKey: management.opentelemetry.logging.export.enabled
+      newPropertyKey: management.logging.export.otlp.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.headers
-      newPropertyKey: management.opentelemetry.logging.export.headers
+      newPropertyKey: management.opentelemetry.logging.export.otlp.headers
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.timeout
-      newPropertyKey: management.opentelemetry.logging.export.timeout
+      newPropertyKey: management.opentelemetry.logging.export.otlp.timeout
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.transport
-      newPropertyKey: management.opentelemetry.logging.export.transport
+      newPropertyKey: management.opentelemetry.logging.export.otlp.transport
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.otlp.tracing.compression
+      newPropertyKey: management.opentelemetry.tracing.export.otlp.compression
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.otlp.tracing.connect-timeout
+      newPropertyKey: management.opentelemetry.tracing.export.otlp.connect-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.otlp.tracing.endpoint
+      newPropertyKey: management.opentelemetry.tracing.export.otlp.endpoint
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.otlp.tracing.export.enabled
+      newPropertyKey: management.tracing.export.otlp.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.otlp.tracing.headers
+      newPropertyKey: management.opentelemetry.tracing.export.otlp.headers
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.otlp.tracing.timeout
+      newPropertyKey: management.opentelemetry.tracing.export.otlp.timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.otlp.tracing.transport
+      newPropertyKey: management.opentelemetry.tracing.export.otlp.transport
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.tracing.brave.span-joining-supported
+      newPropertyKey: management.brave.tracing.span-joining-supported
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.tracing.enabled
+      newPropertyKey: management.tracing.export.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.tracing.opentelemetry.export.include-unsampled
+      newPropertyKey: management.opentelemetry.tracing.export.include-unsampled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.tracing.opentelemetry.export.max-batch-size
+      newPropertyKey: management.opentelemetry.tracing.export.max-batch-size
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.tracing.opentelemetry.export.max-queue-size
+      newPropertyKey: management.opentelemetry.tracing.export.max-queue-size
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.tracing.opentelemetry.export.schedule-delay
+      newPropertyKey: management.opentelemetry.tracing.export.schedule-delay
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.tracing.opentelemetry.export.timeout
+      newPropertyKey: management.opentelemetry.tracing.export.timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.zipkin.tracing.connect-timeout
+      newPropertyKey: management.tracing.export.zipkin.connect-timeout
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.zipkin.tracing.encoding
+      newPropertyKey: management.tracing.export.zipkin.encoding
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.zipkin.tracing.endpoint
+      newPropertyKey: management.tracing.export.zipkin.endpoint
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.zipkin.tracing.export.enabled
+      newPropertyKey: management.tracing.export.zipkin.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.zipkin.tracing.read-timeout
+      newPropertyKey: management.tracing.export.zipkin.read-timeout
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.servlet.encoding.charset
       newPropertyKey: spring.servlet.encoding.charset
@@ -178,6 +232,12 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.session.redis.save-mode
       newPropertyKey: spring.session.data.redis.save-mode
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.test.mockmvc.webclient.enabled
+      newPropertyKey: spring.test.mockmvc.htmlunit.webclient.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.test.mockmvc.webdriver.enabled
+      newPropertyKey: spring.test.mockmvc.htmlunit.webdriver.enabled
 
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: management.wavefront.api-token
@@ -252,6 +312,12 @@ recipeList:
       propertyKey: management.wavefront.uri
       comment: "This property is deprecated: Wavefront is end-of-life."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.freemarker.enabled
+      comment: "This property is deprecated: No longer required. To use FreeMarker without auto-configuration, depend directly on FreeMarker instead of spring-boot-freemarker."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.groovy.template.enabled
+      comment: "This property is deprecated: No longer required. To use Groovy Templates without auto-configuration, depend directly on Groovy Templates instead of spring-boot-groovy-templates."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.jackson.generator
       comment: "This property is deprecated: Partially replaced by 'spring.jackson.json.read'."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
@@ -303,9 +369,15 @@ recipeList:
       propertyKey: spring.jackson2.visibility
       comment: "This property is deprecated: Deprecated in favor of Jackson 3"
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.mustache.enabled
+      comment: "This property is deprecated: No longer required. To use Mustache without auto-configuration, depend directly on Mustache instead of spring-boot-mustache."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.neo4j.pool.metrics-enabled
       comment: "This property is deprecated: Use 'management.metrics.enable' to restrict certain metrics."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.test.observability.auto-configure
       comment: "This property is deprecated: Superseded by 'spring.test.metrics.export' and 'spring.test.tracing.export'."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.thymeleaf.enabled
+      comment: "This property is deprecated: No longer required. To use Thymeleaf without auto-configuration, depend directly on Thymeleaf instead of spring-boot-thymeleaf."
 
