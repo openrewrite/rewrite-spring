@@ -2449,7 +2449,7 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.boot3.ReplaceMockBeanAndSpyBean
+recipeName: org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
 examples:
 - description: '`ReplaceMockBeanAndSpyBeanTest#replacesMockBeanWithMockitoBean`'
   sources:
