@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.swagger;
+package org.openrewrite.java.springdoc;
 
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
@@ -39,7 +39,7 @@ public class ApiInfoBuilderToInfo extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Migrate SpringDoc's `ApiInfoBuilder` to Swagger's `Info`.";
+        return "Migrate SpringFox's `ApiInfoBuilder` to Swagger's `Info`.";
     }
 
 

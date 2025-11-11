@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @NullMarked @NonNullFields
-package org.openrewrite.java.spring.swagger;
+package org.openrewrite.java.springdoc;
 
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.internal.lang.NonNullFields;

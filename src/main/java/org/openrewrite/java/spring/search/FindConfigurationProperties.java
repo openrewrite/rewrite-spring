@@ -21,6 +21,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.SourceFile;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.spring.table.ConfigurationPropertiesTable;
 import org.openrewrite.java.tree.Expression;
@@ -45,7 +46,7 @@ public class FindConfigurationProperties extends Recipe {
     public String getDescription() {
         //language=markdown
         return "Find all classes annotated with `@ConfigurationProperties` and extract their prefix values. " +
-               "This is useful for discovering all externalized configuration properties in Spring Boot applications.";
+                "This is useful for discovering all externalized configuration properties in Spring Boot applications.";
     }
 
     @Override
@@ -67,10 +68,11 @@ public class FindConfigurationProperties extends Recipe {
                                 prefixInfo.value
                         ));
 
-                        String marker = prefixInfo.isConstant
-                                ? "@ConfigurationProperties(" + prefixInfo.source + " = \"" + prefixInfo.value + "\")"
-                                : "@ConfigurationProperties(\"" + prefixInfo.value + "\")";
-                        c = SearchResult.found(c, marker);
+                        String marker = prefixInfo.isConstant ?
+                                "@ConfigurationProperties(" + prefixInfo.source + " = \"" + prefixInfo.value + "\")" :
+                                "@ConfigurationProperties(\"" + prefixInfo.value + "\")";
+                        c = c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(),
+                                a -> a == annotation ? SearchResult.found(a, marker) : a));
                         break;
                     }
                 }
@@ -101,13 +103,16 @@ public class FindConfigurationProperties extends Recipe {
                         Object value = ((J.Literal) arg).getValue();
                         String prefix = value != null ? value.toString() : "";
                         return new PrefixInfo(prefix, prefix, false);
-                    } else if (arg instanceof J.Identifier) {
+                    }
+                    if (arg instanceof J.Identifier) {
                         // Handle @ConfigurationProperties(PREFIX)
                         return resolveFieldValue((J.Identifier) arg, classDecl);
-                    } else if (arg instanceof J.FieldAccess) {
+                    }
+                    if (arg instanceof J.FieldAccess) {
                         // Handle @ConfigurationProperties(SomeClass.PREFIX)
                         return resolveFieldAccessValue((J.FieldAccess) arg);
-                    } else if (arg instanceof J.Assignment) {
+                    }
+                    if (arg instanceof J.Assignment) {
                         // Handle @ConfigurationProperties(value = "prefix") or @ConfigurationProperties(prefix = "prefix")
                         J.Assignment assignment = (J.Assignment) arg;
                         if (assignment.getVariable() instanceof J.Identifier) {
@@ -118,9 +123,11 @@ public class FindConfigurationProperties extends Recipe {
                                     Object value = ((J.Literal) assignmentValue).getValue();
                                     String prefix = value != null ? value.toString() : "";
                                     return new PrefixInfo(prefix, prefix, false);
-                                } else if (assignmentValue instanceof J.Identifier) {
+                                }
+                                if (assignmentValue instanceof J.Identifier) {
                                     return resolveFieldValue((J.Identifier) assignmentValue, classDecl);
-                                } else if (assignmentValue instanceof J.FieldAccess) {
+                                }
+                                if (assignmentValue instanceof J.FieldAccess) {
                                     return resolveFieldAccessValue((J.FieldAccess) assignmentValue);
                                 }
                             }

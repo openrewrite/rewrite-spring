@@ -25,8 +25,13 @@ tags:
   - springfox
   - springdoc
 recipeList:
+  - org.openrewrite.java.AddCommentToMethodInvocations:
+      comment: "TODO: The transformation of Docket to OpenAPI is too complex to be adequately handled in a recipe. See https://springdoc.org/migrating-from-springfox.html for guidance."
+      methodPattern: "springfox.documentation.spring.web.plugins.Docket <constructor>(..)"
   - org.openrewrite.java.springdoc.SwaggerToSpringDoc
   - org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
+  - org.openrewrite.java.springdoc.ApiInfoBuilderToInfo
+  - org.openrewrite.java.springdoc.SecurityContextToSecurityScheme
   - org.openrewrite.java.springdoc.MigrateSpringdocCommon
 
 ---

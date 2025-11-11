@@ -70,6 +70,15 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     }
 
                     @Override
+                    public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
+                        if (getCursor().getParentTreeCursor().getValue() instanceof J.ClassDeclaration) {
+                            // Avoid adding @Valid to local variables inside methods
+                            return super.visitBlock(block, ctx);
+                        }
+                        return block;
+                    }
+
+                    @Override
                     public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations varDecl, ExecutionContext ctx) {
                         JavaType.FullyQualified type = TypeUtils.asFullyQualified(varDecl.getType());
                         if (type != null && !isPrimitiveOrCommonType(type) &&

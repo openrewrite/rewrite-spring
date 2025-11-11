@@ -29,3 +29,4 @@ recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
   - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
   - org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
+  - org.openrewrite.java.testing.testcontainers.Testcontainers2Migration
