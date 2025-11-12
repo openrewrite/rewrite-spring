@@ -85,6 +85,7 @@ recipeList:
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2
   - org.openrewrite.hibernate.MigrateToHibernate61
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
+  - org.openrewrite.java.spring.boot3.MigrateSapCfJavaLoggingSupport
 
 ---
 type: specs.openrewrite.org/v1beta/recipe

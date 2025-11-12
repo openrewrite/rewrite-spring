@@ -67,7 +67,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateApplicationHealthIndicatorToPingHealthIndicator
   - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
   - org.openrewrite.java.spring.boot2.MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
-
+  - org.openrewrite.java.spring.boot2.MigrateDiskSpaceHealthIndicatorConstructor
   - org.openrewrite.java.spring.boot2.SpringBootMavenPluginMigrateAgentToAgents
 
   # Update properties
