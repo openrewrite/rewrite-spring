@@ -2449,27 +2449,6 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.boot3.ReplaceMockBeanAndSpyBean
-examples:
-- description: '`ReplaceMockBeanAndSpyBeanTest#replacesMockBeanWithMockitoBean`'
-  sources:
-  - before: |
-      import org.springframework.boot.test.mock.mockito.MockBean;
-
-      public class SomeTest {
-          @MockBean
-          private String someService;
-      }
-    after: |
-      import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-      public class SomeTest {
-          @MockitoBean
-          private String someService;
-      }
-    language: java
----
-type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderMethods
 examples:
 - description: '`ReplaceRestTemplateBuilderMethodsTest#replacesSetConnectTimeout`'
@@ -2969,6 +2948,27 @@ examples:
       </project>
     path: pom.xml
     language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
+examples:
+- description: '`ReplaceMockBeanAndSpyBeanTest#replacesMockBeanWithMockitoBean`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.mock.mockito.MockBean;
+
+      public class SomeTest {
+          @MockBean
+          private String someService;
+      }
+    after: |
+      import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+      public class SomeTest {
+          @MockitoBean
+          private String someService;
+      }
+    language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
