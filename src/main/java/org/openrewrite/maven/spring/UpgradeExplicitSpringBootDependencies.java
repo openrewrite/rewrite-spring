@@ -43,7 +43,7 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
     private static final String SPRING_BOOT_DEPENDENCIES = "spring-boot-dependencies";
 
     @Option(displayName = "From Spring version",
-            description = "XRage pattern for spring version used to limit which projects should be updated",
+            description = "XRange pattern for spring version used to limit which projects should be updated",
             example = " 2.7.+")
     String fromVersion;
 
