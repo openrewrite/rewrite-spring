@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.springdoc;
+package org.openrewrite.java.spring.doc;
 
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;

@@ -30,8 +30,8 @@ recipeList:
       methodPattern: "springfox.documentation.spring.web.plugins.Docket <constructor>(..)"
   - org.openrewrite.java.springdoc.SwaggerToSpringDoc
   - org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
-  - org.openrewrite.java.springdoc.ApiInfoBuilderToInfo
-  - org.openrewrite.java.springdoc.SecurityContextToSecurityScheme
+  - org.openrewrite.java.spring.doc.ApiInfoBuilderToInfo
+  - org.openrewrite.java.spring.doc.SecurityContextToSecurityScheme
   - org.openrewrite.java.springdoc.MigrateSpringdocCommon
 
 ---

@@ -5233,7 +5233,7 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.springdoc.ApiInfoBuilderToInfo
+recipeName: org.openrewrite.java.spring.doc.ApiInfoBuilderToInfo
 examples:
 - description: '`ApiInfoBuilderToInfoTest#transformApiInfoBuilder`'
   sources:
@@ -5323,7 +5323,7 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.springdoc.SecurityContextToSecurityScheme
+recipeName: org.openrewrite.java.spring.doc.SecurityContextToSecurityScheme
 examples:
 - description: '`SecurityContextToSecuritySchemeTest#apiKeyToSecurityScheme`'
   sources:
