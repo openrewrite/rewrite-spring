@@ -3346,6 +3346,47 @@ examples:
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.doc.ApiInfoBuilderToInfo
+examples:
+- description: '`ApiInfoBuilderToInfoTest#transformApiInfoBuilder`'
+  sources:
+  - before: |
+      import springfox.documentation.builders.ApiInfoBuilder;
+      import springfox.documentation.service.ApiInfo;
+      import springfox.documentation.service.Contact;
+
+      class Test {
+          ApiInfo apiInfo() {
+              return new ApiInfoBuilder()
+                      .title("Springfox petstore API")
+                      .description("Lorem Ipsum")
+                      .termsOfServiceUrl("http://springfox.io")
+                      .contact(new Contact("springfox", "", ""))
+                      .license("Apache License Version 2.0")
+                      .licenseUrl("https://github.com/springfox/springfox/blob/master/LICENSE")
+                      .version("2.0")
+                      .build();
+          }
+      }
+    after: |
+      import io.swagger.v3.oas.models.info.Contact;
+      import io.swagger.v3.oas.models.info.Info;
+      import io.swagger.v3.oas.models.info.License;
+
+      class Test {
+          Info apiInfo() {
+              return new Info()
+                      .title("Springfox petstore API")
+                      .description("Lorem Ipsum")
+                      .termsOfService("http://springfox.io")
+                      .contact(new Contact().name("springfox").url("").email(""))
+                      .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
+                      .version("2.0");
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.doc.MigrateDocketBeanToGroupedOpenApiBean
 examples:
 - description: '`MigrateDocketBeanToGroupedOpenApiBeanTest#rewriteSingleDocketToApplicationYml`'
@@ -3407,6 +3448,32 @@ examples:
 
       @Configuration
       class ApplicationConfiguration {}
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.doc.SecurityContextToSecurityScheme
+examples:
+- description: '`SecurityContextToSecuritySchemeTest#apiKeyToSecurityScheme`'
+  sources:
+  - before: |
+      import springfox.documentation.service.ApiKey;
+
+      class Test {
+          ApiKey apiKey() {
+              return new ApiKey("api_key", "X-API-KEY", "header");
+          }
+      }
+    after: |
+      import io.swagger.v3.oas.models.security.SecurityScheme;
+
+      class Test {
+          SecurityScheme apiKey() {
+              return new SecurityScheme()
+                      .type(SecurityScheme.Type.APIKEY)
+                      .name("X-API-KEY")
+                      .in(SecurityScheme.In.HEADER);
+          }
+      }
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
@@ -5233,47 +5300,6 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.doc.ApiInfoBuilderToInfo
-examples:
-- description: '`ApiInfoBuilderToInfoTest#transformApiInfoBuilder`'
-  sources:
-  - before: |
-      import springfox.documentation.builders.ApiInfoBuilder;
-      import springfox.documentation.service.ApiInfo;
-      import springfox.documentation.service.Contact;
-
-      class Test {
-          ApiInfo apiInfo() {
-              return new ApiInfoBuilder()
-                      .title("Springfox petstore API")
-                      .description("Lorem Ipsum")
-                      .termsOfServiceUrl("http://springfox.io")
-                      .contact(new Contact("springfox", "", ""))
-                      .license("Apache License Version 2.0")
-                      .licenseUrl("https://github.com/springfox/springfox/blob/master/LICENSE")
-                      .version("2.0")
-                      .build();
-          }
-      }
-    after: |
-      import io.swagger.v3.oas.models.info.Contact;
-      import io.swagger.v3.oas.models.info.Info;
-      import io.swagger.v3.oas.models.info.License;
-
-      class Test {
-          Info apiInfo() {
-              return new Info()
-                      .title("Springfox petstore API")
-                      .description("Lorem Ipsum")
-                      .termsOfService("http://springfox.io")
-                      .contact(new Contact().name("springfox").url("").email(""))
-                      .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
-                      .version("2.0");
-          }
-      }
-    language: java
----
-type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.springdoc.MigrateSpringdocCommon
 examples:
 - description: '`MigrateSpringdocCommonTest#fixCustomiserAndGroupedOpenApi`'
@@ -5318,32 +5344,6 @@ examples:
               @Override
               public void customise(OpenAPI openApi) {
               }
-          }
-      }
-    language: java
----
-type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.doc.SecurityContextToSecurityScheme
-examples:
-- description: '`SecurityContextToSecuritySchemeTest#apiKeyToSecurityScheme`'
-  sources:
-  - before: |
-      import springfox.documentation.service.ApiKey;
-
-      class Test {
-          ApiKey apiKey() {
-              return new ApiKey("api_key", "X-API-KEY", "header");
-          }
-      }
-    after: |
-      import io.swagger.v3.oas.models.security.SecurityScheme;
-
-      class Test {
-          SecurityScheme apiKey() {
-              return new SecurityScheme()
-                      .type(SecurityScheme.Type.APIKEY)
-                      .name("X-API-KEY")
-                      .in(SecurityScheme.In.HEADER);
           }
       }
     language: java
