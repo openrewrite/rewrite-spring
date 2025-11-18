@@ -28,6 +28,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
   - org.openrewrite.java.spring.security7.UpgradeSpringSecurity_7_0
+  - org.openrewrite.java.spring.batch.SpringBatch5To6Migration
   - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
   - org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
   - org.openrewrite.java.testing.testcontainers.Testcontainers2Migration
