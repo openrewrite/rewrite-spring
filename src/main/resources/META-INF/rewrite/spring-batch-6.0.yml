@@ -29,3 +29,19 @@ recipeList:
       artifactId: "*"
       newVersion: 6.0.x
       overrideManagedVersion: false
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.batch.item
+      newPackageName: org.springframework.batch.infrastructure.item
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.batch.poller
+      newPackageName: org.springframework.batch.infrastructure.poller
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.batch.repeat
+      newPackageName: org.springframework.batch.infrastructure.repeat
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.batch.support
+      newPackageName: org.springframework.batch.infrastructure.support
+      recursive: true
