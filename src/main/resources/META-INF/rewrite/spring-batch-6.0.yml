@@ -45,3 +45,15 @@ recipeList:
       oldPackageName: org.springframework.batch.support
       newPackageName: org.springframework.batch.infrastructure.support
       recursive: true
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.JdbcExecutionContextDao
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.jdbc.JdbcExecutionContextDao
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.JdbcJobExecutionDao
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.jdbc.JdbcJobExecutionDao
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.JdbcJobInstanceDao
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.jdbc.JdbcJobInstanceDao
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.JdbcStepExecutionDao
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.jdbc.JdbcStepExecutionDao
