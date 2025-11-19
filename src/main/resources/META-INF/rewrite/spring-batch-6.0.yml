@@ -45,3 +45,7 @@ recipeList:
       oldPackageName: org.springframework.batch.support
       newPackageName: org.springframework.batch.infrastructure.support
       recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.batch.core.explore
+      newPackageName: org.springframework.batch.core.repository.explore
+      recursive: true
