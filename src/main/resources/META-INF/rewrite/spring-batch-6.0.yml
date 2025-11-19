@@ -57,3 +57,7 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.JdbcStepExecutionDao
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.jdbc.JdbcStepExecutionDao
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.batch.core.explore
+      newPackageName: org.springframework.batch.core.repository.explore
+      recursive: true
