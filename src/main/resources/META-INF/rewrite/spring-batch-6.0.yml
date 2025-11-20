@@ -45,6 +45,10 @@ recipeList:
       oldPackageName: org.springframework.batch.support
       newPackageName: org.springframework.batch.infrastructure.support
       recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.batch.core.explore
+      newPackageName: org.springframework.batch.core.repository.explore
+      recursive: true
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.JdbcExecutionContextDao
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.jdbc.JdbcExecutionContextDao
@@ -57,7 +61,18 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.JdbcStepExecutionDao
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.jdbc.JdbcStepExecutionDao
-  - org.openrewrite.java.ChangePackage:
-      oldPackageName: org.springframework.batch.core.explore
-      newPackageName: org.springframework.batch.core.repository.explore
-      recursive: true
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.MongoExecutionContextDao
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.mongo.MongoExecutionContextDao
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.MongoJobExecutionDao
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.mongo.MongoJobExecutionDao
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.MongoJobInstanceDao
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.mongo.MongoJobInstanceDao
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.MongoStepExecutionDao
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.mongo.MongoStepExecutionDao
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.MongoSequenceIncrementer
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.mongo.MongoSequenceIncrementer
