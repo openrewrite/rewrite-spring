@@ -54,20 +54,20 @@ public class UseTlsAmqpConnectionString extends Recipe {
     @Nullable
     String propertyKey;
 
-    @Option(displayName = "Old Port",
+    @Option(displayName = "Old port",
             description = "The non-TLS enabled port number to replace with the TLS-enabled port. " +
                     "If this value is specified, no changes will be made to amqp connection strings which do not contain this port number. ",
             example = "1234")
     @Nullable
     Integer oldPort;
 
-    @Option(displayName = "TLS Port",
+    @Option(displayName = "TLS port",
             description = "The TLS-enabled port to use.",
             example = "1234")
     @Nullable
     Integer port;
 
-    @Option(displayName = "TLS Property Key",
+    @Option(displayName = "TLS property key",
             description = "The Spring property key to enable default TLS mode against. " +
                     "If this value is specified, the specified property will be used when updating the default TLS mode, otherwise a default of " +
                     "`spring.rabbitmq.ssl.enabled` will be used instead.",
@@ -139,7 +139,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
 
     @EqualsAndHashCode(callSuper = false)
     @Value
-    static class UseTlsAmqpConnectionStringYaml extends Recipe {
+    static class UseTlsAmqpConnectionStringYaml {
         String propertyKey;
 
         @Nullable
@@ -153,17 +153,6 @@ public class UseTlsAmqpConnectionString extends Recipe {
         @Nullable
         List<String> pathExpressions;
 
-        @Override
-        public String getDisplayName() {
-            return "Use TLS for AMQP connection strings";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Use TLS for AMQP connection strings.";
-        }
-
-        @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return Preconditions.check(new YamlVisitor<ExecutionContext>() {
                 @Override
@@ -225,7 +214,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                             }
 
                             if (updated) {
-                                e = e.withValue(((Yaml.Scalar) e.getValue()).withValue(join(connectionStrings, ",")));
+                                e = e.withValue(((Yaml.Scalar) e.getValue()).withValue(String.join(",", connectionStrings)));
                             }
                         } catch (URISyntaxException | IllegalArgumentException ignored) {
                             // do nothing
@@ -239,7 +228,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
 
     @EqualsAndHashCode(callSuper = false)
     @Value
-    static class UseTlsAmqpConnectionStringProperties extends Recipe {
+    static class UseTlsAmqpConnectionStringProperties {
         String propertyKey;
 
         @Nullable
@@ -253,17 +242,6 @@ public class UseTlsAmqpConnectionString extends Recipe {
         @Nullable
         List<String> pathExpressions;
 
-        @Override
-        public String getDisplayName() {
-            return "Use TLS for AMQP connection strings";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Use TLS for AMQP connection strings.";
-        }
-
-        @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return Preconditions.check(new PropertiesVisitor<ExecutionContext>() {
                 @Override
@@ -323,7 +301,7 @@ public class UseTlsAmqpConnectionString extends Recipe {
                             }
 
                             if (updated) {
-                                e = e.withValue(e.getValue().withText(join(connectionStrings, ",")));
+                                e = e.withValue(e.getValue().withText(String.join(",", connectionStrings)));
                             }
                         } catch (URISyntaxException | IllegalArgumentException ignored) {
                             // do nothing
@@ -353,18 +331,5 @@ public class UseTlsAmqpConnectionString extends Recipe {
             updatedAmqpUrl = updatedAmqpUrl.replaceFirst(":\\d+", ":" + port);
         }
         return updatedAmqpUrl;
-    }
-
-    private static String join(String[] strings, String separator) {
-        if (strings.length == 0) {
-            return "";
-        }
-
-        StringBuilder builder = new StringBuilder();
-        int idx = 0;
-        while (idx < strings.length - 1) {
-            builder.append(strings[idx++]).append(separator);
-        }
-        return builder.append(strings[idx]).toString();
     }
 }

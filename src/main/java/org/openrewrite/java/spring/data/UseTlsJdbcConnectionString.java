@@ -48,7 +48,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
     String propertyKey;
 
     @Option(
-            displayName = "Old Port",
+            displayName = "Old port",
             description = "The non-TLS enabled port number to replace with the TLS-enabled port. " +
                     "If this value is specified, no changes will be made to jdbc connection strings which do not contain this port number. ",
             example = "1234")
@@ -56,7 +56,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
     Integer oldPort;
 
     @Option(
-            displayName = "TLS Port",
+            displayName = "TLS port",
             description = "The TLS-enabled port to use.",
             example = "1234")
     @Nullable
@@ -111,7 +111,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
 
     @EqualsAndHashCode(callSuper = false)
     @Value
-    static class UseTlsJdbcConnectionStringYaml extends Recipe {
+    static class UseTlsJdbcConnectionStringYaml {
         String propertyKey;
 
         @Nullable
@@ -122,16 +122,6 @@ public class UseTlsJdbcConnectionString extends Recipe {
 
         @Nullable
         String attribute;
-
-        @Override
-        public String getDisplayName() {
-            return "Use TLS for JDBC connection strings";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Use TLS for JDBC connection strings.";
-        }
 
         private TreeVisitor<?, ExecutionContext> precondition() {
             return new YamlVisitor<ExecutionContext>() {
@@ -145,7 +135,6 @@ public class UseTlsJdbcConnectionString extends Recipe {
             };
         }
 
-        @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return Preconditions.check(precondition(), new YamlIsoVisitor<ExecutionContext>() {
                 final JsonPathMatcher jdbcUrl = new JsonPathMatcher("$." + propertyKey);
@@ -178,7 +167,7 @@ public class UseTlsJdbcConnectionString extends Recipe {
 
     @EqualsAndHashCode(callSuper = false)
     @Value
-    static class UseTlsJdbcConnectionStringProperties extends Recipe {
+    static class UseTlsJdbcConnectionStringProperties {
         String propertyKey;
 
         @Nullable
@@ -189,16 +178,6 @@ public class UseTlsJdbcConnectionString extends Recipe {
 
         @Nullable
         String attribute;
-
-        @Override
-        public String getDisplayName() {
-            return "Use TLS for JDBC connection strings";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Use TLS for JDBC connection strings.";
-        }
 
         private TreeVisitor<?, ExecutionContext> precondition() {
             return new PropertiesVisitor<ExecutionContext>() {
@@ -212,7 +191,6 @@ public class UseTlsJdbcConnectionString extends Recipe {
             };
         }
 
-        @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return Preconditions.check(precondition(), new PropertiesIsoVisitor<ExecutionContext>() {
                 @Override
