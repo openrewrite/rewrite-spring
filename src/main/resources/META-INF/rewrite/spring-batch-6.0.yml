@@ -76,3 +76,15 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.MongoSequenceIncrementer
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.dao.mongo.MongoSequenceIncrementer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.partition.support.Partitioner
+      newFullyQualifiedTypeName: org.springframework.batch.core.partition.Partitioner
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.partition.support.PartitionNameProvider
+      newFullyQualifiedTypeName: org.springframework.batch.core.partition.PartitionNameProvider
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.partition.support.PartitionStep
+      newFullyQualifiedTypeName: org.springframework.batch.core.partition.PartitionStep
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.partition.support.StepExecutionAggregator
+      newFullyQualifiedTypeName: org.springframework.batch.core.partition.StepExecutionAggregator
