@@ -88,3 +88,27 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.partition.support.StepExecutionAggregator
       newFullyQualifiedTypeName: org.springframework.batch.core.partition.StepExecutionAggregator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.ChunkListener
+      newFullyQualifiedTypeName: org.springframework.batch.core.listener.ChunkListener
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.ItemProcessListener
+      newFullyQualifiedTypeName: org.springframework.batch.core.listener.ItemProcessListener
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.ItemReadListener
+      newFullyQualifiedTypeName: org.springframework.batch.core.listener.ItemReadListener
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.ItemWriteListener
+      newFullyQualifiedTypeName: org.springframework.batch.core.listener.ItemWriteListener
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobExecutionListener
+      newFullyQualifiedTypeName: org.springframework.batch.core.listener.JobExecutionListener
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.SkipListener
+      newFullyQualifiedTypeName: org.springframework.batch.core.listener.SkipListener
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.StepExecutionListener
+      newFullyQualifiedTypeName: org.springframework.batch.core.listener.StepExecutionListener
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.StepListener
+      newFullyQualifiedTypeName: org.springframework.batch.core.listener.StepListener
