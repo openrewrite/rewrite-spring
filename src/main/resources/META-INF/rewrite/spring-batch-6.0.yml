@@ -139,3 +139,12 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.UnexpectedJobExecutionException
       newFullyQualifiedTypeName: org.springframework.batch.core.job.UnexpectedJobExecutionException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.Step
+      newFullyQualifiedTypeName: org.springframework.batch.core.step.Step
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.StepContribution
+      newFullyQualifiedTypeName: org.springframework.batch.core.step.StepContribution
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.StepExecution
+      newFullyQualifiedTypeName: org.springframework.batch.core.step.StepExecution
