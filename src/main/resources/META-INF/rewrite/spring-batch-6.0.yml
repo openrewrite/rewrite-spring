@@ -112,3 +112,30 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.StepListener
       newFullyQualifiedTypeName: org.springframework.batch.core.listener.StepListener
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.Job
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.Job
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobExecution
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.JobExecution
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobExecutionException
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.JobExecutionException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobInstance
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.JobInstance
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobInterruptedException
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.JobInterruptedException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobKeyGenerator
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.JobKeyGenerator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.DefaultJobKeyGenerator
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.DefaultJobKeyGenerator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.StartLimitExceededException
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.StartLimitExceededException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.UnexpectedJobExecutionException
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.UnexpectedJobExecutionException
