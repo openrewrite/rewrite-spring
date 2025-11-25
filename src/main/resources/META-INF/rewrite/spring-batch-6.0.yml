@@ -169,3 +169,12 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.job.launch.support.DataFieldMaxValueJobParametersIncrementer
       newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.DataFieldMaxValueJobParametersIncrementer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.Step
+      newFullyQualifiedTypeName: org.springframework.batch.core.step.Step
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.StepContribution
+      newFullyQualifiedTypeName: org.springframework.batch.core.step.StepContribution
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.StepExecution
+      newFullyQualifiedTypeName: org.springframework.batch.core.step.StepExecution
