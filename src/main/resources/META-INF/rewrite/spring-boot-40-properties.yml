@@ -119,6 +119,27 @@ recipeList:
       oldPropertyKey: management.zipkin.tracing.read-timeout
       newPropertyKey: management.tracing.export.zipkin.read-timeout
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.error.include-binding-errors
+      newPropertyKey: spring.web.error.include-binding-errors
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.error.include-exception
+      newPropertyKey: spring.web.error.include-exception
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.error.include-message
+      newPropertyKey: spring.web.error.include-message
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.error.include-path
+      newPropertyKey: spring.web.error.include-path
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.error.include-stacktrace
+      newPropertyKey: spring.web.error.include-stacktrace
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.error.path
+      newPropertyKey: spring.web.error.path
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: server.error.whitelabel.enabled
+      newPropertyKey: spring.web.error.whitelabel.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.servlet.encoding.charset
       newPropertyKey: spring.servlet.encoding.charset
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -238,7 +259,41 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.test.mockmvc.webdriver.enabled
       newPropertyKey: spring.test.mockmvc.htmlunit.webdriver.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.test.webclient.mockrestserviceserver.enabled
+      newPropertyKey: spring.test.restclient.mockrestserviceserver.enabled
 
+
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.endpoints.jackson2.isolated-object-mapper
+      comment: "This property is deprecated: Jackson 3 is preferred."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.signalfx.access-token
+      comment: "This property is deprecated: SignalFX is no longer supported."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.signalfx.batch-size
+      comment: "This property is deprecated: SignalFX is no longer supported."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.signalfx.connect-timeout
+      comment: "This property is deprecated: SignalFX is no longer supported."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.signalfx.enabled
+      comment: "This property is deprecated: SignalFX is no longer supported."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.signalfx.published-histogram-type
+      comment: "This property is deprecated: SignalFX is no longer supported."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.signalfx.read-timeout
+      comment: "This property is deprecated: SignalFX is no longer supported."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.signalfx.source
+      comment: "This property is deprecated: SignalFX is no longer supported."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.signalfx.step
+      comment: "This property is deprecated: SignalFX is no longer supported."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.signalfx.uri
+      comment: "This property is deprecated: SignalFX is no longer supported."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: management.wavefront.api-token
       comment: "This property is deprecated: Wavefront is end-of-life."
