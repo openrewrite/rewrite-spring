@@ -140,6 +140,36 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.batch.core.UnexpectedJobExecutionException
       newFullyQualifiedTypeName: org.springframework.batch.core.job.UnexpectedJobExecutionException
   - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.CompositeJobParametersValidator
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.CompositeJobParametersValidator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.DefaultJobParametersValidator
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.DefaultJobParametersValidator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobParameter
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.JobParameter
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobParameters
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.JobParameters
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobParametersBuilder
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.JobParametersBuilder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobParametersIncrementer
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.JobParametersIncrementer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobParametersInvalidException
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.JobParametersInvalidException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.JobParametersValidator
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.JobParametersValidator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.job.launch.support.RunIdIncrementer
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.RunIdIncrementer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.job.launch.support.DataFieldMaxValueJobParametersIncrementer
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.DataFieldMaxValueJobParametersIncrementer
+  - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.Step
       newFullyQualifiedTypeName: org.springframework.batch.core.step.Step
   - org.openrewrite.java.ChangeType:
