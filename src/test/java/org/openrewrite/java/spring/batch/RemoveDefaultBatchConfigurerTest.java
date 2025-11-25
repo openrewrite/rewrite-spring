@@ -159,7 +159,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
             """
               import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
               import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
-              class FooConfig  {
+              class FooConfig {
                   public BatchConfigurer bean(javax.sql.DataSource dataSource) {
                       return new DefaultBatchConfigurer(dataSource);
                   }
