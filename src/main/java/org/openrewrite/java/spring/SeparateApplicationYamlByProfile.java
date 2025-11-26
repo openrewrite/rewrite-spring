@@ -62,7 +62,8 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                                         .map(profile -> {
                                             if (profile instanceof Yaml.Scalar) {
                                                 return singletonList(((Yaml.Scalar) profile).getValue());
-                                            } else  if (profile instanceof Yaml.Sequence) {
+                                            }
+                                            if (profile instanceof Yaml.Sequence) {
                                                 return ((Yaml.Sequence) profile).getEntries().stream()
                                                         .map(entry -> ((Yaml.Scalar) entry.getBlock()).getValue())
                                                         .collect(toList());
