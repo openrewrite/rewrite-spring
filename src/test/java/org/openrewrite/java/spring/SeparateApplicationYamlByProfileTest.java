@@ -60,6 +60,42 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
     }
 
     @Test
+    void separateProfileList() {
+        rewriteRun(
+          //language=yaml
+          srcMainResources(
+            yaml(
+              """
+                name: main
+                ---
+                spring:
+                  config:
+                    activate:
+                      on-profile:
+                        - test
+                        - unit-test
+                name: test
+                """,
+              """
+              name: main
+              """,
+              spec -> spec.path("application.yml").noTrim()
+            ),
+            yaml(
+              doesNotExist(),
+              "name: test",
+              spec -> spec.path("application-test.yml")
+            ),
+            yaml(
+              doesNotExist(),
+              "name: test",
+              spec -> spec.path("application-unit-test.yml")
+            )
+          )
+        );
+    }
+
+    @Test
     void leaveProfileExpressionsAlone() {
         rewriteRun(
           srcMainResources(

@@ -25,6 +25,7 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 
@@ -56,19 +57,30 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                     Yaml.Documents mainYaml = yaml.withDocuments(ListUtils.map(
                             yaml.getDocuments(),
                             doc -> {
-                                String profileName = FindProperty.find(doc, "spring.config.activate.on-profile", true).stream()
+                                List<String> profileNames = FindProperty.find(doc, "spring.config.activate.on-profile", true).stream()
                                         .findAny()
-                                        .map(profile -> ((Yaml.Scalar) profile).getValue())
-                                        .orElse(null);
+                                        .map(profile -> {
+                                            if (profile instanceof Yaml.Scalar) {
+                                                return singletonList(((Yaml.Scalar) profile).getValue());
+                                            } else  if (profile instanceof Yaml.Sequence) {
+                                                return ((Yaml.Sequence) profile).getEntries().stream()
+                                                        .map(entry -> ((Yaml.Scalar) entry.getBlock()).getValue())
+                                                        .collect(Collectors.toList());
+                                            }
+                                            return null;
+                                        })
+                                        .orElseGet(ArrayList::new);
 
-                                if (profileName != null && profileName.matches("[A-z0-9-]+")) {
+                                if (!profileNames.isEmpty() && profileNames.stream().allMatch(name -> name.matches("[A-z0-9-]+"))) {
                                     Yaml.Document profileDoc = (Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", true, true, null)
                                             .getVisitor().visit(doc, ctx, new Cursor(null, yaml));
                                     assert profileDoc != null;
-                                    profiles.add(yaml
-                                            .withId(Tree.randomId())
-                                            .withDocuments(singletonList(profileDoc.withExplicit(false)))
-                                            .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profileName + ".yml")));
+                                    profileNames.forEach(profileName -> {
+                                        profiles.add(yaml
+                                                .withId(Tree.randomId())
+                                                .withDocuments(singletonList(profileDoc.withExplicit(false)))
+                                                .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profileName + ".yml")));
+                                    });
                                     return null;
                                 }
 
