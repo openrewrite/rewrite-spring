@@ -25,9 +25,9 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApplicationYamlByProfile.ApplicationProfiles> {
 
@@ -65,7 +65,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                                             } else  if (profile instanceof Yaml.Sequence) {
                                                 return ((Yaml.Sequence) profile).getEntries().stream()
                                                         .map(entry -> ((Yaml.Scalar) entry.getBlock()).getValue())
-                                                        .collect(Collectors.toList());
+                                                        .collect(toList());
                                             }
                                             return null;
                                         })
