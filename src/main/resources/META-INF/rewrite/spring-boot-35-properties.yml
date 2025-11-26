@@ -26,6 +26,9 @@ tags:
   - boot
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: management.metrics.export.prometheus.pushgateway.base-url
+      newPropertyKey: management.prometheus.metrics.export.pushgateway.address
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.promethus.metrics.export.pushgateway.base-url
       newPropertyKey: management.prometheus.metrics.export.pushgateway.address
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -80,6 +83,9 @@ recipeList:
       oldPropertyKey: spring.mvc.converters.preferred-json-mapper
       newPropertyKey: spring.http.converters.preferred-json-mapper
 
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.metrics.export.prometheus.histogram-flavor
+      comment: "This property is deprecated: No longer supported by the Prometheus client."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: management.signalfx.metrics.export.access-token
       comment: "This property is deprecated: Deprecated in Micrometer 1.15.0"

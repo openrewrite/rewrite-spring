@@ -236,6 +236,9 @@ recipeList:
       oldPropertyKey: spring.kafka.retry.topic.backoff.random
       newPropertyKey: spring.kafka.retry.topic.backoff.jitter
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.kafka.retry.topic.max-delay
+      newPropertyKey: spring.kafka.retry.topic.backoff.maxDelay
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.session.redis.cleanup-cron
       newPropertyKey: spring.session.data.redis.cleanup-cron
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
