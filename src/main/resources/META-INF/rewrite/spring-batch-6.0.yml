@@ -181,3 +181,6 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.integration.chunk.ChunkHandler
       newFullyQualifiedTypeName: org.springframework.batch.integration.chunk.ChunkRequestHandler
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.support.JobRepositoryFactoryBean
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.support.JdbcJobRepositoryFactoryBean
