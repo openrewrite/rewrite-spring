@@ -178,3 +178,6 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.StepExecution
       newFullyQualifiedTypeName: org.springframework.batch.core.step.StepExecution
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.integration.chunk.ChunkHandler
+      newFullyQualifiedTypeName: org.springframework.batch.integration.chunk.ChunkRequestHandler
