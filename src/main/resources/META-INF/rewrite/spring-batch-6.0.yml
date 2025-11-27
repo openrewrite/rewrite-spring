@@ -184,3 +184,6 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.repository.support.JobRepositoryFactoryBean
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.support.JdbcJobRepositoryFactoryBean
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.explore.support.JobExplorerFactoryBean
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.explore.support.JdbcJobExplorerFactoryBean
