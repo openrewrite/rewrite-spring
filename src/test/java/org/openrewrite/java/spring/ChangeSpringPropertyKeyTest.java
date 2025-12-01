@@ -279,6 +279,45 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/852")
+    @Test
+    void keepingYAMLFormat() {
+        rewriteRun(
+          spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-40-properties.yml", "org.openrewrite.java.spring.boot4.SpringBootProperties_4_0"),
+          mavenProject("",
+            srcMainResources(
+              //language=yaml
+              yaml("""
+                server:
+                  port: 1234
+                  servlet:
+                    encoding:
+                      charset: UTF-8
+                      enabled: true
+                      force: true
+
+                spring:
+                  datasource:
+                    url: jdbc:postgresql://localhost/test
+                """, """
+                server:
+                  port: 1234
+
+                spring:
+                  datasource:
+                    url: jdbc:postgresql://localhost/test
+                  servlet:
+                    encoding:
+                      charset: UTF-8
+                      enabled: true
+                      force: true
+                """
+              )
+            )
+          )
+        );
+    }
+
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/231")
     @Test
     void changeValueAnnotation() {
