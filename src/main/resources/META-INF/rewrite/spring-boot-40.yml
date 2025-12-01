@@ -32,3 +32,24 @@ recipeList:
   - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
   - org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
   - org.openrewrite.java.testing.testcontainers.Testcontainers2Migration
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.boot
+      artifactId: "*"
+      newVersion: 4.0.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-dependencies
+      newVersion: 4.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.maven.UpgradePluginVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-maven-plugin
+      newVersion: 4.0.x
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-parent
+      newVersion: 4.0.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.springframework.boot
+      newVersion: 4.0.x
