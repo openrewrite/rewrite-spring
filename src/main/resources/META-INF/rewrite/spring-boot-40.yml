@@ -76,3 +76,4 @@ recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-web-services
+      newArtifactId: spring-boot-starter-webservices
