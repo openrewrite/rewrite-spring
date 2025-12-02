@@ -57,3 +57,22 @@ recipeList:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-aop
       newArtifactId: spring-boot-starter-aspectj
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-oauth2-authorization-server
+      newArtifactId: spring-boot-starter-security-oauth2-authorization-server
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-oauth2-client
+      newArtifactId: spring-boot-starter-security-oauth2-client
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-oauth2-resource-server
+      newArtifactId: spring-boot-starter-security-oauth2-resource-server
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-web
+      newArtifactId: spring-boot-starter-webmvc
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-web-services
