@@ -59,8 +59,12 @@ recipeDependencies {
     parserClasspath("org.mongodb:mongo-java-driver:3.12.+")
 
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
+    parserClasspath("org.springframework.batch:spring-batch-core:5.0.+")
+    parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.0.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.1.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.1.+")
+    parserClasspath("org.springframework.batch:spring-batch-core:6.0.+")
+    parserClasspath("org.springframework.batch:spring-batch-infrastructure:6.0.+")
 
     parserClasspath("org.springframework:spring-messaging:5.+")
     parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
@@ -121,6 +125,9 @@ recipeDependencies {
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:4.3.10")
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
     testParserClasspath("org.springframework.batch:spring-batch-test:4.3.+")
+    testParserClasspath("org.springframework.batch:spring-batch-core:6.+")
+    testParserClasspath("org.springframework.batch:spring-batch-infrastructure:6.+")
+    testParserClasspath("org.springframework.batch:spring-batch-test:6.+")
 
     testParserClasspath("org.springframework.boot:spring-boot-actuator:2.1.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.0.+")
