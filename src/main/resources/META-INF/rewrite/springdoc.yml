@@ -142,6 +142,7 @@ tags:
   - springdoc
 recipeList:
   - org.openrewrite.openapi.swagger.SwaggerToOpenAPI
+  - org.openrewrite.openapi.swagger.UseJakartaSwaggerArtifacts
   # "classes/annotations changes"
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.SpringDocUtils
