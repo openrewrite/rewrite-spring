@@ -141,7 +141,7 @@ description: Upgrade to SpringDoc v2.1, as described in the [upgrade guide](http
 tags:
   - springdoc
 recipeList:
-  - org.openrewrite.openapi.swagger.UseJakartaSwaggerArtifacts
+  - org.openrewrite.openapi.swagger.SwaggerToOpenAPI
   # "classes/annotations changes"
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.SpringDocUtils
