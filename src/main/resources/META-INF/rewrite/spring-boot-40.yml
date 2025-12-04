@@ -31,6 +31,7 @@ recipeList:
   - org.openrewrite.java.spring.batch.SpringBatch5To6Migration
   - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
   - org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
+  - org.openrewrite.hibernate.MigrateToHibernate71
   - org.openrewrite.java.testing.testcontainers.Testcontainers2Migration
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
