@@ -55,10 +55,6 @@ recipeList:
       newVersion: 4.0.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.boot
-      oldArtifactId: spring-boot-starter-aop
-      newArtifactId: spring-boot-starter-aspectj
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-oauth2-authorization-server
       newArtifactId: spring-boot-starter-security-oauth2-authorization-server
   - org.openrewrite.java.dependencies.ChangeDependency:
