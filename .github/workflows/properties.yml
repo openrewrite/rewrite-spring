@@ -3,8 +3,9 @@ name: Generate Spring Boot property migration recipes
 
 on:
   workflow_dispatch: {}
-  schedule:
-    - cron: 0 11 * * TUE
+  # Disabled as the generator here is incomplete, as seen for Spring Boot 4.0, as compared to internal tool.
+#  schedule:
+#    - cron: 0 11 * * TUE
 
 jobs:
   update-migrations:
