@@ -39,7 +39,6 @@ import org.openrewrite.java.tree.TypeUtils;
 import java.util.List;
 import java.util.Objects;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
@@ -78,73 +77,56 @@ public class MigrateJobStep extends Recipe {
 		@Override
 		public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext ctx) {
 			J.ClassDeclaration cd = super.visitClassDeclaration(classDeclaration, ctx);
+			List<Statement> migratedStatements =
+					cd.getBody().getStatements().stream()
+							.map(this::cleanConstructor) // clean constructor (remove JobLauncher, maybe empty)
+							.filter(Objects::nonNull) // remove empty constructor
+							.filter(statement -> !isJobLauncherParameter(statement)) // remove JobLauncher param
+							.collect(toList());
 
-			if (!FindMethods.find(classDeclaration, JOB_STEP_JOB_LAUNCHER_SETTER).isEmpty()) {
-				cd = cd.withBody(cd.getBody().withStatements(ListUtils.map(cd.getBody().getStatements(), statement -> {
-					if (statement instanceof J.VariableDeclarations &&
-							((J.VariableDeclarations) statement).getTypeExpression() != null) {
-						if (TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getTypeExpression().getType(),
-								JOB_LAUNCHER_FULLY_QUALIFIED_NAME)) {
-							return null;
-						}
-					}
-					return statement;
-				})));
-			}
-
-			// Remove field
-			cd = cd.withBody(
-					cd.getBody().withStatements(
-							ListUtils.map(cd.getBody().getStatements(), s -> s)
-									.stream()
-									.filter(statement -> !isJobLauncherParameter(statement))
-									.collect(toList())
-					)
-			);
-
-			// Remove constructor if it has zero parameters (after removing JobLauncher)
-			return cd.withBody(
-					cd.getBody().withStatements(
-							cd.getBody().getStatements().stream()
-									.map(this::cleanConstructor)
-									.filter(Objects::nonNull) // remove empty constructors
-									.collect(toList())
-					)
-			);
+			return cd.withBody(cd.getBody().withStatements(migratedStatements));
 		}
 
 		@Override
-		public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
-			if (!FindMethods.find(md, JOB_STEP_JOB_LAUNCHER_SETTER).isEmpty()) {
-				List<Statement> params = ListUtils.filter(md.getParameters(), j -> !isJobLauncherParameter(j));
-				if (params.isEmpty() && md.isConstructor()) {
-					return null;
-				}
-				J.MethodDeclaration finalMd = md;
-				params = ListUtils.mapFirst(params, p -> p.withPrefix(finalMd.getParameters().get(0).getPrefix().withComments(emptyList())));
+		public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
 
-				if (md.getParameters().stream().noneMatch(this::isJobOperatorParameter) && !md.isConstructor()) {
-					maybeAddImport(JOB_OPERATOR_FULLY_QUALIFIED_NAME);
-					maybeRemoveImport(JOB_LAUNCHER_FULLY_QUALIFIED_NAME);
-					maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
-					boolean parametersEmpty = params.isEmpty() || params.get(0) instanceof J.Empty;
-					J.VariableDeclarations vdd = JavaTemplate.builder("JobOperator jobOperator")
-							.contextSensitive()
-							.imports(JOB_OPERATOR_FULLY_QUALIFIED_NAME)
-							.javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-6.0.+"))
-							.build()
-							.<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
-							.getParameters().get(0).withPrefix(parametersEmpty ? Space.EMPTY : Space.SINGLE_SPACE);
-					if (parametersEmpty) {
-						md = md.withParameters(singletonList(vdd))
-								.withMethodType(md.getMethodType()
-										.withParameterTypes(singletonList(vdd.getType())));
-					}
-					md = md.withParameters(ListUtils.concat(params, vdd))
-							.withMethodType(md.getMethodType()
-									.withParameterTypes(ListUtils.concat(md.getMethodType().getParameterTypes(), vdd.getType())));
-				}
+			// Only process methods that match JobStep#setJobLauncher
+			if (FindMethods.find(md, JOB_STEP_JOB_LAUNCHER_SETTER).isEmpty()) {
+				return super.visitMethodDeclaration(md, ctx);
 			}
+
+			List<Statement> originalParams = md.getParameters();
+
+			// Remove JobLauncher parameters
+			List<Statement> filteredParams = ListUtils.filter(originalParams, p -> !isJobLauncherParameter(p));
+
+			maybeAddImport(JOB_OPERATOR_FULLY_QUALIFIED_NAME);
+			maybeRemoveImport(JOB_LAUNCHER_FULLY_QUALIFIED_NAME);
+			maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
+
+			boolean noParams = filteredParams.isEmpty() || filteredParams.get(0) instanceof J.Empty;
+
+			// Template for JobOperator parameter
+			J.VariableDeclarations jobOperatorParam = JavaTemplate.builder("JobOperator jobOperator")
+					.contextSensitive()
+					.imports(JOB_OPERATOR_FULLY_QUALIFIED_NAME)
+					.javaParser(JavaParser.fromJavaVersion()
+							.classpathFromResources(ctx, "spring-batch-core-6.0.+"))
+					.build()
+					.<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
+					.getParameters()
+					.get(0)
+					.withPrefix(noParams ? Space.EMPTY : Space.SINGLE_SPACE);
+
+			// Add JobOperator parameter
+			List<Statement> newParams = noParams ? singletonList(jobOperatorParam) : ListUtils.concat(
+					filteredParams, jobOperatorParam);
+
+			List<JavaType> newParamTypes = noParams ? singletonList(jobOperatorParam.getType()) : ListUtils.concat(
+					md.getMethodType().getParameterTypes(), jobOperatorParam.getType());
+
+			md = md.withParameters(newParams).withMethodType(md.getMethodType().withParameterTypes(newParamTypes));
+
 			return super.visitMethodDeclaration(md, ctx);
 		}
 
@@ -185,9 +167,7 @@ public class MigrateJobStep extends Recipe {
 							.collect(toList())
 			);
 
-			J.MethodDeclaration updated = md
-					.withParameters(newParams)
-					.withBody(newBody);
+			J.MethodDeclaration updated = md.withParameters(newParams).withBody(newBody);
 
 			// Remove entire constructor if empty
 			boolean noParams = updated.getParameters().isEmpty();
@@ -206,11 +186,6 @@ public class MigrateJobStep extends Recipe {
 					JavaType.buildType(JOB_OPERATOR_FULLY_QUALIFIED_NAME),
 					new JavaType.Variable(null, 0, "jobOperator", null, null, null)
 			);
-		}
-
-		private boolean isJobOperatorParameter(Statement statement) {
-			return statement instanceof J.VariableDeclarations &&
-					TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(), JOB_OPERATOR_FULLY_QUALIFIED_NAME);
 		}
 
 		private boolean isJobLauncherParameter(Statement statement) {
