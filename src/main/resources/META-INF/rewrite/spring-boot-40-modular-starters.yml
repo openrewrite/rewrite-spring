@@ -20,7 +20,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.MigrateToModularStarters
 displayName: Migrate to Spring Boot 4.0 modular starters
-description: >
+description: >-
   Adds the necessary Spring Boot 4.0 starter dependencies based on package usage. Spring Boot 4.0 has a modular design requiring explicit starters for each feature. This recipe detects feature usage via package imports and adds the appropriate starters. Note: Higher-level starters (like data-jpa) include lower-level ones (like jdbc) transitively, so only the highest-level detected starter is added for each technology.
 recipeList:
   # spring-boot-starter-data-jpa
