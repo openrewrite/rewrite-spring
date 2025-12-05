@@ -35,12 +35,6 @@ recipeList:
       oldPropertyKey: management.metrics.mongo.connectionpool.enabled
       newPropertyKey: management.metrics.mongodb.connectionpool.enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.observations.long-task-timer.enabled
-      newPropertyKey: management.metrics.observations.ignored-meters
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.otlp.logging
-      newPropertyKey: management.opentelemetry.logging.export.otlp
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.otlp.logging.compression
       newPropertyKey: management.opentelemetry.logging.export.otlp.compression
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -235,9 +229,6 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.kafka.retry.topic.backoff.random
       newPropertyKey: spring.kafka.retry.topic.backoff.jitter
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.kafka.retry.topic.max-delay
-      newPropertyKey: spring.kafka.retry.topic.backoff.maxDelay
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.session.redis.cleanup-cron
       newPropertyKey: spring.session.data.redis.cleanup-cron
@@ -438,4 +429,3 @@ recipeList:
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.thymeleaf.enabled
       comment: "This property is deprecated: No longer required. To use Thymeleaf without auto-configuration, depend directly on Thymeleaf instead of spring-boot-thymeleaf."
-
