@@ -232,7 +232,9 @@ public class ChangeSpringPropertyKey extends Recipe {
             Pattern pattern = Pattern.compile("^" + quote(oldPropertyKey) + exceptRegex());
             Matcher matcher = pattern.matcher(value);
             if (matcher.find()) {
-                return literal.withValueSource(literal.getValueSource().replaceFirst(quote(oldPropertyKey), newPropertyKey)).withValue(value.replaceFirst(quote(oldPropertyKey), newPropertyKey));
+                return literal
+                        .withValue(value.replaceFirst(quote(oldPropertyKey), newPropertyKey))
+                        .withValueSource(literal.getValueSource().replaceFirst(quote(oldPropertyKey), newPropertyKey));
             }
             return literal;
         }
