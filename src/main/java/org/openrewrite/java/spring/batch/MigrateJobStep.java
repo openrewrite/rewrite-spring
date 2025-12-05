@@ -19,192 +19,180 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
-import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.Space;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
 
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 public class MigrateJobStep extends Recipe {
 
-	private static final String JOB_STEP_JOB_LAUNCHER_SETTER = "org.springframework.batch.core.step.job.JobStep " +
-			"setJobLauncher(org.springframework.batch.core.launch.JobLauncher)";
-	public static final String JOB_OPERATOR_FULLY_QUALIFIED_NAME = "org.springframework.batch.core.launch.JobOperator";
-	public static final String JOB_LAUNCHER_FULLY_QUALIFIED_NAME = "org.springframework.batch.core.launch.JobLauncher";
+    private static final String JOB_STEP_JOB_LAUNCHER_SETTER = "org.springframework.batch.core.step.job.JobStep " +
+            "setJobLauncher(org.springframework.batch.core.launch.JobLauncher)";
+    public static final String JOB_OPERATOR_FULLY_QUALIFIED_NAME = "org.springframework.batch.core.launch.JobOperator";
+    public static final String JOB_LAUNCHER_FULLY_QUALIFIED_NAME = "org.springframework.batch.core.launch.JobLauncher";
 
-	@Override
-	public String getDisplayName() {
-		return "Migrate `JobStep` to use `JobOperator` instead of `JobLauncher`";
-	}
+    @Override
+    public String getDisplayName() {
+        return "Migrate `JobStep` to use `JobOperator` instead of `JobLauncher`";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Since spring-batch 6.0 `JobLauncher` is deprecated in favor of `JobOperator`. This recipe migrates " +
-				"`JobStep` to use `JobOperator` instead of `JobLauncher`.";
-	}
+    @Override
+    public String getDescription() {
+        return "Since spring-batch 6.0 `JobLauncher` is deprecated in favor of `JobOperator`. This recipe migrates " +
+                "`JobStep` to use `JobOperator` instead of `JobLauncher`.";
+    }
 
-	@Override
-	public TreeVisitor<?, ExecutionContext> getVisitor() {
-		return Preconditions.check(new UsesMethod<>(JOB_STEP_JOB_LAUNCHER_SETTER),
-				new JavaVisitor<ExecutionContext>() {
-					@Override
-					public J visit(@Nullable Tree tree, ExecutionContext ctx) {
-						return new JobOperatorVisitor().visit(tree, ctx);
-					}
-				}
-		);
-	}
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(
+                new UsesMethod<>(JOB_STEP_JOB_LAUNCHER_SETTER),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext ctx) {
+                        J.ClassDeclaration cd = super.visitClassDeclaration(classDeclaration, ctx);
+                        List<Statement> migratedStatements =
+                                cd.getBody().getStatements().stream()
+                                        .map(this::cleanConstructor) // clean constructor (remove JobLauncher, maybe empty)
+                                        .filter(Objects::nonNull) // remove empty constructor
+                                        .filter(statement -> !isJobLauncherParameter(statement)) // remove JobLauncher param
+                                        .collect(toList());
 
-	private static class JobOperatorVisitor extends JavaIsoVisitor<ExecutionContext> {
+                        return cd.withBody(cd.getBody().withStatements(migratedStatements));
+                    }
 
-		@Override
-		public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDeclaration, ExecutionContext ctx) {
-			J.ClassDeclaration cd = super.visitClassDeclaration(classDeclaration, ctx);
-			List<Statement> migratedStatements =
-					cd.getBody().getStatements().stream()
-							.map(this::cleanConstructor) // clean constructor (remove JobLauncher, maybe empty)
-							.filter(Objects::nonNull) // remove empty constructor
-							.filter(statement -> !isJobLauncherParameter(statement)) // remove JobLauncher param
-							.collect(toList());
+                    @Override
+                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
 
-			return cd.withBody(cd.getBody().withStatements(migratedStatements));
-		}
+                        // Only process methods that match JobStep#setJobLauncher
+                        if (FindMethods.find(md, JOB_STEP_JOB_LAUNCHER_SETTER).isEmpty()) {
+                            return super.visitMethodDeclaration(md, ctx);
+                        }
 
-		@Override
-		public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
+                        List<Statement> originalParams = md.getParameters();
 
-			// Only process methods that match JobStep#setJobLauncher
-			if (FindMethods.find(md, JOB_STEP_JOB_LAUNCHER_SETTER).isEmpty()) {
-				return super.visitMethodDeclaration(md, ctx);
-			}
+                        // Remove JobLauncher parameters
+                        List<Statement> filteredParams = ListUtils.filter(originalParams, p -> !isJobLauncherParameter(p));
 
-			List<Statement> originalParams = md.getParameters();
+                        maybeAddImport(JOB_OPERATOR_FULLY_QUALIFIED_NAME);
+                        maybeRemoveImport(JOB_LAUNCHER_FULLY_QUALIFIED_NAME);
+                        maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
 
-			// Remove JobLauncher parameters
-			List<Statement> filteredParams = ListUtils.filter(originalParams, p -> !isJobLauncherParameter(p));
+                        boolean noParams = filteredParams.isEmpty() || filteredParams.get(0) instanceof J.Empty;
 
-			maybeAddImport(JOB_OPERATOR_FULLY_QUALIFIED_NAME);
-			maybeRemoveImport(JOB_LAUNCHER_FULLY_QUALIFIED_NAME);
-			maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
+                        // Template for JobOperator parameter
+                        J.VariableDeclarations jobOperatorParam = JavaTemplate.builder("JobOperator jobOperator")
+                                .contextSensitive()
+                                .imports(JOB_OPERATOR_FULLY_QUALIFIED_NAME)
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-batch-core-6.0.+"))
+                                .build()
+                                .<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
+                                .getParameters()
+                                .get(0)
+                                .withPrefix(noParams ? Space.EMPTY : Space.SINGLE_SPACE);
 
-			boolean noParams = filteredParams.isEmpty() || filteredParams.get(0) instanceof J.Empty;
+                        // Add JobOperator parameter
+                        List<Statement> newParams = noParams ? singletonList(jobOperatorParam) : ListUtils.concat(
+                                filteredParams, jobOperatorParam);
 
-			// Template for JobOperator parameter
-			J.VariableDeclarations jobOperatorParam = JavaTemplate.builder("JobOperator jobOperator")
-					.contextSensitive()
-					.imports(JOB_OPERATOR_FULLY_QUALIFIED_NAME)
-					.javaParser(JavaParser.fromJavaVersion()
-							.classpathFromResources(ctx, "spring-batch-core-6.0.+"))
-					.build()
-					.<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
-					.getParameters()
-					.get(0)
-					.withPrefix(noParams ? Space.EMPTY : Space.SINGLE_SPACE);
+                        List<JavaType> newParamTypes = noParams ? singletonList(jobOperatorParam.getType()) : ListUtils.concat(
+                                md.getMethodType().getParameterTypes(), jobOperatorParam.getType());
 
-			// Add JobOperator parameter
-			List<Statement> newParams = noParams ? singletonList(jobOperatorParam) : ListUtils.concat(
-					filteredParams, jobOperatorParam);
+                        md = md.withParameters(newParams).withMethodType(md.getMethodType().withParameterTypes(newParamTypes));
 
-			List<JavaType> newParamTypes = noParams ? singletonList(jobOperatorParam.getType()) : ListUtils.concat(
-					md.getMethodType().getParameterTypes(), jobOperatorParam.getType());
+                        return super.visitMethodDeclaration(md, ctx);
+                    }
 
-			md = md.withParameters(newParams).withMethodType(md.getMethodType().withParameterTypes(newParamTypes));
+                    @Override
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation m, ExecutionContext ctx) {
+                        MethodMatcher methodMatcher = new MethodMatcher(JOB_STEP_JOB_LAUNCHER_SETTER, false);
+                        if (methodMatcher.matches(m)) {
+                            JavaType.Method type = m.getMethodType();
+                            if (type != null) {
+                                type = type.withName("setJobOperator");
+                            }
+                            Expression newArg = renameJobLauncherArgument(m.getArguments().get(0));
+                            m = m.withName(m.getName().withSimpleName("setJobOperator").withType(type)).withMethodType(type)
+                                    .withArguments(singletonList(newArg));
+                        }
+                        return super.visitMethodInvocation(m, ctx);
+                    }
 
-			return super.visitMethodDeclaration(md, ctx);
-		}
+                    private @Nullable Statement cleanConstructor(Statement stmt) {
+                        if (!(stmt instanceof J.MethodDeclaration)) {
+                            return stmt;
+                        }
 
-		@Override
-		public J.MethodInvocation visitMethodInvocation(J.MethodInvocation m, ExecutionContext ctx) {
-			MethodMatcher methodMatcher = new MethodMatcher(JOB_STEP_JOB_LAUNCHER_SETTER, false);
-			if (methodMatcher.matches(m)) {
-				JavaType.Method type = m.getMethodType();
-				if (type != null) {
-					type = type.withName("setJobOperator");
-				}
-				Expression newArg = renameJobLauncherArgument(m.getArguments().get(0));
-				m = m.withName(m.getName().withSimpleName("setJobOperator").withType(type)).withMethodType(type)
-						.withArguments(singletonList(newArg));
-			}
-			return super.visitMethodInvocation(m, ctx);
-		}
+                        J.MethodDeclaration md = (J.MethodDeclaration) stmt;
+                        if (!md.isConstructor()) {
+                            return stmt;
+                        }
 
-		private Statement cleanConstructor(Statement stmt) {
-			if (!(stmt instanceof J.MethodDeclaration)) {
-				return stmt;
-			}
+                        // Remove JobLauncher parameter
+                        List<Statement> newParams = md.getParameters().stream()
+                                .filter(p -> !isJobLauncherParameter(p))
+                                .collect(toList());
 
-			J.MethodDeclaration md = (J.MethodDeclaration) stmt;
-			if (!md.isConstructor()) {
-				return stmt;
-			}
+                        // Remove the assignment: this.jobLauncher = jobLauncher;
+                        J.Block newBody = md.getBody().withStatements(
+                                md.getBody().getStatements().stream()
+                                        .filter(s -> !isJobLauncherAssignment(s))
+                                        .collect(toList())
+                        );
 
-			// Remove JobLauncher parameter
-			List<Statement> newParams = md.getParameters().stream()
-					.filter(p -> !isJobLauncherParameter(p))
-					.collect(toList());
+                        J.MethodDeclaration updated = md.withParameters(newParams).withBody(newBody);
 
-			// Remove the assignment: this.jobLauncher = jobLauncher;
-			J.Block newBody = md.getBody().withStatements(
-					md.getBody().getStatements().stream()
-							.filter(s -> !isJobLauncherAssignment(s))
-							.collect(toList())
-			);
+                        // Remove entire constructor if empty
+                        boolean noParams = updated.getParameters().isEmpty();
+                        boolean noBody = updated.getBody().getStatements().isEmpty();
 
-			J.MethodDeclaration updated = md.withParameters(newParams).withBody(newBody);
+                        return (noParams && noBody) ? null : updated;
+                    }
 
-			// Remove entire constructor if empty
-			boolean noParams = updated.getParameters().isEmpty();
-			boolean noBody = updated.getBody().getStatements().isEmpty();
+                    private Expression renameJobLauncherArgument(Expression oldArg) {
+                        return new J.Identifier(
+                                oldArg.getId(),
+                                oldArg.getPrefix(),
+                                oldArg.getMarkers(),
+                                emptyList(),
+                                "jobOperator",
+                                JavaType.buildType(JOB_OPERATOR_FULLY_QUALIFIED_NAME),
+                                new JavaType.Variable(null, 0, "jobOperator", null, null, null)
+                        );
+                    }
 
-			return (noParams && noBody) ? null : updated;
-		}
+                    private boolean isJobLauncherParameter(Statement statement) {
+                        return statement instanceof J.VariableDeclarations &&
+                                TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(), JOB_LAUNCHER_FULLY_QUALIFIED_NAME);
+                    }
 
-		private static Expression renameJobLauncherArgument(Expression oldArg) {
-			return new J.Identifier(
-					oldArg.getId(),
-					oldArg.getPrefix(),
-					oldArg.getMarkers(),
-					null,
-					"jobOperator",
-					JavaType.buildType(JOB_OPERATOR_FULLY_QUALIFIED_NAME),
-					new JavaType.Variable(null, 0, "jobOperator", null, null, null)
-			);
-		}
+                    private boolean isJobLauncherAssignment(Statement stmt) {
+                        if (!(stmt instanceof J.Assignment)) {
+                            return false;
+                        }
 
-		private boolean isJobLauncherParameter(Statement statement) {
-			return statement instanceof J.VariableDeclarations &&
-					TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(), JOB_LAUNCHER_FULLY_QUALIFIED_NAME);
-		}
+                        J.Assignment assign = (J.Assignment) stmt;
+                        if (!(assign.getVariable() instanceof J.FieldAccess)) {
+                            return false;
+                        }
+                        J.FieldAccess fa = (J.FieldAccess) assign.getVariable();
 
-		private boolean isJobLauncherAssignment(Statement stmt) {
-			if (!(stmt instanceof J.Assignment)) {
-				return false;
-			}
+                        return "jobLauncher".equals(fa.getName().getSimpleName());
+                    }
+                }
+        );
+    }
 
-			J.Assignment assign = (J.Assignment) stmt;
-			if (!(assign.getVariable() instanceof J.FieldAccess)) {
-				return false;
-			}
-			J.FieldAccess fa = (J.FieldAccess) assign.getVariable();
-
-			return "jobLauncher".equals(fa.getName().getSimpleName());
-		}
-	}
 }
