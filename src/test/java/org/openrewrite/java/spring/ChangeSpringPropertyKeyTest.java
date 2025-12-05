@@ -17,8 +17,6 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
@@ -390,100 +388,91 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"org.springframework.boot.test.context.SpringBootTest"})
-    void changeTestAnnotationWithImplicityLiteralProperty(String testAnnotationClass) {
-        String shortTestAnnotationClassName = testAnnotationClass.substring(testAnnotationClass.lastIndexOf('.') + 1);
+    @Test
+    void changeTestAnnotationWithImplicityLiteralProperty() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
             .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
           java(
             """
-              import %s;
+              import org.springframework.boot.test.context.SpringBootTest;
 
-              @%s("server.servlet-path=/")
+              @SpringBootTest("server.servlet-path=/")
               class SomeTest {}
-              """.formatted(testAnnotationClass, shortTestAnnotationClassName),
+              """,
             """
-              import %s;
+              import org.springframework.boot.test.context.SpringBootTest;
 
-              @%s("server.servlet.path=/")
+              @SpringBootTest("server.servlet.path=/")
               class SomeTest {}
-              """.formatted(testAnnotationClass, shortTestAnnotationClassName)
+              """
           )
         );
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"org.springframework.boot.test.context.SpringBootTest"})
-    void changeTestAnnotationWithLiteralProperty(String testAnnotationClass) {
-        String shortTestAnnotationClassName = testAnnotationClass.substring(testAnnotationClass.lastIndexOf('.') + 1);
+    @Test
+    void changeTestAnnotationWithLiteralProperty() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
             .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
           java(
             """
-              import %s;
+              import org.springframework.boot.test.context.SpringBootTest;
 
-              @%s(properties = "server.servlet-path=/")
+              @SpringBootTest(properties = "server.servlet-path=/")
               class SomeTest {}
-              """.formatted(testAnnotationClass, shortTestAnnotationClassName),
+              """,
             """
-              import %s;
+              import org.springframework.boot.test.context.SpringBootTest;
 
-              @%s(properties = "server.servlet.path=/")
+              @SpringBootTest(properties = "server.servlet.path=/")
               class SomeTest {}
-              """.formatted(testAnnotationClass, shortTestAnnotationClassName)
+              """
           )
         );
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"org.springframework.boot.test.context.SpringBootTest"})
-    void changeTestAnnotationWithArrayProperties(String testAnnotationClass) {
-        String shortTestAnnotationClassName = testAnnotationClass.substring(testAnnotationClass.lastIndexOf('.') + 1);
+    @Test
+    void changeTestAnnotationWithArrayProperties() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
             .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
           java(
             """
-              import %s;
+              import org.springframework.boot.test.context.SpringBootTest;
 
-              @%s(properties = { "server.servlet-path=/", "server.servlet-path.foo=/foo" })
+              @SpringBootTest(properties = { "server.servlet-path=/", "server.servlet-path.foo=/foo" })
               class SomeTest {}
-              """.formatted(testAnnotationClass, shortTestAnnotationClassName),
+              """,
             """
-              import %s;
+              import org.springframework.boot.test.context.SpringBootTest;
 
-              @%s(properties = { "server.servlet.path=/", "server.servlet-path.foo=/foo" })
+              @SpringBootTest(properties = { "server.servlet.path=/", "server.servlet-path.foo=/foo" })
               class SomeTest {}
-              """.formatted(testAnnotationClass, shortTestAnnotationClassName)
+              """
           )
         );
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"org.springframework.boot.test.context.SpringBootTest"})
-    void changeTestAnnotationWithImplicitArrayProperties(String testAnnotationClass) {
-        String shortTestAnnotationClassName = testAnnotationClass.substring(testAnnotationClass.lastIndexOf('.') + 1);
+    @Test
+    void changeTestAnnotationWithImplicitArrayProperties() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
             .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
           java(
             """
-              import %s;
+              import org.springframework.boot.test.context.SpringBootTest;
 
-              @%s({ "server.servlet-path=/", "server.servlet-path.foo=/foo" })
+              @SpringBootTest({ "server.servlet-path=/", "server.servlet-path.foo=/foo" })
               class SomeTest {}
-              """.formatted(testAnnotationClass, shortTestAnnotationClassName),
+              """,
             """
-              import %s;
+              import org.springframework.boot.test.context.SpringBootTest;
 
-              @%s({ "server.servlet.path=/", "server.servlet-path.foo=/foo" })
+              @SpringBootTest({ "server.servlet.path=/", "server.servlet-path.foo=/foo" })
               class SomeTest {}
-              """.formatted(testAnnotationClass, shortTestAnnotationClassName)
+              """
           )
         );
     }
-
 }
