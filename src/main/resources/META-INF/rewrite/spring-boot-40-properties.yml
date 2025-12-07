@@ -25,6 +25,10 @@ tags:
   - spring
   - boot
 recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
+      propertyKey: spring.jpa.hibernate.naming.implicit-strategy
+      oldValue: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+      newValue: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.health.mongo.enabled
       newPropertyKey: management.health.mongodb.enabled
