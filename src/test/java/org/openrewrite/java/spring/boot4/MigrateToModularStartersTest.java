@@ -70,4 +70,82 @@ class MigrateToModularStartersTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void migrateSpringSecurityTestToStarterInMaven() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>org.example</groupId>
+                  <artifactId>example</artifactId>
+                  <version>1.0-SNAPSHOT</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.security</groupId>
+                          <artifactId>spring-security-test</artifactId>
+                          <version>6.0.0</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """,
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>org.example</groupId>
+                  <artifactId>example</artifactId>
+                  <version>1.0-SNAPSHOT</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-security-test</artifactId>
+                          <version>4.0.0</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void migrateSpringKakfaToStarterInMaven() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>org.example</groupId>
+                  <artifactId>example</artifactId>
+                  <version>1.0-SNAPSHOT</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.kafka</groupId>
+                          <artifactId>spring-kafka</artifactId>
+                          <version>3.3.0</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """,
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>org.example</groupId>
+                  <artifactId>example</artifactId>
+                  <version>1.0-SNAPSHOT</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-kafka</artifactId>
+                          <version>4.0.0</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
+        );
+    }
 }
