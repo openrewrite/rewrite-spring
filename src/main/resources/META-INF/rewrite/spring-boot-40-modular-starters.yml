@@ -73,6 +73,11 @@ recipeList:
       oldPackageName: org.springframework.boot.autoconfigure.flyway
       newPackageName: org.springframework.boot.flyway.autoconfigure
       recursive: true
+  # spring-boot-starter-data-mongodb
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.mongo
+      newPackageName: org.springframework.boot.mongodb.autoconfigure
+      recursive: true
   # spring-boot-starter-cache
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.cache
