@@ -23,6 +23,7 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.spring.table.ApiEndpoints;
+import org.openrewrite.java.spring.trait.JaxRsRequestMapping;
 import org.openrewrite.java.spring.trait.SpringRequestMapping;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
@@ -43,8 +44,8 @@ public class FindApiEndpoints extends Recipe {
     public String getDescription() {
         //language=markdown
         return "Find all HTTP API endpoints exposed by Spring applications. " +
-               "More specifically, this marks method declarations annotated with `@RequestMapping`, `@GetMapping`, " +
-               "`@PostMapping`, `@PutMapping`, `@DeleteMapping`, and `@PatchMapping` as search results.";
+                "More specifically, this marks method declarations annotated with `@RequestMapping`, `@GetMapping`, " +
+                "`@PostMapping`, `@PutMapping`, `@DeleteMapping`, and `@PatchMapping` as search results.";
     }
 
     @Override
@@ -53,28 +54,57 @@ public class FindApiEndpoints extends Recipe {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-
-                SpringRequestMapping.Matcher matcher = new SpringRequestMapping.Matcher();
+                JaxRsRequestMapping.Matcher jaxRsMatcher = new JaxRsRequestMapping.Matcher();
+                SpringRequestMapping.Matcher springMatcher = new SpringRequestMapping.Matcher();
                 for (J.Annotation annotation : service(AnnotationService.class).getAllAnnotations(getCursor())) {
-                    m = matcher.get(annotation, getCursor()).map(requestMapping -> {
-                        String path = requestMapping.getPath();
-                        String methodSignature = requestMapping.getMethodSignature();
-                        String httpMethod = requestMapping.getHttpMethod();
-                        String leadingAnnotations = requestMapping.getLeadingAnnotations();
-
-                        apis.insertRow(ctx, new ApiEndpoints.Row(
-                                getCursor().firstEnclosingOrThrow(JavaSourceFile.class).getSourcePath().toString(),
-                                methodSignature,
-                                method.getSimpleName(),
-                                httpMethod,
-                                path,
-                                leadingAnnotations
-                        ));
-
-                        return SearchResult.found(method, httpMethod + " " + path);
-                    }).orElse(m);
+                    m = findJaxrsEndpoints(method, ctx, annotation, jaxRsMatcher, m);
+                    m = findSpringEndpoints(method, ctx, annotation, springMatcher, m);
                 }
                 return m;
+            }
+
+            private J.MethodDeclaration findJaxrsEndpoints(J.MethodDeclaration method, ExecutionContext ctx, J.Annotation annotation, JaxRsRequestMapping.Matcher jaxRsMatcher, J.MethodDeclaration m) {
+                return jaxRsMatcher.get(annotation, getCursor())
+                        .map(requestMapping -> {
+                            String path = requestMapping.getPath();
+                            String methodSignature = requestMapping.getMethodSignature();
+                            String httpMethod = requestMapping.getHttpMethod();
+                            String leadingAnnotations = requestMapping.getLeadingAnnotations();
+
+                            apis.insertRow(ctx, new ApiEndpoints.Row(
+                                    getCursor().firstEnclosingOrThrow(JavaSourceFile.class).getSourcePath().toString(),
+                                    methodSignature,
+                                    method.getSimpleName(),
+                                    httpMethod,
+                                    path,
+                                    leadingAnnotations
+                            ));
+
+                            return SearchResult.found(method, httpMethod + " " + path);
+                        })
+                        .orElse(m);
+            }
+
+            private J.MethodDeclaration findSpringEndpoints(J.MethodDeclaration method, ExecutionContext ctx, J.Annotation annotation, SpringRequestMapping.Matcher springMatcher, J.MethodDeclaration m) {
+                return springMatcher.get(annotation, getCursor())
+                        .map(requestMapping -> {
+                            String path = requestMapping.getPath();
+                            String methodSignature = requestMapping.getMethodSignature();
+                            String httpMethod = requestMapping.getHttpMethod();
+                            String leadingAnnotations = requestMapping.getLeadingAnnotations();
+
+                            apis.insertRow(ctx, new ApiEndpoints.Row(
+                                    getCursor().firstEnclosingOrThrow(JavaSourceFile.class).getSourcePath().toString(),
+                                    methodSignature,
+                                    method.getSimpleName(),
+                                    httpMethod,
+                                    path,
+                                    leadingAnnotations
+                            ));
+
+                            return SearchResult.found(method, httpMethod + " " + path);
+                        })
+                        .orElse(m);
             }
         };
     }

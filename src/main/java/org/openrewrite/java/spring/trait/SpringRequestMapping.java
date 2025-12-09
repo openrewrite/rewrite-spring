@@ -76,7 +76,7 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
                 String pathEnding = pathEndings.get(i);
                 String prefix = pathPrefixes.get(j);
                 result.append(prefix).append(pathEnding);
-                if(i < pathEndings.size() - 1 || j < pathPrefixes.size() - 1) {
+                if (i < pathEndings.size() - 1 || j < pathPrefixes.size() - 1) {
                     result.append(", ");
                 }
             }
@@ -94,7 +94,6 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
                 .withBody(null)
                 .printTrimmed(cursor);
     }
-
 
     public String getLeadingAnnotations() {
         J.MethodDeclaration method = cursor.firstEnclosing(J.MethodDeclaration.class);
