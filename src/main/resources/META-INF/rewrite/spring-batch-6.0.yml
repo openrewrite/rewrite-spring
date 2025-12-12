@@ -197,3 +197,13 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.launch.JobLauncher
       newFullyQualifiedTypeName: org.springframework.batch.core.launch.JobOperator
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.batch.core.step.tasklet.SystemCommandTasklet setJobExplorer(org.springframework.batch.core.repository.explore.JobExplorer)
+      newMethodName: setJobRepository
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.batch.core.partition.support.RemoteStepExecutionAggregator setJobExplorer(org.springframework.batch.core.repository.explore.JobExplorer)
+      newMethodName: setJobRepository
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.explore.JobExplorer
+      newFullyQualifiedTypeName: org.springframework.batch.core.repository.JobRepository
