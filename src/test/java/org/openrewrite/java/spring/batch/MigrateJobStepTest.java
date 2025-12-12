@@ -28,7 +28,7 @@ class MigrateJobStepTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-		spec.recipe(new MigrateJobStep())
+		spec.recipeFromResources("org.openrewrite.java.spring.batch.SpringBatch5To6Migration")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
 			"spring-batch-core-4.3.10",
 			"spring-batch-infrastructure-4.3.10",
@@ -70,9 +70,9 @@ class MigrateJobStepTest implements RewriteTest {
               class MyJobConfig {
 
                   @Bean
-                  JobStep myStep(JobRepository jobRepository, JobOperator jobOperator) {
+                  JobStep myStep(JobRepository jobRepository, JobOperator jobLauncher) {
                       JobStep jobStep = new JobStep(jobRepository);
-                      jobStep.setJobOperator(jobOperator);
+                      jobStep.setJobOperator(jobLauncher);
                       return jobStep;
                   }
               }
@@ -112,14 +112,18 @@ class MigrateJobStepTest implements RewriteTest {
              import org.springframework.batch.core.repository.JobRepository;
              import org.springframework.batch.core.step.Step;
              import org.springframework.batch.core.step.job.JobStep;
+             import org.springframework.beans.factory.annotation.Autowired;
              import org.springframework.context.annotation.Bean;
 
              class MyJobConfig {
 
+                 @Autowired
+                 private JobOperator jobLauncher;
+
                  @Bean
-                 JobStep myStep(JobRepository jobRepository, JobOperator jobOperator) {
+                 JobStep myStep(JobRepository jobRepository) {
                      JobStep jobStep = new JobStep(jobRepository);
-                     jobStep.setJobOperator(jobOperator);
+                     jobStep.setJobOperator(jobLauncher);
                      return jobStep;
                  }
              }
@@ -162,14 +166,21 @@ class MigrateJobStepTest implements RewriteTest {
              import org.springframework.batch.core.repository.JobRepository;
              import org.springframework.batch.core.step.Step;
              import org.springframework.batch.core.step.job.JobStep;
+             import org.springframework.beans.factory.annotation.Autowired;
              import org.springframework.context.annotation.Bean;
 
              class MyJobConfig {
 
+                 private final JobOperator jobLauncher;
+
+                 public MyJobConfig(JobOperator jobLauncher) {
+                     this.jobLauncher = jobLauncher;
+                 }
+
                  @Bean
-                 JobStep myStep(JobRepository jobRepository, JobOperator jobOperator) {
+                 JobStep myStep(JobRepository jobRepository) {
                      JobStep jobStep = new JobStep(jobRepository);
-                     jobStep.setJobOperator(jobOperator);
+                     jobStep.setJobOperator(jobLauncher);
                      return jobStep;
                  }
              }
