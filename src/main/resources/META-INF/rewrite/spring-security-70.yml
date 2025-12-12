@@ -31,3 +31,22 @@ recipeList:
       artifactId: "*"
       newVersion: 7.0.x
       overrideManagedVersion: false
+  - org.openrewrite.java.spring.security7.SecurityConfigurerRemoveThrowsException
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.security7.SecurityConfigurerRemoveThrowsException
+displayName: Remove throws exception in `SecurityConfigurer` methods `init` and `configure`
+description: >-
+  Remove throws exception in `SecurityConfigurer` methods `init` and `configure`.
+tags:
+  - spring
+  - security
+recipeList:
+  - org.openrewrite.java.RemoveMethodThrows:
+      methodPattern: "org.springframework.security.config.annotation.SecurityConfigurer init(..)"
+      matchOverrides: true
+      exceptionTypePattern: "java.lang.Exception"
+  - org.openrewrite.java.RemoveMethodThrows:
+      methodPattern: "org.springframework.security.config.annotation.SecurityConfigurer configure(..)"
+      matchOverrides: true
+      exceptionTypePattern: "java.lang.Exception"

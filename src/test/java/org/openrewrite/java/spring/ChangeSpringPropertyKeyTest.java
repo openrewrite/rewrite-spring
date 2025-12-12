@@ -21,7 +21,6 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
@@ -384,6 +383,94 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                       return "foo.bazes";
                   }
               }
+              """
+          )
+        );
+    }
+
+    @Test
+    void changeTestAnnotationWithImplicityLiteralProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
+          java(
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest("server.servlet-path=/")
+              class SomeTest {}
+              """,
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest("server.servlet.path=/")
+              class SomeTest {}
+              """
+          )
+        );
+    }
+
+    @Test
+    void changeTestAnnotationWithLiteralProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
+          java(
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest(properties = "server.servlet-path=/")
+              class SomeTest {}
+              """,
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest(properties = "server.servlet.path=/")
+              class SomeTest {}
+              """
+          )
+        );
+    }
+
+    @Test
+    void changeTestAnnotationWithArrayProperties() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
+          java(
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest(properties = { "server.servlet-path=/", "server.servlet-path.foo=/foo" })
+              class SomeTest {}
+              """,
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest(properties = { "server.servlet.path=/", "server.servlet-path.foo=/foo" })
+              class SomeTest {}
+              """
+          )
+        );
+    }
+
+    @Test
+    void changeTestAnnotationWithImplicitArrayProperties() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
+          java(
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest({ "server.servlet-path=/", "server.servlet-path.foo=/foo" })
+              class SomeTest {}
+              """,
+            """
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest({ "server.servlet.path=/", "server.servlet-path.foo=/foo" })
+              class SomeTest {}
               """
           )
         );

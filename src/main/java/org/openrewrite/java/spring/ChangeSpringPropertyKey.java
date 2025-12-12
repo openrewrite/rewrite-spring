@@ -51,7 +51,7 @@ public class ChangeSpringPropertyKey extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Change Spring application property keys existing in either Properties or YAML files, and in `@Value` annotations.";
+        return "Change Spring application property keys existing in either Properties or YAML files, and in `@Value`, `@ConditionalOnProperty` or `@SpringBootTest` annotations.";
     }
 
     @Option(displayName = "Old property key",
@@ -83,7 +83,8 @@ public class ChangeSpringPropertyKey extends Recipe {
         return Preconditions.check(Preconditions.or(
                 new IsPossibleSpringConfigFile(),
                 new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
-                new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false)
+                new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false),
+                new UsesType<>("org.springframework.boot..*Test", false)
         ), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
@@ -117,6 +118,8 @@ public class ChangeSpringPropertyKey extends Recipe {
                 new AnnotationMatcher("@org.springframework.beans.factory.annotation.Value");
         private final AnnotationMatcher CONDITIONAL_ON_PROPERTY_MATCHER =
                 new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty");
+        private final AnnotationMatcher SPRING_BOOT_TEST_MATCHER =
+                new AnnotationMatcher("@org.springframework.boot..*Test");
 
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
@@ -172,24 +175,68 @@ public class ChangeSpringPropertyKey extends Recipe {
                             ((J.Assignment) arg).getAssignment() instanceof J.Literal) {
                             J.Assignment assignment = (J.Assignment) arg;
                             J.Literal literal = (J.Literal) assignment.getAssignment();
-                            String value = literal.getValue().toString();
-
-                            Pattern pattern = Pattern.compile("^" + quote(oldPropertyKey) + exceptRegex());
-                            Matcher matcher = pattern.matcher(value);
-                            if (matcher.find()) {
-                                arg = assignment.withAssignment(
-                                        literal.withValueSource(
-                                                        literal.getValueSource().replaceFirst(quote(oldPropertyKey), newPropertyKey))
-                                                .withValue(value.replaceFirst(quote(oldPropertyKey), newPropertyKey))
-                                );
+                            J.Literal newLiteral = changePropertyInLiteral(literal);
+                            if (newLiteral != literal) {
+                                arg = assignment.withAssignment(newLiteral);
                             }
                         }
                         return arg;
                     }));
                 }
+            } else if (SPRING_BOOT_TEST_MATCHER.matches(annotation)) {
+                a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
+                    if (arg instanceof J.NewArray) {
+                        J.NewArray array = (J.NewArray) arg;
+                        return array.withInitializer(ListUtils.map(array.getInitializer(), property -> {
+                            if (property instanceof J.Literal) {
+                                property = changePropertyInLiteral((J.Literal) property);
+                            }
+                            return property;
+                        }));
+                    }
+                    if (arg instanceof J.Literal) {
+                        return changePropertyInLiteral((J.Literal) arg);
+                    }
+                    if (arg instanceof J.Assignment &&
+                        "properties".equals(((J.Identifier) ((J.Assignment) arg).getVariable()).getSimpleName())) {
+                        J.Assignment assignment = (J.Assignment) arg;
+                        if (assignment.getAssignment() instanceof J.Literal) {
+                            J.Literal literal = (J.Literal) assignment.getAssignment();
+                            J.Literal newLiteral = changePropertyInLiteral(literal);
+                            if (newLiteral != literal) {
+                                arg = assignment.withAssignment(newLiteral);
+                            }
+                        } else if (assignment.getAssignment() instanceof J.NewArray) {
+                            J.NewArray array = (J.NewArray) assignment.getAssignment();
+                            arg = assignment.withAssignment(array.withInitializer(ListUtils.map(array.getInitializer(), property -> {
+                                if (property instanceof J.Literal) {
+                                    property = changePropertyInLiteral((J.Literal) property);
+                                }
+                                return property;
+                            })));
+                        }
+
+                    }
+                    return arg;
+                }));
             }
 
             return a;
+        }
+
+        private J.Literal changePropertyInLiteral(J.Literal literal) {
+            if (literal.getValue() == null || literal.getValueSource() == null) {
+                return literal;
+            }
+            String value = literal.getValue().toString();
+            Pattern pattern = Pattern.compile("^" + quote(oldPropertyKey) + exceptRegex());
+            Matcher matcher = pattern.matcher(value);
+            if (matcher.find()) {
+                return literal
+                        .withValue(value.replaceFirst(quote(oldPropertyKey), newPropertyKey))
+                        .withValueSource(literal.getValueSource().replaceFirst(quote(oldPropertyKey), newPropertyKey));
+            }
+            return literal;
         }
     }
 }

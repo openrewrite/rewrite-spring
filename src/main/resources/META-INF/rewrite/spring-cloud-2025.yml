@@ -108,11 +108,11 @@ recipeList:
       newArtifactId: spring-cloud-gateway-server-webmvc
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
-      oldArtifactId: spring-cloud-starter-gateway-server
+      oldArtifactId: spring-cloud-starter-gateway
       newArtifactId: spring-cloud-starter-gateway-server-webflux
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
-      oldArtifactId: spring-cloud-starter-gateway-server-mvc
+      oldArtifactId: spring-cloud-starter-gateway-mvc
       newArtifactId: spring-cloud-starter-gateway-server-webmvc
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud

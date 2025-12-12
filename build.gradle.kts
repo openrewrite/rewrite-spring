@@ -105,6 +105,7 @@ recipeDependencies {
     testParserClasspath("jakarta.persistence:jakarta.persistence-api:2.2.3")
     testParserClasspath("jakarta.validation:jakarta.validation-api:2.0.2")
     testParserClasspath("jakarta.validation:jakarta.validation-api:3.0.+")
+    testParserClasspath("jakarta.ws.rs:jakarta.ws.rs-api:2.1.6")
     testParserClasspath("jakarta.xml.bind:jakarta.xml.bind-api:2.3.3")
     testParserClasspath("javax.persistence:javax.persistence-api:2.2")
     testParserClasspath("javax.servlet:javax.servlet-api:4.+")

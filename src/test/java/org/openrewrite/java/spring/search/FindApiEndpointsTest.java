@@ -209,4 +209,41 @@ class FindApiEndpointsTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void javaxGetMapping() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "jakarta.ws.rs-api-2")),
+          //language=java
+          java(
+            """
+              import javax.ws.rs.GET;
+              import javax.ws.rs.Path;
+
+              @Path("/person")
+              class PersonController {
+                  @GET
+                  @Path("/count")
+                  int count() {
+                    return 42;
+                  }
+              }
+              """,
+            """
+              import javax.ws.rs.GET;
+              import javax.ws.rs.Path;
+
+              @Path("/person")
+              class PersonController {
+                  /*~~(GET /person/count)~~>*/@GET
+                  @Path("/count")
+                  int count() {
+                    return 42;
+                  }
+              }
+              """
+          )
+        );
+    }
 }
