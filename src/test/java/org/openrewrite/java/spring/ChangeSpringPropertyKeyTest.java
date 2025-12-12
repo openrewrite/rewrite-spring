@@ -35,7 +35,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeLastKey() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null)),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               properties(
                 """
@@ -66,7 +66,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changePropertyPath() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("session.cookie.path", "servlet.session.cookie.path", null)),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               //language=properties
               properties(
@@ -100,7 +100,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void subproperties() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("spring.resources", "spring.web.resources", null)),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               //language=properties
               properties(
@@ -145,7 +145,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void except() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("spring.profiles", "spring.config.activate.on-profile", List.of("active", "default", "group", "include"))),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               //language=properties
               properties(
@@ -173,7 +173,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void avoidRegenerativeChanges() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("logging.file", "logging.file.name", null)),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               properties(
                 """
@@ -228,7 +228,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void loggingFileSubproperties() {
         rewriteRun(
           spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-22-properties.yml", "org.openrewrite.java.spring.boot2.SpringBootProperties_2_2"),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               properties("""
                 logging.file.max-size=10MB
@@ -251,7 +251,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void loggingFileSubpropertiesYaml() {
         rewriteRun(
           spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-22-properties.yml", "org.openrewrite.java.spring.boot2.SpringBootProperties_2_2"),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               yaml(
                 """
