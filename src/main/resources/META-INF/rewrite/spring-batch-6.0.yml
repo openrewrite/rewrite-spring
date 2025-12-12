@@ -187,3 +187,10 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.repository.explore.support.JobExplorerFactoryBean
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.explore.support.JdbcJobExplorerFactoryBean
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.batch.core.step.job.JobStep setJobLauncher(org.springframework.batch.core.launch.JobLauncher)
+      newMethodName: setJobOperator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.launch.JobLauncher
+      newFullyQualifiedTypeName: org.springframework.batch.core.launch.JobOperator
