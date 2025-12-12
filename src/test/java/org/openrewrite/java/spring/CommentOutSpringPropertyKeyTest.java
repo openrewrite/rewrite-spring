@@ -34,7 +34,7 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
     void yamlComment() {
         rewriteRun(
           spec -> spec.recipe(new CommentOutSpringPropertyKey("server.port", "This property has been removed.")),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               //language=yaml
               yaml(
@@ -55,7 +55,7 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
             new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1"),
             new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2")
           ),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               //language=yaml
               yaml(
@@ -105,7 +105,7 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
             new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1"),
             new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2")
           ),
-          mavenProject("",
+          mavenProject("project",
             srcMainResources(
               //language=properties
               properties(
