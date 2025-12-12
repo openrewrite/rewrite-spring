@@ -2971,6 +2971,28 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
+examples:
+- description: '`UpgradeSpringBoot40ConfigurationTest#updateHibernateNaminImplicitStrategy`'
+  sources:
+  - before: test
+    language: mavenProject
+  - before: |
+      # application.properties
+      spring.jpa.hibernate.naming.implicit-strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+    after: |
+      # application.properties
+      spring.jpa.hibernate.naming.implicit-strategy=org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+    language: properties
+  - before: |
+      ---
+      spring.jpa.hibernate.naming.implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+    after: |
+      ---
+      spring.jpa.hibernate.naming.implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+    language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
 examples:
 - description: '`AddLoggingPatternLevelForSleuthTest#addLoggingPatternWhenUsingSleuth`'
@@ -5379,13 +5401,14 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.maven.spring.UpgradeExplicitSpringBootDependencies
 examples:
-- description: '`UpgradeExplicitSpringBootDependenciesTest#shouldBuildCorrectPomModelAfterUpdateTo3x`'
+- description: '`UpgradeExplicitSpringBootDependenciesTest#shouldUpdateExplicitDependenciesTo30`'
   parameters:
   - 2.7.X
   - 3.0.0
   sources:
   - before: |
       <project>
+          <modelVersion>4.0.0</modelVersion>
           <groupId>com.example</groupId>
           <artifactId>explicit-deps-app</artifactId>
           <version>0.0.1-SNAPSHOT</version>
@@ -5394,6 +5417,11 @@ examples:
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-starter-web</artifactId>
                   <version>2.7.3</version>
+              </dependency>
+              <dependency>
+                  <groupId>io.dropwizard.metrics</groupId>
+                  <artifactId>metrics-annotation</artifactId>
+                  <version>4.2.8</version>
               </dependency>
               <dependency>
                   <groupId>org.springframework.boot</groupId>
@@ -5405,6 +5433,7 @@ examples:
       </project>
     after: |
       <project>
+          <modelVersion>4.0.0</modelVersion>
           <groupId>com.example</groupId>
           <artifactId>explicit-deps-app</artifactId>
           <version>0.0.1-SNAPSHOT</version>
@@ -5413,6 +5442,11 @@ examples:
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-starter-web</artifactId>
                   <version>3.0.0</version>
+              </dependency>
+              <dependency>
+                  <groupId>io.dropwizard.metrics</groupId>
+                  <artifactId>metrics-annotation</artifactId>
+                  <version>4.2.13</version>
               </dependency>
               <dependency>
                   <groupId>org.springframework.boot</groupId>

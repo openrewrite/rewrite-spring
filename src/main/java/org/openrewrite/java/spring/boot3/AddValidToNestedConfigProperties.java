@@ -80,6 +80,9 @@ public class AddValidToNestedConfigProperties extends Recipe {
 
                     @Override
                     public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations varDecl, ExecutionContext ctx) {
+                        if (varDecl.hasModifier(J.Modifier.Type.Static)) {
+                            return varDecl;
+                        }
                         JavaType.FullyQualified type = TypeUtils.asFullyQualified(varDecl.getType());
                         if (type != null && !isPrimitiveOrCommonType(type) &&
                                 FindAnnotations.find(varDecl, "@javax.validation.Valid").isEmpty() &&
