@@ -95,9 +95,12 @@ recipeList:
       newPackageName: org.springframework.boot.kafka.autoconfigure
       recursive: true
   # spring-boot-starter-security
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.SecurityProperties
-      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.autoconfigure.security.SecurityProperties.BASIC_AUTH_ORDER
+      fullyQualifiedConstantName: org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties.BASIC_AUTH_ORDER
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.autoconfigure.security.SecurityProperties.DEFAULT_FILTER_ORDER
+      fullyQualifiedConstantName: org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties.DEFAULT_FILTER_ORDER
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.security
       newPackageName: org.springframework.boot.security.autoconfigure

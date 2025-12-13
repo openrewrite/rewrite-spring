@@ -17,10 +17,13 @@ package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.maven.Assertions.pomXml;
+import static org.openrewrite.java.Assertions.java;
 
 class MigrateToModularStartersTest implements RewriteTest {
     @Override
@@ -28,7 +31,10 @@ class MigrateToModularStartersTest implements RewriteTest {
         spec.recipeFromResource(
           "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
           "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
-        );
+        ).parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-autoconfigure-3", "spring-boot-3",
+              "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
     }
 
     @DocumentExample
@@ -144,6 +150,31 @@ class MigrateToModularStartersTest implements RewriteTest {
                       </dependency>
                   </dependencies>
               </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void migrateSecurityPropertiesConstants() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.autoconfigure.security.SecurityProperties;
+
+              class A {
+                  private final int basicOrder = SecurityProperties.BASIC_AUTH_ORDER;
+                  private final int defaultOrder = SecurityProperties.DEFAULT_FILTER_ORDER;
+              }
+              """,
+            """
+              import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
+
+              class A {
+                  private final int basicOrder = SecurityFilterProperties.BASIC_AUTH_ORDER;
+                  private final int defaultOrder = SecurityFilterProperties.DEFAULT_FILTER_ORDER;
+              }
               """
           )
         );
