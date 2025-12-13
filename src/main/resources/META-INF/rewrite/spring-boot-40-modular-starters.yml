@@ -27,6 +27,13 @@ recipeList:
       scope: test
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.core.AutoConfigureCache
+  # spring-boot-starter-data-cassandra-test
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-cassandra-test
+      scope: test
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.data.cassandra.*
   # spring-boot-starter-data-jpa-test
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
@@ -131,6 +138,28 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.cassandra
       newPackageName: org.springframework.boot.cassandra.autoconfigure
+      recursive: true
+  # spring-boot-data-cassandra
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.cassandra.autoconfigure.DataCassandraAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.cassandra.CassandraReactiveDataAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.cassandra.autoconfigure.DataCassandraReactiveAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.cassandra.CassandraReactiveRepositoriesAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.cassandra.autoconfigure.DataCassandraReactiveRepositoriesAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.cassandra.CassandraRepositoriesAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.cassandra.autoconfigure.DataCassandraRepositoriesAutoConfiguration
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.data.cassandra
+      newPackageName: org.springframework.boot.data.cassandra.autoconfigure
+      recursive: true
+  # spring-boot-data-cassandra-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.data.cassandra
+      newPackageName: org.springframework.boot.data.cassandra.test.autoconfigure
       recursive: true
   # spring-boot-data-jpa
   - org.openrewrite.java.ChangePackage:
