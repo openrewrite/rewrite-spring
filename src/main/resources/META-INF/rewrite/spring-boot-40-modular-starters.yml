@@ -20,6 +20,13 @@ displayName: Migrate to Spring Boot 4.0 modular starters
 description: >-
   Adds the necessary Spring Boot 4.0 starter dependencies based on package usage. Spring Boot 4.0 has a modular design requiring explicit starters for each feature. This recipe detects feature usage via package imports and adds the appropriate starters. Note: Higher-level starters (like data-jpa) include lower-level ones (like jdbc) transitively, so only the highest-level detected starter is added for each technology.
 recipeList:
+  # spring-boot-starter-cache-test
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-cache-test
+      scope: test
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.core.AutoConfigureCache
   # spring-boot-starter-data-jpa-test
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
@@ -91,6 +98,40 @@ name: org.openrewrite.java.spring.boot4.UseNewModulesPackages
 displayName: Migrate to new packages used for autoconfiguration by Spring Boot 4.0 modules
 description: Migrate to new packages used for autoconfiguration by Spring Boot 4.0 modules.
 recipeList:
+  # spring-boot-activemq
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.jms.activemq
+      newPackageName: org.springframework.boot.activemq.autoconfigure
+      recursive: true
+  # spring-boot-amqp
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.amqp
+      newPackageName: org.springframework.boot.amqp.autoconfigure
+      recursive: true
+  # spring-boot-artemis
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.jms.artemis
+      newPackageName: org.springframework.boot.artemis.autoconfigure
+      recursive: true
+  # spring-boot-batch
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.batch
+      newPackageName: org.springframework.boot.batch.autoconfigure
+      recursive: true
+  # spring-boot-cache
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.cache
+      newPackageName: org.springframework.boot.cache.autoconfigure
+      recursive: true
+  # spring-boot-cache-test
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.core.AutoConfigureCache
+      newFullyQualifiedTypeName: org.springframework.boot.cache.test.autoconfigure.AutoConfigureCache
+  # spring-boot-cassandra
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.cassandra
+      newPackageName: org.springframework.boot.cassandra.autoconfigure
+      recursive: true
   # spring-boot-data-jpa
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.orm.jpa
@@ -125,11 +166,6 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.mongo
       newPackageName: org.springframework.boot.mongodb.autoconfigure
-      recursive: true
-  # spring-boot-cache
-  - org.openrewrite.java.ChangePackage:
-      oldPackageName: org.springframework.boot.autoconfigure.cache
-      newPackageName: org.springframework.boot.cache.autoconfigure
       recursive: true
   # spring-boot-kafka
   - org.openrewrite.java.ChangePackage:
