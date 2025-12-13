@@ -212,15 +212,35 @@ recipeList:
       oldPackageName: org.springframework.boot.autoconfigure.security
       newPackageName: org.springframework.boot.security.autoconfigure
       recursive: true
+  # spring-boot-webmvc
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.web.servlet
+      newPackageName: org.springframework.boot.webmvc.autoconfigure
+      recursive: true
   # spring-boot-webmvc-test
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.test.autoconfigure.web.servlet
       newPackageName: org.springframework.boot.webmvc.test.autoconfigure
       recursive: true
+  # spring-boot-webservices
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.webservices
+      newPackageName: org.springframework.boot.webservices.autoconfigure
+      recursive: true
+  # spring-boot-webservices-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.webservices
+      newPackageName: org.springframework.boot.webservices.test.autoconfigure
+      recursive: true
   # spring-boot-restclient
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.web.client
       newPackageName: org.springframework.boot.restclient
+      recursive: true
+  # spring-boot-restclient-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.web.client
+      newPackageName: org.springframework.boot.restclient.test.autoconfigure
       recursive: true
   # spring-boot-resttestclient
   - org.openrewrite.java.ChangePackage:
