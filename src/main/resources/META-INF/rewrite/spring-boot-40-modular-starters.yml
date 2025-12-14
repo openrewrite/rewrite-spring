@@ -98,10 +98,10 @@ recipeList:
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.web.client.*
   # update packages
-  - org.openrewrite.java.spring.boot4.UseNewModulesPackages
+  - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot4.UseNewModulesPackages
+name: org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
 displayName: Migrate to new packages used for autoconfiguration by Spring Boot 4.0 modules
 description: Migrate to new packages used for autoconfiguration by Spring Boot 4.0 modules.
 recipeList:
