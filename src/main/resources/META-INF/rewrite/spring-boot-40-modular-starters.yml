@@ -18,8 +18,14 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.MigrateToModularStarters
 displayName: Migrate to Spring Boot 4.0 modular starters
 description: >-
-  Adds the necessary Spring Boot 4.0 starter dependencies based on package usage. Spring Boot 4.0 has a modular design requiring explicit starters for each feature. This recipe detects feature usage via package imports and adds the appropriate starters. Note: Higher-level starters (like data-jpa) include lower-level ones (like jdbc) transitively, so only the highest-level detected starter is added for each technology.
+  Adds the necessary Spring Boot 4.0 starter dependencies based on package usage.
+  Spring Boot 4.0 has a modular design requiring explicit starters for each feature.
+  This recipe detects feature usage via package imports and adds the appropriate starters.
+
+  Note: Higher-level starters (like data-jpa) include lower-level ones (like jdbc) transitively,
+  so only the highest-level detected starter is added for each technology.
 recipeList:
+  # Add modular starter dependencies based on package usage
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-cache-test
@@ -41,6 +47,8 @@ recipeList:
       acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.jdbc.*
+
+  # When adopting modular starters, we can sometimes replace direct dependencies with the appropriate starter
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.liquibase
       oldArtifactId: liquibase-core
