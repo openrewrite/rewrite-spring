@@ -128,6 +128,8 @@ examples:
   - server.servlet.path
   - 'null'
   sources:
+  - before: project
+    language: mavenProject
   - before: |
       server.servlet-path=/tmp/my-server-path
     after: |
@@ -165,6 +167,8 @@ examples:
   - server.port
   - This property has been removed.
   sources:
+  - before: project
+    language: mavenProject
   - before: 'server.port: 8080'
     after: |
       # This property has been removed.
@@ -816,6 +820,45 @@ examples:
       }
     after: |
       class Foo {
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.batch.SpringBatch5To6Migration
+examples:
+- description: '`MigrateJobStepTest#jobLauncherInjectedWithBeanAnnotation`'
+  sources:
+  - before: |
+      import org.springframework.batch.core.launch.JobLauncher;
+      import org.springframework.batch.core.repository.JobRepository;
+      import org.springframework.batch.core.step.Step;
+      import org.springframework.batch.core.step.job.JobStep;
+      import org.springframework.context.annotation.Bean;
+
+      class MyJobConfig {
+
+          @Bean
+          JobStep myStep(JobRepository jobRepository, JobLauncher jobLauncher) {
+              JobStep jobStep = new JobStep(jobRepository);
+              jobStep.setJobLauncher(jobLauncher);
+              return jobStep;
+          }
+      }
+    after: |
+      import org.springframework.batch.core.launch.JobOperator;
+      import org.springframework.batch.core.repository.JobRepository;
+      import org.springframework.batch.core.step.Step;
+      import org.springframework.batch.core.step.job.JobStep;
+      import org.springframework.context.annotation.Bean;
+
+      class MyJobConfig {
+
+          @Bean
+          JobStep myStep(JobRepository jobRepository, JobOperator jobLauncher) {
+              JobStep jobStep = new JobStep(jobRepository);
+              jobStep.setJobOperator(jobLauncher);
+              return jobStep;
+          }
       }
     language: java
 ---
