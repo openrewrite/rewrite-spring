@@ -56,8 +56,8 @@ public class MigrateJobBuilderFactory extends Recipe {
                     J.ClassDeclaration clazz = getCursor().firstEnclosingOrThrow(J.ClassDeclaration.class);
                     J.MethodDeclaration enclosingMethod = getCursor().firstEnclosingOrThrow(J.MethodDeclaration.class);
 
-                    maybeAddImport("org.springframework.batch.core.job.builder.JobBuilder", false);
                     maybeRemoveImport("org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
+                    maybeAddImport("org.springframework.batch.core.job.builder.JobBuilder", false);
                     maybeAddImport("org.springframework.batch.core.repository.JobRepository");
 
                     doAfterVisit(new MigrateJobBuilderFactory.RemoveJobBuilderFactoryVisitor(clazz, enclosingMethod));
@@ -145,8 +145,8 @@ public class MigrateJobBuilderFactory extends Recipe {
             md = paramsTemplate.apply(getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
 
             maybeRemoveImport("org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
-            maybeAddImport("org.springframework.batch.core.repository.JobRepository");
             maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
+            maybeAddImport("org.springframework.batch.core.repository.JobRepository");
             return md;
         }
 

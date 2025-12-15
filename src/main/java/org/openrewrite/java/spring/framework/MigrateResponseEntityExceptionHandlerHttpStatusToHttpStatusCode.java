@@ -88,8 +88,8 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                             }));
                         }
                         updateCursor(m);
-                        maybeAddImport(HTTP_STATUS_CODE_FQ);
                         maybeRemoveImport(HTTP_STATUS_FQ);
+                        maybeAddImport(HTTP_STATUS_CODE_FQ);
                         return super.visitMethodDeclaration(m, ctx);
                     }
 

@@ -201,4 +201,31 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void doNotAddValidToStaticFields() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3.+", "spring-context-5.+", "jakarta.validation-api-3.0.+", "slf4j-api-2.+")),
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.slf4j.Logger;
+              import org.slf4j.LoggerFactory;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private static final Logger log = LoggerFactory.getLogger(AppProperties.class);
+
+                  private String name;
+              }
+              """
+          )
+        );
+    }
 }

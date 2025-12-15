@@ -74,8 +74,8 @@ public class MigrateBase64Utils extends Recipe {
                 if (ANY_BASE64UTILS.matches(m)) {
                     for (Map.Entry<MethodMatcher, String> entry : MAPPINGS.entrySet()) {
                         if (entry.getKey().matches(m)) {
-                            maybeAddImport("java.util.Base64");
                             maybeRemoveImport(SPRING_BASE_64_UTILS);
+                            maybeAddImport("java.util.Base64");
                             return JavaTemplate.builder(entry.getValue())
                                     .imports("java.util.Base64")
                                     .build()

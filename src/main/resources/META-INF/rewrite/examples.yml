@@ -128,6 +128,8 @@ examples:
   - server.servlet.path
   - 'null'
   sources:
+  - before: project
+    language: mavenProject
   - before: |
       server.servlet-path=/tmp/my-server-path
     after: |
@@ -165,6 +167,8 @@ examples:
   - server.port
   - This property has been removed.
   sources:
+  - before: project
+    language: mavenProject
   - before: 'server.port: 8080'
     after: |
       # This property has been removed.
@@ -816,6 +820,45 @@ examples:
       }
     after: |
       class Foo {
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.batch.SpringBatch5To6Migration
+examples:
+- description: '`MigrateJobStepTest#jobLauncherInjectedWithBeanAnnotation`'
+  sources:
+  - before: |
+      import org.springframework.batch.core.launch.JobLauncher;
+      import org.springframework.batch.core.repository.JobRepository;
+      import org.springframework.batch.core.step.Step;
+      import org.springframework.batch.core.step.job.JobStep;
+      import org.springframework.context.annotation.Bean;
+
+      class MyJobConfig {
+
+          @Bean
+          JobStep myStep(JobRepository jobRepository, JobLauncher jobLauncher) {
+              JobStep jobStep = new JobStep(jobRepository);
+              jobStep.setJobLauncher(jobLauncher);
+              return jobStep;
+          }
+      }
+    after: |
+      import org.springframework.batch.core.launch.JobOperator;
+      import org.springframework.batch.core.repository.JobRepository;
+      import org.springframework.batch.core.step.Step;
+      import org.springframework.batch.core.step.job.JobStep;
+      import org.springframework.context.annotation.Bean;
+
+      class MyJobConfig {
+
+          @Bean
+          JobStep myStep(JobRepository jobRepository, JobOperator jobLauncher) {
+              JobStep jobStep = new JobStep(jobRepository);
+              jobStep.setJobOperator(jobLauncher);
+              return jobStep;
+          }
       }
     language: java
 ---
@@ -2969,6 +3012,28 @@ examples:
           private String someService;
       }
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
+examples:
+- description: '`UpgradeSpringBoot40ConfigurationTest#updateHibernateNaminImplicitStrategy`'
+  sources:
+  - before: test
+    language: mavenProject
+  - before: |
+      # application.properties
+      spring.jpa.hibernate.naming.implicit-strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+    after: |
+      # application.properties
+      spring.jpa.hibernate.naming.implicit-strategy=org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+    language: properties
+  - before: |
+      ---
+      spring.jpa.hibernate.naming.implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+    after: |
+      ---
+      spring.jpa.hibernate.naming.implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+    language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
@@ -5379,13 +5444,14 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.maven.spring.UpgradeExplicitSpringBootDependencies
 examples:
-- description: '`UpgradeExplicitSpringBootDependenciesTest#shouldBuildCorrectPomModelAfterUpdateTo3x`'
+- description: '`UpgradeExplicitSpringBootDependenciesTest#shouldUpdateExplicitDependenciesTo30`'
   parameters:
   - 2.7.X
   - 3.0.0
   sources:
   - before: |
       <project>
+          <modelVersion>4.0.0</modelVersion>
           <groupId>com.example</groupId>
           <artifactId>explicit-deps-app</artifactId>
           <version>0.0.1-SNAPSHOT</version>
@@ -5394,6 +5460,11 @@ examples:
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-starter-web</artifactId>
                   <version>2.7.3</version>
+              </dependency>
+              <dependency>
+                  <groupId>io.dropwizard.metrics</groupId>
+                  <artifactId>metrics-annotation</artifactId>
+                  <version>4.2.8</version>
               </dependency>
               <dependency>
                   <groupId>org.springframework.boot</groupId>
@@ -5405,6 +5476,7 @@ examples:
       </project>
     after: |
       <project>
+          <modelVersion>4.0.0</modelVersion>
           <groupId>com.example</groupId>
           <artifactId>explicit-deps-app</artifactId>
           <version>0.0.1-SNAPSHOT</version>
@@ -5413,6 +5485,11 @@ examples:
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-starter-web</artifactId>
                   <version>3.0.0</version>
+              </dependency>
+              <dependency>
+                  <groupId>io.dropwizard.metrics</groupId>
+                  <artifactId>metrics-annotation</artifactId>
+                  <version>4.2.13</version>
               </dependency>
               <dependency>
                   <groupId>org.springframework.boot</groupId>

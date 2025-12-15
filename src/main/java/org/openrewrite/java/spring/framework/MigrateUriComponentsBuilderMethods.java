@@ -51,8 +51,8 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (FROM_HTTP_REQUEST.matches(mi)) {
-                    maybeAddImport("org.springframework.web.util.ForwardedHeaderUtils");
                     maybeRemoveImport("org.springframework.web.util.UriComponentsBuilder");
+                    maybeAddImport("org.springframework.web.util.ForwardedHeaderUtils");
                     return JavaTemplate.builder("ForwardedHeaderUtils.adaptFromForwardedHeaders(#{any()}.getURI(), #{any()}.getHeaders())")
                             .imports("org.springframework.web.util.ForwardedHeaderUtils")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.2"))
@@ -60,8 +60,8 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
                             .apply(getCursor(), mi.getCoordinates().replace(), mi.getArguments().get(0), mi.getArguments().get(0));
                 }
                 if (PARSE_FORWARDED_FOR.matches(mi)) {
-                    maybeAddImport("org.springframework.web.util.ForwardedHeaderUtils");
                     maybeRemoveImport("org.springframework.web.util.UriComponentsBuilder");
+                    maybeAddImport("org.springframework.web.util.ForwardedHeaderUtils");
                     return JavaTemplate.builder("ForwardedHeaderUtils.parseForwardedFor(#{any()}.getURI(), #{any()}.getHeaders(), #{any()})")
                             .imports("org.springframework.web.util.ForwardedHeaderUtils")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.2"))

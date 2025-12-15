@@ -60,8 +60,8 @@ public class MigrateHandlerInterceptor extends Recipe {
                     return cd;
                 }
 
-                maybeAddImport(HANDLER_INTERCEPTOR_INTERFACE);
                 maybeRemoveImport(HANDLER_INTERCEPTOR_ADAPTER);
+                maybeAddImport(HANDLER_INTERCEPTOR_INTERFACE);
 
                 TypeTree implments = TypeTree.build("HandlerInterceptor")
                         .withType(JavaType.buildType(HANDLER_INTERCEPTOR_INTERFACE));
