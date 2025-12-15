@@ -77,3 +77,12 @@ recipeList:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-web-services
       newArtifactId: spring-boot-starter-webservices
+  # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide#aop-starter-pom
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-aop
+      unlessUsing: org.aspectj.lang.annotation.*
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-aop
+      newArtifactId: spring-boot-starter-aspectj
