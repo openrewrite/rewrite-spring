@@ -79,8 +79,8 @@ public class MigrateResponseStatusExceptionGetStatusCodeMethod extends Recipe {
                                         return variable;
                                     })
                             );
-                    maybeAddImport(FULL_HTTP_STATUS_CODE_CLASS);
                     maybeRemoveImport(FULL_HTTP_STATUS_CLASS);
+                    maybeAddImport(FULL_HTTP_STATUS_CODE_CLASS);
                 }
                 return vd;
             }

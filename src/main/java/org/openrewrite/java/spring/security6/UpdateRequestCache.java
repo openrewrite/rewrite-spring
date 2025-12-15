@@ -105,8 +105,8 @@ public class UpdateRequestCache extends Recipe {
                                 .imports(
                                         "org.springframework.security.web.savedrequest.NullRequestCache")
                                 .build();
-                        maybeAddImport("org.springframework.security.web.savedrequest.NullRequestCache");
                         maybeRemoveImport("org.springframework.security.web.savedrequest.HttpSessionRequestCache");
+                        maybeAddImport("org.springframework.security.web.savedrequest.NullRequestCache");
                         arg = template.apply(
                             new Cursor(getCursor(), arg),
                             arg.getCoordinates().replace());

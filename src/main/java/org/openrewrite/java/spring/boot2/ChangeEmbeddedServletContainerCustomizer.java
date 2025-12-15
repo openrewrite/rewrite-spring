@@ -54,8 +54,8 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
                         ListUtils.map(c.getImplements(), i -> {
                             if (TypeUtils.isOfClassType(i.getType(), DEPRECATED_INTERFACE_FQN)) {
                                 maybeAddImport("org.springframework.boot.web.server.WebServerFactoryCustomizer");
-                                maybeAddImport("org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory");
                                 maybeRemoveImport(DEPRECATED_INTERFACE_FQN);
+                                maybeAddImport("org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory");
                                 return getWebFactoryCustomizerIdentifier(ctx);
                             }
                             return i;

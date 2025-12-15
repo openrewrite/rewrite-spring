@@ -438,8 +438,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 allExceptLastStatements.remove(b.getStatements().size() - 1);
                 b = b.withStatements(allExceptLastStatements);
                 b = template.apply(updateCursor(b), b.getCoordinates().lastStatement(), templateParams);
-                maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
                 maybeRemoveImport(FQN_AUTH_MANAGER_BUILDER);
+                maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
                 return b;
             }
         });
