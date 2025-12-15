@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot4;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -22,6 +23,8 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.java.Assertions.srcMainJava;
 import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.java.Assertions.java;
 
@@ -153,6 +156,161 @@ class MigrateToModularStartersTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Nested
+    class RestClientStarter {
+
+        @Test
+        void addRestClientStarterIfRestTemplateIsUsed() {
+            rewriteRun(
+              mavenProject("project",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                        </dependencies>
+                    </project>
+                    """,
+                  """
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter-restclient</artifactId>
+                                <version>4.0.0</version>
+                            </dependency>
+                        </dependencies>
+                    </project>
+                    """
+                ),
+                  srcMainJava(
+                      //language=java
+                      java(
+                        """
+                          import org.springframework.web.client.RestTemplate;
+
+                          class A {
+                              private RestTemplate rest;
+                          }
+                          """
+                      )
+                  )
+              )
+            );
+        }
+
+        @Test
+        void addRestClientStarterIfRestClientIsUsed() {
+            rewriteRun(
+              mavenProject("project",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                        </dependencies>
+                    </project>
+                    """,
+                  """
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter-restclient</artifactId>
+                                <version>4.0.0</version>
+                            </dependency>
+                        </dependencies>
+                    </project>
+                    """
+                ),
+                  srcMainJava(
+                      //language=java
+                      java(
+                        """
+                          import org.springframework.web.client.RestClient;
+
+                          class A {
+                              private RestClient rest;
+                          }
+                          """
+                      )
+                  )
+              )
+            );
+        }
+
+        @Test
+        void addRestClientStarterIfRestTemplateBuilderIsUsed() {
+            rewriteRun(
+              mavenProject("project",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                        </dependencies>
+                    </project>
+                    """,
+                  """
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter-restclient</artifactId>
+                                <version>4.0.0</version>
+                            </dependency>
+                        </dependencies>
+                    </project>
+                    """
+                ),
+                  srcMainJava(
+                      //language=java
+                      java(
+                        """
+                          import org.springframework.boot.web.client.RestTemplateBuilder;
+
+                          class A {
+                              private RestTemplateBuilder restBuilder;
+                          }
+                          """,
+                        """
+                          import org.springframework.boot.restclient.RestTemplateBuilder;
+
+                          class A {
+                              private RestTemplateBuilder restBuilder;
+                          }
+                          """
+                      )
+                  )
+              )
+            );
+        }
     }
 
     @Test

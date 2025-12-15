@@ -84,12 +84,23 @@ recipeList:
       scope: test
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.web.servlet.*
-  # spring-boot-restclient
+  # spring-boot-starter-restclient
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
-      artifactId: spring-boot-restclient
+      artifactId: spring-boot-starter-restclient
+      version: 4.0.x
+      onlyIfUsing: org.springframework.web.client.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-restclient
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.web.client.*
+  # spring-boot-starter-restclient-test
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-restclient-test
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.*
   # spring-boot-resttestclient
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
@@ -236,6 +247,10 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.web.client
       newPackageName: org.springframework.boot.restclient
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.web.client
+      newPackageName: org.springframework.boot.restclient.autoconfigure
       recursive: true
   # spring-boot-restclient-test
   - org.openrewrite.java.ChangePackage:
