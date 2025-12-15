@@ -282,8 +282,10 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     @Test
     void keepingYAMLFormat() {
         rewriteRun(
-          spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-40-properties.yml", "org.openrewrite.java.spring.boot4.SpringBootProperties_4_0"),
-          mavenProject("",
+          spec -> spec.recipeFromResource(
+            "/META-INF/rewrite/spring-boot-40-properties.yml",
+            "org.openrewrite.java.spring.boot4.SpringBootProperties_4_0"),
+          mavenProject("project",
             srcMainResources(
               //language=yaml
               yaml("""
