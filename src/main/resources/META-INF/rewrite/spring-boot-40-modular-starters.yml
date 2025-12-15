@@ -20,66 +20,58 @@ displayName: Migrate to Spring Boot 4.0 modular starters
 description: >-
   Adds the necessary Spring Boot 4.0 starter dependencies based on package usage. Spring Boot 4.0 has a modular design requiring explicit starters for each feature. This recipe detects feature usage via package imports and adds the appropriate starters. Note: Higher-level starters (like data-jpa) include lower-level ones (like jdbc) transitively, so only the highest-level detected starter is added for each technology.
 recipeList:
-  # spring-boot-starter-cache-test
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-cache-test
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.core.AutoConfigureCache
-  # spring-boot-starter-data-cassandra-test
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-data-cassandra-test
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.data.cassandra.*
-  # spring-boot-starter-data-jpa-test
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-data-jpa-test
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.orm.jpa.*
-  # spring-boot-starter-jdbc-test
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-jdbc-test
       acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.jdbc.*
-  # spring-boot-starter-liquibase
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.liquibase
       oldArtifactId: liquibase-core
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-starter-liquibase
       newVersion: 4.0.x
-  # spring-boot-starter-flyway
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.flywaydb
       oldArtifactId: flyway-core
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-starter-flyway
       newVersion: 4.0.x
-  # spring-boot-starter-kafka
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.kafka
       oldArtifactId: spring-kafka
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-starter-kafka
       newVersion: 4.0.x
-  # spring-boot-starter-security-test
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.security
       oldArtifactId: spring-security-test
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-starter-security-test
       newVersion: 4.0.x
-  # spring-boot-starter-webmvc-test
+
+  # Add dependencies not previously present
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-webmvc-test
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.web.servlet.*
-  # spring-boot-starter-restclient
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient
@@ -90,24 +82,24 @@ recipeList:
       artifactId: spring-boot-starter-restclient
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.web.client.*
-  # spring-boot-starter-restclient-test
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient-test
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.*
-  # spring-boot-resttestclient
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-resttestclient
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.web.client.*
-  # update packages
+
+  # Update packages to match the new modular starter structure
   - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
-displayName: Migrate to new packages used for autoconfiguration by Spring Boot 4.0 modules
+displayName: Migrate packages to modular starters
 description: Migrate to new packages used for autoconfiguration by Spring Boot 4.0 modules.
 recipeList:
   # spring-boot-activemq
