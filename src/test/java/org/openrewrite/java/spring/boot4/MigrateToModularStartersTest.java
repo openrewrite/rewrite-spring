@@ -33,9 +33,9 @@ class MigrateToModularStartersTest implements RewriteTest {
           "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
           "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
         ).parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-autoconfigure-3", "spring-boot-3", "spring-boot-test-3",
-              "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
+          .classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-autoconfigure-3", "spring-boot-3", "spring-boot-test-3",
+            "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
     }
 
     @DocumentExample
@@ -191,18 +191,18 @@ class MigrateToModularStartersTest implements RewriteTest {
                     </project>
                     """
                 ),
-                  srcMainJava(
-                      //language=java
-                      java(
-                        """
-                          import org.springframework.web.client.RestTemplate;
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.web.client.RestTemplate;
 
-                          class A {
-                              private RestTemplate rest;
-                          }
-                          """
-                      )
+                      class A {
+                          private RestTemplate rest;
+                      }
+                      """
                   )
+                )
               )
             );
         }
@@ -239,18 +239,18 @@ class MigrateToModularStartersTest implements RewriteTest {
                     </project>
                     """
                 ),
-                  srcMainJava(
-                      //language=java
-                      java(
-                        """
-                          import org.springframework.web.client.RestClient;
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.web.client.RestClient;
 
-                          class A {
-                              private RestClient rest;
-                          }
-                          """
-                      )
+                      class A {
+                          private RestClient rest;
+                      }
+                      """
                   )
+                )
               )
             );
         }
@@ -287,29 +287,30 @@ class MigrateToModularStartersTest implements RewriteTest {
                     </project>
                     """
                 ),
-                  srcMainJava(
-                      //language=java
-                      java(
-                        """
-                          import org.springframework.boot.web.client.RestTemplateBuilder;
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.web.client.RestTemplateBuilder;
 
-                          class A {
-                              private RestTemplateBuilder restBuilder;
-                          }
-                          """,
-                        """
-                          import org.springframework.boot.restclient.RestTemplateBuilder;
+                      class A {
+                          private RestTemplateBuilder restBuilder;
+                      }
+                      """,
+                    """
+                      import org.springframework.boot.restclient.RestTemplateBuilder;
 
-                          class A {
-                              private RestTemplateBuilder restBuilder;
-                          }
-                          """
-                      )
+                      class A {
+                          private RestTemplateBuilder restBuilder;
+                      }
+                      """
                   )
+                )
               )
             );
         }
     }
+
     @Test
     void addRestTestClientTestDependencyIfTestRestTemplateIsUsedForTest() {
         rewriteRun(
