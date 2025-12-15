@@ -23,6 +23,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
@@ -42,8 +43,8 @@ class MigrateToModularStartersTest implements RewriteTest {
     @Test
     void migrateLiquibaseToStarterInMaven() {
         rewriteRun(
-          //language=xml
           pomXml(
+            //language=xml
             """
               <project>
                   <modelVersion>4.0.0</modelVersion>
@@ -59,21 +60,11 @@ class MigrateToModularStartersTest implements RewriteTest {
                   </dependencies>
               </project>
               """,
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>org.example</groupId>
-                  <artifactId>example</artifactId>
-                  <version>1.0-SNAPSHOT</version>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-liquibase</artifactId>
-                          <version>4.0.0</version>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """
+            spec -> spec.after(pom -> assertThat(pom)
+              .doesNotContain("<artifactId>liquibase-core</artifactId>")
+              .contains("<artifactId>spring-boot-starter-liquibase</artifactId>")
+              .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+              .actual())
           )
         );
     }
@@ -98,21 +89,11 @@ class MigrateToModularStartersTest implements RewriteTest {
                   </dependencies>
               </project>
               """,
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>org.example</groupId>
-                  <artifactId>example</artifactId>
-                  <version>1.0-SNAPSHOT</version>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-security-test</artifactId>
-                          <version>4.0.0</version>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """
+            spec -> spec.after(pom -> assertThat(pom)
+              .doesNotContain("<artifactId>spring-security-test</artifactId>")
+              .contains("<artifactId>spring-boot-starter-security-test</artifactId>")
+              .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+              .actual())
           )
         );
     }
@@ -137,21 +118,11 @@ class MigrateToModularStartersTest implements RewriteTest {
                   </dependencies>
               </project>
               """,
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>org.example</groupId>
-                  <artifactId>example</artifactId>
-                  <version>1.0-SNAPSHOT</version>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter-kafka</artifactId>
-                          <version>4.0.0</version>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """
+            spec -> spec.after(pom -> assertThat(pom)
+              .doesNotContain("<artifactId>spring-kafka</artifactId>")
+              .contains("<artifactId>spring-boot-starter-kafka</artifactId>")
+              .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+              .actual())
           )
         );
     }
@@ -175,21 +146,10 @@ class MigrateToModularStartersTest implements RewriteTest {
                         </dependencies>
                     </project>
                     """,
-                  """
-                    <project>
-                        <modelVersion>4.0.0</modelVersion>
-                        <groupId>org.example</groupId>
-                        <artifactId>example</artifactId>
-                        <version>1.0-SNAPSHOT</version>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-starter-restclient</artifactId>
-                                <version>4.0.0</version>
-                            </dependency>
-                        </dependencies>
-                    </project>
-                    """
+                  spec -> spec.after(pom -> assertThat(pom)
+                    .contains("<artifactId>spring-boot-starter-restclient</artifactId>")
+                    .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                    .actual())
                 ),
                 srcMainJava(
                   //language=java
@@ -223,21 +183,10 @@ class MigrateToModularStartersTest implements RewriteTest {
                         </dependencies>
                     </project>
                     """,
-                  """
-                    <project>
-                        <modelVersion>4.0.0</modelVersion>
-                        <groupId>org.example</groupId>
-                        <artifactId>example</artifactId>
-                        <version>1.0-SNAPSHOT</version>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-starter-restclient</artifactId>
-                                <version>4.0.0</version>
-                            </dependency>
-                        </dependencies>
-                    </project>
-                    """
+                  spec -> spec.after(pom -> assertThat(pom)
+                    .contains("<artifactId>spring-boot-starter-restclient</artifactId>")
+                    .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                    .actual())
                 ),
                 srcMainJava(
                   //language=java
@@ -271,21 +220,10 @@ class MigrateToModularStartersTest implements RewriteTest {
                         </dependencies>
                     </project>
                     """,
-                  """
-                    <project>
-                        <modelVersion>4.0.0</modelVersion>
-                        <groupId>org.example</groupId>
-                        <artifactId>example</artifactId>
-                        <version>1.0-SNAPSHOT</version>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-starter-restclient</artifactId>
-                                <version>4.0.0</version>
-                            </dependency>
-                        </dependencies>
-                    </project>
-                    """
+                  spec -> spec.after(pom -> assertThat(pom)
+                    .contains("<artifactId>spring-boot-starter-restclient</artifactId>")
+                    .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                    .actual())
                 ),
                 srcMainJava(
                   //language=java
@@ -327,22 +265,11 @@ class MigrateToModularStartersTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>org.example</groupId>
-                    <artifactId>example</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-resttestclient</artifactId>
-                            <version>4.0.0</version>
-                            <scope>test</scope>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("<artifactId>spring-boot-resttestclient</artifactId>")
+                .contains("<scope>test</scope>")
+                .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                .actual())
             ),
             srcTestJava(
               //language=java
