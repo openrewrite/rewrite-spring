@@ -217,6 +217,21 @@ recipeList:
       oldPackageName: org.springframework.boot.autoconfigure.security
       newPackageName: org.springframework.boot.security.autoconfigure
       recursive: true
+  # spring-boot-security-oauth2-authorization-server
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.server.servlet
+      newPackageName: org.springframework.boot.security.oauth2.server.authorization.autoconfigure.servlet
+      recursive: true
+  # spring-boot-security-oauth2-client
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.client
+      newPackageName: org.springframework.boot.security.oauth2.client.autoconfigure
+      recursive: true
+  # spring-boot-security-oauth2-resource-server
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.resource
+      newPackageName: org.springframework.boot.security.oauth2.server.resource.autoconfigure
+      recursive: true
   # spring-boot-webmvc
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.web.servlet
