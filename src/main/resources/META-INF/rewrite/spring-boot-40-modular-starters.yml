@@ -1,0 +1,273 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.MigrateToModularStarters
+displayName: Migrate to Spring Boot 4.0 modular starters
+description: >-
+  Adds the necessary Spring Boot 4.0 starter dependencies based on package usage.
+  Spring Boot 4.0 has a modular design requiring explicit starters for each feature.
+  This recipe detects feature usage via package imports and adds the appropriate starters.
+
+  Note: Higher-level starters (like data-jpa) include lower-level ones (like jdbc) transitively,
+  so only the highest-level detected starter is added for each technology.
+recipeList:
+  # Add modular starter dependencies based on package usage
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-cache-test
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.core.AutoConfigureCache
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-cassandra-test
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.data.cassandra.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-jpa-test
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.orm.jpa.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-jdbc-test
+      acceptTransitive: true
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.jdbc.*
+
+  # When adopting modular starters, we can sometimes replace direct dependencies with the appropriate starter
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.liquibase
+      oldArtifactId: liquibase-core
+      newGroupId: org.springframework.boot
+      newArtifactId: spring-boot-starter-liquibase
+      newVersion: 4.0.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.flywaydb
+      oldArtifactId: flyway-core
+      newGroupId: org.springframework.boot
+      newArtifactId: spring-boot-starter-flyway
+      newVersion: 4.0.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.kafka
+      oldArtifactId: spring-kafka
+      newGroupId: org.springframework.boot
+      newArtifactId: spring-boot-starter-kafka
+      newVersion: 4.0.x
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.security
+      oldArtifactId: spring-security-test
+      newGroupId: org.springframework.boot
+      newArtifactId: spring-boot-starter-security-test
+      newVersion: 4.0.x
+
+  # Add dependencies not previously present
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webmvc-test
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.servlet.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-restclient
+      version: 4.0.x
+      onlyIfUsing: org.springframework.web.client.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-restclient
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.web.client.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-restclient-test
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-resttestclient
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.test.web.client.*
+
+  # Update packages to match the new modular starter structure
+  - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
+displayName: Migrate packages to modular starters
+description: Migrate to new packages used for autoconfiguration by Spring Boot 4.0 modules.
+recipeList:
+  # spring-boot-activemq
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.jms.activemq
+      newPackageName: org.springframework.boot.activemq.autoconfigure
+      recursive: true
+  # spring-boot-amqp
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.amqp
+      newPackageName: org.springframework.boot.amqp.autoconfigure
+      recursive: true
+  # spring-boot-artemis
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.jms.artemis
+      newPackageName: org.springframework.boot.artemis.autoconfigure
+      recursive: true
+  # spring-boot-batch
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.batch
+      newPackageName: org.springframework.boot.batch.autoconfigure
+      recursive: true
+  # spring-boot-cache
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.cache
+      newPackageName: org.springframework.boot.cache.autoconfigure
+      recursive: true
+  # spring-boot-cache-test
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.core.AutoConfigureCache
+      newFullyQualifiedTypeName: org.springframework.boot.cache.test.autoconfigure.AutoConfigureCache
+  # spring-boot-cassandra
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.cassandra
+      newPackageName: org.springframework.boot.cassandra.autoconfigure
+      recursive: true
+  # spring-boot-data-cassandra
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.cassandra.autoconfigure.DataCassandraAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.cassandra.CassandraReactiveDataAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.cassandra.autoconfigure.DataCassandraReactiveAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.cassandra.CassandraReactiveRepositoriesAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.cassandra.autoconfigure.DataCassandraReactiveRepositoriesAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.cassandra.CassandraRepositoriesAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.cassandra.autoconfigure.DataCassandraRepositoriesAutoConfiguration
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.data.cassandra
+      newPackageName: org.springframework.boot.data.cassandra.autoconfigure
+      recursive: true
+  # spring-boot-data-cassandra-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.data.cassandra
+      newPackageName: org.springframework.boot.data.cassandra.test.autoconfigure
+      recursive: true
+  # spring-boot-data-jpa
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.orm.jpa
+      newPackageName: org.springframework.boot.hibernate.autoconfigure
+      recursive: true
+  # spring-boot-data-jpa-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.orm.jpa
+      newPackageName: org.springframework.boot.data.jpa.test.autoconfigure
+      recursive: true
+  # spring-boot-jdbc
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.jdbc
+      newPackageName: org.springframework.boot.jdbc.autoconfigure
+      recursive: true
+  # spring-boot-jdbc-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.jdbc
+      newPackageName: org.springframework.boot.jdbc.test.autoconfigure
+      recursive: true
+  # spring-boot-liquibase
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.liquibase
+      newPackageName: org.springframework.boot.liquibase.autoconfigure
+      recursive: true
+  # spring-boot-flyway
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.flyway
+      newPackageName: org.springframework.boot.flyway.autoconfigure
+      recursive: true
+  # spring-boot-data-mongodb
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.mongo
+      newPackageName: org.springframework.boot.mongodb.autoconfigure
+      recursive: true
+  # spring-boot-kafka
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.kafka
+      newPackageName: org.springframework.boot.kafka.autoconfigure
+      recursive: true
+  # spring-boot-security
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.autoconfigure.security.SecurityProperties.BASIC_AUTH_ORDER
+      fullyQualifiedConstantName: org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties.BASIC_AUTH_ORDER
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.autoconfigure.security.SecurityProperties.DEFAULT_FILTER_ORDER
+      fullyQualifiedConstantName: org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties.DEFAULT_FILTER_ORDER
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security
+      newPackageName: org.springframework.boot.security.autoconfigure
+      recursive: true
+  # spring-boot-security-oauth2-authorization-server
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.server.servlet
+      newPackageName: org.springframework.boot.security.oauth2.server.authorization.autoconfigure.servlet
+      recursive: true
+  # spring-boot-security-oauth2-client
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.client
+      newPackageName: org.springframework.boot.security.oauth2.client.autoconfigure
+      recursive: true
+  # spring-boot-security-oauth2-resource-server
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.resource
+      newPackageName: org.springframework.boot.security.oauth2.server.resource.autoconfigure
+      recursive: true
+  # spring-boot-webmvc
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.web.servlet
+      newPackageName: org.springframework.boot.webmvc.autoconfigure
+      recursive: true
+  # spring-boot-webmvc-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.web.servlet
+      newPackageName: org.springframework.boot.webmvc.test.autoconfigure
+      recursive: true
+  # spring-boot-webservices
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.webservices
+      newPackageName: org.springframework.boot.webservices.autoconfigure
+      recursive: true
+  # spring-boot-webservices-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.webservices
+      newPackageName: org.springframework.boot.webservices.test.autoconfigure
+      recursive: true
+  # spring-boot-restclient
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.web.client
+      newPackageName: org.springframework.boot.restclient
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.web.client
+      newPackageName: org.springframework.boot.restclient.autoconfigure
+      recursive: true
+  # spring-boot-restclient-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.web.client
+      newPackageName: org.springframework.boot.restclient.test.autoconfigure
+      recursive: true
+  # spring-boot-resttestclient
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.web.client
+      newPackageName: org.springframework.boot.resttestclient
+      recursive: true
