@@ -105,8 +105,8 @@ public class MigrateItemWriterWrite extends Recipe {
                                 paramName,
                                 m.getBody() == null ? ";" : m.getBody().print(getCursor()));
 
-                maybeAddImport("org.springframework.batch.item.Chunk");
                 maybeRemoveImport("java.util.List");
+                maybeAddImport("org.springframework.batch.item.Chunk");
 
                 return m;
             }

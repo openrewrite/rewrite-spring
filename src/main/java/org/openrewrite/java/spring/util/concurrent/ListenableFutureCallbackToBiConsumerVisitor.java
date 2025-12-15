@@ -83,8 +83,8 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
                     .withStatements(ListUtils.concat(additionalStatements, acceptMethodWithPrefix)));
         }
 
-        maybeAddImport(BI_CONSUMER);
         maybeRemoveImport(LISTENABLE_FUTURE_CALLBACK);
+        maybeAddImport(BI_CONSUMER);
         return newClassDeclaration
                 .withLeadingAnnotations(cd.getLeadingAnnotations())
                 .withModifiers(cd.getModifiers())

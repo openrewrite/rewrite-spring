@@ -133,8 +133,8 @@ public class MigrateStepBuilderFactory extends Recipe {
         @Override
         public J visitMethodInvocation(J.MethodInvocation mi, ExecutionContext ctx) {
             if (STEP_BUILDER_FACTORY_MATCHER.matches(mi)) {
-                maybeAddImport("org.springframework.batch.core.step.builder.StepBuilder", false);
                 maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
+                maybeAddImport("org.springframework.batch.core.step.builder.StepBuilder", false);
                 maybeRemoveImport("org.springframework.batch.core.configuration.annotation.StepBuilderFactory");
                 return JavaTemplate.builder("new StepBuilder(#{any(java.lang.String)}, jobRepository)")
                         .contextSensitive()

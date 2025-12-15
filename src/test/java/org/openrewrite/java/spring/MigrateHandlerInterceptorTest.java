@@ -98,9 +98,9 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
           // Do change classes that directly extend HandlerInterceptorAdapter
           java(
             """
-              import javax.servlet.http.*;
-
               import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+              import javax.servlet.http.*;
 
               class MySuperInterceptor extends HandlerInterceptorAdapter {
                   @Override
@@ -110,9 +110,9 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
               }
               """,
             """
-              import javax.servlet.http.*;
-
               import org.springframework.web.servlet.HandlerInterceptor;
+
+              import javax.servlet.http.*;
 
               class MySuperInterceptor implements HandlerInterceptor {
                   @Override
@@ -125,9 +125,9 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
           // But do not change classes that transitively extend HandlerInterceptorAdapter
           java(
             """
-              import javax.servlet.http.*;
-
               import org.springframework.web.servlet.handler.HandlerInterceptorAdapter; // Unused but untouched
+
+              import javax.servlet.http.*;
 
               class MyInterceptor extends MySuperInterceptor {
                   @Override
