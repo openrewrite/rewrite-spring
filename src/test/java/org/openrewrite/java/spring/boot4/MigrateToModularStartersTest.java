@@ -25,6 +25,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.java.Assertions.srcMainJava;
+import static org.openrewrite.java.Assertions.srcTestJava;
 import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.java.Assertions.java;
 
@@ -36,7 +37,7 @@ class MigrateToModularStartersTest implements RewriteTest {
           "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
         ).parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-autoconfigure-3", "spring-boot-3",
+              "spring-boot-autoconfigure-3", "spring-boot-3", "spring-boot-test-3",
               "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
     }
 
@@ -311,6 +312,61 @@ class MigrateToModularStartersTest implements RewriteTest {
               )
             );
         }
+    }
+    @Test
+    void addRestTestClientTestDependencyIfTestRestTemplateIsUsedForTest() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>org.example</groupId>
+                    <artifactId>example</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                    </dependencies>
+                </project>
+                """,
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>org.example</groupId>
+                    <artifactId>example</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-resttestclient</artifactId>
+                            <version>4.0.0</version>
+                            <scope>test</scope>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            srcTestJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.test.web.client.TestRestTemplate;
+
+                  class A {
+                      private TestRestTemplate rest;
+                  }
+                  """,
+                """
+                  import org.springframework.boot.resttestclient.TestRestTemplate;
+
+                  class A {
+                      private TestRestTemplate rest;
+                  }
+                  """
+              )
+            )
+          )
+        );
     }
 
     @Test
