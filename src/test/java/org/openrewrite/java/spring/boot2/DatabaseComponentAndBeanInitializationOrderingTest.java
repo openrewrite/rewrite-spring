@@ -20,11 +20,13 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.kotlin.Assertions.kotlin;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest {
@@ -49,6 +51,10 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
         spec
           .recipeFromResources("org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering")
           .parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
+              "jooq-3.14.15", "jakarta.persistence-api-2.2.3"))
+          .parser(KotlinParser.builder()
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
               "jooq-3.14.15", "jakarta.persistence-api-2.2.3"));
@@ -510,6 +516,180 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
                     @Bean
                     A a() {
                         return new A();
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void kotlinConfigurationWithDataSourceDependency() {
+        rewriteRun(
+          mavenProject("project-maven",
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=kotlin
+            kotlin(
+              """
+                import javax.sql.DataSource
+                import org.springframework.context.annotation.Configuration
+                import org.springframework.context.annotation.Bean
+
+                @Configuration
+                class PersistenceConfiguration {
+
+                    class CustomDataSourceInitializer(private val ds: DataSource) {
+                        fun initDatabase(sql: String) {}
+                    }
+
+                    @Bean
+                    fun customDataSourceInitializer(ds: DataSource): CustomDataSourceInitializer {
+                        return CustomDataSourceInitializer(ds)
+                    }
+                }
+                """,
+              """
+                import javax.sql.DataSource
+                import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                import org.springframework.context.annotation.Configuration
+                import org.springframework.context.annotation.Bean
+
+                @Configuration
+                class PersistenceConfiguration {
+
+                    class CustomDataSourceInitializer(private val ds: DataSource) {
+                        fun initDatabase(sql: String) {}
+                    }
+
+                    @Bean
+                    @DependsOnDatabaseInitialization
+                    fun customDataSourceInitializer(ds: DataSource): CustomDataSourceInitializer {
+                        return CustomDataSourceInitializer(ds)
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void kotlinComponentWithDataSourceDependency() {
+        rewriteRun(
+          mavenProject("project-maven",
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=kotlin
+            kotlin(
+              """
+                import javax.sql.DataSource
+                import org.springframework.stereotype.Component
+
+                @Component
+                class MyDbInitializerComponent {
+
+                    fun initSchema(ds: DataSource) {
+                    }
+                }
+                """,
+              """
+                import javax.sql.DataSource
+                import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                import org.springframework.stereotype.Component
+
+                @Component
+                @DependsOnDatabaseInitialization
+                class MyDbInitializerComponent {
+
+                    fun initSchema(ds: DataSource) {
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void kotlinNonDataSourceBeanShouldNotBeAnnotated() {
+        rewriteRun(
+          mavenProject("project-maven",
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=kotlin
+            kotlin(
+              """
+                class MyService
+                """
+            ),
+            //language=kotlin
+            kotlin(
+              """
+                import org.springframework.context.annotation.Configuration
+                import org.springframework.context.annotation.Bean
+
+                @Configuration
+                class MyThing {
+
+                    @Bean
+                    fun myService(): MyService {
+                        return MyService()
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void kotlinAlreadyMigratedConfigurationNoChange() {
+        rewriteRun(
+          mavenProject("project-maven",
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=kotlin
+            kotlin(
+              """
+                import javax.sql.DataSource
+                import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                import org.springframework.context.annotation.Configuration
+                import org.springframework.context.annotation.Bean
+
+                @Configuration
+                class PersistenceConfiguration {
+
+                    class CustomDataSourceInitializer(private val ds: DataSource) {
+                        fun initDatabase(sql: String) {}
+                    }
+
+                    @Bean
+                    @DependsOnDatabaseInitialization
+                    fun customDataSourceInitializer(ds: DataSource): CustomDataSourceInitializer {
+                        return CustomDataSourceInitializer(ds)
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void kotlinAlreadyMigratedComponentNoChange() {
+        rewriteRun(
+          mavenProject("project-maven",
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            //language=kotlin
+            kotlin(
+              """
+                import javax.sql.DataSource
+                import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                import org.springframework.stereotype.Component
+
+                @Component
+                @DependsOnDatabaseInitialization
+                class MyDbInitializerComponent {
+
+                    fun initSchema(ds: DataSource) {
                     }
                 }
                 """

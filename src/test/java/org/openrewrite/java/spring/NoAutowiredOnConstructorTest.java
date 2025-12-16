@@ -19,10 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.kotlin.Assertions.kotlin;
 
 @SuppressWarnings({"MissortedModifiers"})
 class NoAutowiredOnConstructorTest implements RewriteTest {
@@ -30,7 +32,8 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new NoAutowiredOnConstructor())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+", "spring-boot-1.5.+", "spring-context-5.+", "spring-core-5.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+", "spring-boot-1.5.+", "spring-context-5.+", "spring-core-5.+"))
+          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+", "spring-boot-1.5.+", "spring-context-5.+", "spring-core-5.+"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")
@@ -595,6 +598,76 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                       this.environment = environment;
                   }
               }
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldRemoveAutowiredFromKotlinPrimaryConstructor() {
+        //language=kotlin
+        rewriteRun(
+          kotlin(
+            """
+              import org.springframework.beans.factory.annotation.Autowired
+              import org.springframework.stereotype.Service
+
+              @Service
+              class MyService @Autowired constructor(
+                  private val dependency: String
+              )
+              """,
+            """
+              import org.springframework.stereotype.Service
+
+              @Service
+              class MyService(
+                  private val dependency: String
+              )
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldNotRemoveAutowiredFromKotlinSecondaryConstructor() {
+        //language=kotlin
+        rewriteRun(
+          kotlin(
+            """
+              import org.springframework.beans.factory.annotation.Autowired
+              import org.springframework.stereotype.Service
+
+              @Service
+              class MyService {
+                  private val dependency: String
+
+                  constructor() {
+                      this.dependency = "default"
+                  }
+
+                  @Autowired
+                  constructor(dependency: String) {
+                      this.dependency = dependency
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void kotlinAlreadyMigratedNoChange() {
+        //language=kotlin
+        rewriteRun(
+          kotlin(
+            """
+              import org.springframework.stereotype.Service
+
+              @Service
+              class MyService(
+                  private val dependency: String
+              )
               """
           )
         );
