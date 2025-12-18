@@ -167,9 +167,24 @@ recipeList:
       newPackageName: org.springframework.boot.data.cassandra.test.autoconfigure
       recursive: true
   # spring-boot-data-jpa
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesRegistrar
+      newFullyQualifiedTypeName: org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesRegistrar
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.data.jpa
+      newPackageName: org.springframework.boot.data.jpa.autoconfigure
+      recursive: true
+  # spring-boot-hibernate
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.orm.jpa
       newPackageName: org.springframework.boot.hibernate.autoconfigure
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.autoconfigure.metrics.orm.jpa
+      newPackageName: org.springframework.boot.hibernate.autoconfigure.metrics
       recursive: true
   # spring-boot-data-jpa-test
   - org.openrewrite.java.ChangePackage:
