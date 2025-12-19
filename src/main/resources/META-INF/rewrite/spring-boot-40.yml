@@ -44,6 +44,11 @@ recipeList:
       artifactId: spring-boot-dependencies
       newVersion: 4.0.x
       overrideManagedVersion: true
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: io.github.wimdeblauwe
+      artifactId: error-handling-spring-boot-starter
+      newVersion: 5.0.x
+      overrideManagedVersion: true
   - org.openrewrite.maven.UpgradePluginVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-maven-plugin
