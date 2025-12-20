@@ -90,6 +90,11 @@ recipeList:
 
   # Additional dependencies that need to move in sync
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: eu.michael-simons.neo4j
+      artifactId: neo4j-migrations-spring-boot-starter
+      newVersion: 3.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: io.github.wimdeblauwe
       artifactId: error-handling-spring-boot-starter
       newVersion: 5.0.x
