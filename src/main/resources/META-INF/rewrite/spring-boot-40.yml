@@ -99,3 +99,13 @@ recipeList:
       artifactId: error-handling-spring-boot-starter
       newVersion: 5.0.x
       overrideManagedVersion: true
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-bom
+      newVersion: 3.0.x
+      overrideManagedVersion: true
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: springdoc-openapi-starter*
+      newVersion: 3.0.x
+      overrideManagedVersion: true
