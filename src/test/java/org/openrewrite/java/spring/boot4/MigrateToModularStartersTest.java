@@ -63,7 +63,7 @@ class MigrateToModularStartersTest implements RewriteTest {
             spec -> spec.after(pom -> assertThat(pom)
               .doesNotContain("<artifactId>liquibase-core</artifactId>")
               .contains("<artifactId>spring-boot-starter-liquibase</artifactId>")
-              .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+              .containsPattern("<version>4\\.0\\.\\d+</version>")
               .actual())
           )
         );
@@ -92,7 +92,7 @@ class MigrateToModularStartersTest implements RewriteTest {
             spec -> spec.after(pom -> assertThat(pom)
               .doesNotContain("<artifactId>spring-security-test</artifactId>")
               .contains("<artifactId>spring-boot-starter-security-test</artifactId>")
-              .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+              .containsPattern("<version>4\\.0\\.\\d+</version>")
               .actual())
           )
         );
@@ -121,7 +121,7 @@ class MigrateToModularStartersTest implements RewriteTest {
             spec -> spec.after(pom -> assertThat(pom)
               .doesNotContain("<artifactId>spring-kafka</artifactId>")
               .contains("<artifactId>spring-boot-starter-kafka</artifactId>")
-              .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+              .containsPattern("<version>4\\.0\\.\\d+</version>")
               .actual())
           )
         );
@@ -148,7 +148,7 @@ class MigrateToModularStartersTest implements RewriteTest {
                     """,
                   spec -> spec.after(pom -> assertThat(pom)
                     .contains("<artifactId>spring-boot-starter-restclient</artifactId>")
-                    .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                    .containsPattern("<version>4\\.0\\.\\d+</version>")
                     .actual())
                 ),
                 srcMainJava(
@@ -185,7 +185,7 @@ class MigrateToModularStartersTest implements RewriteTest {
                     """,
                   spec -> spec.after(pom -> assertThat(pom)
                     .contains("<artifactId>spring-boot-starter-restclient</artifactId>")
-                    .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                    .containsPattern("<version>4\\.0\\.\\d+</version>")
                     .actual())
                 ),
                 srcMainJava(
@@ -222,7 +222,7 @@ class MigrateToModularStartersTest implements RewriteTest {
                     """,
                   spec -> spec.after(pom -> assertThat(pom)
                     .contains("<artifactId>spring-boot-starter-restclient</artifactId>")
-                    .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                    .containsPattern("<version>4\\.0\\.\\d+</version>")
                     .actual())
                 ),
                 srcMainJava(
@@ -268,7 +268,7 @@ class MigrateToModularStartersTest implements RewriteTest {
               spec -> spec.after(pom -> assertThat(pom)
                 .contains("<artifactId>spring-boot-resttestclient</artifactId>")
                 .contains("<scope>test</scope>")
-                .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                .containsPattern("<version>4\\.0\\.\\d+</version>")
                 .actual())
             ),
             srcTestJava(
