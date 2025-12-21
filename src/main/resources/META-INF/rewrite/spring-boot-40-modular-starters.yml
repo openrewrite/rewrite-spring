@@ -177,6 +177,15 @@ recipeList:
       oldPackageName: org.springframework.boot.autoconfigure.data.jpa
       newPackageName: org.springframework.boot.data.jpa.autoconfigure
       recursive: true
+  # spring-boot-persistence
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.domain
+      newPackageName: org.springframework.boot.persistence.autoconfigure
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.dao
+      newPackageName: org.springframework.boot.persistence.autoconfigure
+      recursive: true
   # spring-boot-hibernate
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.orm.jpa
