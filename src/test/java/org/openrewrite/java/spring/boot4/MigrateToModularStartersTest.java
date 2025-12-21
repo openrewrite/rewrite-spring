@@ -127,6 +127,34 @@ class MigrateToModularStartersTest implements RewriteTest {
         );
     }
 
+    @Test
+    void migrateSpringBootPersistencePackages() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.boot.autoconfigure.domain.EntityScan;
+
+              @Configuration
+              @EntityScan("x.y.z")
+              class PersistenceConfig {
+              }
+              """
+            ,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.boot.persistence.autoconfigure.EntityScan;
+
+              @Configuration
+              @EntityScan("x.y.z")
+              class PersistenceConfig {
+              }
+              """
+          )
+        );
+    }
+
     @Nested
     class RestClientStarter {
 
