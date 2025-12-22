@@ -59,8 +59,8 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
                                 apiVersion = "V3";
                             }
                             if (apiVersion != null) {
-                                maybeAddImport("org.springframework.boot.actuate.endpoint.ApiVersion");
                                 maybeRemoveImport("org.springframework.boot.actuate.endpoint.http.ActuatorMediaType");
+                                maybeAddImport("org.springframework.boot.actuate.endpoint.ApiVersion");
                                 maybeAddImport("org.springframework.http.MediaType");
                                 mi = JavaTemplate.builder("MediaType.asMediaType(ApiVersion.#{}.getProducedMimeType())")
                                     .javaParser(JavaParser.fromJavaVersion()

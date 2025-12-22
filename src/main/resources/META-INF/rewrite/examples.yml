@@ -2993,6 +2993,28 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.MigrateToModularStarters
+examples:
+- description: '`MigrateToModularStartersTest#migrateLiquibaseToStarterInMaven`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>org.example</groupId>
+          <artifactId>example</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.liquibase</groupId>
+                  <artifactId>liquibase-core</artifactId>
+                  <version>4.24.0</version>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
 examples:
 - description: '`ReplaceMockBeanAndSpyBeanTest#replacesMockBeanWithMockitoBean`'

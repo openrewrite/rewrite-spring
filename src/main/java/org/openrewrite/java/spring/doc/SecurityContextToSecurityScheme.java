@@ -227,8 +227,8 @@ public class SecurityContextToSecurityScheme extends Recipe {
                     private Expression replaceWithChainedScopes(Expression node, List<ScopeInfo> scopes, ExecutionContext ctx) {
                         maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
                         maybeRemoveImport("java.util.Arrays");
-                        maybeAddImport("io.swagger.v3.oas.models.security.Scopes");
                         maybeRemoveImport("java.util.List");
+                        maybeAddImport("io.swagger.v3.oas.models.security.Scopes");
 
                         StringBuilder templateBuilder = new StringBuilder("new Scopes()");
                         List<Expression> templateArgs = new ArrayList<>();
