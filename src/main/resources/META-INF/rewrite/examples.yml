@@ -1722,7 +1722,7 @@ examples:
   - before: project
     language: mavenProject
   - before: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -1747,7 +1747,7 @@ examples:
         </dependencies>
       </project>
     after: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -1801,7 +1801,7 @@ examples:
   - before: project
     language: mavenProject
   - before: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -1826,7 +1826,7 @@ examples:
         </dependencies>
       </project>
     after: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -2036,8 +2036,7 @@ examples:
     path: application.properties
     language: properties
   - before: |
-      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
           <modelVersion>4.0.0</modelVersion>
           <parent>
               <groupId>org.springframework.boot</groupId>
@@ -2832,7 +2831,7 @@ examples:
   - before: project
     language: mavenProject
   - before: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -2865,7 +2864,7 @@ examples:
         </dependencies>
       </project>
     after: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -2913,8 +2912,7 @@ examples:
   - before: project
     language: mavenProject
   - before: |
-      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
           <modelVersion>4.0.0</modelVersion>
           <groupId>com.example</groupId>
           <artifactId>fooservice</artifactId>
@@ -3072,8 +3070,7 @@ examples:
     path: src/main/resources/application.properties
     language: properties
   - before: |2
-          <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+          <project>
           <modelVersion>4.0.0</modelVersion>
           <groupId>com.example</groupId>
           <artifactId>explicit-deps-app</artifactId>
