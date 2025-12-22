@@ -131,7 +131,6 @@ class RemoveOauth2LoginConfigTest implements RewriteTest {
     void removeUserInfoEndpointStatement() {
         // language=java
         rewriteRun(
-          // spec -> spec.cycles(2).expectedCyclesThatMakeChanges(2),
           java(
             """
               import org.springframework.context.annotation.Bean;
