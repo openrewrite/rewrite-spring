@@ -108,7 +108,7 @@ class MigrateLocalServerPortAnnotationTest implements RewriteTest {
                 </project>
                 """,
               """
-                <project >
+                <project>
                     <modelVersion>4.0.0</modelVersion>
                     <parent>
                         <groupId>org.springframework.boot</groupId>
