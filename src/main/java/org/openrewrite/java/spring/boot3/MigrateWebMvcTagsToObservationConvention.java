@@ -133,10 +133,10 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                 })));
                         maybeAddImport(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ);
                         maybeAddImport(KEYVALUE_FQ);
-                        maybeAddImport(KEYVALUES_FQ);
                         maybeRemoveImport(HTTPSERVLETREQUEST_FQ);
-                        maybeAddImport(SERVERREQUESTOBSERVATIONCONVENTION_FQ);
+                        maybeAddImport(KEYVALUES_FQ);
                         maybeRemoveImport(HTTPSERVLETRESPONSE_FQ);
+                        maybeAddImport(SERVERREQUESTOBSERVATIONCONVENTION_FQ);
                         maybeRemoveImport(TAG_FQ);
                         maybeRemoveImport(TAGS_FQ);
                         maybeRemoveImport(WEBMVCTAGS_FQ);
