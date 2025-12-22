@@ -131,16 +131,16 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     }
                                     return stmt;
                                 })));
-                        maybeAddImport(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ);
-                        maybeAddImport(KEYVALUE_FQ);
                         maybeRemoveImport(HTTPSERVLETREQUEST_FQ);
-                        maybeAddImport(KEYVALUES_FQ);
                         maybeRemoveImport(HTTPSERVLETRESPONSE_FQ);
-                        maybeAddImport(SERVERREQUESTOBSERVATIONCONVENTION_FQ);
                         maybeRemoveImport(TAG_FQ);
                         maybeRemoveImport(TAGS_FQ);
                         maybeRemoveImport(WEBMVCTAGS_FQ);
                         maybeRemoveImport(WEBMVCTAGSPROVIDER_FQ);
+                        maybeAddImport(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ);
+                        maybeAddImport(KEYVALUE_FQ);
+                        maybeAddImport(KEYVALUES_FQ);
+                        maybeAddImport(SERVERREQUESTOBSERVATIONCONVENTION_FQ);
                         updateCursor(newClassDeclaration);
                         return (J.ClassDeclaration) super.visitClassDeclaration(newClassDeclaration, ctx);
                     }
