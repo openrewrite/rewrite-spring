@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,37 +31,33 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JdbcTemplateObjectArrayArgToVarArgs())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(
-              new InMemoryExecutionContext(),
+            .classpathFromResources(new InMemoryExecutionContext(),
               "spring-jdbc-4.1.+",
               "spring-tx-4.1.+",
               "spring-beans-5.+",
               "spring-core-5.+"
-            ));
+            )
+          );
     }
 
     //language=java
     private final SourceSpecs user = java(
       """
         package abc;
-
-        public class User {
+        class User {
             private String name;
             private Integer age;
 
-            public Integer getAge() {
+            Integer getAge() {
                 return age;
             }
-
-            public void setAge(Integer age) {
+            void setAge(Integer age) {
                 this.age = age;
             }
-
-            public String getName() {
+            String getName() {
                 return name;
             }
-
-            public void setName(String name) {
+            void setName(String name) {
                 this.name = name;
             }
         }
@@ -70,145 +66,273 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void reorderQueryForObjectArgsAndFlattenArray() {
+    void reOrderQueryForObjectArgs() {
+        //language=java
         rewriteRun(
           user,
           java(
             """
               package abc;
-
-              import org.springframework.jdbc.core.JdbcTemplate;
-
-              public class MyDao {
-
-                  final JdbcTemplate jdbcTemplate;
-
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
-                  }
-
-                  public User getUser(String first, String last) {
-                      Object[] args = new Object[]{first, last};
-                      return jdbcTemplate.queryForObject(
-                          "select NAME, AGE from USER where FIRST = ? and LAST = ?",
-                          User.class,
-                          args
-                      );
-                  }
-              }
-              """
-          )
-        );
-
-    }
-
-    @Test
-    void reorderQueryWithRowMapperAndFlattenArray() {
-        rewriteRun(
-          user,
-          java(
-            """
-              package abc;
-
               import org.springframework.jdbc.core.JdbcTemplate;
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
+                  User getUser(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, User.class);
                   }
 
-                  public List<User> getUsers(String first, String last) {
+                  User getUser2(String first, String last) {
                       Object[] args = new Object[]{first, last};
-                      return jdbcTemplate.query(
-                          "select NAME, AGE from USER where FIRST = ? and LAST = ?",
-                          (rs, i) -> {
-                              User user = new User();
-                              user.setName(rs.getString("NAME"));
-                              user.setAge(rs.getInt("AGE"));
-                              return user;
-                          },
-                          args
-                      );
+                       return jdbcTemplate.queryForObject("", args, (resultSet, i) -> {
+                          User user = new User();
+                          user.setName(resultSet.getString("NAME"));
+                          user.setAge(resultSet.getInt("AGE"));
+                          return user;
+                      });
+                  }
+              }
+              """,
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+              import java.util.List;
+
+              class MyDao {
+
+                  JdbcTemplate jdbcTemplate;
+
+                  User getUser(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, args);
+                  }
+
+                  User getUser2(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                       return jdbcTemplate.queryForObject("", (resultSet, i) -> {
+                          User user = new User();
+                          user.setName(resultSet.getString("NAME"));
+                          user.setAge(resultSet.getInt("AGE"));
+                          return user;
+                      }, args);
                   }
               }
               """
           )
         );
-
     }
 
     @Test
-    void reorderQueryForListAndFlattenArray() {
+    void reOrderQueryArgs() {
+        //language=java
         rewriteRun(
           user,
           java(
             """
               package abc;
-
               import org.springframework.jdbc.core.JdbcTemplate;
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
+                  List<User> getUserAgesByName(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? AND LAST = ?", args, (resultSet, i) -> {
+                          User user = new User();
+                          user.setName(resultSet.getString("NAME"));
+                          user.setAge(resultSet.getInt("AGE"));
+                          return user;
+                      });
                   }
 
-                  public List<User> getUsers(String first, String last) {
+                  User getUserByName(String first, String last) {
                       Object[] args = new Object[]{first, last};
-                      return jdbcTemplate.queryForList(
-                          "select NAME, AGE from USER where FIRST = ? and LAST = ?",
-                          User.class,
-                          args
-                      );
+                      return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, resultSet -> {
+                          User user = new User();
+                          user.setName(resultSet.getString("NAME"));
+                          user.setAge(resultSet.getInt("AGE"));
+                          return user;
+                      });
+                  }
+
+                  User getUserAge2(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      final User user = new User();
+                      jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, rs -> {
+                          user.setAge = rs.getInt("AGE");
+                          user.setName = rs.getString("NAME");
+                      });
+                      return user;
+                  }
+              }
+              """,
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+              import java.util.List;
+
+              class MyDao {
+
+                  JdbcTemplate jdbcTemplate;
+
+                  List<User> getUserAgesByName(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? AND LAST = ?", (resultSet, i) -> {
+                          User user = new User();
+                          user.setName(resultSet.getString("NAME"));
+                          user.setAge(resultSet.getInt("AGE"));
+                          return user;
+                      }, args);
+                  }
+
+                  User getUserByName(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", resultSet -> {
+                          User user = new User();
+                          user.setName(resultSet.getString("NAME"));
+                          user.setAge(resultSet.getInt("AGE"));
+                          return user;
+                      }, args);
+                  }
+
+                  User getUserAge2(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      final User user = new User();
+                      jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", rs -> {
+                          user.setAge = rs.getInt("AGE");
+                          user.setName = rs.getString("NAME");
+                      }, args);
+                      return user;
                   }
               }
               """
           )
         );
-
     }
 
     @Test
-    void doesNotChangeAlreadyVarArgsUsage() {
+    void reOrderQueryArgsNoChange() {
+        //language=java
         rewriteRun(
           user,
           java(
             """
-                package abc;
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+              import java.util.List;
 
-                 import org.springframework.jdbc.core.JdbcTemplate;
-                 import java.util.List;
+              class MyDao {
 
-                 public class MyDao {
+                  JdbcTemplate jdbcTemplate;
 
-                     final JdbcTemplate jdbcTemplate;
+                  List<User> getUserAgesByNameHasNull(String first, String last) {
+                      Object[] args = new String[]{first, last};
+                      return jdbcTemplate.queryForList("select NAME, AGE from USER where NAME = ?", null, User.class);
+                  }
 
-                     public MyDao(JdbcTemplate jdbcTemplate) {
-                         this.jdbcTemplate = jdbcTemplate;
-                     }
+                  List<User> getUserAgesByName(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? AND LAST = ?", (resultSet, i) -> {
+                          User user = new User();
+                          user.setName(resultSet.getString("NAME"));
+                          user.setAge(resultSet.getInt("AGE"));
+                          return user;
+                      }, args);
+                  }
 
-                     public List<User> getUsers(String first, String last) {
-                         return jdbcTemplate.query(
-                             "select NAME, AGE from USER where FIRST = ? and LAST = ?",
-                             (rs, i) -> {
-                                 User user = new User();
-                                 user.setName(rs.getString("NAME"));
-                                 user.setAge(rs.getInt("AGE"));
-                                 return user;
-                             },
-                             first,
-                             last
-                         );
-                     }
-                 }
+                  User getUserByName(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", resultSet -> {
+                          User user = new User();
+                          user.setName(resultSet.getString("NAME"));
+                          user.setAge(resultSet.getInt("AGE"));
+                          return user;
+                      }, args);
+                  }
 
+                  User getUserAge2(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      final User user = new User();
+                      jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", rs -> {
+                          user.setAge = rs.getInt("AGE");
+                          user.setName = rs.getString("NAME");
+                      }, args);
+                      return user;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void reOrderQueryForList() {
+        //language=java
+        rewriteRun(
+          user,
+          java(
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              import java.util.List;
+
+              class MyDao {
+
+                  JdbcTemplate jdbcTemplate;
+
+                  List<User> getUserAgesByName(String first, String last) {
+                      Object[] args = new String[]{first, last};
+                      return jdbcTemplate.queryForList("select NAME, AGE from USER where NAME = ?", args, User.class);
+                  }
+              }
+              """,
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              import java.util.List;
+
+              class MyDao {
+
+                  JdbcTemplate jdbcTemplate;
+
+                  List<User> getUserAgesByName(String first, String last) {
+                      Object[] args = new String[]{first, last};
+                      return jdbcTemplate.queryForList("select NAME, AGE from USER where NAME = ?", User.class, args);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void queryForListNoChange() {
+        //language=java
+        rewriteRun(
+          user,
+          java(
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              import java.util.List;
+
+              class MyDao {
+
+                  JdbcTemplate jdbcTemplate;
+
+                  List<User> getUserAgesByName(String first, String last) {
+                      Object[] args = new String[]{first, last};
+                      return jdbcTemplate.queryForList("select NAME, AGE from USER where NAME = ?", User.class, args);
+                  }
+              }
               """
           )
         );
