@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.framework;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -337,4 +338,40 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
           )
         );
     }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/pull/885")
+    @Test
+    void inlineArrayInitializerValues() {
+        //language=java
+        rewriteRun(
+          user,
+          java(
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              class MyDao {
+                  JdbcTemplate jdbcTemplate;
+
+                  User getUser(String first, String last) {
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", new Object[]{ first, last }, User.class);
+                  }
+              }
+              """,
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              class MyDao {
+                  JdbcTemplate jdbcTemplate;
+
+                  User getUser(String first, String last) {
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, first, last);
+                  }
+              }
+              """
+          )
+        );
+    }
+
 }
