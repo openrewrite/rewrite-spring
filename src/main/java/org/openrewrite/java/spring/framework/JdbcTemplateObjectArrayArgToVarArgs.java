@@ -58,11 +58,27 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
             if (queryMapper.matches(mi) || queryForObjectMapper.matches(mi) || queryForListMapper.matches(mi)) {
                 List<Expression> args = mi.getArguments();
                 if (args.size() == 3 && shouldSwapArgs(args.get(1).getType(), args.get(2).getType())) {
-                    List<Expression> reOrderedArgs = new ArrayList<>(3);
-                    reOrderedArgs.add(args.get(0));
-                    reOrderedArgs.add(args.get(2).withPrefix(args.get(1).getPrefix()));
-                    reOrderedArgs.add(args.get(1).withPrefix(args.get(2).getPrefix()));
-                    mi = mi.withArguments(reOrderedArgs);
+                    Expression sql = args.get(0);
+                    Expression rowMapper = args.get(2);
+                    Expression arr = args.get(1);
+
+                    List<Expression> newArgs = new ArrayList<>();
+                    newArgs.add(sql);
+                    newArgs.add(rowMapper.withPrefix(arr.getPrefix()));
+
+                    if (arr instanceof J.NewArray) {
+                        J.NewArray newArray = (J.NewArray) arr;
+                        if (newArray.getInitializer() != null) {
+                            newArgs.addAll(newArray.getInitializer());
+                        } else {
+                            newArgs.add(arr);
+                        }
+                    } else {
+                        newArgs.add(arr);
+                    }
+
+
+                    mi = mi.withArguments(newArgs);
                 }
             }
             return mi;

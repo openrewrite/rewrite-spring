@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.framework;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -31,27 +32,33 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JdbcTemplateObjectArrayArgToVarArgs())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc-4.1.+", "spring-tx-4.1.+", "spring-beans-5.+", "spring-core-5.+"));
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-jdbc-4.1.+",
+              "spring-tx-4.1.+",
+              "spring-beans-5.+",
+              "spring-core-5.+"
+            )
+          );
     }
 
     //language=java
     private final SourceSpecs user = java(
       """
         package abc;
-        public class User {
+        class User {
             private String name;
-            private Integer Age;
+            private Integer age;
 
-            public Integer getAge() {
-                return Age;
+            Integer getAge() {
+                return age;
             }
-            public void setAge(Integer age) {
-                Age = age;
+            void setAge(Integer age) {
+                this.age = age;
             }
-            public String getName() {
+            String getName() {
                 return name;
             }
-            public void setName(String name) {
+            void setName(String name) {
                 this.name = name;
             }
         }
@@ -70,20 +77,16 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
               import org.springframework.jdbc.core.JdbcTemplate;
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
-                  }
-
-                  public User getUser(String first, String last) {
+                  User getUser(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, User.class);
                   }
 
-                  public User getUser2(String first, String last) {
+                  User getUser2(String first, String last) {
                       Object[] args = new Object[]{first, last};
                        return jdbcTemplate.queryForObject("", args, (resultSet, i) -> {
                           User user = new User();
@@ -99,20 +102,16 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
               import org.springframework.jdbc.core.JdbcTemplate;
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
-                  }
-
-                  public User getUser(String first, String last) {
+                  User getUser(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, args);
                   }
 
-                  public User getUser2(String first, String last) {
+                  User getUser2(String first, String last) {
                       Object[] args = new Object[]{first, last};
                        return jdbcTemplate.queryForObject("", (resultSet, i) -> {
                           User user = new User();
@@ -138,15 +137,11 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
               import org.springframework.jdbc.core.JdbcTemplate;
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
-                  }
-
-                  public List<User> getUserAgesByName(String first, String last) {
+                  List<User> getUserAgesByName(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? AND LAST = ?", args, (resultSet, i) -> {
                           User user = new User();
@@ -156,7 +151,7 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       });
                   }
 
-                  public User getUserByName(String first, String last) {
+                  User getUserByName(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, resultSet -> {
                           User user = new User();
@@ -166,7 +161,7 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       });
                   }
 
-                  public User getUserAge2(String first, String last) {
+                  User getUserAge2(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       final User user = new User();
                       jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, rs -> {
@@ -182,15 +177,11 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
               import org.springframework.jdbc.core.JdbcTemplate;
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
-                  }
-
-                  public List<User> getUserAgesByName(String first, String last) {
+                  List<User> getUserAgesByName(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? AND LAST = ?", (resultSet, i) -> {
                           User user = new User();
@@ -200,7 +191,7 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       }, args);
                   }
 
-                  public User getUserByName(String first, String last) {
+                  User getUserByName(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", resultSet -> {
                           User user = new User();
@@ -210,7 +201,7 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       }, args);
                   }
 
-                  public User getUserAge2(String first, String last) {
+                  User getUserAge2(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       final User user = new User();
                       jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", rs -> {
@@ -236,20 +227,16 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
               import org.springframework.jdbc.core.JdbcTemplate;
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
-                  }
-
-                  public List<User> getUserAgesByNameHasNull(String first, String last) {
+                  List<User> getUserAgesByNameHasNull(String first, String last) {
                       Object[] args = new String[]{first, last};
                       return jdbcTemplate.queryForList("select NAME, AGE from USER where NAME = ?", null, User.class);
                   }
 
-                  public List<User> getUserAgesByName(String first, String last) {
+                  List<User> getUserAgesByName(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? AND LAST = ?", (resultSet, i) -> {
                           User user = new User();
@@ -259,7 +246,7 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       }, args);
                   }
 
-                  public User getUserByName(String first, String last) {
+                  User getUserByName(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       return jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", resultSet -> {
                           User user = new User();
@@ -269,7 +256,7 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       }, args);
                   }
 
-                  public User getUserAge2(String first, String last) {
+                  User getUserAge2(String first, String last) {
                       Object[] args = new Object[]{first, last};
                       final User user = new User();
                       jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", rs -> {
@@ -296,15 +283,11 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
 
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
-                  }
-
-                  public List<User> getUserAgesByName(String first, String last) {
+                  List<User> getUserAgesByName(String first, String last) {
                       Object[] args = new String[]{first, last};
                       return jdbcTemplate.queryForList("select NAME, AGE from USER where NAME = ?", args, User.class);
                   }
@@ -316,15 +299,11 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
 
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
-                  }
-
-                  public List<User> getUserAgesByName(String first, String last) {
+                  List<User> getUserAgesByName(String first, String last) {
                       Object[] args = new String[]{first, last};
                       return jdbcTemplate.queryForList("select NAME, AGE from USER where NAME = ?", User.class, args);
                   }
@@ -346,15 +325,11 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
 
               import java.util.List;
 
-              public class MyDao {
+              class MyDao {
 
-                  final JdbcTemplate jdbcTemplate;
+                  JdbcTemplate jdbcTemplate;
 
-                  public MyDao(JdbcTemplate jdbcTemplate) {
-                      this.jdbcTemplate = jdbcTemplate;
-                  }
-
-                  public List<User> getUserAgesByName(String first, String last) {
+                  List<User> getUserAgesByName(String first, String last) {
                       Object[] args = new String[]{first, last};
                       return jdbcTemplate.queryForList("select NAME, AGE from USER where NAME = ?", User.class, args);
                   }
@@ -363,4 +338,40 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
           )
         );
     }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/pull/885")
+    @Test
+    void inlineArrayInitializerValues() {
+        //language=java
+        rewriteRun(
+          user,
+          java(
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              class MyDao {
+                  JdbcTemplate jdbcTemplate;
+
+                  User getUser(String first, String last) {
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", new Object[]{ first, last }, User.class);
+                  }
+              }
+              """,
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              class MyDao {
+                  JdbcTemplate jdbcTemplate;
+
+                  User getUser(String first, String last) {
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, first, last);
+                  }
+              }
+              """
+          )
+        );
+    }
+
 }
