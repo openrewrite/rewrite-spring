@@ -35,7 +35,6 @@ class UpdateApiManifestTest implements RewriteTest {
     @Test
     void requestMappingWithMethod() {
         rewriteRun(
-          spec -> spec.cycles(1).expectedCyclesThatMakeChanges(1),
           //language=java
           java(
             """

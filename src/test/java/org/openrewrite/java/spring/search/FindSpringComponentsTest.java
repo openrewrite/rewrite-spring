@@ -15,14 +15,15 @@
  */
 package org.openrewrite.java.spring.search;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.table.SpringComponentRelationships;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class FindSpringComponentsTest implements RewriteTest {
@@ -33,15 +34,26 @@ class FindSpringComponentsTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.+"));
     }
 
-    @Disabled("Unstable ordering of data table")
+    @DocumentExample
     @Test
     void findSpringComponents() {
         rewriteRun(
-          spec -> spec.dataTableAsCsv(SpringComponentRelationships.class.getName(), """
-            sourceFile,dependantType,dependencyType
-            test/C.java,test.C,test.B
-            test/Config.java,test.A,test.B
-            """).cycles(1).expectedCyclesThatMakeChanges(1),
+          spec -> spec.dataTable(SpringComponentRelationships.Row.class, rows ->
+            assertThat(rows)
+              .satisfiesExactlyInAnyOrder(one ->
+                  assertThat(one)
+                    .extracting(
+                      SpringComponentRelationships.Row::getSourceFile,
+                      SpringComponentRelationships.Row::getDependantType,
+                      SpringComponentRelationships.Row::getDependencyType)
+                    .contains("test/Config.java", "test.A", "test.B"),
+                two ->
+                  assertThat(two)
+                    .extracting(
+                      SpringComponentRelationships.Row::getSourceFile,
+                      SpringComponentRelationships.Row::getDependantType,
+                      SpringComponentRelationships.Row::getDependencyType)
+                    .contains("test/C.java", "test.C", "test.B"))),
           //language=java
           java("package test; public class B {}"),
           //language=java
