@@ -256,6 +256,11 @@ recipeList:
       oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.resource
       newPackageName: org.springframework.boot.security.oauth2.server.resource.autoconfigure
       recursive: true
+  # spring-boot-starter-validation
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.validation
+      newPackageName: org.springframework.boot.validation.autoconfigure
+      recursive: true
   # spring-boot-webmvc
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.web.servlet
