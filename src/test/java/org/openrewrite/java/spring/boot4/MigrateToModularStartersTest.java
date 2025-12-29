@@ -322,33 +322,32 @@ class MigrateToModularStartersTest implements RewriteTest {
         );
     }
 
-    @Test
-    void migrateSecurityPropertiesConstants() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.autoconfigure.security.SecurityProperties;
-
-              class A {
-                  private final int basicOrder = SecurityProperties.BASIC_AUTH_ORDER;
-                  private final int defaultOrder = SecurityProperties.DEFAULT_FILTER_ORDER;
-              }
-              """,
-            """
-              import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
-
-              class A {
-                  private final int basicOrder = SecurityFilterProperties.BASIC_AUTH_ORDER;
-                  private final int defaultOrder = SecurityFilterProperties.DEFAULT_FILTER_ORDER;
-              }
-              """
-          )
-        );
-    }
-
     @Nested
     class MigrateAutoconfigurePackages {
+        @Test
+        void migrateSecurityPropertiesConstants() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.security.SecurityProperties;
+
+                  class A {
+                      private final int basicOrder = SecurityProperties.BASIC_AUTH_ORDER;
+                      private final int defaultOrder = SecurityProperties.DEFAULT_FILTER_ORDER;
+                  }
+                  """,
+                """
+                  import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
+
+                  class A {
+                      private final int basicOrder = SecurityFilterProperties.BASIC_AUTH_ORDER;
+                      private final int defaultOrder = SecurityFilterProperties.DEFAULT_FILTER_ORDER;
+                  }
+                  """
+              )
+            );
+        }
 
         @Test
         void migrateSpringBootWebtestclient() {
