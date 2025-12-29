@@ -3737,20 +3737,16 @@ examples:
       import org.springframework.jdbc.core.JdbcTemplate;
       import java.util.List;
 
-      public class MyDao {
+      class MyDao {
 
-          final JdbcTemplate jdbcTemplate;
+          JdbcTemplate jdbcTemplate;
 
-          public MyDao(JdbcTemplate jdbcTemplate) {
-              this.jdbcTemplate = jdbcTemplate;
-          }
-
-          public User getUser(String first, String last) {
+          User getUser(String first, String last) {
               Object[] args = new Object[]{first, last};
               return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, User.class);
           }
 
-          public User getUser2(String first, String last) {
+          User getUser2(String first, String last) {
               Object[] args = new Object[]{first, last};
                return jdbcTemplate.queryForObject("", args, (resultSet, i) -> {
                   User user = new User();
@@ -3765,20 +3761,16 @@ examples:
       import org.springframework.jdbc.core.JdbcTemplate;
       import java.util.List;
 
-      public class MyDao {
+      class MyDao {
 
-          final JdbcTemplate jdbcTemplate;
+          JdbcTemplate jdbcTemplate;
 
-          public MyDao(JdbcTemplate jdbcTemplate) {
-              this.jdbcTemplate = jdbcTemplate;
-          }
-
-          public User getUser(String first, String last) {
+          User getUser(String first, String last) {
               Object[] args = new Object[]{first, last};
               return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, args);
           }
 
-          public User getUser2(String first, String last) {
+          User getUser2(String first, String last) {
               Object[] args = new Object[]{first, last};
                return jdbcTemplate.queryForObject("", (resultSet, i) -> {
                   User user = new User();
@@ -4510,6 +4502,63 @@ examples:
               this.url = url;
           }
       }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.search.FindSpringComponents
+examples:
+- description: '`FindSpringComponentsTest#findSpringComponents`'
+  sources:
+  - before: |
+      package test;
+
+      class A {
+          public A(B b) {}
+      }
+    language: java
+  - before: |
+      package test;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Configuration;
+
+      @Configuration
+      class Config {
+          @Bean
+          A a(B b) {
+              return new A(b);
+          }
+      }
+    after: |
+      package test;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Configuration;
+
+      @Configuration
+      class Config {
+          /*~~(bean)~~>*/@Bean
+          A a(B b) {
+              return new A(b);
+          }
+      }
+    language: java
+  - before: |
+      package test;
+      import org.springframework.stereotype.Component;
+
+      @Component
+      class C {
+          public C(B b) {}
+      }
+    after: |
+      package test;
+      import org.springframework.stereotype.Component;
+
+      /*~~(component)~~>*/@Component
+      class C {
+          public C(B b) {}
+      }
+    language: java
+  - before: package test; public class B {}
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
