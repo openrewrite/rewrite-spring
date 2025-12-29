@@ -36,7 +36,7 @@ class MigrateToModularStartersTest implements RewriteTest {
         ).parser(JavaParser.fromJavaVersion()
           .classpathFromResources(new InMemoryExecutionContext(),
             "spring-boot-autoconfigure-3", "spring-boot-3", "spring-boot-test-3",
-            "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
+            "spring-boot-test-autoconfigure-3", "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
     }
 
     @DocumentExample
@@ -345,5 +345,47 @@ class MigrateToModularStartersTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Nested
+    class MigrateAutoconfigurePackages {
+
+        @Test
+        void migrateSpringBootWebtestclient() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import java.util.Collections;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.SpringBootWebTestClientBuilderCustomizer;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientAutoConfiguration;
+                  import org.springframework.boot.test.web.reactive.server.WebTestClientBuilderCustomizer;
+
+                  @AutoConfigureWebTestClient
+                  class WebClientTest {
+                      private final WebTestClientAutoConfiguration webTestClientAutoConfiguration = new WebTestClientAutoConfiguration();
+                      private final SpringBootWebTestClientBuilderCustomizer springBootWebTestClientBuilderCustomizer = new SpringBootWebTestClientBuilderCustomizer(Collections.emptyList());
+                      private final WebTestClientBuilderCustomizer webTestClientBuilderCustomizer = builder -> {};
+                  }
+                  """
+                ,
+                """
+                  import java.util.Collections;
+                  import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+                  import org.springframework.boot.webtestclient.autoconfigure.SpringBootWebTestClientBuilderCustomizer;
+                  import org.springframework.boot.webtestclient.autoconfigure.WebTestClientAutoConfiguration;
+                  import org.springframework.boot.webtestclient.autoconfigure.WebTestClientBuilderCustomizer;
+
+                  @AutoConfigureWebTestClient
+                  class WebClientTest {
+                      private final WebTestClientAutoConfiguration webTestClientAutoConfiguration = new WebTestClientAutoConfiguration();
+                      private final SpringBootWebTestClientBuilderCustomizer springBootWebTestClientBuilderCustomizer = new SpringBootWebTestClientBuilderCustomizer(Collections.emptyList());
+                      private final WebTestClientBuilderCustomizer webTestClientBuilderCustomizer = builder -> {};
+                  }
+                  """
+              )
+            );
+        }
     }
 }
