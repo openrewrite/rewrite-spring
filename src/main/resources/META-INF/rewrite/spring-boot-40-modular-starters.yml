@@ -271,6 +271,19 @@ recipeList:
       oldPackageName: org.springframework.boot.test.autoconfigure.web.servlet
       newPackageName: org.springframework.boot.webmvc.test.autoconfigure
       recursive: true
+  # spring-boot-webtestclient (originating from spring-boot-test-autoconfigure and spring-boot-test)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
+      newFullyQualifiedTypeName: org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.webtestclient.autoconfigure.WebTestClientAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.SpringBootWebTestClientBuilderCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.webtestclient.autoconfigure.SpringBootWebTestClientBuilderCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.web.reactive.server.WebTestClientBuilderCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.webtestclient.autoconfigure.WebTestClientBuilderCustomizer
   # spring-boot-webservices
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.webservices

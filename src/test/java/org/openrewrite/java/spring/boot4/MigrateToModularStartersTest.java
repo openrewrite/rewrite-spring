@@ -36,7 +36,7 @@ class MigrateToModularStartersTest implements RewriteTest {
         ).parser(JavaParser.fromJavaVersion()
           .classpathFromResources(new InMemoryExecutionContext(),
             "spring-boot-autoconfigure-3", "spring-boot-3", "spring-boot-test-3",
-            "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
+            "spring-boot-test-autoconfigure-3", "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
     }
 
     @DocumentExample
@@ -322,28 +322,69 @@ class MigrateToModularStartersTest implements RewriteTest {
         );
     }
 
-    @Test
-    void migrateSecurityPropertiesConstants() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.autoconfigure.security.SecurityProperties;
+    @Nested
+    class MigrateAutoconfigurePackages {
+        @Test
+        void migrateSecurityPropertiesConstants() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.security.SecurityProperties;
 
-              class A {
-                  private final int basicOrder = SecurityProperties.BASIC_AUTH_ORDER;
-                  private final int defaultOrder = SecurityProperties.DEFAULT_FILTER_ORDER;
-              }
-              """,
-            """
-              import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
+                  class A {
+                      private final int basicOrder = SecurityProperties.BASIC_AUTH_ORDER;
+                      private final int defaultOrder = SecurityProperties.DEFAULT_FILTER_ORDER;
+                  }
+                  """,
+                """
+                  import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
 
-              class A {
-                  private final int basicOrder = SecurityFilterProperties.BASIC_AUTH_ORDER;
-                  private final int defaultOrder = SecurityFilterProperties.DEFAULT_FILTER_ORDER;
-              }
-              """
-          )
-        );
+                  class A {
+                      private final int basicOrder = SecurityFilterProperties.BASIC_AUTH_ORDER;
+                      private final int defaultOrder = SecurityFilterProperties.DEFAULT_FILTER_ORDER;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void migrateSpringBootWebtestclient() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import java.util.Collections;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.SpringBootWebTestClientBuilderCustomizer;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientAutoConfiguration;
+                  import org.springframework.boot.test.web.reactive.server.WebTestClientBuilderCustomizer;
+
+                  @AutoConfigureWebTestClient
+                  class WebClientTest {
+                      private final WebTestClientAutoConfiguration webTestClientAutoConfiguration = new WebTestClientAutoConfiguration();
+                      private final SpringBootWebTestClientBuilderCustomizer springBootWebTestClientBuilderCustomizer = new SpringBootWebTestClientBuilderCustomizer(Collections.emptyList());
+                      private final WebTestClientBuilderCustomizer webTestClientBuilderCustomizer = builder -> {};
+                  }
+                  """
+                ,
+                """
+                  import java.util.Collections;
+                  import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+                  import org.springframework.boot.webtestclient.autoconfigure.SpringBootWebTestClientBuilderCustomizer;
+                  import org.springframework.boot.webtestclient.autoconfigure.WebTestClientAutoConfiguration;
+                  import org.springframework.boot.webtestclient.autoconfigure.WebTestClientBuilderCustomizer;
+
+                  @AutoConfigureWebTestClient
+                  class WebClientTest {
+                      private final WebTestClientAutoConfiguration webTestClientAutoConfiguration = new WebTestClientAutoConfiguration();
+                      private final SpringBootWebTestClientBuilderCustomizer springBootWebTestClientBuilderCustomizer = new SpringBootWebTestClientBuilderCustomizer(Collections.emptyList());
+                      private final WebTestClientBuilderCustomizer webTestClientBuilderCustomizer = builder -> {};
+                  }
+                  """
+              )
+            );
+        }
     }
 }
