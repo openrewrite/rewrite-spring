@@ -33,74 +33,123 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
         spec.recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpockToGroovy3");
     }
 
+    @DocumentExample
+    @Test
+    void upgradeSpockWhenUsingGroovy3Maven() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>com.example</groupId>
+                <artifactId>demo</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <dependencies>
+                  <dependency>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy</artifactId>
+                    <version>3.0.9</version>
+                  </dependency>
+                  <dependency>
+                    <groupId>org.spockframework</groupId>
+                    <artifactId>spock-core</artifactId>
+                    <version>1.3-groovy-2.5</version>
+                    <scope>test</scope>
+                  </dependency>
+                  <dependency>
+                    <groupId>org.spockframework</groupId>
+                    <artifactId>spock-spring</artifactId>
+                    <version>1.3-groovy-2.5</version>
+                    <scope>test</scope>
+                  </dependency>
+                </dependencies>
+              </project>
+              """,
+            """
+              <project>
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>com.example</groupId>
+                <artifactId>demo</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <dependencies>
+                  <dependency>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy</artifactId>
+                    <version>3.0.9</version>
+                  </dependency>
+                  <dependency>
+                    <groupId>org.spockframework</groupId>
+                    <artifactId>spock-core</artifactId>
+                    <version>2.0-groovy-3.0</version>
+                    <scope>test</scope>
+                  </dependency>
+                  <dependency>
+                    <groupId>org.spockframework</groupId>
+                    <artifactId>spock-spring</artifactId>
+                    <version>2.0-groovy-3.0</version>
+                    <scope>test</scope>
+                  </dependency>
+                </dependencies>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void upgradeSpockWhenUsingGroovy3Gradle() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                id 'groovy'
+              }
+
+              repositories {
+                mavenCentral()
+              }
+
+              dependencies {
+                implementation 'org.codehaus.groovy:groovy:3.0.9'
+                testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+                testImplementation 'org.spockframework:spock-spring:1.3-groovy-2.5'
+              }
+
+              tasks.withType(Test).configureEach {
+                useJUnitPlatform()
+              }
+              """,
+            """
+              plugins {
+                id 'groovy'
+              }
+
+              repositories {
+                mavenCentral()
+              }
+
+              dependencies {
+                implementation 'org.codehaus.groovy:groovy:3.0.9'
+                testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+                testImplementation 'org.spockframework:spock-spring:2.0-groovy-3.0'
+              }
+
+              tasks.withType(Test).configureEach {
+                useJUnitPlatform()
+              }
+              """
+          )
+        );
+    }
+
     @Nested
-    class Maven {
-        @DocumentExample
-        @Test
-        void upgradeSpockWhenUsingGroovy3() {
-            rewriteRun(
-              //language=xml
-              pomXml(
-                """
-                  <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy</artifactId>
-                        <version>3.0.9</version>
-                      </dependency>
-                      <dependency>
-                        <groupId>org.spockframework</groupId>
-                        <artifactId>spock-core</artifactId>
-                        <version>1.3-groovy-2.5</version>
-                        <scope>test</scope>
-                      </dependency>
-                      <dependency>
-                        <groupId>org.spockframework</groupId>
-                        <artifactId>spock-spring</artifactId>
-                        <version>1.3-groovy-2.5</version>
-                        <scope>test</scope>
-                      </dependency>
-                    </dependencies>
-                  </project>
-                  """,
-                """
-                  <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy</artifactId>
-                        <version>3.0.9</version>
-                      </dependency>
-                      <dependency>
-                        <groupId>org.spockframework</groupId>
-                        <artifactId>spock-core</artifactId>
-                        <version>2.0-groovy-3.0</version>
-                        <scope>test</scope>
-                      </dependency>
-                      <dependency>
-                        <groupId>org.spockframework</groupId>
-                        <artifactId>spock-spring</artifactId>
-                        <version>2.0-groovy-3.0</version>
-                        <scope>test</scope>
-                      </dependency>
-                    </dependencies>
-                  </project>
-                  """
-              )
-            );
-        }
+    class NoChange {
 
         @Test
-        void doesNotChangeWhenUsingGroovy25() {
+        void whenUsingGroovy25() {
             rewriteRun(
               //language=xml
               pomXml(
@@ -130,7 +179,7 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
         }
 
         @Test
-        void doesNotDowngradeWhenAlreadyOnNewerSpock() {
+        void whenAlreadyOnNewerSpock() {
             rewriteRun(
               //language=xml
               pomXml(
@@ -154,58 +203,6 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
                       </dependency>
                     </dependencies>
                   </project>
-                  """
-              )
-            );
-        }
-    }
-
-    @Nested
-    class Gradle {
-        @DocumentExample
-        @Test
-        void upgradeSpockWhenUsingGroovy3() {
-            rewriteRun(
-              spec -> spec.beforeRecipe(withToolingApi()),
-              //language=groovy
-              buildGradle(
-                """
-                  plugins {
-                    id 'groovy'
-                  }
-
-                  repositories {
-                    mavenCentral()
-                  }
-
-                  dependencies {
-                    implementation 'org.codehaus.groovy:groovy:3.0.9'
-                    testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
-                    testImplementation 'org.spockframework:spock-spring:1.3-groovy-2.5'
-                  }
-
-                  tasks.withType(Test).configureEach {
-                    useJUnitPlatform()
-                  }
-                  """,
-                """
-                  plugins {
-                    id 'groovy'
-                  }
-
-                  repositories {
-                    mavenCentral()
-                  }
-
-                  dependencies {
-                    implementation 'org.codehaus.groovy:groovy:3.0.9'
-                    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
-                    testImplementation 'org.spockframework:spock-spring:2.0-groovy-3.0'
-                  }
-
-                  tasks.withType(Test).configureEach {
-                    useJUnitPlatform()
-                  }
                   """
               )
             );
