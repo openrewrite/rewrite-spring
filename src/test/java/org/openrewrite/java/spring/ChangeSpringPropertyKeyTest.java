@@ -392,7 +392,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeTestAnnotationWithImplicityLiteralProperty() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test-3.2")),
           java(
             """
               import org.springframework.boot.test.context.SpringBootTest;
@@ -414,7 +414,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeTestAnnotationWithLiteralProperty() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test-3.2")),
           java(
             """
               import org.springframework.boot.test.context.SpringBootTest;
@@ -436,7 +436,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeTestAnnotationWithArrayProperties() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test-3.2")),
           java(
             """
               import org.springframework.boot.test.context.SpringBootTest;
@@ -458,7 +458,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeTestAnnotationWithImplicitArrayProperties() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test-3.2")),
           java(
             """
               import org.springframework.boot.test.context.SpringBootTest;
