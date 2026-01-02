@@ -21,6 +21,7 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.dependencies.AddDependency;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -62,21 +63,14 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
 
     @Override
     public List<Recipe> getRecipeList() {
-        return singletonList(
-          new org.openrewrite.maven.AddDependency(
+        return singletonList(new AddDependency(
             "org.springframework.boot",
             "spring-boot-starter-web",
             "2.0.x",
             null,
-            null,
-            null,
             "org.springframework.boot.web.server.LocalServerPort",
             null,
             null,
-            null,
-            null,
-            null
-          )
-        );
+            null, null, null, null, null, null, null));
     }
 }
