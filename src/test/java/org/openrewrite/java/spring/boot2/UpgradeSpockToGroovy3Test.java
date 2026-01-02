@@ -173,17 +173,17 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
                   plugins {
                     id 'groovy'
                   }
-                  
+
                   repositories {
                     mavenCentral()
                   }
-                  
+
                   dependencies {
                     implementation 'org.codehaus.groovy:groovy:3.0.9'
                     testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
                     testImplementation 'org.spockframework:spock-spring:1.3-groovy-2.5'
                   }
-                  
+
                   tasks.withType(Test).configureEach {
                     useJUnitPlatform()
                   }
@@ -192,17 +192,17 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
                   plugins {
                     id 'groovy'
                   }
-                  
+
                   repositories {
                     mavenCentral()
                   }
-                  
+
                   dependencies {
                     implementation 'org.codehaus.groovy:groovy:3.0.9'
                     testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
                     testImplementation 'org.spockframework:spock-spring:2.0-groovy-3.0'
                   }
-                  
+
                   tasks.withType(Test).configureEach {
                     useJUnitPlatform()
                   }
@@ -212,4 +212,3 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
         }
     }
 }
-
