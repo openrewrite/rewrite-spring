@@ -77,9 +77,9 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
                   .afterRecipe(file ->
                     assertThat(
                       ((Yaml.Mapping)
-                        ((Yaml.Mapping) file.getDocuments().get(0)
-                          .getBlock()).getEntries().get(0)
-                          .getValue()).getEntries().get(0)
+                        ((Yaml.Mapping) file.getDocuments().getFirst()
+                          .getBlock()).getEntries().getFirst()
+                          .getValue()).getEntries().getFirst()
                         .getPrefix())
                       .isEqualTo(
                         """
