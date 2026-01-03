@@ -93,7 +93,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2025.SpringCloudGatewayDeprecatedModulesAndStarters
 displayName: Migrate to New Spring Cloud Gateway Modules and Starters
-description: Migrate to new Spring Cloud Gateway modules and starters for Spring Cloud 2025
+description: Migrate to new Spring Cloud Gateway modules and starters for Spring Cloud 2025.
 tags:
   - spring
   - cloud
