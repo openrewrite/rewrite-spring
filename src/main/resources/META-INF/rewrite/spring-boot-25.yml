@@ -52,6 +52,7 @@ recipeList:
       version: ^6.8
       addIfMissing: false
   - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentials
+  - org.openrewrite.java.spring.boot2.UpgradeSpockToGroovy3
 
   # Spring Boot 2.5 mismanages a pom-only redirect pom of mysql:mysql-connector-java:8.0.33
   # From 2.6 onwards the managed dependency is com.mysql:mysql-connector-j:8.0.33
@@ -77,6 +78,22 @@ recipeList:
   # Initialization ordering
   - org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_5
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpockToGroovy3
+displayName: Upgrade Spock to a Groovy 3 compatible variant
+description: Upgrade Spock dependencies to a Groovy 3 compatible 2.0 variant when Groovy 3 is on the classpath.
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.codehaus.groovy
+      artifactIdPattern: groovy
+      version: 3.x
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.spockframework
+      artifactId: "*"
+      newVersion: 2.0-groovy-3.0
+      overrideManagedVersion: true
 ---
 ########################################################################################################################
 # SpringBoot 2.5 Search Recipes
