@@ -3,6 +3,12 @@ plugins {
     id("org.openrewrite.build.moderne-source-available-license") version "latest.release"
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 group = "org.openrewrite.recipe"
 description = "Eliminate legacy Spring patterns and migrate between major Spring Boot versions. Automatically."
 

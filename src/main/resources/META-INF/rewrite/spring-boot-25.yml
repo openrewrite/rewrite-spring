@@ -88,11 +88,7 @@ preconditions:
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.codehaus.groovy
       artifactIdPattern: groovy
-      version: "[3,4)"
-  - org.openrewrite.java.dependencies.DependencyInsight:
-      groupIdPattern: org.spockframework
-      artifactIdPattern: spock-core
-      version: "(,2.0-groovy-3.0)"
+      version: 3.x
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.spockframework
