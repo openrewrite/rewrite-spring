@@ -83,6 +83,19 @@ recipeList:
 # Compatibility matrix: https://springdoc.org/#what-is-the-compatibility-matrix-of-springdoc-openapi-with-spring-boot
 ---
 type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.UpgradeSpringDoc_3_0
+displayName: Upgrade to SpringDoc 3.0
+description: Upgrade to SpringDoc v3.0.
+tags:
+  - springdoc
+recipeList:
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_8
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 3.0.x
+---
+type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_8
 displayName: Upgrade to SpringDoc 2.8
 description: Upgrade to SpringDoc v2.8.
