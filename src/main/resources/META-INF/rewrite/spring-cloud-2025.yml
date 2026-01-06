@@ -102,26 +102,32 @@ recipeList:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-gateway-server
       newArtifactId: spring-cloud-gateway-server-webflux
+      newVersion: 4.3.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-gateway-server-mvc
       newArtifactId: spring-cloud-gateway-server-webmvc
+      newVersion: 4.3.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-starter-gateway
       newArtifactId: spring-cloud-starter-gateway-server-webflux
+      newVersion: 4.3.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-starter-gateway-mvc
       newArtifactId: spring-cloud-starter-gateway-server-webmvc
+      newVersion: 4.3.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-gateway-mvc
       newArtifactId: spring-cloud-gateway-proxyexchange-webmvc
+      newVersion: 4.3.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-gateway-webflux
       newArtifactId: spring-cloud-gateway-proxyexchange-webflux
+      newVersion: 4.3.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
