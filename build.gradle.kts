@@ -78,13 +78,6 @@ recipeDependencies {
 
     parserClasspath("org.springframework.cloud:spring-cloud-sleuth-api:3.1.+")
 
-    // OpenTelemetry dependencies
-    parserClasspath("io.opentelemetry:opentelemetry-api:1.+")
-    parserClasspath("io.opentelemetry:opentelemetry-context:1.+")
-    parserClasspath("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.+")
-    parserClasspath("io.micrometer:micrometer-tracing:1.+")
-    parserClasspath("io.opentracing:opentracing-api:0.33.0")
-
     parserClasspath("org.springdoc:springdoc-openapi-starter-common:2.+")
 
     parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
@@ -184,14 +177,6 @@ recipeDependencies {
     testParserClasspath("org.springframework:spring-web:6.0.+")
     testParserClasspath("org.springframework:spring-web:6.1.8")
     testParserClasspath("org.springframework:spring-webflux:6.1.16")
-
-    // OpenTelemetry test dependencies
-    testParserClasspath("io.opentelemetry:opentelemetry-api:1.+")
-    testParserClasspath("io.opentelemetry:opentelemetry-context:1.+")
-    testParserClasspath("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.+")
-    testParserClasspath("io.micrometer:micrometer-tracing:1.+")
-    testParserClasspath("io.opentracing:opentracing-api:0.33.0")
-    testParserClasspath("org.springframework.cloud:spring-cloud-sleuth-api:3.1.+")
 }
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
