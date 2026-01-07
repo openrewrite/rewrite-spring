@@ -313,3 +313,33 @@ recipeList:
       oldPackageName: org.springframework.boot.test.web.client
       newPackageName: org.springframework.boot.resttestclient
       recursive: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPrecondition
+displayName: Migrate to Spring Boot 4.0 modular starters - Flyway Dependency Precondition
+description: >-
+  Adds the necessary Flyway Spring Boot 4.0 starter dependency based on dependency usage.
+  Spring Boot 4.0 has a modular design requiring explicit starters for each feature.
+  This recipe detects feature usage via dependencies and add the Flyway starter.
+preconditions:
+  - org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPreconditions
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-flyway
+      version: 4.0.x
+      onlyIfUsing: "*..*" # https://github.com/openrewrite/rewrite/issues/6468
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPreconditions
+displayName: Migrate to Spring Boot 4.0 modular starters - Flyway dependency preconditions
+description: >-
+  Conditional for org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPrecondition.
+recipeList:
+  - org.openrewrite.maven.search.FindDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-database-postgresql
+  - org.openrewrite.maven.search.FindDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-mysql

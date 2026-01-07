@@ -17,6 +17,8 @@ package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -32,7 +34,8 @@ class MigrateToModularStartersTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResource(
           "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
-          "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
+          "org.openrewrite.java.spring.boot4.MigrateToModularStarters",
+          "org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPrecondition"
         ).parser(JavaParser.fromJavaVersion()
           .classpathFromResources(new InMemoryExecutionContext(),
             "spring-boot-autoconfigure-3", "spring-boot-3", "spring-boot-test-3",
@@ -386,5 +389,65 @@ class MigrateToModularStartersTest implements RewriteTest {
               )
             );
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"flyway-database-postgresql", "flyway-mysql"})
+    void addFlywayStarterWhenDependencyPresent(String artifactId) {
+        rewriteRun(
+          mavenProject("sample",
+            pomXml(
+              """
+                <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>org.sample</groupId>
+                  <artifactId>sample</artifactId>
+                  <version>1.0.0</version>
+                  <packaging>pom</packaging>
+                  <modules>
+                    <module>sample-module</module>
+                  </modules>
+                </project>
+                """
+            ),
+            mavenProject("sample-module",
+              srcMainJava(
+                java(
+                  """
+                    class AnyClass {
+                        String s = "";
+                    }
+                    """
+                )
+              ),
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.sample</groupId>
+                        <artifactId>sample</artifactId>
+                        <version>1.0.0</version>
+                    </parent>
+                    <artifactId>sample-module</artifactId>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>%s</artifactId>
+                        <version>10.0.0</version>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """.formatted(artifactId),
+                spec -> spec.after(pom -> assertThat(pom)
+                  .contains("<groupId>org.flywaydb</groupId>")
+                  .contains("<artifactId>%s</artifactId>".formatted(artifactId))
+                  .contains("<artifactId>spring-boot-starter-flyway</artifactId>")
+                  .containsPattern("<version>4\\.0\\.\\d+</version>")
+                  .actual())
+              )
+            )
+          )
+        );
     }
 }
