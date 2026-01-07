@@ -64,22 +64,27 @@ recipeList:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-oauth2-authorization-server
       newArtifactId: spring-boot-starter-security-oauth2-authorization-server
+      newVersion: 4.0.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-oauth2-client
       newArtifactId: spring-boot-starter-security-oauth2-client
+      newVersion: 4.0.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-oauth2-resource-server
       newArtifactId: spring-boot-starter-security-oauth2-resource-server
+      newVersion: 4.0.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-web
       newArtifactId: spring-boot-starter-webmvc
+      newVersion: 4.0.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-web-services
       newArtifactId: spring-boot-starter-webservices
+      newVersion: 4.0.x
   # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide#aop-starter-pom
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.boot
@@ -89,6 +94,7 @@ recipeList:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-aop
       newArtifactId: spring-boot-starter-aspectj
+      newVersion: 4.0.x
 
   # Additional dependencies that need to move in sync
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
