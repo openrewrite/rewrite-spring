@@ -34,12 +34,17 @@ class MigrateToModularStartersTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResource(
           "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
-          "org.openrewrite.java.spring.boot4.MigrateToModularStarters",
-          "org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPrecondition"
+          "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
         ).parser(JavaParser.fromJavaVersion()
           .classpathFromResources(new InMemoryExecutionContext(),
-            "spring-boot-autoconfigure-3", "spring-boot-3", "spring-boot-test-3",
-            "spring-boot-test-autoconfigure-3", "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
+            "spring-boot-autoconfigure-3",
+            "spring-boot-3",
+            "spring-boot-test-3",
+            "spring-boot-test-autoconfigure-3",
+            "spring-beans-6",
+            "spring-context-6",
+            "spring-web-6",
+            "spring-core-6"));
     }
 
     @DocumentExample
