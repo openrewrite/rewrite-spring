@@ -347,6 +347,31 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.RenameBean
 examples:
+- description: '`BeanClasses#impliedName`'
+  parameters:
+  - sample.Foo
+  - foo
+  - bar
+  sources:
+  - before: |
+      package sample;
+
+      import org.springframework.context.annotation.Configuration;
+      import sample.MyType;
+
+      @Configuration
+      class Foo {
+      }
+    after: |
+      package sample;
+
+      import org.springframework.context.annotation.Configuration;
+      import sample.MyType;
+
+      @Configuration
+      class Bar {
+      }
+    language: java
 - description: '`BeanMethods#impliedName`'
   parameters: &id001
   - sample.MyType
@@ -376,31 +401,6 @@ examples:
           public MyType bar() {
               return new MyType();
           }
-      }
-    language: java
-- description: '`BeanClasses#impliedName`'
-  parameters:
-  - sample.Foo
-  - foo
-  - bar
-  sources:
-  - before: |
-      package sample;
-
-      import org.springframework.context.annotation.Configuration;
-      import sample.MyType;
-
-      @Configuration
-      class Foo {
-      }
-    after: |
-      package sample;
-
-      import org.springframework.context.annotation.Configuration;
-      import sample.MyType;
-
-      @Configuration
-      class Bar {
       }
     language: java
 - description: '`Usages#parameterUsage`'
@@ -1920,40 +1920,6 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
 examples:
-- description: '`Maven#switchArtifactIdAndUpdateVersionNumber`'
-  sources:
-  - before: |
-      <project>
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>com.example</groupId>
-        <artifactId>demo</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <dependencies>
-          <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.30</version>
-            <scope>runtime</scope>
-          </dependency>
-        </dependencies>
-      </project>
-    after: |
-      <project>
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>com.example</groupId>
-        <artifactId>demo</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <dependencies>
-          <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>8.0.33</version>
-            <scope>runtime</scope>
-          </dependency>
-        </dependencies>
-      </project>
-    path: pom.xml
-    language: xml
 - description: '`Gradle#switchArtifactIdAndUpdateVersionNumber`'
   sources:
   - before: |
@@ -1988,6 +1954,40 @@ examples:
       }
     path: build.gradle
     language: groovy
+- description: '`Maven#switchArtifactIdAndUpdateVersionNumber`'
+  sources:
+  - before: |
+      <project>
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>com.example</groupId>
+        <artifactId>demo</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <dependencies>
+          <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.30</version>
+            <scope>runtime</scope>
+          </dependency>
+        </dependencies>
+      </project>
+    after: |
+      <project>
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>com.example</groupId>
+        <artifactId>demo</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.0.33</version>
+            <scope>runtime</scope>
+          </dependency>
+        </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
@@ -2226,9 +2226,9 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
 examples:
-- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurity`'
+- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurityForceAdd`'
   parameters:
-  - 'false'
+  - 'true'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -2243,9 +2243,9 @@ examples:
       @EnableWebSecurity
       class A {}
     language: java
-- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurityForceAdd`'
+- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurity`'
   parameters:
-  - 'true'
+  - 'false'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
