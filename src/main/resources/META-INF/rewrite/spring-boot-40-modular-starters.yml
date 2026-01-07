@@ -321,23 +321,12 @@ name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway
 displayName: Add `spring-boot-starter-flyway` if using Flyway
 description: Adds the necessary Spring Boot 4.0 Flyway starter for autoconfiguration based on dependency usage.
 preconditions:
-  - org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPreconditions
+  - org.openrewrite.maven.search.FindDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-*
 recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-flyway
       version: 4.0.x
       onlyIfUsing: "*..*" # https://github.com/openrewrite/rewrite/issues/6468
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPreconditions
-displayName: Migrate to Spring Boot 4.0 modular starters - Flyway dependency preconditions
-description: >-
-  Conditional for org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPrecondition.
-recipeList:
-  - org.openrewrite.maven.search.FindDependency:
-      groupId: org.flywaydb
-      artifactId: flyway-database-postgresql
-  - org.openrewrite.maven.search.FindDependency:
-      groupId: org.flywaydb
-      artifactId: flyway-mysql
