@@ -33,6 +33,8 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPreconditions
 displayName: Migrate to Spring Boot 4.0 modular starters - Flyway dependency preconditions
+description: >-
+  Conditional for org.openrewrite.java.spring.boot4.MigrateToModularStartersFlywayDependencyPrecondition.
 recipeList:
   - org.openrewrite.maven.search.FindDependency:
       groupId: org.flywaydb
