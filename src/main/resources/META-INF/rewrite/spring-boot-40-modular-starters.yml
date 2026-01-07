@@ -25,7 +25,6 @@ description: >-
   Note: Higher-level starters (like data-jpa) include lower-level ones (like jdbc) transitively,
   so only the highest-level detected starter is added for each technology.
 recipeList:
-  - org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway
 
   # Add modular starter dependencies based on package usage
   - org.openrewrite.java.dependencies.AddDependency:
@@ -63,6 +62,7 @@ recipeList:
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-starter-flyway
       newVersion: 4.0.x
+  - org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.kafka
       oldArtifactId: spring-kafka
