@@ -26,9 +26,6 @@
  * @see <a href="https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/">OpenTelemetry Spring Boot Starter</a>
  * @see <a href="https://micrometer.io/docs/tracing">Micrometer Tracing</a>
  */
-@NonNullApi
-@NonNullFields
+@org.jspecify.annotations.NullMarked
+@org.openrewrite.internal.lang.NonNullFields
 package org.openrewrite.java.spring.opentelemetry;
-
-import org.openrewrite.internal.lang.NonNullApi;
-import org.openrewrite.internal.lang.NonNullFields;

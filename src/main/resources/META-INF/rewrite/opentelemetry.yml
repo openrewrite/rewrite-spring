@@ -19,10 +19,10 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.AddOpenTelemetryAutoInstrumentation
 displayName: Add OpenTelemetry Spring Boot auto instrumentation
 description: >-
-  Add OpenTelemetry Spring Boot Starter for automatic instrumentation. This is the officially recommended
-  approach for instrumenting Spring Boot applications with OpenTelemetry. The starter provides auto-configuration
-  and works with Spring Boot 2.6+ and 3.1+, including support for Spring Boot native image applications.
-  See https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/
+  Add [OpenTelemetry Spring Boot Starter](https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/) for
+  automatic instrumentation. This is the officially recommended approach for instrumenting Spring Boot applications with
+  OpenTelemetry. The starter provides auto-configuration and works with Spring Boot 2.6+ and 3.1+, including support for
+  Spring Boot native image applications.
 tags:
   - spring
   - boot
@@ -78,10 +78,10 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateToOpenTelemetryFromSleuth
 displayName: Migrate from Spring Cloud Sleuth to OpenTelemetry
 description: >-
-  Migrate from Spring Cloud Sleuth to OpenTelemetry. Spring Cloud Sleuth has been deprecated and
+  Migrate from Spring Cloud Sleuth to OpenTelemetry.
+  [Spring Cloud Sleuth has been deprecated](https://github.com/spring-cloud/spring-cloud-sleuth#spring-cloud-sleuth) and
   is replaced by Micrometer Tracing with OpenTelemetry as a backend. This recipe removes Sleuth
   dependencies and adds OpenTelemetry instrumentation.
-  See https://github.com/spring-cloud/spring-cloud-sleuth#spring-cloud-sleuth
 tags:
   - spring
   - boot
