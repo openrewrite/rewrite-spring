@@ -27,21 +27,19 @@ import static org.openrewrite.maven.Assertions.pomXml;
 
 class MigrateToModularStartersFlywayDependencyPreconditionTest implements RewriteTest {
 
-    // TODO: see MigrateToFlyway10Test's
-
-    private static SourceSpecs PARENT_POM = pomXml(
-              """
-                <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>org.sample</groupId>
-                  <artifactId>sample</artifactId>
-                  <version>1.0.0</version>
-                  <packaging>pom</packaging>
-                  <modules>
-                    <module>sample-module</module>
-                  </modules>
-                </project>
-                """
+    private static final SourceSpecs PARENT_POM = pomXml(
+      """
+        <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>org.sample</groupId>
+          <artifactId>sample</artifactId>
+          <version>1.0.0</version>
+          <packaging>pom</packaging>
+          <modules>
+            <module>sample-module</module>
+          </modules>
+        </project>
+        """
     );
 
     private static final SourceSpecs CLASS_FILE = srcMainJava(
@@ -100,5 +98,4 @@ class MigrateToModularStartersFlywayDependencyPreconditionTest implements Rewrit
           )
         );
     }
-
 }
