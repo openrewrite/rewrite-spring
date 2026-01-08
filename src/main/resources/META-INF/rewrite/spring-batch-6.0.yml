@@ -159,7 +159,7 @@ recipeList:
       newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.JobParametersIncrementer
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.JobParametersInvalidException
-      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.JobParametersInvalidException
+      newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.InvalidJobParametersException
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.JobParametersValidator
       newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.JobParametersValidator
