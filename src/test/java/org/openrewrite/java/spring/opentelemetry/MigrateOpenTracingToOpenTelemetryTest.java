@@ -27,7 +27,7 @@ class MigrateOpenTracingToOpenTelemetryTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.boot3.MigrateOpenTracingToOpenTelemetry")
+        spec.recipeFromResources("org.openrewrite.java.spring.opentelemetry.MigrateOpenTracingToOpenTelemetry")
           .parser(JavaParser.fromJavaVersion()
             //language=java
             .dependsOn(

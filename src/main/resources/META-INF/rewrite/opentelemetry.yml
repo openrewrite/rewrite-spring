@@ -16,7 +16,7 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.AddOpenTelemetryAutoInstrumentation
+name: org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryAutoInstrumentation
 displayName: Add OpenTelemetry Spring Boot auto instrumentation
 description: >-
   Add [OpenTelemetry Spring Boot Starter](https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/) for
@@ -47,7 +47,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.MigrateToOpenTelemetryFromSleuth
+name: org.openrewrite.java.spring.opentelemetry.MigrateToOpenTelemetryFromSleuth
 displayName: Migrate from Spring Cloud Sleuth to OpenTelemetry
 description: >-
   Migrate from Spring Cloud Sleuth to OpenTelemetry.
@@ -127,7 +127,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.AddOpenTelemetryOtlpExporter
+name: org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryOtlpExporter
 displayName: Add OpenTelemetry OTLP exporter
 description: >-
   Add the OpenTelemetry OTLP exporter dependency for exporting telemetry data to an
@@ -146,7 +146,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.AddOpenTelemetryLogging
+name: org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryLogging
 displayName: Add OpenTelemetry Logback instrumentation
 description: >-
   Add OpenTelemetry Logback appender for automatic log correlation with traces.
@@ -165,7 +165,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.MigrateFromZipkinToOpenTelemetry
+name: org.openrewrite.java.spring.opentelemetry.MigrateFromZipkinToOpenTelemetry
 displayName: Migrate from Zipkin to OpenTelemetry OTLP
 description: >-
   Migrate from Zipkin tracing to OpenTelemetry OTLP. This recipe replaces Zipkin dependencies
@@ -201,7 +201,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.UpgradeOpenTelemetry_2_23
+name: org.openrewrite.java.spring.opentelemetry.UpgradeOpenTelemetry_2_23
 displayName: Upgrade to OpenTelemetry Java Instrumentation 2.23.0
 description: >-
   Upgrade OpenTelemetry Java Instrumentation dependencies to version 2.23.0.
@@ -222,7 +222,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.ConfigureOpenTelemetryForSpringBoot
+name: org.openrewrite.java.spring.opentelemetry.ConfigureOpenTelemetryForSpringBoot
 displayName: Configure OpenTelemetry for Spring Boot
 description: >-
   Add basic OpenTelemetry configuration properties for Spring Boot applications.
@@ -248,7 +248,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.OpenTelemetryFullSetup
+name: org.openrewrite.java.spring.opentelemetry.OpenTelemetryFullSetup
 displayName: Complete OpenTelemetry setup for Spring Boot
 description: >-
   Complete OpenTelemetry setup for Spring Boot applications including auto-instrumentation starter,
@@ -262,14 +262,14 @@ tags:
   - tracing
   - logging
 recipeList:
-  - org.openrewrite.java.spring.boot3.AddOpenTelemetryAutoInstrumentation
-  - org.openrewrite.java.spring.boot3.AddOpenTelemetryOtlpExporter
-  - org.openrewrite.java.spring.boot3.AddOpenTelemetryLogging
-  - org.openrewrite.java.spring.boot3.ConfigureOpenTelemetryForSpringBoot
+  - org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryAutoInstrumentation
+  - org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryOtlpExporter
+  - org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryLogging
+  - org.openrewrite.java.spring.opentelemetry.ConfigureOpenTelemetryForSpringBoot
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.MigrateSleuthApiToMicrometerTracing
+name: org.openrewrite.java.spring.opentelemetry.MigrateSleuthApiToMicrometerTracing
 displayName: Migrate Spring Cloud Sleuth API to Micrometer Tracing API
 description: >-
   Migrate Java code using Spring Cloud Sleuth API to Micrometer Tracing API.
@@ -328,7 +328,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.MigrateBraveToOpenTelemetry
+name: org.openrewrite.java.spring.opentelemetry.MigrateBraveToOpenTelemetry
 displayName: Migrate Brave API to OpenTelemetry API
 description: >-
   Migrate Java code using Brave (Zipkin) tracing API to OpenTelemetry API.
@@ -376,7 +376,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.MigrateOpenTracingToOpenTelemetry
+name: org.openrewrite.java.spring.opentelemetry.MigrateOpenTracingToOpenTelemetry
 displayName: Migrate OpenTracing API to OpenTelemetry API
 description: >-
   Migrate Java code using OpenTracing API to OpenTelemetry API.
@@ -441,7 +441,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.AddWithSpanAnnotationSupport
+name: org.openrewrite.java.spring.opentelemetry.AddWithSpanAnnotationSupport
 displayName: Add OpenTelemetry @WithSpan annotation support
 description: >-
   Add the OpenTelemetry annotations dependency and Spring Boot AOP dependency to enable
@@ -467,7 +467,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.MigrateNewRelicToOpenTelemetry
+name: org.openrewrite.java.spring.opentelemetry.MigrateNewRelicToOpenTelemetry
 displayName: Migrate New Relic Agent to OpenTelemetry
 description: >-
   Migrate from New Relic Java Agent annotations to OpenTelemetry annotations.
@@ -495,7 +495,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.MigrateDatadogToOpenTelemetry
+name: org.openrewrite.java.spring.opentelemetry.MigrateDatadogToOpenTelemetry
 displayName: Migrate Datadog tracing to OpenTelemetry
 description: >-
   Migrate from Datadog Java tracing annotations to OpenTelemetry annotations.
@@ -561,7 +561,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.MigrateSleuthAnnotationsToOpenTelemetry
+name: org.openrewrite.java.spring.opentelemetry.MigrateSleuthAnnotationsToOpenTelemetry
 displayName: Migrate Sleuth @NewSpan to OpenTelemetry @WithSpan
 description: >-
   Migrate Spring Cloud Sleuth @NewSpan and @ContinueSpan annotations to
@@ -594,7 +594,7 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.OpenTelemetryCompleteMigration
+name: org.openrewrite.java.spring.opentelemetry.OpenTelemetryCompleteMigration
 displayName: Complete migration to OpenTelemetry
 description: >-
   Comprehensive migration to OpenTelemetry including dependencies, configuration properties,
@@ -607,8 +607,8 @@ tags:
   - migration
   - observability
 recipeList:
-  - org.openrewrite.java.spring.boot3.MigrateToOpenTelemetryFromSleuth
-  - org.openrewrite.java.spring.boot3.MigrateSleuthApiToMicrometerTracing
-  - org.openrewrite.java.spring.boot3.MigrateSleuthAnnotationsToOpenTelemetry
-  - org.openrewrite.java.spring.boot3.AddOpenTelemetryAutoInstrumentation
-  - org.openrewrite.java.spring.boot3.AddWithSpanAnnotationSupport
+  - org.openrewrite.java.spring.opentelemetry.MigrateToOpenTelemetryFromSleuth
+  - org.openrewrite.java.spring.opentelemetry.MigrateSleuthApiToMicrometerTracing
+  - org.openrewrite.java.spring.opentelemetry.MigrateSleuthAnnotationsToOpenTelemetry
+  - org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryAutoInstrumentation
+  - org.openrewrite.java.spring.opentelemetry.AddWithSpanAnnotationSupport

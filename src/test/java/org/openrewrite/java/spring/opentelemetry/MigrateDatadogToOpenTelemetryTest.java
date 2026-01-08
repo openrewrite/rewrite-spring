@@ -27,7 +27,7 @@ class MigrateDatadogToOpenTelemetryTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.boot3.MigrateDatadogToOpenTelemetry")
+        spec.recipeFromResources("org.openrewrite.java.spring.opentelemetry.MigrateDatadogToOpenTelemetry")
           .parser(JavaParser.fromJavaVersion()
             //language=java
             .dependsOn(
