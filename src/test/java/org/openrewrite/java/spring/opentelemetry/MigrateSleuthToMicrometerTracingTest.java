@@ -27,7 +27,7 @@ class MigrateSleuthToMicrometerTracingTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateSleuthToMicrometerTracing())
+        spec.recipeFromResources("org.openrewrite.java.spring.boot3.MigrateSleuthApiToMicrometerTracing")
           .parser(JavaParser.fromJavaVersion()
             //language=java
             .dependsOn(

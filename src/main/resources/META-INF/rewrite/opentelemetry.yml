@@ -310,8 +310,49 @@ tags:
   - micrometer
   - tracing
 recipeList:
-  # Use the Java implementation for type migrations
-  - org.openrewrite.java.spring.opentelemetry.MigrateSleuthToMicrometerTracing
+  # Core types migration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.Tracer
+      newFullyQualifiedTypeName: io.micrometer.tracing.Tracer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.Span
+      newFullyQualifiedTypeName: io.micrometer.tracing.Span
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.Span$Kind
+      newFullyQualifiedTypeName: io.micrometer.tracing.Span$Kind
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.SpanCustomizer
+      newFullyQualifiedTypeName: io.micrometer.tracing.SpanCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.CurrentTraceContext
+      newFullyQualifiedTypeName: io.micrometer.tracing.CurrentTraceContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.TraceContext
+      newFullyQualifiedTypeName: io.micrometer.tracing.TraceContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.ScopedSpan
+      newFullyQualifiedTypeName: io.micrometer.tracing.ScopedSpan
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.SpanAndScope
+      newFullyQualifiedTypeName: io.micrometer.tracing.SpanAndScope
+  # Baggage types
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.Baggage
+      newFullyQualifiedTypeName: io.micrometer.tracing.Baggage
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.BaggageInScope
+      newFullyQualifiedTypeName: io.micrometer.tracing.BaggageInScope
+  # Propagation types
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.propagation.Propagator
+      newFullyQualifiedTypeName: io.micrometer.tracing.propagation.Propagator
+  # Exporter types
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.exporter.SpanFilter
+      newFullyQualifiedTypeName: io.micrometer.tracing.exporter.SpanExportingPredicate
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.exporter.SpanReporter
+      newFullyQualifiedTypeName: io.micrometer.tracing.exporter.SpanReporter
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -375,8 +416,32 @@ tags:
   - opentracing
   - migration
 recipeList:
-  # Use the Java implementation for type migrations
-  - org.openrewrite.java.spring.opentelemetry.MigrateOpenTracingToOpenTelemetry
+  # Core types
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Tracer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Tracer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Span
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.SpanContext
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.SpanContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Scope
+      newFullyQualifiedTypeName: io.opentelemetry.context.Scope
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.ScopeManager
+      newFullyQualifiedTypeName: io.opentelemetry.context.Context
+  # Propagation types
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.propagation.Format
+      newFullyQualifiedTypeName: io.opentelemetry.context.propagation.TextMapPropagator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.propagation.TextMapExtract
+      newFullyQualifiedTypeName: io.opentelemetry.context.propagation.TextMapGetter
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.propagation.TextMapInject
+      newFullyQualifiedTypeName: io.opentelemetry.context.propagation.TextMapSetter
   # Change package for contrib utilities
   - org.openrewrite.java.ChangePackage:
       oldPackageName: io.opentracing.contrib
@@ -470,8 +535,47 @@ tags:
   - datadog
   - migration
 recipeList:
-  # Use the Java implementation for complete type migrations
-  - org.openrewrite.java.spring.opentelemetry.MigrateDatadogToOpenTelemetry
+  # Datadog core tracing types to OpenTelemetry
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.Tracer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Tracer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Tracer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Tracer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.DDTracer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Tracer
+  # Span types
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.Span
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Span
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.DDSpan
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  # SpanContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.SpanContext
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.SpanContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.SpanContext
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.SpanContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.DDSpanContext
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.SpanContext
+  # Scope
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.context.TraceScope
+      newFullyQualifiedTypeName: io.opentelemetry.context.Scope
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Scope
+      newFullyQualifiedTypeName: io.opentelemetry.context.Scope
+  # @Trace annotation to @WithSpan
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.Trace
+      newFullyQualifiedTypeName: io.opentelemetry.instrumentation.annotations.WithSpan
   # Remove Datadog dependencies
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: com.datadoghq
@@ -497,8 +601,18 @@ tags:
   - sleuth
   - annotations
 recipeList:
-  # Use the Java implementation for annotation migrations
-  - org.openrewrite.java.spring.opentelemetry.MigrateSleuthAnnotationsToOpenTelemetry
+  # @NewSpan -> @WithSpan
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.annotation.NewSpan
+      newFullyQualifiedTypeName: io.opentelemetry.instrumentation.annotations.WithSpan
+  # @SpanTag -> @SpanAttribute
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.annotation.SpanTag
+      newFullyQualifiedTypeName: io.opentelemetry.instrumentation.annotations.SpanAttribute
+  # @ContinueSpan -> @WithSpan (note: semantics differ slightly)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.annotation.ContinueSpan
+      newFullyQualifiedTypeName: io.opentelemetry.instrumentation.annotations.WithSpan
   # Add OpenTelemetry annotations dependency
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.opentelemetry.instrumentation
