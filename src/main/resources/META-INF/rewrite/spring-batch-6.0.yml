@@ -187,6 +187,15 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.repository.explore.support.JobExplorerFactoryBean
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.explore.support.JdbcJobExplorerFactoryBean
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.JobExecutionAlreadyRunningException
+      newFullyQualifiedTypeName: org.springframework.batch.core.launch.JobExecutionAlreadyRunningException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException
+      newFullyQualifiedTypeName: org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.repository.JobRestartException
+      newFullyQualifiedTypeName: org.springframework.batch.core.launch.JobRestartException
 
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.batch.core.step.job.JobStep setJobLauncher(org.springframework.batch.core.launch.JobLauncher)
