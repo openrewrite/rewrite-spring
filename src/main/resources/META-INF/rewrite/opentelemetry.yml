@@ -134,25 +134,6 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryLogging
-displayName: Add OpenTelemetry Logback instrumentation
-description: >-
-  Add OpenTelemetry Logback appender for automatic log correlation with traces.
-  This enables trace context (trace ID and span ID) to be automatically added to log entries.
-tags:
-  - spring
-  - boot
-  - opentelemetry
-  - logging
-recipeList:
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: io.opentelemetry.instrumentation
-      artifactId: opentelemetry-logback-appender-1.0
-      onlyIfUsing: ch.qos.logback.*
-      acceptTransitive: true
-
----
-type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.opentelemetry.MigrateFromZipkinToOpenTelemetry
 displayName: Migrate from Zipkin to OpenTelemetry OTLP
 description: >-
@@ -210,32 +191,6 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.opentelemetry.ConfigureOpenTelemetryForSpringBoot
-displayName: Configure OpenTelemetry for Spring Boot
-description: >-
-  Add basic OpenTelemetry configuration properties for Spring Boot applications.
-  This sets up OTLP exporter with a default localhost endpoint.
-tags:
-  - spring
-  - boot
-  - opentelemetry
-  - configuration
-recipeList:
-  # Enable tracing
-  - org.openrewrite.java.spring.AddSpringProperty:
-      property: management.tracing.enabled
-      value: "true"
-  # Set sampling probability to 100% for development (adjust for production)
-  - org.openrewrite.java.spring.AddSpringProperty:
-      property: management.tracing.sampling.probability
-      value: "1.0"
-  # Default OTLP endpoint (localhost collector)
-  - org.openrewrite.java.spring.AddSpringProperty:
-      property: management.otlp.tracing.endpoint
-      value: http://localhost:4318/v1/traces
-
----
-type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.opentelemetry.OpenTelemetryFullSetup
 displayName: Complete OpenTelemetry setup for Spring Boot
 description: >-
@@ -251,9 +206,29 @@ tags:
   - logging
 recipeList:
   - org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryAutoInstrumentation
-  - org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryOtlpExporter
-  - org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryLogging
-  - org.openrewrite.java.spring.opentelemetry.ConfigureOpenTelemetryForSpringBoot
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry
+      artifactId: opentelemetry-exporter-otlp
+      onlyIfUsing: io.opentelemetry.*
+      acceptTransitive: true
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry.instrumentation
+      artifactId: opentelemetry-logback-appender-1.0
+      onlyIfUsing: ch.qos.logback.*
+      acceptTransitive: true
+
+  # Enable tracing
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: management.tracing.enabled
+      value: "true"
+  # Set sampling probability to 100% for development (adjust for production)
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: management.tracing.sampling.probability
+      value: "1.0"
+  # Default OTLP endpoint (localhost collector)
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: management.otlp.tracing.endpoint
+      value: http://localhost:4318/v1/traces
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
