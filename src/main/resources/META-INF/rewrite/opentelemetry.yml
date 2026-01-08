@@ -30,46 +30,18 @@ tags:
   - observability
   - tracing
 recipeList:
-  - org.openrewrite.java.spring.boot3.AddOpenTelemetryBom
-  - org.openrewrite.java.spring.boot3.AddOpenTelemetryStarterDependency
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.AddOpenTelemetryBom
-displayName: Add OpenTelemetry BOM
-description: >-
-  Add the OpenTelemetry Instrumentation BOM to ensure version alignment across all OpenTelemetry dependencies.
-  This is a prerequisite for using the OpenTelemetry Spring Boot Starter.
-tags:
-  - spring
-  - boot
-  - opentelemetry
-recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.opentelemetry.instrumentation
       artifactId: opentelemetry-instrumentation-bom
-      version: 2.23.0
+      version: 2.x
       scope: import
       type: pom
       onlyIfUsing: org.springframework.boot.*
       acceptTransitive: true
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot3.AddOpenTelemetryStarterDependency
-displayName: Add OpenTelemetry Spring Boot Starter dependency
-description: >-
-  Add the OpenTelemetry Spring Boot Starter dependency for automatic instrumentation of Spring Boot applications.
-  This starter provides out-of-the-box instrumentation for HTTP clients and servers, database access, messaging,
-  and more.
-tags:
-  - spring
-  - boot
-  - opentelemetry
-recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.opentelemetry.instrumentation
       artifactId: opentelemetry-spring-boot-starter
+      version: 2.x
       onlyIfUsing: org.springframework.boot.*
       acceptTransitive: true
 
