@@ -68,19 +68,7 @@ recipeList:
       artifactId: spring-cloud-starter-sleuth
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.springframework.cloud
-      artifactId: spring-cloud-sleuth-api
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-sleuth-otel
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-sleuth-otel-autoconfigure
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-sleuth-zipkin
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-sleuth-brave
+      artifactId: spring-cloud-sleuth*
   # Add Micrometer Tracing with OpenTelemetry
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.micrometer
