@@ -107,15 +107,15 @@ class MigrateDatadogToOpenTelemetryTest implements RewriteTest {
             """
               import datadog.trace.api.Tracer;
 
-              public class TracingService {
-                  private Tracer tracer;
+              class TracingService {
+                  Tracer tracer;
               }
               """,
             """
               import io.opentelemetry.api.trace.Tracer;
 
-              public class TracingService {
-                  private Tracer tracer;
+              class TracingService {
+                  Tracer tracer;
               }
               """
           )
@@ -130,15 +130,15 @@ class MigrateDatadogToOpenTelemetryTest implements RewriteTest {
             """
               import datadog.trace.api.Span;
 
-              public class SpanService {
-                  private Span span;
+              class SpanService {
+                  Span span;
               }
               """,
             """
               import io.opentelemetry.api.trace.Span;
 
-              public class SpanService {
-                  private Span span;
+              class SpanService {
+                  Span span;
               }
               """
           )
@@ -153,15 +153,15 @@ class MigrateDatadogToOpenTelemetryTest implements RewriteTest {
             """
               import datadog.trace.api.SpanContext;
 
-              public class ContextService {
-                  private SpanContext context;
+              class ContextService {
+                  SpanContext context;
               }
               """,
             """
               import io.opentelemetry.api.trace.SpanContext;
 
-              public class ContextService {
-                  private SpanContext context;
+              class ContextService {
+                  SpanContext context;
               }
               """
           )
@@ -176,15 +176,15 @@ class MigrateDatadogToOpenTelemetryTest implements RewriteTest {
             """
               import datadog.trace.context.TraceScope;
 
-              public class ScopedService {
-                  private TraceScope scope;
+              class ScopedService {
+                  TraceScope scope;
               }
               """,
             """
               import io.opentelemetry.context.Scope;
 
-              public class ScopedService {
-                  private Scope scope;
+              class ScopedService {
+                  Scope scope;
               }
               """
           )
@@ -199,7 +199,7 @@ class MigrateDatadogToOpenTelemetryTest implements RewriteTest {
             """
               import datadog.trace.api.Trace;
 
-              public class TracedService {
+              class TracedService {
                   @Trace
                   public void tracedMethod() {
                   }
@@ -208,7 +208,7 @@ class MigrateDatadogToOpenTelemetryTest implements RewriteTest {
             """
               import io.opentelemetry.instrumentation.annotations.WithSpan;
 
-              public class TracedService {
+              class TracedService {
                   @WithSpan
                   public void tracedMethod() {
                   }
@@ -226,15 +226,15 @@ class MigrateDatadogToOpenTelemetryTest implements RewriteTest {
             """
               import datadog.trace.api.DDTracer;
 
-              public class TracerFactory {
-                  private DDTracer tracer;
+              class TracerFactory {
+                  DDTracer tracer;
               }
               """,
             """
               import io.opentelemetry.api.trace.Tracer;
 
-              public class TracerFactory {
-                  private Tracer tracer;
+              class TracerFactory {
+                  Tracer tracer;
               }
               """
           )
@@ -249,15 +249,15 @@ class MigrateDatadogToOpenTelemetryTest implements RewriteTest {
             """
               import datadog.trace.api.DDSpan;
 
-              public class SpanFactory {
-                  private DDSpan span;
+              class SpanFactory {
+                  DDSpan span;
               }
               """,
             """
               import io.opentelemetry.api.trace.Span;
 
-              public class SpanFactory {
-                  private Span span;
+              class SpanFactory {
+                  Span span;
               }
               """
           )

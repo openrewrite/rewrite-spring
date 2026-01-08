@@ -92,15 +92,15 @@ class MigrateOpenTracingToOpenTelemetryTest implements RewriteTest {
             """
               import io.opentracing.Tracer;
 
-              public class OpenTracingService {
-                  private Tracer tracer;
+              class OpenTracingService {
+                  Tracer tracer;
               }
               """,
             """
               import io.opentelemetry.api.trace.Tracer;
 
-              public class OpenTracingService {
-                  private Tracer tracer;
+              class OpenTracingService {
+                  Tracer tracer;
               }
               """
           )
@@ -115,15 +115,15 @@ class MigrateOpenTracingToOpenTelemetryTest implements RewriteTest {
             """
               import io.opentracing.Span;
 
-              public class SpanService {
-                  private Span span;
+              class SpanService {
+                  Span span;
               }
               """,
             """
               import io.opentelemetry.api.trace.Span;
 
-              public class SpanService {
-                  private Span span;
+              class SpanService {
+                  Span span;
               }
               """
           )
@@ -138,15 +138,15 @@ class MigrateOpenTracingToOpenTelemetryTest implements RewriteTest {
             """
               import io.opentracing.SpanContext;
 
-              public class ContextService {
-                  private SpanContext context;
+              class ContextService {
+                  SpanContext context;
               }
               """,
             """
               import io.opentelemetry.api.trace.SpanContext;
 
-              public class ContextService {
-                  private SpanContext context;
+              class ContextService {
+                  SpanContext context;
               }
               """
           )
@@ -161,15 +161,15 @@ class MigrateOpenTracingToOpenTelemetryTest implements RewriteTest {
             """
               import io.opentracing.Scope;
 
-              public class ScopedService {
-                  private Scope scope;
+              class ScopedService {
+                  Scope scope;
               }
               """,
             """
               import io.opentelemetry.context.Scope;
 
-              public class ScopedService {
-                  private Scope scope;
+              class ScopedService {
+                  Scope scope;
               }
               """
           )
@@ -185,18 +185,18 @@ class MigrateOpenTracingToOpenTelemetryTest implements RewriteTest {
               import io.opentracing.propagation.TextMapExtract;
               import io.opentracing.propagation.TextMapInject;
 
-              public class PropagationService {
-                  private TextMapExtract extractor;
-                  private TextMapInject injector;
+              class PropagationService {
+                  TextMapExtract extractor;
+                  TextMapInject injector;
               }
               """,
             """
               import io.opentelemetry.context.propagation.TextMapGetter;
               import io.opentelemetry.context.propagation.TextMapSetter;
 
-              public class PropagationService {
-                  private TextMapGetter extractor;
-                  private TextMapSetter injector;
+              class PropagationService {
+                  TextMapGetter extractor;
+                  TextMapSetter injector;
               }
               """
           )

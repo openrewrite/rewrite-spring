@@ -92,15 +92,15 @@ class MigrateSleuthToMicrometerTracingTest implements RewriteTest {
             """
               import org.springframework.cloud.sleuth.Tracer;
 
-              public class TracingService {
-                  private Tracer tracer;
+              class TracingService {
+                  Tracer tracer;
               }
               """,
             """
               import io.micrometer.tracing.Tracer;
 
-              public class TracingService {
-                  private Tracer tracer;
+              class TracingService {
+                  Tracer tracer;
               }
               """
           )
@@ -115,15 +115,15 @@ class MigrateSleuthToMicrometerTracingTest implements RewriteTest {
             """
               import org.springframework.cloud.sleuth.Span;
 
-              public class SpanService {
-                  private Span span;
+              class SpanService {
+                  Span span;
               }
               """,
             """
               import io.micrometer.tracing.Span;
 
-              public class SpanService {
-                  private Span span;
+              class SpanService {
+                  Span span;
               }
               """
           )
@@ -139,18 +139,18 @@ class MigrateSleuthToMicrometerTracingTest implements RewriteTest {
               import org.springframework.cloud.sleuth.Baggage;
               import org.springframework.cloud.sleuth.BaggageInScope;
 
-              public class BaggageService {
-                  private Baggage baggage;
-                  private BaggageInScope scope;
+              class BaggageService {
+                  Baggage baggage;
+                  BaggageInScope scope;
               }
               """,
             """
               import io.micrometer.tracing.Baggage;
               import io.micrometer.tracing.BaggageInScope;
 
-              public class BaggageService {
-                  private Baggage baggage;
-                  private BaggageInScope scope;
+              class BaggageService {
+                  Baggage baggage;
+                  BaggageInScope scope;
               }
               """
           )
@@ -166,18 +166,18 @@ class MigrateSleuthToMicrometerTracingTest implements RewriteTest {
               import org.springframework.cloud.sleuth.CurrentTraceContext;
               import org.springframework.cloud.sleuth.TraceContext;
 
-              public class ContextService {
-                  private CurrentTraceContext currentContext;
-                  private TraceContext traceContext;
+              class ContextService {
+                  CurrentTraceContext currentContext;
+                  TraceContext traceContext;
               }
               """,
             """
               import io.micrometer.tracing.CurrentTraceContext;
               import io.micrometer.tracing.TraceContext;
 
-              public class ContextService {
-                  private CurrentTraceContext currentContext;
-                  private TraceContext traceContext;
+              class ContextService {
+                  CurrentTraceContext currentContext;
+                  TraceContext traceContext;
               }
               """
           )

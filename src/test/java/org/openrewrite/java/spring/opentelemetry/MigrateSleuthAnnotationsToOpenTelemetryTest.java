@@ -87,7 +87,7 @@ class MigrateSleuthAnnotationsToOpenTelemetryTest implements RewriteTest {
             """
               import org.springframework.cloud.sleuth.annotation.NewSpan;
 
-              public class TracedService {
+              class TracedService {
                   @NewSpan
                   public void tracedMethod() {
                   }
@@ -96,7 +96,7 @@ class MigrateSleuthAnnotationsToOpenTelemetryTest implements RewriteTest {
             """
               import io.opentelemetry.instrumentation.annotations.WithSpan;
 
-              public class TracedService {
+              class TracedService {
                   @WithSpan
                   public void tracedMethod() {
                   }
@@ -114,7 +114,7 @@ class MigrateSleuthAnnotationsToOpenTelemetryTest implements RewriteTest {
             """
               import org.springframework.cloud.sleuth.annotation.SpanTag;
 
-              public class TaggedService {
+              class TaggedService {
                   public void process(@SpanTag String orderId) {
                   }
               }
@@ -122,7 +122,7 @@ class MigrateSleuthAnnotationsToOpenTelemetryTest implements RewriteTest {
             """
               import io.opentelemetry.instrumentation.annotations.SpanAttribute;
 
-              public class TaggedService {
+              class TaggedService {
                   public void process(@SpanAttribute String orderId) {
                   }
               }
@@ -139,7 +139,7 @@ class MigrateSleuthAnnotationsToOpenTelemetryTest implements RewriteTest {
             """
               import org.springframework.cloud.sleuth.annotation.ContinueSpan;
 
-              public class ContinuedService {
+              class ContinuedService {
                   @ContinueSpan
                   public void continueProcessing() {
                   }
@@ -148,7 +148,7 @@ class MigrateSleuthAnnotationsToOpenTelemetryTest implements RewriteTest {
             """
               import io.opentelemetry.instrumentation.annotations.WithSpan;
 
-              public class ContinuedService {
+              class ContinuedService {
                   @WithSpan
                   public void continueProcessing() {
                   }
@@ -167,7 +167,7 @@ class MigrateSleuthAnnotationsToOpenTelemetryTest implements RewriteTest {
               import org.springframework.cloud.sleuth.annotation.NewSpan;
               import org.springframework.cloud.sleuth.annotation.SpanTag;
 
-              public class OrderService {
+              class OrderService {
                   @NewSpan
                   public void createOrder(@SpanTag String customerId) {
                   }
@@ -177,7 +177,7 @@ class MigrateSleuthAnnotationsToOpenTelemetryTest implements RewriteTest {
               import io.opentelemetry.instrumentation.annotations.SpanAttribute;
               import io.opentelemetry.instrumentation.annotations.WithSpan;
 
-              public class OrderService {
+              class OrderService {
                   @WithSpan
                   public void createOrder(@SpanAttribute String customerId) {
                   }
