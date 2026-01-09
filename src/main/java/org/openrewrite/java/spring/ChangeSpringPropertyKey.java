@@ -171,7 +171,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                                                 }
                                             }
 
-                                            arg = literal.withValue(newValue)
+                                            return literal.withValue(newValue)
                                                     .withValueSource("\"" + StringUtils.repeat("\\", leadingBackslashes) + newValue.substring(leadingBackslashes).replace("\\", "\\\\") + "\"");
                                         }
                                     }
@@ -190,13 +190,13 @@ public class ChangeSpringPropertyKey extends Recipe {
                                 J.Literal literal = (J.Literal) assignment.getAssignment();
                                 J.Literal newLiteral = changePropertyInLiteral(literal);
                                 if (newLiteral != literal) {
-                                    arg = assignment.withAssignment(newLiteral);
+                                    return assignment.withAssignment(newLiteral);
                                 }
                             }
                             if (((J.Assignment) arg).getAssignment() instanceof K.ListLiteral) {
                                 J.Assignment assignment = (J.Assignment) arg;
                                 K.ListLiteral listLiteral = (K.ListLiteral) assignment.getAssignment();
-                                arg = assignment.withAssignment(listLiteral.withElements(ListUtils.map(listLiteral.getElements(), element -> {
+                                return assignment.withAssignment(listLiteral.withElements(ListUtils.map(listLiteral.getElements(), element -> {
                                     if (element instanceof J.Literal) {
                                         J.Literal literal = (J.Literal) element;
                                         J.Literal newLiteral = changePropertyInLiteral(literal);
@@ -215,12 +215,8 @@ public class ChangeSpringPropertyKey extends Recipe {
                 a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                     if (arg instanceof J.NewArray) {
                         J.NewArray array = (J.NewArray) arg;
-                        return array.withInitializer(ListUtils.map(array.getInitializer(), property -> {
-                            if (property instanceof J.Literal) {
-                                property = changePropertyInLiteral((J.Literal) property);
-                            }
-                            return property;
-                        }));
+                        return array.withInitializer(ListUtils.map(array.getInitializer(),
+                                property -> property instanceof J.Literal ? changePropertyInLiteral((J.Literal) property) : property));
                     }
                     if (arg instanceof J.Literal) {
                         return changePropertyInLiteral((J.Literal) arg);
@@ -232,22 +228,18 @@ public class ChangeSpringPropertyKey extends Recipe {
                             J.Literal literal = (J.Literal) assignment.getAssignment();
                             J.Literal newLiteral = changePropertyInLiteral(literal);
                             if (newLiteral != literal) {
-                                arg = assignment.withAssignment(newLiteral);
+                                return assignment.withAssignment(newLiteral);
                             }
                         } else if (assignment.getAssignment() instanceof J.NewArray) {
                             J.NewArray array = (J.NewArray) assignment.getAssignment();
-                            arg = assignment.withAssignment(array.withInitializer(ListUtils.map(array.getInitializer(), property -> {
-                                if (property instanceof J.Literal) {
-                                    property = changePropertyInLiteral((J.Literal) property);
-                                }
-                                return property;
-                            })));
+                            return assignment.withAssignment(array.withInitializer(ListUtils.map(array.getInitializer(),
+                                    property -> property instanceof J.Literal ? changePropertyInLiteral((J.Literal) property) : property)));
                         }
 
                     }
                     if (arg instanceof J.Lambda) {
                         J.Lambda lambda = (J.Lambda) arg;
-                        arg = lambda.withBody(lambda.getBody() instanceof J.Block ?
+                        return lambda.withBody(lambda.getBody() instanceof J.Block ?
                                 ((J.Block) lambda.getBody()).withStatements(ListUtils.map(((J.Block) lambda.getBody()).getStatements(), statement -> {
                                     if (statement instanceof K.ExpressionStatement &&
                                         ((K.ExpressionStatement) statement).getExpression() instanceof J.Literal) {
