@@ -115,25 +115,6 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.opentelemetry.AddOpenTelemetryOtlpExporter
-displayName: Add OpenTelemetry OTLP exporter
-description: >-
-  Add the OpenTelemetry OTLP exporter dependency for exporting telemetry data to an
-  OpenTelemetry-compatible backend (such as Jaeger, Zipkin, or any OTLP-compatible collector).
-tags:
-  - spring
-  - boot
-  - opentelemetry
-  - otlp
-recipeList:
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: io.opentelemetry
-      artifactId: opentelemetry-exporter-otlp
-      onlyIfUsing: io.opentelemetry.*
-      acceptTransitive: true
-
----
-type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.opentelemetry.MigrateFromZipkinToOpenTelemetry
 displayName: Migrate from Zipkin to OpenTelemetry OTLP
 description: >-
