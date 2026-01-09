@@ -151,27 +151,6 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.opentelemetry.UpgradeOpenTelemetry_2_23
-displayName: Upgrade to OpenTelemetry Java Instrumentation 2.23.0
-description: >-
-  Upgrade OpenTelemetry Java Instrumentation dependencies to version 2.23.0.
-  This version targets OpenTelemetry SDK 1.57.0 and includes support for Spring Boot 4.
-tags:
-  - spring
-  - boot
-  - opentelemetry
-recipeList:
-  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
-      groupId: io.opentelemetry.instrumentation
-      artifactId: "*"
-      newVersion: 2.23.0
-  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
-      groupId: io.opentelemetry
-      artifactId: "*"
-      newVersion: 1.57.0
-
----
-type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.opentelemetry.OpenTelemetryFullSetup
 displayName: Complete OpenTelemetry setup for Spring Boot
 description: >-
