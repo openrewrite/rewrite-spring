@@ -1,0 +1,401 @@
+#
+# Copyright 2025 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.opentelemetry.MigrateToOpenTelemetry
+displayName: Complete migration to OpenTelemetry
+description: >-
+  Comprehensive migration to OpenTelemetry including dependencies, configuration properties,
+  and Java code changes. This recipe handles migration from Spring Cloud Sleuth, Brave/Zipkin,
+  and OpenTracing to OpenTelemetry.
+tags:
+  - spring
+  - boot
+  - opentelemetry
+  - migration
+  - observability
+recipeList:
+  - org.openrewrite.java.spring.opentelemetry.MigrateSleuthToOpenTelemetry
+  - org.openrewrite.java.spring.opentelemetry.MigrateBraveToOpenTelemetry
+  - org.openrewrite.java.spring.opentelemetry.MigrateFromZipkinToOpenTelemetry
+  - org.openrewrite.java.spring.opentelemetry.MigrateOpenTracingToOpenTelemetry
+  - org.openrewrite.java.spring.opentelemetry.MigrateNewRelicToOpenTelemetry
+  - org.openrewrite.java.spring.opentelemetry.MigrateDatadogToOpenTelemetry
+
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry.instrumentation
+      artifactId: opentelemetry-logback-appender-1.0
+      onlyIfUsing: ch.qos.logback.*
+      acceptTransitive: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.opentelemetry.MigrateSleuthToOpenTelemetry
+displayName: Migrate from Spring Cloud Sleuth to OpenTelemetry
+description: >-
+  Migrate from Spring Cloud Sleuth to OpenTelemetry.
+  [Spring Cloud Sleuth has been deprecated](https://github.com/spring-cloud/spring-cloud-sleuth#spring-cloud-sleuth) and
+  is replaced by Micrometer Tracing with OpenTelemetry as a backend. This recipe removes Sleuth
+  dependencies and adds OpenTelemetry instrumentation.
+tags:
+  - spring
+  - boot
+  - opentelemetry
+  - sleuth
+  - migration
+  - observability
+recipeList:
+  # Remove Spring Cloud Sleuth dependencies
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-sleuth
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-sleuth*
+  # Add Micrometer Tracing with OpenTelemetry
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.micrometer
+      artifactId: micrometer-tracing-bridge-otel
+      version: 1.x
+      onlyIfUsing: org.springframework.cloud.sleuth.*
+      acceptTransitive: true
+  # Add OpenTelemetry exporters for common backends
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry
+      artifactId: opentelemetry-exporter-otlp
+      version: 1.x
+      onlyIfUsing: org.springframework.cloud.sleuth.*
+      acceptTransitive: true
+
+  # Add OpenTelemetry Spring Boot Starter for auto-instrumentation
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry.instrumentation
+      artifactId: opentelemetry-instrumentation-bom
+      version: 2.x
+      scope: import
+      type: pom
+      onlyIfUsing: org.springframework.boot.*
+      acceptTransitive: true
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry.instrumentation
+      artifactId: opentelemetry-spring-boot-starter
+      version: 2.x
+      onlyIfUsing: org.springframework.boot.*
+      acceptTransitive: true
+
+  # Add OpenTelemetry annotations dependency
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry.instrumentation
+      artifactId: opentelemetry-instrumentation-annotations
+      version: 2.x
+      onlyIfUsing: org.springframework.cloud.sleuth.*
+      acceptTransitive: true
+  # Add Spring Boot AOP starter for annotation processing
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-aop
+      version: 3.x
+      onlyIfUsing: io.opentelemetry.instrumentation.annotations.*
+      acceptTransitive: true
+
+  # Migrate Sleuth properties to OpenTelemetry/Micrometer properties
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.enabled
+      newPropertyKey: management.tracing.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.sampler.probability
+      newPropertyKey: management.tracing.sampling.probability
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.propagation.type
+      newPropertyKey: management.tracing.propagation.type
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.baggage.remote-fields
+      newPropertyKey: management.tracing.baggage.remote-fields
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.baggage.correlation-fields
+      newPropertyKey: management.tracing.baggage.correlation.fields
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.otel.exporter.otlp.endpoint
+      newPropertyKey: management.otlp.tracing.endpoint
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.sleuth.otel.exporter.otlp.headers
+      newPropertyKey: management.otlp.tracing.headers
+  - org.openrewrite.java.spring.DeleteSpringProperty:
+      propertyKey: spring.sleuth.otel.config.trace-id-ratio-based
+  - org.openrewrite.java.spring.DeleteSpringProperty:
+      propertyKey: spring.sleuth.otel.resource.enabled
+
+  # API migration to Micrometer Tracing types
+  # Migrate renamed exporter type before change package
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.exporter.SpanFilter
+      newFullyQualifiedTypeName: io.micrometer.tracing.exporter.SpanExportingPredicate
+
+  # Annotation migration to OpenTelemetry annotations
+  # @NewSpan -> @WithSpan
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.annotation.NewSpan
+      newFullyQualifiedTypeName: io.opentelemetry.instrumentation.annotations.WithSpan
+  # @SpanTag -> @SpanAttribute
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.annotation.SpanTag
+      newFullyQualifiedTypeName: io.opentelemetry.instrumentation.annotations.SpanAttribute
+  # @ContinueSpan -> @WithSpan (note: semantics differ slightly)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.cloud.sleuth.annotation.ContinueSpan
+      newFullyQualifiedTypeName: io.opentelemetry.instrumentation.annotations.WithSpan
+
+  # Change Sleuth API imports to Micrometer Tracing
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.cloud.sleuth
+      newPackageName: io.micrometer.tracing
+      recursive: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.opentelemetry.MigrateFromZipkinToOpenTelemetry
+displayName: Migrate from Zipkin to OpenTelemetry OTLP
+description: >-
+  Migrate from Zipkin tracing to OpenTelemetry OTLP. This recipe replaces Zipkin dependencies
+  with OpenTelemetry OTLP exporter and updates the related configuration properties.
+tags:
+  - spring
+  - boot
+  - opentelemetry
+  - zipkin
+  - migration
+recipeList:
+  # Remove Zipkin dependencies
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: io.zipkin.reporter2
+      artifactId: "*"
+  # Add OpenTelemetry OTLP exporter
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry
+      artifactId: opentelemetry-exporter-otlp
+      onlyIfUsing: org.springframework.boot.*
+      acceptTransitive: true
+  # Note: The user will need to manually update their collector configuration
+  # to accept OTLP instead of Zipkin format
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.opentelemetry.MigrateBraveToOpenTelemetry
+displayName: Migrate Brave API to OpenTelemetry API
+description: >-
+  Migrate Java code using Brave (Zipkin) tracing API to OpenTelemetry API.
+  This recipe handles the migration of Brave Tracer, Span, and related classes to OpenTelemetry equivalents.
+tags:
+  - spring
+  - boot
+  - opentelemetry
+  - brave
+  - zipkin
+  - migration
+recipeList:
+  # Remove Brave dependencies
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: io.zipkin.brave
+      artifactId: "*"
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry
+      artifactId: opentelemetry-api
+      version: 1.x
+      onlyIfUsing: brave.*
+      acceptTransitive: true
+
+  # Migrate Brave Tracer to OpenTelemetry Tracer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: brave.Tracer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Tracer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: brave.Span
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: brave.SpanCustomizer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: brave.Tracing
+      newFullyQualifiedTypeName: io.opentelemetry.api.OpenTelemetry
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: brave.propagation.TraceContext
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.SpanContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: brave.propagation.CurrentTraceContext
+      newFullyQualifiedTypeName: io.opentelemetry.context.Context
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: brave.baggage.BaggageField
+      newFullyQualifiedTypeName: io.opentelemetry.api.baggage.Baggage
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.opentelemetry.MigrateOpenTracingToOpenTelemetry
+displayName: Migrate OpenTracing API to OpenTelemetry API
+description: >-
+  Migrate Java code using OpenTracing API to OpenTelemetry API.
+  OpenTracing has been superseded by OpenTelemetry and is no longer actively maintained.
+tags:
+  - spring
+  - boot
+  - opentelemetry
+  - opentracing
+  - migration
+recipeList:
+  # Remove OpenTracing dependencies
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: io.opentracing
+      artifactId: "*"
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: io.opentracing.contrib
+      artifactId: "*"
+  # Add OpenTelemetry API dependency
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry
+      artifactId: opentelemetry-api
+      version: 1.x
+      onlyIfUsing: io.opentelemetry.api.*
+      acceptTransitive: true
+
+  # Core types
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Tracer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Tracer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Span
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.SpanContext
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.SpanContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Scope
+      newFullyQualifiedTypeName: io.opentelemetry.context.Scope
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.ScopeManager
+      newFullyQualifiedTypeName: io.opentelemetry.context.Context
+  # Propagation types
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.propagation.Format
+      newFullyQualifiedTypeName: io.opentelemetry.context.propagation.TextMapPropagator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.propagation.TextMapExtract
+      newFullyQualifiedTypeName: io.opentelemetry.context.propagation.TextMapGetter
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.propagation.TextMapInject
+      newFullyQualifiedTypeName: io.opentelemetry.context.propagation.TextMapSetter
+  # Change package for contrib utilities
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: io.opentracing.contrib
+      newPackageName: io.opentelemetry.instrumentation
+      recursive: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.opentelemetry.MigrateNewRelicToOpenTelemetry
+displayName: Migrate New Relic Agent to OpenTelemetry
+description: >-
+  Migrate from New Relic Java Agent annotations to OpenTelemetry annotations.
+  Replace @Trace annotations with @WithSpan annotations.
+tags:
+  - spring
+  - boot
+  - opentelemetry
+  - newrelic
+  - migration
+recipeList:
+  # Add OpenTelemetry annotations dependency
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry.instrumentation
+      artifactId: opentelemetry-instrumentation-annotations
+      version: 2.x
+      onlyIfUsing: com.newrelic.api.agent.*
+      acceptTransitive: true
+
+  # Change @Trace annotation to @WithSpan
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.newrelic.api.agent.Trace
+      newFullyQualifiedTypeName: io.opentelemetry.instrumentation.annotations.WithSpan
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.newrelic.api.agent.NewRelic
+      newFullyQualifiedTypeName: io.opentelemetry.api.GlobalOpenTelemetry
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.opentelemetry.MigrateDatadogToOpenTelemetry
+displayName: Migrate Datadog tracing to OpenTelemetry
+description: >-
+  Migrate from Datadog Java tracing annotations to OpenTelemetry annotations.
+  Replace Datadog @Trace annotations with @WithSpan annotations.
+tags:
+  - spring
+  - boot
+  - opentelemetry
+  - datadog
+  - migration
+recipeList:
+  # Remove Datadog dependencies
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: com.datadoghq
+      artifactId: dd-trace-api
+  # Add OpenTelemetry annotations dependency
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry.instrumentation
+      artifactId: opentelemetry-instrumentation-annotations
+      version: 2.x
+      onlyIfUsing: datadog.trace.api.*
+      acceptTransitive: true
+
+  # Datadog core tracing types to OpenTelemetry
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.Tracer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Tracer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Tracer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Tracer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.DDTracer
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Tracer
+  # Span types
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.Span
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Span
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.DDSpan
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.Span
+  # SpanContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.SpanContext
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.SpanContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.SpanContext
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.SpanContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.DDSpanContext
+      newFullyQualifiedTypeName: io.opentelemetry.api.trace.SpanContext
+  # Scope
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.context.TraceScope
+      newFullyQualifiedTypeName: io.opentelemetry.context.Scope
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: io.opentracing.Scope
+      newFullyQualifiedTypeName: io.opentelemetry.context.Scope
+  # @Trace annotation to @WithSpan
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: datadog.trace.api.Trace
+      newFullyQualifiedTypeName: io.opentelemetry.instrumentation.annotations.WithSpan
