@@ -23,11 +23,11 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class MigrateSleuthToMicrometerTracingTest implements RewriteTest {
+class MigrateSleuthApiToMicrometerTracingTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.opentelemetry.MigrateSleuthApiToMicrometerTracing")
+        spec.recipeFromResources("org.openrewrite.java.spring.opentelemetry.MigrateSleuthToOpenTelemetry")
           .parser(JavaParser.fromJavaVersion()
             //language=java
             .dependsOn(

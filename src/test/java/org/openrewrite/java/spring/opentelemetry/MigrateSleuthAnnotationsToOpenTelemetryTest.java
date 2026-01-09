@@ -27,7 +27,7 @@ class MigrateSleuthAnnotationsToOpenTelemetryTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.opentelemetry.MigrateSleuthAnnotationsToOpenTelemetry")
+        spec.recipeFromResources("org.openrewrite.java.spring.opentelemetry.MigrateSleuthToOpenTelemetry")
           .parser(JavaParser.fromJavaVersion()
             //language=java
             .dependsOn(
