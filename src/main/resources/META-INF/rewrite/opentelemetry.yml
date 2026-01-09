@@ -36,6 +36,12 @@ recipeList:
   - org.openrewrite.java.spring.opentelemetry.MigrateNewRelicToOpenTelemetry
   - org.openrewrite.java.spring.opentelemetry.MigrateDatadogToOpenTelemetry
 
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: io.opentelemetry.instrumentation
+      artifactId: opentelemetry-logback-appender-1.0
+      onlyIfUsing: ch.qos.logback.*
+      acceptTransitive: true
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.opentelemetry.MigrateSleuthToOpenTelemetry
@@ -64,12 +70,14 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.micrometer
       artifactId: micrometer-tracing-bridge-otel
+      version: 1.x
       onlyIfUsing: org.springframework.cloud.sleuth.*
       acceptTransitive: true
   # Add OpenTelemetry exporters for common backends
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.opentelemetry
       artifactId: opentelemetry-exporter-otlp
+      version: 1.x
       onlyIfUsing: org.springframework.cloud.sleuth.*
       acceptTransitive: true
 
@@ -93,12 +101,14 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.opentelemetry.instrumentation
       artifactId: opentelemetry-instrumentation-annotations
+      version: 2.x
       onlyIfUsing: org.springframework.cloud.sleuth.*
       acceptTransitive: true
   # Add Spring Boot AOP starter for annotation processing
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-aop
+      version: 3.x
       onlyIfUsing: io.opentelemetry.instrumentation.annotations.*
       acceptTransitive: true
 
@@ -181,11 +191,6 @@ recipeList:
       acceptTransitive: true
   # Note: The user will need to manually update their collector configuration
   # to accept OTLP instead of Zipkin format
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: io.opentelemetry.instrumentation
-      artifactId: opentelemetry-logback-appender-1.0
-      onlyIfUsing: ch.qos.logback.*
-      acceptTransitive: true
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -209,6 +214,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.opentelemetry
       artifactId: opentelemetry-api
+      version: 1.x
       onlyIfUsing: brave.*
       acceptTransitive: true
 
@@ -260,6 +266,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.opentelemetry
       artifactId: opentelemetry-api
+      version: 1.x
       onlyIfUsing: io.opentelemetry.api.*
       acceptTransitive: true
 
@@ -313,6 +320,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.opentelemetry.instrumentation
       artifactId: opentelemetry-instrumentation-annotations
+      version: 2.x
       onlyIfUsing: com.newrelic.api.agent.*
       acceptTransitive: true
 
@@ -346,6 +354,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: io.opentelemetry.instrumentation
       artifactId: opentelemetry-instrumentation-annotations
+      version: 2.x
       onlyIfUsing: datadog.trace.api.*
       acceptTransitive: true
 
