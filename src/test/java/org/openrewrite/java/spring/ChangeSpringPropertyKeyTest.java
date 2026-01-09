@@ -286,7 +286,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeValueAnnotation() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", List.of("foo")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5")),
           java(
             """
               import org.springframework.beans.factory.annotation.Value;
@@ -325,7 +325,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeConditionalOnPropertyAnnotation() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("foo", "bar", List.of("baz")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.+")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2")),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -485,7 +485,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
           spec -> spec
             .recipe(
               new ChangeSpringPropertyKey("spring.data.redis.ssl", "spring.data.redis.ssl.enabled", emptyList()))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+", "spring-boot-test-3.2", "spring-boot-autoconfigure-2.+")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2")),
           java(
             """
               import org.springframework.beans.factory.annotation.Value;
@@ -509,7 +509,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
           spec -> spec
             .recipe(
               new ChangeSpringPropertyKey("spring.data.redis.ssl.enabled", "some.other.key.enabled", emptyList()))
-            .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+", "spring-boot-test-3.2", "spring-boot-autoconfigure-2.+")),
+            .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2")),
           kotlin(
             """
               import org.springframework.beans.factory.annotation.Value
