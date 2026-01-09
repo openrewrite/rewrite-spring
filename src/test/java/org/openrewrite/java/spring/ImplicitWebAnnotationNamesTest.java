@@ -20,10 +20,12 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.kotlin.Assertions.kotlin;
 
 @SuppressWarnings({"SimplifiableAnnotation", "MethodMayBeStatic"})
 class ImplicitWebAnnotationNamesTest implements RewriteTest {
@@ -31,7 +33,8 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ImplicitWebAnnotationNames())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.+"))
+          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.+"));
     }
 
     @DocumentExample
@@ -176,6 +179,125 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
               public class UsersController {
                   public ResponseEntity<String> getUser(@PathVariable("uid") Long id,
                                                         @PathVariable(value = "another_name") Long anotherName) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void removeUnnecessaryAnnotationArgumentKotlin() {
+        //language=kotlin
+        rewriteRun(
+          kotlin(
+            """
+              import org.springframework.http.ResponseEntity
+              import org.springframework.web.bind.annotation.*
+
+              @RestController
+              @RequestMapping("/users")
+              class UsersController {
+                  @GetMapping("/{id}")
+                  fun getUser(@PathVariable("id") id: Long,
+                              @PathVariable(required = false) p2: Long?,
+                              @PathVariable(value = "p3") anotherName: Long): ResponseEntity<String> {
+                      println(anotherName)
+                      return ResponseEntity.ok("")
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.ResponseEntity
+              import org.springframework.web.bind.annotation.*
+
+              @RestController
+              @RequestMapping("/users")
+              class UsersController {
+                  @GetMapping("/{id}")
+                  fun getUser(@PathVariable id: Long,
+                              @PathVariable(required = false) p2: Long?,
+                              @PathVariable(value = "p3") anotherName: Long): ResponseEntity<String> {
+                      println(anotherName)
+                      return ResponseEntity.ok("")
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void kotlinAnnotationNoWhitespaceBetweenAnnotationAndVariable() {
+        //language=kotlin
+        rewriteRun(
+          kotlin(
+            """
+              import org.springframework.http.ResponseEntity
+              import org.springframework.web.bind.annotation.*
+
+              @RestController
+              @RequestMapping("/users")
+              class UsersController {
+                  @GetMapping("/{id}")
+                  fun getUser(@PathVariable("id")id: Long): ResponseEntity<String> {
+                      return ResponseEntity.ok("")
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.ResponseEntity
+              import org.springframework.web.bind.annotation.*
+
+              @RestController
+              @RequestMapping("/users")
+              class UsersController {
+                  @GetMapping("/{id}")
+                  fun getUser(@PathVariable id: Long): ResponseEntity<String> {
+                      return ResponseEntity.ok("")
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void kotlinDoesNotRenamePathVariable() {
+        //language=kotlin
+        rewriteRun(
+          kotlin(
+            """
+              import org.springframework.http.ResponseEntity
+              import org.springframework.web.bind.annotation.*
+
+              class UsersController {
+                  fun getUser(@PathVariable("uid") id: Long,
+                              @PathVariable(value = "another_name") anotherName: Long): ResponseEntity<String> {
+                      return ResponseEntity.ok("")
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void kotlinAlreadyMigratedNoChange() {
+        //language=kotlin
+        rewriteRun(
+          kotlin(
+            """
+              import org.springframework.http.ResponseEntity
+              import org.springframework.web.bind.annotation.*
+
+              @RestController
+              @RequestMapping("/users")
+              class UsersController {
+                  @GetMapping("/{id}")
+                  fun getUser(@PathVariable id: Long,
+                              @PathVariable(required = false) p2: Long?): ResponseEntity<String> {
+                      return ResponseEntity.ok("")
                   }
               }
               """
