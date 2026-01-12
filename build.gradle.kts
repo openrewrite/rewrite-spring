@@ -63,6 +63,7 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.1.+")
 
     parserClasspath("org.springframework:spring-messaging:5.+")
+    parserClasspath("org.springframework.kafka:spring-kafka:2.8.+")
     parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
     parserClasspath("org.springframework.kafka:spring-kafka-test:2.9.+")
     parserClasspath("org.apache.kafka:kafka-clients:3.2.+")
@@ -122,6 +123,8 @@ recipeDependencies {
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:4.3.10")
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
     testParserClasspath("org.springframework.batch:spring-batch-test:4.3.+")
+
+    testParserClasspath("org.springframework.kafka:spring-kafka:2.8.+")
 
     testParserClasspath("org.springframework.boot:spring-boot-actuator:2.1.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.0.+")

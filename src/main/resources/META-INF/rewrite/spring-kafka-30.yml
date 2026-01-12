@@ -42,3 +42,24 @@ recipeList:
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.RECEIVED_PARTITION_ID
       fullyQualifiedConstantName: org.springframework.kafka.support.KafkaHeaders.RECEIVED_PARTITION
+  - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_2_8_ErrorHandlers
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_2_8_ErrorHandlers
+displayName: Migrates Spring Kafka deprecated error handlers
+description: >-
+  Migrate error handlers deprecated in Spring Kafka `2.8.x` to their replacements.
+tags:
+  - spring
+  - kafka
+recipeList:
+  # `BiConsumer<T>` arguments to `SeekToCurrentErrorHandler` constructor also change to `ConsumerRecordRecoverer`, but values are assignable already
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.kafka.listener.SeekToCurrentErrorHandler handle(..)
+      newMethodName: handleRemaining
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.kafka.config.AbstractKafkaListenerContainerFactory setErrorHandler(..)
+      newMethodName: setCommonErrorHandler
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.kafka.listener.SeekToCurrentErrorHandler
+      newFullyQualifiedTypeName: org.springframework.kafka.listener.DefaultErrorHandler
