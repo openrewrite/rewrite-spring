@@ -24,6 +24,7 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.PathUtils.separatorsToSystem;
 import static org.openrewrite.java.Assertions.java;
 
 class FindSpringComponentsTest implements RewriteTest {
@@ -46,14 +47,14 @@ class FindSpringComponentsTest implements RewriteTest {
                       SpringComponentRelationships.Row::getSourceFile,
                       SpringComponentRelationships.Row::getDependantType,
                       SpringComponentRelationships.Row::getDependencyType)
-                    .contains("test/Config.java", "test.A", "test.B"),
+                    .contains(separatorsToSystem("test/Config.java"), "test.A", "test.B"),
                 two ->
                   assertThat(two)
                     .extracting(
                       SpringComponentRelationships.Row::getSourceFile,
                       SpringComponentRelationships.Row::getDependantType,
                       SpringComponentRelationships.Row::getDependencyType)
-                    .contains("test/C.java", "test.C", "test.B"))),
+                    .contains(separatorsToSystem("test/C.java"), "test.C", "test.B"))),
           //language=java
           java("package test; public class B {}"),
           //language=java
