@@ -34,17 +34,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @EqualsAndHashCode(callSuper = false)
 @Value
 public class AddSpringDependencyManagementPlugin extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Add `io.spring.dependency-management` plugin, if in use";
-    }
+    String displayName = "Add `io.spring.dependency-management` plugin, if in use";
 
-    @Override
-    public String getDescription() {
-        return "Prior to Spring Boot 2.0 the dependency management plugin was applied automatically as part of the overall spring boot plugin. " +
+    String description = "Prior to Spring Boot 2.0 the dependency management plugin was applied automatically as part of the overall spring boot plugin. " +
                "Afterwards the dependency-management plugin must be applied explicitly, or Gradle's `platform()` feature may be used instead. " +
                "This recipe makes usage of io-spring.dependency-management explicit in anticipation of upgrade to Spring Boot 2.0 or later.";
-    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

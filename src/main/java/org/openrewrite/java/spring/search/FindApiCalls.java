@@ -33,16 +33,9 @@ import org.openrewrite.marker.SearchResult;
 public class FindApiCalls extends Recipe {
     transient ApiCalls calls = new ApiCalls(this);
 
-    @Override
-    public String getDisplayName() {
-        return "Find HTTP API calls via `RestTemplate`";
-    }
+    String displayName = "Find HTTP API calls via `RestTemplate`";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Find outbound HTTP API calls made via Spring's `RestTemplate` class.";
-    }
+    String description = "Find outbound HTTP API calls made via Spring's `RestTemplate` class.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

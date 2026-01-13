@@ -43,15 +43,9 @@ public class ExpandProperties extends Recipe {
     @Nullable
     private String sourceFileMask;
 
-    @Override
-    public String getDisplayName() {
-        return "Expand Spring YAML properties";
-    }
+    String displayName = "Expand Spring YAML properties";
 
-    @Override
-    public String getDescription() {
-        return "Expand YAML properties to not use the dot syntax shortcut.";
-    }
+    String description = "Expand YAML properties to not use the dot syntax shortcut.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -34,15 +34,9 @@ public class OAuth2LoginLambdaDsl extends Recipe {
 
     private static final Collection<String> APPLICABLE_METHOD_NAMES = Arrays.asList("authorizationEndpoint", "redirectionEndpoint",
             "tokenEndpoint", "userInfoEndpoint");
-    @Override
-    public String getDisplayName() {
-        return "Convert `OAuth2LoginConfigurer` chained calls into Lambda DSL";
-    }
+    String displayName = "Convert `OAuth2LoginConfigurer` chained calls into Lambda DSL";
 
-    @Override
-    public String getDescription() {
-        return "Converts `OAuth2LoginConfigurer` chained call from Spring Security pre 5.2.x into new lambda DSL style calls and removes `and()` methods.";
-    }
+    String description = "Converts `OAuth2LoginConfigurer` chained call from Spring Security pre 5.2.x into new lambda DSL style calls and removes `and()` methods.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

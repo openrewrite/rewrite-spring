@@ -29,15 +29,9 @@ import java.util.regex.Pattern;
 @Value
 public class ChangeSpringPropertyValue extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Change the value of a spring application property";
-    }
+    String displayName = "Change the value of a spring application property";
 
-    @Override
-    public String getDescription() {
-        return "Change spring application property values existing in either Properties or Yaml files.";
-    }
+    String description = "Change spring application property values existing in either Properties or Yaml files.";
 
     @Option(displayName = "Property key",
             description = "The name of the property key whose value is to be changed.",

@@ -32,16 +32,10 @@ import org.openrewrite.java.tree.TypeUtils;
 @Value
 public class ReplaceSupportClassWithItsInterface extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Transform classes that extend a given Class to implement the given Interface instead";
-    }
+    String displayName = "Transform classes that extend a given Class to implement the given Interface instead";
 
-    @Override
-    public String getDescription() {
-        return "As of spring-batch 5.x Listeners has default methods (made possible by a Java 8 baseline) and can be " +
+    String description = "As of spring-batch 5.x Listeners has default methods (made possible by a Java 8 baseline) and can be " +
                "implemented directly without the need for this adapter.";
-    }
 
     @Option(displayName = "Fully qualified class name",
             description = "A fully-qualified class name to be replaced.",

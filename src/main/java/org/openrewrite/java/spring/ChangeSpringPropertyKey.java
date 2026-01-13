@@ -46,15 +46,9 @@ import static java.util.regex.Pattern.quote;
 @Value
 public class ChangeSpringPropertyKey extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Change the key of a Spring application property";
-    }
+    String displayName = "Change the key of a Spring application property";
 
-    @Override
-    public String getDescription() {
-        return "Change Spring application property keys existing in either Properties or YAML files, and in `@Value`, `@ConditionalOnProperty` or `@SpringBootTest` annotations.";
-    }
+    String description = "Change Spring application property keys existing in either Properties or YAML files, and in `@Value`, `@ConditionalOnProperty` or `@SpringBootTest` annotations.";
 
     @Option(displayName = "Old property key",
             description = "The property key to rename.",

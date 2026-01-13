@@ -37,17 +37,10 @@ public class FindConfigurationProperties extends Recipe {
 
     transient ConfigurationPropertiesTable configProperties = new ConfigurationPropertiesTable(this);
 
-    @Override
-    public String getDisplayName() {
-        return "Find Spring `@ConfigurationProperties`";
-    }
+    String displayName = "Find Spring `@ConfigurationProperties`";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Find all classes annotated with `@ConfigurationProperties` and extract their prefix values. " +
+    String description = "Find all classes annotated with `@ConfigurationProperties` and extract their prefix values. " +
                 "This is useful for discovering all externalized configuration properties in Spring Boot applications.";
-    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

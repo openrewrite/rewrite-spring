@@ -85,15 +85,9 @@ public class UseTlsAmqpConnectionString extends Recipe {
     @Nullable
     List<String> pathExpressions;
 
-    @Override
-    public String getDisplayName() {
-        return "Use TLS for AMQP connection strings";
-    }
+    String displayName = "Use TLS for AMQP connection strings";
 
-    @Override
-    public String getDescription() {
-        return "Use TLS for AMQP connection strings.";
-    }
+    String description = "Use TLS for AMQP connection strings.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

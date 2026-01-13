@@ -70,18 +70,12 @@ public class UseTlsJdbcConnectionString extends Recipe {
     @Nullable
     String attribute;
 
-    @Override
-    public String getDisplayName() {
-        return "Use TLS for JDBC connection strings";
-    }
+    String displayName = "Use TLS for JDBC connection strings";
 
-    @Override
-    public String getDescription() {
-        return "Increasingly, for compliance reasons (e.g. [NACHA](https://www.nacha.org/sites/default/files/2022-06/End_User_Briefing_Supplementing_Data_Security_UPDATED_FINAL.pdf)), JDBC connection strings " +
+    String description = "Increasingly, for compliance reasons (e.g. [NACHA](https://www.nacha.org/sites/default/files/2022-06/End_User_Briefing_Supplementing_Data_Security_UPDATED_FINAL.pdf)), JDBC connection strings " +
                 "should be TLS-enabled. This recipe will update the port and " +
                 "optionally add a connection attribute to indicate that the " +
                 "connection is TLS-enabled.";
-    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

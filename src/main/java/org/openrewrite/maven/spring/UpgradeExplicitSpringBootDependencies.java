@@ -52,17 +52,11 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
             example = "3.0.0-M3")
     String toVersion;
 
-    @Override
-    public String getDisplayName() {
-        return "Upgrade Spring dependencies";
-    }
+    String displayName = "Upgrade Spring dependencies";
 
-    @Override
-    public String getDescription() {
-        return "Upgrades dependencies according to the specified version of spring boot. " +
+    String description = "Upgrades dependencies according to the specified version of spring boot. " +
                 "Spring boot has many direct and transitive dependencies. When a module has an explicit dependency on " +
                 "one of these it may also need to be upgraded to match the version used by spring boot.";
-    }
 
     @Data
     public static class Accumulator {

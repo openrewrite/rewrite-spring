@@ -35,15 +35,9 @@ public class OAuth2ClientLambdaDsl extends Recipe {
 
     private static final Collection<String> APPLICABLE_METHODS = singletonList("authorizationCodeGrant");
 
-    @Override
-    public String getDisplayName() {
-        return "Convert `OAuth2ClientConfigurer` chained calls into Lambda DSL";
-    }
+    String displayName = "Convert `OAuth2ClientConfigurer` chained calls into Lambda DSL";
 
-    @Override
-    public String getDescription() {
-        return "Converts `OAuth2ClientConfigurer` chained call from Spring Security pre 5.2.x into new lambda DSL style calls and removes `and()` methods.";
-    }
+    String description = "Converts `OAuth2ClientConfigurer` chained call from Spring Security pre 5.2.x into new lambda DSL style calls and removes `and()` methods.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
