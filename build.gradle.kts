@@ -123,6 +123,8 @@ recipeDependencies {
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
     testParserClasspath("org.springframework.batch:spring-batch-test:4.3.+")
 
+    testParserClasspath("org.springframework.kafka:spring-kafka:2.8.+")
+
     testParserClasspath("org.springframework.boot:spring-boot-actuator:2.1.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.0.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.4.+")
