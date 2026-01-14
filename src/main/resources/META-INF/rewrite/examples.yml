@@ -4373,6 +4373,65 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_2_8_ErrorHandlers
+examples:
+- description: '`UpgradeSpringKafkaErrorHandlersTest#migratesSeekToCurrentErrorHandler`'
+  sources:
+  - before: |
+      import java.lang.Exception;
+      import java.util.List;
+
+      import org.apache.kafka.clients.consumer.Consumer;
+      import org.apache.kafka.clients.consumer.ConsumerRecord;
+      import org.springframework.kafka.config.AbstractKafkaListenerContainerFactory;
+      import org.springframework.kafka.listener.MessageListenerContainer;
+      import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
+
+      class A {
+          private final SeekToCurrentErrorHandler handler = new SeekToCurrentErrorHandler();
+
+          void method(AbstractKafkaListenerContainerFactory factory) {
+              factory.setErrorHandler(handler);
+          }
+
+          void anotherMethod(
+            Exception exception,
+            List<ConsumerRecord<?,?>> records,
+            Consumer<?,?> consumer,
+            MessageListenerContainer container
+          ) {
+              handler.handle(exception, records, consumer, container);
+          }
+      }
+    after: |
+      import java.lang.Exception;
+      import java.util.List;
+
+      import org.apache.kafka.clients.consumer.Consumer;
+      import org.apache.kafka.clients.consumer.ConsumerRecord;
+      import org.springframework.kafka.config.AbstractKafkaListenerContainerFactory;
+      import org.springframework.kafka.listener.DefaultErrorHandler;
+      import org.springframework.kafka.listener.MessageListenerContainer;
+
+      class A {
+          private final DefaultErrorHandler handler = new DefaultErrorHandler();
+
+          void method(AbstractKafkaListenerContainerFactory factory) {
+              factory.setCommonErrorHandler(handler);
+          }
+
+          void anotherMethod(
+            Exception exception,
+            List<ConsumerRecord<?,?>> records,
+            Consumer<?,?> consumer,
+            MessageListenerContainer container
+          ) {
+              handler.handleRemaining(exception, records, consumer, container);
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_3_0
 examples:
 - description: '`KafkaOperationsSendReturnTypeTest#changeKafkaOperationsSendReturnType`'
@@ -4442,6 +4501,82 @@ examples:
           void bar(KafkaOperations<String, String> kafkaOperations) {
               KafkaOperations<String, String> k2 = kafkaOperations;
           }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.opentelemetry.MigrateDatadogToOpenTelemetry
+examples:
+- description: '`MigrateDatadogToOpenTelemetryTest#migrateDatadogTracer`'
+  sources:
+  - before: |
+      import datadog.trace.api.Tracer;
+
+      class TracingService {
+          Tracer tracer;
+      }
+    after: |
+      import io.opentelemetry.api.trace.Tracer;
+
+      class TracingService {
+          Tracer tracer;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.opentelemetry.MigrateOpenTracingToOpenTelemetry
+examples:
+- description: '`MigrateOpenTracingToOpenTelemetryTest#migrateTracer`'
+  sources:
+  - before: |
+      import io.opentracing.Tracer;
+
+      class OpenTracingService {
+          Tracer tracer;
+      }
+    after: |
+      import io.opentelemetry.api.trace.Tracer;
+
+      class OpenTracingService {
+          Tracer tracer;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.opentelemetry.MigrateSleuthToOpenTelemetry
+examples:
+- description: '`MigrateSleuthAnnotationsToOpenTelemetryTest#migrateNewSpanToWithSpan`'
+  sources:
+  - before: |
+      import org.springframework.cloud.sleuth.annotation.NewSpan;
+
+      class TracedService {
+          @NewSpan
+          public void tracedMethod() {
+          }
+      }
+    after: |
+      import io.opentelemetry.instrumentation.annotations.WithSpan;
+
+      class TracedService {
+          @WithSpan
+          public void tracedMethod() {
+          }
+      }
+    language: java
+- description: '`MigrateSleuthApiToMicrometerTracingTest#migrateTracerImport`'
+  sources:
+  - before: |
+      import org.springframework.cloud.sleuth.Tracer;
+
+      class TracingService {
+          Tracer tracer;
+      }
+    after: |
+      import io.micrometer.tracing.Tracer;
+
+      class TracingService {
+          Tracer tracer;
       }
     language: java
 ---
