@@ -18,6 +18,8 @@ recipeDependencies {
     parserClasspath("javax.validation:validation-api:2.0.1.Final")
     parserClasspath("org.junit.jupiter:junit-jupiter-api:5.+")
 
+    parserClasspath("com.fasterxml.jackson.core:jackson-core:2.20.+")
+
     parserClasspath("org.springframework.boot:spring-boot:1.+")
     parserClasspath("org.springframework.boot:spring-boot:2.+")
     parserClasspath("org.springframework.boot:spring-boot:3.+")
@@ -37,10 +39,12 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-context:4.+")
     parserClasspath("org.springframework:spring-context:5.+")
     parserClasspath("org.springframework:spring-context:6.+")
+    parserClasspath("org.springframework:spring-context:7.+")
 
     parserClasspath("org.springframework:spring-core:4.+")
     parserClasspath("org.springframework:spring-core:5.+")
     parserClasspath("org.springframework:spring-core:6.+")
+    parserClasspath("org.springframework:spring-core:7.+")
 
     parserClasspath("org.springframework:spring-test:6.+")
 
@@ -65,6 +69,7 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-messaging:5.+")
     parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
     parserClasspath("org.springframework.kafka:spring-kafka-test:2.9.+")
+    parserClasspath("org.springframework.kafka:spring-kafka:4.0.+")
     parserClasspath("org.apache.kafka:kafka-clients:3.2.+")
 
     parserClasspath("org.springframework.security:spring-security-config:5.8.+")
@@ -171,6 +176,7 @@ recipeDependencies {
 
     testParserClasspath("org.springframework:spring-context:6.0.+")
     testParserClasspath("org.springframework:spring-context:6.2.+")
+    testParserClasspath("org.springframework:spring-context:7.0.+")
     testParserClasspath("org.springframework:spring-orm:5.3.+")
     testParserClasspath("org.springframework:spring-test:5.3.+")
     testParserClasspath("org.springframework:spring-tx:4.1.+")
