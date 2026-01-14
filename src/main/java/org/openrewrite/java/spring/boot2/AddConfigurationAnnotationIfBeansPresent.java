@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -38,15 +39,11 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
     private static final AnnotationMatcher CONFIGURATION_ANNOTATION_MATCHER = new AnnotationMatcher("@" + FQN_CONFIGURATION, true);
 
 
-    @Override
-    public String getDisplayName() {
-        return "Add missing `@Configuration` annotation";
-    }
+    @Getter
+    final String displayName = "Add missing `@Configuration` annotation";
 
-    @Override
-    public String getDescription() {
-        return "Class having `@Bean` annotation over any methods but missing `@Configuration` annotation over the declaring class would have `@Configuration` annotation added.";
-    }
+    @Getter
+    final String description = "Class having `@Bean` annotation over any methods but missing `@Configuration` annotation over the declaring class would have `@Configuration` annotation added.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

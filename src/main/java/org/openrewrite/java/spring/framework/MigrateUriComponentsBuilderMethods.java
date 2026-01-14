@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -34,15 +35,11 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
 
     private static final MethodMatcher PARSE_FORWARDED_FOR = new MethodMatcher(TARGET_CLASS + " parseForwardedFor(org.springframework.http.HttpRequest, java.net.InetSocketAddress)");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `UriComponentsBuilder.fromHttpRequest` and `parseForwardedFor`";
-    }
+    @Getter
+    final String displayName = "Migrate `UriComponentsBuilder.fromHttpRequest` and `parseForwardedFor`";
 
-    @Override
-    public String getDescription() {
-        return "The `fromHttpRequest` and `parseForwardedFor` methods in `org.springframework.web.util.UriComponentsBuilder` were deprecated, in favor of `org.springframework.web.util.ForwardedHeaderUtils`.";
-    }
+    @Getter
+    final String description = "The `fromHttpRequest` and `parseForwardedFor` methods in `org.springframework.web.util.UriComponentsBuilder` were deprecated, in favor of `org.springframework.web.util.ForwardedHeaderUtils`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

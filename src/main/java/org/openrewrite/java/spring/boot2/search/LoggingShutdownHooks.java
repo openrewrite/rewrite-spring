@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2.search;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.ScanningRecipe;
@@ -39,21 +40,17 @@ import static java.util.Objects.requireNonNull;
  */
 public class LoggingShutdownHooks extends ScanningRecipe<AtomicBoolean> {
 
-    @Override
-    public String getDisplayName() {
-        return "Applications using logging shutdown hooks";
-    }
+    @Getter
+    final String displayName = "Applications using logging shutdown hooks";
 
-    @Override
-    public String getDescription() {
-        return "Spring Boot registers a logging shutdown hook by default for JAR-based applications to ensure that " +
-                "logging resources are released when the JVM exits. If your application is deployed as a WAR then " +
-                "the shutdown hook is not registered since the servlet container usually handles logging concerns. " +
-                "\n\n" +
-                "Most applications will want the shutdown hook. However, if your application has complex context " +
-                "hierarchies, then you may need to disable it. You can use the `logging.register-shutdown-hook` " +
-                "property to do that.";
-    }
+    @Getter
+    final String description = "Spring Boot registers a logging shutdown hook by default for JAR-based applications to ensure that " +
+            "logging resources are released when the JVM exits. If your application is deployed as a WAR then " +
+            "the shutdown hook is not registered since the servlet container usually handles logging concerns. " +
+            "\n\n" +
+            "Most applications will want the shutdown hook. However, if your application has complex context " +
+            "hierarchies, then you may need to disable it. You can use the `logging.register-shutdown-hook` " +
+            "property to do that.";
 
     @Override
     public AtomicBoolean getInitialValue(ExecutionContext ctx) {

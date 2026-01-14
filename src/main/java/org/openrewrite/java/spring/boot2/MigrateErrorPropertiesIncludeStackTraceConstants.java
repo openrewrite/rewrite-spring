@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -29,15 +30,11 @@ import java.util.Map;
 import static java.util.Collections.emptyList;
 
 public class MigrateErrorPropertiesIncludeStackTraceConstants extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Use `ErrorProperties#IncludeStacktrace.ON_PARAM`";
-    }
+    @Getter
+    final String displayName = "Use `ErrorProperties#IncludeStacktrace.ON_PARAM`";
 
-    @Override
-    public String getDescription() {
-        return "`ErrorProperties#IncludeStacktrace.ON_TRACE_PARAM` was deprecated in 2.3.x and removed in 2.5.0.";
-    }
+    @Getter
+    final String description = "`ErrorProperties#IncludeStacktrace.ON_TRACE_PARAM` was deprecated in 2.3.x and removed in 2.5.0.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

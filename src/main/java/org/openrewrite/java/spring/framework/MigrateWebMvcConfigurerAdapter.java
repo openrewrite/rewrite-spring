@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -33,16 +34,12 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
     private static final String WEB_MVC_CONFIGURER_ADAPTER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter";
     private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
 
-    @Override
-    public String getDisplayName() {
-        return "Replace `WebMvcConfigurerAdapter` with `WebMvcConfigurer`";
-    }
+    @Getter
+    final String displayName = "Replace `WebMvcConfigurerAdapter` with `WebMvcConfigurer`";
 
-    @Override
-    public String getDescription() {
-        return "As of 5.0 `WebMvcConfigurer` has default methods (made possible by a Java 8 baseline) and can be " +
-               "implemented directly without the need for this adapter.";
-    }
+    @Getter
+    final String description = "As of 5.0 `WebMvcConfigurer` has default methods (made possible by a Java 8 baseline) and can be " +
+            "implemented directly without the need for this adapter.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.cloud2022;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.ScanningRecipe;
@@ -32,15 +33,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.util.Collections.emptyList;
 
 public class AddLoggingPatternLevelForSleuth extends ScanningRecipe<AtomicBoolean> {
-    @Override
-    public String getDisplayName() {
-        return "Add logging.pattern.level for traceId and spanId";
-    }
+    @Getter
+    final String displayName = "Add logging.pattern.level for traceId and spanId";
 
-    @Override
-    public String getDescription() {
-        return "Add `logging.pattern.level` for traceId and spanId which was previously set by default, if not already set.";
-    }
+    @Getter
+    final String description = "Add `logging.pattern.level` for traceId and spanId which was previously set by default, if not already set.";
 
     @Override
     public AtomicBoolean getInitialValue(ExecutionContext ctx) {

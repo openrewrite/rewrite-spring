@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -49,15 +50,11 @@ import static java.util.Collections.singleton;
  */
 public class NoRequestMappingAnnotation extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Remove `@RequestMapping` annotations";
-    }
+    @Getter
+    final String displayName = "Remove `@RequestMapping` annotations";
 
-    @Override
-    public String getDescription() {
-        return "Replace method declaration `@RequestMapping` annotations with `@GetMapping`, `@PostMapping`, etc. when possible.";
-    }
+    @Getter
+    final String description = "Replace method declaration `@RequestMapping` annotations with `@GetMapping`, `@PostMapping`, etc. when possible.";
 
     @Override
     public Set<String> getTags() {

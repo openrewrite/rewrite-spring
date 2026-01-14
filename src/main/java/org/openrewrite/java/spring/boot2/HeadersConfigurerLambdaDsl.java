@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -40,15 +41,11 @@ public final class HeadersConfigurerLambdaDsl extends Recipe {
         put("referrerPolicy", "policy");
     }};
 
-    @Override
-    public String getDisplayName() {
-        return "Convert `HeadersConfigurer` chained calls into Lambda DSL";
-    }
+    @Getter
+    final String displayName = "Convert `HeadersConfigurer` chained calls into Lambda DSL";
 
-    @Override
-    public String getDescription() {
-        return "Converts `HeadersConfigurer` chained call from Spring Security pre 5.2.x into new lambda DSL style calls and removes `and()` methods.";
-    }
+    @Getter
+    final String description = "Converts `HeadersConfigurer` chained call from Spring Security pre 5.2.x into new lambda DSL style calls and removes `and()` methods.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -26,15 +27,11 @@ import java.util.Map;
 import static java.util.Collections.emptyList;
 
 public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Migrate deprecated Spring-Boot `EmbeddedDatabaseConnection.HSQL`";
-    }
+    @Getter
+    final String displayName = "Migrate deprecated Spring-Boot `EmbeddedDatabaseConnection.HSQL`";
 
-    @Override
-    public String getDescription() {
-        return "Spring-Boot `EmbeddedDatabaseConnection.HSQL` was deprecated in favor of `EmbeddedDatabaseConnection.HSQLDB` in 2.4.";
-    }
+    @Getter
+    final String description = "Spring-Boot `EmbeddedDatabaseConnection.HSQL` was deprecated in favor of `EmbeddedDatabaseConnection.HSQLDB` in 2.4.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

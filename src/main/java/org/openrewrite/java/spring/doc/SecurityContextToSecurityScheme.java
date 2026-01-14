@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.doc;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.analysis.constantfold.ConstantFold;
 import org.openrewrite.analysis.util.CursorUtil;
@@ -32,15 +33,11 @@ public class SecurityContextToSecurityScheme extends Recipe {
     private static final MethodMatcher AUTHORIZATION_SCOPE_MATCHER = new MethodMatcher("springfox.documentation.service.AuthorizationScope <constructor>(String, String)");
     private static final MethodMatcher SECURITY_REFERENCE_MATCHER = new MethodMatcher("springfox.documentation.service.SecurityReference <constructor>(String, springfox.documentation.service.AuthorizationScope[])");
 
-    @Override
-    public String getDisplayName() {
-        return "Replace elements of SpringFox's security with Swagger's security models";
-    }
+    @Getter
+    final String displayName = "Replace elements of SpringFox's security with Swagger's security models";
 
-    @Override
-    public String getDescription() {
-        return "Replace `ApiKey`, `AuthorizationScope`, and `SecurityScheme` elements with Swagger's equivalents.";
-    }
+    @Getter
+    final String description = "Replace `ApiKey`, `AuthorizationScope`, and `SecurityScheme` elements with Swagger's equivalents.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

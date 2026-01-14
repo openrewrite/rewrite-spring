@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -29,15 +30,11 @@ import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.tree.TypeUtils.isOfClassType;
 
 public class ImplicitWebAnnotationNames extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Remove implicit web annotation names";
-    }
+    @Getter
+    final String displayName = "Remove implicit web annotation names";
 
-    @Override
-    public String getDescription() {
-        return "Removes implicit web annotation names.";
-    }
+    @Getter
+    final String description = "Removes implicit web annotation names.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

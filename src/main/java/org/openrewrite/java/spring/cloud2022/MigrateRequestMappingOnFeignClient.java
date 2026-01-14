@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.cloud2022;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -36,15 +37,11 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
 
     private static final String REQUEST_MAPPING = "org.springframework.web.bind.annotation.RequestMapping";
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `@RequestMapping` on `FeignClient` to `@FeignClient` path attribute";
-    }
+    @Getter
+    final String displayName = "Migrate `@RequestMapping` on `FeignClient` to `@FeignClient` path attribute";
 
-    @Override
-    public String getDescription() {
-        return "Support for `@RequestMapping` over a `FeignClient` interface was removed in Spring Cloud OpenFeign 2.2.10.RELEASE.";
-    }
+    @Getter
+    final String description = "Support for `@RequestMapping` over a `FeignClient` interface was removed in Spring Cloud OpenFeign 2.2.10.RELEASE.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

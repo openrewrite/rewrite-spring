@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.properties.PropertiesIsoVisitor;
@@ -23,15 +24,11 @@ import org.openrewrite.properties.tree.Properties;
 
 @EqualsAndHashCode(callSuper = false)
 public class PropertiesToKebabCaseProperties extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Normalize Spring `application*.properties` properties to kebab-case";
-    }
+    @Getter
+    final String displayName = "Normalize Spring `application*.properties` properties to kebab-case";
 
-    @Override
-    public String getDescription() {
-        return "Normalize Spring `application*.properties` properties to kebab-case.";
-    }
+    @Getter
+    final String description = "Normalize Spring `application*.properties` properties to kebab-case.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

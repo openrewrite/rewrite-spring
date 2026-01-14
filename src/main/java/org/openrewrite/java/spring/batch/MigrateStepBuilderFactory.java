@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -35,15 +36,11 @@ public class MigrateStepBuilderFactory extends Recipe {
 
     private static final String STEP_BUILDER_FACTORY_GET = "org.springframework.batch.core.configuration.annotation.StepBuilderFactory get(java.lang.String)";
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `StepBuilderFactory` to `StepBuilder`";
-    }
+    @Getter
+    final String displayName = "Migrate `StepBuilderFactory` to `StepBuilder`";
 
-    @Override
-    public String getDescription() {
-        return "`StepBuilderFactory` was deprecated in spring-batch 5.x. It is replaced by `StepBuilder`.";
-    }
+    @Getter
+    final String description = "`StepBuilderFactory` was deprecated in spring-batch 5.x. It is replaced by `StepBuilder`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

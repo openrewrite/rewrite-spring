@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.ScanningRecipe;
@@ -33,20 +34,16 @@ public class MaintainTrailingSlashURLMappings extends ScanningRecipe<AtomicBoole
     private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
     private static final String WEB_FLUX_CONFIGURER = "org.springframework.web.reactive.config.WebFluxConfigurer";
 
-    @Override
-    public String getDisplayName() {
-        return "Maintain trailing slash URL mappings";
-    }
+    @Getter
+    final String displayName = "Maintain trailing slash URL mappings";
 
-    @Override
-    public String getDescription() {
-        return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing " +
-               "slash matching configuration option has been deprecated and its default value set to false. " +
-               "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both " +
-               "`GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
-               "anymore by default and will result in an HTTP 404 error. This recipe is to maintain trailing slash in " +
-               "all HTTP url mappings.";
-    }
+    @Getter
+    final String description = "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing " +
+            "slash matching configuration option has been deprecated and its default value set to false. " +
+            "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both " +
+            "`GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
+            "anymore by default and will result in an HTTP 404 error. This recipe is to maintain trailing slash in " +
+            "all HTTP url mappings.";
 
     @Override
     public AtomicBoolean getInitialValue(ExecutionContext ctx) {

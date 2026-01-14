@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -30,16 +31,12 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
 
     private static final String DEPRECATED_INTERFACE_FQN = "org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer";
 
-    @Override
-    public String getDisplayName() {
-        return "Adjust configuration classes to use the `WebServerFactoryCustomizer` interface";
-    }
+    @Getter
+    final String displayName = "Adjust configuration classes to use the `WebServerFactoryCustomizer` interface";
 
-    @Override
-    public String getDescription() {
-        return "Find any classes implementing `EmbeddedServletContainerCustomizer` and change the interface to " +
-                "`WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>`.";
-    }
+    @Getter
+    final String description = "Find any classes implementing `EmbeddedServletContainerCustomizer` and change the interface to " +
+            "`WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

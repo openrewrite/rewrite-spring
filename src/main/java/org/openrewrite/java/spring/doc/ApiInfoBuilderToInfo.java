@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.doc;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
@@ -32,15 +33,11 @@ public class ApiInfoBuilderToInfo extends Recipe {
     private static final MethodMatcher LICENSE_MATCHER = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder license(String)");
     private static final MethodMatcher LICENSEURL_MATCHER = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder licenseUrl(String)");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `ApiInfoBuilder` to `Info`";
-    }
+    @Getter
+    final String displayName = "Migrate `ApiInfoBuilder` to `Info`";
 
-    @Override
-    public String getDescription() {
-        return "Migrate SpringFox's `ApiInfoBuilder` to Swagger's `Info`.";
-    }
+    @Getter
+    final String description = "Migrate SpringFox's `ApiInfoBuilder` to Swagger's `Info`.";
 
 
     @Override

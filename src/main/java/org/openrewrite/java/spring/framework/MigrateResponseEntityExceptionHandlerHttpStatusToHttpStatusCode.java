@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -36,15 +37,11 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
     private static final MethodMatcher HANDLER_METHOD = new MethodMatcher(
             "org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler *(..)", true);
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `ResponseEntityExceptionHandler` from HttpStatus to HttpStatusCode";
-    }
+    @Getter
+    final String displayName = "Migrate `ResponseEntityExceptionHandler` from HttpStatus to HttpStatusCode";
 
-    @Override
-    public String getDescription() {
-        return "With Spring 6 `HttpStatus` was replaced by `HttpStatusCode` in most method signatures in the `ResponseEntityExceptionHandler`.";
-    }
+    @Getter
+    final String description = "With Spring 6 `HttpStatus` was replaced by `HttpStatusCode` in most method signatures in the `ResponseEntityExceptionHandler`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

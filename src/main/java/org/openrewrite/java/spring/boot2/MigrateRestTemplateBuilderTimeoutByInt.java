@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -28,15 +29,11 @@ import org.openrewrite.java.tree.J;
 
 public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Use `RestTemplateBuilder#setConnectTimeout(Duration)` and `RestTemplateBuilder#setReadTimeout(Duration)`";
-    }
+    @Getter
+    final String displayName = "Use `RestTemplateBuilder#setConnectTimeout(Duration)` and `RestTemplateBuilder#setReadTimeout(Duration)`";
 
-    @Override
-    public String getDescription() {
-        return "`RestTemplateBuilder#setConnectTimeout(int)` and `RestTemplateBuilder#setReadTimeout(int)` were deprecated in Spring Boot 2.1.";
-    }
+    @Getter
+    final String description = "`RestTemplateBuilder#setConnectTimeout(int)` and `RestTemplateBuilder#setReadTimeout(int)` were deprecated in Spring Boot 2.1.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

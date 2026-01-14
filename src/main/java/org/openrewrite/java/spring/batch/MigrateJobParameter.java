@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
@@ -37,15 +38,11 @@ public class MigrateJobParameter extends Recipe {
 
     private static final String JOBPARAMETER = "org.springframework.batch.core.JobParameter";
 
-    @Override
-    public String getDisplayName() {
-        return "Add class argument to `JobParameters`";
-    }
+    @Getter
+    final String displayName = "Add class argument to `JobParameters`";
 
-    @Override
-    public String getDescription() {
-        return "Migration Job Parameter, parameterized type is essential in Spring Batch 5.";
-    }
+    @Getter
+    final String description = "Migration Job Parameter, parameterized type is essential in Spring Batch 5.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

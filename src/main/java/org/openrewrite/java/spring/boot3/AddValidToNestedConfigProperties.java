@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -36,15 +37,11 @@ public class AddValidToNestedConfigProperties extends Recipe {
     private static final String VALIDATED = "org.springframework.validation.annotation.Validated";
     private static final String JAKARTA_VALIDATION_VALID = "jakarta.validation.Valid";
 
-    @Override
-    public String getDisplayName() {
-        return "Add `@Valid` to nested properties in `@ConfigurationProperties`";
-    }
+    @Getter
+    final String displayName = "Add `@Valid` to nested properties in `@ConfigurationProperties`";
 
-    @Override
-    public String getDescription() {
-        return "Adds `@Valid` annotation to fields in `@ConfigurationProperties` classes that contain nested properties with validation constraints.";
-    }
+    @Getter
+    final String description = "Adds `@Valid` annotation to fields in `@ConfigurationProperties` classes that contain nested properties with validation constraints.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

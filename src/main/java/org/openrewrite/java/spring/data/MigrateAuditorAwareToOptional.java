@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
@@ -29,16 +30,12 @@ public class MigrateAuditorAwareToOptional extends Recipe {
     private static final MethodMatcher isCurrentAuditor = new MethodMatcher("org.springframework.data.domain.AuditorAware getCurrentAuditor()", true);
     private static final TypeMatcher isOptional = new TypeMatcher("java.util.Optional");
 
-    @Override
-    public String getDisplayName() {
-        return "Make AuditorAware.getCurrentAuditor return `Optional`";
-    }
+    @Getter
+    final String displayName = "Make AuditorAware.getCurrentAuditor return `Optional`";
 
-    @Override
-    public String getDescription() {
-        return "As of Spring boot 2.0, the `AuditorAware.getCurrentAuditor` method should return an `Optional`. " +
-               "This recipe will update the implementations of this method to return an `Optional` using the `ofNullable`.";
-    }
+    @Getter
+    final String description = "As of Spring boot 2.0, the `AuditorAware.getCurrentAuditor` method should return an `Optional`. " +
+            "This recipe will update the implementations of this method to return an `Optional` using the `ofNullable`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -25,15 +26,11 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.MethodCall;
 
 public class MigrateResponseStatusExceptionGetRawStatusCodeMethod extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Migrate `ResponseStatusException#getRawStatusCode()` to `getStatusCode().value()`";
-    }
+    @Getter
+    final String displayName = "Migrate `ResponseStatusException#getRawStatusCode()` to `getStatusCode().value()`";
 
-    @Override
-    public String getDescription() {
-        return "Migrate Spring Framework 5.3's `ResponseStatusException` method `getRawStatusCode()` to Spring Framework 6's `getStatusCode().value()`.";
-    }
+    @Getter
+    final String description = "Migrate Spring Framework 5.3's `ResponseStatusException` method `getRawStatusCode()` to Spring Framework 6's `getStatusCode().value()`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

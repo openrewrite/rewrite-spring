@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.jspecify.annotations.NonNull;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
@@ -25,16 +26,12 @@ import org.openrewrite.properties.tree.Properties;
 public class SamlRelyingPartyPropertyApplicationPropertiesMove extends Recipe {
     private static final String REGEX_PATTERN = "(spring\\.security\\.saml2\\.relyingparty\\.registration\\..*)(\\.identityprovider)(.*)";
 
-    @Override
-    public String getDisplayName() {
-        return "Move SAML relying party identity provider property to asserting party";
-    }
+    @Getter
+    final String displayName = "Move SAML relying party identity provider property to asserting party";
 
-    @Override
-    public String getDescription() {
-        return "Renames spring.security.saml2.relyingparty.registration.(any).identityprovider to " +
-                "spring.security.saml2.relyingparty.registration.(any).assertingparty.";
-    }
+    @Getter
+    final String description = "Renames spring.security.saml2.relyingparty.registration.(any).identityprovider to " +
+            "spring.security.saml2.relyingparty.registration.(any).assertingparty.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

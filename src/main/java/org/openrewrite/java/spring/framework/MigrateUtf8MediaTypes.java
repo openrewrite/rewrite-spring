@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -29,15 +30,11 @@ public class MigrateUtf8MediaTypes extends Recipe {
     private final JavaType.FullyQualified mediaTypeFqn =
             JavaType.ShallowClass.build("org.springframework.http.MediaType");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate deprecated Spring Web UTF8 `MediaType` enums";
-    }
+    @Getter
+    final String displayName = "Migrate deprecated Spring Web UTF8 `MediaType` enums";
 
-    @Override
-    public String getDescription() {
-        return "Spring Web `MediaType#APPLICATION_JSON_UTF8` and `MediaType#APPLICATION_PROBLEM_JSON_UTF8` were deprecated in 5.2.";
-    }
+    @Getter
+    final String description = "Spring Web `MediaType#APPLICATION_JSON_UTF8` and `MediaType#APPLICATION_PROBLEM_JSON_UTF8` were deprecated in 5.2.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

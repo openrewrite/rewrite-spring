@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -32,15 +33,11 @@ import static java.util.Collections.singletonList;
 
 public class OutputCaptureExtension extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `@OutputCaptureRule` to `@ExtendWith(OutputCaptureExtension.class)`";
-    }
+    @Getter
+    final String displayName = "Migrate `@OutputCaptureRule` to `@ExtendWith(OutputCaptureExtension.class)`";
 
-    @Override
-    public String getDescription() {
-        return "Use the JUnit Jupiter extension instead of JUnit 4 rule.";
-    }
+    @Getter
+    final String description = "Use the JUnit Jupiter extension instead of JUnit 4 rule.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

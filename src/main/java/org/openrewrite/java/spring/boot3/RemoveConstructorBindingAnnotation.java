@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -44,15 +45,11 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
     private static final String ANNOTATION_CONSTRUCTOR_BINDING = "org.springframework.boot.context.properties.ConstructorBinding";
     private static final String ANNOTATION_CONFIG_PROPERTIES = "org.springframework.boot.context.properties.ConfigurationProperties";
 
-    @Override
-    public String getDisplayName() {
-        return "Remove Unnecessary `@ConstructorBinding`";
-    }
+    @Getter
+    final String displayName = "Remove Unnecessary `@ConstructorBinding`";
 
-    @Override
-    public String getDescription() {
-        return "As of Boot 3.0 `@ConstructorBinding` is no longer needed at the type level on `@ConfigurationProperties` classes and should be removed.";
-    }
+    @Getter
+    final String description = "As of Boot 3.0 `@ConstructorBinding` is no longer needed at the type level on `@ConfigurationProperties` classes and should be removed.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

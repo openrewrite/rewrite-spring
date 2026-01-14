@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -28,15 +29,11 @@ import org.openrewrite.java.tree.J;
 
 public class MigrateMultipartConfigFactory extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Use `MultipartConfigFactory` with `DataSize` arguments";
-    }
+    @Getter
+    final String displayName = "Use `MultipartConfigFactory` with `DataSize` arguments";
 
-    @Override
-    public String getDescription() {
-        return "Methods to set `DataSize` with primitive arguments were deprecated in 2.1 and removed in 2.2.";
-    }
+    @Getter
+    final String description = "Methods to set `DataSize` with primitive arguments were deprecated in 2.1 and removed in 2.2.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

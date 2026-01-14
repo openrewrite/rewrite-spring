@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -35,15 +36,11 @@ import static java.util.stream.Collectors.joining;
 
 public class MigrateItemWriterWrite extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `ItemWriter`";
-    }
+    @Getter
+    final String displayName = "Migrate `ItemWriter`";
 
-    @Override
-    public String getDescription() {
-        return "In `ItemWriter` the signature of the `write()` method has changed in spring-batch 5.x.";
-    }
+    @Getter
+    final String description = "In `ItemWriter` the signature of the `write()` method has changed in spring-batch 5.x.";
 
     private static final MethodMatcher ITEM_WRITER_MATCHER = new MethodMatcher("org.springframework.batch.item.ItemWriter write(java.util.List)", true);
 

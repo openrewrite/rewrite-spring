@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.http;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -31,15 +32,11 @@ import java.util.Optional;
 
 public class SimplifyMediaTypeParseCalls extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Simplify unnecessary `MediaType.parseMediaType()` and `MediaType.valueOf()` calls";
-    }
+    @Getter
+    final String displayName = "Simplify unnecessary `MediaType.parseMediaType()` and `MediaType.valueOf()` calls";
 
-    @Override
-    public String getDescription() {
-        return "Replaces `MediaType.parseMediaType(\"application/json\")` and `MediaType.valueOf(\"application/json\")` with `MediaType.APPLICATION_JSON`.";
-    }
+    @Getter
+    final String description = "Replaces `MediaType.parseMediaType(\"application/json\")` and `MediaType.valueOf(\"application/json\")` with `MediaType.APPLICATION_JSON`.";
 
     static final String MEDIA_TYPE = "org.springframework.http.MediaType";
     static final String PARSE_MEDIA_TYPE = MEDIA_TYPE + " parseMediaType(String)";

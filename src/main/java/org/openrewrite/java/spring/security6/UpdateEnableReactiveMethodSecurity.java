@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -35,16 +36,12 @@ public class UpdateEnableReactiveMethodSecurity extends Recipe {
     private static final AnnotationMatcher ENABLE_REACTIVE_METHOD_SECURITY_MATCHER =
             new AnnotationMatcher("@org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity");
 
-    @Override
-    public String getDisplayName() {
-        return "Remove the `useAuthorizationManager=true` attribute from `@EnableReactiveMethodSecurity`";
-    }
+    @Getter
+    final String displayName = "Remove the `useAuthorizationManager=true` attribute from `@EnableReactiveMethodSecurity`";
 
-    @Override
-    public String getDescription() {
-        return "In Spring security 6.0, `@EnableReactiveMethodSecurity` defaults `useAuthorizationManager` to true. " +
-                "So, to complete migration, `@EnableReactiveMethodSecurity` remove the `useAuthorizationManager` attribute.";
-    }
+    @Getter
+    final String description = "In Spring security 6.0, `@EnableReactiveMethodSecurity` defaults `useAuthorizationManager` to true. " +
+            "So, to complete migration, `@EnableReactiveMethodSecurity` remove the `useAuthorizationManager` attribute.";
 
     @Override
     public @Nullable Duration getEstimatedEffortPerOccurrence() {

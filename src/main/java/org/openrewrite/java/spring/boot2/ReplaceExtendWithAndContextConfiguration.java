@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -37,16 +38,12 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
     private static final String FQN_CONTEXT_CONFIGURATION = "org.springframework.test.context.ContextConfiguration";
     private static final String FQN_SPRING_JUNIT_CONFIG = "org.springframework.test.context.junit.jupiter.SpringJUnitConfig";
 
-    @Override
-    public String getDisplayName() {
-        return "Replace `@ExtendWith` and `@ContextConfiguration` with `@SpringJunitConfig`";
-    }
+    @Getter
+    final String displayName = "Replace `@ExtendWith` and `@ContextConfiguration` with `@SpringJunitConfig`";
 
-    @Override
-    public String getDescription() {
-        return "Replaces `@ExtendWith(SpringRunner.class)` and `@ContextConfiguration` with `@SpringJunitConfig`, " +
-                "preserving attributes on `@ContextConfiguration`, unless `@ContextConfiguration(loader = ...)` is used.";
-    }
+    @Getter
+    final String description = "Replaces `@ExtendWith(SpringRunner.class)` and `@ContextConfiguration` with `@SpringJunitConfig`, " +
+            "preserving attributes on `@ContextConfiguration`, unless `@ContextConfiguration(loader = ...)` is used.";
 
     @Override
     public Duration getEstimatedEffortPerOccurrence() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -28,15 +29,11 @@ public class PreciseBeanType extends Recipe {
 
     private static final String MSG_KEY = "returnType";
 
-    @Override
-    public String getDisplayName() {
-        return "Bean methods should return concrete types";
-    }
+    @Getter
+    final String displayName = "Bean methods should return concrete types";
 
-    @Override
-    public String getDescription() {
-        return "Replace Bean method return types with concrete types being returned. This is required for Spring 6 AOT.";
-    }
+    @Getter
+    final String description = "Replace Bean method return types with concrete types being returned. This is required for Spring 6 AOT.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

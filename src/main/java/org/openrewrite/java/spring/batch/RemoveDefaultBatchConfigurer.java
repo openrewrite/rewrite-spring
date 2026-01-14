@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -38,15 +39,11 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
     private static final String BATCH_CONFIGURER = "org.springframework.batch.core.configuration.annotation.BatchConfigurer";
     private static final String DEFAULT_BATCH_CONFIGURER = "org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer";
 
-    @Override
-    public String getDisplayName() {
-        return "Remove `DefaultBatchConfigurer`";
-    }
+    @Getter
+    final String displayName = "Remove `DefaultBatchConfigurer`";
 
-    @Override
-    public String getDescription() {
-        return "Remove `extends DefaultBatchConfigurer` and `@Override` from associated methods.";
-    }
+    @Getter
+    final String description = "Remove `extends DefaultBatchConfigurer` and `@Override` from associated methods.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

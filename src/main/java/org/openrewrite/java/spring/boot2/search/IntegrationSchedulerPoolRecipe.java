@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2.search;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.Value;
 import lombok.With;
 import org.jspecify.annotations.Nullable;
@@ -64,18 +65,14 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
     private static final String GENERAL_MIGRATION_MESSAGE = " TODO: Scheduler thread pool size for Spring Integration either in properties or config server\n";
     private static final String SPRING_BOOT_APPLICATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
 
-    @Override
-    public String getDisplayName() {
-        return "Integration scheduler pool size";
-    }
+    @Getter
+    final String displayName = "Integration scheduler pool size";
 
-    @Override
-    public String getDescription() {
-        return "Spring Integration now reuses an available `TaskScheduler` rather than configuring its own. In a " +
-                "typical application setup relying on the auto-configuration, this means that Spring Integration " +
-                "uses the auto-configured task scheduler that has a pool size of 1. To restore Spring Integration’s " +
-                "default of 10 threads, use the `spring.task.scheduling.pool.size` property.";
-    }
+    @Getter
+    final String description = "Spring Integration now reuses an available `TaskScheduler` rather than configuring its own. In a " +
+            "typical application setup relying on the auto-configuration, this means that Spring Integration " +
+            "uses the auto-configured task scheduler that has a pool size of 1. To restore Spring Integration’s " +
+            "default of 10 threads, use the `spring.task.scheduling.pool.size` property.";
 
     private boolean isApplicableMavenProject(Xml.Document maven) {
         DependencyMatcher boot25Matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue();

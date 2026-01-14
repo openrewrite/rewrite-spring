@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -28,15 +29,11 @@ import static java.util.Collections.emptyList;
 
 public class MigrateLoggingSystemPropertyConstants extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate to recommended constants in `LogbackLoggingSystemProperties` from deprecated values in `LoggingSystemProperties`";
-    }
+    @Getter
+    final String displayName = "Migrate to recommended constants in `LogbackLoggingSystemProperties` from deprecated values in `LoggingSystemProperties`";
 
-    @Override
-    public String getDescription() {
-        return "Replaces field and static access of deprecated fields in `LoggingSystemProperties` with the recommendations from `LogbackLoggingSystemProperties`. Deprecated in 2.4.x and removed in 2.6.0.";
-    }
+    @Getter
+    final String description = "Replaces field and static access of deprecated fields in `LoggingSystemProperties` with the recommendations from `LogbackLoggingSystemProperties`. Deprecated in 2.4.x and removed in 2.6.0.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

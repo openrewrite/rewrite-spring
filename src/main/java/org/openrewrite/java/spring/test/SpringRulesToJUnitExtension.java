@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.test;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -39,15 +40,11 @@ public class SpringRulesToJUnitExtension extends Recipe {
     private static final AnnotationMatcher ANNOTATION_MATCHER = new AnnotationMatcher(String.format("@%s(%s.class)", EXTEND_WITH, SPRING_EXTENSION), true);
 
 
-    @Override
-    public String getDisplayName() {
-        return "Replace `SpringClassRule` and `SpringMethodRule` with JUnit 5 `SpringExtension`";
-    }
+    @Getter
+    final String displayName = "Replace `SpringClassRule` and `SpringMethodRule` with JUnit 5 `SpringExtension`";
 
-    @Override
-    public String getDescription() {
-        return "Replace JUnit 4's `SpringClassRule` and `SpringMethodRule` with JUnit 5's `SpringExtension` or rely on an existing `@SpringBootTest`.";
-    }
+    @Getter
+    final String description = "Replace JUnit 4's `SpringClassRule` and `SpringMethodRule` with JUnit 5's `SpringExtension` or rely on an existing `@SpringBootTest`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

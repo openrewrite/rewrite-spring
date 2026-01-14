@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -38,15 +39,11 @@ public class MigrateResponseStatusExceptionGetStatusCodeMethod extends Recipe {
     private static final String FULL_HTTP_STATUS_CLASS = "org.springframework.http.HttpStatus";
     private static final String FULL_HTTP_STATUS_CODE_CLASS = "org.springframework.http.HttpStatusCode";
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `ResponseStatusException#getStatus()` to `getStatusCode()`";
-    }
+    @Getter
+    final String displayName = "Migrate `ResponseStatusException#getStatus()` to `getStatusCode()`";
 
-    @Override
-    public String getDescription() {
-        return "Migrate Spring Framework 5.3's `ResponseStatusException` method `getStatus()` to Spring Framework 6's `getStatusCode()`.";
-    }
+    @Getter
+    final String description = "Migrate Spring Framework 5.3's `ResponseStatusException` method `getStatus()` to Spring Framework 6's `getStatusCode()`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

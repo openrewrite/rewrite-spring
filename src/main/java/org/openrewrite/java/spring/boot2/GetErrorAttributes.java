@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -31,15 +32,11 @@ import org.openrewrite.java.tree.J;
 public class GetErrorAttributes extends Recipe {
     private static final MethodMatcher MATCHER = new MethodMatcher("org.springframework.boot.web.servlet.error.ErrorAttributes getErrorAttributes(org.springframework.web.context.request.WebRequest, boolean)");
 
-    @Override
-    public String getDisplayName() {
-        return "Use `ErrorAttributes#getErrorAttributes(WebRequest, ErrorAttributeOptions)`";
-    }
+    @Getter
+    final String displayName = "Use `ErrorAttributes#getErrorAttributes(WebRequest, ErrorAttributeOptions)`";
 
-    @Override
-    public String getDescription() {
-        return "`ErrorAttributes#getErrorAttributes(WebRequest, boolean)` was deprecated in Spring Boot 2.3.";
-    }
+    @Getter
+    final String description = "`ErrorAttributes#getErrorAttributes(WebRequest, boolean)` was deprecated in Spring Boot 2.3.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

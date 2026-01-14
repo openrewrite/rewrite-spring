@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -26,15 +27,11 @@ import java.util.Map;
 import static java.util.Collections.emptyList;
 
 public class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Use `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`";
-    }
+    @Getter
+    final String displayName = "Use `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`";
 
-    @Override
-    public String getDescription() {
-        return "Replaces field and static access of `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` with `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`. Deprecated in 2.2.x.";
-    }
+    @Getter
+    final String description = "Replaces field and static access of `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` with `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`. Deprecated in 2.2.x.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

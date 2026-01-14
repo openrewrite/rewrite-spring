@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -28,15 +29,11 @@ import org.openrewrite.java.tree.TypeUtils;
 
 public class RemoveEnableBatchProcessing extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Enable Spring Batch Annotation";
-    }
+    @Getter
+    final String displayName = "Enable Spring Batch Annotation";
 
-    @Override
-    public String getDescription() {
-        return "Add or remove the `@EnableBatchProcessing` annotation from a Spring Boot application.";
-    }
+    @Getter
+    final String description = "Add or remove the `@EnableBatchProcessing` annotation from a Spring Boot application.";
 
     private static final String ENABLE_BATCH_PROCESSING = "org.springframework.batch.core.configuration.annotation.EnableBatchProcessing";
 

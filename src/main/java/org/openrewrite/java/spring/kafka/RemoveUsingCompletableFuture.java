@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.kafka;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -24,15 +25,11 @@ import static java.util.Collections.singletonList;
 
 public class RemoveUsingCompletableFuture extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Remove `KafkaOperations.usingCompletableFuture()`";
-    }
+    @Getter
+    final String displayName = "Remove `KafkaOperations.usingCompletableFuture()`";
 
-    @Override
-    public String getDescription() {
-        return "Remove the `KafkaOperations.usingCompletableFuture()` bridge during Spring Kafka 2.9 to 3.0 migration.";
-    }
+    @Getter
+    final String description = "Remove the `KafkaOperations.usingCompletableFuture()` bridge during Spring Kafka 2.9 to 3.0 migration.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

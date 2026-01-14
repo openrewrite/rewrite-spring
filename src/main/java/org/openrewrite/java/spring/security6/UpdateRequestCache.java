@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -41,20 +42,16 @@ public class UpdateRequestCache extends Recipe {
             "org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer requestCache(org.springframework.security.web.savedrequest.RequestCache)"
     );
 
-    @Override
-    public String getDisplayName() {
-        return "Keep the default RequestCache querying behavior in Spring Security 5";
-    }
+    @Getter
+    final String displayName = "Keep the default RequestCache querying behavior in Spring Security 5";
 
-    @Override
-    public String getDescription() {
-        return "By default, Spring Security 5 queries the saved request on every request, which means that in a " +
-                "typical setup, the HttpSession is queried on every request to use the RequestCache. In Spring " +
-                "Security 6, the default behavior has changed, and RequestCache will only be queried for a cached " +
-                "request if the HTTP parameter \"continue\" is defined. To maintain the same default behavior as " +
-                "Spring Security 5, either explicitly add the HTTP parameter \"continue\" to every request or use " +
-                "NullRequestCache to override the default behavior.";
-    }
+    @Getter
+    final String description = "By default, Spring Security 5 queries the saved request on every request, which means that in a " +
+            "typical setup, the HttpSession is queried on every request to use the RequestCache. In Spring " +
+            "Security 6, the default behavior has changed, and RequestCache will only be queried for a cached " +
+            "request if the HTTP parameter \"continue\" is defined. To maintain the same default behavior as " +
+            "Spring Security 5, either explicitly add the HTTP parameter \"continue\" to every request or use " +
+            "NullRequestCache to override the default behavior.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

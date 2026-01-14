@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -47,21 +48,17 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
             "org.springframework.orm.jpa.AbstractEntityManagerFactoryBean"
     );
 
-    @Override
-    public String getDisplayName() {
-        return "Unconditionally adds `@DependsOnDatabaseInitialization` to Spring Beans and Components depending on `javax.sql.DataSource`";
-    }
+    @Getter
+    final String displayName = "Unconditionally adds `@DependsOnDatabaseInitialization` to Spring Beans and Components depending on `javax.sql.DataSource`";
 
-    @Override
-    public String getDescription() {
-        return "Beans of certain well-known types, such as `JdbcTemplate`, will be ordered so that they are initialized " +
-                "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
-                "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
-                "initialized after the database has been initialized. See the " +
-                "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
-                "for more. This recipe will not check if the `@DependsOnDatabaseInitialization` annotation is on the classpath. " +
-                "This recipe is best combined with a precondition, as seen in `DatabaseComponentAndBeanInitializationOrdering`.";
-    }
+    @Getter
+    final String description = "Beans of certain well-known types, such as `JdbcTemplate`, will be ordered so that they are initialized " +
+            "after the database has been initialized. If you have a bean that works with the `DataSource` directly, " +
+            "annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is " +
+            "initialized after the database has been initialized. See the " +
+            "[release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) " +
+            "for more. This recipe will not check if the `@DependsOnDatabaseInitialization` annotation is on the classpath. " +
+            "This recipe is best combined with a precondition, as seen in `DatabaseComponentAndBeanInitializationOrdering`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

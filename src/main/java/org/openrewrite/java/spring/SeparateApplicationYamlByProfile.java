@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import lombok.Getter;
 import lombok.Value;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -31,15 +32,11 @@ import static java.util.stream.Collectors.toList;
 
 public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApplicationYamlByProfile.ApplicationProfiles> {
 
-    @Override
-    public String getDisplayName() {
-        return "Separate application YAML by profile";
-    }
+    @Getter
+    final String displayName = "Separate application YAML by profile";
 
-    @Override
-    public String getDescription() {
-        return "The Spring team's recommendation is to separate profile properties into their own YAML files now.";
-    }
+    @Getter
+    final String description = "The Spring team's recommendation is to separate profile properties into their own YAML files now.";
 
     @Override
     public ApplicationProfiles getInitialValue(ExecutionContext ctx) {

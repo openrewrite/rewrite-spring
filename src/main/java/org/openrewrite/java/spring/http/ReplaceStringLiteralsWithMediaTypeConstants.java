@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.http;
 
+import lombok.Getter;
 import org.openrewrite.Recipe;
 import org.openrewrite.java.ReplaceStringLiteralWithConstant;
 
@@ -59,15 +60,11 @@ public class ReplaceStringLiteralsWithMediaTypeConstants extends Recipe {
             .map(mediaType -> new ReplaceStringLiteralWithConstant(null, "org.springframework.http.MediaType." + mediaType))
             .collect(toList());
 
-    @Override
-    public String getDisplayName() {
-        return "Replace String literals with `MediaType` constants";
-    }
+    @Getter
+    final String displayName = "Replace String literals with `MediaType` constants";
 
-    @Override
-    public String getDescription() {
-        return "Replace String literals with `org.springframework.http.MediaType` constants.";
-    }
+    @Getter
+    final String description = "Replace String literals with `org.springframework.http.MediaType` constants.";
 
     @Override
     public List<Recipe> getRecipeList() {

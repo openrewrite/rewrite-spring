@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -32,15 +33,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Use varargs equivalents for deprecated JdbcTemplate signatures";
-    }
+    @Getter
+    final String displayName = "Use varargs equivalents for deprecated JdbcTemplate signatures";
 
-    @Override
-    public String getDescription() {
-        return "`JdbcTemplate` signatures with `Object[]` arguments are deprecated, in favor of their existing varargs equivalents.";
-    }
+    @Getter
+    final String description = "`JdbcTemplate` signatures with `Object[]` arguments are deprecated, in favor of their existing varargs equivalents.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

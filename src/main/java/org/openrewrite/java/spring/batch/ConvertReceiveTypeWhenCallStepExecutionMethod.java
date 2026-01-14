@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -32,15 +33,11 @@ import java.util.stream.Stream;
 
 public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Convert receive type in some invocation of StepExecution.xx()";
-    }
+    @Getter
+    final String displayName = "Convert receive type in some invocation of StepExecution.xx()";
 
-    @Override
-    public String getDescription() {
-        return "Convert receive type in some invocation of StepExecution.xx().";
-    }
+    @Getter
+    final String description = "Convert receive type in some invocation of StepExecution.xx().";
 
 
     private static final MethodMatcher CommitCount = new MethodMatcher("org.springframework.batch.core.StepExecution getCommitCount()");

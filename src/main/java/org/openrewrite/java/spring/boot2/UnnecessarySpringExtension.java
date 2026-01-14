@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -43,15 +44,11 @@ public class UnnecessarySpringExtension extends Recipe {
     private static final String EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN = String.format("@%s(%s.class)", EXTEND_WITH, SPRING_EXTENSION);
     private static final AnnotationMatcher EXTENDS_WITH_SPRING_EXACT_MATCHER = new AnnotationMatcher(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN, false);
 
-    @Override
-    public String getDisplayName() {
-        return "Remove `@SpringExtension`";
-    }
+    @Getter
+    final String displayName = "Remove `@SpringExtension`";
 
-    @Override
-    public String getDescription() {
-        return "`@SpringBootTest` and all test slice annotations already applies `@SpringExtension` as of Spring Boot 2.1.0.";
-    }
+    @Getter
+    final String description = "`@SpringBootTest` and all test slice annotations already applies `@SpringExtension` as of Spring Boot 2.1.0.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

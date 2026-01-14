@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -27,15 +28,11 @@ import org.openrewrite.xml.search.FindTags;
 import org.openrewrite.xml.tree.Xml;
 
 public class SpringBootMavenPluginMigrateAgentToAgents extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Use `spring-boot.run.agents` configuration key in `spring-boot-maven-plugin`";
-    }
+    @Getter
+    final String displayName = "Use `spring-boot.run.agents` configuration key in `spring-boot-maven-plugin`";
 
-    @Override
-    public String getDescription() {
-        return "Migrate the `spring-boot.run.agent` Maven plugin configuration key to `spring-boot.run.agents`. Deprecated in 2.2.x.";
-    }
+    @Getter
+    final String description = "Migrate the `spring-boot.run.agent` Maven plugin configuration key to `spring-boot.run.agents`. Deprecated in 2.2.x.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

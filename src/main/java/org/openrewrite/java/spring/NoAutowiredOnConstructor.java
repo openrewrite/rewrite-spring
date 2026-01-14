@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -32,16 +33,12 @@ public class NoAutowiredOnConstructor extends Recipe {
     private static final AnnotationMatcher AUTOWIRED_ANNOTATION_MATCHER =
             new AnnotationMatcher("@org.springframework.beans.factory.annotation.Autowired(true)");
 
-    @Override
-    public String getDisplayName() {
-        return "Remove the `@Autowired` annotation on inferred constructor";
-    }
+    @Getter
+    final String displayName = "Remove the `@Autowired` annotation on inferred constructor";
 
-    @Override
-    public String getDescription() {
-        return "Spring can infer an autowired constructor when there is a single constructor on the bean. " +
-                "This recipe removes unneeded `@Autowired` annotations on constructors.";
-    }
+    @Getter
+    final String description = "Spring can infer an autowired constructor when there is a single constructor on the bean. " +
+            "This recipe removes unneeded `@Autowired` annotations on constructors.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

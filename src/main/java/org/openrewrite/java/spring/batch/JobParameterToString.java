@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -30,15 +31,11 @@ public class JobParameterToString extends Recipe {
 
     private static final MethodMatcher JOB_PARAMETER_TO_STRING_MATCHER = new MethodMatcher("org.springframework.batch.core.JobParameter toString()");
 
-    @Override
-    public String getDisplayName() {
-        return "Migration invocation of JobParameter.toString to JobParameter.getValue.toString";
-    }
+    @Getter
+    final String displayName = "Migration invocation of JobParameter.toString to JobParameter.getValue.toString";
 
-    @Override
-    public String getDescription() {
-        return "JobParameter.toString() logic is quite different in spring batch 5, need take JobParameter.getValue.toString replace the JobParameter.toString.";
-    }
+    @Getter
+    final String description = "JobParameter.toString() logic is quite different in spring batch 5, need take JobParameter.getValue.toString replace the JobParameter.toString.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

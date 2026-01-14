@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -31,15 +32,11 @@ import static java.util.stream.Collectors.joining;
 
 public class MigrateJpaSort extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Use `JpaSort.of(..)`";
-    }
+    @Getter
+    final String displayName = "Use `JpaSort.of(..)`";
 
-    @Override
-    public String getDescription() {
-        return "Equivalent constructors in `JpaSort` were deprecated in Spring Data 2.3.";
-    }
+    @Getter
+    final String description = "Equivalent constructors in `JpaSort` were deprecated in Spring Data 2.3.";
 
     private TreeVisitor<?, ExecutionContext> precondition() {
         return new JavaIsoVisitor<ExecutionContext>() {
