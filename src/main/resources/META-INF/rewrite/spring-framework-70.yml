@@ -27,4 +27,5 @@ recipeList:
       newVersion: 7.0.x
   - org.openrewrite.java.testing.junit6.JUnit5to6Migration
   - org.openrewrite.java.jackson.UpgradeJackson_2_3
+  - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
   - org.openrewrite.java.jspecify.MigrateFromSpringFrameworkAnnotations
