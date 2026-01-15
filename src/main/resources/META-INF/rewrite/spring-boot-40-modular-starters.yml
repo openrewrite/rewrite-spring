@@ -222,6 +222,11 @@ recipeList:
       oldPackageName: org.springframework.boot.autoconfigure.flyway
       newPackageName: org.springframework.boot.flyway.autoconfigure
       recursive: true
+  # spring-boot-graphql
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.graphql
+      newPackageName: org.springframework.boot.graphql.autoconfigure
+      recursive: true
   # spring-boot-data-mongodb
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.mongo
