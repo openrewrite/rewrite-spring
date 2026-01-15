@@ -40,7 +40,6 @@ class UpgradeSpringKafka40Test implements RewriteTest {
     @DocumentExample
     @Test
     void migrateJackson2ToJackson3() {
-        //noinspection deprecation
         rewriteRun(
           //language=java
           java(
