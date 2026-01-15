@@ -124,7 +124,6 @@ recipeDependencies {
     testParserClasspath("org.springframework.batch:spring-batch-test:4.3.+")
 
     testParserClasspath("org.springframework.kafka:spring-kafka:2.8.+")
-    testParserClasspath("org.springframework.kafka:spring-kafka:4.0.+")
 
     testParserClasspath("org.springframework.boot:spring-boot-actuator:2.1.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.0.+")
@@ -172,8 +171,6 @@ recipeDependencies {
 
     testParserClasspath("org.springframework:spring-context:6.0.+")
     testParserClasspath("org.springframework:spring-context:6.2.+")
-    testParserClasspath("org.springframework:spring-context:7.0.+")
-    testParserClasspath("org.springframework:spring-core:7.+")
     testParserClasspath("org.springframework:spring-orm:5.3.+")
     testParserClasspath("org.springframework:spring-test:5.3.+")
     testParserClasspath("org.springframework:spring-tx:4.1.+")
