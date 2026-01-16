@@ -56,10 +56,8 @@ public class NoRequestMappingAnnotation extends Recipe {
     @Getter
     final String description = "Replace method declaration `@RequestMapping` annotations with `@GetMapping`, `@PostMapping`, etc. when possible.";
 
-    @Override
-    public Set<String> getTags() {
-        return singleton("RSPEC-S4488");
-    }
+    @Getter
+    final Set<String> tags = singleton("RSPEC-S4488");
 
     @Override
     public Duration getEstimatedEffortPerOccurrence() {
