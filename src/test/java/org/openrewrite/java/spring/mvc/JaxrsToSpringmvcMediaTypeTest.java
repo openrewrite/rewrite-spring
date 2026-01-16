@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 the original author or authors.
+ * <p>
+ * Licensed under the Moderne Source Available License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://docs.moderne.io/licensing/moderne-source-available-license
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.openrewrite.java.spring.mvc;
 
 import org.junit.jupiter.api.Test;
@@ -21,42 +36,42 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                    import javax.ws.rs.core.MediaType;
-                    import javax.ws.rs.Produces;
+              import javax.ws.rs.core.MediaType;
+              import javax.ws.rs.Produces;
 
-                    public class TestExample {
+              public class TestExample {
 
-                        @Produces(MediaType.APPLICATION_JSON)
-                        public void updateUser() {}
+                  @Produces(MediaType.APPLICATION_JSON)
+                  public void updateUser() {}
 
-                        public String getJsonType() {
-                            return MediaType.APPLICATION_JSON;
-                        }
+                  public String getJsonType() {
+                      return MediaType.APPLICATION_JSON;
+                  }
 
-                        public MediaType getFormType() {
-                            return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
-                        }
-                    }
-                    """,
+                  public MediaType getFormType() {
+                      return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
+                  }
+              }
+              """,
             """
-                    import org.springframework.http.MediaType;
+              import org.springframework.http.MediaType;
 
-                    import javax.ws.rs.Produces;
+              import javax.ws.rs.Produces;
 
-                    public class TestExample {
+              public class TestExample {
 
-                        @Produces(MediaType.APPLICATION_JSON_VALUE)
-                        public void updateUser() {}
+                  @Produces(MediaType.APPLICATION_JSON_VALUE)
+                  public void updateUser() {}
 
-                        public String getJsonType() {
-                            return MediaType.APPLICATION_JSON_VALUE;
-                        }
+                  public String getJsonType() {
+                      return MediaType.APPLICATION_JSON_VALUE;
+                  }
 
-                        public MediaType getFormType() {
-                            return MediaType.APPLICATION_FORM_URLENCODED;
-                        }
-                    }
-                    """
+                  public MediaType getFormType() {
+                      return MediaType.APPLICATION_FORM_URLENCODED;
+                  }
+              }
+              """
           )
         );
     }
@@ -66,41 +81,41 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
         rewriteRun(
           java(
             """
-                    import jakarta.ws.rs.core.MediaType;
-                    import jakarta.ws.rs.Produces;
+              import jakarta.ws.rs.core.MediaType;
+              import jakarta.ws.rs.Produces;
 
-                    public class TestExample {
+              public class TestExample {
 
-                        @Produces(MediaType.APPLICATION_JSON)
-                        public void updateUser() {}
+                  @Produces(MediaType.APPLICATION_JSON)
+                  public void updateUser() {}
 
-                        public String getJsonType() {
-                            return MediaType.APPLICATION_JSON;
-                        }
+                  public String getJsonType() {
+                      return MediaType.APPLICATION_JSON;
+                  }
 
-                        public MediaType getFormType() {
-                            return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
-                        }
-                    }
-                    """,
+                  public MediaType getFormType() {
+                      return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
+                  }
+              }
+              """,
             """
-                    import jakarta.ws.rs.Produces;
-                    import org.springframework.http.MediaType;
+              import jakarta.ws.rs.Produces;
+              import org.springframework.http.MediaType;
 
-                    public class TestExample {
+              public class TestExample {
 
-                        @Produces(MediaType.APPLICATION_JSON_VALUE)
-                        public void updateUser() {}
+                  @Produces(MediaType.APPLICATION_JSON_VALUE)
+                  public void updateUser() {}
 
-                        public String getJsonType() {
-                            return MediaType.APPLICATION_JSON_VALUE;
-                        }
+                  public String getJsonType() {
+                      return MediaType.APPLICATION_JSON_VALUE;
+                  }
 
-                        public MediaType getFormType() {
-                            return MediaType.APPLICATION_FORM_URLENCODED;
-                        }
-                    }
-                    """
+                  public MediaType getFormType() {
+                      return MediaType.APPLICATION_FORM_URLENCODED;
+                  }
+              }
+              """
           )
         );
     }

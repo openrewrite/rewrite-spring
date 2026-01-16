@@ -1,9 +1,25 @@
+/*
+ * Copyright 2026 the original author or authors.
+ * <p>
+ * Licensed under the Moderne Source Available License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://docs.moderne.io/licensing/moderne-source-available-license
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.openrewrite.java.spring.mvc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.jetbrains.annotations.NotNull;
-import org.openrewrite.*;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.*;
 import org.openrewrite.java.tree.*;
 
@@ -14,17 +30,17 @@ import java.util.*;
 public class JaxrsToSpringmvcAnnotations extends Recipe {
 
     @Override
-    public @NotNull String getDisplayName() {
+    public String getDisplayName() {
         return "Migrate jax-rs annotations to spring MVC annotations";
     }
 
     @Override
-    public @NotNull String getDescription() {
+    public String getDescription() {
         return "Replaces all jax-rs annotations with Spring MVC annotations.";
     }
 
     @Override
-    public @NotNull Set<String> getTags() {
+    public Set<String> getTags() {
         return Set.of("Java", "Spring");
     }
 
@@ -69,7 +85,7 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 List<String> annotationArgs = new ArrayList<>();
                 List<Expression> args = new ArrayList<>();
                 getArgumentsForRequestMappings(cd.getLeadingAnnotations(), annotationArgs, args);
-                if(annotationArgs.isEmpty()) {
+                if (annotationArgs.isEmpty()) {
                     return cd;
                 }
                 String annTemplate = "@RestController\n@RequestMapping(" + String.join(", ", annotationArgs) + ")";
@@ -110,7 +126,7 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 List<Expression> args = new ArrayList<>();
                 Expression consumes = getArgumentsForRequestMappings(md.getLeadingAnnotations(), annotationArgs, args);
                 String annTemplate;
-                if(annotationArgs.isEmpty()) {
+                if (annotationArgs.isEmpty()) {
                     annTemplate = "@" + springAnnotation;
                 } else {
                     annTemplate = "@" + springAnnotation + "(" + String.join(", ", annotationArgs) + ")";
@@ -148,16 +164,16 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 boolean isContextParam = false;
                 for (J.Annotation ann : vd.getLeadingAnnotations()) {
                     String annType = ann.getType() != null ? ann.getType().toString() : "";
-                    if(PARAM_ANNOTATION_MAPPING.containsKey(annType)) {
+                    if (PARAM_ANNOTATION_MAPPING.containsKey(annType)) {
                         springAnnotation = PARAM_ANNOTATION_MAPPING.get(annType);
                         value = getValueFromAnnotation(ann);
                         doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
                         maybeRemoveImport(annType);
-                    } else if(annType.equals("jakarta.ws.rs.DefaultValue") || annType.equals("javax.ws.rs.DefaultValue")) {
+                    } else if (annType.equals("jakarta.ws.rs.DefaultValue") || annType.equals("javax.ws.rs.DefaultValue")) {
                         defaultValue = getValueFromAnnotation(ann);
                         doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
                         maybeRemoveImport(annType);
-                    } else if(annType.equals("jakarta.ws.rs.core.Context") || annType.equals("javax.ws.rs.core.Context")) {
+                    } else if (annType.equals("jakarta.ws.rs.core.Context") || annType.equals("javax.ws.rs.core.Context")) {
                         isContextParam = true;
                         doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
                         maybeRemoveImport(annType);
@@ -166,28 +182,28 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
 
                 StringBuilder annBuilder = null;
                 List<Expression> args = new ArrayList<>();
-                if(springAnnotation != null) {
+                if (springAnnotation != null) {
                     args.add(value);
                     annBuilder = new StringBuilder("@" + springAnnotation + "(");
-                    if(springAnnotation.equals("PathVariable")) {
+                    if (springAnnotation.equals("PathVariable")) {
                         annBuilder.append("#{any(String)})");
                     } else {
-                        if(defaultValue == null) {
+                        if (defaultValue == null) {
                             annBuilder.append("value = #{any(String)}, required = false)");
                         } else {
                             annBuilder.append("value = #{any(String)}, defaultValue = #{any()})");
                             args.add(defaultValue);
                         }
                     }
-                } else if(!isContextParam && isPutOrPost) {
-                    if(needRequestPart) {
+                } else if (!isContextParam && isPutOrPost) {
+                    if (needRequestPart) {
                         springAnnotation = "RequestPart";
                     } else {
                         springAnnotation = "RequestBody";
                     }
                     annBuilder = new StringBuilder("@" + springAnnotation);
                 }
-                if(annBuilder != null) {
+                if (annBuilder != null) {
                     JavaCoordinates coordinates = vd.getCoordinates().addAnnotation((o1, o2) -> 1);
                     vd = JavaTemplate.builder(annBuilder.toString())
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web"))
@@ -207,22 +223,22 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
 
                 for (J.Annotation ann : annotations) {
                     String annType = ann.getType() != null ? ann.getType().toString() : "";
-                    if(annType.equals("jakarta.ws.rs.Path") || annType.equals("javax.ws.rs.Path")) {
+                    if (annType.equals("jakarta.ws.rs.Path") || annType.equals("javax.ws.rs.Path")) {
                         path = getValueFromAnnotation(ann);
                         doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
                         maybeRemoveImport(annType);
-                    } else if(annType.equals("jakarta.ws.rs.Consumes") || annType.equals("javax.ws.rs.Consumes")) {
+                    } else if (annType.equals("jakarta.ws.rs.Consumes") || annType.equals("javax.ws.rs.Consumes")) {
                         consumes = getValueFromAnnotation(ann);
                         doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
                         maybeRemoveImport(annType);
-                    } else if(annType.equals("jakarta.ws.rs.Produces") || annType.equals("javax.ws.rs.Produces")) {
+                    } else if (annType.equals("jakarta.ws.rs.Produces") || annType.equals("javax.ws.rs.Produces")) {
                         produces = getValueFromAnnotation(ann);
                         doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
                         maybeRemoveImport(annType);
                     }
                 }
 
-                if(path != null && produces == null && consumes == null) {
+                if (path != null && produces == null && consumes == null) {
                     annotationArgs.add("#{any(String)}");
                     args.add(path);
                 } else {
@@ -244,11 +260,11 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
             }
 
             private Expression getValueFromAnnotation(J.Annotation ann) {
-                if(ann.getArguments() == null || ann.getArguments().isEmpty()) {
+                if (ann.getArguments() == null || ann.getArguments().isEmpty()) {
                     return null;
                 }
                 Expression arg = ann.getArguments().get(0);
-                if(arg instanceof J.Assignment assign) {
+                if (arg instanceof J.Assignment assign) {
                     return assign.getAssignment();
                 } else {
                     return arg;
@@ -256,11 +272,11 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
             }
 
             private boolean isMultiPart(Expression consumes) {
-                if(consumes == null) {
+                if (consumes == null) {
                     return false;
                 }
-                if(consumes instanceof J.NewArray arr) {
-                    if(arr.getInitializer().size() == 1) {
+                if (consumes instanceof J.NewArray arr) {
+                    if (arr.getInitializer().size() == 1) {
                         consumes = arr.getInitializer().get(0);
                     } else {
                         return false;
