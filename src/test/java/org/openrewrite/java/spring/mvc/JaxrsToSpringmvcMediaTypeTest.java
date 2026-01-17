@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.mvc;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -28,7 +29,7 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JaxrsToSpringmvcMediaType())
           .parser(JavaParser.fromJavaVersion()
-            .classpath("jakarta.ws.rs-api", "javax.ws.rs-api"));
+            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.ws.rs-api-2", "javax.ws.rs-api-2"));
     }
 
     @Test

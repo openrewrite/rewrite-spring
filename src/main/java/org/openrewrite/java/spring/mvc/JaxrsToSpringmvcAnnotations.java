@@ -41,36 +41,40 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
 
     @Override
     public Set<String> getTags() {
-        return Set.of("Java", "Spring");
+        return new HashSet<>(Arrays.asList("Java", "Spring"));
     }
 
-    private static final List<AnnotationMatcher> PATH_ANNOTATION_MATCHERS = List.of(
+    private static final List<AnnotationMatcher> PATH_ANNOTATION_MATCHERS = Arrays.asList(
             new AnnotationMatcher("@jakarta.ws.rs.Path"),
             new AnnotationMatcher("@javax.ws.rs.Path")
     );
 
 
-    private static final Map<String, String> ANNOTATION_MAPPING = Map.of(
-            "jakarta.ws.rs.GET", "GetMapping",
-            "jakarta.ws.rs.POST", "PostMapping",
-            "jakarta.ws.rs.PUT", "PutMapping",
-            "jakarta.ws.rs.DELETE", "DeleteMapping",
-            "javax.ws.rs.GET", "GetMapping",
-            "javax.ws.rs.POST", "PostMapping",
-            "javax.ws.rs.PUT", "PutMapping",
-            "javax.ws.rs.DELETE", "DeleteMapping"
-    );
+    private static final Map<String, String> ANNOTATION_MAPPING = new HashMap<>();
 
-    private static final Map<String, String> PARAM_ANNOTATION_MAPPING = Map.of(
-            "jakarta.ws.rs.QueryParam", "RequestParam",
-            "jakarta.ws.rs.FormParam", "RequestParam",
-            "jakarta.ws.rs.PathParam", "PathVariable",
-            "jakarta.ws.rs.HeaderParam", "RequestHeader",
-            "javax.ws.rs.QueryParam", "RequestParam",
-            "javax.ws.rs.FormParam", "RequestParam",
-            "javax.ws.rs.PathParam", "PathVariable",
-            "javax.ws.rs.HeaderParam", "RequestHeader"
-    );
+    static {
+        ANNOTATION_MAPPING.put("jakarta.ws.rs.GET", "GetMapping");
+        ANNOTATION_MAPPING.put("jakarta.ws.rs.POST", "PostMapping");
+        ANNOTATION_MAPPING.put("jakarta.ws.rs.PUT", "PutMapping");
+        ANNOTATION_MAPPING.put("jakarta.ws.rs.DELETE", "DeleteMapping");
+        ANNOTATION_MAPPING.put("javax.ws.rs.GET", "GetMapping");
+        ANNOTATION_MAPPING.put("javax.ws.rs.POST", "PostMapping");
+        ANNOTATION_MAPPING.put("javax.ws.rs.PUT", "PutMapping");
+        ANNOTATION_MAPPING.put("javax.ws.rs.DELETE", "DeleteMapping");
+    }
+
+    private static final Map<String, String> PARAM_ANNOTATION_MAPPING = new HashMap<>();
+
+    static {
+        PARAM_ANNOTATION_MAPPING.put("jakarta.ws.rs.QueryParam", "RequestParam");
+        PARAM_ANNOTATION_MAPPING.put("jakarta.ws.rs.FormParam", "RequestParam");
+        PARAM_ANNOTATION_MAPPING.put("jakarta.ws.rs.PathParam", "PathVariable");
+        PARAM_ANNOTATION_MAPPING.put("jakarta.ws.rs.HeaderParam", "RequestHeader");
+        PARAM_ANNOTATION_MAPPING.put("javax.ws.rs.QueryParam", "RequestParam");
+        PARAM_ANNOTATION_MAPPING.put("javax.ws.rs.FormParam", "RequestParam");
+        PARAM_ANNOTATION_MAPPING.put("javax.ws.rs.PathParam", "PathVariable");
+        PARAM_ANNOTATION_MAPPING.put("javax.ws.rs.HeaderParam", "RequestHeader");
+    }
 
     private static final String ANNOTATION_PREFIX = "org.springframework.web.bind.annotation.";
 
@@ -223,18 +227,25 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
 
                 for (J.Annotation ann : annotations) {
                     String annType = ann.getType() != null ? ann.getType().toString() : "";
-                    if (annType.equals("jakarta.ws.rs.Path") || annType.equals("javax.ws.rs.Path")) {
-                        path = getValueFromAnnotation(ann);
-                        doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
-                        maybeRemoveImport(annType);
-                    } else if (annType.equals("jakarta.ws.rs.Consumes") || annType.equals("javax.ws.rs.Consumes")) {
-                        consumes = getValueFromAnnotation(ann);
-                        doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
-                        maybeRemoveImport(annType);
-                    } else if (annType.equals("jakarta.ws.rs.Produces") || annType.equals("javax.ws.rs.Produces")) {
-                        produces = getValueFromAnnotation(ann);
-                        doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
-                        maybeRemoveImport(annType);
+                    switch (annType) {
+                        case "jakarta.ws.rs.Path":
+                        case "javax.ws.rs.Path":
+                            path = getValueFromAnnotation(ann);
+                            doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
+                            maybeRemoveImport(annType);
+                            break;
+                        case "jakarta.ws.rs.Consumes":
+                        case "javax.ws.rs.Consumes":
+                            consumes = getValueFromAnnotation(ann);
+                            doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
+                            maybeRemoveImport(annType);
+                            break;
+                        case "jakarta.ws.rs.Produces":
+                        case "javax.ws.rs.Produces":
+                            produces = getValueFromAnnotation(ann);
+                            doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
+                            maybeRemoveImport(annType);
+                            break;
                     }
                 }
 
@@ -264,8 +275,8 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                     return null;
                 }
                 Expression arg = ann.getArguments().get(0);
-                if (arg instanceof J.Assignment assign) {
-                    return assign.getAssignment();
+                if (arg instanceof J.Assignment) {
+                    return ((J.Assignment) arg).getAssignment();
                 } else {
                     return arg;
                 }
@@ -275,8 +286,9 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 if (consumes == null) {
                     return false;
                 }
-                if (consumes instanceof J.NewArray arr) {
-                    if (arr.getInitializer().size() == 1) {
+                if (consumes instanceof J.NewArray) {
+                    J.NewArray arr = (J.NewArray) consumes;
+                    if (arr.getInitializer() != null && arr.getInitializer().size() == 1) {
                         consumes = arr.getInitializer().get(0);
                     } else {
                         return false;

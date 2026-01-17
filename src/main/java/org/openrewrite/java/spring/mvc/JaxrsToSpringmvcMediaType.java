@@ -27,6 +27,8 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaCoordinates;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 @Value
@@ -45,7 +47,7 @@ public class JaxrsToSpringmvcMediaType extends Recipe {
 
     @Override
     public Set<String> getTags() {
-        return Set.of("Java", "Spring");
+        return new HashSet<>(Arrays.asList("Java", "Spring"));
     }
 
     @Override

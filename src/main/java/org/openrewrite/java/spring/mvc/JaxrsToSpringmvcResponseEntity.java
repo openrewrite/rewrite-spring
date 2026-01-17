@@ -26,10 +26,7 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -47,20 +44,20 @@ public class JaxrsToSpringmvcResponseEntity extends Recipe {
 
     @Override
     public Set<String> getTags() {
-        return Set.of("Java", "Spring");
+        return new HashSet<>(Arrays.asList("Java", "Spring"));
     }
 
-    private static final List<MethodMatcher> BUILD_METHOD_MATCHERS = List.of(
+    private static final List<MethodMatcher> BUILD_METHOD_MATCHERS = Arrays.asList(
             new MethodMatcher("javax.ws.rs.core.Response$ResponseBuilder build()"),
             new MethodMatcher("jakarta.ws.rs.core.Response$ResponseBuilder build()")
     );
 
-    private static final List<MethodMatcher> OK_METHOD_MATCHERS = List.of(
+    private static final List<MethodMatcher> OK_METHOD_MATCHERS = Arrays.asList(
             new MethodMatcher("javax.ws.rs.core.Response ok(..)"),
             new MethodMatcher("jakarta.ws.rs.core.Response ok(..)")
     );
 
-    private static final List<MethodMatcher> ENTITY_METHOD_MATCHERS = List.of(
+    private static final List<MethodMatcher> ENTITY_METHOD_MATCHERS = Arrays.asList(
             new MethodMatcher("javax.ws.rs.core.Response$ResponseBuilder entity(..)"),
             new MethodMatcher("jakarta.ws.rs.core.Response$ResponseBuilder entity(..)")
     );
@@ -87,31 +84,31 @@ public class JaxrsToSpringmvcResponseEntity extends Recipe {
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation methodInv, ExecutionContext ctx) {
-                if(matchesAny(BUILD_METHOD_MATCHERS, methodInv)) {
+                if (matchesAny(BUILD_METHOD_MATCHERS, methodInv)) {
                     List<J.MethodInvocation> chain = new ArrayList<>();
                     J.MethodInvocation current = methodInv;
-                    while(current != null) {
+                    while (current != null) {
                         chain.add(current);
                         current = current.getSelect() instanceof J.MethodInvocation ? (J.MethodInvocation) current.getSelect() : null;
                     }
                     Collections.reverse(chain);
                     Expression body = null;
                     J.MethodInvocation rebuilt = chain.get(0);
-                    if(matchesAny(OK_METHOD_MATCHERS, rebuilt) && !rebuilt.getArguments().isEmpty() && !(rebuilt.getArguments().get(0) instanceof J.Empty)) {
-                        if(chain.size() > 2) {
+                    if (matchesAny(OK_METHOD_MATCHERS, rebuilt) && !rebuilt.getArguments().isEmpty() && !(rebuilt.getArguments().get(0) instanceof J.Empty)) {
+                        if (chain.size() > 2) {
                             body = rebuilt.getArguments().get(0);
                             rebuilt = rebuilt.withArguments(Collections.emptyList());
                         } else {
                             return rebuilt.withPrefix(methodInv.getPrefix());
                         }
-                    } else if(rebuilt.getSimpleName().equals("serverError")) {
+                    } else if (rebuilt.getSimpleName().equals("serverError")) {
                         rebuilt = rebuilt.withName(rebuilt.getName().withSimpleName("internalServerError"));
                     }
-                    for(J.MethodInvocation c : chain.subList(1, chain.size())) {
-                        if(matchesAny(BUILD_METHOD_MATCHERS, c) && body != null) {
+                    for (J.MethodInvocation c : chain.subList(1, chain.size())) {
+                        if (matchesAny(BUILD_METHOD_MATCHERS, c) && body != null) {
                             c = c.withName(c.getName().withSimpleName("body")).withArguments(Collections.singletonList(body));
                         }
-                        if(matchesAny(ENTITY_METHOD_MATCHERS, c)) {
+                        if (matchesAny(ENTITY_METHOD_MATCHERS, c)) {
                             body = c.getArguments().get(0);
                         } else {
                             rebuilt = c.withSelect(rebuilt);
@@ -123,7 +120,7 @@ public class JaxrsToSpringmvcResponseEntity extends Recipe {
                 }
             }
 
-            private static boolean matchesAny(List<MethodMatcher> matchers, J.MethodInvocation mi) {
+            private boolean matchesAny(List<MethodMatcher> matchers, J.MethodInvocation mi) {
                 for (MethodMatcher m : matchers) {
                     if (m.matches(mi)) {
                         return true;
