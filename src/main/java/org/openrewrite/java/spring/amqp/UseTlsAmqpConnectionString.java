@@ -20,6 +20,7 @@ import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.NameCaseConvention;
+import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.spring.ChangeSpringPropertyValue;
 import org.openrewrite.java.spring.SpringExecutionContextView;
@@ -91,8 +92,8 @@ public class UseTlsAmqpConnectionString extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        String actualPropertyKey = propertyKey == null || propertyKey.isEmpty() ? "spring.rabbitmq.addresses" : propertyKey;
-        String actualTlsPropertyKey = tlsPropertyKey == null || tlsPropertyKey.isEmpty() ? "spring.rabbitmq.ssl.enabled" : tlsPropertyKey;
+        String actualPropertyKey = StringUtils.isNullOrEmpty(propertyKey) ? "spring.rabbitmq.addresses" : propertyKey;
+        String actualTlsPropertyKey = StringUtils.isNullOrEmpty(tlsPropertyKey) ? "spring.rabbitmq.ssl.enabled" : tlsPropertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {

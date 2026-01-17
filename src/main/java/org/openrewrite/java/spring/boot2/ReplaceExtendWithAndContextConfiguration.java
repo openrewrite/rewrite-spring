@@ -45,10 +45,8 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
     final String description = "Replaces `@ExtendWith(SpringRunner.class)` and `@ContextConfiguration` with `@SpringJunitConfig`, " +
             "preserving attributes on `@ContextConfiguration`, unless `@ContextConfiguration(loader = ...)` is used.";
 
-    @Override
-    public Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(2);
-    }
+    @Getter
+    final Duration estimatedEffortPerOccurrence = Duration.ofMinutes(2);
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

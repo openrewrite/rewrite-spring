@@ -55,10 +55,8 @@ public class RemoveOauth2LoginConfig extends Recipe {
             "`GrantedAuthoritiesMapper` to handle the authorities of users authenticated via `oauth2Login()`, you can " +
             "remove it completely as the new default authorities should be sufficient.";
 
-    @Override
-    public @Nullable Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(8);
-    }
+    @Getter
+    final Duration estimatedEffortPerOccurrence = Duration.ofMinutes(8);
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
