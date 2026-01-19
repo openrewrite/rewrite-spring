@@ -36,7 +36,7 @@ public class AddAutoConfigureTestRestTemplate extends Recipe {
     private static final String FULLY_QUALIFIED = "org.springframework.boot.resttestclient.autoconfigure." + SIMPLE_NAME;
     private static final String TEST_REST_TEMPLATE = "org.springframework.boot.resttestclient.TestRestTemplate";
 
-    private static final AnnotationMatcher AUTO_CONFIGURE_TEST_REST_TEMPLATE = new AnnotationMatcher(FULLY_QUALIFIED, true);
+    private static final AnnotationMatcher AUTO_CONFIGURE_TEST_REST_TEMPLATE = new AnnotationMatcher("@" + FULLY_QUALIFIED, true);
     private static final AnnotationMatcher SPRING_BOOT_TEST = new AnnotationMatcher("@org.springframework.boot.test.context.SpringBootTest", true);
 
     @Getter
