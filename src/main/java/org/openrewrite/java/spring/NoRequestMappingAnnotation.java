@@ -56,15 +56,11 @@ public class NoRequestMappingAnnotation extends Recipe {
     @Getter
     final String description = "Replace method declaration `@RequestMapping` annotations with `@GetMapping`, `@PostMapping`, etc. when possible.";
 
-    @Override
-    public Set<String> getTags() {
-        return singleton("RSPEC-S4488");
-    }
+    @Getter
+    final Set<String> tags = singleton("RSPEC-S4488");
 
-    @Override
-    public Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(2);
-    }
+    @Getter
+    final Duration estimatedEffortPerOccurrence = Duration.ofMinutes(2);
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

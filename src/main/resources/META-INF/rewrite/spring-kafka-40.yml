@@ -24,7 +24,7 @@ tags:
   - spring
   - kafka
 recipeList:
-  # https://docs.spring.io/spring-kafka/reference/whats-new.html#x40-jackson3-support
+  # https://docs.spring.io/spring-kafka/reference/4.0/whats-new.html#x40-jackson3-support
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.kafka.support.DefaultKafkaHeaderMapper
       newFullyQualifiedTypeName: org.springframework.kafka.support.JsonKafkaHeaderMapper
@@ -46,3 +46,15 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.kafka.support.serializer.JsonSerde
       newFullyQualifiedTypeName: org.springframework.kafka.support.serializer.JacksonJsonSerde
+  # These types are also deprecated for removal but not specifically called out in the 'what's new' section
+  # but mentioned here https://docs.spring.io/spring-kafka/reference/4.0/kafka/serdes.html#messaging-message-conversion
+  # so it is likely that users actually use these types in their code
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.kafka.support.converter.StringJsonMessageConverter
+      newFullyQualifiedTypeName: org.springframework.kafka.support.converter.StringJacksonJsonMessageConverter
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.kafka.support.converter.ByteArrayJsonMessageConverter
+      newFullyQualifiedTypeName: org.springframework.kafka.support.converter.ByteArrayJacksonJsonMessageConverter
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.kafka.support.converter.BytesJsonMessageConverter
+      newFullyQualifiedTypeName: org.springframework.kafka.support.converter.BytesJacksonJsonMessageConverter

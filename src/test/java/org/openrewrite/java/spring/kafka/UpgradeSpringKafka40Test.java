@@ -44,18 +44,18 @@ class UpgradeSpringKafka40Test implements RewriteTest {
           //language=java
           java(
             """
-              import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
-              import org.springframework.kafka.support.converter.JsonMessageConverter;
-              import org.springframework.kafka.support.converter.ProjectingMessageConverter;
-              import org.springframework.kafka.support.mapping.DefaultJackson2JavaTypeMapper;
-              import org.springframework.kafka.support.serializer.JsonDeserializer;
-              import org.springframework.kafka.support.serializer.JsonSerde;
-              import org.springframework.kafka.support.serializer.JsonSerializer;
+              import org.springframework.kafka.support.*;
+              import org.springframework.kafka.support.converter.*;
+              import org.springframework.kafka.support.mapping.*;
+              import org.springframework.kafka.support.serializer.*;
 
               class Test {
                   DefaultKafkaHeaderMapper mapper = new DefaultKafkaHeaderMapper();
                   JsonMessageConverter converter = new JsonMessageConverter();
                   ProjectingMessageConverter projectingConverter = new ProjectingMessageConverter();
+                  ByteArrayJsonMessageConverter byteArrayJsonMessageConverter = new ByteArrayJsonMessageConverter();
+                  BytesJsonMessageConverter bytesJsonMessageConverter = new BytesJsonMessageConverter();
+                  StringJsonMessageConverter stringJsonMessageConverter = new StringJsonMessageConverter();
                   DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
                   JsonDeserializer<String> deserializer = new JsonDeserializer<>();
                   JsonSerde<String> serde = new JsonSerde<>();
@@ -63,18 +63,18 @@ class UpgradeSpringKafka40Test implements RewriteTest {
               }
               """,
             """
-              import org.springframework.kafka.support.JsonKafkaHeaderMapper;
-              import org.springframework.kafka.support.converter.JacksonJsonMessageConverter;
-              import org.springframework.kafka.support.converter.JacksonProjectingMessageConverter;
-              import org.springframework.kafka.support.mapping.DefaultJacksonJavaTypeMapper;
-              import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
-              import org.springframework.kafka.support.serializer.JacksonJsonSerde;
-              import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
+              import org.springframework.kafka.support.*;
+              import org.springframework.kafka.support.converter.*;
+              import org.springframework.kafka.support.mapping.*;
+              import org.springframework.kafka.support.serializer.*;
 
               class Test {
                   JsonKafkaHeaderMapper mapper = new JsonKafkaHeaderMapper();
                   JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter();
                   JacksonProjectingMessageConverter projectingConverter = new JacksonProjectingMessageConverter();
+                  ByteArrayJacksonJsonMessageConverter byteArrayJsonMessageConverter = new ByteArrayJacksonJsonMessageConverter();
+                  BytesJacksonJsonMessageConverter bytesJsonMessageConverter = new BytesJacksonJsonMessageConverter();
+                  StringJacksonJsonMessageConverter stringJsonMessageConverter = new StringJacksonJsonMessageConverter();
                   DefaultJacksonJavaTypeMapper typeMapper = new DefaultJacksonJavaTypeMapper();
                   JacksonJsonDeserializer<String> deserializer = new JacksonJsonDeserializer<>();
                   JacksonJsonSerde<String> serde = new JacksonJsonSerde<>();

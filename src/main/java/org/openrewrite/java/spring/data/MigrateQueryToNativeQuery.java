@@ -44,10 +44,8 @@ public class MigrateQueryToNativeQuery extends Recipe {
     final String description = "Replace `@Query` annotation by `@NativeQuery` when `nativeQuery = true`. " +
             "`@NativeQuery` was introduced in Spring Data JPA 3.4.";
 
-    @Override
-    public Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(2);
-    }
+    @Getter
+    final Duration estimatedEffortPerOccurrence = Duration.ofMinutes(2);
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
