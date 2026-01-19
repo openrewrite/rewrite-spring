@@ -22,6 +22,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
@@ -57,62 +58,62 @@ public class AddConfigurationAnnotationIfBeansPresent extends Recipe {
                 return c;
             }
 
+            boolean isApplicableClass(J.ClassDeclaration classDecl, Cursor cursor) {
+                if (classDecl.getKind() != J.ClassDeclaration.Kind.Type.Class) {
+                    return false;
+                }
+
+                boolean isStatic = false;
+                for (J.Modifier m : classDecl.getModifiers()) {
+                    if (m.getType() == J.Modifier.Type.Abstract) {
+                        return false;
+                    }
+                    if (m.getType() == J.Modifier.Type.Static) {
+                        isStatic = true;
+                    }
+                }
+
+                if (!isStatic) {
+                    // no static keyword? check if it is top level class in the CU
+                    Object enclosing = cursor.dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE).getValue();
+                    if (enclosing instanceof J.ClassDeclaration) {
+                        return false;
+                    }
+                }
+
+                // check if '@Configuration' is already over the class
+                if (service(AnnotationService.class).matches(getCursor(), CONFIGURATION_ANNOTATION_MATCHER)) {
+                    return false;
+                }
+
+                // No '@Configuration' present. Check if any methods have '@Bean' annotation
+                for (Statement s : classDecl.getBody().getStatements()) {
+                    if (s instanceof J.MethodDeclaration) {
+                        if (isBeanMethod((J.MethodDeclaration) s)) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+
             private J.ClassDeclaration addConfigurationAnnotation(J.ClassDeclaration c) {
                 maybeAddImport(FQN_CONFIGURATION);
                 return JavaTemplate.builder("@" + CONFIGURATION_SIMPLE_NAME)
-                    .imports(FQN_CONFIGURATION)
-                    .javaParser(JavaParser.fromJavaVersion().dependsOn("package " + CONFIGURATION_PACKAGE +
-                                                                       "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
-                    .build().apply(
-                        getCursor(),
-                        c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
-                    );
+                        .imports(FQN_CONFIGURATION)
+                        .javaParser(JavaParser.fromJavaVersion().dependsOn(
+                                "package " + CONFIGURATION_PACKAGE +
+                                "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
+                        .build().apply(
+                                getCursor(),
+                                c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                        );
             }
         });
     }
 
-    public static boolean isApplicableClass(J.ClassDeclaration classDecl, Cursor cursor) {
-        if (classDecl.getKind() != J.ClassDeclaration.Kind.Type.Class) {
-            return false;
-        }
-
-        boolean isStatic = false;
-        for (J.Modifier m : classDecl.getModifiers()) {
-            if (m.getType() == J.Modifier.Type.Abstract) {
-                return false;
-            }
-            if (m.getType() == J.Modifier.Type.Static) {
-                isStatic = true;
-            }
-        }
-
-        if (!isStatic) {
-            // no static keyword? check if it is top level class in the CU
-            Object enclosing = cursor.dropParentUntil(it -> it instanceof J.ClassDeclaration || it == Cursor.ROOT_VALUE).getValue();
-            if (enclosing instanceof J.ClassDeclaration) {
-                return false;
-            }
-        }
-
-        // check if '@Configuration' is already over the class
-        for (J.Annotation a : classDecl.getLeadingAnnotations()) {
-            JavaType.FullyQualified aType = TypeUtils.asFullyQualified(a.getType());
-            if (aType != null && CONFIGURATION_ANNOTATION_MATCHER.matchesAnnotationOrMetaAnnotation(aType)) {
-                // Found '@Configuration' annotation
-                return false;
-            }
-        }
-        // No '@Configuration' present. Check if any methods have '@Bean' annotation
-        for (Statement s : classDecl.getBody().getStatements()) {
-            if (s instanceof J.MethodDeclaration) {
-                if (isBeanMethod((J.MethodDeclaration) s)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 
     private static boolean isBeanMethod(J.MethodDeclaration methodDecl) {
         for (J.Modifier m : methodDecl.getModifiers()) {
