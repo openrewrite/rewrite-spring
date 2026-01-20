@@ -246,6 +246,17 @@ public class ChangeSpringPropertyValue extends Recipe {
             }));
         }
 
+        private J.Literal changeValueInLiteral(J.Literal literal) {
+            String value = (String) literal.getValue();
+            if (matchesOldValue(value)) {
+                String computedNewValue = computeNewValue(value);
+                if (!computedNewValue.equals(value)) {
+                    return updateLiteral(literal, computedNewValue);
+                }
+            }
+            return literal;
+        }
+
         private J.Annotation handleTestPropertiesAnnotation(J.Annotation annotation) {
             return annotation.withArguments(ListUtils.map(annotation.getArguments(), arg -> {
                 if (arg instanceof J.Assignment) {
@@ -284,17 +295,6 @@ public class ChangeSpringPropertyValue extends Recipe {
                     if (!computedNewValue.equals(propValue)) {
                         return updateLiteral(literal, key + "=" + computedNewValue);
                     }
-                }
-            }
-            return literal;
-        }
-
-        private J.Literal changeValueInLiteral(J.Literal literal) {
-            String value = (String) literal.getValue();
-            if (matchesOldValue(value)) {
-                String computedNewValue = computeNewValue(value);
-                if (!computedNewValue.equals(value)) {
-                    return updateLiteral(literal, computedNewValue);
                 }
             }
             return literal;
