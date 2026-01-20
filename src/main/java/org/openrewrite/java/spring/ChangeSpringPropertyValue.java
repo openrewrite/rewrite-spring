@@ -143,9 +143,6 @@ public class ChangeSpringPropertyValue extends Recipe {
         }
 
         private J.Annotation handleValueAnnotation(J.Annotation annotation) {
-            if (annotation.getArguments() == null) {
-                return annotation;
-            }
             return annotation.withArguments(ListUtils.map(annotation.getArguments(), arg -> {
                 if (arg instanceof J.Literal) {
                     return changeValueInValueAnnotation((J.Literal) arg);
@@ -250,29 +247,15 @@ public class ChangeSpringPropertyValue extends Recipe {
         }
 
         private J.Annotation handleTestPropertiesAnnotation(J.Annotation annotation) {
-            if (annotation.getArguments() == null) {
-                return annotation;
-            }
-
             return annotation.withArguments(ListUtils.map(annotation.getArguments(), arg -> {
-                if (arg instanceof J.Literal) {
-                    return changeValueInTestProperty((J.Literal) arg);
-                }
-                if (arg instanceof J.NewArray) {
-                    J.NewArray array = (J.NewArray) arg;
-                    return array.withInitializer(ListUtils.map(array.getInitializer(),
-                            element -> element instanceof J.Literal ? changeValueInTestProperty((J.Literal) element) : element));
-                }
                 if (arg instanceof J.Assignment) {
                     J.Assignment assignment = (J.Assignment) arg;
                     String attrName = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                    if ("properties".equals(attrName) || "value".equals(attrName)) {
+                    if ("properties".equals(attrName)) {
                         if (assignment.getAssignment() instanceof J.Literal) {
                             J.Literal literal = (J.Literal) assignment.getAssignment();
                             J.Literal newLiteral = changeValueInTestProperty(literal);
-                            if (newLiteral != literal) {
-                                return assignment.withAssignment(newLiteral);
-                            }
+                            return assignment.withAssignment(newLiteral);
                         } else if (assignment.getAssignment() instanceof J.NewArray) {
                             J.NewArray array = (J.NewArray) assignment.getAssignment();
                             return assignment.withAssignment(array.withInitializer(ListUtils.map(array.getInitializer(),
@@ -284,31 +267,11 @@ public class ChangeSpringPropertyValue extends Recipe {
                         }
                     }
                 }
-                if (arg instanceof J.Lambda) {
-                    J.Lambda lambda = (J.Lambda) arg;
-                    if (lambda.getBody() instanceof J.Block) {
-                        J.Block block = (J.Block) lambda.getBody();
-                        return lambda.withBody(block.withStatements(ListUtils.map(block.getStatements(), statement -> {
-                            if (statement instanceof K.ExpressionStatement &&
-                                ((K.ExpressionStatement) statement).getExpression() instanceof J.Literal) {
-                                J.Literal literal = (J.Literal) ((K.ExpressionStatement) statement).getExpression();
-                                J.Literal newLiteral = changeValueInTestProperty(literal);
-                                if (newLiteral != literal) {
-                                    return ((K.ExpressionStatement) statement).withExpression(newLiteral);
-                                }
-                            }
-                            return statement;
-                        })));
-                    }
-                }
                 return arg;
             }));
         }
 
         private J.Literal changeValueInTestProperty(J.Literal literal) {
-            if (!(literal.getValue() instanceof String)) {
-                return literal;
-            }
             String value = (String) literal.getValue();
             Matcher matcher = keyValuePattern.matcher(value);
             if (matcher.matches()) {
@@ -325,9 +288,6 @@ public class ChangeSpringPropertyValue extends Recipe {
         }
 
         private J.Literal changeValueInLiteral(J.Literal literal) {
-            if (!(literal.getValue() instanceof String)) {
-                return literal;
-            }
             String value = (String) literal.getValue();
             if (matchesOldValue(value)) {
                 String computedNewValue = computeNewValue(value);
