@@ -286,7 +286,7 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
     }
 
     @Test
-    void testPropertySourceProperties() {
+    void propertySourceProperties() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyValue("app.name", "NewApp", "OldApp", null, null))
             .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-test-5")),
@@ -308,7 +308,7 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
     }
 
     @Test
-    void testPropertySourcePropertiesArray() {
+    void propertySourcePropertiesArray() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyValue("app.name", "NewApp", null, null, null))
             .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-test-5")),
