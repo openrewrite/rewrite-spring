@@ -256,11 +256,13 @@ public class ChangeSpringPropertyValue extends Recipe {
                             J.Literal literal = (J.Literal) assignment.getAssignment();
                             J.Literal newLiteral = changeValueInTestProperty(literal);
                             return assignment.withAssignment(newLiteral);
-                        } else if (assignment.getAssignment() instanceof J.NewArray) {
+                        }
+                        if (assignment.getAssignment() instanceof J.NewArray) {
                             J.NewArray array = (J.NewArray) assignment.getAssignment();
                             return assignment.withAssignment(array.withInitializer(ListUtils.map(array.getInitializer(),
                                     element -> element instanceof J.Literal ? changeValueInTestProperty((J.Literal) element) : element)));
-                        } else if (assignment.getAssignment() instanceof K.ListLiteral) {
+                        }
+                        if (assignment.getAssignment() instanceof K.ListLiteral) {
                             K.ListLiteral listLiteral = (K.ListLiteral) assignment.getAssignment();
                             return assignment.withAssignment(listLiteral.withElements(ListUtils.map(listLiteral.getElements(),
                                     element -> element instanceof J.Literal ? changeValueInTestProperty((J.Literal) element) : element)));
