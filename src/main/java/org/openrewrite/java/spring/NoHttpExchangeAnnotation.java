@@ -15,8 +15,6 @@
  */
 package org.openrewrite.java.spring;
 
-import java.util.Optional;
-
 import lombok.Getter;
 
 import org.jspecify.annotations.Nullable;
@@ -31,6 +29,8 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Space;
+
+import java.util.Optional;
 
 /**
  * Replace method declaration @HttpExchange annotations with the associated variant
