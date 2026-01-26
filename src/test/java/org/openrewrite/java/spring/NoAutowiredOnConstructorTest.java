@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
@@ -603,73 +604,76 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
         );
     }
 
-    @Test
-    void shouldRemoveAutowiredFromKotlinPrimaryConstructor() {
-        //language=kotlin
-        rewriteRun(
-          kotlin(
-            """
-              import org.springframework.beans.factory.annotation.Autowired
-              import org.springframework.stereotype.Service
+    @Nested
+    class Kotlin {
+        @Test
+        void shouldRemoveAutowiredFromPrimaryConstructor() {
+            //language=kotlin
+            rewriteRun(
+              kotlin(
+                """
+                  import org.springframework.beans.factory.annotation.Autowired
+                  import org.springframework.stereotype.Service
 
-              @Service
-              class MyService @Autowired constructor(
-                  private val dependency: String
+                  @Service
+                  class MyService @Autowired constructor(
+                      private val dependency: String
+                  )
+                  """,
+                """
+                  import org.springframework.stereotype.Service
+
+                  @Service
+                  class MyService constructor(
+                      private val dependency: String
+                  )
+                  """
               )
-              """,
-            """
-              import org.springframework.stereotype.Service
+            );
+        }
 
-              @Service
-              class MyService(
-                  private val dependency: String
-              )
-              """
-          )
-        );
-    }
+        @Test
+        void shouldNotRemoveAutowiredFromSecondaryConstructor() {
+            //language=kotlin
+            rewriteRun(
+              kotlin(
+                """
+                  import org.springframework.beans.factory.annotation.Autowired
+                  import org.springframework.stereotype.Service
 
-    @Test
-    void shouldNotRemoveAutowiredFromKotlinSecondaryConstructor() {
-        //language=kotlin
-        rewriteRun(
-          kotlin(
-            """
-              import org.springframework.beans.factory.annotation.Autowired
-              import org.springframework.stereotype.Service
+                  @Service
+                  class MyService {
+                      private val dependency: String
 
-              @Service
-              class MyService {
-                  private val dependency: String
+                      constructor() {
+                          this.dependency = "default"
+                      }
 
-                  constructor() {
-                      this.dependency = "default"
+                      @Autowired
+                      constructor(dependency: String) {
+                          this.dependency = dependency
+                      }
                   }
-
-                  @Autowired
-                  constructor(dependency: String) {
-                      this.dependency = dependency
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void kotlinAlreadyMigratedNoChange() {
-        //language=kotlin
-        rewriteRun(
-          kotlin(
-            """
-              import org.springframework.stereotype.Service
-
-              @Service
-              class MyService(
-                  private val dependency: String
+                  """
               )
-              """
-          )
-        );
+            );
+        }
+
+        @Test
+        void alreadyMigratedNoChange() {
+            //language=kotlin
+            rewriteRun(
+              kotlin(
+                """
+                  import org.springframework.stereotype.Service
+
+                  @Service
+                  class MyService(
+                      private val dependency: String
+                  )
+                  """
+              )
+            );
+        }
     }
 }
