@@ -36,6 +36,7 @@ recipeList:
   - org.openrewrite.java.spring.framework.MigrateHandlerInterceptor
   - org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
   - org.openrewrite.java.spring.framework.JdbcTemplateObjectArrayArgToVarArgs
+  - org.openrewrite.java.spring.framework.AddSetUseSuffixPatternMatch
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.hibernate
       artifactId: hibernate-search-orm
