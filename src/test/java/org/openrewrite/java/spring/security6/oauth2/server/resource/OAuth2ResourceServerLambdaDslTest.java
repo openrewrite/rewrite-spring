@@ -155,6 +155,7 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
         @Test
         void alreadyMigratedNoChange() {
             rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
               //language=kotlin
               kotlin(
                 """
