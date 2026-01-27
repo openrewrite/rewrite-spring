@@ -195,7 +195,6 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
         void removeUnnecessaryAnnotationArgument() {
             //language=kotlin
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               kotlin(
                 """
                   import org.springframework.http.ResponseEntity
