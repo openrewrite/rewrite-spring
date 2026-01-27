@@ -15,20 +15,19 @@
  */
 package org.openrewrite.java.spring;
 
+import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.ExpectedToFail;
-import org.openrewrite.test.TypeValidation;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.test.TypeValidation;
 import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.kotlin.Assertions.kotlin;
-import org.junitpioneer.jupiter.ExpectedToFail;
 
 @SuppressWarnings({"SimplifiableAnnotation", "MethodMayBeStatic"})
 class ImplicitWebAnnotationNamesTest implements RewriteTest {
