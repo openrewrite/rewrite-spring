@@ -21,6 +21,7 @@ displayName: Migrate to Spring Framework 7.0
 description: Migrate applications to the latest Spring Framework 7.0 release.
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_2
+  - org.openrewrite.java.spring.framework.RemovedServletViewSupport
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework
       artifactId: "*"
@@ -29,3 +30,33 @@ recipeList:
   - org.openrewrite.java.jackson.UpgradeJackson_2_3
   - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
   - org.openrewrite.java.jspecify.MigrateFromSpringFrameworkAnnotations
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.RemovedServletViewSupport
+displayName: Find removed Spring servlet view classes
+description: >-
+  The `org.springframework.web.servlet.view.document` and `org.springframework.web.servlet.view.feed`
+  packages have been removed in Spring Framework 7.0. Classes such as `AbstractPdfView`, `AbstractXlsView`,
+  `AbstractXlsxView`, `AbstractXlsxStreamingView`, `AbstractPdfStampView`, `AbstractFeedView`,
+  `AbstractAtomFeedView`, and `AbstractRssFeedView` should be replaced with direct usage of the
+  underlying libraries (Apache POI, OpenPDF/iText, ROME) in web handlers.
+tags:
+  - spring
+recipeList:
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.web.servlet.view.document.AbstractPdfView
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.web.servlet.view.document.AbstractPdfStampView
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.web.servlet.view.document.AbstractXlsView
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.web.servlet.view.document.AbstractXlsxView
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.web.servlet.view.document.AbstractXlsxStreamingView
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.web.servlet.view.feed.AbstractFeedView
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.web.servlet.view.feed.AbstractAtomFeedView
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.web.servlet.view.feed.AbstractRssFeedView
