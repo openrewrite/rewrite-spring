@@ -45,6 +45,7 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-core:6.+")
 
     parserClasspath("org.springframework:spring-test:6.+")
+    parserClasspath("org.springframework:spring-tx:6.+")
 
     parserClasspath("org.springframework:spring-web:4.+")
     parserClasspath("org.springframework:spring-web:5.+")
