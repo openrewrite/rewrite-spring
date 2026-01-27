@@ -98,7 +98,6 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
 
     @Nested
     class Kotlin {
-        @ExpectedToFail("Recipe mangles Kotlin code - nests opaqueToken inside jwt and loses jwkSetUri configuration")
         @Issue("https://github.com/moderneinc/customer-requests/issues/1765")
         @Test
         void preservesCustomJwtConfiguration() {
@@ -136,17 +135,13 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
                       @Throws(Exception::class)
                       override fun configure(http: HttpSecurity) {
                           http
-                                  .oauth2ResourceServer { server ->
-                                      server
-                                          .jwt { jwt ->
-                                                  jwt
-                                                      .jwkSetUri("https://example.com/.well-known/jwks.json")
-                                          }
-                                          .opaqueToken { token ->
-                                                  token
-                                                      .introspectionUri("https://example.com/introspect")
-                                          }
-                                  }
+                              .oauth2ResourceServer { server ->
+                                  server
+                                      .jwt({jwt ->jwt
+                                          .jwkSetUri("https://example.com/.well-known/jwks.json")})
+                                      .opaqueToken({token ->token
+                                          .introspectionUri("https://example.com/introspect")})
+                              }
                       }
                   }
                   """
