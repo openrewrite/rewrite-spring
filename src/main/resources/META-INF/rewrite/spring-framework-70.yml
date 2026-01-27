@@ -29,3 +29,4 @@ recipeList:
   - org.openrewrite.java.jackson.UpgradeJackson_2_3
   - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
   - org.openrewrite.java.jspecify.MigrateFromSpringFrameworkAnnotations
+  - org.openrewrite.java.spring.test.AddSpringExtensionConfigForNestedTests
