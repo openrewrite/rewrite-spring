@@ -46,19 +46,21 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
           </dependencies>
       </project>
       """;
+    private final JavaParser.Builder<? extends JavaParser, ?> JAVA_PARSER = JavaParser.fromJavaVersion()
+      .classpathFromResources(new InMemoryExecutionContext(),
+        "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
+        "jooq-3.14.15", "jakarta.persistence-api-2.2.3");
+    private final KotlinParser.Builder KOTLIN_PARSER = KotlinParser.builder()
+      .classpathFromResources(new InMemoryExecutionContext(),
+        "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
+        "jooq-3.14.15", "jakarta.persistence-api-2.2.3");
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec
           .recipeFromResources("org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering")
-          .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
-              "jooq-3.14.15", "jakarta.persistence-api-2.2.3"))
-          .parser(KotlinParser.builder()
-            .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
-              "jooq-3.14.15", "jakarta.persistence-api-2.2.3"));
+          .parser(JAVA_PARSER)
+          .parser(KOTLIN_PARSER);
     }
 
     @DocumentExample
@@ -474,6 +476,36 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
     }
 
     @Test
+    void donotMigrateIfAlreadyAnnotated() {
+        rewriteRun(
+          spec -> spec.parser(JAVA_PARSER.dependsOn("""
+            package org.springframework.boot.sql.init.dependency;
+            public @interface DependsOnDatabaseInitialization {}
+            """)),
+          mavenProject("project-maven",
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            java(
+              //language=java
+              """
+                import javax.sql.DataSource;
+
+                import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
+                import org.springframework.stereotype.Component;
+
+                @Component
+                @DependsOnDatabaseInitialization
+                public class MyDbInitializerComponent {
+
+                    public void initSchema(DataSource ds) {
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
     void dontAnnotateNonBootModules() {
         rewriteRun(
           mavenProject("project-maven",
@@ -645,8 +677,70 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
             );
         }
 
-        // TODO: alreadyMigratedConfigurationNoChange and alreadyMigratedComponentNoChange tests removed
-        // The recipe is not idempotent for Kotlin - it adds @DependsOnDatabaseInitialization again
-        // even when already present. This needs to be fixed in the recipe itself.
+        @Test
+        void kotlinAlreadyMigratedConfigurationNoChange() {
+            rewriteRun(
+              spec -> spec.parser(KOTLIN_PARSER.dependsOn("""
+                package org.springframework.boot.sql.init.dependency
+                annotation class DependsOnDatabaseInitialization {}
+                """)),
+              mavenProject("project-maven",
+                pomXml(POM_WITH_SPRING_BOOT_25),
+                //language=kotlin
+                kotlin(
+                  """
+                    import javax.sql.DataSource
+                    import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                    import org.springframework.context.annotation.Configuration
+                    import org.springframework.context.annotation.Bean
+
+                    @Configuration
+                    class PersistenceConfiguration {
+
+                        class CustomDataSourceInitializer(private val ds: DataSource) {
+                            fun initDatabase(sql: String) {}
+                        }
+
+                        @Bean
+                        @DependsOnDatabaseInitialization
+                        fun customDataSourceInitializer(ds: DataSource): CustomDataSourceInitializer {
+                            return CustomDataSourceInitializer(ds)
+                        }
+                    }
+                    """
+                )
+              )
+            );
+        }
+
+        @Test
+        void kotlinAlreadyMigratedComponentNoChange() {
+            rewriteRun(
+              spec ->
+                spec.parser(KOTLIN_PARSER.dependsOn("""
+                  package org.springframework.boot.sql.init.dependency
+                  annotation class DependsOnDatabaseInitialization {}
+                  """)),
+              mavenProject("project-maven",
+                pomXml(POM_WITH_SPRING_BOOT_25),
+                //language=kotlin
+                kotlin(
+                  """
+                    import javax.sql.DataSource
+                    import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                    import org.springframework.stereotype.Component
+
+                    @Component
+                    @DependsOnDatabaseInitialization
+                    class MyDbInitializerComponent {
+
+                        fun initSchema(ds: DataSource) {
+                        }
+                    }
+                    """
+                )
+              )
+            );
+        }
     }
 }

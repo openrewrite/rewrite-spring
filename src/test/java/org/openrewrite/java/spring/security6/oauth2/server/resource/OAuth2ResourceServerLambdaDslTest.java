@@ -15,10 +15,11 @@
  */
 package org.openrewrite.java.spring.security6.oauth2.server.resource;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Nested;
+import org.junitpioneer.jupiter.ExpectedToFail;
+import org.junitpioneer.jupiter.Issue;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -97,7 +98,8 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
 
     @Nested
     class Kotlin {
-        @Disabled("Recipe mangles Kotlin code - nests opaqueToken inside jwt and loses jwkSetUri configuration")
+        @ExpectedToFail("Recipe mangles Kotlin code - nests opaqueToken inside jwt and loses jwkSetUri configuration")
+        @Issue("https://github.com/moderneinc/customer-requests/issues/1765")
         @Test
         void preservesCustomJwtConfiguration() {
             rewriteRun(
