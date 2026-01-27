@@ -29,6 +29,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.kotlin.Assertions.kotlin;
+import org.junitpioneer.jupiter.ExpectedToFail;
 
 @SuppressWarnings({"SimplifiableAnnotation", "MethodMayBeStatic"})
 class ImplicitWebAnnotationNamesTest implements RewriteTest {
@@ -230,7 +231,7 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
             );
         }
 
-        @Disabled("Recipe has a bug with Kotlin whitespace handling - when original has no space between annotation args and variable (@PathVariable(\"id\")id), recipe does not add space. When original has space, recipe works correctly.")
+        @ExpectedToFail("Whitespaces in Kotlin around a TypeExpression are problematic see https://github.com/openrewrite/rewrite-kotlin/issues/477. Use a formatter to prevent these situations.")
         @Test
         void annotationNoWhitespaceBetweenAnnotationAndVariable() {
             //language=kotlin
