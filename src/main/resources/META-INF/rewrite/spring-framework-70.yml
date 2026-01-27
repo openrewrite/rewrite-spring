@@ -29,3 +29,36 @@ recipeList:
   - org.openrewrite.java.jackson.UpgradeJackson_2_3
   - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
   - org.openrewrite.java.jspecify.MigrateFromSpringFrameworkAnnotations
+  - org.openrewrite.java.spring.framework.RemoveDeprecatedPathMappingOptions
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.RemoveDeprecatedPathMappingOptions
+displayName: Remove deprecated path mapping options
+description: >-
+  Remove deprecated path mapping configuration options that have been removed in Spring Framework 7.0.
+  These include suffix pattern matching, trailing slash matching, and path extension content negotiation options.
+recipeList:
+  # PathMatchConfigurer (WebMvc) - remove trailing slash and suffix pattern matching
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.web.servlet.config.annotation.PathMatchConfigurer setUseTrailingSlashMatch(java.lang.Boolean)
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.web.servlet.config.annotation.PathMatchConfigurer setUseSuffixPatternMatch(java.lang.Boolean)
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.web.servlet.config.annotation.PathMatchConfigurer setUseRegisteredSuffixPatternMatch(java.lang.Boolean)
+  # PathMatchConfigurer (WebFlux) - remove trailing slash matching
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.web.reactive.config.PathMatchConfigurer setUseTrailingSlashMatch(java.lang.Boolean)
+  # ContentNegotiationConfigurer - remove path extension options
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer favorPathExtension(boolean)
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer ignoreUnknownPathExtensions(boolean)
+  # ContentNegotiationManagerFactoryBean - remove path extension options
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.web.accept.ContentNegotiationManagerFactoryBean setFavorPathExtension(boolean)
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.web.accept.ContentNegotiationManagerFactoryBean setIgnoreUnknownPathExtensions(boolean)
+  # PathPatternParser - remove trailing separator option
+  - org.openrewrite.java.RemoveMethodInvocations:
+      methodPattern: org.springframework.web.util.pattern.PathPatternParser setMatchOptionalTrailingSeparator(boolean)
