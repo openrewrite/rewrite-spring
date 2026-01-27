@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
+import lombok.Getter;
 import lombok.Value;
 import lombok.With;
 import org.openrewrite.ExecutionContext;
@@ -40,16 +41,12 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
             new MethodMatcher("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer#requireExplicitSave(boolean)");
     private static final String HTTP_SECURITY_TYPE = "org.springframework.security.config.annotation.web.builders.HttpSecurity";
 
-    @Override
-    public String getDisplayName() {
-        return "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in";
-    }
+    @Getter
+    final String displayName = "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in";
 
-    @Override
-    public String getDescription() {
-        return "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in as that is the new default in Spring Security 6. " +
-                "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
-    }
+    @Getter
+    final String description = "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in as that is the new default in Spring Security 6. " +
+            "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

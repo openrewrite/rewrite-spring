@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -34,15 +35,11 @@ public class RefactorSimpleMongoDbFactory extends Recipe {
 
     private static final String SIMPLE_MONGO_CLIENT_DB_FACTORY = "org.springframework.data.mongodb.core.SimpleMongoClientDbFactory";
 
-    @Override
-    public String getDisplayName() {
-        return "Use `new SimpleMongoClientDbFactory(String)`";
-    }
+    @Getter
+    final String displayName = "Use `new SimpleMongoClientDbFactory(String)`";
 
-    @Override
-    public String getDescription() {
-        return "Replace usage of deprecated `new SimpleMongoDbFactory(new MongoClientURI(String))` with `new SimpleMongoClientDbFactory(String)`.";
-    }
+    @Getter
+    final String description = "Replace usage of deprecated `new SimpleMongoDbFactory(new MongoClientURI(String))` with `new SimpleMongoClientDbFactory(String)`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

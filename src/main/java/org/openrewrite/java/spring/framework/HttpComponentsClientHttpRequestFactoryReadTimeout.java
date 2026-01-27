@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -39,15 +40,11 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
     // Known case we do not handle yet
     private static final MethodMatcher SET_DEFAULT_SOCKET_CONFIG = new MethodMatcher(POOLING_CONNECTION_MANAGER + " setDefaultSocketConfig(org.apache.hc.core5.http.io.SocketConfig)");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `setReadTimeout(java.lang.int)` to SocketConfig `setSoTimeout(..)`";
-    }
+    @Getter
+    final String displayName = "Migrate `setReadTimeout(java.lang.int)` to SocketConfig `setSoTimeout(..)`";
 
-    @Override
-    public String getDescription() {
-        return "`setReadTimeout(..)` was removed in Spring Framework 6.1.";
-    }
+    @Getter
+    final String description = "`setReadTimeout(..)` was removed in Spring Framework 6.1.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

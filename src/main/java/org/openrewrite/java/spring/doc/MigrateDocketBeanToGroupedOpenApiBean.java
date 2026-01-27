@@ -46,16 +46,12 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     private static final ArgumentExtractor PATHSELECTOR_ARGUMENT_EXTRACTOR = new ArgumentExtractor(Arrays.asList(new MethodMatcher("springfox.documentation.builders.PathSelectors any()", true), new MethodMatcher("springfox.documentation.builders.PathSelectors ant(..)", true)));
 
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `Docket` to `GroupedOpenAPI`";
-    }
+    @Getter
+    final String displayName = "Migrate `Docket` to `GroupedOpenAPI`";
 
-    @Override
-    public String getDescription() {
-        return "Migrate a `Docket` bean to a `GroupedOpenAPI` bean preserving group name, packages and paths. " +
-                "When possible the recipe will prefer property based configuration.";
-    }
+    @Getter
+    final String description = "Migrate a `Docket` bean to a `GroupedOpenAPI` bean preserving group name, packages and paths. " +
+            "When possible the recipe will prefer property based configuration.";
 
     @Override
     public DocketBeanAccumulator getInitialValue(ExecutionContext ctx) {

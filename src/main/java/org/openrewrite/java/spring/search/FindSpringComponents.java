@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.search;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
@@ -36,16 +37,12 @@ public class FindSpringComponents extends Recipe {
     transient SpringComponents springComponents = new SpringComponents(this);
     transient SpringComponentRelationships componentRelationships = new SpringComponentRelationships(this);
 
-    @Override
-    public String getDisplayName() {
-        return "Find Spring components";
-    }
+    @Getter
+    final String displayName = "Find Spring components";
 
-    @Override
-    public String getDescription() {
-        return "Find Spring components, including controllers, services, repositories, " +
-               "return types of `@Bean` annotated methods, etc.";
-    }
+    @Getter
+    final String description = "Find Spring components, including controllers, services, repositories, " +
+            "return types of `@Bean` annotated methods, etc.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -36,15 +36,9 @@ public class DeleteSpringProperty extends Recipe {
         example = "management.endpoint.configprops.*")
     String propertyKey;
 
-    @Override
-    public String getDisplayName() {
-        return "Delete a spring configuration property";
-    }
+    String displayName = "Delete a spring configuration property";
 
-    @Override
-    public String getDescription() {
-        return "Delete a spring configuration property from any configuration file that contains a matching key.";
-    }
+    String description = "Delete a spring configuration property from any configuration file that contains a matching key.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

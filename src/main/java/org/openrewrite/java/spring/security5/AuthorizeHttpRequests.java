@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.security5;
 
+import lombok.Getter;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
@@ -40,15 +41,11 @@ public class AuthorizeHttpRequests extends Recipe {
     private static final MethodMatcher MATCH_ACCESS_DECISION_MANAGER = new MethodMatcher(
             "org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer$AbstractInterceptUrlRegistry accessDecisionManager(..)");
 
-    @Override
-    public String getDisplayName() {
-        return "Replace `HttpSecurity.authorizeRequests(...)` with `HttpSecurity.authorizeHttpRequests(...)` and `ExpressionUrlAuthorizationConfigurer`, `AbstractInterceptUrlConfigurer` with `AuthorizeHttpRequestsConfigurer`, etc";
-    }
+    @Getter
+    final String displayName = "Replace `HttpSecurity.authorizeRequests(...)` with `HttpSecurity.authorizeHttpRequests(...)` and `ExpressionUrlAuthorizationConfigurer`, `AbstractInterceptUrlConfigurer` with `AuthorizeHttpRequestsConfigurer`, etc";
 
-    @Override
-    public String getDescription() {
-        return "Replace `HttpSecurity.authorizeRequests(...)` deprecated in Spring Security 6 with `HttpSecurity.authorizeHttpRequests(...)` and all method calls on the resultant object respectively. Replace deprecated `AbstractInterceptUrlConfigurer` and its deprecated subclasses with `AuthorizeHttpRequestsConfigurer` and its corresponding subclasses.";
-    }
+    @Getter
+    final String description = "Replace `HttpSecurity.authorizeRequests(...)` deprecated in Spring Security 6 with `HttpSecurity.authorizeHttpRequests(...)` and all method calls on the resultant object respectively. Replace deprecated `AbstractInterceptUrlConfigurer` and its deprecated subclasses with `AuthorizeHttpRequestsConfigurer` and its corresponding subclasses.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

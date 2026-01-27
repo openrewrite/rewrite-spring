@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -36,15 +37,11 @@ public class MigrateJobBuilderFactory extends Recipe {
     private static final MethodMatcher JOB_BUILDER_FACTORY = new MethodMatcher(
             "org.springframework.batch.core.configuration.annotation.JobBuilderFactory get(java.lang.String)");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `JobBuilderFactory` to `JobBuilder`";
-    }
+    @Getter
+    final String displayName = "Migrate `JobBuilderFactory` to `JobBuilder`";
 
-    @Override
-    public String getDescription() {
-        return "`JobBuilderFactory` was deprecated in spring-batch 5.x. It is replaced by `JobBuilder`.";
-    }
+    @Getter
+    final String description = "`JobBuilderFactory` was deprecated in spring-batch 5.x. It is replaced by `JobBuilder`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -27,15 +28,11 @@ public class ReplaceRestTemplateBuilderRequestFactoryMethod extends Recipe {
 
     private static final MethodMatcher REQUEST_FACTORY_MATCHER = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder requestFactory(java.util.function.Function)");
 
-    @Override
-    public String getDisplayName() {
-        return "Replace `RestTemplateBuilder.requestFactory(Function)` with `requestFactoryBuilder`";
-    }
+    @Getter
+    final String displayName = "Replace `RestTemplateBuilder.requestFactory(Function)` with `requestFactoryBuilder`";
 
-    @Override
-    public String getDescription() {
-        return "`RestTemplateBuilder.requestFactory(java.util.function.Function)` was deprecated since Spring Boot 3.4, in favor of `requestFactoryBuilder(ClientHttpRequestFactoryBuilder)`.";
-    }
+    @Getter
+    final String description = "`RestTemplateBuilder.requestFactory(java.util.function.Function)` was deprecated since Spring Boot 3.4, in favor of `requestFactoryBuilder(ClientHttpRequestFactoryBuilder)`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

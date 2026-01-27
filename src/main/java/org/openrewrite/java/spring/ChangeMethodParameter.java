@@ -68,15 +68,9 @@ public class ChangeMethodParameter extends Recipe {
         return String.format("`%s` in methods `%s`", parameterType, methodPattern);
     }
 
-    @Override
-    public String getDisplayName() {
-        return "Change parameter type for a method declaration";
-    }
+    String displayName = "Change parameter type for a method declaration";
 
-    @Override
-    public String getDescription() {
-        return "Change parameter type for a method declaration, identified by a method pattern.";
-    }
+    String description = "Change parameter type for a method declaration, identified by a method pattern.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

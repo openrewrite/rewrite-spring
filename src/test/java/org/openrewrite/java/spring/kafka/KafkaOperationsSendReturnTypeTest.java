@@ -34,7 +34,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
             "spring-beans-5",
             "spring-context-5",
             "spring-core-5",
-            "spring-kafka-2",
+            "spring-kafka-2.9",
             "spring-messaging-5"
           ));
     }
@@ -51,7 +51,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
               import org.springframework.kafka.support.SendResult;
               import org.springframework.util.concurrent.ListenableFuture;
               import org.springframework.util.concurrent.ListenableFutureCallback;
-              
+
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
                       ListenableFuture<SendResult<String,String>> future = kafkaOperations.send("topic", "key", "value");
@@ -60,7 +60,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
                           public void onSuccess(SendResult<String, String> result) {
                               System.out.println(result.getRecordMetadata());
                           }
-              
+
                           @Override
                           public void onFailure(Throwable ex) {
                               System.err.println(ex.getMessage());
@@ -72,9 +72,9 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
             """
               import org.springframework.kafka.core.KafkaOperations;
               import org.springframework.kafka.support.SendResult;
-              
+
               import java.util.concurrent.CompletableFuture;
-              
+
               class Foo {
                   void bar(KafkaOperations<String, String> kafkaOperations) {
                       CompletableFuture<SendResult<String,String>> future = kafkaOperations.send("topic", "key", "value");
@@ -103,7 +103,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
               import org.springframework.kafka.support.SendResult;
               import org.springframework.util.concurrent.ListenableFuture;
               import org.springframework.util.concurrent.ListenableFutureCallback;
-              
+
               class Foo {
                   void bar(KafkaTemplate<String, String> kafkaTemplate) {
                       ListenableFuture<SendResult<String,String>> future = kafkaTemplate.send("topic", "key", "value");
@@ -112,7 +112,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
                           public void onSuccess(SendResult<String, String> result) {
                               System.out.println(result.getRecordMetadata());
                           }
-              
+
                           @Override
                           public void onFailure(Throwable ex) {
                               System.err.println(ex.getMessage());
@@ -124,9 +124,9 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
             """
               import org.springframework.kafka.core.KafkaTemplate;
               import org.springframework.kafka.support.SendResult;
-              
+
               import java.util.concurrent.CompletableFuture;
-              
+
               class Foo {
                   void bar(KafkaTemplate<String, String> kafkaTemplate) {
                       CompletableFuture<SendResult<String,String>> future = kafkaTemplate.send("topic", "key", "value");
@@ -153,7 +153,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
             """
               import org.springframework.util.concurrent.ListenableFuture;
               import org.springframework.util.concurrent.ListenableFutureCallback;
-              
+
               class Foo {
                   void bar(ListenableFuture<String> future) {
                       future.addCallback(new ListenableFutureCallback<>() {
@@ -161,7 +161,7 @@ class KafkaOperationsSendReturnTypeTest implements RewriteTest {
                           public void onSuccess(String result) {
                               System.out.println(result);
                           }
-              
+
                           @Override
                           public void onFailure(Throwable ex) {
                               System.err.println(ex.getMessage());

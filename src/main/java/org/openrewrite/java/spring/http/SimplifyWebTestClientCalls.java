@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.http;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -35,15 +36,11 @@ public class SimplifyWebTestClientCalls extends Recipe {
 
     private static final MethodMatcher IS_EQUAL_TO_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(..)");
 
-    @Override
-    public String getDisplayName() {
-        return "Simplify WebTestClient expressions";
-    }
+    @Getter
+    final String displayName = "Simplify WebTestClient expressions";
 
-    @Override
-    public String getDescription() {
-        return "Simplifies various types of WebTestClient expressions to improve code readability.";
-    }
+    @Getter
+    final String description = "Simplifies various types of WebTestClient expressions to improve code readability.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

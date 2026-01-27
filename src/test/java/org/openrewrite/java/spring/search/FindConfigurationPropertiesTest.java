@@ -45,7 +45,7 @@ class FindConfigurationPropertiesTest implements RewriteTest {
                 .matches(row -> separatorsToSystem("test/MyProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.MyProperties".equals(row.getClassType()))
                 .matches(row -> "my.service".equals(row.getPrefix()));
-          }).cycles(1).expectedCyclesThatMakeChanges(1),
+          }),
           //language=java
           java(
             """
@@ -112,7 +112,7 @@ class FindConfigurationPropertiesTest implements RewriteTest {
                 .matches(row -> separatorsToSystem("test/ServerProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.ServerProperties".equals(row.getClassType()))
                 .matches(row -> "app.server".equals(row.getPrefix()));
-          }).cycles(1).expectedCyclesThatMakeChanges(1),
+          }),
           //language=java
           java(
             """
@@ -161,7 +161,7 @@ class FindConfigurationPropertiesTest implements RewriteTest {
                 .matches(row -> separatorsToSystem("test/DatabaseProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.DatabaseProperties".equals(row.getClassType()))
                 .matches(row -> "database.config".equals(row.getPrefix()));
-          }).cycles(1).expectedCyclesThatMakeChanges(1),
+          }),
           //language=java
           java(
             """
@@ -210,7 +210,7 @@ class FindConfigurationPropertiesTest implements RewriteTest {
                 .matches(row -> separatorsToSystem("test/KubernetesClientProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.KubernetesClientProperties".equals(row.getClassType()))
                 .matches(row -> "spring.cloud.kubernetes.client".equals(row.getPrefix()));
-          }).cycles(1).expectedCyclesThatMakeChanges(1).typeValidationOptions(TypeValidation.none()),
+          }).typeValidationOptions(TypeValidation.none()),
           //language=java
           java(
             """
@@ -263,7 +263,7 @@ class FindConfigurationPropertiesTest implements RewriteTest {
                 .matches(row -> separatorsToSystem("test/AppProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.AppProperties".equals(row.getClassType()))
                 .matches(row -> "app.config".equals(row.getPrefix()));
-          }).cycles(1).expectedCyclesThatMakeChanges(1).typeValidationOptions(TypeValidation.none()),
+          }).typeValidationOptions(TypeValidation.none()),
           //language=java
           java(
             """

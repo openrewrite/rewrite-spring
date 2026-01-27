@@ -65,16 +65,10 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
         HASH_WIDTH_TO_ALGORITHM_MAP = unmodifiableMap(map);
     }
 
-    @Override
-    public String getDisplayName() {
-        return "Use new `Pbkdf2PasswordEncoder` factory methods";
-    }
+    String displayName = "Use new `Pbkdf2PasswordEncoder` factory methods";
 
-    @Override
-    public String getDescription() {
-        return "In Spring Security 5.8 some `Pbkdf2PasswordEncoder` constructors have been deprecated in favor of factory methods. " +
+    String description = "In Spring Security 5.8 some `Pbkdf2PasswordEncoder` constructors have been deprecated in favor of factory methods. " +
                 "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_pbkdf2passwordencoder) for more information.";
-    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

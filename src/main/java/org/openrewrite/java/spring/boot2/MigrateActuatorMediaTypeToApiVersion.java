@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -28,16 +29,12 @@ import org.openrewrite.java.tree.TypeUtils;
 
 public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate deprecated `ActuatorMediaType` to `ApiVersion#getProducedMimeType`";
-    }
+    @Getter
+    final String displayName = "Migrate deprecated `ActuatorMediaType` to `ApiVersion#getProducedMimeType`";
 
-    @Override
-    public String getDescription() {
-        return "Spring Boot `ActuatorMediaType` was deprecated in 2.5 in favor of `ApiVersion#getProducedMimeType()`. " +
-                "Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`.";
-    }
+    @Getter
+    final String description = "Spring Boot `ActuatorMediaType` was deprecated in 2.5 in favor of `ApiVersion#getProducedMimeType()`. " +
+            "Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -59,8 +56,8 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
                                 apiVersion = "V3";
                             }
                             if (apiVersion != null) {
-                                maybeAddImport("org.springframework.boot.actuate.endpoint.ApiVersion");
                                 maybeRemoveImport("org.springframework.boot.actuate.endpoint.http.ActuatorMediaType");
+                                maybeAddImport("org.springframework.boot.actuate.endpoint.ApiVersion");
                                 maybeAddImport("org.springframework.http.MediaType");
                                 mi = JavaTemplate.builder("MediaType.asMediaType(ApiVersion.#{}.getProducedMimeType())")
                                     .javaParser(JavaParser.fromJavaVersion()

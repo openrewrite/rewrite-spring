@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.yaml.YamlIsoVisitor;
@@ -23,15 +24,11 @@ import org.openrewrite.yaml.tree.Yaml;
 
 @EqualsAndHashCode(callSuper = false)
 public class PropertiesToKebabCaseYaml extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Normalize Spring `application*.{yml,yaml}` properties to kebab-case";
-    }
+    @Getter
+    final String displayName = "Normalize Spring `application*.{yml,yaml}` properties to kebab-case";
 
-    @Override
-    public String getDescription() {
-        return "Normalize Spring `application*.{yml,yaml}` properties to kebab-case.";
-    }
+    @Getter
+    final String description = "Normalize Spring `application*.{yml,yaml}` properties to kebab-case.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

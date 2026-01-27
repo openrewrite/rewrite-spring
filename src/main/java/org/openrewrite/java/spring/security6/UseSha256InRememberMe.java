@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -38,16 +39,12 @@ public class UseSha256InRememberMe extends Recipe {
             new MethodMatcher("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices setMatchingAlgorithm(" +
                               REMEMBER_ME_TOKEN_ALGORITHM_TYPE.getFullyQualifiedName() + ")");
 
-    @Override
-    public String getDisplayName() {
-        return "Remove explicit configuration of SHA-256 as encoding and matching algorithm for `TokenBasedRememberMeServices`";
-    }
+    @Getter
+    final String displayName = "Remove explicit configuration of SHA-256 as encoding and matching algorithm for `TokenBasedRememberMeServices`";
 
-    @Override
-    public String getDescription() {
-        return "As of Spring Security 6.0 the SHA-256 algorithm is the default for the encoding and matching algorithm used by `TokenBasedRememberMeServices` and does thus no longer need to be explicitly configured. " +
-               "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#servlet-opt-in-sha256-rememberme) for details.";
-    }
+    @Getter
+    final String description = "As of Spring Security 6.0 the SHA-256 algorithm is the default for the encoding and matching algorithm used by `TokenBasedRememberMeServices` and does thus no longer need to be explicitly configured. " +
+            "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#servlet-opt-in-sha256-rememberme) for details.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

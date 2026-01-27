@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -29,16 +30,12 @@ import org.openrewrite.java.tree.J;
 public class MigrateClientHttpResponseGetRawStatusCodeMethod extends Recipe {
     private static final MethodMatcher MATCHER = new MethodMatcher("org.springframework.http.client.ClientHttpResponse getRawStatusCode()");
 
-    @Override
-    public String getDisplayName() {
-        return "Replaces deprecated `ClientHttpResponse#getRawStatusCode()`";
-    }
+    @Getter
+    final String displayName = "Replaces deprecated `ClientHttpResponse#getRawStatusCode()`";
 
-    @Override
-    public String getDescription() {
-        return "`ClientHttpResponse#getRawStatusCode()` was deprecated, so we replace it with `getStatusCode()`, " +
-                "though the return type has changed from `int` to `HttpStatusCode`, so we must account for that as well.";
-    }
+    @Getter
+    final String description = "`ClientHttpResponse#getRawStatusCode()` was deprecated, so we replace it with `getStatusCode()`, " +
+            "though the return type has changed from `int` to `HttpStatusCode`, so we must account for that as well.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

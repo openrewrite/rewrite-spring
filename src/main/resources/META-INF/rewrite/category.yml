@@ -59,3 +59,13 @@ packageName: org.openrewrite.java.spring.security5
 type: specs.openrewrite.org/v1beta/category
 name: Spring Security 6.x
 packageName: org.openrewrite.java.spring.security6
+---
+type: specs.openrewrite.org/v1beta/category
+name: AMQP
+packageName: org.openrewrite.java.spring.amqp
+description: Recipes for [Spring AMQP](https://spring.io/projects/spring-amqp) messaging.
+---
+type: specs.openrewrite.org/v1beta/category
+name: Spring Cloud 2024
+packageName: org.openrewrite.java.spring.cloud2024
+description: Recipes for migrating to Spring Cloud 2024.

@@ -17,6 +17,8 @@ package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -35,8 +37,14 @@ class MigrateToModularStartersTest implements RewriteTest {
           "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
         ).parser(JavaParser.fromJavaVersion()
           .classpathFromResources(new InMemoryExecutionContext(),
-            "spring-boot-autoconfigure-3", "spring-boot-3", "spring-boot-test-3",
-            "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6"));
+            "spring-boot-autoconfigure-3",
+            "spring-boot-3",
+            "spring-boot-test-3",
+            "spring-boot-test-autoconfigure-3",
+            "spring-beans-6",
+            "spring-context-6",
+            "spring-web-6",
+            "spring-core-6"));
     }
 
     @DocumentExample
@@ -63,7 +71,7 @@ class MigrateToModularStartersTest implements RewriteTest {
             spec -> spec.after(pom -> assertThat(pom)
               .doesNotContain("<artifactId>liquibase-core</artifactId>")
               .contains("<artifactId>spring-boot-starter-liquibase</artifactId>")
-              .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+              .containsPattern("<version>4\\.0\\.\\d+</version>")
               .actual())
           )
         );
@@ -92,7 +100,7 @@ class MigrateToModularStartersTest implements RewriteTest {
             spec -> spec.after(pom -> assertThat(pom)
               .doesNotContain("<artifactId>spring-security-test</artifactId>")
               .contains("<artifactId>spring-boot-starter-security-test</artifactId>")
-              .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+              .containsPattern("<version>4\\.0\\.\\d+</version>")
               .actual())
           )
         );
@@ -121,8 +129,36 @@ class MigrateToModularStartersTest implements RewriteTest {
             spec -> spec.after(pom -> assertThat(pom)
               .doesNotContain("<artifactId>spring-kafka</artifactId>")
               .contains("<artifactId>spring-boot-starter-kafka</artifactId>")
-              .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+              .containsPattern("<version>4\\.0\\.\\d+</version>")
               .actual())
+          )
+        );
+    }
+
+    @Test
+    void migrateSpringBootPersistencePackages() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.boot.autoconfigure.domain.EntityScan;
+
+              @Configuration
+              @EntityScan("x.y.z")
+              class PersistenceConfig {
+              }
+              """
+            ,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.boot.persistence.autoconfigure.EntityScan;
+
+              @Configuration
+              @EntityScan("x.y.z")
+              class PersistenceConfig {
+              }
+              """
           )
         );
     }
@@ -148,7 +184,7 @@ class MigrateToModularStartersTest implements RewriteTest {
                     """,
                   spec -> spec.after(pom -> assertThat(pom)
                     .contains("<artifactId>spring-boot-starter-restclient</artifactId>")
-                    .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                    .containsPattern("<version>4\\.0\\.\\d+</version>")
                     .actual())
                 ),
                 srcMainJava(
@@ -185,7 +221,7 @@ class MigrateToModularStartersTest implements RewriteTest {
                     """,
                   spec -> spec.after(pom -> assertThat(pom)
                     .contains("<artifactId>spring-boot-starter-restclient</artifactId>")
-                    .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                    .containsPattern("<version>4\\.0\\.\\d+</version>")
                     .actual())
                 ),
                 srcMainJava(
@@ -222,7 +258,7 @@ class MigrateToModularStartersTest implements RewriteTest {
                     """,
                   spec -> spec.after(pom -> assertThat(pom)
                     .contains("<artifactId>spring-boot-starter-restclient</artifactId>")
-                    .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                    .containsPattern("<version>4\\.0\\.\\d+</version>")
                     .actual())
                 ),
                 srcMainJava(
@@ -268,7 +304,7 @@ class MigrateToModularStartersTest implements RewriteTest {
               spec -> spec.after(pom -> assertThat(pom)
                 .contains("<artifactId>spring-boot-resttestclient</artifactId>")
                 .contains("<scope>test</scope>")
-                .containsPattern("<version>4\\.0\\.\\d+<\\/version>")
+                .containsPattern("<version>4\\.0\\.\\d+</version>")
                 .actual())
             ),
             srcTestJava(
@@ -294,27 +330,128 @@ class MigrateToModularStartersTest implements RewriteTest {
         );
     }
 
-    @Test
-    void migrateSecurityPropertiesConstants() {
+    @Nested
+    class MigrateAutoconfigurePackages {
+        @Test
+        void migrateSecurityPropertiesConstants() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.security.SecurityProperties;
+
+                  class A {
+                      private final int basicOrder = SecurityProperties.BASIC_AUTH_ORDER;
+                      private final int defaultOrder = SecurityProperties.DEFAULT_FILTER_ORDER;
+                  }
+                  """,
+                """
+                  import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
+
+                  class A {
+                      private final int basicOrder = SecurityFilterProperties.BASIC_AUTH_ORDER;
+                      private final int defaultOrder = SecurityFilterProperties.DEFAULT_FILTER_ORDER;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void migrateSpringBootWebtestclient() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import java.util.Collections;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.SpringBootWebTestClientBuilderCustomizer;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.WebTestClientAutoConfiguration;
+                  import org.springframework.boot.test.web.reactive.server.WebTestClientBuilderCustomizer;
+
+                  @AutoConfigureWebTestClient
+                  class WebClientTest {
+                      private final WebTestClientAutoConfiguration webTestClientAutoConfiguration = new WebTestClientAutoConfiguration();
+                      private final SpringBootWebTestClientBuilderCustomizer springBootWebTestClientBuilderCustomizer = new SpringBootWebTestClientBuilderCustomizer(Collections.emptyList());
+                      private final WebTestClientBuilderCustomizer webTestClientBuilderCustomizer = builder -> {};
+                  }
+                  """
+                ,
+                """
+                  import java.util.Collections;
+                  import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+                  import org.springframework.boot.webtestclient.autoconfigure.SpringBootWebTestClientBuilderCustomizer;
+                  import org.springframework.boot.webtestclient.autoconfigure.WebTestClientAutoConfiguration;
+                  import org.springframework.boot.webtestclient.autoconfigure.WebTestClientBuilderCustomizer;
+
+                  @AutoConfigureWebTestClient
+                  class WebClientTest {
+                      private final WebTestClientAutoConfiguration webTestClientAutoConfiguration = new WebTestClientAutoConfiguration();
+                      private final SpringBootWebTestClientBuilderCustomizer springBootWebTestClientBuilderCustomizer = new SpringBootWebTestClientBuilderCustomizer(Collections.emptyList());
+                      private final WebTestClientBuilderCustomizer webTestClientBuilderCustomizer = builder -> {};
+                  }
+                  """
+              )
+            );
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"flyway-database-postgresql", "flyway-mysql"})
+    void addFlywayStarterWhenDependencyPresent(String artifactId) {
         rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.autoconfigure.security.SecurityProperties;
-
-              class A {
-                  private final int basicOrder = SecurityProperties.BASIC_AUTH_ORDER;
-                  private final int defaultOrder = SecurityProperties.DEFAULT_FILTER_ORDER;
-              }
-              """,
-            """
-              import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
-
-              class A {
-                  private final int basicOrder = SecurityFilterProperties.BASIC_AUTH_ORDER;
-                  private final int defaultOrder = SecurityFilterProperties.DEFAULT_FILTER_ORDER;
-              }
+          mavenProject("sample",
+            pomXml(
               """
+                <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>org.sample</groupId>
+                  <artifactId>sample</artifactId>
+                  <version>1.0.0</version>
+                  <packaging>pom</packaging>
+                  <modules>
+                    <module>sample-module</module>
+                  </modules>
+                </project>
+                """
+            ),
+            mavenProject("sample-module",
+              srcMainJava(
+                java(
+                  """
+                    class AnyClass {
+                        String s = "";
+                    }
+                    """
+                )
+              ),
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.sample</groupId>
+                        <artifactId>sample</artifactId>
+                        <version>1.0.0</version>
+                    </parent>
+                    <artifactId>sample-module</artifactId>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>%s</artifactId>
+                        <version>10.0.0</version>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """.formatted(artifactId),
+                spec -> spec.after(pom -> assertThat(pom)
+                  .contains("<groupId>org.flywaydb</groupId>")
+                  .contains("<artifactId>%s</artifactId>".formatted(artifactId))
+                  .contains("<artifactId>spring-boot-starter-flyway</artifactId>")
+                  .containsPattern("<version>4\\.0\\.\\d+</version>")
+                  .actual())
+              )
+            )
           )
         );
     }

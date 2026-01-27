@@ -347,6 +347,31 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.RenameBean
 examples:
+- description: '`BeanClasses#impliedName`'
+  parameters:
+  - sample.Foo
+  - foo
+  - bar
+  sources:
+  - before: |
+      package sample;
+
+      import org.springframework.context.annotation.Configuration;
+      import sample.MyType;
+
+      @Configuration
+      class Foo {
+      }
+    after: |
+      package sample;
+
+      import org.springframework.context.annotation.Configuration;
+      import sample.MyType;
+
+      @Configuration
+      class Bar {
+      }
+    language: java
 - description: '`BeanMethods#impliedName`'
   parameters: &id001
   - sample.MyType
@@ -376,31 +401,6 @@ examples:
           public MyType bar() {
               return new MyType();
           }
-      }
-    language: java
-- description: '`BeanClasses#impliedName`'
-  parameters:
-  - sample.Foo
-  - foo
-  - bar
-  sources:
-  - before: |
-      package sample;
-
-      import org.springframework.context.annotation.Configuration;
-      import sample.MyType;
-
-      @Configuration
-      class Foo {
-      }
-    after: |
-      package sample;
-
-      import org.springframework.context.annotation.Configuration;
-      import sample.MyType;
-
-      @Configuration
-      class Bar {
       }
     language: java
 - description: '`Usages#parameterUsage`'
@@ -1696,6 +1696,66 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.UpgradeSpockToGroovy3
+examples:
+- description: '`UpgradeSpockToGroovy3Test#upgradeSpockWhenUsingGroovy3Maven`'
+  sources:
+  - before: |
+      <project>
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>com.example</groupId>
+        <artifactId>demo</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>3.0.9</version>
+          </dependency>
+          <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-core</artifactId>
+            <version>1.3-groovy-2.5</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-spring</artifactId>
+            <version>1.3-groovy-2.5</version>
+            <scope>test</scope>
+          </dependency>
+        </dependencies>
+      </project>
+    after: |
+      <project>
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>com.example</groupId>
+        <artifactId>demo</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>3.0.9</version>
+          </dependency>
+          <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-core</artifactId>
+            <version>2.0-groovy-3.0</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-spring</artifactId>
+            <version>2.0-groovy-3.0</version>
+            <scope>test</scope>
+          </dependency>
+        </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0
 examples:
 - description: '`Boot2UpgradeTest#addJavaxValidationApi`'
@@ -1722,7 +1782,7 @@ examples:
   - before: project
     language: mavenProject
   - before: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -1747,7 +1807,7 @@ examples:
         </dependencies>
       </project>
     after: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -1801,7 +1861,7 @@ examples:
   - before: project
     language: mavenProject
   - before: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -1826,7 +1886,7 @@ examples:
         </dependencies>
       </project>
     after: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -1860,40 +1920,6 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
 examples:
-- description: '`Maven#switchArtifactIdAndUpdateVersionNumber`'
-  sources:
-  - before: |
-      <project>
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>com.example</groupId>
-        <artifactId>demo</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <dependencies>
-          <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.30</version>
-            <scope>runtime</scope>
-          </dependency>
-        </dependencies>
-      </project>
-    after: |
-      <project>
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>com.example</groupId>
-        <artifactId>demo</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <dependencies>
-          <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>8.0.33</version>
-            <scope>runtime</scope>
-          </dependency>
-        </dependencies>
-      </project>
-    path: pom.xml
-    language: xml
 - description: '`Gradle#switchArtifactIdAndUpdateVersionNumber`'
   sources:
   - before: |
@@ -1928,6 +1954,40 @@ examples:
       }
     path: build.gradle
     language: groovy
+- description: '`Maven#switchArtifactIdAndUpdateVersionNumber`'
+  sources:
+  - before: |
+      <project>
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>com.example</groupId>
+        <artifactId>demo</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <dependencies>
+          <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.30</version>
+            <scope>runtime</scope>
+          </dependency>
+        </dependencies>
+      </project>
+    after: |
+      <project>
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>com.example</groupId>
+        <artifactId>demo</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.0.33</version>
+            <scope>runtime</scope>
+          </dependency>
+        </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
@@ -2036,8 +2096,7 @@ examples:
     path: application.properties
     language: properties
   - before: |
-      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
           <modelVersion>4.0.0</modelVersion>
           <parent>
               <groupId>org.springframework.boot</groupId>
@@ -2167,9 +2226,9 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.ConfigurationOverEnableSecurity
 examples:
-- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurity`'
+- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurityForceAdd`'
   parameters:
-  - 'false'
+  - 'true'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -2184,9 +2243,9 @@ examples:
       @EnableWebSecurity
       class A {}
     language: java
-- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurityForceAdd`'
+- description: '`ConfigurationOverEnableSecurityTest#enableWebSecurity`'
   parameters:
-  - 'true'
+  - 'false'
   sources:
   - before: |
       import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -2832,7 +2891,7 @@ examples:
   - before: project
     language: mavenProject
   - before: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -2865,7 +2924,7 @@ examples:
         </dependencies>
       </project>
     after: |
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
         <modelVersion>4.0.0</modelVersion>
         <groupId>org.springframework.samples</groupId>
         <artifactId>spring-petclinic</artifactId>
@@ -2913,8 +2972,7 @@ examples:
   - before: project
     language: mavenProject
   - before: |
-      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <project>
           <modelVersion>4.0.0</modelVersion>
           <groupId>com.example</groupId>
           <artifactId>fooservice</artifactId>
@@ -2993,6 +3051,53 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
+examples:
+- description: '`AddAutoConfigureTestRestTemplateTest#shouldAddAnnotationIfTypeIsUsed`'
+  sources:
+  - before: |
+      import org.springframework.boot.resttestclient.TestRestTemplate;
+      import org.springframework.boot.test.context.SpringBootTest;
+
+      @SpringBootTest
+      class ExampleTest {
+          TestRestTemplate testRestTemplate;
+      }
+    after: |
+      import org.springframework.boot.resttestclient.TestRestTemplate;
+      import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
+      import org.springframework.boot.test.context.SpringBootTest;
+
+      @AutoConfigureTestRestTemplate
+      @SpringBootTest
+      class ExampleTest {
+          TestRestTemplate testRestTemplate;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.MigrateToModularStarters
+examples:
+- description: '`MigrateToModularStartersTest#migrateLiquibaseToStarterInMaven`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>org.example</groupId>
+          <artifactId>example</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.liquibase</groupId>
+                  <artifactId>liquibase-core</artifactId>
+                  <version>4.24.0</version>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
 examples:
 - description: '`ReplaceMockBeanAndSpyBeanTest#replacesMockBeanWithMockitoBean`'
@@ -3050,8 +3155,7 @@ examples:
     path: src/main/resources/application.properties
     language: properties
   - before: |2
-          <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+          <project>
           <modelVersion>4.0.0</modelVersion>
           <groupId>com.example</groupId>
           <artifactId>explicit-deps-app</artifactId>
@@ -3718,20 +3822,16 @@ examples:
       import org.springframework.jdbc.core.JdbcTemplate;
       import java.util.List;
 
-      public class MyDao {
+      class MyDao {
 
-          final JdbcTemplate jdbcTemplate;
+          JdbcTemplate jdbcTemplate;
 
-          public MyDao(JdbcTemplate jdbcTemplate) {
-              this.jdbcTemplate = jdbcTemplate;
-          }
-
-          public User getUser(String first, String last) {
+          User getUser(String first, String last) {
               Object[] args = new Object[]{first, last};
               return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, User.class);
           }
 
-          public User getUser2(String first, String last) {
+          User getUser2(String first, String last) {
               Object[] args = new Object[]{first, last};
                return jdbcTemplate.queryForObject("", args, (resultSet, i) -> {
                   User user = new User();
@@ -3746,20 +3846,16 @@ examples:
       import org.springframework.jdbc.core.JdbcTemplate;
       import java.util.List;
 
-      public class MyDao {
+      class MyDao {
 
-          final JdbcTemplate jdbcTemplate;
+          JdbcTemplate jdbcTemplate;
 
-          public MyDao(JdbcTemplate jdbcTemplate) {
-              this.jdbcTemplate = jdbcTemplate;
-          }
-
-          public User getUser(String first, String last) {
+          User getUser(String first, String last) {
               Object[] args = new Object[]{first, last};
               return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, args);
           }
 
-          public User getUser2(String first, String last) {
+          User getUser2(String first, String last) {
               Object[] args = new Object[]{first, last};
                return jdbcTemplate.queryForObject("", (resultSet, i) -> {
                   User user = new User();
@@ -4302,6 +4398,65 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_2_8_ErrorHandlers
+examples:
+- description: '`UpgradeSpringKafkaErrorHandlersTest#migratesSeekToCurrentErrorHandler`'
+  sources:
+  - before: |
+      import java.lang.Exception;
+      import java.util.List;
+
+      import org.apache.kafka.clients.consumer.Consumer;
+      import org.apache.kafka.clients.consumer.ConsumerRecord;
+      import org.springframework.kafka.config.AbstractKafkaListenerContainerFactory;
+      import org.springframework.kafka.listener.MessageListenerContainer;
+      import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
+
+      class A {
+          private final SeekToCurrentErrorHandler handler = new SeekToCurrentErrorHandler();
+
+          void method(AbstractKafkaListenerContainerFactory factory) {
+              factory.setErrorHandler(handler);
+          }
+
+          void anotherMethod(
+            Exception exception,
+            List<ConsumerRecord<?,?>> records,
+            Consumer<?,?> consumer,
+            MessageListenerContainer container
+          ) {
+              handler.handle(exception, records, consumer, container);
+          }
+      }
+    after: |
+      import java.lang.Exception;
+      import java.util.List;
+
+      import org.apache.kafka.clients.consumer.Consumer;
+      import org.apache.kafka.clients.consumer.ConsumerRecord;
+      import org.springframework.kafka.config.AbstractKafkaListenerContainerFactory;
+      import org.springframework.kafka.listener.DefaultErrorHandler;
+      import org.springframework.kafka.listener.MessageListenerContainer;
+
+      class A {
+          private final DefaultErrorHandler handler = new DefaultErrorHandler();
+
+          void method(AbstractKafkaListenerContainerFactory factory) {
+              factory.setCommonErrorHandler(handler);
+          }
+
+          void anotherMethod(
+            Exception exception,
+            List<ConsumerRecord<?,?>> records,
+            Consumer<?,?> consumer,
+            MessageListenerContainer container
+          ) {
+              handler.handleRemaining(exception, records, consumer, container);
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_3_0
 examples:
 - description: '`KafkaOperationsSendReturnTypeTest#changeKafkaOperationsSendReturnType`'
@@ -4371,6 +4526,125 @@ examples:
           void bar(KafkaOperations<String, String> kafkaOperations) {
               KafkaOperations<String, String> k2 = kafkaOperations;
           }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
+examples:
+- description: '`UpgradeSpringKafka40Test#migrateJackson2ToJackson3`'
+  sources:
+  - before: |
+      import org.springframework.kafka.support.*;
+      import org.springframework.kafka.support.converter.*;
+      import org.springframework.kafka.support.mapping.*;
+      import org.springframework.kafka.support.serializer.*;
+
+      class Test {
+          DefaultKafkaHeaderMapper mapper = new DefaultKafkaHeaderMapper();
+          JsonMessageConverter converter = new JsonMessageConverter();
+          ProjectingMessageConverter projectingConverter = new ProjectingMessageConverter();
+          ByteArrayJsonMessageConverter byteArrayJsonMessageConverter = new ByteArrayJsonMessageConverter();
+          BytesJsonMessageConverter bytesJsonMessageConverter = new BytesJsonMessageConverter();
+          StringJsonMessageConverter stringJsonMessageConverter = new StringJsonMessageConverter();
+          DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+          JsonDeserializer<String> deserializer = new JsonDeserializer<>();
+          JsonSerde<String> serde = new JsonSerde<>();
+          JsonSerializer<String> serializer = new JsonSerializer<>();
+      }
+    after: |
+      import org.springframework.kafka.support.*;
+      import org.springframework.kafka.support.converter.*;
+      import org.springframework.kafka.support.mapping.*;
+      import org.springframework.kafka.support.serializer.*;
+
+      class Test {
+          JsonKafkaHeaderMapper mapper = new JsonKafkaHeaderMapper();
+          JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter();
+          JacksonProjectingMessageConverter projectingConverter = new JacksonProjectingMessageConverter();
+          ByteArrayJacksonJsonMessageConverter byteArrayJsonMessageConverter = new ByteArrayJacksonJsonMessageConverter();
+          BytesJacksonJsonMessageConverter bytesJsonMessageConverter = new BytesJacksonJsonMessageConverter();
+          StringJacksonJsonMessageConverter stringJsonMessageConverter = new StringJacksonJsonMessageConverter();
+          DefaultJacksonJavaTypeMapper typeMapper = new DefaultJacksonJavaTypeMapper();
+          JacksonJsonDeserializer<String> deserializer = new JacksonJsonDeserializer<>();
+          JacksonJsonSerde<String> serde = new JacksonJsonSerde<>();
+          JacksonJsonSerializer<String> serializer = new JacksonJsonSerializer<>();
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.opentelemetry.MigrateDatadogToOpenTelemetry
+examples:
+- description: '`MigrateDatadogToOpenTelemetryTest#migrateDatadogTracer`'
+  sources:
+  - before: |
+      import datadog.trace.api.Tracer;
+
+      class TracingService {
+          Tracer tracer;
+      }
+    after: |
+      import io.opentelemetry.api.trace.Tracer;
+
+      class TracingService {
+          Tracer tracer;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.opentelemetry.MigrateOpenTracingToOpenTelemetry
+examples:
+- description: '`MigrateOpenTracingToOpenTelemetryTest#migrateTracer`'
+  sources:
+  - before: |
+      import io.opentracing.Tracer;
+
+      class OpenTracingService {
+          Tracer tracer;
+      }
+    after: |
+      import io.opentelemetry.api.trace.Tracer;
+
+      class OpenTracingService {
+          Tracer tracer;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.opentelemetry.MigrateSleuthToOpenTelemetry
+examples:
+- description: '`MigrateSleuthAnnotationsToOpenTelemetryTest#migrateNewSpanToWithSpan`'
+  sources:
+  - before: |
+      import org.springframework.cloud.sleuth.annotation.NewSpan;
+
+      class TracedService {
+          @NewSpan
+          public void tracedMethod() {
+          }
+      }
+    after: |
+      import io.opentelemetry.instrumentation.annotations.WithSpan;
+
+      class TracedService {
+          @WithSpan
+          public void tracedMethod() {
+          }
+      }
+    language: java
+- description: '`MigrateSleuthApiToMicrometerTracingTest#migrateTracerImport`'
+  sources:
+  - before: |
+      import org.springframework.cloud.sleuth.Tracer;
+
+      class TracingService {
+          Tracer tracer;
+      }
+    after: |
+      import io.micrometer.tracing.Tracer;
+
+      class TracingService {
+          Tracer tracer;
       }
     language: java
 ---
@@ -4491,6 +4765,63 @@ examples:
               this.url = url;
           }
       }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.search.FindSpringComponents
+examples:
+- description: '`FindSpringComponentsTest#findSpringComponents`'
+  sources:
+  - before: |
+      package test;
+
+      class A {
+          public A(B b) {}
+      }
+    language: java
+  - before: |
+      package test;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Configuration;
+
+      @Configuration
+      class Config {
+          @Bean
+          A a(B b) {
+              return new A(b);
+          }
+      }
+    after: |
+      package test;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Configuration;
+
+      @Configuration
+      class Config {
+          /*~~(bean)~~>*/@Bean
+          A a(B b) {
+              return new A(b);
+          }
+      }
+    language: java
+  - before: |
+      package test;
+      import org.springframework.stereotype.Component;
+
+      @Component
+      class C {
+          public C(B b) {}
+      }
+    after: |
+      package test;
+      import org.springframework.stereotype.Component;
+
+      /*~~(component)~~>*/@Component
+      class C {
+          public C(B b) {}
+      }
+    language: java
+  - before: package test; public class B {}
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example

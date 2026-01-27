@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -32,15 +33,11 @@ public class NoRepoAnnotationOnRepoInterface extends Recipe {
     private static final String INTERFACE_REPOSITORY = "org.springframework.data.repository.Repository";
     private static final String ANNOTATION_REPOSITORY = "org.springframework.stereotype.Repository";
 
-    @Override
-    public String getDisplayName() {
-        return "Remove unnecessary `@Repository` annotation from Spring Data `Repository` sub-interface";
-    }
+    @Getter
+    final String displayName = "Remove unnecessary `@Repository` annotation from Spring Data `Repository` sub-interface";
 
-    @Override
-    public String getDescription() {
-        return "Removes superfluous `@Repository` annotation from Spring Data `Repository` sub-interfaces.";
-    }
+    @Getter
+    final String description = "Removes superfluous `@Repository` annotation from Spring Data `Repository` sub-interfaces.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

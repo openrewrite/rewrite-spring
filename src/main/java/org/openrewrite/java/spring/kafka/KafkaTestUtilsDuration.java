@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.kafka;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -34,15 +35,11 @@ public class KafkaTestUtilsDuration extends Recipe {
     private static final MethodMatcher LAST_ARGUMENT_MATCHER = new MethodMatcher("org.springframework.kafka.test.utils.KafkaTestUtils get*Record*(.., long)");
     private static final MethodMatcher SECOND_ARGUMENT_MATCHER = new MethodMatcher("org.springframework.kafka.test.utils.KafkaTestUtils getRecords(.., long, int)");
 
-    @Override
-    public String getDisplayName() {
-        return "Use `Duration` in `KafkaTestUtils`";
-    }
+    @Getter
+    final String displayName = "Use `Duration` in `KafkaTestUtils`";
 
-    @Override
-    public String getDescription() {
-        return "Replace `KafkaTestUtils` methods that take a `long` argument with methods that take a `Duration`.";
-    }
+    @Getter
+    final String description = "Replace `KafkaTestUtils` methods that take a `long` argument with methods that take a `Duration`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -32,16 +33,12 @@ public class PropagateAuthenticationServiceExceptions extends Recipe {
 
     private static final MethodMatcher MATCHER = new MethodMatcher("org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler setRethrowAuthenticationServiceException(boolean)");
 
-    @Override
-    public String getDisplayName() {
-        return "Remove calls matching `AuthenticationEntryPointFailureHandler.setRethrowAuthenticationServiceException(true)`";
-    }
+    @Getter
+    final String displayName = "Remove calls matching `AuthenticationEntryPointFailureHandler.setRethrowAuthenticationServiceException(true)`";
 
-    @Override
-    public String getDescription() {
-        return "Remove any calls matching `AuthenticationEntryPointFailureHandler.setRethrowAuthenticationServiceException(true)`. " +
-               "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#_propagate_authenticationserviceexceptions) for details.";
-    }
+    @Getter
+    final String description = "Remove any calls matching `AuthenticationEntryPointFailureHandler.setRethrowAuthenticationServiceException(true)`. " +
+            "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#_propagate_authenticationserviceexceptions) for details.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.Tree;
@@ -37,20 +38,16 @@ public class AddRouteTrailingSlash extends Recipe {
     private static final String PATCH_ANNOTATION_TYPE = "org.springframework.web.bind.annotation.PatchMapping";
     private static final String DELETE_ANNOTATION_TYPE = "org.springframework.web.bind.annotation.DeleteMapping";
 
-    @Override
-    public String getDisplayName() {
-        return "Add trailing slash to Spring routes";
-    }
+    @Getter
+    final String displayName = "Add trailing slash to Spring routes";
 
-    @Override
-    public String getDescription() {
-        return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing " +
-               "slash matching configuration option has been deprecated and its default value set to false. This " +
-               "means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both `GET " +
-               "/some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` anymore by " +
-               "default and will result in an HTTP 404 error. This recipe is to add declaration of additional route " +
-               "explicitly on the controller handler (like `@GetMapping(\"/some/greeting\", \"/some/greeting/\")`.";
-    }
+    @Getter
+    final String description = "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing " +
+            "slash matching configuration option has been deprecated and its default value set to false. This " +
+            "means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both `GET " +
+            "/some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` anymore by " +
+            "default and will result in an HTTP 404 error. This recipe is to add declaration of additional route " +
+            "explicitly on the controller handler (like `@GetMapping(\"/some/greeting\", \"/some/greeting/\")`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

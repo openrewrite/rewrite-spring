@@ -69,15 +69,9 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
         add(FQN_COMPONENT);
     }};
 
-    @Override
-    public String getDisplayName() {
-        return "Rename bean";
-    }
+    String displayName = "Rename bean";
 
-    @Override
-    public String getDescription() {
-        return "Renames a Spring bean, both declaration and references.";
-    }
+    String description = "Renames a Spring bean, both declaration and references.";
 
     @Override
     public List<TreeVisitor<?, ExecutionContext>> getInitialValue(ExecutionContext ctx) {

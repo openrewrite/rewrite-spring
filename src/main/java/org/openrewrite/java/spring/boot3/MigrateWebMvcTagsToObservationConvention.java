@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -59,15 +60,11 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
     private static final MethodMatcher TAGS_OF_TAG_ITERABLE = new MethodMatcher("io.micrometer.core.instrument.Tags of(java.lang.Iterable)");
     private static final MethodMatcher TAGS_OF_ANY = new MethodMatcher("io.micrometer.core.instrument.Tags of(..)");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `WebMvcTagsProvider` to `DefaultServerRequestObservationConvention`";
-    }
+    @Getter
+    final String displayName = "Migrate `WebMvcTagsProvider` to `DefaultServerRequestObservationConvention`";
 
-    @Override
-    public String getDescription() {
-        return "Migrate `WebMvcTagsProvider` to `DefaultServerRequestObservationConvention` as part of Spring Boot 3.2 removals.";
-    }
+    @Getter
+    final String description = "Migrate `WebMvcTagsProvider` to `DefaultServerRequestObservationConvention` as part of Spring Boot 3.2 removals.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -131,16 +128,16 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     }
                                     return stmt;
                                 })));
-                        maybeAddImport(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ);
-                        maybeAddImport(KEYVALUE_FQ);
-                        maybeAddImport(KEYVALUES_FQ);
                         maybeRemoveImport(HTTPSERVLETREQUEST_FQ);
-                        maybeAddImport(SERVERREQUESTOBSERVATIONCONVENTION_FQ);
                         maybeRemoveImport(HTTPSERVLETRESPONSE_FQ);
                         maybeRemoveImport(TAG_FQ);
                         maybeRemoveImport(TAGS_FQ);
                         maybeRemoveImport(WEBMVCTAGS_FQ);
                         maybeRemoveImport(WEBMVCTAGSPROVIDER_FQ);
+                        maybeAddImport(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ);
+                        maybeAddImport(KEYVALUE_FQ);
+                        maybeAddImport(KEYVALUES_FQ);
+                        maybeAddImport(SERVERREQUESTOBSERVATIONCONVENTION_FQ);
                         updateCursor(newClassDeclaration);
                         return (J.ClassDeclaration) super.visitClassDeclaration(newClassDeclaration, ctx);
                     }

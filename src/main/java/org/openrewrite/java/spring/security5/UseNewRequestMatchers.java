@@ -41,17 +41,11 @@ public class UseNewRequestMatchers extends Recipe {
     private static final MethodMatcher REGEX_MATCHERS = new MethodMatcher(CLAZZ + " regexMatchers(..)");
     private static final MethodMatcher CSRF_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.CsrfConfigurer ignoringAntMatchers(..)");
 
-    @Override
-    public String getDisplayName() {
-        return "Use the new `requestMatchers` methods";
-    }
+    String displayName = "Use the new `requestMatchers` methods";
 
-    @Override
-    public String getDescription() {
-        return "In Spring Security 5.8, the `antMatchers`, `mvcMatchers`, and `regexMatchers` methods were deprecated " +
+    String description = "In Spring Security 5.8, the `antMatchers`, `mvcMatchers`, and `regexMatchers` methods were deprecated " +
                 "in favor of new `requestMatchers` methods. Refer to the [Spring Security docs](https://docs.spring.io/spring-security/reference/5.8/migration/servlet/config.html#use-new-requestmatchers) " +
                 "for more information.";
-    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

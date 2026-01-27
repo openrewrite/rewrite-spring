@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -36,23 +37,15 @@ public class MigrateQueryToNativeQuery extends Recipe {
     private static final String DATA_JPA_NATIVE_QUERY_FQN = "org.springframework.data.jpa.repository.NativeQuery";
     private static final Annotated.Matcher MATCHER = new Annotated.Matcher("@" + DATA_JPA_QUERY_FQN + "(nativeQuery=true)");
 
-    @Override
-    public String getDisplayName() {
-        // language=markdown
-        return "Replace `@Query` annotation by `@NativeQuery` when possible";
-    }
+    @Getter
+    final String displayName = "Replace `@Query` annotation by `@NativeQuery` when possible";
 
-    @Override
-    public String getDescription() {
-        // language=markdown
-        return "Replace `@Query` annotation by `@NativeQuery` when `nativeQuery = true`. " +
-                "`@NativeQuery` was introduced in Spring Data JPA 3.4.";
-    }
+    @Getter
+    final String description = "Replace `@Query` annotation by `@NativeQuery` when `nativeQuery = true`. " +
+            "`@NativeQuery` was introduced in Spring Data JPA 3.4.";
 
-    @Override
-    public Duration getEstimatedEffortPerOccurrence() {
-        return Duration.ofMinutes(2);
-    }
+    @Getter
+    final Duration estimatedEffortPerOccurrence = Duration.ofMinutes(2);
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

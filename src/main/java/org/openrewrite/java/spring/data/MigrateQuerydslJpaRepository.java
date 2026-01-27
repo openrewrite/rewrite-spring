@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -32,15 +33,11 @@ import org.openrewrite.java.tree.TypeUtils;
 
 public class MigrateQuerydslJpaRepository extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Use `QuerydslPredicateExecutor<T>`";
-    }
+    @Getter
+    final String displayName = "Use `QuerydslPredicateExecutor<T>`";
 
-    @Override
-    public String getDescription() {
-        return "`QuerydslJpaRepository<T, ID extends Serializable>` was deprecated in Spring Data 2.1.";
-    }
+    @Getter
+    final String description = "`QuerydslJpaRepository<T, ID extends Serializable>` was deprecated in Spring Data 2.1.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

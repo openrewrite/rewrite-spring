@@ -35,18 +35,11 @@ public class FindApiEndpoints extends Recipe {
 
     transient ApiEndpoints apis = new ApiEndpoints(this);
 
-    @Override
-    public String getDisplayName() {
-        return "Find Spring API endpoints";
-    }
+    String displayName = "Find Spring API endpoints";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Find all HTTP API endpoints exposed by Spring applications. " +
+    String description = "Find all HTTP API endpoints exposed by Spring applications. " +
                 "More specifically, this marks method declarations annotated with `@RequestMapping`, `@GetMapping`, " +
                 "`@PostMapping`, `@PutMapping`, `@DeleteMapping`, and `@PatchMapping` as search results.";
-    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

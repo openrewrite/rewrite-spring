@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.http;
 
+import lombok.Getter;
 import org.openrewrite.Recipe;
 import org.openrewrite.java.ReplaceStringLiteralWithConstant;
 
@@ -90,15 +91,11 @@ public class ReplaceStringLiteralsWithHttpHeadersConstants extends Recipe {
             .map(header -> new ReplaceStringLiteralWithConstant(null, "org.springframework.http.HttpHeaders." + header))
             .collect(toList());
 
-    @Override
-    public String getDisplayName() {
-        return "Replace String literals with `HttpHeaders` constants";
-    }
+    @Getter
+    final String displayName = "Replace String literals with `HttpHeaders` constants";
 
-    @Override
-    public String getDescription() {
-        return "Replace String literals with `org.springframework.http.HttpHeaders` constants.";
-    }
+    @Getter
+    final String description = "Replace String literals with `org.springframework.http.HttpHeaders` constants.";
 
     @Override
     public List<Recipe> getRecipeList() {

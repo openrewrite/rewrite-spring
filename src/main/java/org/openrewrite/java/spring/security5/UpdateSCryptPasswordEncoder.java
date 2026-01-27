@@ -56,16 +56,10 @@ public class UpdateSCryptPasswordEncoder extends Recipe {
     private static final Integer DEFAULT_V41_KEY_LENGTH = 32;
     private static final Integer DEFAULT_V41_SALT_LENGTH = 64;
 
-    @Override
-    public String getDisplayName() {
-        return "Use new `SCryptPasswordEncoder` factory methods";
-    }
+    String displayName = "Use new `SCryptPasswordEncoder` factory methods";
 
-    @Override
-    public String getDescription() {
-        return "In Spring Security 5.8 some `SCryptPasswordEncoder` constructors have been deprecated in favor of factory methods. " +
+    String description = "In Spring Security 5.8 some `SCryptPasswordEncoder` constructors have been deprecated in favor of factory methods. " +
                 "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_scryptpasswordencoder) for more information.";
-    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

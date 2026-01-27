@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -32,15 +33,11 @@ public class MigrateWebExchangeBindExceptionResolveErrorMethod extends Recipe {
             "org.springframework.web.bind.support.WebExchangeBindException" +
                     " resolveErrorMessages(org.springframework.context.MessageSource, java.util.Locale)");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `WebExchangeBindException.resolveErrorMessages`";
-    }
+    @Getter
+    final String displayName = "Migrate `WebExchangeBindException.resolveErrorMessages`";
 
-    @Override
-    public String getDescription() {
-        return "`org.springframework.web.bind.support.WebExchangeBindException.resolveErrorMessages` was deprecated, in favor of `BindErrorUtils`.";
-    }
+    @Getter
+    final String description = "`org.springframework.web.bind.support.WebExchangeBindException.resolveErrorMessages` was deprecated, in favor of `BindErrorUtils`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

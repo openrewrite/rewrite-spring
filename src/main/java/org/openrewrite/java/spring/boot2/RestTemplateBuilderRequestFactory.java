@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -32,16 +33,12 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
     private static final MethodMatcher REQUEST_FACTORY = new MethodMatcher(
             "org.springframework.boot.web.client.RestTemplateBuilder requestFactory(org.springframework.http.client.ClientHttpRequestFactory)");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `RestTemplateBuilder`";
-    }
+    @Getter
+    final String displayName = "Migrate `RestTemplateBuilder`";
 
-    @Override
-    public String getDescription() {
-        return "Migrate `RestTemplateBuilder#requestFactory` calls to use a `Supplier`. " +
-                "See the [migration guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder) for more.";
-    }
+    @Getter
+    final String description = "Migrate `RestTemplateBuilder#requestFactory` calls to use a `Supplier`. " +
+            "See the [migration guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#resttemplatebuilder) for more.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

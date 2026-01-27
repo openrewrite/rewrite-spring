@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -37,16 +38,11 @@ import static java.util.stream.Collectors.joining;
 
 public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate method when it annotated by Spring Batch API";
-    }
+    @Getter
+    final String displayName = "Migrate method when it annotated by Spring Batch API";
 
-    @Override
-    public String getDescription() {
-        return "Migrate method when it annotated by Spring Batch API.";
-
-    }
+    @Getter
+    final String description = "Migrate method when it annotated by Spring Batch API.";
 
     private static final Set<String> annotatedMethods = new HashSet<String>() {
         {

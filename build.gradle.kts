@@ -22,6 +22,8 @@ recipeDependencies {
     parserClasspath("org.springframework.boot:spring-boot:2.+")
     parserClasspath("org.springframework.boot:spring-boot:3.+")
 
+    parserClasspath("org.springframework.boot:spring-boot-resttestclient:4.+")
+
     parserClasspath("org.springframework.boot:spring-boot-autoconfigure:2.+")
     parserClasspath("org.springframework.boot:spring-boot-autoconfigure:3.+")
     parserClasspath("org.springframework.boot:spring-boot-actuator:2.+")
@@ -95,6 +97,7 @@ recipeDependencies {
     parserClasspath("io.springfox:springfox-swagger2:3.+")
     parserClasspath("io.swagger.core.v3:swagger-models:2.+")
 
+    testParserClasspath("com.fasterxml.jackson.core:jackson-core:2.20.+")
     testParserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     testParserClasspath("io.projectreactor:reactor-core:3.6.3")
     testParserClasspath("io.springfox:springfox-core:3.+")
@@ -123,12 +126,15 @@ recipeDependencies {
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
     testParserClasspath("org.springframework.batch:spring-batch-test:4.3.+")
 
+    testParserClasspath("org.springframework.kafka:spring-kafka:2.8.+")
+
     testParserClasspath("org.springframework.boot:spring-boot-actuator:2.1.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.0.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.4.+")
     testParserClasspath("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
     testParserClasspath("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
     testParserClasspath("org.springframework.boot:spring-boot-test-autoconfigure:2.4.+")
+    testParserClasspath("org.springframework.boot:spring-boot-test-autoconfigure:3.4.+")
     testParserClasspath("org.springframework.boot:spring-boot-test:1.5.+")
     testParserClasspath("org.springframework.boot:spring-boot-test:2.4.+")
     testParserClasspath("org.springframework.boot:spring-boot-test:2.7.+")

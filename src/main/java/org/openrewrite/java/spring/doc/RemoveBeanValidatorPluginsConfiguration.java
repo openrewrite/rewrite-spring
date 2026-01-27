@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.doc;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -40,16 +41,12 @@ public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
     private static final String BEAN_VALIDATOR_PLUGINS_CONFIGURATION = "springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration";
     private static final TypeMatcher BEAN_VALIDATOR_TYPEMATCHER = new TypeMatcher("springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration");
 
-    @Override
-    public String getDisplayName() {
-        return "Removes @Import(BeanValidatorPluginsConfiguration.class)";
-    }
+    @Getter
+    final String displayName = "Removes @Import(BeanValidatorPluginsConfiguration.class)";
 
-    @Override
-    public String getDescription() {
-        return "As Springdoc OpenAPI supports Bean Validation out of the box, the BeanValidatorPluginsConfiguration is no longer supported nor needed. " +
-                "Thus remove @Import(BeanValidatorPluginsConfiguration.class).";
-    }
+    @Getter
+    final String description = "As Springdoc OpenAPI supports Bean Validation out of the box, the BeanValidatorPluginsConfiguration is no longer supported nor needed. " +
+            "Thus remove @Import(BeanValidatorPluginsConfiguration.class).";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

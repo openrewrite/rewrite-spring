@@ -52,9 +52,6 @@ recipeList:
       propertyKey: swagger.description
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: swagger.contact
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: io.swagger.core.v3
-      artifactId: swagger-annotations
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: '@springfox.documentation.swagger2.annotations.EnableSwagger2'
   - org.openrewrite.java.spring.doc.MigrateDocketBeanToGroupedOpenApiBean
@@ -81,6 +78,19 @@ recipeList:
       version: 1.5.x # aligns with spring boot 2.6
 
 # Compatibility matrix: https://springdoc.org/#what-is-the-compatibility-matrix-of-springdoc-openapi-with-spring-boot
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.UpgradeSpringDoc_3_0
+displayName: Upgrade to SpringDoc 3.0
+description: Upgrade to SpringDoc v3.0.
+tags:
+  - springdoc
+recipeList:
+  - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_8
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springdoc
+      artifactId: "*"
+      newVersion: 3.0.x
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.springdoc.UpgradeSpringDoc_2_8

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -43,16 +44,12 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     private static final MethodMatcher ENVIRONMENT = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(org.springframework.core.env.ConfigurableEnvironment, String...)");
     private static final MethodMatcher NAMED_ENVIRONMENT = new MethodMatcher("org.springframework.boot.test.util.EnvironmentTestUtils addEnvironment(String, org.springframework.core.env.ConfigurableEnvironment, String...)");
 
-    @Override
-    public String getDisplayName() {
-        return "Replace `EnvironmentTestUtils` with `TestPropertyValues`";
-    }
+    @Getter
+    final String displayName = "Replace `EnvironmentTestUtils` with `TestPropertyValues`";
 
-    @Override
-    public String getDescription() {
-        return "Replaces any references to the deprecated `EnvironmentTestUtils` " +
-                "with `TestPropertyValues` and the appropriate functionality.";
-    }
+    @Getter
+    final String description = "Replaces any references to the deprecated `EnvironmentTestUtils` " +
+            "with `TestPropertyValues` and the appropriate functionality.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.security5;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -82,15 +83,11 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         INMEMORY
     }
 
-    @Override
-    public String getDisplayName() {
-        return "Spring Security 5.4 introduces the ability to configure `HttpSecurity` by creating a `SecurityFilterChain` bean";
-    }
+    @Getter
+    final String displayName = "Spring Security 5.4 introduces the ability to configure `HttpSecurity` by creating a `SecurityFilterChain` bean";
 
-    @Override
-    public String getDescription() {
-        return "The Spring Security `WebSecurityConfigurerAdapter` was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details.";
-    }
+    @Getter
+    final String description = "The Spring Security `WebSecurityConfigurerAdapter` was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -28,16 +29,12 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class RemoveFilterSecurityInterceptorOncePerRequest extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Remove unnecessary `filterSecurityInterceptorOncePerRequest(false)` when upgrading to Spring Security 6";
-    }
+    @Getter
+    final String displayName = "Remove unnecessary `filterSecurityInterceptorOncePerRequest(false)` when upgrading to Spring Security 6";
 
-    @Override
-    public String getDescription() {
-        return "In Spring Security 6.0, `<http>` defaults `authorizeRequests#filterSecurityInterceptorOncePerRequest` to false. " +
-               "So, to complete migration, any defaults values can be removed.";
-    }
+    @Getter
+    final String description = "In Spring Security 6.0, `<http>` defaults `authorizeRequests#filterSecurityInterceptorOncePerRequest` to false. " +
+            "So, to complete migration, any defaults values can be removed.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

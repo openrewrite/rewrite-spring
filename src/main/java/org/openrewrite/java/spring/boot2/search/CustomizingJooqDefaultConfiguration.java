@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2.search;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.FindAnnotations;
@@ -50,19 +51,15 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
     private static final TreeVisitor<?, ExecutionContext> precondition =
             Preconditions.or(jooqTypes.stream().map(t -> new UsesType<>(t, false)).toArray(UsesType[]::new));
 
-    @Override
-    public String getDisplayName() {
-        return "In Spring Boot 2.5 a `DefaultConfigurationCustomizer` can now be used in favour of defining one or more `*Provider` beans";
-    }
+    @Getter
+    final String displayName = "In Spring Boot 2.5 a `DefaultConfigurationCustomizer` can now be used in favour of defining one or more `*Provider` beans";
 
-    @Override
-    public String getDescription() {
-        return "To streamline the customization of jOOQ’s `DefaultConfiguration`, " +
-                "a bean that implements `DefaultConfigurationCustomizer` can now be defined. " +
-                "This customizer callback should be used in favour of defining one or more `*Provider` beans, " +
-                "the support for which has now been deprecated. " +
-                "See [Spring Boot 2.5 jOOQ customization](https://docs.spring.io/spring-boot/docs/2.5.x/reference/htmlsingle/#features.sql.jooq.customizing).";
-    }
+    @Getter
+    final String description = "To streamline the customization of jOOQ’s `DefaultConfiguration`, " +
+            "a bean that implements `DefaultConfigurationCustomizer` can now be defined. " +
+            "This customizer callback should be used in favour of defining one or more `*Provider` beans, " +
+            "the support for which has now been deprecated. " +
+            "See [Spring Boot 2.5 jOOQ customization](https://docs.spring.io/spring-boot/docs/2.5.x/reference/htmlsingle/#features.sql.jooq.customizing).";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -51,17 +51,11 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
     @Nullable
     Boolean preserveFactoriesFile;
 
-    @Override
-    public String getDisplayName() {
-        return "Use `AutoConfiguration#imports`";
-    }
+    String displayName = "Use `AutoConfiguration#imports`";
 
-    @Override
-    public String getDescription() {
-        return "Use `AutoConfiguration#imports` instead of the deprecated entry " +
+    String description = "Use `AutoConfiguration#imports` instead of the deprecated entry " +
                "`EnableAutoConfiguration` in `spring.factories` when defining " +
                "autoconfiguration classes.";
-    }
 
     @Override
     public Accumulator getInitialValue(ExecutionContext ctx) {

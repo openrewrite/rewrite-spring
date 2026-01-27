@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
@@ -31,15 +32,11 @@ public class JdbcTemplateQueryForLongMigration extends Recipe {
 
     private static final MethodMatcher QUERY_FOR_LONG_MATCHER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForLong(..)");
 
-    @Override
-    public String getDisplayName() {
-        return "Convert `JdbcTemplate.queryForLong(..)` to `queryForObject(..)`";
-    }
+    @Getter
+    final String displayName = "Convert `JdbcTemplate.queryForLong(..)` to `queryForObject(..)`";
 
-    @Override
-    public String getDescription() {
-        return "Replaces calls to `JdbcTemplate.queryForLong(..)` with `queryForObject(String, Class, Object...)`.";
-    }
+    @Getter
+    final String description = "Replaces calls to `JdbcTemplate.queryForLong(..)` with `queryForObject(String, Class, Object...)`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

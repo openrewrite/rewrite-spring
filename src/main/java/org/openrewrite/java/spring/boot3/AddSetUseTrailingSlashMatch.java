@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -45,20 +46,16 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
     private static final String WEB_MVC_PATH_MATCH_CONFIGURER = "org.springframework.web.servlet.config.annotation.PathMatchConfigurer";
     private static final String WEB_FLUX_PATH_MATCH_CONFIGURER = "org.springframework.web.reactive.config.PathMatchConfigurer";
 
-    @Override
-    public String getDisplayName() {
-        return "Add `SetUseTrailingSlashMatch()` in configuration";
-    }
+    @Getter
+    final String displayName = "Add `SetUseTrailingSlashMatch()` in configuration";
 
-    @Override
-    public String getDescription() {
-        return "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing " +
-               "slash matching configuration option has been deprecated and its default value set to false. " +
-               "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both " +
-               "`GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
-               "anymore by default and will result in an HTTP 404 error. This recipe is change the default with " +
-               "the global Spring MVC or Webflux configuration.";
-    }
+    @Getter
+    final String description = "This is part of Spring MVC and WebFlux URL Matching Changes, as of Spring Framework 6.0, the trailing " +
+            "slash matching configuration option has been deprecated and its default value set to false. " +
+            "This means that previously, a controller `@GetMapping(\"/some/greeting\")` would match both " +
+            "`GET /some/greeting` and `GET /some/greeting/`, but it doesn't match `GET /some/greeting/` " +
+            "anymore by default and will result in an HTTP 404 error. This recipe is change the default with " +
+            "the global Spring MVC or Webflux configuration.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -40,15 +41,11 @@ public class MigrateHandlerInterceptor extends Recipe {
     private static final MethodMatcher POST_HANDLE = new MethodMatcher("org.springframework.web.servlet.HandlerInterceptor postHandle(..)");
     private static final MethodMatcher AFTER_COMPLETION = new MethodMatcher("org.springframework.web.servlet.HandlerInterceptor afterCompletion(..)");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `HandlerInterceptorAdapter` to `HandlerInterceptor`";
-    }
+    @Getter
+    final String displayName = "Migrate `HandlerInterceptorAdapter` to `HandlerInterceptor`";
 
-    @Override
-    public String getDescription() {
-        return "Deprecated as of 5.3 in favor of implementing `HandlerInterceptor` and/or `AsyncHandlerInterceptor`.";
-    }
+    @Getter
+    final String description = "Deprecated as of 5.3 in favor of implementing `HandlerInterceptor` and/or `AsyncHandlerInterceptor`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -56,16 +56,10 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
     private static final Integer DEFAULT_V52_MEMORY = 4_096;
     private static final Integer DEFAULT_V52_ITERATIONS = 3;
 
-    @Override
-    public String getDisplayName() {
-        return "Use new `Argon2PasswordEncoder` factory methods";
-    }
+    String displayName = "Use new `Argon2PasswordEncoder` factory methods";
 
-    @Override
-    public String getDescription() {
-        return "In Spring Security 5.8 some `Argon2PasswordEncoder` constructors have been deprecated in favor of factory methods. " +
+    String description = "In Spring Security 5.8 some `Argon2PasswordEncoder` constructors have been deprecated in favor of factory methods. " +
                 "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_argon2passwordencoder) for more information.";
-    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

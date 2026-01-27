@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -55,15 +56,11 @@ public class MigrateBase64Utils extends Recipe {
         MAPPINGS.put(DECODE_FROM_URL_SAFE_STRING, "Base64.getUrlDecoder().decode(#{any(String)})");
     }
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `org.springframework.util.Base64Utils` to `java.io.Base64`";
-    }
+    @Getter
+    final String displayName = "Migrate `org.springframework.util.Base64Utils` to `java.io.Base64`";
 
-    @Override
-    public String getDescription() {
-        return "Replaces usages of deprecated `org.springframework.util.Base64Utils` with `java.util.Base64`.";
-    }
+    @Getter
+    final String description = "Replaces usages of deprecated `org.springframework.util.Base64Utils` with `java.util.Base64`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

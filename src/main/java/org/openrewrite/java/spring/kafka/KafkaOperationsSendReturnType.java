@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.kafka;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -23,16 +24,12 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.spring.util.concurrent.ListenableToCompletableFuture;
 
 public class KafkaOperationsSendReturnType extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Change `KafkaOperations.send*` return type to `CompletableFuture`";
-    }
+    @Getter
+    final String displayName = "Change `KafkaOperations.send*` return type to `CompletableFuture`";
 
-    @Override
-    public String getDescription() {
-        return "Send operations used to return a `ListenableFuture` but as of 3.0 return a `CompletableFuture`. " +
-               "Adjust the usage to use `CompletableFuture` instead.";
-    }
+    @Getter
+    final String description = "Send operations used to return a `ListenableFuture` but as of 3.0 return a `CompletableFuture`. " +
+            "Adjust the usage to use `CompletableFuture` instead.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -27,15 +27,9 @@ import org.openrewrite.yaml.tree.Yaml;
 @Value
 public class CommentOutSpringPropertyKey extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Comment out Spring properties";
-    }
+    String displayName = "Comment out Spring properties";
 
-    @Override
-    public String getDescription() {
-        return "Add comment to specified Spring properties, and comment out the property.";
-    }
+    String description = "Add comment to specified Spring properties, and comment out the property.";
 
     @Option(displayName = "Property key",
             description = "The name of the property key to comment out.",

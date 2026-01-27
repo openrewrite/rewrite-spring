@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring;
 
 import lombok.Data;
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
@@ -43,15 +44,11 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
             .map(method -> new AnnotationMatcher("@org.springframework.web.bind.annotation." + method + "Mapping"))
             .collect(toList());
 
-    @Override
-    public String getDisplayName() {
-        return "Update the API manifest";
-    }
+    @Getter
+    final String displayName = "Update the API manifest";
 
-    @Override
-    public String getDescription() {
-        return "Keep a consolidated manifest of the API endpoints that this application exposes up-to-date.";
-    }
+    @Getter
+    final String description = "Keep a consolidated manifest of the API endpoints that this application exposes up-to-date.";
 
     @Override
     public ApiManifest getInitialValue(ExecutionContext ctx) {

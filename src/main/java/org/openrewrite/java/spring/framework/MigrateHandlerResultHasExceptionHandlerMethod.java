@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -29,15 +30,11 @@ public class MigrateHandlerResultHasExceptionHandlerMethod extends Recipe {
 
     private static final MethodMatcher METHOD_MATCHER = new MethodMatcher("org.springframework.web.reactive.HandlerResult hasExceptionHandler()");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `HandlerResult.hasExceptionHandler()` to `getExceptionHandler()`";
-    }
+    @Getter
+    final String displayName = "Migrate `HandlerResult.hasExceptionHandler()` to `getExceptionHandler()`";
 
-    @Override
-    public String getDescription() {
-        return "`org.springframework.web.reactive.HandlerResult.hasExceptionHandler()` was deprecated, in favor of `getExceptionHandler()`.";
-    }
+    @Getter
+    final String description = "`org.springframework.web.reactive.HandlerResult.hasExceptionHandler()` was deprecated, in favor of `getExceptionHandler()`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -39,15 +39,9 @@ import static org.openrewrite.properties.tree.Properties.Comment.Delimiter.HASH_
 @EqualsAndHashCode(callSuper = false)
 public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<SeparateApplicationPropertiesByProfile.Accumulator> {
 
-    @Override
-    public String getDisplayName() {
-        return "Separate `application.properties` by profile";
-    }
+    String displayName = "Separate `application.properties` by profile";
 
-    @Override
-    public String getDescription() {
-        return "Separating `application.properties` into separate files based on profiles.";
-    }
+    String description = "Separating `application.properties` into separate files based on profiles.";
 
     @Override
     public Accumulator getInitialValue(ExecutionContext ctx) {

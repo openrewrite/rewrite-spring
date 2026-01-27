@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -34,15 +35,11 @@ import static java.util.stream.Collectors.joining;
 
 public class ConditionalOnBeanAnyNestedCondition extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate multi-condition `@ConditionalOnBean` annotations";
-    }
+    @Getter
+    final String displayName = "Migrate multi-condition `@ConditionalOnBean` annotations";
 
-    @Override
-    public String getDescription() {
-        return "Migrate multi-condition `@ConditionalOnBean` annotations to `AnyNestedCondition`.";
-    }
+    @Getter
+    final String description = "Migrate multi-condition `@ConditionalOnBean` annotations to `AnyNestedCondition`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

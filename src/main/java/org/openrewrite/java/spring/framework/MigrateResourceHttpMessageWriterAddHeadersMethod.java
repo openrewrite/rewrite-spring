@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.framework;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -30,15 +31,11 @@ public class MigrateResourceHttpMessageWriterAddHeadersMethod extends Recipe {
 
     private static final MethodMatcher ADD_HEADERS_MATCHER = new MethodMatcher("org.springframework.http.codec.ResourceHttpMessageWriter addHeaders(..)");
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `ResourceHttpMessageWriter.addHeaders`";
-    }
+    @Getter
+    final String displayName = "Migrate `ResourceHttpMessageWriter.addHeaders`";
 
-    @Override
-    public String getDescription() {
-        return "`org.springframework.http.codec.ResourceHttpMessageWriter.addHeaders` was deprecated, in favor of `addDefaultHeaders` method.";
-    }
+    @Getter
+    final String description = "`org.springframework.http.codec.ResourceHttpMessageWriter.addHeaders` was deprecated, in favor of `addDefaultHeaders` method.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

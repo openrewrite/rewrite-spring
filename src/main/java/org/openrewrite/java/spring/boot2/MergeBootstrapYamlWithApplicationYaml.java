@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import lombok.Data;
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -36,15 +37,11 @@ import static java.util.Collections.singletonList;
 
 public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeBootstrapYamlWithApplicationYaml.Accumulator> {
 
-    @Override
-    public String getDisplayName() {
-        return "Merge Spring `bootstrap.yml` with `application.yml`";
-    }
+    @Getter
+    final String displayName = "Merge Spring `bootstrap.yml` with `application.yml`";
 
-    @Override
-    public String getDescription() {
-        return "In Spring Boot 2.4, support for `bootstrap.yml` was removed. It's properties should be merged with `application.yml`.";
-    }
+    @Getter
+    final String description = "In Spring Boot 2.4, support for `bootstrap.yml` was removed. It's properties should be merged with `application.yml`.";
 
     @Override
     public Accumulator getInitialValue(ExecutionContext ctx) {

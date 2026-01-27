@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -34,15 +35,11 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
     private static final AnnotationMatcher LOCAL_SERVER_PORT_MATCHER =
         new AnnotationMatcher("@org.springframework.boot.context.embedded.LocalServerPort");
 
-    @Override
-    public String getDisplayName() {
-        return "Use `org.springframework.boot.web.server.LocalServerPort`";
-    }
+    @Getter
+    final String displayName = "Use `org.springframework.boot.web.server.LocalServerPort`";
 
-    @Override
-    public String getDescription() {
-        return "Updates the package and adds the necessary dependency if `LocalServerPort` is in use. The package of `LocalServerPort` was changed in Spring Boot 2.0, necessitating changes.";
-    }
+    @Getter
+    final String description = "Updates the package and adds the necessary dependency if `LocalServerPort` is in use. The package of `LocalServerPort` was changed in Spring Boot 2.0, necessitating changes.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
