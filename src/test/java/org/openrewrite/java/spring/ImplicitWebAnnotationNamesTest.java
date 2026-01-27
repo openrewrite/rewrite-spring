@@ -208,8 +208,7 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
                       fun getUser(@PathVariable("id") id: Long,
                                   @PathVariable(required = false) p2: Long?,
                                   @PathVariable(value = "p3") anotherName: Long): ResponseEntity<String> {
-                          println(anotherName)
-                          return ResponseEntity.ok("")
+                          return ResponseEntity.ok(anotherName)
                       }
                   }
                   """,
@@ -224,8 +223,7 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
                       fun getUser(@PathVariable id: Long,
                                   @PathVariable(required = false) p2: Long?,
                                   @PathVariable(value = "p3") anotherName: Long): ResponseEntity<String> {
-                          println(anotherName)
-                          return ResponseEntity.ok("")
+                          return ResponseEntity.ok(anotherName)
                       }
                   }
                   """
