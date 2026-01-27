@@ -35,6 +35,7 @@ recipeList:
   - org.openrewrite.java.spring.framework.MigrateUriComponentsBuilderMethods
   - org.openrewrite.java.spring.framework.MigrateWebExchangeBindExceptionResolveErrorMethod
   - org.openrewrite.java.spring.framework.MigrateClientHttpResponseGetRawStatusCodeMethod
+  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
 
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.http.client.observation.ClientHttpObservationDocumentation.HighCardinalityKeyNames.CLIENT_NAME
