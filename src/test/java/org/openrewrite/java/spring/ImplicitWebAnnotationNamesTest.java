@@ -231,11 +231,12 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
             );
         }
 
-        @Disabled("Recipe does not add space when removing annotation argument from @PathVariable(\"id\")id - produces @PathVariableid")
+        @Disabled("Recipe has a bug with Kotlin whitespace handling - when original has no space between annotation args and variable (@PathVariable(\"id\")id), recipe does not add space. When original has space, recipe works correctly.")
         @Test
         void annotationNoWhitespaceBetweenAnnotationAndVariable() {
             //language=kotlin
             rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
               kotlin(
                 """
                   import org.springframework.http.ResponseEntity
