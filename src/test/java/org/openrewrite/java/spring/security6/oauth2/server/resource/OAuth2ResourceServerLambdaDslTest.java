@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.security6.oauth2.server.resource;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.junitpioneer.jupiter.ExpectedToFail;
 import org.junitpioneer.jupiter.Issue;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -26,11 +25,11 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.kotlin.Assertions.kotlin;
 
+@DisabledIfEnvironmentVariable(named = "CI", matches = "true")
 class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
@@ -44,11 +43,10 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-beans", "spring-context", "spring-boot", "spring-web", "spring-core",
               "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
-              "tomcat-embed"))
-          .typeValidationOptions(TypeValidation.all().identifiers(false));
+              "tomcat-embed")
+          );
     }
 
-    @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
     @DocumentExample
     @Test
     void advanced() {
@@ -111,17 +109,16 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
 
                   @EnableWebSecurity
                   class SecurityConfig : WebSecurityConfigurerAdapter() {
-                      @Throws(Exception::class)
                       override fun configure(http: HttpSecurity) {
                           http
-                                  .oauth2ResourceServer { server ->
-                                      server
-                                          .jwt()
-                                                  .jwkSetUri("https://example.com/.well-known/jwks.json")
-                                                  .and()
-                                          .opaqueToken()
-                                                  .introspectionUri("https://example.com/introspect")
-                                  }
+                              .oauth2ResourceServer { server ->
+                                  server
+                                      .jwt()
+                                      .jwkSetUri("https://example.com/.well-known/jwks.json")
+                                      .and()
+                                      .opaqueToken()
+                                      .introspectionUri("https://example.com/introspect")
+                              }
                       }
                   }
                   """,
@@ -132,7 +129,6 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
 
                   @EnableWebSecurity
                   class SecurityConfig : WebSecurityConfigurerAdapter() {
-                      @Throws(Exception::class)
                       override fun configure(http: HttpSecurity) {
                           http
                               .oauth2ResourceServer { server ->
@@ -152,7 +148,6 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
         @Test
         void alreadyMigratedNoChange() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               //language=kotlin
               kotlin(
                 """
@@ -162,20 +157,19 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
 
                   @EnableWebSecurity
                   class SecurityConfig : WebSecurityConfigurerAdapter() {
-                      @Throws(Exception::class)
                       override fun configure(http: HttpSecurity) {
                           http
-                                  .oauth2ResourceServer { server ->
-                                      server
-                                          .jwt { jwt ->
-                                                  jwt
-                                                      .jwkSetUri("https://example.com/.well-known/jwks.json")
-                                          }
-                                          .opaqueToken { token ->
-                                                  token
-                                                      .introspectionUri("https://example.com/introspect")
-                                          }
-                                  }
+                              .oauth2ResourceServer { server ->
+                                  server
+                                      .jwt { jwt ->
+                                          jwt
+                                              .jwkSetUri("https://example.com/.well-known/jwks.json")
+                                      }
+                                      .opaqueToken { token ->
+                                          token
+                                              .introspectionUri("https://example.com/introspect")
+                                      }
+                              }
                       }
                   }
                   """
