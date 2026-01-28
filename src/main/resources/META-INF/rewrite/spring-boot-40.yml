@@ -108,3 +108,4 @@ recipeList:
       overrideManagedVersion: true
 
   - org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
+  - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
