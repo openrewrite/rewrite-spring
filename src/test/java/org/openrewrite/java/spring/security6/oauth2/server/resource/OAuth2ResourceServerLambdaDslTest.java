@@ -102,7 +102,6 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
         @Test
         void preservesCustomJwtConfiguration() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               //language=kotlin
               kotlin(
                 """
