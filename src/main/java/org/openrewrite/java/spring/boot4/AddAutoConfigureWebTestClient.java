@@ -29,45 +29,40 @@ import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.J;
 
 import static java.util.Comparator.comparing;
-import static org.openrewrite.Preconditions.or;
 
-public class AddAutoConfigureTestRestTemplate extends Recipe {
+public class AddAutoConfigureWebTestClient extends Recipe {
 
-    private static final String SIMPLE_NAME = "AutoConfigureTestRestTemplate";
-    private static final String FULLY_QUALIFIED = "org.springframework.boot.resttestclient.autoconfigure." + SIMPLE_NAME;
-    private static final String TEST_REST_TEMPLATE_NEW = "org.springframework.boot.resttestclient.TestRestTemplate";
-    private static final String TEST_REST_TEMPLATE_OLD = "org.springframework.boot.test.web.client.TestRestTemplate";
+    private static final String SIMPLE_NAME = "AutoConfigureWebTestClient";
+    private static final String FULLY_QUALIFIED = "org.springframework.boot.webtestclient.autoconfigure." + SIMPLE_NAME;
+    private static final String WEB_TEST_CLIENT = "org.springframework.test.web.reactive.server.WebTestClient";
 
-    private static final AnnotationMatcher AUTO_CONFIGURE_TEST_REST_TEMPLATE = new AnnotationMatcher("@" + FULLY_QUALIFIED, true);
+    private static final AnnotationMatcher AUTO_CONFIGURE_WEB_TEST_CLIENT = new AnnotationMatcher("@" + FULLY_QUALIFIED, true);
     private static final AnnotationMatcher SPRING_BOOT_TEST = new AnnotationMatcher("@org.springframework.boot.test.context.SpringBootTest", true);
 
     @Getter
-    final String displayName = "Add `@AutoConfigureTestRestTemplate` if necessary";
+    final String displayName = "Add `@AutoConfigureWebTestClient` if necessary";
 
     @Getter
-    final String description = "Adds `@AutoConfigureTestRestTemplate` to test classes annotated with " +
-            "`@SpringBootTest` that use `TestRestTemplate` since this bean is no longer auto-configured as described " +
+    final String description = "Adds `@AutoConfigureWebTestClient` to test classes annotated with " +
+            "`@SpringBootTest` that use `WebTestClient` since this bean is no longer auto-configured as described " +
             "in the [Spring Boot 4 migration guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide#using-webclient-or-testresttemplate-and-springboottest).";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(
-                or(
-                        new UsesType<>(TEST_REST_TEMPLATE_NEW, true),
-                        new UsesType<>(TEST_REST_TEMPLATE_OLD, true)
-                ),
-                new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(WEB_TEST_CLIENT, true), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
                 AnnotationService annotationService = service(AnnotationService.class);
                 if (annotationService.matches(getCursor(), SPRING_BOOT_TEST) &&
-                        !annotationService.matches(getCursor(), AUTO_CONFIGURE_TEST_REST_TEMPLATE)) {
+                        !annotationService.matches(getCursor(), AUTO_CONFIGURE_WEB_TEST_CLIENT)) {
                     maybeAddImport(FULLY_QUALIFIED);
                     return JavaTemplate.builder("@" + SIMPLE_NAME)
                             .imports(FULLY_QUALIFIED)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-boot-resttestclient-4"))
+                            .javaParser(JavaParser.fromJavaVersion().dependsOn(
+                                    "package org.springframework.boot.webtestclient.autoconfigure;" +
+                                    "public @interface AutoConfigureWebTestClient {}"))
                             .build()
                             .apply(updateCursor(cd), cd.getCoordinates().addAnnotation(comparing(J.Annotation::getSimpleName)));
                 }
