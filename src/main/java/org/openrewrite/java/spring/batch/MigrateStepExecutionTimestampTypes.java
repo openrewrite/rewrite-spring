@@ -16,11 +16,8 @@
 package org.openrewrite.java.spring.batch;
 
 import lombok.Getter;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
-import org.openrewrite.Recipe;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.RemoveImport;
@@ -30,7 +27,6 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
@@ -56,12 +52,16 @@ public class MigrateStepExecutionTimestampTypes extends Recipe {
     private static final MethodMatcher JOB_GET_CREATE_TIME = new MethodMatcher("org.springframework.batch.core.JobExecution getCreateTime()");
     private static final MethodMatcher JOB_GET_LAST_UPDATED = new MethodMatcher("org.springframework.batch.core.JobExecution getLastUpdated()");
 
-    private static final JavaType.FullyQualified LOCAL_DATE_TIME_TYPE =
-            JavaType.ShallowClass.build("java.time.LocalDateTime");
+    private static final JavaType.FullyQualified LOCAL_DATE_TIME_TYPE = JavaType.ShallowClass.build("java.time.LocalDateTime");
 
     private static boolean isTimestampMethod(J.MethodInvocation mi) {
-        return Stream.of(STEP_GET_START_TIME, STEP_GET_END_TIME, STEP_GET_LAST_UPDATED,
-                        JOB_GET_START_TIME, JOB_GET_END_TIME, JOB_GET_CREATE_TIME, JOB_GET_LAST_UPDATED)
+        return Stream.of(STEP_GET_START_TIME,
+                        STEP_GET_END_TIME,
+                        STEP_GET_LAST_UPDATED,
+                        JOB_GET_START_TIME,
+                        JOB_GET_END_TIME,
+                        JOB_GET_CREATE_TIME,
+                        JOB_GET_LAST_UPDATED)
                 .anyMatch(matcher -> matcher.matches(mi));
     }
 
@@ -123,9 +123,7 @@ public class MigrateStepExecutionTimestampTypes extends Recipe {
                                     LOCAL_DATE_TIME_TYPE,
                                     null
                             );
-                            List<J.VariableDeclarations.NamedVariable> updatedVars = new ArrayList<>(vd.getVariables());
-                            for (int i = 0; i < updatedVars.size(); i++) {
-                                J.VariableDeclarations.NamedVariable v = updatedVars.get(i);
+                            List<J.VariableDeclarations.NamedVariable> updatedVars = ListUtils.map(vd.getVariables(), v -> {
                                 if (v.getInitializer() instanceof J.MethodInvocation) {
                                     J.MethodInvocation mi = (J.MethodInvocation) v.getInitializer();
                                     if (isTimestampMethod(mi) && mi.getMethodType() != null) {
@@ -134,10 +132,11 @@ public class MigrateStepExecutionTimestampTypes extends Recipe {
                                         if (name.getFieldType() != null) {
                                             name = name.withFieldType(name.getFieldType().withType(LOCAL_DATE_TIME_TYPE));
                                         }
-                                        updatedVars.set(i, v.withName(name).withInitializer(mi).withType(LOCAL_DATE_TIME_TYPE));
+                                        return v.withName(name).withInitializer(mi).withType(LOCAL_DATE_TIME_TYPE);
                                     }
                                 }
-                            }
+                                return v;
+                            });
                             return vd
                                     .withVariables(updatedVars)
                                     .withTypeExpression(typeExpr)

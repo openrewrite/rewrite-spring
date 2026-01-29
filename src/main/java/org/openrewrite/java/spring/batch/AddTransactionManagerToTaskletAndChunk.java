@@ -63,13 +63,13 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
         );
     }
 
-    private static boolean usesOneArgTaskletOrChunk(J tree) {
-        return !FindMethods.find(tree, TASKLET_1ARG).isEmpty() ||
-                !FindMethods.find(tree, CHUNK_INT).isEmpty() ||
-                !FindMethods.find(tree, CHUNK_POLICY).isEmpty();
-    }
-
     private static class AddTransactionManagerParameterVisitor extends JavaIsoVisitor<ExecutionContext> {
+        private static boolean usesOneArgTaskletOrChunk(J tree) {
+            return !FindMethods.find(tree, TASKLET_1ARG).isEmpty() ||
+                    !FindMethods.find(tree, CHUNK_INT).isEmpty() ||
+                    !FindMethods.find(tree, CHUNK_POLICY).isEmpty();
+        }
+
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
             if (usesOneArgTaskletOrChunk(md) &&
