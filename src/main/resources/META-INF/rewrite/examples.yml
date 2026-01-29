@@ -247,6 +247,27 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.NoHttpExchangeAnnotation
+examples:
+- description: '`NoHttpExchangeAnnotationTest#getExchange`'
+  sources:
+  - before: |
+      import org.springframework.web.service.annotation.HttpExchange;
+
+      interface UserApi {
+          @HttpExchange(method = "GET", value = "/api/users")
+          String getUsers();
+      }
+    after: |
+      import org.springframework.web.service.annotation.GetExchange;
+
+      interface UserApi {
+          @GetExchange("/api/users")
+          String getUsers();
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.NoRepoAnnotationOnRepoInterface
 examples:
 - description: '`NoRepoAnnotationOnRepoInterfaceTest#simpleCase`'
@@ -1496,7 +1517,7 @@ examples:
       @ContextConfiguration(classes = ExampleClass.ExampleConfiguration.class)
       public class ExampleClass {
           @Configuration
-          static class ExampleConfiguration {
+          public static class ExampleConfiguration {
           }
       }
     after: |
@@ -1508,7 +1529,7 @@ examples:
       @SpringJUnitConfig(classes = ExampleClass.ExampleConfiguration.class)
       public class ExampleClass {
           @Configuration
-          static class ExampleConfiguration {
+          public static class ExampleConfiguration {
           }
       }
     language: java
@@ -3072,6 +3093,31 @@ examples:
       @SpringBootTest
       class ExampleTest {
           TestRestTemplate testRestTemplate;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
+examples:
+- description: '`AddAutoConfigureWebTestClientTest#shouldAddAnnotationIfTypeIsUsed`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.test.web.reactive.server.WebTestClient;
+
+      @SpringBootTest
+      class ExampleTest {
+          WebTestClient webTestClient;
+      }
+    after: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+      import org.springframework.test.web.reactive.server.WebTestClient;
+
+      @AutoConfigureWebTestClient
+      @SpringBootTest
+      class ExampleTest {
+          WebTestClient webTestClient;
       }
     language: java
 ---

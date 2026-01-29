@@ -103,4 +103,42 @@ class AddAutoConfigureTestRestTemplateTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void shouldAddAnnotationForOldPackageLocation() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-resttestclient-4",
+              "spring-boot-test-3",
+              "spring-beans-6")
+            .dependsOn(
+              "package org.springframework.boot.test.web.client;" +
+              "public class TestRestTemplate {}"
+            )),
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.web.client.TestRestTemplate;
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @SpringBootTest
+              class ExampleTest {
+                  TestRestTemplate testRestTemplate;
+              }
+              """,
+            """
+              import org.springframework.boot.test.web.client.TestRestTemplate;
+              import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
+              import org.springframework.boot.test.context.SpringBootTest;
+
+              @AutoConfigureTestRestTemplate
+              @SpringBootTest
+              class ExampleTest {
+                  TestRestTemplate testRestTemplate;
+              }
+              """
+          )
+        );
+    }
 }
