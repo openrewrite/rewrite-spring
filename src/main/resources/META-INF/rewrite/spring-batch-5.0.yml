@@ -31,6 +31,7 @@ recipeList:
   - org.openrewrite.java.spring.batch.ListenerSupportClassToInterface
   - org.openrewrite.java.spring.batch.MigrateJobBuilderFactory
   - org.openrewrite.java.spring.batch.MigrateStepBuilderFactory
+  - org.openrewrite.java.spring.batch.AddTransactionManagerToTaskletAndChunk
   - org.openrewrite.java.spring.batch.MigrateItemWriterWrite
   - org.openrewrite.java.spring.batch.RemoveDefaultBatchConfigurer
   - org.openrewrite.java.spring.batch.UpgradeSkipPolicyParameterType
@@ -44,9 +45,13 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.batch.core.configuration.annotation.ScopeConfiguration
       newFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.ScopeConfiguration
   - org.openrewrite.java.spring.batch.ConvertReceiveTypeWhenCallStepExecutionMethod
+  - org.openrewrite.java.spring.batch.MigrateStepExecutionTimestampTypes
   - org.openrewrite.java.spring.batch.JobParameterToString
   - org.openrewrite.java.spring.batch.MigrateJobParameter
   - org.openrewrite.java.spring.batch.MigrateMethodAnnotatedByBatchAPI
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor
+      newFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.JobRegistrySmartInitializingSingleton
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.batch.ListenerSupportClassToInterface
