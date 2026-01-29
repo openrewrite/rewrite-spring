@@ -561,6 +561,52 @@ examples:
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.batch.AddTransactionManagerToTaskletAndChunk
+examples:
+- description: '`AddTransactionManagerToTaskletAndChunkTest#addTransactionManagerToTasklet`'
+  sources:
+  - before: |
+      import org.springframework.batch.core.Step;
+      import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+      import org.springframework.batch.core.step.tasklet.Tasklet;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.context.annotation.Bean;
+
+      class MyJobConfig {
+
+          @Autowired
+          private StepBuilderFactory stepBuilderFactory;
+
+          @Bean
+          Step myStep(Tasklet myTasklet) {
+              return stepBuilderFactory.get("myStep")
+                      .tasklet(myTasklet)
+                      .build();
+          }
+      }
+    after: |
+      import org.springframework.batch.core.Step;
+      import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+      import org.springframework.batch.core.step.tasklet.Tasklet;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.transaction.PlatformTransactionManager;
+
+      class MyJobConfig {
+
+          @Autowired
+          private StepBuilderFactory stepBuilderFactory;
+
+          @Bean
+          Step myStep(Tasklet myTasklet, PlatformTransactionManager transactionManager) {
+              return stepBuilderFactory.get("myStep")
+                      .tasklet(myTasklet, transactionManager)
+                      .build();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.ConvertReceiveTypeWhenCallStepExecutionMethod
 examples:
 - description: '`ConvertReceiveTypeWhenCallStepExecutionMethodTest#methodReferenceToLambda`'
@@ -822,6 +868,33 @@ examples:
               return new StepBuilder("myStep", jobRepository)
                       .tasklet(myTasklet)
                       .build();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.batch.MigrateStepExecutionTimestampTypes
+examples:
+- description: '`MigrateStepExecutionTimestampTypesTest#stepExecutionGetStartTime`'
+  sources:
+  - before: |
+      import java.util.Date;
+      import org.springframework.batch.core.StepExecution;
+
+      class MyListener {
+          void afterStep(StepExecution stepExecution) {
+              Date startTime = stepExecution.getStartTime();
+              Date endTime = stepExecution.getEndTime();
+          }
+      }
+    after: |
+      import java.time.LocalDateTime;
+      import org.springframework.batch.core.StepExecution;
+
+      class MyListener {
+          void afterStep(StepExecution stepExecution) {
+              LocalDateTime startTime = stepExecution.getStartTime();
+              LocalDateTime endTime = stepExecution.getEndTime();
           }
       }
     language: java
