@@ -233,6 +233,9 @@ recipeList:
       newPackageName: org.springframework.boot.mongodb.autoconfigure
       recursive: true
   # spring-boot-kafka
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.kafka.StreamsBuilderFactoryBeanCustomizer
+      newFullyQualifiedTypeName: org.springframework.kafka.config.StreamsBuilderFactoryBeanConfigurer
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.kafka
       newPackageName: org.springframework.boot.kafka.autoconfigure
