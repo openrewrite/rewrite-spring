@@ -28,6 +28,8 @@ import org.openrewrite.java.tree.J;
 
 import java.util.*;
 
+import static java.util.Collections.*;
+
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JaxrsToSpringmvcResponseEntity extends Recipe {
@@ -91,22 +93,22 @@ public class JaxrsToSpringmvcResponseEntity extends Recipe {
                         chain.add(current);
                         current = current.getSelect() instanceof J.MethodInvocation ? (J.MethodInvocation) current.getSelect() : null;
                     }
-                    Collections.reverse(chain);
+                    reverse(chain);
                     Expression body = null;
                     J.MethodInvocation rebuilt = chain.get(0);
                     if (matchesAny(OK_METHOD_MATCHERS, rebuilt) && !rebuilt.getArguments().isEmpty() && !(rebuilt.getArguments().get(0) instanceof J.Empty)) {
                         if (chain.size() > 2) {
                             body = rebuilt.getArguments().get(0);
-                            rebuilt = rebuilt.withArguments(Collections.emptyList());
+                            rebuilt = rebuilt.withArguments(emptyList());
                         } else {
                             return rebuilt.withPrefix(methodInv.getPrefix());
                         }
-                    } else if (rebuilt.getSimpleName().equals("serverError")) {
+                    } else if ("serverError".equals(rebuilt.getSimpleName())) {
                         rebuilt = rebuilt.withName(rebuilt.getName().withSimpleName("internalServerError"));
                     }
                     for (J.MethodInvocation c : chain.subList(1, chain.size())) {
                         if (matchesAny(BUILD_METHOD_MATCHERS, c) && body != null) {
-                            c = c.withName(c.getName().withSimpleName("body")).withArguments(Collections.singletonList(body));
+                            c = c.withName(c.getName().withSimpleName("body")).withArguments(singletonList(body));
                         }
                         if (matchesAny(ENTITY_METHOD_MATCHERS, c)) {
                             body = c.getArguments().get(0);
@@ -115,9 +117,8 @@ public class JaxrsToSpringmvcResponseEntity extends Recipe {
                         }
                     }
                     return rebuilt;
-                } else {
-                    return super.visitMethodInvocation(methodInv, ctx);
                 }
+                return super.visitMethodInvocation(methodInv, ctx);
             }
 
             private boolean matchesAny(List<MethodMatcher> matchers, J.MethodInvocation mi) {

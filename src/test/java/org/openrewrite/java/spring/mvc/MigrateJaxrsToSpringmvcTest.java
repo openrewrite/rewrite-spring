@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.mvc;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -32,11 +33,12 @@ public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
           .activateRecipes("org.openrewrite.java.spring.mvc.MigrateJaxRsToSpringMvc"));
     }
 
+    @DocumentExample
     @Test
-    public void jaxrsToSpringmvcJavaxTest() {
+    void jaxrsToSpringmvcJavaxTest() {
         rewriteRun(
           java(
-            """
+              """
               import java.io.IOException;
 
               import javax.ws.rs.core.CacheControl;
@@ -60,7 +62,7 @@ public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
                   }
               }
               """,
-            """
+              """
               import java.io.IOException;
 
               import javax.servlet.http.HttpServletRequest;
@@ -90,10 +92,10 @@ public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
     }
 
     @Test
-    public void jaxrsToSpringmvcJakartaTest() {
+    void jaxrsToSpringmvcJakartaTest() {
         rewriteRun(
           java(
-            """
+              """
               import java.io.IOException;
 
               import jakarta.ws.rs.core.CacheControl;
@@ -117,7 +119,7 @@ public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
                   }
               }
               """,
-            """
+              """
               import java.io.IOException;
 
               import jakarta.servlet.http.HttpServletRequest;

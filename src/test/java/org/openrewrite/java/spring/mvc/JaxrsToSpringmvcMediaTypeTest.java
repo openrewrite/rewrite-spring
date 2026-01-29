@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.mvc;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -32,11 +33,12 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "jakarta.ws.rs-api-2", "javax.ws.rs-api-2"));
     }
 
+    @DocumentExample
     @Test
     void migrateMediaTypeJavaxTest() {
         rewriteRun(
           java(
-            """
+              """
               import javax.ws.rs.core.MediaType;
               import javax.ws.rs.Produces;
 
@@ -54,7 +56,7 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
                   }
               }
               """,
-            """
+              """
               import org.springframework.http.MediaType;
 
               import javax.ws.rs.Produces;
@@ -81,7 +83,7 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
     void migrateMediaTypeJakartaTest() {
         rewriteRun(
           java(
-            """
+              """
               import jakarta.ws.rs.core.MediaType;
               import jakarta.ws.rs.Produces;
 
@@ -99,7 +101,7 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
                   }
               }
               """,
-            """
+              """
               import jakarta.ws.rs.Produces;
               import org.springframework.http.MediaType;
 

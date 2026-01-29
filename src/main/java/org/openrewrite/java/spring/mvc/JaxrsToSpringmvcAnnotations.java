@@ -173,11 +173,11 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                         value = getValueFromAnnotation(ann);
                         doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
                         maybeRemoveImport(annType);
-                    } else if (annType.equals("jakarta.ws.rs.DefaultValue") || annType.equals("javax.ws.rs.DefaultValue")) {
+                    } else if ("jakarta.ws.rs.DefaultValue".equals(annType) || "javax.ws.rs.DefaultValue".equals(annType)) {
                         defaultValue = getValueFromAnnotation(ann);
                         doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
                         maybeRemoveImport(annType);
-                    } else if (annType.equals("jakarta.ws.rs.core.Context") || annType.equals("javax.ws.rs.core.Context")) {
+                    } else if ("jakarta.ws.rs.core.Context".equals(annType) || "javax.ws.rs.core.Context".equals(annType)) {
                         isContextParam = true;
                         doAfterVisit(new RemoveAnnotationVisitor(new AnnotationMatcher("@" + annType)));
                         maybeRemoveImport(annType);
@@ -189,7 +189,7 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 if (springAnnotation != null) {
                     args.add(value);
                     annBuilder = new StringBuilder("@" + springAnnotation + "(");
-                    if (springAnnotation.equals("PathVariable")) {
+                    if ("PathVariable".equals(springAnnotation)) {
                         annBuilder.append("#{any(String)})");
                     } else {
                         if (defaultValue == null) {
@@ -277,9 +277,8 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 Expression arg = ann.getArguments().get(0);
                 if (arg instanceof J.Assignment) {
                     return ((J.Assignment) arg).getAssignment();
-                } else {
-                    return arg;
                 }
+                return arg;
             }
 
             private boolean isMultiPart(Expression consumes) {

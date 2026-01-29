@@ -64,7 +64,7 @@ public class JaxrsToSpringmvcMediaType extends Recipe {
             @Override
             public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
                 String typeName = fieldAccess.getTarget().getType() != null ? fieldAccess.getTarget().getType().toString() : "";
-                if (typeName.equals("javax.ws.rs.core.MediaType") || typeName.equals("jakarta.ws.rs.core.MediaType")) {
+                if ("javax.ws.rs.core.MediaType".equals(typeName) || "jakarta.ws.rs.core.MediaType".equals(typeName)) {
                     maybeRemoveImport(typeName);
                     maybeAddImport("org.springframework.http.MediaType");
 
