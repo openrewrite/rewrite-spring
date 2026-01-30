@@ -24,6 +24,10 @@ tags:
   - spring
   - kafka
 recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.kafka
+      artifactId: spring-kafka
+      newVersion: 3.0.x
   - org.openrewrite.java.spring.kafka.KafkaOperationsSendReturnType
   - org.openrewrite.java.spring.kafka.KafkaTestUtilsDuration
   - org.openrewrite.java.ChangeType:

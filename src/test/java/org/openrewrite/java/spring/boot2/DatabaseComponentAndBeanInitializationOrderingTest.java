@@ -16,15 +16,18 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.kotlin.Assertions.kotlin;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest {
@@ -43,15 +46,21 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
           </dependencies>
       </project>
       """;
+    private final JavaParser.Builder<? extends JavaParser, ?> JAVA_PARSER = JavaParser.fromJavaVersion()
+      .classpathFromResources(new InMemoryExecutionContext(),
+        "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
+        "jooq-3.14.15", "jakarta.persistence-api-2.2.3");
+    private final KotlinParser.Builder KOTLIN_PARSER = KotlinParser.builder()
+      .classpathFromResources(new InMemoryExecutionContext(),
+        "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
+        "jooq-3.14.15", "jakarta.persistence-api-2.2.3");
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec
           .recipeFromResources("org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrdering")
-          .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
-              "jooq-3.14.15", "jakarta.persistence-api-2.2.3"));
+          .parser(JAVA_PARSER)
+          .parser(KOTLIN_PARSER);
     }
 
     @DocumentExample
@@ -467,6 +476,36 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
     }
 
     @Test
+    void donotMigrateIfAlreadyAnnotated() {
+        rewriteRun(
+          spec -> spec.parser(JAVA_PARSER.dependsOn("""
+            package org.springframework.boot.sql.init.dependency;
+            public @interface DependsOnDatabaseInitialization {}
+            """)),
+          mavenProject("project-maven",
+            pomXml(POM_WITH_SPRING_BOOT_25),
+            java(
+              //language=java
+              """
+                import javax.sql.DataSource;
+
+                import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
+                import org.springframework.stereotype.Component;
+
+                @Component
+                @DependsOnDatabaseInitialization
+                public class MyDbInitializerComponent {
+
+                    public void initSchema(DataSource ds) {
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
     void dontAnnotateNonBootModules() {
         rewriteRun(
           mavenProject("project-maven",
@@ -516,5 +555,192 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
             )
           )
         );
+    }
+
+    @Nested
+    class Kotlin {
+        @Test
+        void configurationWithDataSourceDependency() {
+            rewriteRun(
+              mavenProject("project-maven",
+                pomXml(POM_WITH_SPRING_BOOT_25),
+                //language=kotlin
+                kotlin(
+                  """
+                    import javax.sql.DataSource
+                    import org.springframework.context.annotation.Configuration
+                    import org.springframework.context.annotation.Bean
+
+                    @Configuration
+                    class PersistenceConfiguration {
+
+                        class CustomDataSourceInitializer(private val ds: DataSource) {
+                            fun initDatabase(sql: String) {}
+                        }
+
+                        @Bean
+                        fun customDataSourceInitializer(ds: DataSource): CustomDataSourceInitializer {
+                            return CustomDataSourceInitializer(ds)
+                        }
+                    }
+                    """,
+                  """
+                    import javax.sql.DataSource
+                    import org.springframework.context.annotation.Configuration
+                    import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                    import org.springframework.context.annotation.Bean
+
+                    @Configuration
+                    class PersistenceConfiguration {
+
+                        class CustomDataSourceInitializer(private val ds: DataSource) {
+                            fun initDatabase(sql: String) {}
+                        }
+
+                        @Bean
+                        @DependsOnDatabaseInitialization
+                        fun customDataSourceInitializer(ds: DataSource): CustomDataSourceInitializer {
+                            return CustomDataSourceInitializer(ds)
+                        }
+                    }
+                    """
+                )
+              )
+            );
+        }
+
+        @Test
+        void componentWithDataSourceDependency() {
+            rewriteRun(
+              mavenProject("project-maven",
+                pomXml(POM_WITH_SPRING_BOOT_25),
+                //language=kotlin
+                kotlin(
+                  """
+                    import javax.sql.DataSource
+                    import org.springframework.stereotype.Component
+
+                    @Component
+                    class MyDbInitializerComponent {
+
+                        fun initSchema(ds: DataSource) {
+                        }
+                    }
+                    """,
+                  """
+                    import javax.sql.DataSource
+
+                    import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                    import org.springframework.stereotype.Component
+
+                    @Component
+                    @DependsOnDatabaseInitialization
+                    class MyDbInitializerComponent {
+
+                        fun initSchema(ds: DataSource) {
+                        }
+                    }
+                    """
+                )
+              )
+            );
+        }
+
+        @Test
+        void nonDataSourceBeanShouldNotBeAnnotated() {
+            rewriteRun(
+              mavenProject("project-maven",
+                pomXml(POM_WITH_SPRING_BOOT_25),
+                //language=kotlin
+                kotlin(
+                  """
+                    class MyService
+                    """
+                ),
+                //language=kotlin
+                kotlin(
+                  """
+                    import org.springframework.context.annotation.Configuration
+                    import org.springframework.context.annotation.Bean
+
+                    @Configuration
+                    class MyThing {
+
+                        @Bean
+                        fun myService(): MyService {
+                            return MyService()
+                        }
+                    }
+                    """
+                )
+              )
+            );
+        }
+
+        @Test
+        void kotlinAlreadyMigratedConfigurationNoChange() {
+            rewriteRun(
+              spec -> spec.parser(KOTLIN_PARSER.dependsOn("""
+                package org.springframework.boot.sql.init.dependency
+                annotation class DependsOnDatabaseInitialization {}
+                """)),
+              mavenProject("project-maven",
+                pomXml(POM_WITH_SPRING_BOOT_25),
+                //language=kotlin
+                kotlin(
+                  """
+                    import javax.sql.DataSource
+                    import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                    import org.springframework.context.annotation.Configuration
+                    import org.springframework.context.annotation.Bean
+
+                    @Configuration
+                    class PersistenceConfiguration {
+
+                        class CustomDataSourceInitializer(private val ds: DataSource) {
+                            fun initDatabase(sql: String) {}
+                        }
+
+                        @Bean
+                        @DependsOnDatabaseInitialization
+                        fun customDataSourceInitializer(ds: DataSource): CustomDataSourceInitializer {
+                            return CustomDataSourceInitializer(ds)
+                        }
+                    }
+                    """
+                )
+              )
+            );
+        }
+
+        @Test
+        void kotlinAlreadyMigratedComponentNoChange() {
+            rewriteRun(
+              spec ->
+                spec.parser(KOTLIN_PARSER.dependsOn("""
+                  package org.springframework.boot.sql.init.dependency
+                  annotation class DependsOnDatabaseInitialization {}
+                  """)),
+              mavenProject("project-maven",
+                pomXml(POM_WITH_SPRING_BOOT_25),
+                //language=kotlin
+                kotlin(
+                  """
+                    import javax.sql.DataSource
+                    import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
+                    import org.springframework.stereotype.Component
+
+                    @Component
+                    @DependsOnDatabaseInitialization
+                    class MyDbInitializerComponent {
+
+                        fun initSchema(ds: DataSource) {
+                        }
+                    }
+                    """
+                )
+              )
+            );
+        }
     }
 }

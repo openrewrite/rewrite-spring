@@ -52,9 +52,6 @@ recipeList:
       propertyKey: swagger.description
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: swagger.contact
-  - org.openrewrite.java.dependencies.RemoveDependency:
-      groupId: io.swagger.core.v3
-      artifactId: swagger-annotations
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: '@springfox.documentation.swagger2.annotations.EnableSwagger2'
   - org.openrewrite.java.spring.doc.MigrateDocketBeanToGroupedOpenApiBean

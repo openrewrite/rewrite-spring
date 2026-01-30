@@ -15,15 +15,20 @@
  */
 package org.openrewrite.java.spring;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.ExpectedToFail;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.kotlin.Assertions.kotlin;
 
 @SuppressWarnings({"SimplifiableAnnotation", "MethodMayBeStatic"})
 class ImplicitWebAnnotationNamesTest implements RewriteTest {
@@ -31,7 +36,8 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ImplicitWebAnnotationNames())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.+"))
+          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.+"));
     }
 
     @DocumentExample
@@ -181,5 +187,127 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Nested
+    class Kotlin {
+        @Test
+        void removeUnnecessaryAnnotationArgument() {
+            //language=kotlin
+            rewriteRun(
+              kotlin(
+                """
+                  import org.springframework.http.ResponseEntity
+                  import org.springframework.web.bind.annotation.*
+
+                  @RestController
+                  @RequestMapping("/users")
+                  class UsersController {
+                      @GetMapping("/{id}")
+                      fun getUser(@PathVariable("id") id: Long,
+                                  @PathVariable(required = false) p2: Long?,
+                                  @PathVariable(value = "p3") anotherName: Long): ResponseEntity<String> {
+                          return ResponseEntity.ok(anotherName)
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.http.ResponseEntity
+                  import org.springframework.web.bind.annotation.*
+
+                  @RestController
+                  @RequestMapping("/users")
+                  class UsersController {
+                      @GetMapping("/{id}")
+                      fun getUser(@PathVariable id: Long,
+                                  @PathVariable(required = false) p2: Long?,
+                                  @PathVariable(value = "p3") anotherName: Long): ResponseEntity<String> {
+                          return ResponseEntity.ok(anotherName)
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @ExpectedToFail("Whitespaces in Kotlin around a TypeExpression are problematic see https://github.com/openrewrite/rewrite-kotlin/issues/477. Use a formatter to prevent these situations.")
+        @Test
+        void annotationNoWhitespaceBetweenAnnotationAndVariable() {
+            //language=kotlin
+            rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              kotlin(
+                """
+                  import org.springframework.http.ResponseEntity
+                  import org.springframework.web.bind.annotation.*
+
+                  @RestController
+                  @RequestMapping("/users")
+                  class UsersController {
+                      @GetMapping("/{id}")
+                      fun getUser(@PathVariable("id")id: Long): ResponseEntity<String> {
+                          return ResponseEntity.ok("")
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.http.ResponseEntity
+                  import org.springframework.web.bind.annotation.*
+
+                  @RestController
+                  @RequestMapping("/users")
+                  class UsersController {
+                      @GetMapping("/{id}")
+                      fun getUser(@PathVariable id: Long): ResponseEntity<String> {
+                          return ResponseEntity.ok("")
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void doesNotRenamePathVariable() {
+            //language=kotlin
+            rewriteRun(
+              kotlin(
+                """
+                  import org.springframework.http.ResponseEntity
+                  import org.springframework.web.bind.annotation.*
+
+                  class UsersController {
+                      fun getUser(@PathVariable("uid") id: Long,
+                                  @PathVariable(value = "another_name") anotherName: Long): ResponseEntity<String> {
+                          return ResponseEntity.ok("")
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void alreadyMigratedNoChange() {
+            //language=kotlin
+            rewriteRun(
+              kotlin(
+                """
+                  import org.springframework.http.ResponseEntity
+                  import org.springframework.web.bind.annotation.*
+
+                  @RestController
+                  @RequestMapping("/users")
+                  class UsersController {
+                      @GetMapping("/{id}")
+                      fun getUser(@PathVariable id: Long,
+                                  @PathVariable(required = false) p2: Long?): ResponseEntity<String> {
+                          return ResponseEntity.ok("")
+                      }
+                  }
+                  """
+              )
+            );
+        }
     }
 }

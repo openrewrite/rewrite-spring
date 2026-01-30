@@ -29,6 +29,8 @@ recipeList:
 #  - org.openrewrite.java.spring.ImplicitWebAnnotationNames
   - org.openrewrite.java.spring.boot2.UnnecessarySpringExtension
   - org.openrewrite.java.spring.NoAutowiredOnConstructor
+  - org.openrewrite.java.spring.boot2.AddConfigurationAnnotationIfBeansPresent
+  - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
   - org.openrewrite.java.spring.boot2.RestTemplateBuilderRequestFactory
   - org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
   - org.openrewrite.java.spring.SeparateApplicationPropertiesByProfile
@@ -60,6 +62,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.PreciseBeanType
   - org.openrewrite.java.spring.boot3.ReplaceStringLiteralsWithConstants
   - org.openrewrite.java.spring.NoRepoAnnotationOnRepoInterface
+  - org.openrewrite.java.spring.security.SpringSecurityBestPractices
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ReplaceStringLiteralsWithConstants
@@ -90,3 +93,15 @@ recipeList:
   - org.openrewrite.java.spring.AddSpringProperty:
       property: spring.threads.virtual.enabled
       value: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.security.SpringSecurityBestPractices
+displayName: Spring security best practices
+description: Applies security best practices to Spring applications, including TLS for database and message broker connections.
+tags:
+  - spring
+  - security
+recipeList:
+  - org.openrewrite.java.spring.amqp.UseTlsAmqpConnectionString
+  - org.openrewrite.java.spring.data.UseTlsJdbcConnectionString

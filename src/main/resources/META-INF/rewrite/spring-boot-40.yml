@@ -106,3 +106,6 @@ recipeList:
       artifactId: error-handling-spring-boot-starter
       newVersion: 5.0.x
       overrideManagedVersion: true
+
+  - org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
+  - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient

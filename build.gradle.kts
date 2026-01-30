@@ -22,6 +22,8 @@ recipeDependencies {
     parserClasspath("org.springframework.boot:spring-boot:2.+")
     parserClasspath("org.springframework.boot:spring-boot:3.+")
 
+    parserClasspath("org.springframework.boot:spring-boot-resttestclient:4.+")
+
     parserClasspath("org.springframework.boot:spring-boot-autoconfigure:2.+")
     parserClasspath("org.springframework.boot:spring-boot-autoconfigure:3.+")
     parserClasspath("org.springframework.boot:spring-boot-actuator:2.+")
@@ -61,6 +63,8 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.1.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.1.+")
+
+    parserClasspath("org.springframework:spring-tx:5.+")
 
     parserClasspath("org.springframework:spring-messaging:5.+")
     parserClasspath("org.springframework.kafka:spring-kafka:2.9.+")
@@ -212,6 +216,7 @@ dependencies {
 
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite.gradle.tooling:model:$rewriteVersion")
+    testImplementation("org.junit-pioneer:junit-pioneer:2.0.0")
 
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
