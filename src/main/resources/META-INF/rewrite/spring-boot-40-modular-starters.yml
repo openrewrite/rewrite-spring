@@ -323,6 +323,11 @@ recipeList:
       oldPackageName: org.springframework.boot.test.web.client
       newPackageName: org.springframework.boot.resttestclient
       recursive: true
+  # spring-boot-health (actuator health moved to health.contributor)
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.health
+      newPackageName: org.springframework.boot.health.contributor
+      recursive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway
