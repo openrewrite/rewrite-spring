@@ -56,6 +56,9 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 4.0.x
+  - org.openrewrite.gradle.UpdateGradleWrapper:
+      version: ^8.14
+      addIfMissing: false
 
   # Replace deprecated starters with their new names
   # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide#deprecated-starters
