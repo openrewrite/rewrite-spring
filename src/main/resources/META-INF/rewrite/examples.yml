@@ -3874,6 +3874,32 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
+examples:
+- description: '`HttpComponentsClientHttpRequestFactoryConnectTimeoutTest#addsCommentWhenNoPoolingHttpClientConnectionManager`'
+  sources:
+  - before: |
+      import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+      class Example {
+          void configure() {
+              HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+              factory.setConnectTimeout(5000);
+          }
+      }
+    after: |
+      import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+      class Example {
+          void configure() {
+              HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+              // Manual migration to `ConnectionConfig.Builder.setConnectTimeout(Timeout)` necessary; see: https://github.com/spring-projects/spring-framework/issues/35748
+              factory.setConnectTimeout(5000);
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryReadTimeout
 examples:
 - description: '`HttpComponentsClientHttpRequestFactoryReadTimeoutTest#migrateHttpComponentsClientHttpRequestFactoryReadTimeout`'
