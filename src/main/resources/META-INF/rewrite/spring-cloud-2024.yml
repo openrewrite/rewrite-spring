@@ -19,6 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2024.UpgradeSpringCloud_2024
 displayName: Migrate to Spring Cloud 2024
 description: Migrate applications to the latest Spring Cloud 2024 (Moorgate) release.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - cloud
@@ -30,6 +32,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2024.DependencyUpgrades
 displayName: Upgrade dependencies to Spring Cloud 2024
 description: Upgrade dependencies to Spring Cloud 2024 from prior 2023.x version.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - cloud

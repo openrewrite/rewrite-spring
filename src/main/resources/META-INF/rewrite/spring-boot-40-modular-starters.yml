@@ -24,6 +24,8 @@ description: >-
 
   Note: Higher-level starters (like data-jpa) include lower-level ones (like jdbc) transitively,
   so only the highest-level detected starter is added for each technology.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
 
   # Add modular starter dependencies based on package usage
@@ -111,6 +113,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
 displayName: Migrate packages to modular starters
 description: Migrate to new packages used for autoconfiguration by Spring Boot 4.0 modules.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   # spring-boot-activemq
   - org.openrewrite.java.ChangePackage:
@@ -326,6 +330,7 @@ name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway
 displayName: Add `spring-boot-starter-flyway` if using Flyway
 description: Adds the necessary Spring Boot 4.0 Flyway starter for autoconfiguration based on dependency usage.
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.maven.search.FindDependency:
       groupId: org.flywaydb
       artifactId: flyway-*

@@ -25,6 +25,8 @@ description: >-
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
   etc) that are required as part of the migration to Spring Boot 2.4.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -87,6 +89,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
 displayName: Use `isEagerFilterInit()`
 description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#isEagerInitFilters` was deprecated in 2.4 and are removed in 2.6.'
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory isEagerInitFilters()
@@ -97,6 +101,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
 displayName: Use `setEagerFilterInit(boolean)`
 description: '`org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory#setEagerInitFilters` was deprecated in 2.4 and are removed in 2.6.'
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory setEagerInitFilters(boolean)
@@ -111,6 +117,10 @@ description: >-
   This recipe will migrate a Spring Boot application's tests from JUnit 4 to JUnit 5. This spring-specific migration
   includes conversion of Spring Test runners to Spring Test extensions and awareness of the composable Spring Test
   annotations.
+########################################################################################################################
+# SpringBoot 2.x JUnit 4 to Junit 5 Migration
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - test
   - junit
@@ -135,6 +145,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UnnecessarySpringRunWith
 displayName: Remove unnecessary Spring `@RunWith`
 description: Remove `@RunWith` annotations on Spring tests.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.testing.junit5.RunnerToExtension:
       runners:
@@ -146,6 +158,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.RemoveObsoleteSpringRunners
 displayName: Remove obsolete Spring JUnit runners
 description: Remove obsolete classpath runners.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.testing.junit5.RemoveObsoleteRunners:
       obsoleteRunners:
@@ -160,6 +174,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_4
 displayName: Upgrade MyBatis to Spring Boot 2.4
 description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 2.4.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_3
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:

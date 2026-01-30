@@ -20,6 +20,8 @@ name: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
 displayName: Migrate to Spring Kafka 4.0
 description: >-
   Migrate applications to the latest Spring Kafka 4.0 release.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - kafka

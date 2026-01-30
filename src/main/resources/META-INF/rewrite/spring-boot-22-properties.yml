@@ -19,6 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBootProperties_2_2
 displayName: Migrate Spring Boot properties to 2.2
 description: Migrate properties found in `application.properties` and `application.yml`.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot

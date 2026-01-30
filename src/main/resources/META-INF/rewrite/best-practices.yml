@@ -19,6 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
 displayName: Spring Boot 2.x best practices
 description: Applies best practices to Spring Boot 2 applications.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -41,6 +43,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.SpringBoot33BestPractices
 displayName: Spring Boot 3.3 best practices
 description: Applies best practices to Spring Boot 3 applications.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -51,6 +55,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.SpringBoot3BestPracticesOnly
 displayName: Spring Boot 3.3 best practices (only)
 description: Applies best practices to Spring Boot 3 applications, without chaining in upgrades to Spring Boot.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -72,6 +78,7 @@ tags:
   - spring
   - boot
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework
       artifactIdPattern: spring-web
@@ -87,6 +94,7 @@ name: org.openrewrite.java.spring.boot3.EnableVirtualThreads
 displayName: Enable Virtual Threads on Java 21
 description: Set `spring.threads.virtual.enabled` to `true` in `application.properties` or `application.yml`.
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.search.HasJavaVersion:
       version: 21.X
 recipeList:
@@ -99,6 +107,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security.SpringSecurityBestPractices
 displayName: Spring security best practices
 description: Applies security best practices to Spring applications, including TLS for database and message broker connections.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security

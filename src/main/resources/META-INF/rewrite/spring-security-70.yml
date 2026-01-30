@@ -22,6 +22,8 @@ description: >-
   Migrate applications to the latest Spring Security 7.0 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security
@@ -38,6 +40,8 @@ name: org.openrewrite.java.spring.security7.SecurityConfigurerRemoveThrowsExcept
 displayName: Remove throws exception in `SecurityConfigurer` methods `init` and `configure`
 description: >-
   Remove throws exception in `SecurityConfigurer` methods `init` and `configure`.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security

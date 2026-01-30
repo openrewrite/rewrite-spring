@@ -19,6 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.batch.SpringBatch5To6Migration
 displayName: Migrate to Spring Batch 6.0 from 5.2
 description: Migrate applications built on Spring Batch 5.2 to the latest Spring Batch 6.0 release.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - batch

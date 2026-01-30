@@ -23,6 +23,8 @@ description: >-
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
   etc) that are required as part of the migration to Spring Boot 2.7.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -96,6 +98,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ActuatorEndpointSanitization
 displayName: Remove the deprecated properties `additional-keys-to-sanitize` from the `configprops` and `env` end points
 description: Spring Boot 3.0 removed the key-based sanitization mechanism used in Spring Boot 2.x in favor of a unified approach. See https://github.com/openrewrite/rewrite-spring/issues/228.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -115,6 +119,8 @@ description: >-
   configure the max HTTP request and response header sizes. The renamed property is used to configure the http request
   header size in Spring Boot 3.0. **To limit the max header size of an HTTP response on Tomcat or Jetty (the only two
   servers that support such a setting), use a `WebServerFactoryCustomizer`**.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -128,6 +134,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
 displayName: Migrate thymeleaf dependencies to Spring Boot 3.x
 description: Migrate thymeleaf dependencies to the new artifactId, since these are changed with Spring Boot 3.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -151,6 +159,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
 displayName: Migrate dropWizard dependencies to Spring Boot 3.x
 description: Migrate dropWizard dependencies to the new artifactId, since these are changed with Spring Boot 3.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -178,6 +188,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateSapCfJavaLoggingSupport
 displayName: Migrate SAP cloud foundry logging support to Spring Boot 3.x
 description: Migrate SAP cloud foundry logging support from `cf-java-logging-support-servlet` to `cf-java-logging-support-servlet-jakarta`, to use Jakarta with Spring Boot 3.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -196,6 +208,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
 displayName: Upgrade MyBatis to Spring Boot 3.0
 description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 3.0.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_7
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:

@@ -22,6 +22,8 @@ description: >-
   Migrate applications to the latest Spring Security 6.1 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security

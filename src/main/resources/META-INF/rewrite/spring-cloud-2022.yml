@@ -19,6 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2022.UpgradeSpringCloud_2022
 displayName: Migrate to Spring Cloud 2022
 description: Migrate applications to the latest Spring Cloud 2022 (Kilburn) release.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - cloud
@@ -32,6 +34,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2022.DependencyUpgrades
 displayName: Upgrade dependencies to Spring Cloud 2022
 description: Upgrade dependencies to Spring Cloud 2022 from prior 2021.x version.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - cloud
@@ -90,6 +94,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing
 displayName: Migrate Spring Cloud Sleuth 3.1 to Micrometer Tracing 1.0
 description: Spring Cloud Sleuth has been discontinued and only compatible with Spring Boot 2.x.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - cloud

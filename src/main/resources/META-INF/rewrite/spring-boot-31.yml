@@ -23,6 +23,8 @@ description: >-
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
   etc) that are required as part of the migration to Spring Boot 3.0.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot

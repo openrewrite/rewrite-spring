@@ -21,6 +21,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.SpringBootProperties_3_5
 displayName: Migrate Spring Boot properties to 3.5
 description: Migrate properties found in `application.properties` and `application.yml`.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot

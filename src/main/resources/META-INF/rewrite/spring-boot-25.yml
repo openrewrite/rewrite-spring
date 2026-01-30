@@ -21,6 +21,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
 displayName: Upgrade to Spring Boot 2.5
 description: 'Upgrade to Spring Boot 2.5 from any prior 2.x version.'
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_5
@@ -84,6 +86,7 @@ name: org.openrewrite.java.spring.boot2.UpgradeSpockToGroovy3
 displayName: Upgrade Spock to a Groovy 3 compatible variant
 description: Upgrade Spock dependencies to a Groovy 3 compatible 2.0 variant when Groovy 3 is on the classpath.
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.codehaus.groovy
       artifactIdPattern: groovy
@@ -102,6 +105,10 @@ name: org.openrewrite.java.spring.boot2.search.FindUpgradeRequirementsSpringBoot
 displayName: Find patterns that require updating for Spring Boot 2.5
 description: >-
   Looks for a series of patterns that have not yet had auto-remediation recipes developed for.
+########################################################################################################################
+# SpringBoot 2.5 Search Recipes
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -118,6 +125,8 @@ description: |
   `spring-webmvc` or `spring-webflux` projects that parse the error response JSON may need to deal with the missing item
   ([release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#messages-in-the-default-error-view)).
   You can still use the `server.error.include-message` property if you want messages to be included.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -134,6 +143,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_5
 displayName: Upgrade MyBatis to Spring Boot 2.5
 description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 2.5.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_4
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -150,6 +161,7 @@ description: >-
   If you have a bean that works with the `DataSource` directly, annotate its class or `@Bean` method with `@DependsOnDatabaseInitialization` to ensure that it too is initialized after the database has been initialized.
   See the [release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#initialization-ordering) for more.
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot
@@ -165,6 +177,8 @@ description: >-
   additional username and password properties. In earlier versions of Spring Boot, these settings were
   derived from `spring.datasource` properties but this turned out to be problematic for people that
   provided their own `DataSource` beans.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentialsForToolYaml:
       tool: flyway
