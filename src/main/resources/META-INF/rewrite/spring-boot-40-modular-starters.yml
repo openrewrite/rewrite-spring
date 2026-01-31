@@ -237,6 +237,9 @@ recipeList:
       newPackageName: org.springframework.boot.mongodb.autoconfigure
       recursive: true
   # spring-boot-kafka
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.kafka.StreamsBuilderFactoryBeanCustomizer
+      newFullyQualifiedTypeName: org.springframework.kafka.config.StreamsBuilderFactoryBeanConfigurer
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.kafka
       newPackageName: org.springframework.boot.kafka.autoconfigure
@@ -323,6 +326,11 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.test.web.client
       newPackageName: org.springframework.boot.resttestclient
+      recursive: true
+  # spring-boot-health (actuator health moved to health.contributor)
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.health
+      newPackageName: org.springframework.boot.health.contributor
       recursive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
