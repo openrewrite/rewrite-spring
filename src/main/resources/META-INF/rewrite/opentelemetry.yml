@@ -22,6 +22,8 @@ description: >-
   Comprehensive migration to OpenTelemetry including dependencies, configuration properties,
   and Java code changes. This recipe handles migration from Spring Cloud Sleuth, Brave/Zipkin,
   and OpenTracing to OpenTelemetry.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -51,6 +53,8 @@ description: >-
   [Spring Cloud Sleuth has been deprecated](https://github.com/spring-cloud/spring-cloud-sleuth#spring-cloud-sleuth) and
   is replaced by Micrometer Tracing with OpenTelemetry as a backend. This recipe removes Sleuth
   dependencies and adds OpenTelemetry instrumentation.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -172,6 +176,8 @@ displayName: Migrate from Zipkin to OpenTelemetry OTLP
 description: >-
   Migrate from Zipkin tracing to OpenTelemetry OTLP. This recipe replaces Zipkin dependencies
   with OpenTelemetry OTLP exporter and updates the related configuration properties.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -199,6 +205,8 @@ displayName: Migrate Brave API to OpenTelemetry API
 description: >-
   Migrate Java code using Brave (Zipkin) tracing API to OpenTelemetry API.
   This recipe handles the migration of Brave Tracer, Span, and related classes to OpenTelemetry equivalents.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -248,6 +256,8 @@ displayName: Migrate OpenTracing API to OpenTelemetry API
 description: >-
   Migrate Java code using OpenTracing API to OpenTelemetry API.
   OpenTracing has been superseded by OpenTelemetry and is no longer actively maintained.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -309,6 +319,8 @@ displayName: Migrate New Relic Agent to OpenTelemetry
 description: >-
   Migrate from New Relic Java Agent annotations to OpenTelemetry annotations.
   Replace @Trace annotations with @WithSpan annotations.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -339,6 +351,8 @@ displayName: Migrate Datadog tracing to OpenTelemetry
 description: >-
   Migrate from Datadog Java tracing annotations to OpenTelemetry annotations.
   Replace Datadog @Trace annotations with @WithSpan annotations.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot

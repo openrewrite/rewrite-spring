@@ -21,6 +21,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
 displayName: Migrate to Spring Boot 2.7
 description: Upgrade to Spring Boot 2.7.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -84,6 +86,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_7
 displayName: Upgrade MyBatis to Spring Boot 2.7
 description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 2.7.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_6
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:

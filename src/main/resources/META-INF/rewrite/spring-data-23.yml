@@ -21,6 +21,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
 displayName: Migrate to Spring Data 2.3
 description: Migrate applications to the latest Spring Data 2.3 release.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.data.MigrateJpaSort
   - org.openrewrite.java.spring.data.MigrateQuerydslJpaRepository

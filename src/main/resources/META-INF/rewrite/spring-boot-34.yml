@@ -21,6 +21,8 @@ displayName: Migrate to Spring Boot 3.4
 description: >-
   Migrate applications to the latest Spring Boot 3.4 release. This recipe will modify an application's build files,
   make changes to deprecated/preferred APIs.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot

@@ -21,6 +21,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_0
 displayName: Migrate to Spring Framework 6.0
 description: Migrate applications to the latest Spring Framework 6.0 release.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -38,6 +40,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.MigrateResponseStatusException
 displayName: Migrate breaking changes in `ResponseStatusException`
 description: Migrate Spring Framework 5.3's `ResponseStatusException` method `getRawStatusCode()` to Spring Framework 6's `getStatusCode().value()` and `ResponseStatusException` method `getStatus()` to Spring Framework 6's `getStatusCode()` .
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.framework.MigrateResponseStatusExceptionGetRawStatusCodeMethod
   - org.openrewrite.java.spring.framework.MigrateResponseStatusExceptionGetStatusCodeMethod
@@ -46,6 +50,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.MigrateSpringAssert
 displayName: Migrate removed Spring `Assert` methods
 description: Assert methods without a message argument have been removed in Spring Framework 6.0.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.AddLiteralMethodArgument:
       methodPattern: org.springframework.util.Assert state(boolean)

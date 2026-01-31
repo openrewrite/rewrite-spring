@@ -22,6 +22,8 @@ description: >-
   Migrate applications to the latest Spring Security 6.0 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security
@@ -54,6 +56,9 @@ displayName: Remove unnecessary `use-authorization-manager` for message security
 description: >-
   In Spring Security 6, `<websocket-message-broker>` defaults `use-authorization-manager` to `true`.
   So, the `use-authorization-manager` attribute for message security is no longer needed and can be removed.
+########################################################################################################################
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security

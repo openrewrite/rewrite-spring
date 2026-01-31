@@ -23,6 +23,8 @@ description: >-
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
   etc) that are required as part of the migration to Spring Boot 3.2.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - boot
@@ -73,6 +75,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ChangeCassandraGroupId
 displayName: Change `com.datastax.oss` to `org.apache.cassandra`
 description: Change `groupId` from `com.datastax.oss` to `org.apache.cassandra` and adopt the Spring Boot 3.3 managed version.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   # Use explicit artifactIds as opposed to a wildcard, as we do not wish to change `com.datastax.oss:native-protocol`
   - org.openrewrite.java.dependencies.ChangeDependency:

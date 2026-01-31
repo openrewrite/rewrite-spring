@@ -19,6 +19,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.http.SpringWebDependency
 displayName: Find Spring Web dependency
 description: Find compile scoped Spring Web dependency for Maven and Gradle, both direct and transitive.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.maven.search.DependencyInsight:
       groupIdPattern: org.springframework

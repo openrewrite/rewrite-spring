@@ -18,6 +18,8 @@ displayName: Migrate to Flyway 10
 description: >-
   Migrate to Flyway 10.
   See details at [Flyway V10 has landed](https://documentation.red-gate.com/fd/flyway-v10-has-landed-222627771.html).
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - flyway
 recipeList:
@@ -37,6 +39,7 @@ tags:
   - flyway
   - postgresql
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.flywaydb
       artifactIdPattern: flyway-core
@@ -61,6 +64,7 @@ tags:
   - flyway
   - mysql
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.flywaydb
       artifactIdPattern: flyway-core
@@ -85,6 +89,7 @@ tags:
   - flyway
   - oracle
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.flywaydb
       artifactIdPattern: flyway-core
@@ -109,6 +114,7 @@ tags:
   - flyway
   - sqlserver
 preconditions:
+  - org.openrewrite.Singleton
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.flywaydb
       artifactIdPattern: flyway-core

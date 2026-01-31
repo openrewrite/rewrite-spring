@@ -22,6 +22,8 @@ description: >-
   Migrate applications to the latest Spring Security 5.8 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security
@@ -55,6 +57,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security5.search.FindEncryptorsQueryableTextUses
 displayName: Finds uses of `Encryptors.queryableText()`
 description: "`Encryptors.queryableText()` is insecure and is removed in Spring Security 6."
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security
@@ -72,6 +76,8 @@ description: >-
   `@EnableGlobalMethodSecurity` and `<global-method-security>` are deprecated in favor of `@EnableMethodSecurity`
   and `<method-security>`, respectively. The new annotation and XML element activate Spring’s pre-post annotations
   by default and use AuthorizationManager internally.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security
@@ -91,6 +97,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security5.RenameNimbusdsJsonObjectPackageName
 displayName: Rename the package name from `com.nimbusds.jose.shaded.json` to `net.minidev.json`
 description: Rename the package name from `com.nimbusds.jose.shaded.json` to `net.minidev.json`.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - spring
   - security
