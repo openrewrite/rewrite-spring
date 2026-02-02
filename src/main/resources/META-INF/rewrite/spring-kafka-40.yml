@@ -23,6 +23,8 @@ description: >-
 tags:
   - spring
   - kafka
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   # https://docs.spring.io/spring-kafka/reference/4.0/whats-new.html#x40-jackson3-support
   - org.openrewrite.java.ChangeType:

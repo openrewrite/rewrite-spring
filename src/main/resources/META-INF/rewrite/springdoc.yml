@@ -24,6 +24,8 @@ tags:
   - openapi
   - springfox
   - springdoc
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.AddCommentToMethodInvocations:
       comment: "TODO: The transformation of Docket to OpenAPI is too complex to be adequately handled in a recipe. See https://springdoc.org/migrating-from-springfox.html for guidance."
@@ -43,6 +45,8 @@ tags:
   - swagger
   - springdoc
   - openapi
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.openapi.swagger.SwaggerToOpenAPI
   - org.openrewrite.java.spring.doc.RemoveBeanValidatorPluginsConfiguration
@@ -68,6 +72,7 @@ preconditions:
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: io.springfox
       artifactIdPattern: "*"
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: io.springfox
@@ -85,6 +90,8 @@ displayName: Upgrade to SpringDoc 3.0
 description: Upgrade to SpringDoc v3.0.
 tags:
   - springdoc
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_8
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -98,6 +105,8 @@ displayName: Upgrade to SpringDoc 2.8
 description: Upgrade to SpringDoc v2.8.
 tags:
   - springdoc
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_6
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -111,6 +120,8 @@ displayName: Upgrade to SpringDoc 2.6
 description: Upgrade to SpringDoc v2.6.
 tags:
   - springdoc
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_5
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -124,6 +135,8 @@ displayName: Upgrade to SpringDoc 2.5
 description: Upgrade to SpringDoc v2.5.
 tags:
   - springdoc
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_2
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -137,6 +150,8 @@ displayName: Upgrade to SpringDoc 2.2
 description: Upgrade to SpringDoc v2.2.
 tags:
   - springdoc
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -150,6 +165,8 @@ displayName: Upgrade to SpringDoc 2.1
 description: Upgrade to SpringDoc v2.1, as described in the [upgrade guide](https://springdoc.org/#migrating-from-springdoc-v1).
 tags:
   - springdoc
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.openapi.swagger.SwaggerToOpenAPI
   - org.openrewrite.openapi.swagger.UseJakartaSwaggerArtifacts
@@ -234,6 +251,8 @@ description: Migrate from springdoc-openapi-common to springdoc-openapi-starter-
 tags:
   - springdoc
   - openapi
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.customizers.OpenApiCustomiser

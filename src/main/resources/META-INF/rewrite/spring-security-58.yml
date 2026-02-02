@@ -25,6 +25,8 @@ description: >-
 tags:
   - spring
   - security
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_7
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -59,6 +61,8 @@ tags:
   - spring
   - security
   - search
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.search.FindMethods:
       methodPattern: org.springframework.security.crypto.encrypt.Encryptors queryableText(..)
@@ -75,6 +79,8 @@ description: >-
 tags:
   - spring
   - security
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.xml.ChangeTagName:
       elementName: global-method-security
@@ -94,6 +100,8 @@ description: Rename the package name from `com.nimbusds.jose.shaded.json` to `ne
 tags:
   - spring
   - security
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: com.nimbusds.jose.shaded.json

@@ -24,6 +24,8 @@ description: Migrate properties found in `application.properties` and `applicati
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyValue:
       propertyKey: spring.jpa.hibernate.naming.implicit-strategy

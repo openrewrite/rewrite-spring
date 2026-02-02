@@ -26,6 +26,8 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
@@ -99,6 +101,8 @@ description: Spring Boot 3.0 removed the key-based sanitization mechanism used i
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.DeleteSpringProperty:
       propertyKey: management.endpoint.configprops.additional-keys-to-sanitize
@@ -118,6 +122,8 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: server.max-http-header-size
@@ -132,6 +138,8 @@ tags:
   - spring
   - boot
   - thymeleaf
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.thymeleaf.spring5
@@ -155,6 +163,8 @@ tags:
   - spring
   - boot
   - dropwizard
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: com.codahale.metrics.servlet
@@ -184,6 +194,8 @@ tags:
   - sap
   - cloudfoundry
   - logging
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.sap.hcp.cf.logging
@@ -196,6 +208,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
 displayName: Upgrade MyBatis to Spring Boot 3.0
 description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 3.0.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_7
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:

@@ -21,6 +21,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_5
 displayName: Migrate to Spring Data JPA 2.5
 description: Migrate applications to the latest Spring Data 2.5 release.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.data.UseJpaRepositoryGetById
   - org.openrewrite.java.spring.data.UseJpaRepositoryDeleteAllInBatch
@@ -29,6 +31,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UseJpaRepositoryGetById
 displayName: Use `JpaRepository#getById(ID id)`
 description: '`JpaRepository#getOne(ID)` was deprecated in 2.5.'
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.data.jpa.repository.JpaRepository getOne(..)
@@ -39,6 +43,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UseJpaRepositoryDeleteAllInBatch
 displayName: Use `JpaRepository#deleteAllInBatch(Iterable<T> entities)`
 description: '`JpaRepository#deleteInBatch(Iterable)` was deprecated in 2.5.'
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.data.jpa.repository.JpaRepository deleteInBatch(..)

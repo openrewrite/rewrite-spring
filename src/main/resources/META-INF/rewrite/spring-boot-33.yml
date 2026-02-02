@@ -26,6 +26,8 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_3
@@ -73,6 +75,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.ChangeCassandraGroupId
 displayName: Change `com.datastax.oss` to `org.apache.cassandra`
 description: Change `groupId` from `com.datastax.oss` to `org.apache.cassandra` and adopt the Spring Boot 3.3 managed version.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   # Use explicit artifactIds as opposed to a wildcard, as we do not wish to change `com.datastax.oss:native-protocol`
   - org.openrewrite.java.dependencies.ChangeDependency:
