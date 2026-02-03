@@ -22,6 +22,8 @@ description: Migrate applications to the latest Spring Cloud 2025 (Northfields) 
 tags:
   - spring
   - cloud
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   # Do not chain previous versions of Spring Cloud; leave inclusion up to Spring Boot migrations to avoid duplicates
   - org.openrewrite.java.spring.cloud2025.DependencyUpgrades
@@ -40,6 +42,8 @@ description: Upgrade dependencies to Spring Cloud 2025 from prior 2024.x version
 tags:
   - spring
   - cloud
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
@@ -97,6 +101,8 @@ description: Migrate to new Spring Cloud Gateway modules and starters for Spring
 tags:
   - spring
   - cloud
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
@@ -137,6 +143,8 @@ description: Migrate Spring Cloud Gateway properties for Spring Cloud 2025 relea
 tags:
   - spring
   - cloud
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway
@@ -158,6 +166,7 @@ preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.cloud
       artifactIdPattern: spring-cloud-gateway-webflux
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
@@ -175,6 +184,7 @@ preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.cloud
       artifactIdPattern: spring-cloud-gateway-proxyexchange-webflux
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
@@ -192,6 +202,7 @@ preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.cloud
       artifactIdPattern: spring-cloud-gateway-mvc
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
@@ -209,6 +220,7 @@ preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.cloud
       artifactIdPattern: spring-cloud-gateway-proxyexchange-webmvc
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy

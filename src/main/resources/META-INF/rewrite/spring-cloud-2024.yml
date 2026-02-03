@@ -22,6 +22,8 @@ description: Migrate applications to the latest Spring Cloud 2024 (Moorgate) rel
 tags:
   - spring
   - cloud
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.cloud2024.DependencyUpgrades
 
@@ -33,6 +35,8 @@ description: Upgrade dependencies to Spring Cloud 2024 from prior 2023.x version
 tags:
   - spring
   - cloud
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud

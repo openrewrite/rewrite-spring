@@ -22,6 +22,8 @@ description: Migrate applications built on Spring Batch 5.2 to the latest Spring
 tags:
   - spring
   - batch
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.batch.SpringBatch4To5Migration
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:

@@ -26,6 +26,8 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:

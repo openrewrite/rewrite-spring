@@ -21,6 +21,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_7
 displayName: Migrate to Spring Data JPA 2.7
 description: Migrate applications to the latest Spring Data JPA 2.7 release.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.data.UseJpaRepositoryGetReferenceById
 ---
@@ -28,6 +30,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UseJpaRepositoryGetReferenceById
 displayName: Use `JpaRepository#getReferenceById(ID id)`
 description: '`JpaRepository#getOne(ID)` was deprecated in 2.5 and `JpaRepository#getById(ID)` was deprecated in 2.7.'
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.data.jpa.repository.JpaRepository getById(..)

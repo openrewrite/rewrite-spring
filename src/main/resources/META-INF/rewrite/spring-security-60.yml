@@ -25,6 +25,8 @@ description: >-
 tags:
   - spring
   - security
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -57,6 +59,8 @@ description: >-
 tags:
   - spring
   - security
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.xml.ChangeTagAttribute:
       elementName: websocket-message-broker

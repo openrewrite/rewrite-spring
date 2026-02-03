@@ -23,6 +23,8 @@ description: Migrate properties found in `application.properties` and `applicati
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_4_EnabledToAccess
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -55,6 +57,8 @@ description: Migrate properties found in `application.properties` and `applicati
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.endpoints.enabled-by-default

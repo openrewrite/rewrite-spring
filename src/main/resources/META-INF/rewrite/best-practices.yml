@@ -22,6 +22,8 @@ description: Applies best practices to Spring Boot 2 applications.
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   # Note that we do not upgrade to Spring Boot 2.x here, as the 2.0 recipe includes SpringBoot2BestPractices itself
   - org.openrewrite.java.spring.NoRequestMappingAnnotation
@@ -44,6 +46,8 @@ description: Applies best practices to Spring Boot 3 applications.
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
 ---
@@ -54,6 +58,8 @@ description: Applies best practices to Spring Boot 3 applications, without chain
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   # These steps go above & beyond what's needed for a pure upgrade, and are not be included with 3.x upgrades themselves
   - org.openrewrite.java.spring.PropertiesToKebabCase
@@ -75,6 +81,7 @@ preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework
       artifactIdPattern: spring-web
+  - org.openrewrite.Singleton
 recipeList:
   # Replace literals with constants and simplify MediaType parse calls
   - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithHttpHeadersConstants
@@ -89,6 +96,7 @@ description: Set `spring.threads.virtual.enabled` to `true` in `application.prop
 preconditions:
   - org.openrewrite.java.search.HasJavaVersion:
       version: 21.X
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.AddSpringProperty:
       property: spring.threads.virtual.enabled
@@ -102,6 +110,8 @@ description: Applies security best practices to Spring applications, including T
 tags:
   - spring
   - security
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.amqp.UseTlsAmqpConnectionString
   - org.openrewrite.java.spring.data.UseTlsJdbcConnectionString

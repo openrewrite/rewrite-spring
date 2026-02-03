@@ -23,6 +23,8 @@ description: >-
 tags:
   - spring
   - kafka
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.kafka
@@ -56,6 +58,8 @@ description: >-
 tags:
   - spring
   - kafka
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   # `BiConsumer<T>` arguments to `SeekToCurrentErrorHandler` constructor also change to `ConsumerRecordRecoverer`, but values are assignable already
   - org.openrewrite.java.ChangeMethodName:

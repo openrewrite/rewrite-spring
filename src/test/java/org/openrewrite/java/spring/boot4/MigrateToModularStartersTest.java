@@ -331,6 +331,53 @@ class MigrateToModularStartersTest implements RewriteTest {
     }
 
     @Nested
+    class MigrateActuateHealthPackage implements RewriteTest {
+        @Override
+        public void defaults(RecipeSpec spec) {
+            spec.recipeFromResource(
+              "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
+              "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
+            ).parser(JavaParser.fromJavaVersion()
+              .classpathFromResources(new InMemoryExecutionContext(),
+                "spring-boot-actuator-3"));
+        }
+
+        @Test
+        void migrateActuateHealthToHealthContributor() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.actuate.health.AbstractHealthIndicator;
+                  import org.springframework.boot.actuate.health.Health;
+                  import org.springframework.boot.actuate.health.HealthIndicator;
+
+                  class MyHealthIndicator extends AbstractHealthIndicator {
+                      @Override
+                      protected void doHealthCheck(Health.Builder builder) {
+                          builder.up().build();
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+                  import org.springframework.boot.health.contributor.Health;
+                  import org.springframework.boot.health.contributor.HealthIndicator;
+
+                  class MyHealthIndicator extends AbstractHealthIndicator {
+                      @Override
+                      protected void doHealthCheck(Health.Builder builder) {
+                          builder.up().build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+    }
+
+    @Nested
     class MigrateAutoconfigurePackages {
         @Test
         void migrateSecurityPropertiesConstants() {

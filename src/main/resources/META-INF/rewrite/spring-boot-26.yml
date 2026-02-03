@@ -28,6 +28,8 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -73,6 +75,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_6
 displayName: Upgrade MyBatis to Spring Boot 2.6
 description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 2.6.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_5
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:

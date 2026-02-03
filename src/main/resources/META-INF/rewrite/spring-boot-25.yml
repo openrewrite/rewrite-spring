@@ -21,6 +21,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5
 displayName: Upgrade to Spring Boot 2.5
 description: 'Upgrade to Spring Boot 2.5 from any prior 2.x version.'
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_5
@@ -88,6 +90,7 @@ preconditions:
       groupIdPattern: org.codehaus.groovy
       artifactIdPattern: groovy
       version: 3.x
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.spockframework
@@ -105,6 +108,8 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot2.search.MessagesInTheDefaultErrorView
   - org.openrewrite.java.spring.boot2.search.CustomizingJooqDefaultConfiguration
@@ -121,6 +126,8 @@ description: |
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.maven.search.FindDependency:
       groupId: org.springframework
@@ -134,6 +141,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_5
 displayName: Upgrade MyBatis to Spring Boot 2.5
 description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 2.5.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_4
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -154,6 +163,7 @@ preconditions:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot
       version: '[2.5.0,)'
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot2.DatabaseComponentAndBeanInitializationOrderingUnconditionally
 ---
@@ -165,6 +175,8 @@ description: >-
   additional username and password properties. In earlier versions of Spring Boot, these settings were
   derived from `spring.datasource` properties but this turned out to be problematic for people that
   provided their own `DataSource` beans.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot2.MigrateDatabaseCredentialsForToolYaml:
       tool: flyway

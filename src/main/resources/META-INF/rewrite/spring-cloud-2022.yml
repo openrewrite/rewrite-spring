@@ -22,6 +22,8 @@ description: Migrate applications to the latest Spring Cloud 2022 (Kilburn) rele
 tags:
   - spring
   - cloud
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.cloud2022.DependencyUpgrades
   - org.openrewrite.java.spring.cloud2022.MigrateCloudSleuthToMicrometerTracing
@@ -35,6 +37,8 @@ description: Upgrade dependencies to Spring Cloud 2022 from prior 2021.x version
 tags:
   - spring
   - cloud
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
@@ -96,6 +100,8 @@ tags:
   - sleuth
   - tracing
   - micrometer
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
   - org.openrewrite.java.dependencies.ChangeDependency:
