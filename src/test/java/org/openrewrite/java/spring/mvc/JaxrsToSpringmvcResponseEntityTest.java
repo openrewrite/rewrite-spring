@@ -30,7 +30,7 @@ class JaxrsToSpringmvcResponseEntityTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JaxrsToSpringmvcResponseEntity())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.ws.rs-api-2", "javax.ws.rs-api-2"));
+            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.ws.rs-api-4", "javax.ws.rs-api-2"));
     }
 
     @DocumentExample
@@ -120,68 +120,68 @@ class JaxrsToSpringmvcResponseEntityTest implements RewriteTest {
 
               public class TestExample {
 
-                 class TestResponse {
-                     private String message;
+                  class TestResponse {
+                      private String message;
 
-                     public TestResponse(String message) {
-                         this.message = message;
-                     }
+                      public TestResponse(String message) {
+                          this.message = message;
+                      }
 
-                     public String getMessage() {
-                         return message;
-                     }
-                 }
+                      public String getMessage() {
+                          return message;
+                      }
+                  }
 
-                 public ResponseEntity test0() {
-                     return ResponseEntity.ok().build();
-                 }
+                  public ResponseEntity test0() {
+                      return ResponseEntity.ok().build();
+                  }
 
-                 public ResponseEntity test1() {
-                     return ResponseEntity.ok("Test Response");
-                 }
+                  public ResponseEntity test1() {
+                      return ResponseEntity.ok("Test Response");
+                  }
 
-                 public ResponseEntity test2() {
-                     TestResponse response = new TestResponse("Test Response");
-                     return ResponseEntity.ok().body(response);
-                 }
+                  public ResponseEntity test2() {
+                      TestResponse response = new TestResponse("Test Response");
+                      return ResponseEntity.ok().body(response);
+                  }
 
-                 public ResponseEntity test3() {
-                     return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).body("Test Response");
-                 }
+                  public ResponseEntity test3() {
+                      return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).body("Test Response");
+                  }
 
-                 public ResponseEntity test4() {
-                     TestResponse response = new TestResponse("Test Response");
-                     return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).body(response);
-                 }
+                  public ResponseEntity test4() {
+                      TestResponse response = new TestResponse("Test Response");
+                      return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).body(response);
+                  }
 
-                 public ResponseEntity test5() {
-                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-                 }
+                  public ResponseEntity test5() {
+                      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                  }
 
-                 public ResponseEntity test6() {
-                     return ResponseEntity.status(HttpStatus.CREATED).body("Test Response");
-                 }
+                  public ResponseEntity test6() {
+                      return ResponseEntity.status(HttpStatus.CREATED).body("Test Response");
+                  }
 
-                 public ResponseEntity test7() {
-                     TestResponse response = new TestResponse("Test Response");
-                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-                 }
+                  public ResponseEntity test7() {
+                      TestResponse response = new TestResponse("Test Response");
+                      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                  }
 
-                 public ResponseEntity test8() {
-                     return ResponseEntity.status(HttpStatus.BAD_GATEWAY).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).body("Test Response");
-                 }
+                  public ResponseEntity test8() {
+                      return ResponseEntity.status(HttpStatus.BAD_GATEWAY).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).body("Test Response");
+                  }
 
-                 public ResponseEntity test9() {
-                     return ResponseEntity.internalServerError().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).body("Test Response");
-                 }
+                  public ResponseEntity test9() {
+                      return ResponseEntity.internalServerError().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).body("Test Response");
+                  }
 
-                 public ResponseEntity test10() {
-                     return ResponseEntity.noContent().build();
-                 }
+                  public ResponseEntity test10() {
+                      return ResponseEntity.noContent().build();
+                  }
 
-                 public BodyBuilder test11() {
-                     return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                 }
+                  public BodyBuilder test11() {
+                      return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+                  }
 
               }
               """

@@ -94,6 +94,8 @@ recipeDependencies {
     parserClasspath("io.micrometer:micrometer-observation:1.11.+")
     parserClasspath("io.springfox:springfox-swagger2:3.+")
     parserClasspath("io.swagger.core.v3:swagger-models:2.+")
+    parserClasspath("javax.ws.rs:javax.ws.rs-api:2.1.1")
+    parserClasspath("jakarta.ws.rs:jakarta.ws.rs-api:4.0.0")
 
     testParserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     testParserClasspath("io.projectreactor:reactor-core:3.6.3")
@@ -104,7 +106,6 @@ recipeDependencies {
     testParserClasspath("jakarta.persistence:jakarta.persistence-api:2.2.3")
     testParserClasspath("jakarta.validation:jakarta.validation-api:2.0.2")
     testParserClasspath("jakarta.validation:jakarta.validation-api:3.0.+")
-    testParserClasspath("javax.ws.rs:javax.ws.rs-api:2.1.1")
     testParserClasspath("jakarta.ws.rs:jakarta.ws.rs-api:2.1.6")
     testParserClasspath("jakarta.xml.bind:jakarta.xml.bind-api:2.3.3")
     testParserClasspath("javax.persistence:javax.persistence-api:2.2")

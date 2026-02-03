@@ -30,7 +30,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JaxrsToSpringmvcAnnotations())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.ws.rs-api-2", "javax.ws.rs-api-2"));
+            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.ws.rs-api-4", "javax.ws.rs-api-2"));
     }
 
     @DocumentExample
