@@ -20,6 +20,8 @@ description: >-
   See details at [Flyway V10 has landed](https://documentation.red-gate.com/fd/flyway-v10-has-landed-222627771.html).
 tags:
   - flyway
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
   - org.openrewrite.java.flyway.AddFlywayModuleMySQL
@@ -44,6 +46,7 @@ preconditions:
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.postgresql
       artifactIdPattern: postgresql
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.flywaydb
@@ -68,6 +71,7 @@ preconditions:
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: com.mysql
       artifactIdPattern: mysql-connector-j
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.flywaydb
@@ -92,6 +96,7 @@ preconditions:
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: com.oracle.database.jdbc
       artifactIdPattern: ojdbc*
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.flywaydb
@@ -116,6 +121,7 @@ preconditions:
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: com.microsoft.sqlserver
       artifactIdPattern: mssql-jdbc
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.flywaydb

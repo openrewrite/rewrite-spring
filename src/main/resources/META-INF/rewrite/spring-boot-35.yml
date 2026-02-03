@@ -24,6 +24,8 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_5
@@ -56,6 +58,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpdatePrometheusPushgateway
 displayName: Update Prometheus Pushgateway Dependency Coordinates
 description: Update the Prometheus Pushgateway artifact ID for Spring Boot 3.5 compatibility.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: io.prometheus

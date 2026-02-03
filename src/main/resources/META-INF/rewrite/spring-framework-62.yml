@@ -21,6 +21,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_2
 displayName: Migrate to Spring Framework 6.2
 description: Migrate applications to the latest Spring Framework 6.2 release.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_6_1
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -35,6 +37,7 @@ recipeList:
   - org.openrewrite.java.spring.framework.MigrateUriComponentsBuilderMethods
   - org.openrewrite.java.spring.framework.MigrateWebExchangeBindExceptionResolveErrorMethod
   - org.openrewrite.java.spring.framework.MigrateClientHttpResponseGetRawStatusCodeMethod
+  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
 
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.http.client.observation.ClientHttpObservationDocumentation.HighCardinalityKeyNames.CLIENT_NAME

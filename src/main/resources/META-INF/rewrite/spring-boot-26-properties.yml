@@ -22,6 +22,8 @@ description: Migrate properties found in `application.properties` and `applicati
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.metrics.export.dynatrace.device-id

@@ -26,6 +26,8 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_1
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
@@ -93,6 +95,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.RelocateLauncherClasses
 displayName: Relocate Launcher Classes
 description: Relocate classes that have been moved to different packages in Spring Boot 3.2.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.text.FindAndReplace:
       find: org.springframework.boot.loader.JarLauncher
@@ -112,6 +116,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_2
 displayName: Upgrade MyBatis to Spring Boot 3.2
 description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 3.2.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:

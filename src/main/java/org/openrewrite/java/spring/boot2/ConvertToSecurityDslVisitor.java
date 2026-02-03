@@ -177,6 +177,15 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         JavaType.Method type = m.getMethodType();
         if (type != null) {
             JavaType.FullyQualified declaringType = type.getDeclaringType();
+            // Check if method already has a lambda argument (already transformed in a previous cycle)
+            List<Expression> args = m.getArguments();
+            if (!args.isEmpty() && !(args.get(0) instanceof J.Empty)) {
+                Expression firstArg = args.get(0);
+                if (firstArg instanceof J.Lambda) {
+                    // Already has a lambda argument, skip transformation
+                    return false;
+                }
+            }
             return securityFqn.equals(declaringType.getFullyQualifiedName()) &&
                    (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
                    convertableMethods.contains(m.getSimpleName());
@@ -285,9 +294,28 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     private boolean isAndMethod(J.MethodInvocation method) {
-        return "and".equals(method.getSimpleName()) &&
-               (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty) &&
-               TypeUtils.isAssignableTo(securityFqn, method.getType());
+        if (!"and".equals(method.getSimpleName())) {
+            return false;
+        }
+        if (!(method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty)) {
+            return false;
+        }
+        // Check return type if available, otherwise check the select's type
+        JavaType returnType = method.getType();
+        if (returnType != null && TypeUtils.isAssignableTo(securityFqn, returnType)) {
+            return true;
+        }
+        // Fallback: check if the select's method return type matches (for Kotlin where types may not be fully resolved)
+        if (method.getSelect() instanceof J.MethodInvocation) {
+            JavaType.Method selectMethodType = ((J.MethodInvocation) method.getSelect()).getMethodType();
+            if (selectMethodType != null) {
+                JavaType selectReturnType = selectMethodType.getReturnType();
+                if (selectReturnType != null && TypeUtils.isAssignableTo(securityFqn, selectReturnType)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean isDisableMethod(J.MethodInvocation method) {

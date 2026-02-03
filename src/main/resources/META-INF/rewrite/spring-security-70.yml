@@ -25,6 +25,8 @@ description: >-
 tags:
   - spring
   - security
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
@@ -41,6 +43,8 @@ description: >-
 tags:
   - spring
   - security
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.RemoveMethodThrows:
       methodPattern: "org.springframework.security.config.annotation.SecurityConfigurer init(..)"

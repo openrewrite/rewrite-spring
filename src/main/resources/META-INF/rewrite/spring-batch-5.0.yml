@@ -22,6 +22,8 @@ description: Migrate applications built on Spring Batch 4.3 to the latest Spring
 tags:
   - spring
   - batch
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.batch
@@ -31,6 +33,7 @@ recipeList:
   - org.openrewrite.java.spring.batch.ListenerSupportClassToInterface
   - org.openrewrite.java.spring.batch.MigrateJobBuilderFactory
   - org.openrewrite.java.spring.batch.MigrateStepBuilderFactory
+  - org.openrewrite.java.spring.batch.AddTransactionManagerToTaskletAndChunk
   - org.openrewrite.java.spring.batch.MigrateItemWriterWrite
   - org.openrewrite.java.spring.batch.RemoveDefaultBatchConfigurer
   - org.openrewrite.java.spring.batch.UpgradeSkipPolicyParameterType
@@ -44,14 +47,20 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.batch.core.configuration.annotation.ScopeConfiguration
       newFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.ScopeConfiguration
   - org.openrewrite.java.spring.batch.ConvertReceiveTypeWhenCallStepExecutionMethod
+  - org.openrewrite.java.spring.batch.MigrateStepExecutionTimestampTypes
   - org.openrewrite.java.spring.batch.JobParameterToString
   - org.openrewrite.java.spring.batch.MigrateJobParameter
   - org.openrewrite.java.spring.batch.MigrateMethodAnnotatedByBatchAPI
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor
+      newFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.JobRegistrySmartInitializingSingleton
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.batch.ListenerSupportClassToInterface
 displayName: Transform classes that extend `*ListenerSupport` to implement the `*Listener` interfaces instead
 description: As of 5.0 `*Listener` interfaces default methods (made possible by a Java 8 baseline) can be implemented directly without the need for the adapter.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.batch.ReplaceSupportClassWithItsInterface:
       fullyQualifiedClassName: org.springframework.batch.core.listener.JobExecutionListenerSupport
@@ -73,6 +82,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.batch.UpgradeSkipPolicyParameterType
 displayName: Change the type of `skipCount` parameter in `SkipPolicy` from `int` to `long`
 description: The `skipCount` parameter in `org.springframework.batch.core.step.skip.SkipPolicy#shouldSkip` has been changed from `int` to `long`, this recipe updates the parameter type in the implementing classes.
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.ChangeMethodParameter:
       methodPattern: org.springframework.batch.core.step.skip.SkipPolicy shouldSkip(java.lang.Throwable, int)

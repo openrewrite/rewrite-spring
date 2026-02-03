@@ -247,6 +247,27 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.NoHttpExchangeAnnotation
+examples:
+- description: '`NoHttpExchangeAnnotationTest#getExchange`'
+  sources:
+  - before: |
+      import org.springframework.web.service.annotation.HttpExchange;
+
+      interface UserApi {
+          @HttpExchange(method = "GET", value = "/api/users")
+          String getUsers();
+      }
+    after: |
+      import org.springframework.web.service.annotation.GetExchange;
+
+      interface UserApi {
+          @GetExchange("/api/users")
+          String getUsers();
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.NoRepoAnnotationOnRepoInterface
 examples:
 - description: '`NoRepoAnnotationOnRepoInterfaceTest#simpleCase`'
@@ -540,6 +561,52 @@ examples:
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.batch.AddTransactionManagerToTaskletAndChunk
+examples:
+- description: '`AddTransactionManagerToTaskletAndChunkTest#addTransactionManagerToTasklet`'
+  sources:
+  - before: |
+      import org.springframework.batch.core.Step;
+      import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+      import org.springframework.batch.core.step.tasklet.Tasklet;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.context.annotation.Bean;
+
+      class MyJobConfig {
+
+          @Autowired
+          private StepBuilderFactory stepBuilderFactory;
+
+          @Bean
+          Step myStep(Tasklet myTasklet) {
+              return stepBuilderFactory.get("myStep")
+                      .tasklet(myTasklet)
+                      .build();
+          }
+      }
+    after: |
+      import org.springframework.batch.core.Step;
+      import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+      import org.springframework.batch.core.step.tasklet.Tasklet;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.transaction.PlatformTransactionManager;
+
+      class MyJobConfig {
+
+          @Autowired
+          private StepBuilderFactory stepBuilderFactory;
+
+          @Bean
+          Step myStep(Tasklet myTasklet, PlatformTransactionManager transactionManager) {
+              return stepBuilderFactory.get("myStep")
+                      .tasklet(myTasklet, transactionManager)
+                      .build();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.ConvertReceiveTypeWhenCallStepExecutionMethod
 examples:
 - description: '`ConvertReceiveTypeWhenCallStepExecutionMethodTest#methodReferenceToLambda`'
@@ -801,6 +868,33 @@ examples:
               return new StepBuilder("myStep", jobRepository)
                       .tasklet(myTasklet)
                       .build();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.batch.MigrateStepExecutionTimestampTypes
+examples:
+- description: '`MigrateStepExecutionTimestampTypesTest#stepExecutionGetStartTime`'
+  sources:
+  - before: |
+      import java.util.Date;
+      import org.springframework.batch.core.StepExecution;
+
+      class MyListener {
+          void afterStep(StepExecution stepExecution) {
+              Date startTime = stepExecution.getStartTime();
+              Date endTime = stepExecution.getEndTime();
+          }
+      }
+    after: |
+      import java.time.LocalDateTime;
+      import org.springframework.batch.core.StepExecution;
+
+      class MyListener {
+          void afterStep(StepExecution stepExecution) {
+              LocalDateTime startTime = stepExecution.getStartTime();
+              LocalDateTime endTime = stepExecution.getEndTime();
           }
       }
     language: java
@@ -1496,7 +1590,7 @@ examples:
       @ContextConfiguration(classes = ExampleClass.ExampleConfiguration.class)
       public class ExampleClass {
           @Configuration
-          static class ExampleConfiguration {
+          public static class ExampleConfiguration {
           }
       }
     after: |
@@ -1508,7 +1602,7 @@ examples:
       @SpringJUnitConfig(classes = ExampleClass.ExampleConfiguration.class)
       public class ExampleClass {
           @Configuration
-          static class ExampleConfiguration {
+          public static class ExampleConfiguration {
           }
       }
     language: java
@@ -3051,6 +3145,56 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
+examples:
+- description: '`AddAutoConfigureTestRestTemplateTest#shouldAddAnnotationIfTypeIsUsed`'
+  sources:
+  - before: |
+      import org.springframework.boot.resttestclient.TestRestTemplate;
+      import org.springframework.boot.test.context.SpringBootTest;
+
+      @SpringBootTest
+      class ExampleTest {
+          TestRestTemplate testRestTemplate;
+      }
+    after: |
+      import org.springframework.boot.resttestclient.TestRestTemplate;
+      import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
+      import org.springframework.boot.test.context.SpringBootTest;
+
+      @AutoConfigureTestRestTemplate
+      @SpringBootTest
+      class ExampleTest {
+          TestRestTemplate testRestTemplate;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
+examples:
+- description: '`AddAutoConfigureWebTestClientTest#shouldAddAnnotationIfTypeIsUsed`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.test.web.reactive.server.WebTestClient;
+
+      @SpringBootTest
+      class ExampleTest {
+          WebTestClient webTestClient;
+      }
+    after: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+      import org.springframework.test.web.reactive.server.WebTestClient;
+
+      @AutoConfigureWebTestClient
+      @SpringBootTest
+      class ExampleTest {
+          WebTestClient webTestClient;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.MigrateToModularStarters
 examples:
 - description: '`MigrateToModularStartersTest#migrateLiquibaseToStarterInMaven`'
@@ -3725,6 +3869,32 @@ examples:
       class Test {
           static boolean method(Environment env) {
               return env.acceptsProfiles(Profiles.of("production"));
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
+examples:
+- description: '`HttpComponentsClientHttpRequestFactoryConnectTimeoutTest#addsCommentWhenNoPoolingHttpClientConnectionManager`'
+  sources:
+  - before: |
+      import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+      class Example {
+          void configure() {
+              HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+              factory.setConnectTimeout(5000);
+          }
+      }
+    after: |
+      import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+      class Example {
+          void configure() {
+              HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+              // Manual migration to `ConnectionConfig.Builder.setConnectTimeout(Timeout)` necessary; see: https://github.com/spring-projects/spring-framework/issues/35748
+              factory.setConnectTimeout(5000);
           }
       }
     language: java
@@ -4501,6 +4671,49 @@ examples:
           void bar(KafkaOperations<String, String> kafkaOperations) {
               KafkaOperations<String, String> k2 = kafkaOperations;
           }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
+examples:
+- description: '`UpgradeSpringKafka40Test#migrateJackson2ToJackson3`'
+  sources:
+  - before: |
+      import org.springframework.kafka.support.*;
+      import org.springframework.kafka.support.converter.*;
+      import org.springframework.kafka.support.mapping.*;
+      import org.springframework.kafka.support.serializer.*;
+
+      class Test {
+          DefaultKafkaHeaderMapper mapper = new DefaultKafkaHeaderMapper();
+          JsonMessageConverter converter = new JsonMessageConverter();
+          ProjectingMessageConverter projectingConverter = new ProjectingMessageConverter();
+          ByteArrayJsonMessageConverter byteArrayJsonMessageConverter = new ByteArrayJsonMessageConverter();
+          BytesJsonMessageConverter bytesJsonMessageConverter = new BytesJsonMessageConverter();
+          StringJsonMessageConverter stringJsonMessageConverter = new StringJsonMessageConverter();
+          DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+          JsonDeserializer<String> deserializer = new JsonDeserializer<>();
+          JsonSerde<String> serde = new JsonSerde<>();
+          JsonSerializer<String> serializer = new JsonSerializer<>();
+      }
+    after: |
+      import org.springframework.kafka.support.*;
+      import org.springframework.kafka.support.converter.*;
+      import org.springframework.kafka.support.mapping.*;
+      import org.springframework.kafka.support.serializer.*;
+
+      class Test {
+          JsonKafkaHeaderMapper mapper = new JsonKafkaHeaderMapper();
+          JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter();
+          JacksonProjectingMessageConverter projectingConverter = new JacksonProjectingMessageConverter();
+          ByteArrayJacksonJsonMessageConverter byteArrayJsonMessageConverter = new ByteArrayJacksonJsonMessageConverter();
+          BytesJacksonJsonMessageConverter bytesJsonMessageConverter = new BytesJacksonJsonMessageConverter();
+          StringJacksonJsonMessageConverter stringJsonMessageConverter = new StringJacksonJsonMessageConverter();
+          DefaultJacksonJavaTypeMapper typeMapper = new DefaultJacksonJavaTypeMapper();
+          JacksonJsonDeserializer<String> deserializer = new JacksonJsonDeserializer<>();
+          JacksonJsonSerde<String> serde = new JacksonJsonSerde<>();
+          JacksonJsonSerializer<String> serializer = new JacksonJsonSerializer<>();
       }
     language: java
 ---

@@ -53,7 +53,7 @@ class ReplaceExtendWithAndContextConfigurationTest implements RewriteTest {
               @ContextConfiguration(classes = ExampleClass.ExampleConfiguration.class)
               public class ExampleClass {
                   @Configuration
-                  static class ExampleConfiguration {
+                  public static class ExampleConfiguration {
                   }
               }
               """,
@@ -66,7 +66,7 @@ class ReplaceExtendWithAndContextConfigurationTest implements RewriteTest {
               @SpringJUnitConfig(classes = ExampleClass.ExampleConfiguration.class)
               public class ExampleClass {
                   @Configuration
-                  static class ExampleConfiguration {
+                  public static class ExampleConfiguration {
                   }
               }
               """

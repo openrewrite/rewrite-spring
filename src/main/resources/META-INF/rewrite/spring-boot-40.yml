@@ -24,6 +24,8 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
@@ -56,6 +58,9 @@ recipeList:
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 4.0.x
+  - org.openrewrite.gradle.UpdateGradleWrapper:
+      version: ^8.14
+      addIfMissing: false
 
   # Replace deprecated starters with their new names
   # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide#deprecated-starters
@@ -106,3 +111,6 @@ recipeList:
       artifactId: error-handling-spring-boot-starter
       newVersion: 5.0.x
       overrideManagedVersion: true
+
+  - org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
+  - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
