@@ -264,6 +264,41 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     }
 
     @Test
+    void addSuccessFailureCallbackWithTernaryArguments() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFuture;
+              import org.springframework.util.concurrent.SuccessCallback;
+              import org.springframework.util.concurrent.FailureCallback;
+              class A {
+                  void test(ListenableFuture<String> future, SuccessCallback<String> successCallback, FailureCallback failureCallback) {
+                      future.addCallback(
+                          successCallback != null ? result -> successCallback.onSuccess(result) : null,
+                          failureCallback != null ? ex -> failureCallback.onFailure(ex) : null);
+                  }
+              }
+              """,
+            """
+              import org.springframework.util.concurrent.SuccessCallback;
+              import org.springframework.util.concurrent.FailureCallback;
+
+              import java.util.concurrent.CompletableFuture;
+
+              class A {
+                  void test(CompletableFuture<String> future, SuccessCallback<String> successCallback, FailureCallback failureCallback) {
+                      future.whenComplete(
+                          successCallback != null ? result -> successCallback.onSuccess(result) : null,
+                          failureCallback != null ? ex -> failureCallback.onFailure(ex) : null);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void addSuccessFailureCallbackWithTypeCast() {
         //language=java
         rewriteRun(
