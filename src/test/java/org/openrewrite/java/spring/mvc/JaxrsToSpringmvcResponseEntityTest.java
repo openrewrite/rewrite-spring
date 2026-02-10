@@ -38,7 +38,7 @@ class JaxrsToSpringmvcResponseEntityTest implements RewriteTest {
     void migrateResponseJavaxTest() {
         rewriteRun(
           java(
-              """
+            """
               import javax.ws.rs.core.HttpHeaders;
               import javax.ws.rs.core.MediaType;
               import javax.ws.rs.core.Response;
@@ -111,7 +111,7 @@ class JaxrsToSpringmvcResponseEntityTest implements RewriteTest {
 
               }
               """,
-              """
+            """
               import javax.ws.rs.core.HttpHeaders;
               import javax.ws.rs.core.MediaType;
               import org.springframework.http.HttpStatus;
@@ -193,7 +193,7 @@ class JaxrsToSpringmvcResponseEntityTest implements RewriteTest {
     void migrateResponseJakartaTest() {
         rewriteRun(
           java(
-              """
+            """
               import jakarta.ws.rs.core.HttpHeaders;
               import jakarta.ws.rs.core.MediaType;
               import jakarta.ws.rs.core.Response;
@@ -266,7 +266,7 @@ class JaxrsToSpringmvcResponseEntityTest implements RewriteTest {
 
               }
               """,
-              """
+            """
               import jakarta.ws.rs.core.HttpHeaders;
               import jakarta.ws.rs.core.MediaType;
               import org.springframework.http.HttpStatus;

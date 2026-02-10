@@ -35,20 +35,9 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = false)
 public class JaxrsToSpringmvcMediaType extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate jax-rs MediaType to spring MVC MediaType";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Replaces all jax-rs MediaType with Spring MVC MediaType.";
-    }
-
-    @Override
-    public Set<String> getTags() {
-        return new HashSet<>(Arrays.asList("Java", "Spring"));
-    }
+    String displayName = "Migrate jax-rs MediaType to spring MVC MediaType";
+    String description = "Replaces all jax-rs MediaType with Spring MVC MediaType.";
+    Set<String> tags = new HashSet<>(Arrays.asList("Java", "Spring"));
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

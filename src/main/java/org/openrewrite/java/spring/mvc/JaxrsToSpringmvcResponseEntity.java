@@ -34,20 +34,9 @@ import static java.util.Collections.*;
 @EqualsAndHashCode(callSuper = false)
 public class JaxrsToSpringmvcResponseEntity extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate jax-rs Response to spring MVC ResponseEntity";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Replaces all jax-rs Response with Spring MVC ResponseEntity.";
-    }
-
-    @Override
-    public Set<String> getTags() {
-        return new HashSet<>(Arrays.asList("Java", "Spring"));
-    }
+    String displayName = "Migrate jax-rs Response to spring MVC ResponseEntity";
+    String description = "Replaces all jax-rs Response with Spring MVC ResponseEntity.";
+    Set<String> tags = new HashSet<>(Arrays.asList("Java", "Spring"));
 
     private static final List<MethodMatcher> BUILD_METHOD_MATCHERS = Arrays.asList(
             new MethodMatcher("javax.ws.rs.core.Response$ResponseBuilder build()"),

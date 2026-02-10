@@ -25,7 +25,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
+class MigrateJaxrsToSpringmvcTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
@@ -34,7 +34,7 @@ public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
             .build()
             .activateRecipes("org.openrewrite.java.spring.mvc.MigrateJaxRsToSpringMvc"))
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.ws.rs-api-4", "javax.ws.rs-api-2"));;
+            .classpathFromResources(new InMemoryExecutionContext(), "jakarta.ws.rs-api-4", "javax.ws.rs-api-2"));
     }
 
     @DocumentExample
@@ -42,7 +42,7 @@ public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
     void jaxrsToSpringmvcJavaxTest() {
         rewriteRun(
           java(
-              """
+            """
               import java.io.IOException;
 
               import javax.ws.rs.core.CacheControl;
@@ -66,7 +66,7 @@ public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
                   }
               }
               """,
-              """
+            """
               import java.io.IOException;
 
               import javax.servlet.http.HttpServletRequest;
@@ -99,7 +99,7 @@ public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
     void jaxrsToSpringmvcJakartaTest() {
         rewriteRun(
           java(
-              """
+            """
               import java.io.IOException;
 
               import jakarta.ws.rs.core.CacheControl;
@@ -123,7 +123,7 @@ public class MigrateJaxrsToSpringmvcTest implements RewriteTest {
                   }
               }
               """,
-              """
+            """
               import java.io.IOException;
 
               import jakarta.servlet.http.HttpServletRequest;

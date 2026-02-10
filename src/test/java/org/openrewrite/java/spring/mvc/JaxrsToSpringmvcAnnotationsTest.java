@@ -38,7 +38,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
     void jaxrsToSpringmvcAnnotationsTest1() {
         rewriteRun(
           java(
-              """
+            """
               import jakarta.ws.rs.GET;
               import jakarta.ws.rs.Path;
               import jakarta.ws.rs.QueryParam;
@@ -54,7 +54,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
                   }
               }
               """,
-              """
+            """
               import org.springframework.web.bind.annotation.GetMapping;
               import org.springframework.web.bind.annotation.RequestMapping;
               import org.springframework.web.bind.annotation.RequestParam;
@@ -79,7 +79,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
     void jaxrsToSpringmvcAnnotationsTest2() {
         rewriteRun(
           java(
-              """
+            """
               import javax.ws.rs.FormParam;
               import javax.ws.rs.GET;
               import javax.ws.rs.Path;
@@ -95,7 +95,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
                   }
               }
               """,
-              """
+            """
               import org.springframework.web.bind.annotation.GetMapping;
               import org.springframework.web.bind.annotation.RequestMapping;
               import org.springframework.web.bind.annotation.RequestParam;
@@ -120,7 +120,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
     void jaxrsToSpringmvcAnnotationsTest3() {
         rewriteRun(
           java(
-              """
+            """
               import jakarta.ws.rs.DefaultValue;
               import jakarta.ws.rs.FormParam;
               import jakarta.ws.rs.POST;
@@ -141,7 +141,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
                   }
               }
               """,
-              """
+            """
               import org.springframework.web.bind.annotation.PostMapping;
               import org.springframework.web.bind.annotation.RequestMapping;
               import org.springframework.web.bind.annotation.RequestParam;
@@ -166,7 +166,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
     void jaxrsToSpringmvcAnnotationsTest4() {
         rewriteRun(
           java(
-              """
+            """
               import javax.ws.rs.Consumes;
               import javax.ws.rs.PUT;
               import javax.ws.rs.Path;
@@ -185,7 +185,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
                   }
               }
               """,
-              """
+            """
               import org.springframework.web.bind.annotation.PathVariable;
               import org.springframework.web.bind.annotation.PutMapping;
               import org.springframework.web.bind.annotation.RequestMapping;
@@ -210,7 +210,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
     void jaxrsToSpringmvcAnnotationsTest5() {
         rewriteRun(
           java(
-              """
+            """
               import jakarta.ws.rs.Consumes;
               import jakarta.ws.rs.DELETE;
               import jakarta.ws.rs.HeaderParam;
@@ -232,7 +232,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
                   }
               }
               """,
-              """
+            """
               import org.springframework.web.bind.annotation.DeleteMapping;
               import org.springframework.web.bind.annotation.RequestHeader;
               import org.springframework.web.bind.annotation.RequestMapping;
@@ -257,7 +257,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
     void jaxrsToSpringmvcAnnotationsTest6() {
         rewriteRun(
           java(
-              """
+            """
               import javax.ws.rs.DefaultValue;
               import javax.ws.rs.HeaderParam;
               import javax.ws.rs.POST;
@@ -281,7 +281,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
                   }
               }
               """,
-              """
+            """
               import org.springframework.web.bind.annotation.PostMapping;
               import org.springframework.web.bind.annotation.RequestHeader;
               import org.springframework.web.bind.annotation.RequestMapping;
@@ -313,7 +313,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
     void jaxrsToSpringmvcAnnotationsTest7() {
         rewriteRun(
           java(
-              """
+            """
               import jakarta.ws.rs.Consumes;
               import jakarta.ws.rs.POST;
               import jakarta.ws.rs.PUT;
@@ -355,7 +355,7 @@ class JaxrsToSpringmvcAnnotationsTest implements RewriteTest {
 
               }
               """,
-              """
+            """
               import jakarta.ws.rs.core.MediaType;
               import org.springframework.web.bind.annotation.PostMapping;
               import org.springframework.web.bind.annotation.PutMapping;

@@ -29,20 +29,9 @@ import java.util.*;
 @EqualsAndHashCode(callSuper = false)
 public class JaxrsToSpringmvcAnnotations extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate jax-rs annotations to spring MVC annotations";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Replaces all jax-rs annotations with Spring MVC annotations.";
-    }
-
-    @Override
-    public Set<String> getTags() {
-        return new HashSet<>(Arrays.asList("Java", "Spring"));
-    }
+    String displayName = "Migrate jax-rs annotations to spring MVC annotations";
+    String description = "Replaces all jax-rs annotations with Spring MVC annotations.";
+    Set<String> tags = new HashSet<>(Arrays.asList("Java", "Spring"));
 
     private static final List<AnnotationMatcher> PATH_ANNOTATION_MATCHERS = Arrays.asList(
             new AnnotationMatcher("@jakarta.ws.rs.Path"),
