@@ -55,16 +55,25 @@ class SuccessFailureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Execution
                 return mi;
             }
 
+            if (!(mi.getArguments().get(0) instanceof J.Lambda)) {
+                return mi;
+            }
             J.Lambda successCallback = (J.Lambda) mi.getArguments().get(0);
 
             boolean isKafkaFailureCallback = false;
             J.Lambda failureCallback;
             if (mi.getArguments().get(1) instanceof J.TypeCast) {
+                J.TypeCast typeCast = (J.TypeCast) mi.getArguments().get(1);
+                if (!(typeCast.getExpression() instanceof J.Lambda)) {
+                    return mi;
+                }
                 // In this case, assume it's casted to `org.springframework.kafka.core.KafkaFailureCallback` only
-                failureCallback = (J.Lambda) ((J.TypeCast) mi.getArguments().get(1)).getExpression();
+                failureCallback = (J.Lambda) typeCast.getExpression();
                 isKafkaFailureCallback = true;
-            } else {
+            } else if (mi.getArguments().get(1) instanceof J.Lambda) {
                 failureCallback = (J.Lambda) mi.getArguments().get(1);
+            } else {
+                return mi;
             }
 
             J.Identifier successParam = ((J.VariableDeclarations) successCallback.getParameters().getParameters().get(0)).getVariables().get(0).getName();
