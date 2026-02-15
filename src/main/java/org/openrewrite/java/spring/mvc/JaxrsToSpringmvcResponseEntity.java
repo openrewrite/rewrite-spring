@@ -64,12 +64,6 @@ public class JaxrsToSpringmvcResponseEntity extends Recipe {
                         .getVisitor().visitNonNull(cu, ctx);
                 cu = (J.CompilationUnit) new ChangeType("jakarta.ws.rs.core.Response.Status", "org.springframework.http.HttpStatus", true)
                         .getVisitor().visitNonNull(cu, ctx);
-
-                doAfterVisit(new ChangeType("javax.ws.rs.core.Response.ResponseBuilder", "org.springframework.http.ResponseEntity.BodyBuilder", true).getVisitor());
-                doAfterVisit(new ChangeType("jakarta.ws.rs.core.Response.ResponseBuilder", "org.springframework.http.ResponseEntity.BodyBuilder", true).getVisitor());
-
-                doAfterVisit(new ChangeType("javax.ws.rs.core.Response", "org.springframework.http.ResponseEntity", true).getVisitor());
-                doAfterVisit(new ChangeType("jakarta.ws.rs.core.Response", "org.springframework.http.ResponseEntity", true).getVisitor());
                 return super.visitCompilationUnit(cu, ctx);
             }
 
@@ -122,4 +116,12 @@ public class JaxrsToSpringmvcResponseEntity extends Recipe {
         };
     }
 
+    @Override
+    public List<Recipe> getRecipeList() {
+        return Arrays.asList(
+                new ChangeType("javax.ws.rs.core.Response.ResponseBuilder", "org.springframework.http.ResponseEntity.BodyBuilder", true),
+                new ChangeType("jakarta.ws.rs.core.Response.ResponseBuilder", "org.springframework.http.ResponseEntity.BodyBuilder", true),
+                new ChangeType("javax.ws.rs.core.Response", "org.springframework.http.ResponseEntity", true),
+                new ChangeType("jakarta.ws.rs.core.Response", "org.springframework.http.ResponseEntity", true));
+    }
 }
