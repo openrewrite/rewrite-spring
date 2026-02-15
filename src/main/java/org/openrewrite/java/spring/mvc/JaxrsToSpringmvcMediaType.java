@@ -18,12 +18,14 @@ package org.openrewrite.java.spring.mvc;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaCoordinates;
 
@@ -39,7 +41,7 @@ public class JaxrsToSpringmvcMediaType extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>("*.ws.rs.core.MediaType", true), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
                 String typeName = fieldAccess.getTarget().getType() != null ? fieldAccess.getTarget().getType().toString() : "";
@@ -58,8 +60,7 @@ public class JaxrsToSpringmvcMediaType extends Recipe {
                 }
                 return super.visitFieldAccess(fieldAccess, ctx);
             }
-
-        };
+        });
     }
 
     @Override
