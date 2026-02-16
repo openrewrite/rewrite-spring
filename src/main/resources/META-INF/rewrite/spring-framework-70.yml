@@ -18,7 +18,10 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
 displayName: Migrate to Spring Framework 7.0
-description: Migrate applications to the latest Spring Framework 7.0 release.
+description: >-
+  Migrate applications to the latest Spring Framework 7.0 release. This includes migrating Spring's
+  `@Nullable` and `@NonNull` annotations to JSpecify, which Spring Framework 7 has adopted as its
+  nullability annotation standard.
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
