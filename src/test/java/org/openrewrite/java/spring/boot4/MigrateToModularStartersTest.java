@@ -35,7 +35,6 @@ class MigrateToModularStartersTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .beforeRecipe(withToolingApi())
           .recipeFromResource(
             "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
             "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
@@ -451,6 +450,7 @@ class MigrateToModularStartersTest implements RewriteTest {
     @ValueSource(strings = {"flyway-database-postgresql", "flyway-mysql"})
     void addFlywayStarterWhenDependencyPresent(String artifactId) {
         rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
           mavenProject("sample",
             pomXml(
               """
