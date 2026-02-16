@@ -37,18 +37,18 @@ class MigrateToModularStartersTest implements RewriteTest {
         spec
           .beforeRecipe(withToolingApi())
           .recipeFromResource(
-          "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
-          "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
-        ).parser(JavaParser.fromJavaVersion()
-          .classpathFromResources(new InMemoryExecutionContext(),
-            "spring-boot-autoconfigure-3",
-            "spring-boot-3",
-            "spring-boot-test-3",
-            "spring-boot-test-autoconfigure-3",
-            "spring-beans-6",
-            "spring-context-6",
-            "spring-web-6",
-            "spring-core-6"));
+            "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
+            "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
+          ).parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-autoconfigure-3",
+              "spring-boot-3",
+              "spring-boot-test-3",
+              "spring-boot-test-autoconfigure-3",
+              "spring-beans-6",
+              "spring-context-6",
+              "spring-web-6",
+              "spring-core-6"));
     }
 
     @DocumentExample
@@ -504,6 +504,20 @@ class MigrateToModularStartersTest implements RewriteTest {
               ),
               buildGradle(
                 """
+                  plugins {
+                      id 'java'
+                  }
+
+                  repositories {
+                      mavenCentral()
+                  }
+
+                  dependencies {
+                      implementation('org.springframework.boot:spring-boot-starter-actuator')
+                  }
+                  """),
+              buildGradle(
+                """
                         plugins {
                             id 'java'
                         }
@@ -513,9 +527,15 @@ class MigrateToModularStartersTest implements RewriteTest {
                         }
 
                         dependencies {
-                            implementation('org.springframework.boot:spring-boot-starter-actuator')
+                            implementation('org.flywaydb:%s:10.0.0')
                         }
-                        """)
+                  """.formatted(artifactId),
+                spec -> spec.after(gradle -> assertThat(gradle)
+                  .contains("implementation('org.flywaydb:%s:10.0.0')".formatted(artifactId))
+                  .contains("org.springframework.boot:spring-boot-starter-flyway")
+                  .containsPattern("4\\.0\\.\\d+")
+                  .actual())
+              )
             )
           )
         );
