@@ -338,7 +338,7 @@ name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway
 displayName: Add `spring-boot-starter-flyway` if using Flyway
 description: Adds the necessary Spring Boot 4.0 Flyway starter for autoconfiguration based on dependency usage.
 preconditions:
-  - org.openrewrite.maven.search.FindDependency:
+  - org.openrewrite.java.dependencies.FindDependency:
       groupId: org.flywaydb
       artifactId: flyway-*
   - org.openrewrite.Singleton
