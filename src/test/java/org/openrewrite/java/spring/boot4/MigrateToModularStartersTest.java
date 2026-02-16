@@ -26,13 +26,17 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class MigrateToModularStartersTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResource(
+        spec
+          .beforeRecipe(withToolingApi())
+          .recipeFromResource(
           "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
           "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
         ).parser(JavaParser.fromJavaVersion()
@@ -497,7 +501,21 @@ class MigrateToModularStartersTest implements RewriteTest {
                   .contains("<artifactId>spring-boot-starter-flyway</artifactId>")
                   .containsPattern("<version>4\\.0\\.\\d+</version>")
                   .actual())
-              )
+              ),
+              buildGradle(
+                """
+                        plugins {
+                            id 'java'
+                        }
+
+                        repositories {
+                            mavenCentral()
+                        }
+
+                        dependencies {
+                            implementation('org.springframework.boot:spring-boot-starter-actuator')
+                        }
+                        """)
             )
           )
         );
