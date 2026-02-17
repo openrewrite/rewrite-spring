@@ -60,3 +60,4 @@ recipeList:
   - org.openrewrite.hibernate.MigrateToHibernate62
   - org.openrewrite.java.testing.mockito.Mockito4to5Only
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_2_2
+  - org.openrewrite.java.spring.framework.MigrateRepositoryRestConfigurerAdapter
