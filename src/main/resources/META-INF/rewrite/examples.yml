@@ -4234,7 +4234,7 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.framework.MigrateRepositoryRestConfigurerAdapter
+recipeName: org.openrewrite.java.spring.data.MigrateRepositoryRestConfigurerAdapter
 examples:
   - description: '`MigrateRepositoryRestConfigurerAdapterTest#transformSimple`'
     sources:
