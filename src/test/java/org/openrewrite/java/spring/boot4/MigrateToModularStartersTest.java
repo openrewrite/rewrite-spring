@@ -24,6 +24,7 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.buildGradle;
@@ -353,23 +354,57 @@ class MigrateToModularStartersTest implements RewriteTest {
                   import org.springframework.boot.actuate.health.AbstractHealthIndicator;
                   import org.springframework.boot.actuate.health.Health;
                   import org.springframework.boot.actuate.health.HealthIndicator;
+                  import org.springframework.boot.actuate.health.HealthEndpoint;
 
                   class MyHealthIndicator extends AbstractHealthIndicator {
                       @Override
                       protected void doHealthCheck(Health.Builder builder) {
                           builder.up().build();
                       }
+                      
+                      HealthEndpoint healthEndpoint;
                   }
                   """,
                 """
                   import org.springframework.boot.health.contributor.AbstractHealthIndicator;
                   import org.springframework.boot.health.contributor.Health;
                   import org.springframework.boot.health.contributor.HealthIndicator;
+                  import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
 
                   class MyHealthIndicator extends AbstractHealthIndicator {
                       @Override
                       protected void doHealthCheck(Health.Builder builder) {
                           builder.up().build();
+                      }
+                      
+                      HealthEndpoint healthEndpoint;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void migrateEndpointRequest() {
+            rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+
+                  class A {
+                      void m() {
+                          Object o = EndpointRequest.toAnyEndpoint();
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
+
+                  class A {
+                      void m() {
+                          Object o = EndpointRequest.toAnyEndpoint();
                       }
                   }
                   """
