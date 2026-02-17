@@ -49,16 +49,15 @@ class MigrateRepositoryRestConfigurerAdapterTest implements RewriteTest {
               }
               """,
             """
-                import org.springframework.context.annotation.Configuration;
-                import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
 
-                @Configuration
-                public class CatalogDbRepositoryConfiguration implements RepositoryRestConfigurer {
+              @Configuration
+              public class CatalogDbRepositoryConfiguration implements RepositoryRestConfigurer {
 
-                }
+              }
               """
           )
         );
     }
-
 }

@@ -158,7 +158,6 @@ recipeDependencies {
     testParserClasspath("org.springframework.data:spring-data-jpa:2.4.+")
     testParserClasspath("org.springframework.data:spring-data-jpa:2.7.+")
     testParserClasspath("org.springframework.data:spring-data-jpa:3.4.7")
-    testParserClasspath("org.springframework.data:spring-data-rest-webmvc:3.1.+")
     testParserClasspath("org.springframework.data:spring-data-mongodb:2.2.+")
 
     testParserClasspath("org.springframework.plugin:spring-plugin-core:2.0.0.RELEASE")
