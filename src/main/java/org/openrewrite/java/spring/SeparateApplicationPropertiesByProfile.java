@@ -28,7 +28,6 @@ import org.openrewrite.properties.tree.Properties;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Predicate;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -111,18 +110,37 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 }
 
                 if (file.getSourcePath().endsWith("application.properties")) {
-                    // Remove profile-specific sections
-                    return file.withContent(ListUtils.filter(file.getContent(), new Predicate<Properties.Content>() {
-                        boolean beforeSeparator = true;
-
-                        @Override
-                        public boolean test(Properties.Content c) {
-                            if (isSeparator(c)) {
-                                beforeSeparator = false;
+                    if (moduleInfo.extractedProfileProperties.isEmpty()) {
+                        return file;
+                    }
+                    // Remove only profile-specific sections, keep other sections (e.g. on-cloud-platform)
+                    List<Properties.Content> contentList = file.getContent();
+                    List<Properties.Content> kept = new ArrayList<>();
+                    int i = 0;
+                    while (i < contentList.size()) {
+                        if (isSeparator(contentList.get(i))) {
+                            int sectionStart = i;
+                            i++;
+                            boolean isProfileSection = false;
+                            while (i < contentList.size() && !isSeparator(contentList.get(i))) {
+                                if (contentList.get(i) instanceof Properties.Entry &&
+                                        "spring.config.activate.on-profile".equals(
+                                                ((Properties.Entry) contentList.get(i)).getKey())) {
+                                    isProfileSection = true;
+                                }
+                                i++;
                             }
-                            return beforeSeparator;
+                            if (!isProfileSection) {
+                                for (int j = sectionStart; j < i; j++) {
+                                    kept.add(contentList.get(j));
+                                }
+                            }
+                        } else {
+                            kept.add(contentList.get(i));
+                            i++;
                         }
-                    }));
+                    }
+                    return file.withContent(kept);
                 }
 
                 // Append extracted content to (now) existing profile-specific files
@@ -154,16 +172,18 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
     private List<Properties.Content> extractProfileContent(List<Properties.Content> contentList, int index) {
         List<Properties.Content> list = new ArrayList<>();
+        boolean hasOnProfile = false;
         while (index < contentList.size() && !isSeparator(contentList.get(index))) {
             if (contentList.get(index) instanceof Properties.Entry &&
                     "spring.config.activate.on-profile".equals(((Properties.Entry) contentList.get(index)).getKey())) {
                 list.add(0, contentList.get(index));
+                hasOnProfile = true;
             } else {
                 list.add(contentList.get(index));
             }
             index++;
         }
-        return list;
+        return hasOnProfile ? list : Collections.emptyList();
     }
 
     private boolean isSeparator(Properties.Content c) {
