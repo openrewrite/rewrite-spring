@@ -276,17 +276,63 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
         );
     }
 
-  @Test
-  void onCloudPlatformLeftAsIs() {
-    rewriteRun(mavenProject("parent", srcMainResources(properties(
-        //language=properties
-        """
-            spring.application.name=MyApp
-            
-            #---
-            spring.config.activate.on-cloud-platform=kubernetes
-            logging.structured.format.console=logstash            
-            """, sourceSpecs -> sourceSpecs.path("application.properties")))));
-  }
+    @Test
+    void onCloudPlatformLeftAsIs() {
+        rewriteRun(
+          mavenProject("parent",
+            srcMainResources(
+              properties(
+                //language=properties
+                """
+                  spring.application.name=MyApp
 
+                  #---
+                  spring.config.activate.on-cloud-platform=kubernetes
+                  logging.structured.format.console=logstash
+                  """,
+                sourceSpecs -> sourceSpecs.path("application.properties")
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void mixedProfileAndCloudPlatform() {
+        rewriteRun(
+          mavenProject("parent",
+            srcMainResources(
+              properties(
+                //language=properties
+                """
+                  spring.application.name=MyApp
+
+                  #---
+                  spring.config.activate.on-profile=dev
+                  dev.prop=value
+                  #---
+                  spring.config.activate.on-cloud-platform=kubernetes
+                  logging.structured.format.console=logstash
+                  """,
+                //language=properties
+                """
+                  spring.application.name=MyApp
+                  #---
+                  spring.config.activate.on-cloud-platform=kubernetes
+                  logging.structured.format.console=logstash
+                  """,
+                sourceSpecs -> sourceSpecs.path("application.properties")
+              ),
+              properties(
+                doesNotExist(),
+                //language=properties
+                """
+                  dev.prop=value
+                  """,
+                sourceSpecs -> sourceSpecs.path("application-dev.properties")
+              )
+            )
+          )
+        );
+    }
 }
