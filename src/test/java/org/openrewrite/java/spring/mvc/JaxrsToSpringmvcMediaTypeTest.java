@@ -42,16 +42,16 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
               import javax.ws.rs.core.MediaType;
               import javax.ws.rs.Produces;
 
-              public class TestExample {
+              class TestExample {
 
                   @Produces(MediaType.APPLICATION_JSON)
-                  public void updateUser() {}
+                  void updateUser() {}
 
-                  public String getJsonType() {
+                  String getJsonType() {
                       return MediaType.APPLICATION_JSON;
                   }
 
-                  public MediaType getFormType() {
+                  MediaType getFormType() {
                       return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
                   }
               }
@@ -61,16 +61,16 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
 
               import javax.ws.rs.Produces;
 
-              public class TestExample {
+              class TestExample {
 
                   @Produces(MediaType.APPLICATION_JSON_VALUE)
-                  public void updateUser() {}
+                  void updateUser() {}
 
-                  public String getJsonType() {
+                  String getJsonType() {
                       return MediaType.APPLICATION_JSON_VALUE;
                   }
 
-                  public MediaType getFormType() {
+                  MediaType getFormType() {
                       return MediaType.APPLICATION_FORM_URLENCODED;
                   }
               }
@@ -87,16 +87,16 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
               import jakarta.ws.rs.core.MediaType;
               import jakarta.ws.rs.Produces;
 
-              public class TestExample {
+              class TestExample {
 
                   @Produces(MediaType.APPLICATION_JSON)
-                  public void updateUser() {}
+                  void updateUser() {}
 
-                  public String getJsonType() {
+                  String getJsonType() {
                       return MediaType.APPLICATION_JSON;
                   }
 
-                  public MediaType getFormType() {
+                  MediaType getFormType() {
                       return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
                   }
               }
@@ -105,16 +105,16 @@ class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
               import jakarta.ws.rs.Produces;
               import org.springframework.http.MediaType;
 
-              public class TestExample {
+              class TestExample {
 
                   @Produces(MediaType.APPLICATION_JSON_VALUE)
-                  public void updateUser() {}
+                  void updateUser() {}
 
-                  public String getJsonType() {
+                  String getJsonType() {
                       return MediaType.APPLICATION_JSON_VALUE;
                   }
 
-                  public MediaType getFormType() {
+                  MediaType getFormType() {
                       return MediaType.APPLICATION_FORM_URLENCODED;
                   }
               }

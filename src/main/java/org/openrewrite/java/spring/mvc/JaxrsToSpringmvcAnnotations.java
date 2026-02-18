@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.mvc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -35,9 +36,7 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
 
     private static final List<AnnotationMatcher> PATH_ANNOTATION_MATCHERS = Arrays.asList(
             new AnnotationMatcher("@jakarta.ws.rs.Path"),
-            new AnnotationMatcher("@javax.ws.rs.Path")
-    );
-
+            new AnnotationMatcher("@javax.ws.rs.Path"));
 
     private static final Map<String, String> ANNOTATION_MAPPING = new HashMap<>();
 
@@ -84,16 +83,14 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 String annTemplate = "@RestController\n@RequestMapping(" + String.join(", ", annotationArgs) + ")";
 
                 JavaCoordinates coordinates = cd.getCoordinates().addAnnotation((o1, o2) -> 1);
-                cd = JavaTemplate.builder(annTemplate)
+                maybeAddImport("org.springframework.web.bind.annotation.RequestMapping");
+                maybeAddImport("org.springframework.web.bind.annotation.RestController");
+                return JavaTemplate.builder(annTemplate)
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web"))
                         .imports("org.springframework.web.bind.annotation.RestController",
                                 "org.springframework.web.bind.annotation.RequestMapping")
                         .build()
                         .apply(updateCursor(cd), coordinates, args.toArray());
-                maybeAddImport("org.springframework.web.bind.annotation.RequestMapping");
-                maybeAddImport("org.springframework.web.bind.annotation.RestController");
-
-                return cd;
             }
 
             @Override
@@ -209,7 +206,7 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 return vd;
             }
 
-            private Expression getArgumentsForRequestMappings(List<J.Annotation> annotations, List<String> annotationArgs, List<Expression> args) {
+            private @Nullable Expression getArgumentsForRequestMappings(List<J.Annotation> annotations, List<String> annotationArgs, List<Expression> args) {
                 Expression path = null;
                 Expression produces = null;
                 Expression consumes = null;
@@ -259,7 +256,7 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 return consumes;
             }
 
-            private Expression getValueFromAnnotation(J.Annotation ann) {
+            private @Nullable Expression getValueFromAnnotation(J.Annotation ann) {
                 if (ann.getArguments() == null || ann.getArguments().isEmpty()) {
                     return null;
                 }
@@ -270,7 +267,7 @@ public class JaxrsToSpringmvcAnnotations extends Recipe {
                 return arg;
             }
 
-            private boolean isMultiPart(Expression consumes) {
+            private boolean isMultiPart(@Nullable Expression consumes) {
                 if (consumes == null) {
                     return false;
                 }
