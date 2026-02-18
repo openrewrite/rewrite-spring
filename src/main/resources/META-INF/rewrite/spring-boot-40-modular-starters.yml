@@ -327,7 +327,20 @@ recipeList:
       oldPackageName: org.springframework.boot.test.web.client
       newPackageName: org.springframework.boot.resttestclient
       recursive: true
-  # spring-boot-health (actuator health moved to health.contributor)
+  # spring-boot-actuator-autoconfigure
+  - org.openrewrite.java.ChangePackage:
+      # module: spring-boot-actuator-autoconfigure
+      oldPackageName: org.springframework.boot.actuate.autoconfigure.security.servlet
+      # module: spring-boot-security
+      newPackageName: org.springframework.boot.security.autoconfigure.actuate.web.servlet
+      recursive: true
+  # spring-boot-actuator
+  - org.openrewrite.java.ChangeType:
+      # module: spring-boot-actuator
+      oldFullyQualifiedTypeName: org.springframework.boot.actuate.health.HealthEndpoint
+      # module: spring-boot-health
+      newFullyQualifiedTypeName: org.springframework.boot.health.actuate.endpoint.HealthEndpoint
+  # spring-boot-health (health indicators/contributors moved to health.contributor)
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.actuate.health
       newPackageName: org.springframework.boot.health.contributor
@@ -338,7 +351,7 @@ name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway
 displayName: Add `spring-boot-starter-flyway` if using Flyway
 description: Adds the necessary Spring Boot 4.0 Flyway starter for autoconfiguration based on dependency usage.
 preconditions:
-  - org.openrewrite.maven.search.FindDependency:
+  - org.openrewrite.java.dependencies.FindDependency:
       groupId: org.flywaydb
       artifactId: flyway-*
   - org.openrewrite.Singleton

@@ -24,8 +24,11 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
@@ -351,23 +354,57 @@ class MigrateToModularStartersTest implements RewriteTest {
                   import org.springframework.boot.actuate.health.AbstractHealthIndicator;
                   import org.springframework.boot.actuate.health.Health;
                   import org.springframework.boot.actuate.health.HealthIndicator;
+                  import org.springframework.boot.actuate.health.HealthEndpoint;
 
                   class MyHealthIndicator extends AbstractHealthIndicator {
                       @Override
                       protected void doHealthCheck(Health.Builder builder) {
                           builder.up().build();
                       }
+                      
+                      HealthEndpoint healthEndpoint;
                   }
                   """,
                 """
                   import org.springframework.boot.health.contributor.AbstractHealthIndicator;
                   import org.springframework.boot.health.contributor.Health;
                   import org.springframework.boot.health.contributor.HealthIndicator;
+                  import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
 
                   class MyHealthIndicator extends AbstractHealthIndicator {
                       @Override
                       protected void doHealthCheck(Health.Builder builder) {
                           builder.up().build();
+                      }
+                      
+                      HealthEndpoint healthEndpoint;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void migrateEndpointRequest() {
+            rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+
+                  class A {
+                      void m() {
+                          Object o = EndpointRequest.toAnyEndpoint();
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
+
+                  class A {
+                      void m() {
+                          Object o = EndpointRequest.toAnyEndpoint();
                       }
                   }
                   """
@@ -447,6 +484,7 @@ class MigrateToModularStartersTest implements RewriteTest {
     @ValueSource(strings = {"flyway-database-postgresql", "flyway-mysql"})
     void addFlywayStarterWhenDependencyPresent(String artifactId) {
         rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
           mavenProject("sample",
             pomXml(
               """
@@ -496,6 +534,40 @@ class MigrateToModularStartersTest implements RewriteTest {
                   .contains("<artifactId>%s</artifactId>".formatted(artifactId))
                   .contains("<artifactId>spring-boot-starter-flyway</artifactId>")
                   .containsPattern("<version>4\\.0\\.\\d+</version>")
+                  .actual())
+              ),
+              buildGradle(
+                """
+                  plugins {
+                      id 'java'
+                  }
+
+                  repositories {
+                      mavenCentral()
+                  }
+
+                  dependencies {
+                      implementation('org.springframework.boot:spring-boot-starter-actuator')
+                  }
+                  """),
+              buildGradle(
+                """
+                        plugins {
+                            id 'java'
+                        }
+
+                        repositories {
+                            mavenCentral()
+                        }
+
+                        dependencies {
+                            implementation('org.flywaydb:%s:10.0.0')
+                        }
+                  """.formatted(artifactId),
+                spec -> spec.after(gradle -> assertThat(gradle)
+                  .contains("implementation('org.flywaydb:%s:10.0.0')".formatted(artifactId))
+                  .contains("org.springframework.boot:spring-boot-starter-flyway")
+                  .containsPattern("4\\.0\\.\\d+")
                   .actual())
               )
             )
