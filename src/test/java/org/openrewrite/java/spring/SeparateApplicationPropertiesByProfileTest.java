@@ -275,4 +275,18 @@ class SeparateApplicationPropertiesByProfileTest implements RewriteTest {
           )
         );
     }
+
+  @Test
+  void onCloudPlatformLeftAsIs() {
+    rewriteRun(mavenProject("parent", srcMainResources(properties(
+        //language=properties
+        """
+            spring.application.name=MyApp
+            
+            #---
+            spring.config.activate.on-cloud-platform=kubernetes
+            logging.structured.format.console=logstash            
+            """, sourceSpecs -> sourceSpecs.path("application.properties")))));
+  }
+
 }
