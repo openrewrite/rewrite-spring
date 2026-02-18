@@ -120,7 +120,7 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
               """,
               """
               existing: property
-              ---
+
               name: dev
               """,
               spec -> spec.path("application-dev.yml").noTrim()

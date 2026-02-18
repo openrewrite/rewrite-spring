@@ -20,6 +20,7 @@ import lombok.Value;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.yaml.DeleteProperty;
+import org.openrewrite.yaml.MergeYamlVisitor;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
@@ -48,7 +49,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
         return new YamlIsoVisitor<ExecutionContext>() {
             @Override
             public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
-                if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application-*.yml")) {
+                if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application-*.{yml,yaml}")) {
                     acc.getExistingProfileFiles().add(yaml.getSourcePath());
                 }
                 if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application.yml")) {
@@ -120,12 +121,18 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
             public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
                 Yaml.Documents result = acc.getModifiedMainProfileFiles().getOrDefault(yaml.getSourcePath(), yaml);
                 List<Yaml.Document> docsToMerge = acc.getMergeDocuments().get(yaml.getSourcePath());
-                if (docsToMerge != null) {
-                    List<Yaml.Document> allDocs = new ArrayList<>(result.getDocuments());
-                    for (Yaml.Document doc : docsToMerge) {
-                        allDocs.add(doc.withExplicit(true));
+                if (docsToMerge != null && !result.getDocuments().isEmpty()) {
+                    Yaml.Document mergedDoc = result.getDocuments().get(0);
+                    for (Yaml.Document incoming : docsToMerge) {
+                        Yaml.Document mergedOrNull = (Yaml.Document) new MergeYamlVisitor<Integer>(
+                                mergedDoc.getBlock(), incoming.getBlock(), true, null, null, null
+                        ).visit(mergedDoc, 0, new Cursor(new Cursor(null, result), mergedDoc));
+                        if (mergedOrNull != null) {
+                            mergedDoc = mergedOrNull;
+                        }
                     }
-                    result = result.withDocuments(allDocs);
+                    Yaml.Document finalMergedDoc = mergedDoc;
+                    result = result.withDocuments(ListUtils.mapFirst(result.getDocuments(), doc -> finalMergedDoc));
                 }
                 return result;
             }
