@@ -113,4 +113,29 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void onCloudPlatformLeftAsIs() {
+        rewriteRun(
+            srcMainResources(
+                yaml(
+                    //language=yaml
+                    """
+                    name: main
+                    ---
+                    spring:
+                      config:
+                        activate:
+                          on-cloud-platform: kubernetes
+                    logging:
+                      structured:
+                        format:
+                          console: logstash
+                    name: test
+                    """,
+                    spec -> spec.path("application.yml")
+                )
+            )
+        );
+    }
 }
