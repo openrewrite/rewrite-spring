@@ -29,6 +29,7 @@ import org.openrewrite.properties.tree.Properties;
 import java.nio.file.Path;
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.openrewrite.properties.tree.Properties.Comment.Delimiter.EXCLAMATION_MARK;
@@ -183,7 +184,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
             }
             index++;
         }
-        return hasOnProfile ? list : Collections.emptyList();
+        return hasOnProfile ? list : emptyList();
     }
 
     private boolean isSeparator(Properties.Content c) {
