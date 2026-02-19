@@ -2471,7 +2471,7 @@ examples:
     language: java
   - before: project
     language: mavenProject
-  - after: spring.reactor.context-propagation=true
+  - after: spring.reactor.context-propagation=auto
     path: application.properties
     language: properties
 ---

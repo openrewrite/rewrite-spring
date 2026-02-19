@@ -89,7 +89,7 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
             srcTestResources(
               properties(
                 "",
-                "spring.reactor.context-propagation=true",
+                "spring.reactor.context-propagation=auto",
                 spec -> spec.path("application.properties")
               )
             )

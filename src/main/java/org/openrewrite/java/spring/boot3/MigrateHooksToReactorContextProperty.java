@@ -40,7 +40,7 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
     final String displayName = "Use `spring.reactor.context-propagation` property";
 
     @Getter
-    final String description = "Replace `Hooks.enableAutomaticContextPropagation()` with `spring.reactor.context-propagation=true`.";
+    final String description = "Replace `Hooks.enableAutomaticContextPropagation()` with `spring.reactor.context-propagation=auto`.";
 
     @Override
     public ProjectsWithHooks getInitialValue(ExecutionContext ctx) {
@@ -95,7 +95,7 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
                     return new RemoveMethodInvocationsVisitor(singletonList(HOOKS_PATTERN)).visitNonNull(tree, ctx);
                 }
 
-                return new AddSpringProperty("spring.reactor.context-propagation", "true", null, null)
+                return new AddSpringProperty("spring.reactor.context-propagation", "auto", null, null)
                         .getVisitor()
                         .visitNonNull(tree, ctx);
             }
