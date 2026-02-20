@@ -99,6 +99,8 @@ recipeDependencies {
     parserClasspath("io.micrometer:micrometer-observation:1.11.+")
     parserClasspath("io.springfox:springfox-swagger2:3.+")
     parserClasspath("io.swagger.core.v3:swagger-models:2.+")
+    parserClasspath("javax.ws.rs:javax.ws.rs-api:2.1.1")
+    parserClasspath("jakarta.ws.rs:jakarta.ws.rs-api:4.0.0")
 
     testParserClasspath("com.fasterxml.jackson.core:jackson-core:2.20.+")
     testParserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
