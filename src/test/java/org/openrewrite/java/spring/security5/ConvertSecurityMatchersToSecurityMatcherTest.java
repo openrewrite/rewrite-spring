@@ -41,8 +41,6 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -54,16 +52,12 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
               class SecurityConfig {
                   @Bean
                   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                      http
-                              .requestMatchers()
-                                  .antMatchers("/oidc/*", "/events/syncs**");
+                      http.requestMatchers().antMatchers("/oidc/*", "/events/syncs**");
                       return http.build();
                   }
               }
               """,
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -75,8 +69,7 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
               class SecurityConfig {
                   @Bean
                   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                      http
-                              .securityMatcher("/oidc/*", "/events/syncs**");
+                      http.securityMatcher("/oidc/*", "/events/syncs**");
                       return http.build();
                   }
               }
@@ -91,8 +84,6 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -115,8 +106,6 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
               }
               """,
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -146,8 +135,6 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -170,8 +157,6 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
               }
               """,
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -201,8 +186,6 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -225,8 +208,6 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
               }
               """,
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -256,8 +237,6 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -287,8 +266,6 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              package com.example;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
