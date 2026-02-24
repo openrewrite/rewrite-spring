@@ -25,8 +25,11 @@ import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Javadoc;
+import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -169,13 +172,54 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                 J parent = getCursor().getParentTreeCursor().getValue();
                 if (selfMethodInvocation == method &&
                         !(parent instanceof J.TypeCast) &&
-                        !(parent instanceof Expression && WHEN_MATCHER.matches((Expression) parent))) {
+                        !(parent instanceof Expression && WHEN_MATCHER.matches((Expression) parent)) &&
+                        contextExpectsInt(getCursor())) {
                     return JavaTemplate.builder("(int) #{any(int)}")
                             .contextSensitive()
                             .build().apply(getCursor(), method.getCoordinates().replace(), method)
                             .withPrefix(method.getPrefix());
                 }
                 return super.visitMethodInvocation(method, ctx);
+            }
+
+            private boolean contextExpectsInt(org.openrewrite.Cursor cursor) {
+                J parent = cursor.getParentTreeCursor().getValue();
+
+                if (parent instanceof J.VariableDeclarations.NamedVariable) {
+                    JavaType.Variable varType = ((J.VariableDeclarations.NamedVariable) parent).getVariableType();
+                    return varType != null && TypeUtils.isOfType(varType.getType(), JavaType.Primitive.Int);
+                }
+
+                if (parent instanceof J.Return) {
+                    J.MethodDeclaration enclosingMethod = cursor.firstEnclosing(J.MethodDeclaration.class);
+                    if (enclosingMethod != null && enclosingMethod.getMethodType() != null) {
+                        return TypeUtils.isOfType(enclosingMethod.getMethodType().getReturnType(), JavaType.Primitive.Int);
+                    }
+                    return true;
+                }
+
+                if (parent instanceof J.MethodInvocation) {
+                    J.MethodInvocation parentMethod = (J.MethodInvocation) parent;
+                    if (parentMethod.getMethodType() != null) {
+                        List<Expression> args = parentMethod.getArguments();
+                        int argIndex = -1;
+                        for (int i = 0; i < args.size(); i++) {
+                            if (args.get(i) == selfMethodInvocation) {
+                                argIndex = i;
+                                break;
+                            }
+                        }
+                        if (argIndex >= 0) {
+                            List<JavaType> paramTypes = parentMethod.getMethodType().getParameterTypes();
+                            if (argIndex < paramTypes.size()) {
+                                return TypeUtils.isOfType(paramTypes.get(argIndex), JavaType.Primitive.Int);
+                            }
+                        }
+                    }
+                    return true;
+                }
+
+                return true;
             }
         }
 

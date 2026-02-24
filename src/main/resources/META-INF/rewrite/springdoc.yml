@@ -35,6 +35,7 @@ recipeList:
   - org.openrewrite.java.spring.doc.ApiInfoBuilderToInfo
   - org.openrewrite.java.spring.doc.SecurityContextToSecurityScheme
   - org.openrewrite.java.springdoc.MigrateSpringdocCommon
+  - org.openrewrite.java.springdoc.CleanupRemainingSpringfox
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -263,3 +264,18 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springdoc.core.GroupedOpenApi
       newFullyQualifiedTypeName: org.springdoc.core.models.GroupedOpenApi
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.springdoc.CleanupRemainingSpringfox
+displayName: Remove remaining Springfox dead code
+description: >-
+  Removes unused private methods left behind after SpringFoxToSpringDoc migration.
+  When Docket beans are removed, private helper methods (e.g., `appInfo()`) become
+  dead code but are not cleaned up, causing compilation errors.
+preconditions:
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: springfox..*
+recipeList:
+  - org.openrewrite.staticanalysis.RemoveUnusedPrivateFields
+  - org.openrewrite.staticanalysis.RemoveUnusedPrivateMethods
