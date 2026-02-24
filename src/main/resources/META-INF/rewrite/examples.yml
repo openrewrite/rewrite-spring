@@ -3548,6 +3548,29 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.data.MigrateRepositoryRestConfigurerAdapter
+examples:
+- description: '`MigrateRepositoryRestConfigurerAdapterTest#transformSimple`'
+  sources:
+  - before: |
+      import org.springframework.context.annotation.Configuration;
+      import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapter;
+
+      @Configuration
+      public class CatalogDbRepositoryConfiguration extends RepositoryRestConfigurerAdapter {
+
+      }
+    after: |
+      import org.springframework.context.annotation.Configuration;
+      import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
+
+      @Configuration
+      public class CatalogDbRepositoryConfiguration implements RepositoryRestConfigurer {
+
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
 examples:
 - description: '`RefactorSimpleMongoDbFactoryTest#constructorWithAttribute`'
@@ -4232,29 +4255,6 @@ examples:
           }
       }
     language: java
----
-type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.data.MigrateRepositoryRestConfigurerAdapter
-examples:
-  - description: '`MigrateRepositoryRestConfigurerAdapterTest#transformSimple`'
-    sources:
-      - before: |
-          import org.springframework.context.annotation.Configuration;
-          import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapter;
-
-          @Configuration
-          public class CatalogDbRepositoryConfiguration extends RepositoryRestConfigurerAdapter {
-
-          }
-        after: |
-          import org.springframework.context.annotation.Configuration;
-          import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
-
-          @Configuration
-          public class CatalogDbRepositoryConfiguration implements RepositoryRestConfigurer {
-
-          }
-        language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateResourceHttpMessageWriterAddHeadersMethod

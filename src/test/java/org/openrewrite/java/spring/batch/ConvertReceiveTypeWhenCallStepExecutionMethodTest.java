@@ -188,6 +188,107 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
     }
 
     @Test
+    void noCastForLongAssignment() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+              public class ProfileUpdateWriter {
+
+                  private void populateJobMetrics(StepExecution stepExecution) {
+                    long v = stepExecution.getRollbackCount();
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noCastForLongMethodArgument() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+              public class ProfileUpdateWriter {
+
+                  private void populateJobMetrics(StepExecution stepExecution) {
+                    setLong(stepExecution.getRollbackCount());
+                  }
+
+                  private void setLong(long l) {
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noCastForLongReturn() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+              public class ProfileUpdateWriter {
+
+                  private long getCount(StepExecution stepExecution) {
+                    return stepExecution.getRollbackCount();
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void mixedIntAndLongAssignment() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+              public class ProfileUpdateWriter {
+
+                  private void populateJobMetrics(StepExecution stepExecution) {
+                    int intVal = stepExecution.getRollbackCount();
+                    long longVal = stepExecution.getReadCount();
+                  }
+
+              }
+              """,
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+              public class ProfileUpdateWriter {
+
+                  private void populateJobMetrics(StepExecution stepExecution) {
+                    int intVal = (int) stepExecution.getRollbackCount();
+                    long longVal = stepExecution.getReadCount();
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void unrelatedJavadoc() {
         rewriteRun(
           java(

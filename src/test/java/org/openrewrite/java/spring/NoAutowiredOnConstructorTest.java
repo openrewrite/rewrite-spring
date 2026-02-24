@@ -34,7 +34,7 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new NoAutowiredOnConstructor())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+", "spring-boot-1.5.+", "spring-context-5.+", "spring-core-5.+"))
-          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+", "spring-boot-1.5.+", "spring-context-5.+", "spring-core-5.+"));
+          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-1.5", "spring-context-5", "spring-core-5"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/78")

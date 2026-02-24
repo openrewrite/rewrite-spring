@@ -344,6 +344,15 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             }
 
             private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod) {
+                b = b.withStatements(ListUtils.map(b.getStatements(), stmt -> {
+                    if (stmt instanceof J.MethodInvocation) {
+                        J.MethodInvocation mi = (J.MethodInvocation) stmt;
+                        if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(mi.getMethodType())) {
+                            return null;
+                        }
+                    }
+                    return stmt;
+                }));
                 return JavaTemplate.builder("return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
@@ -354,7 +363,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     .imports("org.springframework.security.config.annotation.SecurityBuilder")
                     .build()
                     .apply(
-                        getCursor(),
+                        updateCursor(b),
                         b.getCoordinates().lastStatement(),
                         ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName()
                     );
