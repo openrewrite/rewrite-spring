@@ -43,6 +43,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
   - org.openrewrite.java.spring.boot2.HeadersConfigurerLambdaDsl
   - org.openrewrite.java.spring.security5.AuthorizeHttpRequests
+  - org.openrewrite.java.spring.security5.ConvertSecurityMatchersToSecurityMatcher
   - org.openrewrite.java.spring.security5.UseNewRequestMatchers
   - org.openrewrite.java.spring.security5.UseNewSecurityMatchers
   - org.openrewrite.java.spring.security5.UpdatePbkdf2PasswordEncoder
