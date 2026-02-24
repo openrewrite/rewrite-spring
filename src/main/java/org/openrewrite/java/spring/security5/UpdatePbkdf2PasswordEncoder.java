@@ -37,6 +37,7 @@ import java.util.Objects;
 import static java.util.Collections.unmodifiableMap;
 import static org.openrewrite.Tree.randomId;
 import static org.openrewrite.java.spring.internal.LocalVariableUtils.resolveExpression;
+import static org.openrewrite.java.spring.security5.PasswordEncoderUtils.isInsideTargetClass;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
@@ -77,7 +78,8 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 J j = super.visitNewClass(newClass, ctx);
-                if (j instanceof J.NewClass && TypeUtils.isOfClassType(((J.NewClass) j).getType(), PBKDF2_PASSWORD_ENCODER_CLASS)) {
+                if (j instanceof J.NewClass && TypeUtils.isOfClassType(((J.NewClass) j).getType(), PBKDF2_PASSWORD_ENCODER_CLASS) &&
+                        !isInsideTargetClass(getCursor(), PBKDF2_PASSWORD_ENCODER_CLASS)) {
                     newClass = (J.NewClass) j;
                     if (DEFAULT_CONSTRUCTOR_MATCHER.matches(newClass)) {
                         maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
