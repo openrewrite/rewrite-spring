@@ -30,6 +30,9 @@ recipeList:
   - org.openrewrite.java.AddCommentToMethodInvocations:
       comment: "TODO: The transformation of Docket to OpenAPI is too complex to be adequately handled in a recipe. See https://springdoc.org/migrating-from-springfox.html for guidance."
       methodPattern: "springfox.documentation.spring.web.plugins.Docket <constructor>(..)"
+  - org.openrewrite.java.AddCommentToMethodInvocations:
+      comment: "TODO: springfox.documentation.spring.web.json types have no SpringDoc equivalent. Remove this Springfox-internal code and use Jackson ObjectMapper directly if JSON serialization is still needed. See https://springdoc.org/migrating-from-springfox.html for guidance."
+      methodPattern: "springfox.documentation.spring.web.json.Json* *(..)"
   - org.openrewrite.java.springdoc.SwaggerToSpringDoc
   - org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
   - org.openrewrite.java.spring.doc.ApiInfoBuilderToInfo
