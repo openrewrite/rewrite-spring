@@ -80,6 +80,43 @@ class ServerHttpSecurityLambdaDslTest implements RewriteTest {
     }
 
     @Test
+    void csrfDisableFollowedByAuthorizeExchange() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+              import org.springframework.security.config.web.server.ServerHttpSecurity;
+              import org.springframework.security.web.server.SecurityWebFilterChain;
+
+              @EnableWebFluxSecurity
+              public class SecurityConfig {
+                  @Bean
+                  SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) throws Exception {
+                      return http.authorizeExchange().anyExchange().permitAll().and().csrf().disable().build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+              import org.springframework.security.config.web.server.ServerHttpSecurity;
+              import org.springframework.security.web.server.SecurityWebFilterChain;
+
+              @EnableWebFluxSecurity
+              public class SecurityConfig {
+                  @Bean
+                  SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) throws Exception {
+                      return http.authorizeExchange(exchange -> exchange.anyExchange().permitAll()).csrf(csrf -> csrf.disable()).build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void advanced() {
         rewriteRun(
           //language=java

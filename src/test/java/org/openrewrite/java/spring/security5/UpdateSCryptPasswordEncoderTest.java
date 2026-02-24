@@ -122,6 +122,29 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
     }
 
     @Test
+    void noChangeInsideTargetClass() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              package org.springframework.security.crypto.scrypt;
+
+              public class SCryptPasswordEncoder {
+                  public static SCryptPasswordEncoder defaultsForSpringSecurity_v4_1() {
+                      return new SCryptPasswordEncoder(16384, 8, 1, 32, 64);
+                  }
+                  public static SCryptPasswordEncoder defaultsForSpringSecurity_v5_8() {
+                      return new SCryptPasswordEncoder(65536, 8, 1, 32, 16);
+                  }
+                  public SCryptPasswordEncoder() {}
+                  public SCryptPasswordEncoder(int cpuCost, int memoryCost, int parallelization, int keyLength, int saltLength) {}
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void leaveFullConstructorCallUsingNonFinalConstant() {
         // language=java
         rewriteRun(

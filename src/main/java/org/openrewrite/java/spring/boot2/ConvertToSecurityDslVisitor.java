@@ -319,7 +319,16 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     private boolean isDisableMethod(J.MethodInvocation method) {
-        return new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer disable()", true).matches(method);
+        if (new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer disable()", true).matches(method)) {
+            return true;
+        }
+        // Also match reactive disable() methods that return the security builder type (e.g., ServerHttpSecurity.CsrfSpec.disable())
+        if ("disable".equals(method.getSimpleName()) &&
+                (method.getArguments().isEmpty() || method.getArguments().get(0) instanceof J.Empty)) {
+            JavaType returnType = method.getType();
+            return returnType != null && TypeUtils.isAssignableTo(securityFqn, returnType);
+        }
+        return false;
     }
 
     private J.MethodInvocation createDefaultsCall() {

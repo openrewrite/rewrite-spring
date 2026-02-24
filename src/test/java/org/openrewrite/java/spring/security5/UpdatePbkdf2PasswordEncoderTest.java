@@ -190,6 +190,29 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
     }
 
     @Test
+    void noChangeInsideTargetClass() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              package org.springframework.security.crypto.password;
+
+              public class Pbkdf2PasswordEncoder {
+                  public static Pbkdf2PasswordEncoder defaultsForSpringSecurity_v5_8() {
+                      return new Pbkdf2PasswordEncoder("", 185000, 256);
+                  }
+                  public Pbkdf2PasswordEncoder() {}
+                  public Pbkdf2PasswordEncoder(CharSequence secret) {}
+                  public Pbkdf2PasswordEncoder(CharSequence secret, int saltLength) {}
+                  public Pbkdf2PasswordEncoder(CharSequence secret, int iterations, int hashWidth) {}
+                  public enum SecretKeyFactoryAlgorithm { PBKDF2WithHmacSHA1, PBKDF2WithHmacSHA256, PBKDF2WithHmacSHA512 }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void replaceVersion55FactoryCall() {
         // language=java
         rewriteRun(

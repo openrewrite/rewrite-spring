@@ -122,6 +122,29 @@ class UpdateArgon2PasswordEncoderTest implements RewriteTest {
     }
 
     @Test
+    void noChangeInsideTargetClass() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              package org.springframework.security.crypto.argon2;
+
+              public class Argon2PasswordEncoder {
+                  public static Argon2PasswordEncoder defaultsForSpringSecurity_v5_2() {
+                      return new Argon2PasswordEncoder(16, 32, 1, 4096, 3);
+                  }
+                  public static Argon2PasswordEncoder defaultsForSpringSecurity_v5_8() {
+                      return new Argon2PasswordEncoder(16, 32, 1, 16384, 2);
+                  }
+                  public Argon2PasswordEncoder() {}
+                  public Argon2PasswordEncoder(int saltLength, int hashLength, int parallelism, int memory, int iterations) {}
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void leaveFullConstructorCallUsingNonFinalConstant() {
         // language=java
         rewriteRun(
