@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring;
 
 import lombok.Getter;
-import lombok.Value;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.yaml.DeleteProperty;

@@ -56,8 +56,8 @@ public class ConvertSecurityMatchersToSecurityMatcher extends Recipe {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
 
                 // Match antMatchers/mvcMatchers/regexMatchers whose select is requestMatchers() on HttpSecurity
-                if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi))
-                        && mi.getSelect() instanceof J.MethodInvocation) {
+                if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi)) &&
+                        mi.getSelect() instanceof J.MethodInvocation) {
                     J.MethodInvocation selectMi = (J.MethodInvocation) mi.getSelect();
                     if (REQUEST_MATCHERS.matches(selectMi) && selectMi.getSelect() != null) {
                         // Build method type for securityMatcher on HttpSecurity
