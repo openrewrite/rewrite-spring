@@ -32,7 +32,7 @@ public final class HttpSecurityLambdaDsl extends Recipe {
     private static final Collection<String> APPLICABLE_METHOD_NAMES = Arrays.asList(
             "anonymous", "authorizeHttpRequests", "authorizeRequests", "cors", "csrf", "exceptionHandling", "formLogin",
             "headers", "httpBasic", "jee", "logout", "oauth2Client", "oauth2Login", "oauth2ResourceServer",
-            "openidLogin", "portMapper", "rememberMe", "requestCache", "requestMatchers", "requiresChannel",
+            "openidLogin", "portMapper", "rememberMe", "requestCache", "requiresChannel",
             "saml2Login", "securityContext", "servletApi", "sessionManagement", "x509");
 
     @Getter

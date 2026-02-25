@@ -16,10 +16,10 @@
 package org.openrewrite.java.spring;
 
 import lombok.Getter;
-import lombok.Value;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.yaml.DeleteProperty;
+import org.openrewrite.yaml.MergeYamlVisitor;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
@@ -48,6 +48,9 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
         return new YamlIsoVisitor<ExecutionContext>() {
             @Override
             public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
+                if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application-*.{yml,yaml}")) {
+                    acc.existingProfileFiles.add(yaml.getSourcePath());
+                }
                 if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application.yml")) {
                     Set<Yaml.Documents> profiles = new HashSet<>(yaml.getDocuments().size());
 
@@ -86,8 +89,8 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                             }));
 
                     if (!profiles.isEmpty()) {
-                        acc.getModifiedMainProfileFiles().put(yaml.getSourcePath(), mainYaml);
-                        acc.getNewProfileFiles().addAll(profiles);
+                        acc.modifiedMainProfileFiles.put(yaml.getSourcePath(), mainYaml);
+                        acc.newProfileFiles.addAll(profiles);
                     }
                 }
                 return yaml;
@@ -97,7 +100,17 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
 
     @Override
     public Collection<SourceFile> generate(ApplicationProfiles acc, ExecutionContext ctx) {
-        return acc.getNewProfileFiles();
+        Collection<SourceFile> toGenerate = new ArrayList<>();
+        for (SourceFile sf : acc.newProfileFiles) {
+            if (acc.existingProfileFiles.contains(sf.getSourcePath())) {
+                Yaml.Documents docs = (Yaml.Documents) sf;
+                acc.mergeDocuments.computeIfAbsent(sf.getSourcePath(), k -> new ArrayList<>())
+                        .addAll(docs.getDocuments());
+            } else {
+                toGenerate.add(sf);
+            }
+        }
+        return toGenerate;
     }
 
     @Override
@@ -105,14 +118,30 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
         return new YamlIsoVisitor<ExecutionContext>() {
             @Override
             public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
-                return acc.getModifiedMainProfileFiles().getOrDefault(yaml.getSourcePath(), yaml);
+                Yaml.Documents result = acc.modifiedMainProfileFiles.getOrDefault(yaml.getSourcePath(), yaml);
+                List<Yaml.Document> docsToMerge = acc.mergeDocuments.get(yaml.getSourcePath());
+                if (docsToMerge != null && !result.getDocuments().isEmpty()) {
+                    Yaml.Document mergedDoc = result.getDocuments().get(0);
+                    for (Yaml.Document incoming : docsToMerge) {
+                        Yaml.Document mergedOrNull = (Yaml.Document) new MergeYamlVisitor<Integer>(
+                                mergedDoc.getBlock(), incoming.getBlock(), true, null, null, null
+                        ).visit(mergedDoc, 0, new Cursor(new Cursor(null, result), mergedDoc));
+                        if (mergedOrNull != null) {
+                            mergedDoc = mergedOrNull;
+                        }
+                    }
+                    Yaml.Document finalMergedDoc = mergedDoc;
+                    result = result.withDocuments(ListUtils.mapFirst(result.getDocuments(), doc -> finalMergedDoc));
+                }
+                return result;
             }
         };
     }
 
-    @Value
     public static class ApplicationProfiles {
         Map<Path, Yaml.Documents> modifiedMainProfileFiles = new HashMap<>();
         Set<SourceFile> newProfileFiles = new HashSet<>();
+        Set<Path> existingProfileFiles = new HashSet<>();
+        Map<Path, List<Yaml.Document>> mergeDocuments = new HashMap<>();
     }
 }

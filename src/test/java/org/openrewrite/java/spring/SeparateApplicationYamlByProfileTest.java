@@ -96,6 +96,74 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
     }
 
     @Test
+    void mergeIntoExistingProfileFile() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                name: main
+                ---
+                spring:
+                  config:
+                    activate:
+                      on-profile: dev
+                name: dev
+                """,
+              """
+              name: main
+              """,
+              spec -> spec.path("application.yml").noTrim()
+            ),
+            yaml(
+              """
+              existing: property
+              """,
+              """
+              existing: property
+
+              name: dev
+              """,
+              spec -> spec.path("application-dev.yml").noTrim()
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotModifyExistingProfileFileWhenNoMatchingProfile() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                name: main
+                ---
+                spring:
+                  config:
+                    activate:
+                      on-profile: test
+                name: test
+                """,
+              """
+              name: main
+              """,
+              spec -> spec.path("application.yml").noTrim()
+            ),
+            yaml(
+              doesNotExist(),
+              "name: test",
+              spec -> spec.path("application-test.yml")
+            ),
+            yaml(
+              """
+              existing: property
+              """,
+              spec -> spec.path("application-dev.yml")
+            )
+          )
+        );
+    }
+
+    @Test
     void leaveProfileExpressionsAlone() {
         rewriteRun(
           srcMainResources(
@@ -111,6 +179,31 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
               spec -> spec.path("application.yml")
             )
           )
+        );
+    }
+
+    @Test
+    void onCloudPlatformLeftAsIs() {
+        rewriteRun(
+            srcMainResources(
+                yaml(
+                    //language=yaml
+                    """
+                    name: main
+                    ---
+                    spring:
+                      config:
+                        activate:
+                          on-cloud-platform: kubernetes
+                    logging:
+                      structured:
+                        format:
+                          console: logstash
+                    name: test
+                    """,
+                    spec -> spec.path("application.yml")
+                )
+            )
         );
     }
 }

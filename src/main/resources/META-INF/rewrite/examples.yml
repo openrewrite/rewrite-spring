@@ -2471,7 +2471,7 @@ examples:
     language: java
   - before: project
     language: mavenProject
-  - after: spring.reactor.context-propagation=true
+  - after: spring.reactor.context-propagation=auto
     path: application.properties
     language: properties
 ---
@@ -3548,6 +3548,29 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.data.MigrateRepositoryRestConfigurerAdapter
+examples:
+- description: '`MigrateRepositoryRestConfigurerAdapterTest#transformSimple`'
+  sources:
+  - before: |
+      import org.springframework.context.annotation.Configuration;
+      import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapter;
+
+      @Configuration
+      public class CatalogDbRepositoryConfiguration extends RepositoryRestConfigurerAdapter {
+
+      }
+    after: |
+      import org.springframework.context.annotation.Configuration;
+      import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
+
+      @Configuration
+      public class CatalogDbRepositoryConfiguration implements RepositoryRestConfigurer {
+
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
 examples:
 - description: '`RefactorSimpleMongoDbFactoryTest#constructorWithAttribute`'
@@ -4232,29 +4255,6 @@ examples:
           }
       }
     language: java
----
-type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.data.MigrateRepositoryRestConfigurerAdapter
-examples:
-  - description: '`MigrateRepositoryRestConfigurerAdapterTest#transformSimple`'
-    sources:
-      - before: |
-          import org.springframework.context.annotation.Configuration;
-          import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapter;
-
-          @Configuration
-          public class CatalogDbRepositoryConfiguration extends RepositoryRestConfigurerAdapter {
-
-          }
-        after: |
-          import org.springframework.context.annotation.Configuration;
-          import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
-
-          @Configuration
-          public class CatalogDbRepositoryConfiguration implements RepositoryRestConfigurer {
-
-          }
-        language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.MigrateResourceHttpMessageWriterAddHeadersMethod
@@ -5039,6 +5039,45 @@ examples:
                       .permitAll()
                       .and()
                   .rememberMe();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.security5.ConvertSecurityMatchersToSecurityMatcher
+examples:
+- description: '`ConvertSecurityMatchersToSecurityMatcherTest#requestMatchersAntMatchersToSecurityMatcher`'
+  sources:
+  - before: |
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Configuration;
+      import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+      import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+      import org.springframework.security.web.SecurityFilterChain;
+
+      @Configuration
+      @EnableWebSecurity
+      class SecurityConfig {
+          @Bean
+          SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+              http.requestMatchers().antMatchers("/oidc/*", "/events/syncs**");
+              return http.build();
+          }
+      }
+    after: |
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Configuration;
+      import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+      import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+      import org.springframework.security.web.SecurityFilterChain;
+
+      @Configuration
+      @EnableWebSecurity
+      class SecurityConfig {
+          @Bean
+          SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+              http.securityMatcher("/oidc/*", "/events/syncs**");
+              return http.build();
           }
       }
     language: java
@@ -5865,6 +5904,31 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.springdoc.CleanupRemainingSpringfox
+examples:
+- description: '`CleanupRemainingSpringfoxTest#removeOrphanedPrivateMethodsWithSpringfoxTypes`'
+  sources:
+  - before: |
+      import springfox.documentation.service.ApiInfo;
+
+      class SwaggerConfig {
+
+          public void publicMethod() {
+          }
+
+          private ApiInfo appInfo() {
+              return new ApiInfo("My API", "Description", "1.0", "", "", "", "");
+          }
+      }
+    after: |
+      class SwaggerConfig {
+
+          public void publicMethod() {
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.springdoc.MigrateSpringdocCommon
 examples:
 - description: '`MigrateSpringdocCommonTest#fixCustomiserAndGroupedOpenApi`'
@@ -5909,6 +5973,35 @@ examples:
               @Override
               public void customise(OpenAPI openApi) {
               }
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.springdoc.SpringFoxToSpringDoc
+examples:
+- description: '`SpringFoxToSpringDocJsonTypesTest#addTodoCommentToJsonSerializerConstructor`'
+  sources:
+  - before: |
+      import springfox.documentation.spring.web.json.JacksonModuleRegistrar;
+      import springfox.documentation.spring.web.json.JsonSerializer;
+      import java.util.List;
+
+      class SwaggerConfig {
+
+          public JsonSerializer jsonSerializer(List<JacksonModuleRegistrar> registrars) {
+              return new JsonSerializer(registrars);
+          }
+      }
+    after: |
+      import springfox.documentation.spring.web.json.JacksonModuleRegistrar;
+      import springfox.documentation.spring.web.json.JsonSerializer;
+      import java.util.List;
+
+      class SwaggerConfig {
+
+          public JsonSerializer jsonSerializer(List<JacksonModuleRegistrar> registrars) {
+              return /* TODO: springfox.documentation.spring.web.json types have no SpringDoc equivalent. Remove this Springfox-internal code and use Jackson ObjectMapper directly if JSON serialization is still needed. See https://springdoc.org/migrating-from-springfox.html for guidance. */ new JsonSerializer(registrars);
           }
       }
     language: java

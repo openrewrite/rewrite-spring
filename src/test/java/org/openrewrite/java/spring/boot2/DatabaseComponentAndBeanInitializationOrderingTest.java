@@ -52,7 +52,7 @@ class DatabaseComponentAndBeanInitializationOrderingTest implements RewriteTest 
         "jooq-3.14.15", "jakarta.persistence-api-2.2.3");
     private final KotlinParser.Builder KOTLIN_PARSER = KotlinParser.builder()
       .classpathFromResources(new InMemoryExecutionContext(),
-        "spring-beans-5.+", "spring-context-5.+", "spring-boot-2.4", "spring-jdbc-4.1.+", "spring-orm-5.3.+",
+        "spring-beans-5", "spring-context-5", "spring-boot-2.4", "spring-jdbc-4.1", "spring-orm-5.3",
         "jooq-3.14.15", "jakarta.persistence-api-2.2.3");
 
     @Override
