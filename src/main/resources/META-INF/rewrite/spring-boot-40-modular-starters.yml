@@ -251,24 +251,64 @@ recipeList:
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.boot.autoconfigure.security.SecurityProperties.DEFAULT_FILTER_ORDER
       fullyQualifiedConstantName: org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties.DEFAULT_FILTER_ORDER
-  - org.openrewrite.java.ChangePackage:
-      oldPackageName: org.springframework.boot.autoconfigure.security
-      newPackageName: org.springframework.boot.security.autoconfigure
-      recursive: true
-  # spring-boot-security-oauth2-authorization-server
+  # Types that need non-standard mapping (can't be handled by the broad ChangePackage below)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.servlet.PathRequest
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.web.servlet.PathRequest
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.servlet.StaticResourceRequest
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.web.servlet.StaticResourceRequest
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.ConditionalOnDefaultWebSecurity
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.web.servlet.ConditionalOnDefaultWebSecurity
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.DefaultWebSecurityCondition
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.web.servlet.DefaultWebSecurityCondition
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.StaticResourceLocation
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.web.StaticResourceLocation
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.reactive.PathRequest
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.web.reactive.PathRequest
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.ReactiveUserDetailsServiceAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.security.reactive.StaticResourceRequest
+      newFullyQualifiedTypeName: org.springframework.boot.security.autoconfigure.web.reactive.StaticResourceRequest
+  # spring-boot-security-oauth2-authorization-server (must run before the broad ChangePackage)
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.server.servlet
       newPackageName: org.springframework.boot.security.oauth2.server.authorization.autoconfigure.servlet
       recursive: true
-  # spring-boot-security-oauth2-client
+  # spring-boot-security-oauth2-client (must run before the broad ChangePackage)
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.client
       newPackageName: org.springframework.boot.security.oauth2.client.autoconfigure
       recursive: true
-  # spring-boot-security-oauth2-resource-server
+  # spring-boot-security-oauth2-resource-server (must run before the broad ChangePackage)
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.resource
       newPackageName: org.springframework.boot.security.oauth2.server.resource.autoconfigure
+      recursive: true
+  # spring-boot-security-saml2 (must run before the broad ChangePackage)
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security.saml2
+      newPackageName: org.springframework.boot.security.saml2.autoconfigure
+      recursive: true
+  # Remaining security types are handled by this broad ChangePackage (e.g. SecurityProperties)
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security
+      newPackageName: org.springframework.boot.security.autoconfigure
       recursive: true
   # spring-boot-starter-validation
   - org.openrewrite.java.ChangePackage:
