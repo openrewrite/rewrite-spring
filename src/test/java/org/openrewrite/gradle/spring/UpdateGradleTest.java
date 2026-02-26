@@ -92,7 +92,7 @@ class UpdateGradleTest implements RewriteTest {
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
-              distributionUrl=https\\://services.gradle.org/distributions/gradle-6.7-bin.zip
+              distributionUrl=https\\://downloads.gradle.org/distributions/gradle-6.7-bin.zip
               zipStoreBase=GRADLE_USER_HOME
               zipStorePath=wrapper/dists
               """,
@@ -100,7 +100,7 @@ class UpdateGradleTest implements RewriteTest {
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
-              distributionUrl=https\\://services.gradle.org/distributions/gradle-6.9.4-bin.zip
+              distributionUrl=https\\://downloads.gradle.org/distributions/gradle-6.9.4-bin.zip
               zipStoreBase=GRADLE_USER_HOME
               zipStorePath=wrapper/dists
               distributionSha256Sum=3e240228538de9f18772a574e99a0ba959e83d6ef351014381acd9631781389a
@@ -130,6 +130,32 @@ class UpdateGradleTest implements RewriteTest {
           other(
             "",
             spec -> spec.path("gradle/wrapper/gradle-wrapper.jar")
+          )
+        );
+    }
+
+    @Test
+    void handlesUpdatingGradleUrlFromServicesToDownloads() {
+        rewriteRun(
+          properties(
+            //language=properties
+            """
+              distributionBase=GRADLE_USER_HOME
+              distributionPath=wrapper/dists
+              distributionUrl=https\\://services.gradle.org/distributions/gradle-6.7-bin.zip
+              zipStoreBase=GRADLE_USER_HOME
+              zipStorePath=wrapper/dists
+              """,
+            //language=properties
+            """
+              distributionBase=GRADLE_USER_HOME
+              distributionPath=wrapper/dists
+              distributionUrl=https\\://downloads.gradle.org/distributions/gradle-6.9.4-bin.zip
+              zipStoreBase=GRADLE_USER_HOME
+              zipStorePath=wrapper/dists
+              distributionSha256Sum=3e240228538de9f18772a574e99a0ba959e83d6ef351014381acd9631781389a
+              """,
+            spec -> spec.path("gradle/wrapper/gradle-wrapper.properties")
           )
         );
     }
@@ -183,7 +209,7 @@ class UpdateGradleTest implements RewriteTest {
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
-              distributionUrl=https\\://services.gradle.org/distributions/gradle-6.7-bin.zip
+              distributionUrl=https\\://downloads.gradle.org/distributions/gradle-6.7-bin.zip
               zipStoreBase=GRADLE_USER_HOME
               zipStorePath=wrapper/dists
               """,
@@ -191,7 +217,7 @@ class UpdateGradleTest implements RewriteTest {
             """
               distributionBase=GRADLE_USER_HOME
               distributionPath=wrapper/dists
-              distributionUrl=https\\://services.gradle.org/distributions/gradle-6.9.4-bin.zip
+              distributionUrl=https\\://downloads.gradle.org/distributions/gradle-6.9.4-bin.zip
               zipStoreBase=GRADLE_USER_HOME
               zipStorePath=wrapper/dists
               distributionSha256Sum=3e240228538de9f18772a574e99a0ba959e83d6ef351014381acd9631781389a
