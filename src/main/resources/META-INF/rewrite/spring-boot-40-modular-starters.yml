@@ -300,6 +300,11 @@ recipeList:
       oldPackageName: org.springframework.boot.autoconfigure.security.oauth2.resource
       newPackageName: org.springframework.boot.security.oauth2.server.resource.autoconfigure
       recursive: true
+  # spring-boot-security-saml2 (must run before the broad ChangePackage)
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.security.saml2
+      newPackageName: org.springframework.boot.security.saml2.autoconfigure
+      recursive: true
   # Remaining security types are handled by this broad ChangePackage (e.g. SecurityProperties)
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.security
