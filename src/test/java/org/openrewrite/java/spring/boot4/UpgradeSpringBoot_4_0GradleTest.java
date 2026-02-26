@@ -40,12 +40,24 @@ class UpgradeSpringBoot_4_0GradleTest implements RewriteTest {
     void doNotPinBomManagedStarters() {
         rewriteRun(
           spec -> spec.beforeRecipe(withToolingApi()),
+          properties(
+            """
+              springBootVersion=3.4.1
+              """,
+            spec -> spec.path("gradle.properties")
+              .after(props -> {
+                  assertThat(props)
+                    .as("springBootVersion property should be updated to 4.0.x")
+                    .containsPattern("springBootVersion=4\\.0\\.\\d+");
+                  return props;
+              })
+          ),
           //language=groovy
           buildGradle(
             """
               plugins {
                   id 'java'
-                  id 'org.springframework.boot' version '3.4.1'
+                  id 'org.springframework.boot' version "${springBootVersion}"
                   id 'io.spring.dependency-management' version '1.1.7'
               }
 
@@ -63,9 +75,6 @@ class UpgradeSpringBoot_4_0GradleTest implements RewriteTest {
                   .as("BOM-managed starters should NOT get explicit versions pinned")
                   .doesNotContainPattern("spring-boot-starter-webflux:\\d")
                   .doesNotContainPattern("spring-boot-starter-test:\\d");
-                assertThat(gradle)
-                  .as("Spring Boot plugin should be upgraded to 4.0.x")
-                  .containsPattern("'org.springframework.boot' version '4\\.0\\.\\d+'");
                 return gradle;
             })
           )
@@ -76,12 +85,24 @@ class UpgradeSpringBoot_4_0GradleTest implements RewriteTest {
     void doNotPinRenamedStarters() {
         rewriteRun(
           spec -> spec.beforeRecipe(withToolingApi()),
+          properties(
+            """
+              springBootVersion=3.4.1
+              """,
+            spec -> spec.path("gradle.properties")
+              .after(props -> {
+                  assertThat(props)
+                    .as("springBootVersion property should be updated to 4.0.x")
+                    .containsPattern("springBootVersion=4\\.0\\.\\d+");
+                  return props;
+              })
+          ),
           //language=groovy
           buildGradle(
             """
               plugins {
                   id 'java'
-                  id 'org.springframework.boot' version '3.4.1'
+                  id 'org.springframework.boot' version "${springBootVersion}"
                   id 'io.spring.dependency-management' version '1.1.7'
               }
 
