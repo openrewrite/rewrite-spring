@@ -19,77 +19,85 @@ import lombok.Getter;
 import org.openrewrite.Recipe;
 import org.openrewrite.java.ReplaceStringLiteralWithConstant;
 
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
 public class ReplaceStringLiteralsWithHttpHeadersConstants extends Recipe {
 
-    private static final List<Recipe> recipeList = Stream.of(
-                    "ACCEPT",
-                    "ACCEPT_CHARSET",
-                    "ACCEPT_ENCODING",
-                    "ACCEPT_LANGUAGE",
-                    "ACCEPT_PATCH",
-                    "ACCEPT_RANGES",
-                    "ACCESS_CONTROL_ALLOW_CREDENTIALS",
-                    "ACCESS_CONTROL_ALLOW_HEADERS",
-                    "ACCESS_CONTROL_ALLOW_METHODS",
-                    "ACCESS_CONTROL_ALLOW_ORIGIN",
-                    "ACCESS_CONTROL_EXPOSE_HEADERS",
-                    "ACCESS_CONTROL_MAX_AGE",
-                    "ACCESS_CONTROL_REQUEST_HEADERS",
-                    "ACCESS_CONTROL_REQUEST_METHOD",
-                    "AGE",
-                    "ALLOW",
-                    "AUTHORIZATION",
-                    "CACHE_CONTROL",
-                    "CONNECTION",
-                    "CONTENT_ENCODING",
-                    "CONTENT_DISPOSITION",
-                    "CONTENT_LANGUAGE",
-                    "CONTENT_LENGTH",
-                    "CONTENT_LOCATION",
-                    "CONTENT_RANGE",
-                    "CONTENT_TYPE",
-                    "COOKIE",
-                    "DATE",
-                    "ETAG",
-                    "EXPECT",
-                    "EXPIRES",
-                    "FROM",
-                    "HOST",
-                    "IF_MATCH",
-                    "IF_MODIFIED_SINCE",
-                    "IF_NONE_MATCH",
-                    "IF_RANGE",
-                    "IF_UNMODIFIED_SINCE",
-                    "LAST_MODIFIED",
-                    "LINK",
-                    "LOCATION",
-                    "MAX_FORWARDS",
-                    "ORIGIN",
-                    "PRAGMA",
-                    "PROXY_AUTHENTICATE",
-                    "PROXY_AUTHORIZATION",
-                    "RANGE",
-                    "REFERER",
-                    "RETRY_AFTER",
-                    "SERVER",
-                    "SET_COOKIE",
-                    "SET_COOKIE2",
-                    "TE",
-                    "TRAILER",
-                    "TRANSFER_ENCODING",
-                    "UPGRADE",
-                    "USER_AGENT",
-                    "VARY",
-                    "VIA",
-                    "WARNING",
-                    "WWW_AUTHENTICATE")
-            .map(header -> new ReplaceStringLiteralWithConstant(null, "org.springframework.http.HttpHeaders." + header))
+    private static final String FQN = "org.springframework.http.HttpHeaders.";
+
+    private static final List<Recipe> recipeList = Stream.<Map.Entry<String, String>>of(
+                    e("ACCEPT", "Accept"),
+                    e("ACCEPT_CHARSET", "Accept-Charset"),
+                    e("ACCEPT_ENCODING", "Accept-Encoding"),
+                    e("ACCEPT_LANGUAGE", "Accept-Language"),
+                    e("ACCEPT_PATCH", "Accept-Patch"),
+                    e("ACCEPT_RANGES", "Accept-Ranges"),
+                    e("ACCESS_CONTROL_ALLOW_CREDENTIALS", "Access-Control-Allow-Credentials"),
+                    e("ACCESS_CONTROL_ALLOW_HEADERS", "Access-Control-Allow-Headers"),
+                    e("ACCESS_CONTROL_ALLOW_METHODS", "Access-Control-Allow-Methods"),
+                    e("ACCESS_CONTROL_ALLOW_ORIGIN", "Access-Control-Allow-Origin"),
+                    e("ACCESS_CONTROL_EXPOSE_HEADERS", "Access-Control-Expose-Headers"),
+                    e("ACCESS_CONTROL_MAX_AGE", "Access-Control-Max-Age"),
+                    e("ACCESS_CONTROL_REQUEST_HEADERS", "Access-Control-Request-Headers"),
+                    e("ACCESS_CONTROL_REQUEST_METHOD", "Access-Control-Request-Method"),
+                    e("AGE", "Age"),
+                    e("ALLOW", "Allow"),
+                    e("AUTHORIZATION", "Authorization"),
+                    e("CACHE_CONTROL", "Cache-Control"),
+                    e("CONNECTION", "Connection"),
+                    e("CONTENT_ENCODING", "Content-Encoding"),
+                    e("CONTENT_DISPOSITION", "Content-Disposition"),
+                    e("CONTENT_LANGUAGE", "Content-Language"),
+                    e("CONTENT_LENGTH", "Content-Length"),
+                    e("CONTENT_LOCATION", "Content-Location"),
+                    e("CONTENT_RANGE", "Content-Range"),
+                    e("CONTENT_TYPE", "Content-Type"),
+                    e("COOKIE", "Cookie"),
+                    e("DATE", "Date"),
+                    e("ETAG", "ETag"),
+                    e("EXPECT", "Expect"),
+                    e("EXPIRES", "Expires"),
+                    e("FROM", "From"),
+                    e("HOST", "Host"),
+                    e("IF_MATCH", "If-Match"),
+                    e("IF_MODIFIED_SINCE", "If-Modified-Since"),
+                    e("IF_NONE_MATCH", "If-None-Match"),
+                    e("IF_RANGE", "If-Range"),
+                    e("IF_UNMODIFIED_SINCE", "If-Unmodified-Since"),
+                    e("LAST_MODIFIED", "Last-Modified"),
+                    e("LINK", "Link"),
+                    e("LOCATION", "Location"),
+                    e("MAX_FORWARDS", "Max-Forwards"),
+                    e("ORIGIN", "Origin"),
+                    e("PRAGMA", "Pragma"),
+                    e("PROXY_AUTHENTICATE", "Proxy-Authenticate"),
+                    e("PROXY_AUTHORIZATION", "Proxy-Authorization"),
+                    e("RANGE", "Range"),
+                    e("REFERER", "Referer"),
+                    e("RETRY_AFTER", "Retry-After"),
+                    e("SERVER", "Server"),
+                    e("SET_COOKIE", "Set-Cookie"),
+                    e("SET_COOKIE2", "Set-Cookie2"),
+                    e("TE", "TE"),
+                    e("TRAILER", "Trailer"),
+                    e("TRANSFER_ENCODING", "Transfer-Encoding"),
+                    e("UPGRADE", "Upgrade"),
+                    e("USER_AGENT", "User-Agent"),
+                    e("VARY", "Vary"),
+                    e("VIA", "Via"),
+                    e("WARNING", "Warning"),
+                    e("WWW_AUTHENTICATE", "WWW-Authenticate"))
+            .map(entry -> new ReplaceStringLiteralWithConstant(entry.getValue(), FQN + entry.getKey()))
             .collect(toList());
+
+    private static Map.Entry<String, String> e(String constant, String literal) {
+        return new AbstractMap.SimpleImmutableEntry<>(constant, literal);
+    }
 
     @Getter
     final String displayName = "Replace String literals with `HttpHeaders` constants";
