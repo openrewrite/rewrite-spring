@@ -19,55 +19,52 @@ import lombok.Getter;
 import org.openrewrite.Recipe;
 import org.openrewrite.java.ReplaceStringLiteralWithConstant;
 
-import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
 public class ReplaceStringLiteralsWithMediaTypeConstants extends Recipe {
 
-    private static final String FQN = "org.springframework.http.MediaType.";
+    private static final String FULLY_QUALIFIED = "org.springframework.http.MediaType.";
 
     @SuppressWarnings("deprecation")
-    private static final List<Recipe> recipeList = Stream.<Map.Entry<String, String>>of(
-                    e("ALL_VALUE", "*/*"),
-                    e("APPLICATION_ATOM_XML_VALUE", "application/atom+xml"),
-                    e("APPLICATION_CBOR_VALUE", "application/cbor"),
-                    e("APPLICATION_FORM_URLENCODED_VALUE", "application/x-www-form-urlencoded"),
-                    e("APPLICATION_GRAPHQL_VALUE", "application/graphql+json"),
-                    e("APPLICATION_GRAPHQL_RESPONSE_VALUE", "application/graphql-response+json"),
-                    e("APPLICATION_JSON_VALUE", "application/json"),
-                    e("APPLICATION_JSON_UTF8_VALUE", "application/json;charset=UTF-8"),
-                    e("APPLICATION_OCTET_STREAM_VALUE", "application/octet-stream"),
-                    e("APPLICATION_PDF_VALUE", "application/pdf"),
-                    e("APPLICATION_PROBLEM_JSON_VALUE", "application/problem+json"),
-                    e("APPLICATION_PROBLEM_JSON_UTF8_VALUE", "application/problem+json;charset=UTF-8"),
-                    e("APPLICATION_PROBLEM_XML_VALUE", "application/problem+xml"),
-                    e("APPLICATION_PROTOBUF_VALUE", "application/x-protobuf"),
-                    e("APPLICATION_RSS_XML_VALUE", "application/rss+xml"),
-                    e("APPLICATION_NDJSON_VALUE", "application/x-ndjson"),
-                    e("APPLICATION_STREAM_JSON_VALUE", "application/stream+json"),
-                    e("APPLICATION_XHTML_XML_VALUE", "application/xhtml+xml"),
-                    e("APPLICATION_XML_VALUE", "application/xml"),
-                    e("APPLICATION_YAML_VALUE", "application/yaml"),
-                    e("IMAGE_GIF_VALUE", "image/gif"),
-                    e("IMAGE_JPEG_VALUE", "image/jpeg"),
-                    e("IMAGE_PNG_VALUE", "image/png"),
-                    e("MULTIPART_FORM_DATA_VALUE", "multipart/form-data"),
-                    e("MULTIPART_MIXED_VALUE", "multipart/mixed"),
-                    e("MULTIPART_RELATED_VALUE", "multipart/related"),
-                    e("TEXT_EVENT_STREAM_VALUE", "text/event-stream"),
-                    e("TEXT_HTML_VALUE", "text/html"),
-                    e("TEXT_MARKDOWN_VALUE", "text/markdown"),
-                    e("TEXT_PLAIN_VALUE", "text/plain"),
-                    e("TEXT_XML_VALUE", "text/xml"))
-            .map(entry -> new ReplaceStringLiteralWithConstant(entry.getValue(), FQN + entry.getKey()))
+    private static final List<Recipe> recipeList = Stream.of(
+                    r("*/*", "ALL_VALUE"),
+                    r("application/atom+xml", "APPLICATION_ATOM_XML_VALUE"),
+                    r("application/cbor", "APPLICATION_CBOR_VALUE"),
+                    r("application/x-www-form-urlencoded", "APPLICATION_FORM_URLENCODED_VALUE"),
+                    r("application/graphql+json", "APPLICATION_GRAPHQL_VALUE"),
+                    r("application/graphql-response+json", "APPLICATION_GRAPHQL_RESPONSE_VALUE"),
+                    r("application/json", "APPLICATION_JSON_VALUE"),
+                    r("application/json;charset=UTF-8", "APPLICATION_JSON_UTF8_VALUE"),
+                    r("application/octet-stream", "APPLICATION_OCTET_STREAM_VALUE"),
+                    r("application/pdf", "APPLICATION_PDF_VALUE"),
+                    r("application/problem+json", "APPLICATION_PROBLEM_JSON_VALUE"),
+                    r("application/problem+json;charset=UTF-8", "APPLICATION_PROBLEM_JSON_UTF8_VALUE"),
+                    r("application/problem+xml", "APPLICATION_PROBLEM_XML_VALUE"),
+                    r("application/x-protobuf", "APPLICATION_PROTOBUF_VALUE"),
+                    r("application/rss+xml", "APPLICATION_RSS_XML_VALUE"),
+                    r("application/x-ndjson", "APPLICATION_NDJSON_VALUE"),
+                    r("application/stream+json", "APPLICATION_STREAM_JSON_VALUE"),
+                    r("application/xhtml+xml", "APPLICATION_XHTML_XML_VALUE"),
+                    r("application/xml", "APPLICATION_XML_VALUE"),
+                    r("application/yaml", "APPLICATION_YAML_VALUE"),
+                    r("image/gif", "IMAGE_GIF_VALUE"),
+                    r("image/jpeg", "IMAGE_JPEG_VALUE"),
+                    r("image/png", "IMAGE_PNG_VALUE"),
+                    r("multipart/form-data", "MULTIPART_FORM_DATA_VALUE"),
+                    r("multipart/mixed", "MULTIPART_MIXED_VALUE"),
+                    r("multipart/related", "MULTIPART_RELATED_VALUE"),
+                    r("text/event-stream", "TEXT_EVENT_STREAM_VALUE"),
+                    r("text/html", "TEXT_HTML_VALUE"),
+                    r("text/markdown", "TEXT_MARKDOWN_VALUE"),
+                    r("text/plain", "TEXT_PLAIN_VALUE"),
+                    r("text/xml", "TEXT_XML_VALUE"))
             .collect(toList());
 
-    private static Map.Entry<String, String> e(String constant, String literal) {
-        return new AbstractMap.SimpleImmutableEntry<>(constant, literal);
+    private static Recipe r(String literal, String constantName) {
+        return new ReplaceStringLiteralWithConstant(literal, FULLY_QUALIFIED + constantName);
     }
 
     @Getter

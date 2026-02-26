@@ -19,84 +19,81 @@ import lombok.Getter;
 import org.openrewrite.Recipe;
 import org.openrewrite.java.ReplaceStringLiteralWithConstant;
 
-import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
 public class ReplaceStringLiteralsWithHttpHeadersConstants extends Recipe {
 
-    private static final String FQN = "org.springframework.http.HttpHeaders.";
+    private static final String FULLY_QUALIFIED = "org.springframework.http.HttpHeaders.";
 
-    private static final List<Recipe> recipeList = Stream.<Map.Entry<String, String>>of(
-                    e("ACCEPT", "Accept"),
-                    e("ACCEPT_CHARSET", "Accept-Charset"),
-                    e("ACCEPT_ENCODING", "Accept-Encoding"),
-                    e("ACCEPT_LANGUAGE", "Accept-Language"),
-                    e("ACCEPT_PATCH", "Accept-Patch"),
-                    e("ACCEPT_RANGES", "Accept-Ranges"),
-                    e("ACCESS_CONTROL_ALLOW_CREDENTIALS", "Access-Control-Allow-Credentials"),
-                    e("ACCESS_CONTROL_ALLOW_HEADERS", "Access-Control-Allow-Headers"),
-                    e("ACCESS_CONTROL_ALLOW_METHODS", "Access-Control-Allow-Methods"),
-                    e("ACCESS_CONTROL_ALLOW_ORIGIN", "Access-Control-Allow-Origin"),
-                    e("ACCESS_CONTROL_EXPOSE_HEADERS", "Access-Control-Expose-Headers"),
-                    e("ACCESS_CONTROL_MAX_AGE", "Access-Control-Max-Age"),
-                    e("ACCESS_CONTROL_REQUEST_HEADERS", "Access-Control-Request-Headers"),
-                    e("ACCESS_CONTROL_REQUEST_METHOD", "Access-Control-Request-Method"),
-                    e("AGE", "Age"),
-                    e("ALLOW", "Allow"),
-                    e("AUTHORIZATION", "Authorization"),
-                    e("CACHE_CONTROL", "Cache-Control"),
-                    e("CONNECTION", "Connection"),
-                    e("CONTENT_ENCODING", "Content-Encoding"),
-                    e("CONTENT_DISPOSITION", "Content-Disposition"),
-                    e("CONTENT_LANGUAGE", "Content-Language"),
-                    e("CONTENT_LENGTH", "Content-Length"),
-                    e("CONTENT_LOCATION", "Content-Location"),
-                    e("CONTENT_RANGE", "Content-Range"),
-                    e("CONTENT_TYPE", "Content-Type"),
-                    e("COOKIE", "Cookie"),
-                    e("DATE", "Date"),
-                    e("ETAG", "ETag"),
-                    e("EXPECT", "Expect"),
-                    e("EXPIRES", "Expires"),
-                    e("FROM", "From"),
-                    e("HOST", "Host"),
-                    e("IF_MATCH", "If-Match"),
-                    e("IF_MODIFIED_SINCE", "If-Modified-Since"),
-                    e("IF_NONE_MATCH", "If-None-Match"),
-                    e("IF_RANGE", "If-Range"),
-                    e("IF_UNMODIFIED_SINCE", "If-Unmodified-Since"),
-                    e("LAST_MODIFIED", "Last-Modified"),
-                    e("LINK", "Link"),
-                    e("LOCATION", "Location"),
-                    e("MAX_FORWARDS", "Max-Forwards"),
-                    e("ORIGIN", "Origin"),
-                    e("PRAGMA", "Pragma"),
-                    e("PROXY_AUTHENTICATE", "Proxy-Authenticate"),
-                    e("PROXY_AUTHORIZATION", "Proxy-Authorization"),
-                    e("RANGE", "Range"),
-                    e("REFERER", "Referer"),
-                    e("RETRY_AFTER", "Retry-After"),
-                    e("SERVER", "Server"),
-                    e("SET_COOKIE", "Set-Cookie"),
-                    e("SET_COOKIE2", "Set-Cookie2"),
-                    e("TE", "TE"),
-                    e("TRAILER", "Trailer"),
-                    e("TRANSFER_ENCODING", "Transfer-Encoding"),
-                    e("UPGRADE", "Upgrade"),
-                    e("USER_AGENT", "User-Agent"),
-                    e("VARY", "Vary"),
-                    e("VIA", "Via"),
-                    e("WARNING", "Warning"),
-                    e("WWW_AUTHENTICATE", "WWW-Authenticate"))
-            .map(entry -> new ReplaceStringLiteralWithConstant(entry.getValue(), FQN + entry.getKey()))
+    private static final List<Recipe> recipeList = Stream.of(
+                    r("Accept", "ACCEPT"),
+                    r("Accept-Charset", "ACCEPT_CHARSET"),
+                    r("Accept-Encoding", "ACCEPT_ENCODING"),
+                    r("Accept-Language", "ACCEPT_LANGUAGE"),
+                    r("Accept-Patch", "ACCEPT_PATCH"),
+                    r("Accept-Ranges", "ACCEPT_RANGES"),
+                    r("Access-Control-Allow-Credentials", "ACCESS_CONTROL_ALLOW_CREDENTIALS"),
+                    r("Access-Control-Allow-Headers", "ACCESS_CONTROL_ALLOW_HEADERS"),
+                    r("Access-Control-Allow-Methods", "ACCESS_CONTROL_ALLOW_METHODS"),
+                    r("Access-Control-Allow-Origin", "ACCESS_CONTROL_ALLOW_ORIGIN"),
+                    r("Access-Control-Expose-Headers", "ACCESS_CONTROL_EXPOSE_HEADERS"),
+                    r("Access-Control-Max-Age", "ACCESS_CONTROL_MAX_AGE"),
+                    r("Access-Control-Request-Headers", "ACCESS_CONTROL_REQUEST_HEADERS"),
+                    r("Access-Control-Request-Method", "ACCESS_CONTROL_REQUEST_METHOD"),
+                    r("Age", "AGE"),
+                    r("Allow", "ALLOW"),
+                    r("Authorization", "AUTHORIZATION"),
+                    r("Cache-Control", "CACHE_CONTROL"),
+                    r("Connection", "CONNECTION"),
+                    r("Content-Encoding", "CONTENT_ENCODING"),
+                    r("Content-Disposition", "CONTENT_DISPOSITION"),
+                    r("Content-Language", "CONTENT_LANGUAGE"),
+                    r("Content-Length", "CONTENT_LENGTH"),
+                    r("Content-Location", "CONTENT_LOCATION"),
+                    r("Content-Range", "CONTENT_RANGE"),
+                    r("Content-Type", "CONTENT_TYPE"),
+                    r("Cookie", "COOKIE"),
+                    r("Date", "DATE"),
+                    r("ETag", "ETAG"),
+                    r("Expect", "EXPECT"),
+                    r("Expires", "EXPIRES"),
+                    r("From", "FROM"),
+                    r("Host", "HOST"),
+                    r("If-Match", "IF_MATCH"),
+                    r("If-Modified-Since", "IF_MODIFIED_SINCE"),
+                    r("If-None-Match", "IF_NONE_MATCH"),
+                    r("If-Range", "IF_RANGE"),
+                    r("If-Unmodified-Since", "IF_UNMODIFIED_SINCE"),
+                    r("Last-Modified", "LAST_MODIFIED"),
+                    r("Link", "LINK"),
+                    r("Location", "LOCATION"),
+                    r("Max-Forwards", "MAX_FORWARDS"),
+                    r("Origin", "ORIGIN"),
+                    r("Pragma", "PRAGMA"),
+                    r("Proxy-Authenticate", "PROXY_AUTHENTICATE"),
+                    r("Proxy-Authorization", "PROXY_AUTHORIZATION"),
+                    r("Range", "RANGE"),
+                    r("Referer", "REFERER"),
+                    r("Retry-After", "RETRY_AFTER"),
+                    r("Server", "SERVER"),
+                    r("Set-Cookie", "SET_COOKIE"),
+                    r("Set-Cookie2", "SET_COOKIE2"),
+                    r("TE", "TE"),
+                    r("Trailer", "TRAILER"),
+                    r("Transfer-Encoding", "TRANSFER_ENCODING"),
+                    r("Upgrade", "UPGRADE"),
+                    r("User-Agent", "USER_AGENT"),
+                    r("Vary", "VARY"),
+                    r("Via", "VIA"),
+                    r("Warning", "WARNING"),
+                    r("WWW-Authenticate", "WWW_AUTHENTICATE"))
             .collect(toList());
 
-    private static Map.Entry<String, String> e(String constant, String literal) {
-        return new AbstractMap.SimpleImmutableEntry<>(constant, literal);
+    private static Recipe r(String literal, String constantName) {
+        return new ReplaceStringLiteralWithConstant(literal, FULLY_QUALIFIED + constantName);
     }
 
     @Getter
