@@ -29,9 +29,7 @@ class RenameDeprecatedStartersManagedVersionsTest implements RewriteTest {
     void renameStarterWithoutVersionWhenDepMgmtPluginPresent() {
         rewriteRun(
           spec -> spec
-            .recipeFromResource(
-              "/META-INF/rewrite/spring-boot-40.yml",
-              "org.openrewrite.java.spring.boot4.RenameDeprecatedStartersManagedVersions")
+            .recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
             .beforeRecipe(withToolingApi()),
           mavenProject("sample",
             //language=groovy
@@ -49,19 +47,12 @@ class RenameDeprecatedStartersManagedVersionsTest implements RewriteTest {
                     implementation 'org.springframework.boot:spring-boot-starter-web'
                 }
                 """,
-              """
-                plugins {
-                    id 'java'
-                    id 'org.springframework.boot' version '3.4.1'
-                    id 'io.spring.dependency-management' version '1.1.7'
-                }
-                repositories {
-                    mavenCentral()
-                }
-                dependencies {
-                    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-                }
-                """
+              spec -> spec.after(gradle -> {
+                  assertThat(gradle)
+                    .contains("spring-boot-starter-webmvc")
+                    .doesNotMatch("(?s).*spring-boot-starter-webmvc:['\"]?\\d+\\.\\d+.*");
+                  return gradle;
+              })
             )
           )
         );
@@ -71,10 +62,7 @@ class RenameDeprecatedStartersManagedVersionsTest implements RewriteTest {
     void renameStarterWithVersionWhenDepMgmtPluginAbsent() {
         rewriteRun(
           spec -> spec
-            .recipe(new org.openrewrite.gradle.ChangeDependency(
-              "org.springframework.boot", "spring-boot-starter-web",
-              null, "spring-boot-starter-webmvc", "4.0.x",
-              null, null, null))
+            .recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
             .beforeRecipe(withToolingApi()),
           mavenProject("sample",
             //language=groovy
