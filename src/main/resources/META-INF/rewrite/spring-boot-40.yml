@@ -122,10 +122,10 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.RenameDeprecatedStartersManagedVersions
-displayName: Rename deprecated Spring Boot 4.0 starters without pinning versions
+displayName: Rename Spring Boot 4.0 starters with managed versions
 description: >-
   Renames deprecated Spring Boot starters to their new names without adding explicit versions,
-  for use in projects where the io.spring.dependency-management plugin manages versions via BOM.
+  for use in projects where the `io.spring.dependency-management` plugin manages versions via BOM.
 preconditions:
   - org.openrewrite.gradle.search.ModuleHasPlugin:
       pluginId: io.spring.dependency-management

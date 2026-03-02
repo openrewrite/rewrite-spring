@@ -47,12 +47,13 @@ class RenameDeprecatedStartersManagedVersionsTest implements RewriteTest {
                     implementation 'org.springframework.boot:spring-boot-starter-web'
                 }
                 """,
-              spec -> spec.after(gradle -> {
-                  assertThat(gradle)
-                    .contains("spring-boot-starter-webmvc")
-                    .doesNotMatch("(?s).*spring-boot-starter-webmvc:['\"]?\\d+\\.\\d+.*");
-                  return gradle;
-              })
+              spec -> spec.after(gradle ->
+                assertThat(gradle)
+                  .contains("spring-boot-starter-webmvc")
+                  .doesNotContain("spring-boot-starter-webmvc:")
+                  .doesNotContain("spring-boot-starter-web'")
+                  .doesNotContain("spring-boot-starter-web:")
+                  .actual())
             )
           )
         );
@@ -78,12 +79,13 @@ class RenameDeprecatedStartersManagedVersionsTest implements RewriteTest {
                     implementation 'org.springframework.boot:spring-boot-starter-web:3.4.1'
                 }
                 """,
-              spec -> spec.after(gradle -> {
-                  assertThat(gradle)
-                    .contains("spring-boot-starter-webmvc")
-                    .containsPattern("spring-boot-starter-webmvc:4\\.0\\.\\d+");
-                  return gradle;
-              })
+              spec -> spec.after(gradle ->
+                assertThat(gradle)
+                  .contains("spring-boot-starter-webmvc")
+                  .containsPattern("spring-boot-starter-webmvc:4\\.0\\.\\d+")
+                  .doesNotContain("spring-boot-starter-web'")
+                  .doesNotContain("spring-boot-starter-web:")
+                  .actual())
             )
           )
         );
