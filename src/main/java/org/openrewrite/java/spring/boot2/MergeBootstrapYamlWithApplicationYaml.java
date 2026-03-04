@@ -47,7 +47,8 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
     final String displayName = "Merge Spring `bootstrap.yml` with `application.yml`";
 
     @Getter
-    final String description = "In Spring Boot 2.4, the bootstrap context that loads `bootstrap.yml` is disabled by default. " +
+    final String description = "In Spring Boot 2.4, the bootstrap context that loads `bootstrap.yml` is " +
+            "[disabled by default](https://docs.spring.io/spring-cloud-config/reference/client.html). " +
             "Its properties should be merged with `application.yml` unless `spring-cloud-starter-bootstrap` is present as a dependency.";
 
     @Override
