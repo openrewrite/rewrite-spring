@@ -24,7 +24,6 @@ import org.openrewrite.gradle.marker.GradleDependencyConfiguration;
 import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.java.spring.ExpandProperties;
 import org.openrewrite.maven.tree.MavenResolutionResult;
-import org.openrewrite.maven.tree.ResolvedDependency;
 import org.openrewrite.maven.tree.Scope;
 import org.openrewrite.yaml.CoalescePropertiesVisitor;
 import org.openrewrite.yaml.MergeYamlVisitor;
@@ -78,13 +77,9 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                     });
                     source.getMarkers().findFirst(GradleProject.class).ifPresent(gradle -> {
                         GradleDependencyConfiguration compileClasspath = gradle.getConfiguration("compileClasspath");
-                        if (compileClasspath != null) {
-                            for (ResolvedDependency d : compileClasspath.getResolved()) {
-                                if (isSpringCloudBootstrap(d)) {
-                                    acc.setSpringCloudBootstrapPresent(true);
-                                    break;
-                                }
-                            }
+                        if (compileClasspath != null &&
+                            compileClasspath.findResolvedDependency("org.springframework.cloud", "spring-cloud-starter-bootstrap") != null) {
+                            acc.setSpringCloudBootstrapPresent(true);
                         }
                     });
                 }
@@ -166,11 +161,6 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                 return source;
             }
         };
-    }
-
-    private static boolean isSpringCloudBootstrap(ResolvedDependency d) {
-        return "org.springframework.cloud".equals(d.getGroupId()) &&
-               "spring-cloud-starter-bootstrap".equals(d.getArtifactId());
     }
 
     @Data
