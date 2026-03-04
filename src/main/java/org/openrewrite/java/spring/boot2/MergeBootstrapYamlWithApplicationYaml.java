@@ -20,7 +20,12 @@ import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.gradle.marker.GradleDependencyConfiguration;
+import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.java.spring.ExpandProperties;
+import org.openrewrite.maven.tree.MavenResolutionResult;
+import org.openrewrite.maven.tree.ResolvedDependency;
+import org.openrewrite.maven.tree.Scope;
 import org.openrewrite.yaml.CoalescePropertiesVisitor;
 import org.openrewrite.yaml.MergeYamlVisitor;
 import org.openrewrite.yaml.YamlParser;
@@ -29,6 +34,7 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,7 +47,8 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
     final String displayName = "Merge Spring `bootstrap.yml` with `application.yml`";
 
     @Getter
-    final String description = "In Spring Boot 2.4, support for `bootstrap.yml` was removed. It's properties should be merged with `application.yml`.";
+    final String description = "In Spring Boot 2.4, the bootstrap context that loads `bootstrap.yml` is disabled by default. " +
+            "Its properties should be merged with `application.yml` unless `spring-cloud-starter-bootstrap` is present as a dependency.";
 
     @Override
     public Accumulator getInitialValue(ExecutionContext ctx) {
@@ -63,6 +70,28 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                 } else if (acc.getApplicationYaml() == null && PathUtils.matchesGlob(sourcePath, "**/main/resources/application.y*ml")) {
                     acc.setApplicationYaml(source);
                 }
+                if (!acc.isSpringCloudBootstrapPresent()) {
+                    source.getMarkers().findFirst(MavenResolutionResult.class).ifPresent(maven -> {
+                        List<ResolvedDependency> deps = maven.getDependencies().getOrDefault(Scope.Compile, emptyList());
+                        for (ResolvedDependency d : deps) {
+                            if (isSpringCloudBootstrap(d)) {
+                                acc.setSpringCloudBootstrapPresent(true);
+                                break;
+                            }
+                        }
+                    });
+                    source.getMarkers().findFirst(GradleProject.class).ifPresent(gradle -> {
+                        GradleDependencyConfiguration compileClasspath = gradle.getConfiguration("compileClasspath");
+                        if (compileClasspath != null) {
+                            for (ResolvedDependency d : compileClasspath.getResolved()) {
+                                if (isSpringCloudBootstrap(d)) {
+                                    acc.setSpringCloudBootstrapPresent(true);
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
                 return source;
             }
         };
@@ -70,6 +99,9 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
 
     @Override
     public Collection<SourceFile> generate(Accumulator acc, ExecutionContext ctx) {
+        if (acc.isSpringCloudBootstrapPresent()) {
+            return emptyList();
+        }
         if (acc.getBootstrapYaml() instanceof Yaml.Documents && acc.getApplicationYaml() == null) {
             // rename
             Yaml.Documents yaml = (Yaml.Documents) acc.getBootstrapYaml();
@@ -89,7 +121,8 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
-        if (!(acc.getBootstrapYaml() instanceof Yaml.Documents && acc.getApplicationYaml() instanceof Yaml.Documents)) {
+        if (acc.isSpringCloudBootstrapPresent() ||
+            !(acc.getBootstrapYaml() instanceof Yaml.Documents && acc.getApplicationYaml() instanceof Yaml.Documents)) {
             return TreeVisitor.noop();
         }
 
@@ -139,10 +172,17 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
         };
     }
 
+    private static boolean isSpringCloudBootstrap(ResolvedDependency d) {
+        return "org.springframework.cloud".equals(d.getGroupId()) &&
+               "spring-cloud-starter-bootstrap".equals(d.getArtifactId());
+    }
+
     @Data
     static class Accumulator {
         @Nullable SourceFile bootstrapYaml;
 
         @Nullable SourceFile applicationYaml;
+
+        boolean springCloudBootstrapPresent;
     }
 }
