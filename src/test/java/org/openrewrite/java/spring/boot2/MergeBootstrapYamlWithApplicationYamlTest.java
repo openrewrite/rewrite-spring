@@ -20,6 +20,8 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.maven.Assertions.pomXml;
@@ -250,6 +252,42 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 """,
               spec -> spec.path("bootstrap.yaml")
             )
+          )
+        );
+    }
+
+    @Test
+    void doNotMergeWhenSpringCloudStarterBootstrapPresentGradle() {
+        rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'java'
+              }
+
+              repositories {
+                  mavenCentral()
+              }
+
+              dependencies {
+                  implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap:3.1.0'
+              }
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              spring.application.name: main
+              """,
+            spec -> spec.path("src/main/resources/application.yaml")
+          ),
+          //language=yaml
+          yaml(
+            """
+              name: test
+              """,
+            spec -> spec.path("src/main/resources/bootstrap.yaml")
           )
         );
     }
