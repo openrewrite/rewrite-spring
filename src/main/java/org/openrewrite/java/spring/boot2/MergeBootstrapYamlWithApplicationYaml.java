@@ -34,7 +34,6 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -73,12 +72,8 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                 }
                 if (!acc.isSpringCloudBootstrapPresent()) {
                     source.getMarkers().findFirst(MavenResolutionResult.class).ifPresent(maven -> {
-                        List<ResolvedDependency> deps = maven.getDependencies().getOrDefault(Scope.Compile, emptyList());
-                        for (ResolvedDependency d : deps) {
-                            if (isSpringCloudBootstrap(d)) {
-                                acc.setSpringCloudBootstrapPresent(true);
-                                break;
-                            }
+                        if (!maven.findDependencies("org.springframework.cloud", "spring-cloud-starter-bootstrap", Scope.Compile).isEmpty()) {
+                            acc.setSpringCloudBootstrapPresent(true);
                         }
                     });
                     source.getMarkers().findFirst(GradleProject.class).ifPresent(gradle -> {
