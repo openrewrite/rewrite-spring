@@ -76,10 +76,11 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                         }
                     });
                     source.getMarkers().findFirst(GradleProject.class).ifPresent(gradle -> {
-                        GradleDependencyConfiguration compileClasspath = gradle.getConfiguration("compileClasspath");
-                        if (compileClasspath != null &&
-                            compileClasspath.findResolvedDependency("org.springframework.cloud", "spring-cloud-starter-bootstrap") != null) {
-                            acc.setSpringCloudBootstrapPresent(true);
+                        for (GradleDependencyConfiguration config : gradle.getConfigurations()) {
+                            if (config.findResolvedDependency("org.springframework.cloud", "spring-cloud-starter-bootstrap") != null) {
+                                acc.setSpringCloudBootstrapPresent(true);
+                                break;
+                            }
                         }
                     });
                 }
