@@ -49,6 +49,34 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
               """
                 package org.springframework.http;
                 public enum HttpStatus { OK }
+                """,
+              """
+                package org.springframework.web.client;
+
+                public class RestClientResponseException extends RuntimeException {
+                    private int rawStatusCode;
+                    public int getRawStatusCode() {
+                        return this.rawStatusCode;
+                    }
+                }
+                """,
+              """
+                package org.springframework.web.client;
+
+                public class HttpServerErrorException extends HttpStatusCodeException {
+                }
+                """,
+              """
+                package org.springframework.web.client;
+
+                public class HttpStatusCodeException extends RestClientResponseException {
+                }
+                """,
+              """
+                package org.springframework.web.client;
+
+                public class HttpClientErrorException extends HttpStatusCodeException {
+                }
                 """
             )
           );
@@ -103,6 +131,84 @@ class MigrateResponseStatusExceptionTest implements RewriteTest {
               import org.springframework.web.server.ResponseStatusException;
               class A {
                   void foo(ResponseStatusException e) {
+                      int i = e.getStatusCode().value();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/moderneinc/customer-requests/issues/1955")
+    @Test
+    void migrateRestClientResponseExceptionGetRawStatusCodeMethod() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.client.RestClientResponseException;
+              class A {
+                  void foo(RestClientResponseException e) {
+                      int i = e.getRawStatusCode();
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.client.RestClientResponseException;
+              class A {
+                  void foo(RestClientResponseException e) {
+                      int i = e.getStatusCode().value();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/moderneinc/customer-requests/issues/1955")
+    @Test
+    void migrateHttpServerErrorExceptionGetRawStatusCodeMethod() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.client.HttpServerErrorException;
+              class A {
+                  void foo(HttpServerErrorException e) {
+                      int i = e.getRawStatusCode();
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.client.HttpServerErrorException;
+              class A {
+                  void foo(HttpServerErrorException e) {
+                      int i = e.getStatusCode().value();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/moderneinc/customer-requests/issues/1955")
+    @Test
+    void migrateHttpClientErrorExceptionGetRawStatusCodeMethod() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.client.HttpClientErrorException;
+              class A {
+                  void foo(HttpClientErrorException e) {
+                      int i = e.getRawStatusCode();
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.client.HttpClientErrorException;
+              class A {
+                  void foo(HttpClientErrorException e) {
                       int i = e.getStatusCode().value();
                   }
               }
