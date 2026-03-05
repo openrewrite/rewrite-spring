@@ -20,7 +20,11 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
+import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.java.Assertions.srcMainResources;
+import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.test.SourceSpecs.other;
 import static org.openrewrite.yaml.Assertions.yaml;
 
@@ -247,6 +251,84 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: test
                 """,
               spec -> spec.path("bootstrap.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotMergeWhenSpringCloudStarterBootstrapPresentGradle() {
+        rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'java'
+              }
+
+              repositories {
+                  mavenCentral()
+              }
+
+              dependencies {
+                  implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap:3.1.0'
+              }
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              spring.application.name: main
+              """,
+            spec -> spec.path("src/main/resources/application.yaml")
+          ),
+          //language=yaml
+          yaml(
+            """
+              name: test
+              """,
+            spec -> spec.path("src/main/resources/bootstrap.yaml")
+          )
+        );
+    }
+
+    @Test
+    void doNotMergeWhenSpringCloudStarterBootstrapPresent() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.cloud</groupId>
+                            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+                            <version>3.1.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  spring.application.name: main
+                  """,
+                spec -> spec.path("application.yaml")
+              ),
+              //language=yaml
+              yaml(
+                """
+                  name: test
+                  """,
+                spec -> spec.path("bootstrap.yaml")
+              )
             )
           )
         );
