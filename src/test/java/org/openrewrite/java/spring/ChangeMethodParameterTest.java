@@ -18,6 +18,7 @@ package org.openrewrite.java.spring;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.SourceSpec;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -437,6 +438,65 @@ class ChangeMethodParameterTest implements RewriteTest {
                   public boolean m(long i, String j) {
                       return true;
                   }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void cleansUpImport() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeMethodParameter("A#method(y.X)", "Object", 0)),
+          //language=java
+          java(
+            """
+              package y;
+              public class X {}
+              """,
+            SourceSpec::skip
+          ),
+          //language=java
+          java(
+            """
+              import y.X;
+              class A {
+                  void method(X x) {}
+              }
+              """,
+            """
+              class A {
+                  void method(Object x) {}
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void leavesImportIfStillUsed() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeMethodParameter("A#method(y.X, y.X)", "Object", 0)),
+          //language=java
+          java(
+            """
+              package y;
+              public class X {}
+              """,
+            SourceSpec::skip
+          ),
+          //language=java
+          java(
+            """
+              import y.X;
+              class A {
+                  void method(X x, X z) {}
+              }
+              """,
+            """
+              import y.X;
+              class A {
+                  void method(Object x, X z) {}
               }
               """
           )
