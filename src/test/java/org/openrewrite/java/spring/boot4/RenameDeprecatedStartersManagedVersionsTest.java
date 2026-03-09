@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,12 +26,18 @@ import static org.openrewrite.java.Assertions.mavenProject;
 
 class RenameDeprecatedStartersManagedVersionsTest implements RewriteTest {
 
+
+    @Override
+    public void defaults(RecipeSpec spec) {
+        spec
+                .recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
+                .beforeRecipe(withToolingApi());
+    }
+
+
     @Test
     void renameStarterWithoutVersionWhenDepMgmtPluginPresent() {
         rewriteRun(
-          spec -> spec
-            .recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
-            .beforeRecipe(withToolingApi()),
           mavenProject("sample",
             //language=groovy
             buildGradle(
@@ -62,9 +69,6 @@ class RenameDeprecatedStartersManagedVersionsTest implements RewriteTest {
     @Test
     void renameStarterWithVersionWhenDepMgmtPluginAbsent() {
         rewriteRun(
-          spec -> spec
-            .recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
-            .beforeRecipe(withToolingApi()),
           mavenProject("sample",
             //language=groovy
             buildGradle(
