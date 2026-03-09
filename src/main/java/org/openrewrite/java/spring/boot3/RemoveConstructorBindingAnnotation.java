@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot3;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -139,12 +140,9 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
              *
              * Move the visitor into a new class if it's reused.
              */
+            @RequiredArgsConstructor
             class RemoveTargetAnnotation extends JavaIsoVisitor<ExecutionContext> {
                 private final J.Annotation targetToRemove;
-
-                public RemoveTargetAnnotation(J.Annotation targetToRemove) {
-                    this.targetToRemove = targetToRemove;
-                }
 
                 @Override
                 public J.@Nullable Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {

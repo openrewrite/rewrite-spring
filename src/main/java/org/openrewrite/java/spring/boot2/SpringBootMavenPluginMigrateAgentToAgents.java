@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -58,14 +59,10 @@ public class SpringBootMavenPluginMigrateAgentToAgents extends Recipe {
         });
     }
 
+    @RequiredArgsConstructor
     private static class ChangeTagKeyVisitor<P> extends XmlVisitor<P> {
         private final Xml.Tag scope;
         private final String newKeyName;
-
-        public ChangeTagKeyVisitor(Xml.Tag scope, String newKeyName) {
-            this.scope = scope;
-            this.newKeyName = newKeyName;
-        }
 
         @Override
         public Xml visitTag(Xml.Tag tag, P p) {

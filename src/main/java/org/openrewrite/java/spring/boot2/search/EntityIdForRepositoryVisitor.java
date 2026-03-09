@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2.search;
 
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.Tree;
 import org.openrewrite.internal.ListUtils;
@@ -37,6 +38,7 @@ import static java.util.Collections.emptyList;
  *
  * @author Alex Boyko
  */
+@RequiredArgsConstructor
 public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
 
     private static final String REPOSITORY = "org.springframework.data.repository.Repository";
@@ -46,10 +48,6 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
     public static final String ID_CLASS = "idClass";
 
     final private boolean considerIdField;
-
-    public EntityIdForRepositoryVisitor(boolean considerIdField) {
-        this.considerIdField = considerIdField;
-    }
 
     public EntityIdForRepositoryVisitor() {
         this(false);

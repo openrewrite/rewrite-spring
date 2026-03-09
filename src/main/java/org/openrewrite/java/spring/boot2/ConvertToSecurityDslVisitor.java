@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.Tree;
@@ -32,6 +33,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
+@RequiredArgsConstructor
 public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private static final String MSG_FLATTEN_CHAIN = "http-security-dsl-flatten-invocation-chain";
@@ -66,14 +68,6 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
                                        Map<String, String> argReplacements) {
         this(securityFqn, convertableMethods, argReplacements, new HashMap<>());
-    }
-
-    public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
-                                       Map<String, String> argReplacements, Map<String, String> methodRenames) {
-        this.securityFqn = securityFqn;
-        this.convertableMethods = convertableMethods;
-        this.argReplacements = argReplacements;
-        this.methodRenames = methodRenames;
     }
 
     @Override

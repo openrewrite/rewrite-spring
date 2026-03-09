@@ -15,14 +15,14 @@
  */
 package org.openrewrite.java.spring.security5;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.openrewrite.Cursor;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class PasswordEncoderUtils {
-
-    private PasswordEncoderUtils() {
-    }
 
     /**
      * Check if the cursor is inside a class declaration for the given fully-qualified class name.

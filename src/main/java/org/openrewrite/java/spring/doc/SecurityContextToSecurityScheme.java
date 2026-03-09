@@ -15,7 +15,9 @@
  */
 package org.openrewrite.java.spring.doc;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.openrewrite.*;
 import org.openrewrite.analysis.constantfold.ConstantFold;
 import org.openrewrite.analysis.util.CursorUtil;
@@ -243,14 +245,10 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                 .apply(getCursor(), node.getCoordinates().replace(), templateArgs.toArray());
                     }
 
+                    @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
                     class ScopeInfo {
                         final Expression name;
                         final Expression description;
-
-                        ScopeInfo(Expression name, Expression description) {
-                            this.name = name;
-                            this.description = description;
-                        }
                     }
 
                 }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
