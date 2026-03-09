@@ -15,7 +15,9 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -120,12 +122,9 @@ public class OutputCaptureExtension extends Recipe {
             "org.springframework.boot.test.system.OutputCaptureRule expect(..)"
     );
 
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     private static final class ConvertExpectMethods extends JavaIsoVisitor<ExecutionContext> {
         private final String variableName;
-
-        private ConvertExpectMethods(String variableName) {
-            this.variableName = variableName;
-        }
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
@@ -143,13 +142,10 @@ public class OutputCaptureExtension extends Recipe {
         }
     }
 
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     private static final class AddCapturedOutputParameter extends JavaIsoVisitor<ExecutionContext> {
         private static final JavaType.Class CAPTURED_OUTPUT_TYPE = JavaType.ShallowClass.build("org.springframework.boot.test.system.CapturedOutput");
         private final String variableName;
-
-        private AddCapturedOutputParameter(String variableName) {
-            this.variableName = variableName;
-        }
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {

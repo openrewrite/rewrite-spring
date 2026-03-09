@@ -144,16 +144,11 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
     }
 
 
+    @RequiredArgsConstructor
     private static class AddConstructorVisitor extends JavaVisitor<ExecutionContext> {
         private final String className;
         private final String fieldName;
         private final TypeTree type;
-
-        public AddConstructorVisitor(String className, String fieldName, TypeTree type) {
-            this.className = className;
-            this.fieldName = fieldName;
-            this.type = type;
-        }
 
         @Override
         public J visitBlock(Block block, ExecutionContext p) {
