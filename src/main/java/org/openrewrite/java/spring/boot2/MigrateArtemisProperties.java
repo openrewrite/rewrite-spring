@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.java.spring.IsPossibleSpringConfigFile;
 import org.openrewrite.properties.AddProperty;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
@@ -45,7 +46,7 @@ public class MigrateArtemisProperties extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(new IsPossibleSpringConfigFile(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Properties.File) {
@@ -75,9 +76,8 @@ public class MigrateArtemisProperties extends Recipe {
                     file = (Properties.File) new org.openrewrite.properties.DeleteProperty("spring.artemis.port", true)
                             .getVisitor().visitNonNull(file, ctx);
                 }
-                file = (Properties.File) new AddProperty("spring.artemis.broker-url", brokerUrl, null, null, null)
+                return new AddProperty("spring.artemis.broker-url", brokerUrl, null, null, null)
                         .getVisitor().visitNonNull(file, ctx);
-                return file;
             }
 
             private Tree migrateYaml(Yaml.Documents documents, ExecutionContext ctx) {
@@ -107,6 +107,6 @@ public class MigrateArtemisProperties extends Recipe {
                 }
                 return documents;
             }
-        };
+        });
     }
 }

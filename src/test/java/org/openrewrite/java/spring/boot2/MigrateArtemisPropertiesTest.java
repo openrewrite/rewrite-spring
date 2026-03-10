@@ -17,9 +17,14 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Tree;
+import org.openrewrite.java.marker.JavaSourceSet;
+import org.openrewrite.marker.Markers;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
@@ -27,7 +32,8 @@ class MigrateArtemisPropertiesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateArtemisProperties());
+        spec.recipe(new MigrateArtemisProperties())
+          .allSources(sourceSpec -> sourceSpec.markers(new JavaSourceSet(Tree.randomId(), "main", emptyList(), emptyMap())));
     }
 
     @DocumentExample
@@ -42,8 +48,7 @@ class MigrateArtemisPropertiesTest implements RewriteTest {
               """,
             """
               spring.artemis.broker-url=tcp://myhost:1234
-              """,
-            spec -> spec.path("application.properties")
+              """
           )
         );
     }
@@ -58,8 +63,7 @@ class MigrateArtemisPropertiesTest implements RewriteTest {
               """,
             """
               spring.artemis.broker-url=tcp://myhost:61616
-              """,
-            spec -> spec.path("application.properties")
+              """
           )
         );
     }
@@ -74,8 +78,7 @@ class MigrateArtemisPropertiesTest implements RewriteTest {
               """,
             """
               spring.artemis.broker-url=tcp://localhost:1234
-              """,
-            spec -> spec.path("application.properties")
+              """
           )
         );
     }
@@ -107,8 +110,21 @@ class MigrateArtemisPropertiesTest implements RewriteTest {
           properties(
             """
               spring.artemis.mode=native
+              """
+          )
+        );
+    }
+
+    @Test
+    void doesNotModifyUnrelatedFiles() {
+        rewriteRun(
+          //language=properties
+          properties(
+            """
+              spring.artemis.host=myhost
+              spring.artemis.port=1234
               """,
-            spec -> spec.path("application.properties")
+            spec -> spec.mapBeforeRecipe(file -> file.withMarkers(Markers.EMPTY))
           )
         );
     }
