@@ -22,13 +22,9 @@ import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.util.Spliterator.ORDERED;
-import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.stream.StreamSupport.stream;
 
 @EqualsAndHashCode(callSuper = false)
 public class PropertiesToKebabCaseYaml extends Recipe {
@@ -60,12 +56,13 @@ public class PropertiesToKebabCaseYaml extends Recipe {
                     }
 
                     private boolean isPassThroughProperty() {
-                        Deque<Yaml.Mapping.Entry> propertyEntries = getCursor().getPathAsStream()
+                        List<Yaml.Mapping.Entry> propertyEntries = getCursor().getPathAsStream()
                                 .filter(Yaml.Mapping.Entry.class::isInstance)
                                 .map(Yaml.Mapping.Entry.class::cast)
-                                .collect(Collectors.toCollection(ArrayDeque::new));
+                                .collect(Collectors.toList());
+                        Collections.reverse(propertyEntries);
 
-                        String prop = stream(spliteratorUnknownSize(propertyEntries.descendingIterator(), ORDERED), false)
+                        String prop = propertyEntries.stream()
                                 .map(e -> e.getKey().getValue())
                                 .collect(Collectors.joining("."));
 

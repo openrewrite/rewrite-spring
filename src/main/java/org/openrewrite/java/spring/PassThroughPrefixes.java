@@ -35,12 +35,14 @@ final class PassThroughPrefixes {
             "spring.kafka.producer.properties.",
             "spring.kafka.admin.properties.",
             "spring.kafka.streams.properties.",
-            "spring.quartz.properties."
+            "spring.quartz.properties.",
+            "spring.flyway.properties.",
+            "spring.liquibase.properties."
     );
 
     static boolean isUnderPassThroughPrefix(String propertyPath) {
         for (String prefix : PREFIXES) {
-            if (propertyPath.startsWith(prefix) || propertyPath.equals(prefix.substring(0, prefix.length() - 1))) {
+            if (propertyPath.startsWith(prefix)) {
                 return true;
             }
         }
