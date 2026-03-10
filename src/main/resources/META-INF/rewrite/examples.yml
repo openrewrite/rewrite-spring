@@ -1287,6 +1287,19 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.MigrateArtemisProperties
+examples:
+- description: '`MigrateArtemisPropertiesTest#migratesHostAndPortToBrokerUrl`'
+  sources:
+  - before: |
+      spring.artemis.host=myhost
+      spring.artemis.port=1234
+    after: |
+      spring.artemis.broker-url=tcp://myhost:1234
+    language: properties
+    path: application.properties
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
 examples:
 - description: '`MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest#updateFieldAccess`'
