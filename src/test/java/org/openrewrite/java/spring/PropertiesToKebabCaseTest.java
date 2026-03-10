@@ -138,6 +138,115 @@ class PropertiesToKebabCaseTest implements RewriteTest {
     }
 
     @Test
+    void jpaPassThroughPropertiesUnchangedYaml() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                  spring:
+                    jpa:
+                      properties:
+                        hibernate:
+                          default_schema: my_schema
+                          default_batch_fetch_size: 16
+                  """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void jpaPassThroughPropertiesUnchangedProperties() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                spring.jpa.properties.hibernate.default_schema=my_schema
+                spring.jpa.properties.hibernate.default_batch_fetch_size=16
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void jpaPassThroughButOtherKeysStillConverted() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                  spring:
+                    jpa:
+                      showSql: true
+                      properties:
+                        hibernate:
+                          default_schema: my_schema
+                  """,
+              """
+                  spring:
+                    jpa:
+                      show-sql: true
+                      properties:
+                        hibernate:
+                          default_schema: my_schema
+                  """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void kafkaPassThroughPropertiesUnchanged() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                  spring:
+                    kafka:
+                      properties:
+                        sasl.jaas.config: something
+                      consumer:
+                        properties:
+                          max.poll_interval.ms: 300000
+                  """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void quartzPassThroughPropertiesUnchanged() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                spring.quartz.properties.org.quartz.threadPool.threadCount=5
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void flatYamlJpaPassThroughUnchanged() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                  spring.jpa.properties.hibernate.default_schema: my_schema
+                  """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
     void doNotChange() {
         //language=yaml
         rewriteRun(
