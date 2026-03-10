@@ -66,7 +66,7 @@ public class PropertiesToKebabCaseYaml extends Recipe {
                                 .map(e -> e.getKey().getValue())
                                 .collect(Collectors.joining("."));
 
-                        return PassThroughPrefixes.isUnderPassThroughPrefix(prop);
+                        return prop.startsWith("spring.") && prop.contains(".properties.");
                     }
                 });
     }

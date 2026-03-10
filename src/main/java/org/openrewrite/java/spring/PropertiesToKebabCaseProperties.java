@@ -37,7 +37,7 @@ public class PropertiesToKebabCaseProperties extends Recipe {
             public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
                 Properties.Entry e = super.visitEntry(entry, ctx);
                 String key = e.getKey();
-                if (PassThroughPrefixes.isUnderPassThroughPrefix(key)) {
+                if (key.startsWith("spring.") && key.contains(".properties.")) {
                     return e;
                 }
                 String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
