@@ -22,9 +22,11 @@ import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.reverse;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 @EqualsAndHashCode(callSuper = false)
 public class PropertiesToKebabCaseYaml extends Recipe {
@@ -59,12 +61,12 @@ public class PropertiesToKebabCaseYaml extends Recipe {
                         List<Yaml.Mapping.Entry> propertyEntries = getCursor().getPathAsStream()
                                 .filter(Yaml.Mapping.Entry.class::isInstance)
                                 .map(Yaml.Mapping.Entry.class::cast)
-                                .collect(Collectors.toList());
-                        Collections.reverse(propertyEntries);
+                                .collect(toList());
+                        reverse(propertyEntries);
 
                         String prop = propertyEntries.stream()
                                 .map(e -> e.getKey().getValue())
-                                .collect(Collectors.joining("."));
+                                .collect(joining("."));
 
                         return prop.startsWith("spring.") && prop.contains(".properties.");
                     }
