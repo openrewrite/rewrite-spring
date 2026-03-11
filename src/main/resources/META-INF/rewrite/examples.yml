@@ -1297,7 +1297,6 @@ examples:
     after: |
       spring.artemis.broker-url=tcp://myhost:1234
     language: properties
-    path: application.properties
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName

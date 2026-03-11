@@ -33,16 +33,10 @@ import java.util.Set;
 @Value
 public class MigrateArtemisProperties extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `spring.artemis.host` and `spring.artemis.port` to `spring.artemis.broker-url`";
-    }
+    String displayName = "Migrate `spring.artemis.host` and `spring.artemis.port` to `spring.artemis.broker-url`";
 
-    @Override
-    public String getDescription() {
-        return "Combines `spring.artemis.host` and `spring.artemis.port` into `spring.artemis.broker-url` " +
-                "in the format `tcp://host:port`.";
-    }
+    String description = "Combines `spring.artemis.host` and `spring.artemis.port` into `spring.artemis.broker-url` " +
+            "in the format `tcp://host:port`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -63,6 +63,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
     static final class ReplaceEnvironmentUtilsMarker implements Marker {
         private final String templateString;
         private final List<Expression> parameters;
+
         @Getter
         private final UUID id;
 
