@@ -64,4 +64,73 @@ class UpgradeSpringBoot40ConfigurationTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void migrateJacksonDateTimeProperties() {
+        rewriteRun(
+          mavenProject("test",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.jackson.serialization.write-dates-as-timestamps=true
+                  spring.jackson.serialization.write-date-keys-as-timestamps=false
+                  spring.jackson.serialization.write-date-timestamps-as-nanoseconds=true
+                  spring.jackson.deserialization.adjust-dates-to-context-time-zone=false
+                  spring.jackson.deserialization.read-date-timestamps-as-nanoseconds=true
+                  """,
+                """
+                  spring.jackson.datatype.datetime.write-dates-as-timestamps=true
+                  spring.jackson.datatype.datetime.write-date-keys-as-timestamps=false
+                  spring.jackson.datatype.datetime.write-date-timestamps-as-nanoseconds=true
+                  spring.jackson.datatype.datetime.adjust-dates-to-context-time-zone=false
+                  spring.jackson.datatype.datetime.read-date-timestamps-as-nanoseconds=true
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  spring:
+                    jackson:
+                      serialization:
+                        write-dates-as-timestamps: true
+                      deserialization:
+                        adjust-dates-to-context-time-zone: false
+                  """,
+                """
+                  spring:
+                    jackson:
+                        datatype.datetime.write-dates-as-timestamps: true
+                        datatype.datetime.adjust-dates-to-context-time-zone: false
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void migrateJacksonEnumProperties() {
+        rewriteRun(
+          mavenProject("test",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.jackson.serialization.write-enums-using-to-string=true
+                  spring.jackson.serialization.write-enums-using-index=false
+                  spring.jackson.deserialization.read-enums-using-to-string=true
+                  spring.jackson.deserialization.fail-on-numbers-for-enums=true
+                  """,
+                """
+                  spring.jackson.datatype.enum.write-enums-using-to-string=true
+                  spring.jackson.datatype.enum.write-enums-using-index=false
+                  spring.jackson.datatype.enum.read-enums-using-to-string=true
+                  spring.jackson.datatype.enum.fail-on-numbers-for-enums=true
+                  """
+              )
+            )
+          )
+        );
+    }
 }
