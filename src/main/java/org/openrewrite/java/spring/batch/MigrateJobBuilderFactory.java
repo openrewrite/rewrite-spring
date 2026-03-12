@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.batch;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -77,16 +78,12 @@ public class MigrateJobBuilderFactory extends Recipe {
         });
     }
 
+    @RequiredArgsConstructor
     private static class RemoveJobBuilderFactoryVisitor extends JavaIsoVisitor<ExecutionContext> {
 
         private final J.ClassDeclaration scope;
 
         private final J.MethodDeclaration enclosingMethod;
-
-        public RemoveJobBuilderFactoryVisitor(J.ClassDeclaration scope, J.MethodDeclaration enclosingMethod) {
-            this.scope = scope;
-            this.enclosingMethod = enclosingMethod;
-        }
 
         @Override
         public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {

@@ -25,12 +25,7 @@ tags:
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.artemis.host
-      newPropertyKey: spring.artemis.broker-url
-  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: spring.artemis.port
-      newPropertyKey: spring.artemis.broker-url
+  - org.openrewrite.java.spring.boot2.MigrateArtemisProperties
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.batch.initialize-schema
       newPropertyKey: spring.batch.jdbc.initialize-schema

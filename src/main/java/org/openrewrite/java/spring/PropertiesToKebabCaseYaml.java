@@ -22,6 +22,12 @@ import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.List;
+
+import static java.util.Collections.reverse;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
 @EqualsAndHashCode(callSuper = false)
 public class PropertiesToKebabCaseYaml extends Recipe {
     @Getter
@@ -39,6 +45,9 @@ public class PropertiesToKebabCaseYaml extends Recipe {
                     public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                         Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
                         if (e.getKey() instanceof Yaml.Scalar) {
+                            if (isPassThroughProperty()) {
+                                return e;
+                            }
                             String key = e.getKey().getValue();
                             String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
                             if (!key.equals(asKebabCase)) {
@@ -46,6 +55,20 @@ public class PropertiesToKebabCaseYaml extends Recipe {
                             }
                         }
                         return e;
+                    }
+
+                    private boolean isPassThroughProperty() {
+                        List<Yaml.Mapping.Entry> propertyEntries = getCursor().getPathAsStream()
+                                .filter(Yaml.Mapping.Entry.class::isInstance)
+                                .map(Yaml.Mapping.Entry.class::cast)
+                                .collect(toList());
+                        reverse(propertyEntries);
+
+                        String prop = propertyEntries.stream()
+                                .map(e -> e.getKey().getValue())
+                                .collect(joining("."));
+
+                        return prop.startsWith("spring.") && prop.contains(".properties.");
                     }
                 });
     }

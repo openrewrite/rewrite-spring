@@ -16,6 +16,8 @@
 package org.openrewrite.java.spring.internal;
 
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.openrewrite.ipc.http.HttpSender;
 import org.openrewrite.ipc.http.HttpUrlConnectionSender;
 
@@ -30,6 +32,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Stream.empty;
 
+@RequiredArgsConstructor
 class SpringBootReleases {
     private static volatile Set<String> availableReleases;
 
@@ -38,10 +41,6 @@ class SpringBootReleases {
     private final String milestoneRepositoryUrl = "https://repo.spring.io/milestone";
 
     private final boolean includeReleaseCandidates;
-
-    public SpringBootReleases(boolean includeReleaseCandidates) {
-        this.includeReleaseCandidates = includeReleaseCandidates;
-    }
     public Stream<ModuleDownload> download(String version) {
         List<String> denyList = List.of("sample", "gradle", "experimental", "legacy",
                 "maven", "tests", "spring-boot-versions");
@@ -244,21 +243,11 @@ class SpringBootReleases {
                 .orElse(null);
     }
 
+    @RequiredArgsConstructor
     public static class ModuleDownload {
+        @Getter
         private final String moduleName;
+        @Getter
         private final byte[] body;
-
-        public ModuleDownload(String moduleName, byte[] body) {
-            this.moduleName = moduleName;
-            this.body = body;
-        }
-
-        public String getModuleName() {
-            return moduleName;
-        }
-
-        public byte[] getBody() {
-            return body;
-        }
     }
 }

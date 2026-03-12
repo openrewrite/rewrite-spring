@@ -442,6 +442,30 @@ class MigrateToModularStartersTest implements RewriteTest {
         }
 
         @Test
+        void migrateSecurityAutoConfiguration() {
+            rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+
+                  class A {
+                      Class<?> c = SecurityAutoConfiguration.class;
+                  }
+                  """,
+                """
+                  import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+
+                  class A {
+                      Class<?> c = SecurityAutoConfiguration.class;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
         void migrateSpringBootWebtestclient() {
             rewriteRun(
               //language=java

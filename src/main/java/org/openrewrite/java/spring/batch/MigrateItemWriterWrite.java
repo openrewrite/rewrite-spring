@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.batch;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -110,14 +111,11 @@ public class MigrateItemWriterWrite extends Recipe {
         });
     }
 
+    @RequiredArgsConstructor
     private static class UpdateListMethodInvocations extends JavaIsoVisitor<ExecutionContext> {
         private static final String ITERABLE_FQN = "java.lang.Iterable";
         private static final String GET_ITEMS_METHOD = "getItems";
         private final String parameterName;
-
-        public UpdateListMethodInvocations(String parameterName) {
-            this.parameterName = parameterName;
-        }
 
         private static final MethodMatcher COLLECTION_MATCHER = new MethodMatcher("java.util.Collection *(..)", true);
         private static final MethodMatcher LIST_MATCHER = new MethodMatcher("java.util.List *(..)", true);

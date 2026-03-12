@@ -15,7 +15,9 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -57,21 +59,13 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                 new FindEnvironmentTestUtilsVisitor());
     }
 
+    @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
     static final class ReplaceEnvironmentUtilsMarker implements Marker {
         private final String templateString;
         private final List<Expression> parameters;
+
+        @Getter
         private final UUID id;
-
-        ReplaceEnvironmentUtilsMarker(String templateString, List<Expression> parameters, UUID id) {
-            this.templateString = templateString;
-            this.parameters = parameters;
-            this.id = id;
-        }
-
-        @Override
-        public UUID getId() {
-            return id;
-        }
 
         @Override
         @SuppressWarnings("unchecked")

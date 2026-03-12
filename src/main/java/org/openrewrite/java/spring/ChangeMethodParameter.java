@@ -100,6 +100,10 @@ public class ChangeMethodParameter extends Recipe {
                         return md;
                     }
 
+                    if (parameter.getTypeAsFullyQualified() != null) {
+                        maybeRemoveImport(parameter.getTypeAsFullyQualified());
+                    }
+
                     String parameterName = parameter.getVariables().get(0).getSimpleName();
                     parameter = parameter.withTypeExpression(typeTree).withVariables(singletonList(
                             new J.VariableDeclarations.NamedVariable(

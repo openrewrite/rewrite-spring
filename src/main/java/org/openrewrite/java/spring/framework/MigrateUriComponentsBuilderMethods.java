@@ -33,13 +33,17 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
 
     private static final MethodMatcher FROM_HTTP_REQUEST = new MethodMatcher(TARGET_CLASS + " fromHttpRequest(org.springframework.http.HttpRequest)");
 
+    private static final MethodMatcher FROM_HTTP_URL = new MethodMatcher(TARGET_CLASS + " fromHttpUrl(String)");
+
     private static final MethodMatcher PARSE_FORWARDED_FOR = new MethodMatcher(TARGET_CLASS + " parseForwardedFor(org.springframework.http.HttpRequest, java.net.InetSocketAddress)");
 
     @Getter
-    final String displayName = "Migrate `UriComponentsBuilder.fromHttpRequest` and `parseForwardedFor`";
+    final String displayName = "Migrate deprecated `UriComponentsBuilder` methods";
 
     @Getter
-    final String description = "The `fromHttpRequest` and `parseForwardedFor` methods in `org.springframework.web.util.UriComponentsBuilder` were deprecated, in favor of `org.springframework.web.util.ForwardedHeaderUtils`.";
+    final String description = "Migrates deprecated methods in `org.springframework.web.util.UriComponentsBuilder`: " +
+            "`fromHttpRequest` and `parseForwardedFor` to `ForwardedHeaderUtils`, " +
+            "and `fromHttpUrl` to `fromUriString`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -47,6 +51,9 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+                if (FROM_HTTP_URL.matches(mi)) {
+                    return mi.withName(mi.getName().withSimpleName("fromUriString"));
+                }
                 if (FROM_HTTP_REQUEST.matches(mi)) {
                     maybeRemoveImport("org.springframework.web.util.UriComponentsBuilder");
                     maybeAddImport("org.springframework.web.util.ForwardedHeaderUtils");

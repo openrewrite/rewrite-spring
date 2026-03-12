@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.Nullable;
@@ -231,16 +232,12 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
         return false;
     }
 
+    @AllArgsConstructor
     private static class BeanSearchResult {
         public boolean isBean;
 
         @Nullable
         public String beanName;
-
-        public BeanSearchResult(boolean isBean, @Nullable String beanName) {
-            this.isBean = isBean;
-            this.beanName = beanName;
-        }
     }
 
     private TreeVisitor<?, ExecutionContext> precondition() {

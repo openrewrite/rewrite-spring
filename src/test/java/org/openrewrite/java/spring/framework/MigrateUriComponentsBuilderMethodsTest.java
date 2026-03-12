@@ -73,6 +73,35 @@ class MigrateUriComponentsBuilderMethodsTest implements RewriteTest {
     }
 
     @Test
+    void migrateFromHttpUrlToFromUriString() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              import org.springframework.web.util.UriComponentsBuilder;
+
+              class A {
+                  void test() {
+                      String url = "https://example.com";
+                      UriComponentsBuilder.fromHttpUrl(url).queryParam("foo", "bar");
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.util.UriComponentsBuilder;
+
+              class A {
+                  void test() {
+                      String url = "https://example.com";
+                      UriComponentsBuilder.fromUriString(url).queryParam("foo", "bar");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void migrateUriComponentsBuilderMethodsWhenInetSocketAddressIsNull() {
         rewriteRun(
           // language=java
