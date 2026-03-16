@@ -21,6 +21,7 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.srcMainResources;
+import static org.openrewrite.java.Assertions.srcTestResources;
 import static org.openrewrite.yaml.Assertions.yaml;
 
 class SeparateApplicationYamlByProfileTest implements RewriteTest {
@@ -175,6 +176,64 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                     activate:
                       on-profile: !test
                 name: test
+                """,
+              spec -> spec.path("application.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotModifyTestResourcesApplicationYaml() {
+        rewriteRun(
+          srcTestResources(
+            yaml(
+              """
+                spring:
+                  config:
+                    activate:
+                      on-profile: test
+                name: test
+                """,
+              spec -> spec.path("application.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotModifyTestResourcesWhenMainResourcesAreSeparated() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                name: main
+                ---
+                spring:
+                  config:
+                    activate:
+                      on-profile: test
+                name: test
+                """,
+              """
+              name: main
+              """,
+              spec -> spec.path("application.yml").noTrim()
+            ),
+            yaml(
+              doesNotExist(),
+              "name: test",
+              spec -> spec.path("application-test.yml")
+            )
+          ),
+          srcTestResources(
+            yaml(
+              """
+                spring:
+                  config:
+                    activate:
+                      on-profile: test
+                name: test-value
                 """,
               spec -> spec.path("application.yml")
             )
