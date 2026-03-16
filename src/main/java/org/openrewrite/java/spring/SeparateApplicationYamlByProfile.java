@@ -48,10 +48,10 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
         return new YamlIsoVisitor<ExecutionContext>() {
             @Override
             public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
-                if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application-*.{yml,yaml}")) {
+                if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/src/main/resources/application-*.{yml,yaml}")) {
                     acc.existingProfileFiles.add(yaml.getSourcePath());
                 }
-                if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application.yml")) {
+                if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/src/main/resources/application.yml")) {
                     Set<Yaml.Documents> profiles = new HashSet<>(yaml.getDocuments().size());
 
                     Yaml.Documents mainYaml = yaml.withDocuments(ListUtils.map(
