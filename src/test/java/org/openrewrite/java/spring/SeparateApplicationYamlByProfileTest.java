@@ -96,6 +96,68 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
     }
 
     @Test
+    void mergeIntoExistingProfileFilePreservesFormat() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                server:
+                  port: 8080
+                ---
+                spring:
+                  config:
+                    activate:
+                      on-profile: dev
+                  datasource:
+                    url: jdbc:mysql://devserver
+                    driver-class-name: com.mysql.jdbc.Driver
+                  jpa:
+                    hibernate:
+                      ddl-auto: update
+                    show-sql: true
+                logging:
+                  level:
+                    root: DEBUG
+                """,
+              """
+              server:
+                port: 8080
+              """,
+              spec -> spec.path("application.yml").noTrim()
+            ),
+            yaml(
+              """
+              server:
+                port: 9090
+              spring:
+                datasource:
+                  password: devpassword
+              """,
+              """
+              server:
+                port: 9090
+              spring:
+                datasource:
+                  password: devpassword
+                  url: jdbc:mysql://devserver
+                  driver-class-name: com.mysql.jdbc.Driver
+
+                jpa:
+                  hibernate:
+                    ddl-auto: update
+                  show-sql: true
+
+              logging:
+                level:
+                  root: DEBUG
+              """,
+              spec -> spec.path("application-dev.yml").noTrim()
+            )
+          )
+        );
+    }
+
+    @Test
     void mergeIntoExistingProfileFile() {
         rewriteRun(
           srcMainResources(
