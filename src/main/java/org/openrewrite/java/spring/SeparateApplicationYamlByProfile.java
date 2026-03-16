@@ -18,7 +18,7 @@ package org.openrewrite.java.spring;
 import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.marker.JavaSourceSet;
+import org.openrewrite.java.search.HasSourceSet;
 import org.openrewrite.yaml.DeleteProperty;
 import org.openrewrite.yaml.MergeYamlVisitor;
 import org.openrewrite.yaml.YamlIsoVisitor;
@@ -46,14 +46,9 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(ApplicationProfiles acc) {
-        return new YamlIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new HasSourceSet("main").getVisitor(), new YamlIsoVisitor<ExecutionContext>() {
             @Override
             public Yaml.Documents visitDocuments(Yaml.Documents yaml, ExecutionContext ctx) {
-                if (!yaml.getMarkers().findFirst(JavaSourceSet.class)
-                        .filter(s -> "main".equals(s.getName()))
-                        .isPresent()) {
-                    return yaml;
-                }
                 if (PathUtils.matchesGlob(yaml.getSourcePath(), "**/application-*.{yml,yaml}")) {
                     acc.existingProfileFiles.add(yaml.getSourcePath());
                 }
@@ -101,7 +96,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                 }
                 return yaml;
             }
-        };
+        });
     }
 
     @Override
