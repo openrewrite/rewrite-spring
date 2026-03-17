@@ -17,19 +17,11 @@ package org.openrewrite.java.spring.mvc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeType;
-import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaCoordinates;
+import org.openrewrite.java.ReplaceConstantWithAnotherConstant;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 @Value
@@ -39,35 +31,41 @@ public class JaxrsToSpringmvcMediaType extends Recipe {
     String displayName = "Migrate JAX-RS MediaType to Spring MVC MediaType";
     String description = "Replaces all JAX-RS MediaType with Spring MVC MediaType.";
 
-    @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("*.ws.rs.core.MediaType", true), new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
-                String typeName = fieldAccess.getTarget().getType() != null ? fieldAccess.getTarget().getType().toString() : "";
-                if ("javax.ws.rs.core.MediaType".equals(typeName) || "jakarta.ws.rs.core.MediaType".equals(typeName)) {
-                    maybeRemoveImport(typeName);
-                    maybeAddImport("org.springframework.http.MediaType");
+    private static final String SPRING_MEDIA_TYPE = "org.springframework.http.MediaType";
 
-                    String field = fieldAccess.getName().getSimpleName();
-                    String newField = field.endsWith("_TYPE") ? field.substring(0, field.length() - "_TYPE".length()) : field + "_VALUE";
-                    JavaCoordinates coordinates = fieldAccess.getCoordinates().replace();
-                    return JavaTemplate.builder("MediaType.#{}")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web"))
-                            .imports("org.springframework.http.MediaType")
-                            .build()
-                            .apply(getCursor(), coordinates, newField);
-                }
-                return super.visitFieldAccess(fieldAccess, ctx);
-            }
-        });
-    }
+    private static final String[] STRING_CONSTANTS = {
+            "APPLICATION_ATOM_XML",
+            "APPLICATION_FORM_URLENCODED",
+            "APPLICATION_JSON",
+            "APPLICATION_OCTET_STREAM",
+            "APPLICATION_XHTML_XML",
+            "APPLICATION_XML",
+            "MULTIPART_FORM_DATA",
+            "TEXT_HTML",
+            "TEXT_PLAIN",
+            "TEXT_XML"
+    };
 
     @Override
     public List<Recipe> getRecipeList() {
-        return Arrays.asList(
-                new ChangeType("javax.ws.rs.core.MediaType", "org.springframework.http.MediaType", true),
-                new ChangeType("jakarta.ws.rs.core.MediaType", "org.springframework.http.MediaType", true)
-        );
+        List<Recipe> recipes = new ArrayList<>();
+        for (String jaxRsType : new String[]{"javax.ws.rs.core.MediaType", "jakarta.ws.rs.core.MediaType"}) {
+            for (String c : STRING_CONSTANTS) {
+                // String constants: APPLICATION_JSON → APPLICATION_JSON_VALUE
+                recipes.add(new ReplaceConstantWithAnotherConstant(
+                        jaxRsType + "." + c, SPRING_MEDIA_TYPE + "." + c + "_VALUE"));
+                // MediaType constants: APPLICATION_JSON_TYPE → APPLICATION_JSON
+                recipes.add(new ReplaceConstantWithAnotherConstant(
+                        jaxRsType + "." + c + "_TYPE", SPRING_MEDIA_TYPE + "." + c));
+            }
+            // Special: WILDCARD → ALL
+            recipes.add(new ReplaceConstantWithAnotherConstant(
+                    jaxRsType + ".WILDCARD", SPRING_MEDIA_TYPE + ".ALL_VALUE"));
+            recipes.add(new ReplaceConstantWithAnotherConstant(
+                    jaxRsType + ".WILDCARD_TYPE", SPRING_MEDIA_TYPE + ".ALL"));
+            // Change the type itself for any remaining references (variable declarations, parameters, etc.)
+            recipes.add(new ChangeType(jaxRsType, SPRING_MEDIA_TYPE, true));
+        }
+        return recipes;
     }
 }
