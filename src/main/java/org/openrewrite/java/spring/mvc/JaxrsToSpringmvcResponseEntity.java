@@ -51,16 +51,6 @@ public class JaxrsToSpringmvcResponseEntity extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("*.ws.rs.core.Response", true), new JavaIsoVisitor<ExecutionContext>() {
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                maybeAddImport("org.springframework.http.HttpStatus");
-                cu = (J.CompilationUnit) new ChangeType("javax.ws.rs.core.Response.Status", "org.springframework.http.HttpStatus", true)
-                        .getVisitor().visitNonNull(cu, ctx);
-                cu = (J.CompilationUnit) new ChangeType("jakarta.ws.rs.core.Response.Status", "org.springframework.http.HttpStatus", true)
-                        .getVisitor().visitNonNull(cu, ctx);
-                return super.visitCompilationUnit(cu, ctx);
-            }
-
-            @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation methodInv, ExecutionContext ctx) {
                 if (BUILD_MATCHER.matches(methodInv)) {
                     List<J.MethodInvocation> chain = new ArrayList<>();
@@ -102,6 +92,8 @@ public class JaxrsToSpringmvcResponseEntity extends Recipe {
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
+                new ChangeType("javax.ws.rs.core.Response.Status", "org.springframework.http.HttpStatus", true),
+                new ChangeType("jakarta.ws.rs.core.Response.Status", "org.springframework.http.HttpStatus", true),
                 new ChangeType("javax.ws.rs.core.Response.ResponseBuilder", "org.springframework.http.ResponseEntity.BodyBuilder", true),
                 new ChangeType("jakarta.ws.rs.core.Response.ResponseBuilder", "org.springframework.http.ResponseEntity.BodyBuilder", true),
                 new ChangeType("javax.ws.rs.core.Response", "org.springframework.http.ResponseEntity", true),
