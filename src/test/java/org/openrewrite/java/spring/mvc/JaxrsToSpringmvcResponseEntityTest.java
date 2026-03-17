@@ -344,4 +344,64 @@ class JaxrsToSpringmvcResponseEntityTest implements RewriteTest {
         );
     }
 
+    @Test
+    void staticImportResponseMethods() {
+        rewriteRun(
+          java(
+            """
+              import javax.ws.rs.core.Response;
+
+              import static javax.ws.rs.core.Response.ok;
+              import static javax.ws.rs.core.Response.status;
+              import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+
+              class TestExample {
+
+                  Response test0() {
+                      return ok().build();
+                  }
+
+                  Response test1() {
+                      return ok("Test Response").build();
+                  }
+
+                  Response test2() {
+                      return ok().entity("Test Response").build();
+                  }
+
+                  Response test3() {
+                      return status(NOT_FOUND).entity("Not here").build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.ResponseEntity;
+
+              import static org.springframework.http.HttpStatus.NOT_FOUND;
+              import static org.springframework.http.ResponseEntity.ok;
+              import static org.springframework.http.ResponseEntity.status;
+
+              class TestExample {
+
+                  ResponseEntity test0() {
+                      return ok().build();
+                  }
+
+                  ResponseEntity test1() {
+                      return ok("Test Response");
+                  }
+
+                  ResponseEntity test2() {
+                      return ok().body("Test Response");
+                  }
+
+                  ResponseEntity test3() {
+                      return status(NOT_FOUND).body("Not here");
+                  }
+              }
+              """
+          )
+        );
+    }
+
 }
