@@ -32,14 +32,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.reverse;
+import static java.util.Collections.singletonList;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JaxrsToSpringmvcResponseEntity extends Recipe {
 
-    String displayName = "Migrate jax-rs Response to spring MVC ResponseEntity";
-    String description = "Replaces all jax-rs Response with Spring MVC ResponseEntity.";
+    String displayName = "Migrate JAX-RS Response to Spring MVC ResponseEntity";
+    String description = "Replaces all JAX-RS Response with Spring MVC ResponseEntity.";
 
     private static final MethodMatcher BUILD_MATCHER = new MethodMatcher("*.ws.rs.core.Response$ResponseBuilder build()");
     private static final MethodMatcher OK_MATCHER = new MethodMatcher("*.ws.rs.core.Response ok(..)");
