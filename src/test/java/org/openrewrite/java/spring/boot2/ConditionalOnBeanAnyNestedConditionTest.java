@@ -15,6 +15,8 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -24,6 +26,8 @@ import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.maven.Assertions.pomXml;
 
 @SuppressWarnings("MethodMayBeStatic")
 class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
@@ -298,5 +302,138 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Nested
+    class Boot1Gated implements RewriteTest {
+
+        private static final @Language("xml") String POM_BOOT_1 = """
+          <project>
+              <groupId>com.example</groupId>
+              <artifactId>foo</artifactId>
+              <version>1.0.0</version>
+              <dependencies>
+                <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-autoconfigure</artifactId>
+                  <version>1.5.22.RELEASE</version>
+                </dependency>
+              </dependencies>
+          </project>
+          """;
+
+        private static final @Language("xml") String POM_BOOT_2 = """
+          <project>
+              <groupId>com.example</groupId>
+              <artifactId>foo</artifactId>
+              <version>1.0.0</version>
+              <dependencies>
+                <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-autoconfigure</artifactId>
+                  <version>2.7.18</version>
+                </dependency>
+              </dependencies>
+          </project>
+          """;
+
+        @Override
+        public void defaults(RecipeSpec spec) {
+            spec.recipeFromResources("org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedConditionBoot1")
+              .parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-1.+", "spring-context-5.+"));
+        }
+
+        @Test
+        void noChangeOnSpringBoot2() {
+            rewriteRun(
+              spec -> spec
+                .typeValidationOptions(TypeValidation.none())
+                .parser(JavaParser.fromJavaVersion()
+                  .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.+", "spring-context-5.+")),
+              mavenProject("project",
+                pomXml(POM_BOOT_2),
+                //language=java
+                java(
+                  """
+                    import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                    import org.springframework.context.annotation.Bean;
+                    import org.springframework.context.annotation.Configuration;
+
+                    class FooService {}
+                    class BarService {}
+                    class MyBean {}
+
+                    @Configuration
+                    class ConditionalOnBeanAnyNestedIssue {
+
+                        @Bean
+                        @ConditionalOnBean({FooService.class, BarService.class})
+                        public MyBean myBean() {
+                            return new MyBean();
+                        }
+                    }
+                    """
+                )
+              )
+            );
+        }
+
+        @Test
+        void transformsOnSpringBoot1() {
+            rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              mavenProject("project",
+                pomXml(POM_BOOT_1),
+                //language=java
+                java(
+                  """
+                    import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                    import org.springframework.context.annotation.Bean;
+
+                    class ThingOne {}
+
+                    class ConfigClass {
+                        @Bean
+                        @ConditionalOnBean({Aa.class, Bb.class})
+                        public ThingOne thingOne() {
+                            return new ThingOne();
+                        }
+                    }
+                    """,
+                  """
+                    import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
+                    import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                    import org.springframework.context.annotation.Bean;
+                    import org.springframework.context.annotation.Conditional;
+
+                    class ThingOne {}
+
+                    class ConfigClass {
+                        @Bean
+                        @Conditional(ConditionAaOrBb.class)
+                        public ThingOne thingOne() {
+                            return new ThingOne();
+                        }
+
+                        private static class ConditionAaOrBb extends AnyNestedCondition {
+                            ConditionAaOrBb() {
+                                super(ConfigurationPhase.REGISTER_BEAN);
+                            }
+
+                            @ConditionalOnBean(Aa.class)
+                            class AaCondition {
+                            }
+
+                            @ConditionalOnBean(Bb.class)
+                            class BbCondition {
+                            }
+                        }
+                    }
+                    """
+                )
+              )
+            );
+        }
     }
 }
