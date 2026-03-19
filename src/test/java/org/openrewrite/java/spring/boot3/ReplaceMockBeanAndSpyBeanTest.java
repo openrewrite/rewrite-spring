@@ -346,4 +346,88 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void unwrapsMockBeansContainerAnnotation() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.MockBeans;
+              import org.springframework.boot.test.mock.mockito.MockBean;
+
+              @MockBeans({@MockBean(String.class), @MockBean(Integer.class)})
+              public class SomeTest {
+              }
+              """,
+            """
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+              public class SomeTest {
+
+                  @MockitoBean
+                  private String string;
+
+                  @MockitoBean
+                  private Integer integer;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void unwrapsSpyBeansContainerAnnotation() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.SpyBeans;
+              import org.springframework.boot.test.mock.mockito.SpyBean;
+
+              @SpyBeans({@SpyBean(String.class), @SpyBean(Integer.class)})
+              public class SomeTest {
+              }
+              """,
+            """
+              import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+
+              public class SomeTest {
+
+                  @MockitoSpyBean
+                  private String string;
+
+                  @MockitoSpyBean
+                  private Integer integer;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void unwrapsSingleMockBeanFromContainer() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.MockBeans;
+              import org.springframework.boot.test.mock.mockito.MockBean;
+
+              @MockBeans(@MockBean(String.class))
+              public class SomeTest {
+              }
+              """,
+            """
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+              public class SomeTest {
+
+                  @MockitoBean
+                  private String string;
+              }
+              """
+          )
+        );
+    }
 }
