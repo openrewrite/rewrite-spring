@@ -54,3 +54,7 @@ recipeList:
       methodPattern: "org.springframework.security.config.annotation.SecurityConfigurer configure(..)"
       matchOverrides: true
       exceptionTypePattern: "java.lang.Exception"
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.springframework.security.authorization.AuthorizationManager check(..)"
+      newMethodName: authorize
+      matchOverrides: true
