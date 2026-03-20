@@ -43,7 +43,9 @@ class ReplaceLiteralsTest implements RewriteTest {
               java("""
                 import java.util.Map;
                 import org.springframework.web.bind.annotation.GetMapping;
+                import org.springframework.web.bind.annotation.RestController;
 
+                @RestController
                 class Foo {
                     @GetMapping(path = "/foo", produces = "application/json")
                     Map<String, Object> foo() {
@@ -55,7 +57,9 @@ class ReplaceLiteralsTest implements RewriteTest {
 
                 import org.springframework.http.MediaType;
                 import org.springframework.web.bind.annotation.GetMapping;
+                import org.springframework.web.bind.annotation.RestController;
 
+                @RestController
                 class Foo {
                     @GetMapping(path = "/foo", produces = MediaType.APPLICATION_JSON_VALUE)
                     Map<String, Object> foo() {
@@ -99,7 +103,9 @@ class ReplaceLiteralsTest implements RewriteTest {
               java("""
                 import java.util.Map;
                 import org.springframework.web.bind.annotation.GetMapping;
+                import org.springframework.web.bind.annotation.RestController;
 
+                @RestController
                 class Foo {
                     @GetMapping(path = "/foo", produces = "application/json")
                     Map<String, Object> foo() {
@@ -111,7 +117,9 @@ class ReplaceLiteralsTest implements RewriteTest {
 
                 import org.springframework.http.MediaType;
                 import org.springframework.web.bind.annotation.GetMapping;
+                import org.springframework.web.bind.annotation.RestController;
 
+                @RestController
                 class Foo {
                     @GetMapping(path = "/foo", produces = MediaType.APPLICATION_JSON_VALUE)
                     Map<String, Object> foo() {
@@ -173,6 +181,49 @@ class ReplaceLiteralsTest implements RewriteTest {
                     <groupId>com.example</groupId>
                     <artifactId>acme</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
+                </project>
+                """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void shouldNotReplaceInNonControllerClass() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainJava(
+              //language=Java
+              java("""
+                import java.util.Map;
+                import org.springframework.web.bind.annotation.GetMapping;
+
+                class Foo {
+                    @GetMapping(path = "/foo", produces = "application/json")
+                    Map<String, Object> foo() {
+                        return Map.of("Accept", "application/json");
+                    }
+                }
+                """),
+              //language=XML
+              pomXml("""
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.7.10</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>acme</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-web</artifactId>
+                        </dependency>
+                    </dependencies>
                 </project>
                 """
               )
