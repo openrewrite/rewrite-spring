@@ -348,6 +348,97 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     }
 
     @Test
+    void replacesMockBeanOnFieldsInWebMvcTest() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test-3", "mockito-core-5")
+            .dependsOn(
+              "package org.springframework.boot.test.autoconfigure.web.servlet; public @interface WebMvcTest {}",
+              "package org.springframework.boot.test.autoconfigure.web.servlet; public @interface AutoConfigureMockMvc {}",
+              "package org.springframework.beans.factory.annotation; public @interface Autowired {}",
+              "package org.springframework.test.web.servlet; public class MockMvc {}"
+            )),
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+              import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+              import org.springframework.boot.test.mock.mockito.MockBean;
+              import org.springframework.test.web.servlet.MockMvc;
+
+              @WebMvcTest
+              @AutoConfigureMockMvc
+              public class SomeControllerTest {
+
+                  @Autowired
+                  private MockMvc mockMvc;
+
+                  @MockBean
+                  private String someService;
+
+                  @MockBean
+                  private Integer otherService;
+              }
+              """,
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+              import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+              import org.springframework.test.web.servlet.MockMvc;
+
+              @WebMvcTest
+              @AutoConfigureMockMvc
+              public class SomeControllerTest {
+
+                  @Autowired
+                  private MockMvc mockMvc;
+
+                  @MockitoBean
+                  private String someService;
+
+                  @MockitoBean
+                  private Integer otherService;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replacesMockBeanWithStarImport() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.*;
+
+              public class SomeTest {
+                  @MockBean
+                  private String someService;
+
+                  @MockBean
+                  private Integer otherService;
+              }
+              """,
+            """
+              import org.springframework.boot.test.mock.mockito.*;
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+              public class SomeTest {
+                  @MockitoBean
+                  private String someService;
+
+                  @MockitoBean
+                  private Integer otherService;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void unwrapsMockBeansContainerAnnotation() {
         rewriteRun(
           //language=java
