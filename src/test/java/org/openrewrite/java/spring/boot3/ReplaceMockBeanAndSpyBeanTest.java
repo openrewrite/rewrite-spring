@@ -454,11 +454,9 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
             """
               import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+              @MockitoBean(types = String.class)
+              @MockitoBean(types = Integer.class)
               public class SomeTest {
-                  @MockitoBean
-                  private String string;
-                  @MockitoBean
-                  private Integer integer;
               }
               """
           )
@@ -481,11 +479,9 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
             """
               import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
+              @MockitoSpyBean(types = String.class)
+              @MockitoSpyBean(types = Integer.class)
               public class SomeTest {
-                  @MockitoSpyBean
-                  private String string;
-                  @MockitoSpyBean
-                  private Integer integer;
               }
               """
           )
@@ -508,9 +504,8 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
             """
               import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+              @MockitoBean(types = String.class)
               public class SomeTest {
-                  @MockitoBean
-                  private String string;
               }
               """
           )

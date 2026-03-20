@@ -16,30 +16,26 @@
 package org.openrewrite.java.spring.boot4;
 
 import lombok.Getter;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static org.openrewrite.Tree.randomId;
 
 public class UnwrapMockAndSpyBeanContainers extends Recipe {
 
     private static final String MOCK_BEANS_FQN = "org.springframework.boot.test.mock.mockito.MockBeans";
     private static final String SPY_BEANS_FQN = "org.springframework.boot.test.mock.mockito.SpyBeans";
-    private static final String MOCK_BEAN_FQN = "org.springframework.boot.test.mock.mockito.MockBean";
-    private static final String SPY_BEAN_FQN = "org.springframework.boot.test.mock.mockito.SpyBean";
 
     private static final AnnotationMatcher MOCK_BEANS_MATCHER = new AnnotationMatcher("@" + MOCK_BEANS_FQN);
     private static final AnnotationMatcher SPY_BEANS_MATCHER = new AnnotationMatcher("@" + SPY_BEANS_FQN);
@@ -49,8 +45,8 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
 
     @Getter
     final String description = "Replaces class-level `@MockBeans` and `@SpyBeans` container annotations " +
-            "with individual field-level `@MockBean` and `@SpyBean` annotations. " +
-            "The class type specified in the `value` or `classes` attribute becomes the field type.";
+            "with individual class-level `@MockBean` and `@SpyBean` annotations, renaming the " +
+            "`value`/`classes` attribute to `types` for compatibility with `@MockitoBean`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -64,47 +60,36 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                         J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
+                        List<J.Annotation> newAnnotations = new ArrayList<>();
+                        boolean changed = false;
+
                         for (J.Annotation annotation : cd.getLeadingAnnotations()) {
                             boolean isMockBeans = MOCK_BEANS_MATCHER.matches(annotation);
                             boolean isSpyBeans = SPY_BEANS_MATCHER.matches(annotation);
                             if (!isMockBeans && !isSpyBeans) {
+                                newAnnotations.add(annotation);
                                 continue;
                             }
 
-                            String innerAnnotationName = isMockBeans ? "MockBean" : "SpyBean";
-                            String innerAnnotationFqn = isMockBeans ? MOCK_BEAN_FQN : SPY_BEAN_FQN;
                             String containerFqn = isMockBeans ? MOCK_BEANS_FQN : SPY_BEANS_FQN;
-
-                            List<TypeInfo> typesToMock = extractTypesFromContainer(annotation);
-                            if (typesToMock.isEmpty()) {
+                            List<J.Annotation> innerAnnotations = extractInnerAnnotations(annotation);
+                            if (innerAnnotations.isEmpty()) {
+                                newAnnotations.add(annotation);
                                 continue;
                             }
 
-                            // Remove the container annotation
-                            cd = cd.withLeadingAnnotations(
-                                    cd.getLeadingAnnotations().stream()
-                                            .filter(a -> a != annotation)
-                                            .collect(java.util.stream.Collectors.toList())
-                            );
+                            changed = true;
                             maybeRemoveImport(containerFqn);
 
-                            // Add individual field-level annotations
-                            for (TypeInfo typeInfo : typesToMock) {
-                                String fieldName = decapitalize(typeInfo.simpleName);
-                                String template = "@" + innerAnnotationName + "\nprivate " + typeInfo.simpleName + " " + fieldName + ";";
-
-                                cd = JavaTemplate.builder(template)
-                                        .javaParser(JavaParser.fromJavaVersion()
-                                                .classpathFromResources(ctx, "spring-boot-test-3")
-                                                .dependsOn("package " + typeInfo.packageName + "; public class " + typeInfo.simpleName + " {}"))
-                                        .imports(innerAnnotationFqn)
-                                        .build()
-                                        .apply(updateCursor(cd), cd.getBody().getCoordinates().lastStatement());
-
-                                maybeAddImport(typeInfo.fqn);
+                            for (J.Annotation inner : innerAnnotations) {
+                                inner = renameClassAttributeToTypes(inner);
+                                inner = inner.withPrefix(annotation.getPrefix());
+                                newAnnotations.add(inner);
                             }
+                        }
 
-                            maybeAddImport(innerAnnotationFqn);
+                        if (changed) {
+                            cd = cd.withLeadingAnnotations(newAnnotations);
                         }
 
                         return cd;
@@ -113,31 +98,29 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
         );
     }
 
-    private static List<TypeInfo> extractTypesFromContainer(J.Annotation containerAnnotation) {
-        List<TypeInfo> types = new ArrayList<>();
+    private static List<J.Annotation> extractInnerAnnotations(J.Annotation containerAnnotation) {
+        List<J.Annotation> annotations = new ArrayList<>();
         List<Expression> args = containerAnnotation.getArguments();
         if (args == null || args.isEmpty()) {
-            return types;
+            return annotations;
         }
 
         for (Expression arg : args) {
-            // Handle @MockBeans({@MockBean(A.class), @MockBean(B.class)}) - NewArray with annotations
             if (arg instanceof J.NewArray) {
+                // @MockBeans({@MockBean(A.class), @MockBean(B.class)})
                 J.NewArray newArray = (J.NewArray) arg;
                 if (newArray.getInitializer() != null) {
                     for (Expression init : newArray.getInitializer()) {
                         if (init instanceof J.Annotation) {
-                            extractTypeFromInnerAnnotation((J.Annotation) init, types);
+                            annotations.add((J.Annotation) init);
                         }
                     }
                 }
-            }
-            // Handle @MockBeans(@MockBean(A.class)) - single annotation (no array)
-            else if (arg instanceof J.Annotation) {
-                extractTypeFromInnerAnnotation((J.Annotation) arg, types);
-            }
-            // Handle value = {...} assignment
-            else if (arg instanceof J.Assignment) {
+            } else if (arg instanceof J.Annotation) {
+                // @MockBeans(@MockBean(A.class))
+                annotations.add((J.Annotation) arg);
+            } else if (arg instanceof J.Assignment) {
+                // @MockBeans(value = {...})
                 J.Assignment assignment = (J.Assignment) arg;
                 Expression value = assignment.getAssignment();
                 if (value instanceof J.NewArray) {
@@ -145,99 +128,73 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
                     if (newArray.getInitializer() != null) {
                         for (Expression init : newArray.getInitializer()) {
                             if (init instanceof J.Annotation) {
-                                extractTypeFromInnerAnnotation((J.Annotation) init, types);
+                                annotations.add((J.Annotation) init);
                             }
                         }
                     }
                 } else if (value instanceof J.Annotation) {
-                    extractTypeFromInnerAnnotation((J.Annotation) value, types);
+                    annotations.add((J.Annotation) value);
                 }
             }
         }
-        return types;
+        return annotations;
     }
 
-    private static void extractTypeFromInnerAnnotation(J.Annotation innerAnnotation, List<TypeInfo> types) {
-        List<Expression> args = innerAnnotation.getArguments();
-        if (args == null || args.isEmpty()) {
-            return;
+    private static J.Annotation renameClassAttributeToTypes(J.Annotation annotation) {
+        if (annotation.getArguments() == null || annotation.getArguments().isEmpty()) {
+            return annotation;
         }
 
-        for (Expression arg : args) {
-            TypeInfo typeInfo = extractClassLiteral(arg);
-            if (typeInfo != null) {
-                types.add(typeInfo);
-                return;
-            }
+        List<Expression> newArgs = new ArrayList<>();
+        boolean modified = false;
 
-            // Handle named attributes: value = X.class or classes = X.class
+        for (Expression arg : annotation.getArguments()) {
             if (arg instanceof J.Assignment) {
                 J.Assignment assignment = (J.Assignment) arg;
                 if (assignment.getVariable() instanceof J.Identifier) {
-                    String attrName = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                    if ("value".equals(attrName) || "classes".equals(attrName)) {
-                        Expression value = assignment.getAssignment();
-                        typeInfo = extractClassLiteral(value);
-                        if (typeInfo != null) {
-                            types.add(typeInfo);
-                            return;
-                        }
-                        // Handle array: classes = {A.class, B.class}
-                        if (value instanceof J.NewArray) {
-                            J.NewArray newArray = (J.NewArray) value;
-                            if (newArray.getInitializer() != null) {
-                                for (Expression init : newArray.getInitializer()) {
-                                    typeInfo = extractClassLiteral(init);
-                                    if (typeInfo != null) {
-                                        types.add(typeInfo);
-                                    }
-                                }
-                            }
-                            return;
-                        }
+                    String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
+                    if ("value".equals(name) || "classes".equals(name)) {
+                        newArgs.add(assignment.withVariable(
+                                ((J.Identifier) assignment.getVariable()).withSimpleName("types")
+                        ));
+                        modified = true;
+                        continue;
                     }
                 }
+                newArgs.add(arg);
+            } else if (isClassLiteralOrArray(arg)) {
+                // Implicit value: @MockBean(ClassA.class) or @MockBean({A.class, B.class})
+                newArgs.add(wrapInTypesAssignment(arg));
+                modified = true;
+            } else {
+                newArgs.add(arg);
             }
         }
+
+        return modified ? annotation.withArguments(newArgs) : annotation;
     }
 
-    private static @Nullable TypeInfo extractClassLiteral(Expression expr) {
-        if (expr instanceof J.FieldAccess) {
-            J.FieldAccess fieldAccess = (J.FieldAccess) expr;
-            if ("class".equals(fieldAccess.getSimpleName())) {
-                JavaType type = fieldAccess.getTarget().getType();
-                if (type instanceof JavaType.FullyQualified) {
-                    JavaType.FullyQualified fq = (JavaType.FullyQualified) type;
-                    return new TypeInfo(fq.getFullyQualifiedName(), fq.getClassName(), fq.getPackageName());
-                }
-                // Fallback for unresolved types: use the source text
-                String targetText = fieldAccess.getTarget().toString().trim();
-                int lastDot = targetText.lastIndexOf('.');
-                if (lastDot > 0) {
-                    return new TypeInfo(targetText, targetText.substring(lastDot + 1), targetText.substring(0, lastDot));
-                }
-                return new TypeInfo("java.lang." + targetText, targetText, "java.lang");
-            }
+    private static boolean isClassLiteralOrArray(Expression expr) {
+        if (expr instanceof J.FieldAccess && "class".equals(((J.FieldAccess) expr).getSimpleName())) {
+            return true;
         }
-        return null;
+        return expr instanceof J.NewArray;
     }
 
-    private static String decapitalize(String name) {
-        if (name.isEmpty()) {
-            return name;
-        }
-        return Character.toLowerCase(name.charAt(0)) + name.substring(1);
-    }
-
-    private static class TypeInfo {
-        final String fqn;
-        final String simpleName;
-        final String packageName;
-
-        TypeInfo(String fqn, String simpleName, String packageName) {
-            this.fqn = fqn;
-            this.simpleName = simpleName;
-            this.packageName = packageName;
-        }
+    private static J.Assignment wrapInTypesAssignment(Expression value) {
+        J.Identifier typesIdent = new J.Identifier(
+                randomId(), Space.EMPTY, Markers.EMPTY,
+                Collections.emptyList(), "types", null, null
+        );
+        Expression rhs = value.withPrefix(Space.format(" "));
+        JLeftPadded<Expression> paddedRhs = JLeftPadded.build(rhs).withBefore(Space.format(" "));
+        return new J.Assignment(
+                randomId(),
+                value.getPrefix(),
+                Markers.EMPTY,
+                typesIdent,
+                paddedRhs,
+                null
+        );
     }
 }
