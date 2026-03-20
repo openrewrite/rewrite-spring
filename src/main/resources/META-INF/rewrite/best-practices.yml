@@ -80,6 +80,9 @@ preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework
       artifactIdPattern: spring-web
+  - org.openrewrite.java.search.FindAnnotations:
+      annotationPattern: "@org.springframework.stereotype.Controller"
+      matchMetaAnnotations: true
   - org.openrewrite.Singleton
 recipeList:
   # Replace literals with constants and simplify MediaType parse calls
