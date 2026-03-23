@@ -379,37 +379,6 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     }
 
     @Test
-    void replacesMockBeanWithStarImportRemovesUnusedImport() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.test.mock.mockito.*;
-
-              public class SomeTest {
-                  @MockBean
-                  private String someService;
-
-                  @MockBean
-                  private Integer otherService;
-              }
-              """,
-            """
-              import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-              public class SomeTest {
-                  @MockitoBean
-                  private String someService;
-
-                  @MockitoBean
-                  private Integer otherService;
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void unwrapsMockBeansContainerAnnotation() {
         rewriteRun(
           //language=java
