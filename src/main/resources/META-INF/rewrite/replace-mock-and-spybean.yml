@@ -53,5 +53,3 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.mock.mockito.MockReset
       newFullyQualifiedTypeName: org.springframework.test.context.bean.override.mockito.MockReset
-
-  - org.openrewrite.java.RemoveUnusedImports
