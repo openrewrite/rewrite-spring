@@ -348,7 +348,7 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     }
 
     @Test
-    void replacesMockBeanWithStarImportLeavesUnusedImport() {
+    void replacesMockBeanWithStarImportRemovesUnusedImport() {
         rewriteRun(
           //language=java
           java(
@@ -364,7 +364,6 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
               }
               """,
             """
-              import org.springframework.boot.test.mock.mockito.*;
               import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
               public class SomeTest {
