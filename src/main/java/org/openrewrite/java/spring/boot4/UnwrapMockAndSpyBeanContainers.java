@@ -26,6 +26,8 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
+import org.openrewrite.internal.ListUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,47 +61,30 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                         J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-
-                        List<J.Annotation> newAnnotations = new ArrayList<>();
-                        boolean changed = false;
-
-                        for (J.Annotation annotation : cd.getLeadingAnnotations()) {
+                        return cd.withLeadingAnnotations(ListUtils.map(cd.getLeadingAnnotations(), annotation -> {
                             boolean isMockBeans = MOCK_BEANS_MATCHER.matches(annotation);
                             boolean isSpyBeans = SPY_BEANS_MATCHER.matches(annotation);
                             if (!isMockBeans && !isSpyBeans) {
-                                newAnnotations.add(annotation);
-                                continue;
+                                return annotation;
                             }
 
-                            String containerFqn = isMockBeans ? MOCK_BEANS_FQN : SPY_BEANS_FQN;
                             List<J.Annotation> innerAnnotations = extractInnerAnnotations(annotation);
                             if (innerAnnotations.isEmpty()) {
-                                newAnnotations.add(annotation);
-                                continue;
+                                return annotation;
                             }
 
-                            changed = true;
-                            maybeRemoveImport(containerFqn);
+                            maybeRemoveImport(isMockBeans ? MOCK_BEANS_FQN : SPY_BEANS_FQN);
 
-                            // Collect all type expressions from inner annotations
                             List<Expression> allTypes = new ArrayList<>();
                             for (J.Annotation inner : innerAnnotations) {
                                 allTypes.addAll(extractTypeExpressions(inner));
                             }
 
-                            // Create a single annotation with merged types
-                            J.Annotation first = innerAnnotations.get(0);
-                            J.Annotation merged = first.withPrefix(annotation.getPrefix())
+                            return innerAnnotations.get(0)
+                                    .withPrefix(annotation.getPrefix())
                                     .withArguments(Collections.singletonList(
                                             createTypesAssignment(allTypes)));
-                            newAnnotations.add(merged);
-                        }
-
-                        if (changed) {
-                            cd = cd.withLeadingAnnotations(newAnnotations);
-                        }
-
-                        return cd;
+                        }));
                     }
                 }
         );
