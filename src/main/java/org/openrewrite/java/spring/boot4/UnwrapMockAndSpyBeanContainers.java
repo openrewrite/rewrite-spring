@@ -171,7 +171,7 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
 
         Expression rhs;
         if (typeExpressions.size() == 1) {
-            rhs = typeExpressions.get(0).withPrefix(Space.format(" "));
+            rhs = typeExpressions.get(0).withPrefix(Space.SINGLE_SPACE);
         } else {
             // Format as {A.class, B.class}
             List<JRightPadded<Expression>> padded = new ArrayList<>();
@@ -192,7 +192,7 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
             );
         }
 
-        JLeftPadded<Expression> paddedRhs = JLeftPadded.build(rhs).withBefore(Space.format(" "));
+        JLeftPadded<Expression> paddedRhs = JLeftPadded.build(rhs).withBefore(Space.SINGLE_SPACE);
         return new J.Assignment(
                 randomId(), Space.EMPTY, Markers.EMPTY,
                 typesIdent, paddedRhs, null
