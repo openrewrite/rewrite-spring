@@ -38,7 +38,7 @@ class JaxRsRequestMappingTest implements RewriteTest {
               @Override
               public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                   J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-                  JaxRsRequestMapping.Matcher matcher = new JaxRsRequestMapping.Matcher();
+                  var matcher = new JaxRsRequestMapping.Matcher();
                   for (J.Annotation annotation : service(AnnotationService.class).getAllAnnotations(getCursor())) {
                       m = matcher.get(annotation, getCursor())
                               .map(requestMapping -> SearchResult.found(method,

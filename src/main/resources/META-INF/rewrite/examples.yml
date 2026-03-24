@@ -5910,6 +5910,31 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.security7.UpgradeSpringSecurity_7_0
+examples:
+- description: '`UpgradeSpringSecurity70Test#migrateAuthorizationManagerCheckToAuthorize`'
+  sources:
+  - before: |
+      import org.springframework.security.authorization.AuthorizationManager;
+      import org.springframework.security.authorization.AuthorizationDecision;
+
+      class MyAuthz {
+          void test(AuthorizationManager<Object> manager) {
+              AuthorizationDecision decision = manager.check(null, null);
+          }
+      }
+    after: |
+      import org.springframework.security.authorization.AuthorizationManager;
+      import org.springframework.security.authorization.AuthorizationDecision;
+
+      class MyAuthz {
+          void test(AuthorizationManager<Object> manager) {
+              AuthorizationDecision decision = manager.authorize(null, null);
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.test.SpringRulesToJUnitExtension
 examples:
 - description: '`SpringRulesToJUnitExtensionTest#migrateWithSpringBootTestPresent`'
