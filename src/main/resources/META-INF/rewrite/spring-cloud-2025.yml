@@ -95,6 +95,33 @@ recipeList:
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025_1
+displayName: Migrate to Spring Cloud 2025.1
+description: Migrate applications to the latest Spring Cloud 2025.1 release, compatible with Spring Boot 4.0.
+tags:
+  - spring
+  - cloud
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: "*"
+      newVersion: 5.0.x
+      overrideManagedVersion: false
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-parent
+      newVersion: 2025.1.x
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-dependencies
+      newVersion: 2025.1.x
+      overrideManagedVersion: false
+  # Circuitbreaker, kubernetes, task and others once again use aligned 5.0.x; no need to bump those separately anymore
+
+---
+type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2025.SpringCloudGatewayDeprecatedModulesAndStarters
 displayName: Migrate to New Spring Cloud Gateway Modules and Starters
 description: Migrate to new Spring Cloud Gateway modules and starters for Spring Cloud 2025.

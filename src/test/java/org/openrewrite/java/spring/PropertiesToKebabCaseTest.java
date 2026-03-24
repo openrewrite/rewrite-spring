@@ -247,6 +247,62 @@ class PropertiesToKebabCaseTest implements RewriteTest {
     }
 
     @Test
+    void passThroughPropertiesUnchangedProperties() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                logging.level.org.springframework.web=DEBUG
+                logging.level.com.example.MyService=TRACE
+                management.metrics.tags.applicationName=myApp
+                management.metrics.tags.teamName=backend
+                management.metrics.enable.jvm=false
+                management.metrics.enable.process=true
+                management.metrics.distribution.percentiles.http.server.requests=0.5,0.95,0.99
+                management.metrics.distribution.percentiles-histogram.http.server.requests=true
+                spring.flyway.placeholders.schema_name=public
+                spring.flyway.placeholders.appVersion=1.0
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void passThroughPropertiesUnchangedYaml() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                  logging:
+                    level:
+                      org.springframework.web: DEBUG
+                      com.example.MyService: TRACE
+                  management:
+                    metrics:
+                      tags:
+                        applicationName: myApp
+                        teamName: backend
+                      enable:
+                        jvm: false
+                        process: true
+                      distribution:
+                        percentiles:
+                          http.server.requests: 0.5,0.95,0.99
+                  spring:
+                    flyway:
+                      placeholders:
+                        schema_name: public
+                        appVersion: 1.0
+                  """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
     void doNotChange() {
         //language=yaml
         rewriteRun(

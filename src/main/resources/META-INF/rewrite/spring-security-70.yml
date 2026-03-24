@@ -34,6 +34,11 @@ recipeList:
       newVersion: 7.0.x
       overrideManagedVersion: false
   - org.openrewrite.java.spring.security7.SecurityConfigurerRemoveThrowsException
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.springframework.security.authorization.AuthorizationManager check(..)"
+      newMethodName: authorize
+      matchOverrides: true
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security7.SecurityConfigurerRemoveThrowsException

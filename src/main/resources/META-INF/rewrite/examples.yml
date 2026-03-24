@@ -3425,6 +3425,34 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025_1
+examples:
+- description: '`UpgradeSpringCloud2025_1Test#upgradeSpringCloudBomFrom2025_0To2025_1`'
+  sources:
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>fooservice</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencyManagement>
+              <dependencies>
+                  <dependency>
+                      <groupId>org.springframework.cloud</groupId>
+                      <artifactId>spring-cloud-dependencies</artifactId>
+                      <version>2025.0.1</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.JdbcTemplateQueryForLongMigration
 examples:
 - description: '`JdbcTemplateQueryForLongMigrationTest#simpleTransformation`'
@@ -5877,6 +5905,31 @@ examples:
                                       .jwkSetUri(""))
                               .opaqueToken(token -> token
                                       .introspectionUri("")));
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.security7.UpgradeSpringSecurity_7_0
+examples:
+- description: '`UpgradeSpringSecurity70Test#migrateAuthorizationManagerCheckToAuthorize`'
+  sources:
+  - before: |
+      import org.springframework.security.authorization.AuthorizationManager;
+      import org.springframework.security.authorization.AuthorizationDecision;
+
+      class MyAuthz {
+          void test(AuthorizationManager<Object> manager) {
+              AuthorizationDecision decision = manager.check(null, null);
+          }
+      }
+    after: |
+      import org.springframework.security.authorization.AuthorizationManager;
+      import org.springframework.security.authorization.AuthorizationDecision;
+
+      class MyAuthz {
+          void test(AuthorizationManager<Object> manager) {
+              AuthorizationDecision decision = manager.authorize(null, null);
           }
       }
     language: java

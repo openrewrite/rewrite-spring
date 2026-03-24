@@ -31,6 +31,9 @@ tags:
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
+  # Migrate multi-condition @ConditionalOnBean before upgrading dependencies,
+  # as the OR→AND semantics change only applies to Boot 1.x projects
+  - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedConditionBoot1
   # Upgrade 2.0.x from 1.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
@@ -93,6 +96,23 @@ recipeList:
   - org.openrewrite.apache.commons.lang.UpgradeApacheCommonsLang_2_3
   - org.openrewrite.java.spring.data.MigrateAuditorAwareToOptional
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_0
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedConditionBoot1
+displayName: Migrate multi-condition `@ConditionalOnBean` annotations from Boot 1.x
+description: >-
+  Migrate multi-condition `@ConditionalOnBean` annotations to use `AnyNestedCondition` when upgrading
+  from Spring Boot 1.x to 2.x. In Boot 1.x, listing multiple beans in `@ConditionalOnBean` meant OR (any match);
+  in Boot 2.x+ it means AND (all must match). This recipe preserves the original OR semantics by wrapping
+  conditions in an `AnyNestedCondition` class.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-autoconfigure
+      version: 1.x
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedCondition
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
