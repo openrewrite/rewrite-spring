@@ -334,6 +334,37 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
     }
 
     @Test
+    void replacesMockBeanWithStarImport() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.*;
+
+              public class SomeTest {
+                  @MockBean
+                  private String someService;
+
+                  @MockBean
+                  private Integer otherService;
+              }
+              """,
+            """
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+              public class SomeTest {
+                  @MockitoBean
+                  private String someService;
+
+                  @MockitoBean
+                  private Integer otherService;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void doesNothingWhenNoAnnotationPresent() {
         rewriteRun(
           //language=java
@@ -341,6 +372,78 @@ class ReplaceMockBeanAndSpyBeanTest implements RewriteTest {
             """
               public class SomeTest {
                   private String someService;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void unwrapsMockBeansContainerAnnotation() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.MockBeans;
+              import org.springframework.boot.test.mock.mockito.MockBean;
+
+              @MockBeans({@MockBean(String.class), @MockBean(Integer.class)})
+              public class SomeTest {
+              }
+              """,
+            """
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+              @MockitoBean(types = {String.class, Integer.class})
+              public class SomeTest {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void unwrapsSpyBeansContainerAnnotation() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.SpyBeans;
+              import org.springframework.boot.test.mock.mockito.SpyBean;
+
+              @SpyBeans({@SpyBean(String.class), @SpyBean(Integer.class)})
+              public class SomeTest {
+              }
+              """,
+            """
+              import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+
+              @MockitoSpyBean(types = {String.class, Integer.class})
+              public class SomeTest {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void unwrapsSingleMockBeanFromContainer() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.MockBeans;
+              import org.springframework.boot.test.mock.mockito.MockBean;
+
+              @MockBeans(@MockBean(String.class))
+              public class SomeTest {
+              }
+              """,
+            """
+              import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+              @MockitoBean(types = String.class)
+              public class SomeTest {
               }
               """
           )
