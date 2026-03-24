@@ -104,6 +104,19 @@ recipeList:
       newArtifactId: spring-boot-starter-aspectj
       newVersion: 4.0.x
 
+  # Spring Cloud 2025.1.x is the first release compatible with Spring Boot 4.0
+  # Override the 2025.0.x version set by UpgradeSpringCloud_2025 (chained via Boot 3.5)
+  # See https://github.com/openrewrite/rewrite-spring/issues/962
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-starter-parent
+      newVersion: 2025.1.x
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-dependencies
+      newVersion: 2025.1.x
+      overrideManagedVersion: false
+
   # Additional dependencies that need to move in sync
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: eu.michael-simons.neo4j
