@@ -247,6 +247,53 @@ class PropertiesToKebabCaseTest implements RewriteTest {
     }
 
     @Test
+    void metricsTagsUnchangedProperties() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                management.metrics.tags.applicationName=myApp
+                management.metrics.tags.teamName=backend
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void metricsTagsUnchangedNestedYaml() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                  management:
+                    metrics:
+                      tags:
+                        applicationName: myApp
+                        teamName: backend
+                  """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void metricsTagsUnchangedFlatYaml() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                  management.metrics.tags.applicationName: myApp
+                  """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
     void doNotChange() {
         //language=yaml
         rewriteRun(

@@ -68,7 +68,8 @@ public class PropertiesToKebabCaseYaml extends Recipe {
                                 .map(e -> e.getKey().getValue())
                                 .collect(joining("."));
 
-                        return prop.startsWith("spring.") && prop.contains(".properties.");
+                        return (prop.startsWith("spring.") && prop.contains(".properties.")) ||
+                               prop.startsWith("management.metrics.tags.");
                     }
                 });
     }
