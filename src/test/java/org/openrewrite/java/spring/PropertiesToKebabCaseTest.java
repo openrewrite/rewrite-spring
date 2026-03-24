@@ -247,6 +247,101 @@ class PropertiesToKebabCaseTest implements RewriteTest {
     }
 
     @Test
+    void loggingLevelUnchangedProperties() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                logging.level.org.springframework.web=DEBUG
+                logging.level.com.example.MyService=TRACE
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void loggingLevelUnchangedNestedYaml() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                  logging:
+                    level:
+                      org.springframework.web: DEBUG
+                      com.example.MyService: TRACE
+                  """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void metricsEnableUnchangedProperties() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                management.metrics.enable.jvm=false
+                management.metrics.enable.process=true
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void metricsDistributionUnchangedProperties() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                management.metrics.distribution.percentiles.http.server.requests=0.5,0.95,0.99
+                management.metrics.distribution.percentiles-histogram.http.server.requests=true
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void flywayPlaceholdersUnchangedProperties() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                spring.flyway.placeholders.schema_name=public
+                spring.flyway.placeholders.appVersion=1.0
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void flywayPlaceholdersUnchangedNestedYaml() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              """
+                  spring:
+                    flyway:
+                      placeholders:
+                        schema_name: public
+                        appVersion: 1.0
+                  """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
     void metricsTagsUnchangedProperties() {
         rewriteRun(
           srcMainResources(

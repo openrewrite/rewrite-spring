@@ -38,7 +38,11 @@ public class PropertiesToKebabCaseProperties extends Recipe {
                 Properties.Entry e = super.visitEntry(entry, ctx);
                 String key = e.getKey();
                 if ((key.startsWith("spring.") && key.contains(".properties.")) ||
-                    key.startsWith("management.metrics.tags.")) {
+                    key.startsWith("logging.level.") ||
+                    key.startsWith("management.metrics.tags.") ||
+                    key.startsWith("management.metrics.enable.") ||
+                    key.startsWith("management.metrics.distribution.") ||
+                    key.startsWith("spring.flyway.placeholders.")) {
                     return e;
                 }
                 String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
