@@ -38,7 +38,7 @@ import static java.util.Collections.singletonList;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
-public class JaxrsToSpringmvcResponseEntity extends Recipe {
+public class JaxrsToSpringMvcResponseEntity extends Recipe {
 
     String displayName = "Migrate JAX-RS Response to Spring MVC ResponseEntity";
     String description = "Replaces all JAX-RS Response with Spring MVC ResponseEntity.";

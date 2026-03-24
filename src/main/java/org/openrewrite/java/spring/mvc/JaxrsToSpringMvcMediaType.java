@@ -26,7 +26,7 @@ import java.util.List;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
-public class JaxrsToSpringmvcMediaType extends Recipe {
+public class JaxrsToSpringMvcMediaType extends Recipe {
 
     String displayName = "Migrate JAX-RS MediaType to Spring MVC MediaType";
     String description = "Replaces all JAX-RS MediaType with Spring MVC MediaType.";

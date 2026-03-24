@@ -24,11 +24,11 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class JaxrsToSpringmvcMediaTypeTest implements RewriteTest {
+class JaxrsToSpringMvcMediaTypeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new JaxrsToSpringmvcMediaType())
+        spec.recipe(new JaxrsToSpringMvcMediaType())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(), "jakarta.ws.rs-api-4", "javax.ws.rs-api-2"));
     }
