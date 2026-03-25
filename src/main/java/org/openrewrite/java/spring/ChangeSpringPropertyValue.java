@@ -92,7 +92,13 @@ public class ChangeSpringPropertyValue extends Recipe {
                 new UsesType<>("org.springframework.boot..*Test", false),
                 new UsesType<>("org.springframework.test.context.TestPropertySource", false)
         ), new JavaPropertyValueVisitor());
-        return new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(
+                new IsPossibleSpringConfigFile(),
+                new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
+                new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false),
+                new UsesType<>("org.springframework.boot..*Test", false),
+                new UsesType<>("org.springframework.test.context.TestPropertySource", false)
+        ), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Properties.File) {
@@ -104,7 +110,7 @@ public class ChangeSpringPropertyValue extends Recipe {
                 }
                 return tree;
             }
-        };
+        });
     }
 
     private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");

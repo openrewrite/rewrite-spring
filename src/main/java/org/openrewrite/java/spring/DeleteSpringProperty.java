@@ -42,7 +42,7 @@ public class DeleteSpringProperty extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(new IsPossibleSpringConfigFile(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
                 return sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File;
@@ -59,6 +59,6 @@ public class DeleteSpringProperty extends Recipe {
                 }
                 return t;
             }
-        };
+        });
     }
 }
