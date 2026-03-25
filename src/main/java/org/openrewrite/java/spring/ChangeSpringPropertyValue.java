@@ -86,31 +86,35 @@ public class ChangeSpringPropertyValue extends Recipe {
         Recipe changeProperties = new org.openrewrite.properties.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
         String yamlValue = quoteValue(newValue) ? "\"" + newValue + "\"" : newValue;
         Recipe changeYaml = new org.openrewrite.yaml.ChangePropertyValue(propertyKey, yamlValue, oldValue, regex, relaxedBinding, null);
-        TreeVisitor<?, ExecutionContext> javaVisitor = Preconditions.check(Preconditions.or(
-                new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
-                new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false),
-                new UsesType<>("org.springframework.boot..*Test", false),
-                new UsesType<>("org.springframework.test.context.TestPropertySource", false)
-        ), new JavaPropertyValueVisitor());
-        return Preconditions.check(Preconditions.or(
-                new IsPossibleSpringConfigFile(),
-                new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
-                new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false),
-                new UsesType<>("org.springframework.boot..*Test", false),
-                new UsesType<>("org.springframework.test.context.TestPropertySource", false)
-        ), new TreeVisitor<Tree, ExecutionContext>() {
+        TreeVisitor<?, ExecutionContext> configVisitor = Preconditions.check(
+                new IsPossibleSpringConfigFile(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Properties.File) {
                     tree = changeProperties.getVisitor().visit(tree, ctx);
                 } else if (tree instanceof Yaml.Documents) {
                     tree = changeYaml.getVisitor().visit(tree, ctx);
+                }
+                return tree;
+            }
+        });
+        TreeVisitor<?, ExecutionContext> javaVisitor = Preconditions.check(Preconditions.or(
+                new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
+                new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false),
+                new UsesType<>("org.springframework.boot..*Test", false),
+                new UsesType<>("org.springframework.test.context.TestPropertySource", false)
+        ), new JavaPropertyValueVisitor());
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof Properties.File || tree instanceof Yaml.Documents) {
+                    tree = configVisitor.visit(tree, ctx);
                 } else if (tree instanceof JavaSourceFile) {
                     tree = javaVisitor.visit(tree, ctx);
                 }
                 return tree;
             }
-        });
+        };
     }
 
     private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");
