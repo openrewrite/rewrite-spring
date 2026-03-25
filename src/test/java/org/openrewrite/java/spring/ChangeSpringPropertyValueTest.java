@@ -62,7 +62,16 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
               spec -> spec.recipe(new ChangeSpringPropertyValue("server.port", "8081", null, null, null)),
               mavenProject("project",
                 srcMainResources(
-                  yaml("server:\n  port: 8080", "server:\n  port: 8081")
+                  yaml(
+                    """
+                      server:
+                        port: 8080
+                      """,
+                    """
+                      server:
+                        port: 8081
+                      """
+                  )
                 )
               )
             );
