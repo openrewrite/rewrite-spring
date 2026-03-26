@@ -117,6 +117,11 @@ recipeList:
       newVersion: 5.0.x
       overrideManagedVersion: true
 
+  # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide#jackson-3-support
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.jackson.JsonMapperBuilderCustomizer
+
   - org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
   - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
 
