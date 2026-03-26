@@ -361,7 +361,7 @@ class MigrateToModularStartersTest implements RewriteTest {
                       protected void doHealthCheck(Health.Builder builder) {
                           builder.up().build();
                       }
-                      
+
                       HealthEndpoint healthEndpoint;
                   }
                   """,
@@ -376,8 +376,60 @@ class MigrateToModularStartersTest implements RewriteTest {
                       protected void doHealthCheck(Health.Builder builder) {
                           builder.up().build();
                       }
-                      
+
                       HealthEndpoint healthEndpoint;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void migrateHealthRegistryTypes() {
+            rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.actuate.health.HealthContributorRegistry;
+
+                  class MyRegistry {
+                      HealthContributorRegistry registry;
+                  }
+                  """,
+                """
+                  import org.springframework.boot.health.registry.HealthContributorRegistry;
+
+                  class MyRegistry {
+                      HealthContributorRegistry registry;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void migrateHealthEndpointTypes() {
+            rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.actuate.health.HealthEndpointGroups;
+                  import org.springframework.boot.actuate.health.StatusAggregator;
+
+                  class MyEndpoint {
+                      HealthEndpointGroups groups;
+                      StatusAggregator aggregator;
+                  }
+                  """,
+                """
+                  import org.springframework.boot.health.actuate.endpoint.HealthEndpointGroups;
+                  import org.springframework.boot.health.actuate.endpoint.StatusAggregator;
+
+                  class MyEndpoint {
+                      HealthEndpointGroups groups;
+                      StatusAggregator aggregator;
                   }
                   """
               )
