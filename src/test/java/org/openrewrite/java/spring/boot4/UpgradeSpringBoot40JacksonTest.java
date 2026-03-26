@@ -59,7 +59,7 @@ class UpgradeSpringBoot40JacksonTest implements RewriteTest {
     }
 
     @Test
-    void renameJsonObjectSerializer() {
+    void renameJsonObjectSerializerAndDeserializer() {
         rewriteRun(
           //language=java
           java(
@@ -75,29 +75,6 @@ class UpgradeSpringBoot40JacksonTest implements RewriteTest {
           //language=java
           java(
             """
-              import org.springframework.boot.jackson2.JsonObjectSerializer;
-
-              class Test {
-                  JsonObjectSerializer<String> serializer;
-              }
-              """,
-            """
-              import org.springframework.boot.jackson.ObjectValueSerializer;
-
-              class Test {
-                  ObjectValueSerializer<String> serializer;
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void renameJsonObjectDeserializer() {
-        rewriteRun(
-          //language=java
-          java(
-            """
               package org.springframework.boot.jackson2;
               public class JsonObjectDeserializer<T> {}
               """,
@@ -109,16 +86,20 @@ class UpgradeSpringBoot40JacksonTest implements RewriteTest {
           //language=java
           java(
             """
+              import org.springframework.boot.jackson2.JsonObjectSerializer;
               import org.springframework.boot.jackson2.JsonObjectDeserializer;
 
               class Test {
+                  JsonObjectSerializer<String> serializer;
                   JsonObjectDeserializer<String> deserializer;
               }
               """,
             """
               import org.springframework.boot.jackson.ObjectValueDeserializer;
+              import org.springframework.boot.jackson.ObjectValueSerializer;
 
               class Test {
+                  ObjectValueSerializer<String> serializer;
                   ObjectValueDeserializer<String> deserializer;
               }
               """
