@@ -109,10 +109,20 @@ recipeList:
       artifactId: "*"
       newVersion: 5.0.x
       overrideManagedVersion: false
-  - org.openrewrite.maven.UpgradeParentVersion:
+  # spring-cloud-starter-parent was removed in 2025.1; migrate to spring-boot-starter-parent + BOM
+  - org.openrewrite.maven.ChangeParentPom:
+      oldGroupId: org.springframework.cloud
+      oldArtifactId: spring-cloud-starter-parent
+      newGroupId: org.springframework.boot
+      newArtifactId: spring-boot-starter-parent
+      newVersion: 4.0.x
+      allowVersionDowngrades: true
+  - org.openrewrite.maven.AddManagedDependency:
       groupId: org.springframework.cloud
-      artifactId: spring-cloud-starter-parent
-      newVersion: 2025.1.x
+      artifactId: spring-cloud-dependencies
+      version: 2025.1.x
+      type: pom
+      scope: import
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
