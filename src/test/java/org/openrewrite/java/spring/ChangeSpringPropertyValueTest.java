@@ -23,7 +23,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RewriteTest;
 
-import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.kotlin.Assertions.kotlin;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
@@ -34,7 +34,11 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
     void propFile() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyValue("server.port", "8081", null, null, null)),
-          properties("server.port=8080", "server.port=8081")
+          mavenProject("project",
+            srcMainResources(
+              properties("server.port=8080", "server.port=8081")
+            )
+          )
         );
     }
 
@@ -44,7 +48,11 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
         void yamlDotSeparated() {
             rewriteRun(
               spec -> spec.recipe(new ChangeSpringPropertyValue("server.port", "8081", null, null, null)),
-              yaml("server.port: 8080", "server.port: 8081")
+              mavenProject("project",
+                srcMainResources(
+                  yaml("server.port: 8080", "server.port: 8081")
+                )
+              )
             );
         }
 
@@ -52,7 +60,20 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
         void yamlIndented() {
             rewriteRun(
               spec -> spec.recipe(new ChangeSpringPropertyValue("server.port", "8081", null, null, null)),
-              yaml("server:\n  port: 8080", "server:\n  port: 8081")
+              mavenProject("project",
+                srcMainResources(
+                  yaml(
+                    """
+                      server:
+                        port: 8080
+                      """,
+                    """
+                      server:
+                        port: 8081
+                      """
+                  )
+                )
+              )
             );
         }
 
@@ -60,8 +81,12 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
         void regex() {
             rewriteRun(
               spec -> spec.recipe(new ChangeSpringPropertyValue("server.port", "80$1", "^([0-9]{2})$", true, null)),
-              properties("server.port=53", "server.port=8053"),
-              yaml("server.port: 53", "server.port: 8053")
+              mavenProject("project",
+                srcMainResources(
+                  properties("server.port=53", "server.port=8053"),
+                  yaml("server.port: 53", "server.port: 8053")
+                )
+              )
             );
         }
 
@@ -69,21 +94,39 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
         void yamlValueQuoted() {
             rewriteRun(
               spec -> spec.recipe(new ChangeSpringPropertyValue("management.endpoints.web.exposure.include", "*", null, null, null)),
-              properties("management.endpoints.web.exposure.include=info,health", "management.endpoints.web.exposure.include=*"),
+              mavenProject("project",
+                srcMainResources(
+                  properties("management.endpoints.web.exposure.include=info,health", "management.endpoints.web.exposure.include=*"),
+                  yaml(
+                    """
+                        management:
+                          endpoints:
+                            web:
+                              exposure:
+                                include: info,health
+                      """,
+                    """
+                        management:
+                          endpoints:
+                            web:
+                              exposure:
+                                include: "*"
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void doesNotModifyNonSpringYamlFiles() {
+            rewriteRun(
+              spec -> spec.recipe(new ChangeSpringPropertyValue("server.port", "8081", null, null, null)),
+              //language=yaml
               yaml(
                 """
-                    management:
-                      endpoints:
-                        web:
-                          exposure:
-                            include: info,health
-                  """,
-                """
-                    management:
-                      endpoints:
-                        web:
-                          exposure:
-                            include: "*"
+                  server:
+                    port: 8080
                   """
               )
             );

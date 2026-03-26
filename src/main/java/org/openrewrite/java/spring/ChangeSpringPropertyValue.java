@@ -86,6 +86,10 @@ public class ChangeSpringPropertyValue extends Recipe {
         Recipe changeProperties = new org.openrewrite.properties.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
         String yamlValue = quoteValue(newValue) ? "\"" + newValue + "\"" : newValue;
         Recipe changeYaml = new org.openrewrite.yaml.ChangePropertyValue(propertyKey, yamlValue, oldValue, regex, relaxedBinding, null);
+        TreeVisitor<?, ExecutionContext> propertiesVisitor = Preconditions.check(
+                new IsPossibleSpringConfigFile(), changeProperties.getVisitor());
+        TreeVisitor<?, ExecutionContext> yamlVisitor = Preconditions.check(
+                new IsPossibleSpringConfigFile(), changeYaml.getVisitor());
         TreeVisitor<?, ExecutionContext> javaVisitor = Preconditions.check(Preconditions.or(
                 new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
                 new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false),
@@ -96,9 +100,9 @@ public class ChangeSpringPropertyValue extends Recipe {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Properties.File) {
-                    tree = changeProperties.getVisitor().visit(tree, ctx);
+                    tree = propertiesVisitor.visit(tree, ctx);
                 } else if (tree instanceof Yaml.Documents) {
-                    tree = changeYaml.getVisitor().visit(tree, ctx);
+                    tree = yamlVisitor.visit(tree, ctx);
                 } else if (tree instanceof JavaSourceFile) {
                     tree = javaVisitor.visit(tree, ctx);
                 }

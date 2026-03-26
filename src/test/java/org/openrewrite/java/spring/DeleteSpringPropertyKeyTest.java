@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
@@ -30,22 +32,26 @@ class DeleteSpringPropertyKeyTest implements RewriteTest {
     void deleteOnlyKey() {
         rewriteRun(
           spec -> spec.recipe(new DeleteSpringProperty("server.servlet-path")),
-          //language=properties
-          properties(
-            """
-              server.servlet-path=/tmp/my-server-path
-              """,
-            """
-              """
-          ),
-          //language=yaml
-          yaml(
-            """
-              server:
-                servlet-path: /tmp/my-server-path
-              """,
-            """
-              """
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  server.servlet-path=/tmp/my-server-path
+                  """,
+                """
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  server:
+                    servlet-path: /tmp/my-server-path
+                  """,
+                """
+                  """
+              )
+            )
           )
         );
     }
@@ -54,33 +60,37 @@ class DeleteSpringPropertyKeyTest implements RewriteTest {
     void deleteFirstKey() {
         rewriteRun(
           spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie.path")),
-          //language=properties
-          properties(
-            """
-              server.servlet.session.cookie.path=/cookie-monster
-              server.servlet.session.cookie.name=fred
-              """,
-            """
-              server.servlet.session.cookie.name=fred
-              """
-          ),
-          //language=yaml
-          yaml(
-            """
-              server:
-                servlet:
-                  session:
-                    cookie:
-                      path: /cookie-monster
-                      name: fred
-              """,
-            """
-              server:
-                servlet:
-                  session:
-                    cookie:
-                      name: fred
-              """
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  server.servlet.session.cookie.path=/cookie-monster
+                  server.servlet.session.cookie.name=fred
+                  """,
+                """
+                  server.servlet.session.cookie.name=fred
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  server:
+                    servlet:
+                      session:
+                        cookie:
+                          path: /cookie-monster
+                          name: fred
+                  """,
+                """
+                  server:
+                    servlet:
+                      session:
+                        cookie:
+                          name: fred
+                  """
+              )
+            )
           )
         );
     }
@@ -89,32 +99,58 @@ class DeleteSpringPropertyKeyTest implements RewriteTest {
     void deleteLastKey() {
         rewriteRun(
           spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie.path")),
-          //language=properties
-          properties(
-            """
-              server.servlet.session.cookie.name=fred
-              server.servlet.session.cookie.path=/cookie-monster
-              """,
-            """
-              server.servlet.session.cookie.name=fred
-              """
-          ),
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  server.servlet.session.cookie.name=fred
+                  server.servlet.session.cookie.path=/cookie-monster
+                  """,
+                """
+                  server.servlet.session.cookie.name=fred
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  server:
+                    servlet:
+                      session:
+                        cookie:
+                          name: fred
+                          path: /cookie-monster
+                  """,
+                """
+                  server:
+                    servlet:
+                      session:
+                        cookie:
+                          name: fred
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void doesNotModifyNonSpringYamlFiles() {
+        rewriteRun(
+          spec -> spec.recipe(new DeleteSpringProperty("on.push")),
           //language=yaml
           yaml(
             """
-              server:
-                servlet:
-                  session:
-                    cookie:
-                      name: fred
-                      path: /cookie-monster
-              """,
-            """
-              server:
-                servlet:
-                  session:
-                    cookie:
-                      name: fred
+              name: CI workflow
+              on:
+                push:
+                  branches:
+                    - main
+                workflow_dispatch: {}
+
+              jobs:
+                build:
+                  runs-on: ubuntu-latest
               """
           )
         );
