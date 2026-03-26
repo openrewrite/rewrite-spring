@@ -19,10 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.kotlin.Assertions.kotlin;
 
 class MigrateUriComponentsBuilderMethodsTest implements RewriteTest {
 
@@ -31,7 +33,9 @@ class MigrateUriComponentsBuilderMethodsTest implements RewriteTest {
         spec
           .recipe(new MigrateUriComponentsBuilderMethods())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-web-6.1"));
+            "spring-web-6.1"))
+          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-web-6"));
     }
 
     @DocumentExample
@@ -131,6 +135,35 @@ class MigrateUriComponentsBuilderMethodsTest implements RewriteTest {
                       InetSocketAddress inetSocketAddress;
                       ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders()).queryParam("foo", "bar");
                       ForwardedHeaderUtils.parseForwardedFor(request.getURI(), request.getHeaders(), null);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migrateFromHttpUrlToFromUriStringInKotlin() {
+        rewriteRun(
+          // language=kotlin
+          kotlin(
+            """
+              import org.springframework.web.util.UriComponentsBuilder
+
+              class A {
+                  fun test() {
+                      val url = "https://example.com"
+                      UriComponentsBuilder.fromHttpUrl(url).queryParam("foo", "bar")
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.util.UriComponentsBuilder
+
+              class A {
+                  fun test() {
+                      val url = "https://example.com"
+                      UriComponentsBuilder.fromUriString(url).queryParam("foo", "bar")
                   }
               }
               """

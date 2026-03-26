@@ -24,18 +24,18 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
 public class MigrateUriComponentsBuilderMethods extends Recipe {
 
     private static final String TARGET_CLASS = "org.springframework.web.util.UriComponentsBuilder";
 
-    private static final MethodMatcher FROM_HTTP_REQUEST = new MethodMatcher(TARGET_CLASS + " fromHttpRequest(org.springframework.http.HttpRequest)");
+    private static final MethodMatcher FROM_HTTP_REQUEST = new MethodMatcher(TARGET_CLASS + " fromHttpRequest(..)");
 
-    private static final MethodMatcher FROM_HTTP_URL = new MethodMatcher(TARGET_CLASS + " fromHttpUrl(String)");
+    private static final MethodMatcher FROM_HTTP_URL = new MethodMatcher(TARGET_CLASS + " fromHttpUrl(..)");
 
-    private static final MethodMatcher PARSE_FORWARDED_FOR = new MethodMatcher(TARGET_CLASS + " parseForwardedFor(org.springframework.http.HttpRequest, java.net.InetSocketAddress)");
+    private static final MethodMatcher PARSE_FORWARDED_FOR = new MethodMatcher(TARGET_CLASS + " parseForwardedFor(..)");
 
     @Getter
     final String displayName = "Migrate deprecated `UriComponentsBuilder` methods";
@@ -47,7 +47,7 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>(TARGET_CLASS + " *(..)", false), new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(TARGET_CLASS, false), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
