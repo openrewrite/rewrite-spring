@@ -67,6 +67,45 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
     }
 
     @Test
+    void migrateSpringCloudStarterParentToBootParentWithBom() {
+        rewriteRun(
+          spec -> spec.expectedCyclesThatMakeChanges(2),
+          mavenProject("project",
+            pomXml(
+              //language=xml
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.cloud</groupId>
+                        <artifactId>spring-cloud-starter-parent</artifactId>
+                        <version>2025.0.0</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>fooservice</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.cloud</groupId>
+                            <artifactId>spring-cloud-starter-config</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> {
+                assertThat(actual)
+                  .containsPattern("<groupId>org.springframework.boot</groupId>\\s*<artifactId>spring-boot-starter-parent</artifactId>\\s*<version>4\\.0\\.\\d+</version>")
+                  .containsPattern("<groupId>org.springframework.cloud</groupId>\\s*<artifactId>spring-cloud-dependencies</artifactId>\\s*<version>2025\\.1\\.\\d+</version>")
+                  .doesNotContain("spring-cloud-starter-parent");
+                return actual;
+              })
+            )
+          )
+        );
+    }
+
+    @Test
     void upgradeStandaloneCloudDependencyTo5() {
         rewriteRun(
           mavenProject("project",
