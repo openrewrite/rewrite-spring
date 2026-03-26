@@ -28,10 +28,7 @@ class UpgradeSpringBoot40JacksonTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new org.openrewrite.java.ChangeType(
-            "org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer",
-            "org.springframework.boot.autoconfigure.jackson.JsonMapperBuilderCustomizer",
-            null))
+        spec.recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-boot-autoconfigure-3"
           ));
@@ -55,6 +52,74 @@ class UpgradeSpringBoot40JacksonTest implements RewriteTest {
 
               class Test {
                   JsonMapperBuilderCustomizer customizer;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void renameJsonObjectSerializer() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package org.springframework.boot.jackson2;
+              public class JsonObjectSerializer<T> {}
+              """,
+            """
+              package org.springframework.boot.jackson;
+              public class ObjectValueSerializer<T> {}
+              """
+          ),
+          //language=java
+          java(
+            """
+              import org.springframework.boot.jackson2.JsonObjectSerializer;
+
+              class Test {
+                  JsonObjectSerializer<String> serializer;
+              }
+              """,
+            """
+              import org.springframework.boot.jackson.ObjectValueSerializer;
+
+              class Test {
+                  ObjectValueSerializer<String> serializer;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void renameJsonObjectDeserializer() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package org.springframework.boot.jackson2;
+              public class JsonObjectDeserializer<T> {}
+              """,
+            """
+              package org.springframework.boot.jackson;
+              public class ObjectValueDeserializer<T> {}
+              """
+          ),
+          //language=java
+          java(
+            """
+              import org.springframework.boot.jackson2.JsonObjectDeserializer;
+
+              class Test {
+                  JsonObjectDeserializer<String> deserializer;
+              }
+              """,
+            """
+              import org.springframework.boot.jackson.ObjectValueDeserializer;
+
+              class Test {
+                  ObjectValueDeserializer<String> deserializer;
               }
               """
           )

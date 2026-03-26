@@ -121,6 +121,12 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.jackson.JsonMapperBuilderCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.jackson2.JsonObjectSerializer
+      newFullyQualifiedTypeName: org.springframework.boot.jackson.ObjectValueSerializer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.jackson2.JsonObjectDeserializer
+      newFullyQualifiedTypeName: org.springframework.boot.jackson.ObjectValueDeserializer
 
   - org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
   - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
