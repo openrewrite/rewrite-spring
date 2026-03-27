@@ -32,16 +32,19 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-cache-test
+      acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.core.AutoConfigureCache
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-data-cassandra-test
+      acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.data.cassandra.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-data-jpa-test
+      acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.orm.jpa.*
   - org.openrewrite.java.dependencies.AddDependency:
@@ -82,26 +85,31 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-webmvc-test
+      acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.web.servlet.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient
+      acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.web.client.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient
+      acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.web.client.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient-test
+      acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-resttestclient
+      acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.test.web.client.*
 
@@ -447,5 +455,6 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-flyway
+      acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: "*..*" # https://github.com/openrewrite/rewrite/issues/6468
