@@ -55,6 +55,12 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
                             </dependency>
                         </dependencies>
                     </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.cloud</groupId>
+                            <artifactId>spring-cloud-starter-config</artifactId>
+                        </dependency>
+                    </dependencies>
                 </project>
                 """,
               spec -> spec.after(actual ->
@@ -100,6 +106,32 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
                   .doesNotContain("spring-cloud-starter-parent");
                 return actual;
               })
+            )
+          )
+        );
+    }
+
+    @Test
+    void noChangeWhenNoSpringCloudDependency() {
+        rewriteRun(
+          mavenProject("project",
+            pomXml(
+              //language=xml
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>fooservice</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-web</artifactId>
+                            <version>3.4.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
             )
           )
         );

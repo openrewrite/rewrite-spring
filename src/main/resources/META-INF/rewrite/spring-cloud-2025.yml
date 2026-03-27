@@ -117,12 +117,7 @@ recipeList:
       newArtifactId: spring-boot-starter-parent
       newVersion: 4.0.x
       allowVersionDowngrades: true
-  - org.openrewrite.maven.AddManagedDependency:
-      groupId: org.springframework.cloud
-      artifactId: spring-cloud-dependencies
-      version: 2025.1.x
-      type: pom
-      scope: import
+  - org.openrewrite.java.spring.cloud2025.AddSpringCloudDependenciesBom
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
@@ -262,3 +257,25 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
       newPropertyKey: spring.cloud.gateway.proxy-exchange-webmvc
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.cloud2025.AddSpringCloudDependenciesBom
+displayName: Add Spring Cloud dependencies BOM
+description: >-
+  Adds the Spring Cloud dependencies BOM as a managed import, but only when the project already uses
+  a Spring Cloud dependency. Prevents accidentally introducing the BOM into unrelated projects.
+tags:
+  - spring
+  - cloud
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.cloud
+      artifactIdPattern: "*"
+recipeList:
+  - org.openrewrite.maven.AddManagedDependency:
+      groupId: org.springframework.cloud
+      artifactId: spring-cloud-dependencies
+      version: 2025.1.x
+      type: pom
+      scope: import
