@@ -55,6 +55,12 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
                             </dependency>
                         </dependencies>
                     </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.cloud</groupId>
+                            <artifactId>spring-cloud-starter-config</artifactId>
+                        </dependency>
+                    </dependencies>
                 </project>
                 """,
               spec -> spec.after(actual ->
