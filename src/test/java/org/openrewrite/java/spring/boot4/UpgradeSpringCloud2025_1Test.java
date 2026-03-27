@@ -112,6 +112,32 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
     }
 
     @Test
+    void noChangeWhenNoSpringCloudDependency() {
+        rewriteRun(
+          mavenProject("project",
+            pomXml(
+              //language=xml
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>fooservice</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-web</artifactId>
+                            <version>3.4.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
+          )
+        );
+    }
+
+    @Test
     void upgradeStandaloneCloudDependencyTo5() {
         rewriteRun(
           mavenProject("project",
