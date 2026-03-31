@@ -43,9 +43,7 @@ public class MigrateHandlerResultHasExceptionHandlerMethod extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (METHOD_MATCHER.matches(mi)) {
-                    return JavaTemplate
-                            .builder("#{any(org.springframework.web.reactive.HandlerResult)}.getExceptionHandler() != null")
-                            .build().apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect());
+                    return JavaTemplate.apply("#{any(org.springframework.web.reactive.HandlerResult)}.getExceptionHandler() != null", getCursor(), mi.getCoordinates().replace(), mi.getSelect());
                 }
                 return mi;
             }

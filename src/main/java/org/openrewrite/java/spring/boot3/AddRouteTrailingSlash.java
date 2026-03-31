@@ -64,11 +64,7 @@ public class AddRouteTrailingSlash extends Recipe {
                 if (anno.getArguments().size() == 1 && isStringLiteral(anno.getArguments().get(0))) {
                     J.Literal str = (J.Literal) anno.getArguments().get(0);
                     if (shouldAddTrailingSlashArgument(str.getValue().toString())) {
-                        J.Annotation replacement = JavaTemplate.builder("{#{any(String)}, #{any(String)}}")
-                                .build()
-                                .apply(getCursor(),
-                                        anno.getCoordinates().replaceArguments(),
-                                        (Object[]) buildTwoStringsArray(str));
+                        J.Annotation replacement = JavaTemplate.apply("{#{any(String)}, #{any(String)}}", getCursor(), anno.getCoordinates().replaceArguments(), (Object[]) buildTwoStringsArray(str));
                         return autoFormat(replacement, ctx);
                     }
                 } else {
