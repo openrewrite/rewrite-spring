@@ -35,9 +35,6 @@ public class MigratePagingAndSortingRepository extends Recipe {
 
     private static final String PAGING_AND_SORTING_REPOSITORY = "org.springframework.data.repository.PagingAndSortingRepository";
     private static final String CRUD_REPOSITORY = "org.springframework.data.repository.CrudRepository";
-    private static final String LIST_CRUD_REPOSITORY = "org.springframework.data.repository.ListCrudRepository";
-    private static final String LIST_PAGING_AND_SORTING_REPOSITORY = "org.springframework.data.repository.ListPagingAndSortingRepository";
-    private static final String JPA_REPOSITORY = "org.springframework.data.jpa.repository.JpaRepository";
 
     @Getter
     final String displayName = "Add `CrudRepository` to interfaces extending `PagingAndSortingRepository`";
@@ -60,19 +57,16 @@ public class MigratePagingAndSortingRepository extends Recipe {
                 J.ParameterizedType pagingAndSortingType = null;
                 boolean alreadyHasCrud = false;
 
+                JavaType.FullyQualified crudRepoTarget = JavaType.ShallowClass.build(CRUD_REPOSITORY);
                 for (TypeTree impl : cd.getImplements()) {
                     JavaType type = impl.getType();
                     JavaType.FullyQualified fq = TypeUtils.asFullyQualified(type);
                     if (fq == null) {
                         continue;
                     }
-                    String fqn = fq.getFullyQualifiedName();
-                    if (PAGING_AND_SORTING_REPOSITORY.equals(fqn) && impl instanceof J.ParameterizedType) {
+                    if (PAGING_AND_SORTING_REPOSITORY.equals(fq.getFullyQualifiedName()) && impl instanceof J.ParameterizedType) {
                         pagingAndSortingType = (J.ParameterizedType) impl;
-                    } else if (CRUD_REPOSITORY.equals(fqn) ||
-                               LIST_CRUD_REPOSITORY.equals(fqn) ||
-                               LIST_PAGING_AND_SORTING_REPOSITORY.equals(fqn) ||
-                               JPA_REPOSITORY.equals(fqn)) {
+                    } else if (TypeUtils.isAssignableTo(crudRepoTarget, fq)) {
                         alreadyHasCrud = true;
                     }
                 }

@@ -149,6 +149,37 @@ class MigratePagingAndSortingRepositoryTest implements RewriteTest {
     }
 
     @Test
+    void noChangeWhenTransitivelyExtendsCrudRepository() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.data.jpa.repository.JpaRepository;
+
+              public interface BaseRepository extends JpaRepository<User, Long> {
+              }
+              """
+          ),
+          java(
+            """
+              import org.springframework.data.repository.PagingAndSortingRepository;
+
+              public interface UserRepository extends PagingAndSortingRepository<User, Long>, BaseRepository {
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              public class User {
+                  private Long id;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void noChangeForClass() {
         //language=java
         rewriteRun(
