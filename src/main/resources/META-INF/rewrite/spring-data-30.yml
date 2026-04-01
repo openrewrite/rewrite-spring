@@ -1,5 +1,5 @@
 #
-# Copyright 2025 the original author or authors.
+# Copyright 2026 the original author or authors.
 # <p>
 # Licensed under the Moderne Source Available License (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,14 +15,22 @@
 #
 
 ########################################################################################################################
-# Spring Data JPA 3.4
+# Spring Data 3.0
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.data.UpgradeSpringData_3_4
-displayName: Migrate to Spring Data JPA 3.4
-description: Migrate applications to the latest Spring Data JPA 3.4 release.
+name: org.openrewrite.java.spring.data.UpgradeSpringData_3_0
+displayName: Migrate to Spring Data 3.0
+description: >-
+  Migrate applications to Spring Data 3.0. Handles the
+  PagingAndSortingRepository hierarchy change where it no longer extends
+  CrudRepository, and chains prior deprecation fixes from Spring Data 2.7.
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
-  - org.openrewrite.java.spring.data.UpgradeSpringData_3_0
-  - org.openrewrite.java.spring.data.MigrateQueryToNativeQuery
+  - org.openrewrite.java.spring.data.UpgradeSpringData_2_7
+  - org.openrewrite.java.spring.data.MigratePagingAndSortingRepository
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.data
+      artifactId: "*"
+      newVersion: 3.0.x
+      overrideManagedVersion: false
