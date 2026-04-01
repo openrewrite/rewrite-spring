@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-########################################################################################################################
-# Spring Data 3.0
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_3_0
@@ -35,8 +33,6 @@ recipeList:
       newVersion: 3.0.x
       overrideManagedVersion: false
 
-########################################################################################################################
-# Spring Data 3.4
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_3_4

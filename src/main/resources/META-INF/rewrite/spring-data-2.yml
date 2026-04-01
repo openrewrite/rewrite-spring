@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-########################################################################################################################
-# Spring Data 2.3
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
@@ -45,8 +43,6 @@ recipeList:
       oldFullyQualifiedTypeName: com.mongodb.async.client.MongoClientSettings
       newFullyQualifiedTypeName: com.mongodb.MongoClientSettings
 
-########################################################################################################################
-# Spring Data 2.5
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_5
@@ -65,8 +61,6 @@ recipeList:
       newMethodName: deleteAllInBatch
       matchOverrides: true
 
-########################################################################################################################
-# Spring Data 2.7
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_7
