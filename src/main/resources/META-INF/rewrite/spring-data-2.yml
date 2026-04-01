@@ -44,3 +44,43 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.mongodb.async.client.MongoClientSettings
       newFullyQualifiedTypeName: com.mongodb.MongoClientSettings
+
+########################################################################################################################
+# Spring Data 2.5
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.data.UpgradeSpringData_2_5
+displayName: Migrate to Spring Data JPA 2.5
+description: Migrate applications to the latest Spring Data 2.5 release.
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.spring.data.UpgradeSpringData_2_3
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.data.jpa.repository.JpaRepository getOne(..)
+      newMethodName: getById
+      matchOverrides: true
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.data.jpa.repository.JpaRepository deleteInBatch(..)
+      newMethodName: deleteAllInBatch
+      matchOverrides: true
+
+########################################################################################################################
+# Spring Data 2.7
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.data.UpgradeSpringData_2_7
+displayName: Migrate to Spring Data JPA 2.7
+description: Migrate applications to the latest Spring Data JPA 2.7 release.
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.spring.data.UpgradeSpringData_2_5
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.data.jpa.repository.JpaRepository getById(..)
+      newMethodName: getReferenceById
+      matchOverrides: true
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.data.jpa.repository.JpaRepository getOne(..)
+      newMethodName: getReferenceById
+      matchOverrides: true
