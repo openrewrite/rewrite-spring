@@ -23,11 +23,10 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.marker.Markers;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.openrewrite.Tree.randomId;
 
@@ -94,10 +93,8 @@ public class MigratePagingAndSortingRepository extends Recipe {
                             .withClazz(crudRepoIdent)
                             .withType(crudRepoType);
 
-                    List<TypeTree> newImplements = new ArrayList<>(cd.getImplements());
-                    newImplements.add(crudRepoParamType);
-                    cd = cd.withImplements(newImplements);
                     maybeAddImport(CRUD_REPOSITORY);
+                    return cd.withImplements(ListUtils.concat(cd.getImplements(), crudRepoParamType));
                 }
                 return cd;
             }
