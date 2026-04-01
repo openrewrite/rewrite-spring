@@ -59,14 +59,9 @@ public class MigratePagingAndSortingRepository extends Recipe {
 
                 JavaType.FullyQualified crudRepoTarget = JavaType.ShallowClass.build(CRUD_REPOSITORY);
                 for (TypeTree impl : cd.getImplements()) {
-                    JavaType type = impl.getType();
-                    JavaType.FullyQualified fq = TypeUtils.asFullyQualified(type);
-                    if (fq == null) {
-                        continue;
-                    }
-                    if (PAGING_AND_SORTING_REPOSITORY.equals(fq.getFullyQualifiedName()) && impl instanceof J.ParameterizedType) {
+                    if (TypeUtils.isOfClassType(impl.getType(), PAGING_AND_SORTING_REPOSITORY) && impl instanceof J.ParameterizedType) {
                         pagingAndSortingType = (J.ParameterizedType) impl;
-                    } else if (TypeUtils.isAssignableTo(crudRepoTarget, fq)) {
+                    } else if (TypeUtils.isAssignableTo(crudRepoTarget, TypeUtils.asFullyQualified(impl.getType()))) {
                         alreadyHasCrud = true;
                     }
                 }
