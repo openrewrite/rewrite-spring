@@ -70,7 +70,7 @@ public class MigrateArtemisProperties extends Recipe {
                     file = (Properties.File) new org.openrewrite.properties.DeleteProperty("spring.artemis.port", true)
                             .getVisitor().visitNonNull(file, ctx);
                 }
-                return new AddProperty("spring.artemis.broker-url", brokerUrl, null, null, null)
+                return new AddProperty("spring.artemis.broker-url", brokerUrl, null, null, null, null, null)
                         .getVisitor().visitNonNull(file, ctx);
             }
 

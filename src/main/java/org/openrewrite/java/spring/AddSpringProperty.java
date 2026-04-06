@@ -85,7 +85,7 @@ public class AddSpringProperty extends Recipe {
                 if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
                     t = createMergeYamlVisitor().getVisitor().visit(t, ctx);
                 } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
-                    t = new AddProperty(property, value, comment, null, null).getVisitor().visit(t, ctx);
+                    t = new AddProperty(property, value, comment, null, null, null, null).getVisitor().visit(t, ctx);
                 }
                 return t;
             }
