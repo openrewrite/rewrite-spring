@@ -97,6 +97,7 @@ public class UpdateRequestCache extends Recipe {
                     Expression arg = method.getArguments().get(0);
                     if (isNewHttpSessionRequestCacheExpression(arg)) {
                         JavaTemplate template = JavaTemplate.builder("new NullRequestCache()")
+                                .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpathFromResources(ctx, "spring-security-web-6"))
                                 .imports(
@@ -158,7 +159,7 @@ public class UpdateRequestCache extends Recipe {
         }
         J.NewClass newClass = (J.NewClass) expression;
 
-        if (TypeUtils.isOfClassType(newClass.getConstructorType().getReturnType(),
+        if (newClass.getConstructorType() != null && TypeUtils.isOfClassType(newClass.getConstructorType().getReturnType(),
                 "org.springframework.security.web.savedrequest.HttpSessionRequestCache")) {
             return true;
         }
