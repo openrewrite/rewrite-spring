@@ -18,11 +18,13 @@ package org.openrewrite.java.spring.search;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.SourceFile;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.InJavaSourceSet;
 import org.openrewrite.java.spring.table.ApiCalls;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
@@ -39,7 +41,7 @@ public class FindApiCalls extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new InJavaSourceSet<>("main"), new JavaIsoVisitor<ExecutionContext>() {
             final MethodMatcher restTemplateCall = new MethodMatcher("org.springframework.web.client.RestTemplate *For*(..)");
             final MethodMatcher restTemplateExchange = new MethodMatcher("org.springframework.web.client.RestTemplate exchange(String, ..)");
             final MethodMatcher webClientUri = new MethodMatcher("org.springframework.web.reactive.function.client.WebClient.UriSpec(String, ..)");
@@ -64,6 +66,6 @@ public class FindApiCalls extends Recipe {
                 }
                 return m;
             }
-        };
+        });
     }
 }
