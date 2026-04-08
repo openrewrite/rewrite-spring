@@ -15,9 +15,11 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty;
+import org.openrewrite.maven.RemoveProperty;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -130,6 +132,81 @@ class DowngradeServletApiWhenUsingJettyTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Nested
+    class RemovePropertyOnUpgradeTo32 implements RewriteTest {
+
+        @Override
+        public void defaults(RecipeSpec spec) {
+            spec.recipe(new RemoveProperty("jakarta-servlet.version"));
+        }
+
+        @Test
+        void removeJakartaServletVersionProperty() {
+            rewriteRun(
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <properties>
+                      <jakarta-servlet.version>5.0.0</jakarta-servlet.version>
+                      <java.version>17</java.version>
+                    </properties>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-jetty</artifactId>
+                        <version>3.2.0</version>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """,
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <properties>
+                      <java.version>17</java.version>
+                    </properties>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-jetty</artifactId>
+                        <version>3.2.0</version>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """
+              )
+            );
+        }
+
+        @Test
+        void noChangeWhenPropertyAbsent() {
+            rewriteRun(
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <properties>
+                      <java.version>17</java.version>
+                    </properties>
+                  </project>
+                  """
+              )
+            );
+        }
     }
 
     @Test
