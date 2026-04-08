@@ -20,9 +20,11 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.marker.JavaSourceSet;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static java.util.Collections.emptyList;
 import static org.openrewrite.java.Assertions.java;
 
 @Disabled
@@ -132,6 +134,25 @@ class FindApiCallsTest implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void doesNotMatchTestSources() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.client.RestTemplate;
+              class Test {
+                  RestTemplate restTemplate;
+                  void test() {
+                      restTemplate.getForObject("/getThing", String.class);
+                  }
+              }
+              """,
+            sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
           )
         );
     }
