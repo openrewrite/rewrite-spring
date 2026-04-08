@@ -139,7 +139,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                     assert b != null;
 
                     //noinspection unchecked
-                    source = (Yaml.Documents) new CoalescePropertiesVisitor<Integer>(null, null).visit(a.withDocuments(ListUtils.map(a.getDocuments(), doc -> {
+                    source = (SourceFile) new CoalescePropertiesVisitor<Integer>(null, null).visit(a.withDocuments(ListUtils.map(a.getDocuments(), doc -> {
                         if (doc == null) {
                             return null;
                         }
@@ -157,7 +157,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                             return mergedDocument;
                         }
                         return doc;
-                    })), 0, new Cursor(null, Cursor.ROOT_VALUE));
+                    })), 0);
                 }
                 return source;
             }
