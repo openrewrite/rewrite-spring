@@ -55,14 +55,3 @@ recipeList:
       groupId: cglib
       artifactId: cglib
       unlessUsing: net.sf.cglib.core.*
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
-displayName: Use `ObjectUtils#isEmpty(Object)`
-description: '`StringUtils#isEmpty(Object)` was deprecated in 5.3.'
-preconditions:
-  - org.openrewrite.Singleton
-recipeList:
-  - org.openrewrite.java.ChangeMethodTargetToStatic:
-      methodPattern: org.springframework.util.StringUtils isEmpty(Object)
-      fullyQualifiedTargetTypeName: org.springframework.util.ObjectUtils
