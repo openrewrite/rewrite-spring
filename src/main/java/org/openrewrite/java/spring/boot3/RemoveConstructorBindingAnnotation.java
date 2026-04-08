@@ -79,7 +79,7 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                                         J.MethodDeclaration m = (J.MethodDeclaration) s;
                                         // Only visit the `J.MethodDeclaration` subtree and remove the target annotation.
                                         maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
-                                        return new RemoveTargetAnnotation(bindingAnnotation.get()).visitMethodDeclaration(m, ctx);
+                                        return (J.MethodDeclaration) new RemoveTargetAnnotation(bindingAnnotation.get()).visit(m, ctx, getCursor().getParentTreeCursor());
                                     }
                                     return s;
                                 }))

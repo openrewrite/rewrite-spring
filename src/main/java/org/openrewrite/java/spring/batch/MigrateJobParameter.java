@@ -86,7 +86,7 @@ public class MigrateJobParameter extends Recipe {
                     public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
                         multiVariable = super.visitVariableDeclarations(multiVariable, ctx);
                         if (defineMapTypeWithJobParameter(multiVariable.getType())) {
-                            multiVariable = new JNewClassOfMap().visitVariableDeclarations(multiVariable, ctx);
+                            multiVariable = (J.VariableDeclarations) new JNewClassOfMap().visit(multiVariable, ctx, getCursor().getParentTreeCursor());
                             maybeAddImport("java.util.Map");
                             return multiVariable.withTypeExpression(TypeTree.build("Map<String, JobParameter<?>>")
                                     .withPrefix(multiVariable.getTypeExpression().getPrefix()))
@@ -105,7 +105,7 @@ public class MigrateJobParameter extends Recipe {
                     @Override
                     public J.Assignment visitAssignment(J.Assignment assignment, ExecutionContext ctx) {
                         J.Assignment ass = super.visitAssignment(assignment, ctx);
-                        return new JNewClassOfMap().visitAssignment(ass, ctx);
+                        return (J.Assignment) new JNewClassOfMap().visit(ass, ctx, getCursor().getParentTreeCursor());
                     }
 
                     @Override
