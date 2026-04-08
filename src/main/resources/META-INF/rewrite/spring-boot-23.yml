@@ -58,12 +58,7 @@ recipeList:
       version: ^6.3
       addIfMissing: false
   # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#validation-starter-no-longer-included-in-web-starters
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: org.springframework.boot
-      artifactId: spring-boot-starter-validation
-      version: 2.3.x
-      onlyIfUsing: javax.validation.constraints.*
-      acceptTransitive: true
+  - org.openrewrite.java.spring.boot2.AddSpringBootStarterValidation
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springdoc
       artifactId: "*"
@@ -105,3 +100,24 @@ recipeList:
       artifactId: "*"
       newVersion: 2.1.3
       overrideManagedVersion: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.AddSpringBootStarterValidation
+displayName: Add `spring-boot-starter-validation` if needed
+description: >-
+  Add `spring-boot-starter-validation` when validation constraints are used,
+  unless the project already declares an explicit validation API dependency.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: jakarta.validation
+      artifactIdPattern: jakarta.validation-api
+      invertMarking: true
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-validation
+      version: 2.3.x
+      onlyIfUsing: javax.validation.constraints.*
+      acceptTransitive: true
