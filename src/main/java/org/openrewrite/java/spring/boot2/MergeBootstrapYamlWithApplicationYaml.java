@@ -157,7 +157,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                             return mergedDocument;
                         }
                         return doc;
-                    })), 0, getCursor().getParentTreeCursor());
+                    })), 0, new Cursor(null, Cursor.ROOT_VALUE));
                 }
                 return source;
             }
