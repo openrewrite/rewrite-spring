@@ -150,7 +150,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             if (expression instanceof J.NewClass && isAuditorAware.matches(((J.NewClass) expression).getClazz().getType())) {
                 implementationVisitor.setCursor(new Cursor(getCursor(), expression));
                 maybeAddImport("java.util.Optional");
-                return return_.withExpression(implementationVisitor.visitNewClass((J.NewClass) expression, ctx));
+                return return_.withExpression((J.NewClass) implementationVisitor.visit((J.NewClass) expression, ctx, getCursor().getParentTreeCursor()));
             }
             return return_;
         }

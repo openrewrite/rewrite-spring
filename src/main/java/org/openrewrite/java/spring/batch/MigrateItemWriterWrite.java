@@ -75,7 +75,7 @@ public class MigrateItemWriterWrite extends Recipe {
                         .distinct()
                         .collect(joining("\n"));
 
-                m = new UpdateListMethodInvocations(paramName).visitMethodDeclaration(m, ctx);
+                m = (J.MethodDeclaration) new UpdateListMethodInvocations(paramName).visit(m, ctx, getCursor().getParentTreeCursor());
                 updateCursor(m);
 
                 // Should be able to replace just the parameters and have usages of those parameters get their types

@@ -20,18 +20,18 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
-import org.openrewrite.internal.ListUtils;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.openrewrite.Tree.randomId;
 
 public class UnwrapMockAndSpyBeanContainers extends Recipe {
@@ -82,7 +82,7 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
 
                             return innerAnnotations.get(0)
                                     .withPrefix(annotation.getPrefix())
-                                    .withArguments(Collections.singletonList(
+                                    .withArguments(singletonList(
                                             createTypesAssignment(allTypes)));
                         }));
                     }
@@ -166,7 +166,7 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
     private static J.Assignment createTypesAssignment(List<Expression> typeExpressions) {
         J.Identifier typesIdent = new J.Identifier(
                 randomId(), Space.EMPTY, Markers.EMPTY,
-                Collections.emptyList(), "types", null, null
+                emptyList(), "types", null, null
         );
 
         Expression rhs;
@@ -186,7 +186,7 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
             }
             rhs = new J.NewArray(
                     randomId(), Space.format(" "), Markers.EMPTY,
-                    null, Collections.emptyList(),
+                    null, emptyList(),
                     JContainer.build(Space.EMPTY, padded, Markers.EMPTY),
                     null
             );

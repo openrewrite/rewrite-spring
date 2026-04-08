@@ -155,6 +155,8 @@ examples:
   - 'null'
   - 'null'
   sources:
+  - before: project
+    language: mavenProject
   - before: server.port=8080
     after: server.port=8081
     language: properties
@@ -182,6 +184,8 @@ examples:
   parameters:
   - server.servlet-path
   sources:
+  - before: project
+    language: mavenProject
   - before: |
       server.servlet-path=/tmp/my-server-path
     language: properties
@@ -3448,6 +3452,12 @@ examples:
                   </dependency>
               </dependencies>
           </dependencyManagement>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.cloud</groupId>
+                  <artifactId>spring-cloud-starter-config</artifactId>
+              </dependency>
+          </dependencies>
       </project>
     path: pom.xml
     language: xml
@@ -3528,6 +3538,29 @@ examples:
           void test() {
               JpaSort onlyAttr = JpaSort.of(attr);
           }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.data.MigratePagingAndSortingRepository
+examples:
+- description: '`MigratePagingAndSortingRepositoryTest#addsCrudRepositoryWhenOnlyPagingAndSorting`'
+  sources:
+  - before: |
+      import org.springframework.data.repository.PagingAndSortingRepository;
+
+      public interface UserRepository extends PagingAndSortingRepository<User, Long> {
+      }
+    after: |
+      import org.springframework.data.repository.CrudRepository;
+      import org.springframework.data.repository.PagingAndSortingRepository;
+
+      public interface UserRepository extends PagingAndSortingRepository<User, Long>, CrudRepository<User, Long> {
+      }
+    language: java
+  - before: |
+      public class User {
+          private Long id;
       }
     language: java
 ---
