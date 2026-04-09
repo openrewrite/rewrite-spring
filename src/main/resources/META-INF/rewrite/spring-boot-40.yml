@@ -37,7 +37,6 @@ recipeList:
   - org.openrewrite.hibernate.MigrateToHibernate71
   - org.openrewrite.java.testing.testcontainers.Testcontainers2Migration
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_3_0
-  - org.openrewrite.java.spring.boot4.MigrateToModularStarters
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
@@ -62,6 +61,10 @@ recipeList:
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: ^8.14
       addIfMissing: false
+
+  # Modular starters must run after parent/BOM upgrades so that
+  # AddDependency can see the new artifacts are managed and omit explicit versions
+  - org.openrewrite.java.spring.boot4.MigrateToModularStarters
 
   # Replace deprecated starters with their new names
   # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide#deprecated-starters
