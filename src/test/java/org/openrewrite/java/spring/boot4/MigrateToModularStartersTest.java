@@ -556,6 +556,79 @@ class MigrateToModularStartersTest implements RewriteTest {
         }
     }
 
+    @Test
+    void flywayStarterOmitsVersionWhenManagedByParent() {
+        rewriteRun(
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0"),
+          mavenProject("parent",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.13</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>parent</artifactId>
+                    <version>${revision}</version>
+                    <packaging>pom</packaging>
+                    <properties>
+                        <revision>1.0.0-SNAPSHOT</revision>
+                    </properties>
+                    <modules>
+                        <module>app</module>
+                    </modules>
+                </project>
+                """,
+              spec -> spec.after(pom ->
+                assertThat(pom).containsPattern("<version>4\\.0\\.\\d+</version>").actual())
+            ),
+            mavenProject("app",
+              srcMainJava(
+                //language=java
+                java(
+                  """
+                    package com.example;
+                    class App {
+                        String s = "";
+                    }
+                    """
+                )
+              ),
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                      <modelVersion>4.0.0</modelVersion>
+                      <parent>
+                          <groupId>com.example</groupId>
+                          <artifactId>parent</artifactId>
+                          <version>${revision}</version>
+                      </parent>
+                      <artifactId>app</artifactId>
+                      <dependencies>
+                          <dependency>
+                              <groupId>org.flywaydb</groupId>
+                              <artifactId>flyway-database-postgresql</artifactId>
+                          </dependency>
+                      </dependencies>
+                  </project>
+                  """,
+                spec -> spec.after(pom ->
+                  assertThat(pom)
+                    .contains("<artifactId>spring-boot-starter-flyway</artifactId>")
+                    .doesNotContainPattern("spring-boot-starter-flyway</artifactId>\\s*<version>")
+                    .actual())
+              )
+            )
+          )
+        );
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"flyway-database-postgresql", "flyway-mysql"})
     void addFlywayStarterWhenDependencyPresent(String artifactId) {
