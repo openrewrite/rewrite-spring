@@ -57,10 +57,8 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                     </modules>
                 </project>
                 """,
-              spec -> spec.after(pom -> {
-                  assertThat(pom).containsPattern("<version>4\\.0\\.\\d+</version>");
-                  return pom;
-              })
+              spec -> spec.after(pom ->
+                assertThat(pom).containsPattern("<version>4\\.0\\.\\d+</version>").actual())
             ),
             mavenProject("app",
               srcMainJava(
@@ -93,12 +91,11 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                       </dependencies>
                   </project>
                   """,
-                spec -> spec.after(pom -> {
-                    assertThat(pom)
-                      .contains("<artifactId>spring-boot-starter-flyway</artifactId>")
-                      .doesNotContainPattern("spring-boot-starter-flyway</artifactId>\\s*<version>");
-                    return pom;
-                })
+                spec -> spec.after(pom ->
+                  assertThat(pom)
+                    .contains("<artifactId>spring-boot-starter-flyway</artifactId>")
+                    .doesNotContainPattern("spring-boot-starter-flyway</artifactId>\\s*<version>")
+                    .actual())
               )
             )
           )
