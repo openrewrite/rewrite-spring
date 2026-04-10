@@ -65,7 +65,12 @@ public class MigratePagingAndSortingRepository extends Recipe {
                     }
                 }
 
+                // Only add CrudRepository when the classpath PagingAndSortingRepository still
+                // extends CrudRepository (Spring Data 2.x). In 3.x the inheritance was removed
+                // intentionally, so not extending CrudRepository may be a conscious choice.
                 if (pagingAndSortingType != null && !alreadyHasCrud &&
+                        TypeUtils.isAssignableTo(crudRepoTarget,
+                                TypeUtils.asFullyQualified(pagingAndSortingType.getType())) &&
                         pagingAndSortingType.getTypeParameters() != null &&
                         pagingAndSortingType.getTypeParameters().size() == 2) {
 
