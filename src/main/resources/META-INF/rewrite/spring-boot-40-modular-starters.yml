@@ -34,24 +34,28 @@ recipeList:
       artifactId: spring-boot-starter-cache-test
       acceptTransitive: true
       version: 4.0.x
+      scope: test
       onlyIfUsing: org.springframework.boot.test.autoconfigure.core.AutoConfigureCache
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-data-cassandra-test
       acceptTransitive: true
       version: 4.0.x
+      scope: test
       onlyIfUsing: org.springframework.boot.test.autoconfigure.data.cassandra.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-data-jpa-test
       acceptTransitive: true
       version: 4.0.x
+      scope: test
       onlyIfUsing: org.springframework.boot.test.autoconfigure.orm.jpa.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-jdbc-test
       acceptTransitive: true
       version: 4.0.x
+      scope: test
       onlyIfUsing: org.springframework.boot.test.autoconfigure.jdbc.*
 
   # When adopting modular starters, we can sometimes replace direct dependencies with the appropriate starter
@@ -87,6 +91,7 @@ recipeList:
       artifactId: spring-boot-starter-webmvc-test
       acceptTransitive: true
       version: 4.0.x
+      scope: test
       onlyIfUsing: org.springframework.boot.test.autoconfigure.web.servlet.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
@@ -105,12 +110,14 @@ recipeList:
       artifactId: spring-boot-starter-restclient-test
       acceptTransitive: true
       version: 4.0.x
+      scope: test
       onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-resttestclient
       acceptTransitive: true
       version: 4.0.x
+      scope: test
       onlyIfUsing: org.springframework.boot.test.web.client.*
 
   # Update packages to match the new modular starter structure
