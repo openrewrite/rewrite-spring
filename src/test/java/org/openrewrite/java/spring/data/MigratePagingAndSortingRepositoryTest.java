@@ -191,4 +191,29 @@ class MigratePagingAndSortingRepositoryTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void noChangeWhenAlreadyOnSpringData3() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+                  "spring-data-commons-3.*")),
+          //language=java
+          java(
+            """
+              import org.springframework.data.repository.PagingAndSortingRepository;
+
+              public interface UserRepository extends PagingAndSortingRepository<User, Long> {
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              public class User {
+                  private Long id;
+              }
+              """
+          )
+        );
+    }
 }
