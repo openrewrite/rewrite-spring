@@ -18,9 +18,7 @@ package org.openrewrite.java.spring.boot3;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
-import org.openrewrite.xml.XmlVisitor;
 import org.openrewrite.xml.search.FindTags;
-import org.openrewrite.xml.tree.Xml;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -50,14 +48,7 @@ public class RenameLogbackToLogbackSpring extends Recipe {
                                 new FindTags("//springProperty").getVisitor()
                         )
                 ),
-                new XmlVisitor<ExecutionContext>() {
-                    @Override
-                    public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
-                        return document.withSourcePath(
-                                document.getSourcePath().resolveSibling("logback-spring.xml")
-                        );
-                    }
-                }
+                new RenameFile("**/logback.xml", "logback-spring.xml").getVisitor()
         );
     }
 }
