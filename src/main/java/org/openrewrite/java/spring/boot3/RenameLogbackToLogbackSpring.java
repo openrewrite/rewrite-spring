@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.boot3;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
-import org.openrewrite.marker.SearchResult;
 import org.openrewrite.xml.XmlVisitor;
 import org.openrewrite.xml.search.FindTags;
 import org.openrewrite.xml.tree.Xml;
@@ -46,16 +45,10 @@ public class RenameLogbackToLogbackSpring extends Recipe {
         return Preconditions.check(
                 Preconditions.and(
                         new FindSourceFiles("**/logback.xml").getVisitor(),
-                        new XmlVisitor<ExecutionContext>() {
-                            @Override
-                            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
-                                if (!FindTags.find(document, "//springProfile").isEmpty() ||
-                                    !FindTags.find(document, "//springProperty").isEmpty()) {
-                                    return SearchResult.found(document);
-                                }
-                                return document;
-                            }
-                        }
+                        Preconditions.or(
+                                new FindTags("//springProfile").getVisitor(),
+                                new FindTags("//springProperty").getVisitor()
+                        )
                 ),
                 new XmlVisitor<ExecutionContext>() {
                     @Override
