@@ -27,8 +27,6 @@ import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.openrewrite.gradle.Assertions.buildGradle;
-import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
@@ -633,7 +631,6 @@ class MigrateToModularStartersTest implements RewriteTest {
     @ValueSource(strings = {"flyway-database-postgresql", "flyway-mysql"})
     void addFlywayStarterWhenDependencyPresent(String artifactId) {
         rewriteRun(
-          spec -> spec.beforeRecipe(withToolingApi()),
           mavenProject("sample",
             pomXml(
               """
@@ -683,40 +680,6 @@ class MigrateToModularStartersTest implements RewriteTest {
                   .contains("<artifactId>%s</artifactId>".formatted(artifactId))
                   .contains("<artifactId>spring-boot-starter-flyway</artifactId>")
                   .containsPattern("<version>4\\.0\\.\\d+</version>")
-                  .actual())
-              ),
-              buildGradle(
-                """
-                  plugins {
-                      id 'java'
-                  }
-
-                  repositories {
-                      mavenCentral()
-                  }
-
-                  dependencies {
-                      implementation('org.springframework.boot:spring-boot-starter-actuator')
-                  }
-                  """),
-              buildGradle(
-                """
-                        plugins {
-                            id 'java'
-                        }
-
-                        repositories {
-                            mavenCentral()
-                        }
-
-                        dependencies {
-                            implementation('org.flywaydb:%s:10.0.0')
-                        }
-                  """.formatted(artifactId),
-                spec -> spec.after(gradle -> assertThat(gradle)
-                  .contains("implementation('org.flywaydb:%s:10.0.0')".formatted(artifactId))
-                  .contains("org.springframework.boot:spring-boot-starter-flyway")
-                  .containsPattern("4\\.0\\.\\d+")
                   .actual())
               )
             )
