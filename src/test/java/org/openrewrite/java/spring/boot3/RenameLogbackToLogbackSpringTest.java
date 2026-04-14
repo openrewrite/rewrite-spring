@@ -20,6 +20,7 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.xml.Assertions.xml;
 
 class RenameLogbackToLogbackSpringTest implements RewriteTest {
@@ -57,6 +58,8 @@ class RenameLogbackToLogbackSpringTest implements RewriteTest {
               </configuration>
               """,
             spec -> spec.path("src/main/resources/logback.xml")
+                        .afterRecipe(doc -> assertThat(doc.getSourcePath().toString())
+                                .isEqualTo("src/main/resources/logback-spring.xml"))
           )
         );
     }
@@ -88,6 +91,8 @@ class RenameLogbackToLogbackSpringTest implements RewriteTest {
               </configuration>
               """,
             spec -> spec.path("src/main/resources/logback.xml")
+                        .afterRecipe(doc -> assertThat(doc.getSourcePath().toString())
+                                .isEqualTo("src/main/resources/logback-spring.xml"))
           )
         );
     }
@@ -156,6 +161,8 @@ class RenameLogbackToLogbackSpringTest implements RewriteTest {
               </configuration>
               """,
             spec -> spec.path("src/main/resources/logback.xml")
+                        .afterRecipe(doc -> assertThat(doc.getSourcePath().toString())
+                                .isEqualTo("src/main/resources/logback-spring.xml"))
           )
         );
     }
