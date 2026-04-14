@@ -80,6 +80,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.SpringBootProperties_3_0
   - org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
   - org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
+  - org.openrewrite.java.spring.boot3.RenameLogbackToLogbackSpring
   - org.openrewrite.java.spring.boot3.RemoveSolrAutoConfigurationExclude
   - org.openrewrite.java.spring.boot3.MigrateWebMvcTagsToObservationConvention
   - org.openrewrite.java.spring.framework.BeanMethodReturnNull
