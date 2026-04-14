@@ -17,9 +17,8 @@ package org.openrewrite.java.spring.boot3;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
+import org.openrewrite.marker.SearchResult;
 import org.openrewrite.xml.XmlVisitor;
 import org.openrewrite.xml.search.FindTags;
 import org.openrewrite.xml.tree.Xml;
@@ -44,22 +43,28 @@ public class RenameLogbackToLogbackSpring extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new XmlVisitor<ExecutionContext>() {
-            @Override
-            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
-                if (!"logback.xml".equals(document.getSourcePath().getFileName().toString())) {
-                    return document;
+        return Preconditions.check(
+                Preconditions.and(
+                        new FindSourceFiles("**/logback.xml").getVisitor(),
+                        new XmlVisitor<ExecutionContext>() {
+                            @Override
+                            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
+                                if (!FindTags.find(document, "//springProfile").isEmpty() ||
+                                    !FindTags.find(document, "//springProperty").isEmpty()) {
+                                    return SearchResult.found(document);
+                                }
+                                return document;
+                            }
+                        }
+                ),
+                new XmlVisitor<ExecutionContext>() {
+                    @Override
+                    public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
+                        return document.withSourcePath(
+                                document.getSourcePath().resolveSibling("logback-spring.xml")
+                        );
+                    }
                 }
-
-                if (!FindTags.find(document, "//springProfile").isEmpty() ||
-                    !FindTags.find(document, "//springProperty").isEmpty()) {
-                    return document.withSourcePath(
-                            document.getSourcePath().resolveSibling("logback-spring.xml")
-                    );
-                }
-
-                return document;
-            }
-        };
+        );
     }
 }
