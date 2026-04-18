@@ -58,7 +58,7 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                     path: /v3/api-docs
                   swagger-ui:
                     path: /swagger-ui.html
-                  paths-to-match: "/**"
+                  paths-to-match: /**
                 """,
               spec -> spec.path("application.yaml")
             )
