@@ -176,6 +176,36 @@ class AddSpringPropertyTest implements RewriteTest {
     }
 
     @Test
+    void quoteValueContainingColon() {
+        rewriteRun(
+          spec -> spec.recipe(new AddSpringProperty("my.property", "TODO: Follow this link https://example.com/page", null, List.of("*"))),
+          //language=properties
+          properties(
+            """
+              server.port=8080
+              """,
+            """
+              my.property=TODO: Follow this link https://example.com/page
+              server.port=8080
+              """
+          ),
+          //language=yaml
+          yaml(
+            """
+              server:
+                port: 8080
+              """,
+            """
+              server:
+                port: 8080
+              my:
+                property: 'TODO: Follow this link https://example.com/page'
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotChangeToFilesThatDoNotMatch() {
         rewriteRun(
           spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", null, List.of("**/application.properties", "**/application.yml"))),
