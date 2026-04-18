@@ -27,7 +27,6 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * A recipe to uniformly add a property to Spring configuration file. This recipe supports adding properties to
@@ -129,16 +128,7 @@ public class AddSpringProperty extends Recipe {
             yaml.append(indent).append(part).append(":");
             indent = indent + "  ";
         }
-        if (quoteValue(value)) {
-            yaml.append(" \"").append(value).append('"');
-        } else {
-            yaml.append(" ").append(value);
-        }
+        yaml.append(" ").append(org.openrewrite.yaml.internal.StringUtils.quoteIfNeeded(value));
         return new MergeYaml("$", yaml.toString(), true, null, null, null, null, null);
-    }
-
-    private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");
-    private boolean quoteValue(String value) {
-        return scalarNeedsAQuote.matcher(value).matches();
     }
 }
