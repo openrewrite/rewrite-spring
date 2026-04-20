@@ -61,6 +61,15 @@ recipeList:
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: ^8.14
       addIfMissing: false
+  # Spring Boot 4 requires Kotlin 2.2.x (Spring Boot 4.0.5 manages 2.2.21)
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: org.jetbrains.kotlin.*
+      newVersion: 2.2.x
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.jetbrains.kotlin
+      artifactId: "*"
+      newVersion: 2.2.x
+      overrideManagedVersion: true
 
   # Modular starters must run after parent/BOM upgrades so that
   # AddDependency can see the new artifacts are managed and omit explicit versions
