@@ -57,12 +57,10 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
     }
 
     @Test
-    void upgradeKotlinVersionPropertyOverrideInMaven() {
-        // For the typical Spring Boot Kotlin Maven setup (Spring Initializr template),
-        // the <kotlin.version> property in the user's pom is the root of resolution:
-        // BOM-managed kotlin dependencies AND the BOM-managed kotlin-maven-plugin both
-        // resolve via ${kotlin.version}. ChangePropertyValue updates this property,
-        // letting all consumers flow through automatically.
+    void upgradeKotlinMavenPluginVersionProperty() {
+        // When kotlin-maven-plugin carries an explicit <version>${kotlin.version}</version>
+        // and is not BOM-managed (no Spring Boot parent here), UpgradePluginVersion follows
+        // the property reference and bumps the property to a 2.2.x release.
         rewriteRun(
           mavenProject("project",
             //language=xml
@@ -73,23 +71,14 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                     <groupId>com.example</groupId>
                     <artifactId>kotlin-app</artifactId>
                     <version>1.0-SNAPSHOT</version>
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>3.5.7</version>
-                        <relativePath/>
-                    </parent>
                     <properties>
                         <kotlin.version>2.1.21</kotlin.version>
                     </properties>
                     <dependencies>
                         <dependency>
-                            <groupId>org.jetbrains.kotlin</groupId>
-                            <artifactId>kotlin-stdlib</artifactId>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.jetbrains.kotlin</groupId>
-                            <artifactId>kotlin-reflect</artifactId>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                            <version>3.5.7</version>
                         </dependency>
                     </dependencies>
                     <build>
@@ -97,6 +86,7 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                             <plugin>
                                 <groupId>org.jetbrains.kotlin</groupId>
                                 <artifactId>kotlin-maven-plugin</artifactId>
+                                <version>${kotlin.version}</version>
                                 <configuration>
                                     <args>
                                         <arg>-Xjsr305=strict</arg>
