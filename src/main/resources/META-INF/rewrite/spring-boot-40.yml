@@ -61,10 +61,21 @@ recipeList:
   - org.openrewrite.gradle.UpdateGradleWrapper:
       version: ^8.14
       addIfMissing: false
-  # Spring Boot 4 requires Kotlin 2.2.x (Spring Boot 4.0.5 manages 2.2.21)
+  # Spring Boot 4 requires Kotlin 2.2.x (Spring Boot 4.0.5 manages 2.2.21).
+  # Gradle: bump Kotlin plugin declarations and any explicit Kotlin dependencies.
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.jetbrains.kotlin.*
       newVersion: 2.2.x
+  # Maven: update the conventional <kotlin.version> property used by Spring Initializr's
+  # Kotlin template. This propagates to BOM-managed kotlin dependencies AND to the
+  # kotlin-maven-plugin (whose pluginManagement entry in spring-boot-dependencies
+  # also uses ${kotlin.version}). UpgradeDependencyVersion alone leaves the override
+  # property orphaned because its property-update path is gated against BOM-managed deps.
+  - org.openrewrite.maven.ChangePropertyValue:
+      key: kotlin.version
+      newValue: 2.2.21
+  # Catch any explicit kotlin dependency or plugin-dependency versions not covered
+  # by the above (e.g. Gradle, or Maven projects without the property convention).
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.jetbrains.kotlin
       artifactId: "*"

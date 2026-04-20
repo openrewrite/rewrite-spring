@@ -22,6 +22,8 @@ import org.openrewrite.test.RewriteTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.buildGradleKts;
 import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.maven.Assertions.pomXml;
 
 class UpgradeSpringBoot_4_0Test implements RewriteTest {
 
@@ -50,6 +52,68 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                   .containsPattern("val kotlinVersion = \"2\\.2\\.\\d+\"");
                 return actual;
             })
+          )
+        );
+    }
+
+    @Test
+    void upgradeKotlinVersionPropertyOverrideInMaven() {
+        // For the typical Spring Boot Kotlin Maven setup (Spring Initializr template),
+        // the <kotlin.version> property in the user's pom is the root of resolution:
+        // BOM-managed kotlin dependencies AND the BOM-managed kotlin-maven-plugin both
+        // resolve via ${kotlin.version}. ChangePropertyValue updates this property,
+        // letting all consumers flow through automatically.
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>kotlin-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.7</version>
+                        <relativePath/>
+                    </parent>
+                    <properties>
+                        <kotlin.version>2.1.21</kotlin.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.jetbrains.kotlin</groupId>
+                            <artifactId>kotlin-stdlib</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.jetbrains.kotlin</groupId>
+                            <artifactId>kotlin-reflect</artifactId>
+                        </dependency>
+                    </dependencies>
+                    <build>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.jetbrains.kotlin</groupId>
+                                <artifactId>kotlin-maven-plugin</artifactId>
+                                <configuration>
+                                    <args>
+                                        <arg>-Xjsr305=strict</arg>
+                                    </args>
+                                </configuration>
+                            </plugin>
+                        </plugins>
+                    </build>
+                </project>
+                """,
+              spec -> spec.after(actual -> {
+                  assertThat(actual)
+                    .describedAs("kotlin.version property should be bumped to 2.2.x")
+                    .containsPattern("<kotlin\\.version>2\\.2\\.\\d+</kotlin\\.version>");
+                  return actual;
+              })
+            )
           )
         );
     }
