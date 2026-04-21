@@ -2661,6 +2661,33 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot3.RenameLogbackToLogbackSpring
+examples:
+- description: '`RenameLogbackToLogbackSpringTest#renameWhenSpringProfilePresent`'
+  sources:
+  - before: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <configuration>
+        <springProfile name="dev">
+          <logger name="com.example" level="DEBUG"/>
+        </springProfile>
+        <root level="INFO">
+          <appender-ref ref="STDOUT"/>
+        </root>
+      </configuration>
+    after: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <configuration>
+        <springProfile name="dev">
+          <logger name="com.example" level="DEBUG"/>
+        </springProfile>
+        <root level="INFO">
+          <appender-ref ref="STDOUT"/>
+        </root>
+      </configuration>
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.ReplaceRestTemplateBuilderMethods
 examples:
 - description: '`ReplaceRestTemplateBuilderMethodsTest#replacesSetConnectTimeout`'
@@ -3810,7 +3837,7 @@ examples:
           path: /v3/api-docs
         swagger-ui:
           path: /swagger-ui.html
-        paths-to-match: "/**"
+        paths-to-match: /**
     path: application.yaml
     language: yaml
 ---
@@ -4564,6 +4591,29 @@ examples:
           private final String someArg;
           public CustomMvcConfigurer(String someArg) {
               this.someArg = someArg;
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
+examples:
+- description: '`UseObjectUtilsIsEmptyTest#replacesForStringArgument`'
+  sources:
+  - before: |
+      import org.springframework.util.StringUtils;
+
+      class A {
+          boolean test(String s) {
+              return StringUtils.isEmpty(s);
+          }
+      }
+    after: |
+      import org.springframework.util.ObjectUtils;
+
+      class A {
+          boolean test(String s) {
+              return ObjectUtils.isEmpty(s);
           }
       }
     language: java
