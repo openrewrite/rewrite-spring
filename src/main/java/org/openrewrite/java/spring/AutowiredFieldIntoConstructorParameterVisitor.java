@@ -188,7 +188,8 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             JavaType fieldType = type.getType();
             if (classDecl.getKind() != ClassDeclaration.Kind.Type.Class
                     || !className.equals(classDecl.getSimpleName())
-                    || TypeUtils.asFullyQualified(fieldType) == null) {
+                    || fieldType == null
+                    || fieldType instanceof JavaType.Primitive) {
                 return block;
             }
 

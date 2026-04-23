@@ -744,4 +744,118 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
         );
     }
 
+    @Test
+    void fieldWithArrayType() {
+        //language=java
+        rewriteRun(
+          spec -> spec.afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private String[] a;
+
+              }
+              """,
+            """
+              package demo;
+
+              public class A {
+
+                  private final String[] a;
+
+                  A(String[] a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithAutowiredRequired() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired(required = false)
+                  private String a;
+
+                  A() {
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              public class A {
+
+                  private final String a;
+
+                  A(String a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithMultipleAnnotations() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.beans.factory.annotation.Qualifier;
+
+              public class A {
+
+                  @Autowired
+                  @Qualifier("myBean")
+                  private String a;
+
+                  A() {
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Qualifier;
+
+              public class A {
+
+                  @Qualifier("myBean")
+                  private final String a;
+
+                  A(String a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
 }
