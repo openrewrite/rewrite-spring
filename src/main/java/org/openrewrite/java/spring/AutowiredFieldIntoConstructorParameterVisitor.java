@@ -29,6 +29,7 @@ import org.openrewrite.java.tree.J.VariableDeclarations;
 import org.openrewrite.java.tree.JavaType.FullyQualified;
 import org.openrewrite.marker.Markers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -143,6 +144,33 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
         return mv;
     }
 
+    private static <P> void addImportsForType(JavaTemplate.Builder template, JavaType type, JavaVisitor<P> visitor) {
+        List<String> fqns = collectFullyQualifiedNames(type);
+        template.imports(fqns.toArray(new String[0]));
+        for (String fqn : fqns) {
+            visitor.maybeAddImport(fqn);
+        }
+    }
+
+    private static List<String> collectFullyQualifiedNames(JavaType type) {
+        List<String> fqns = new ArrayList<>();
+        if (type instanceof JavaType.Parameterized) {
+            JavaType.Parameterized pt = (JavaType.Parameterized) type;
+            fqns.add(pt.getType().getFullyQualifiedName());
+            pt.getTypeParameters().forEach(tp -> fqns.addAll(collectFullyQualifiedNames(tp)));
+        } else if (type instanceof JavaType.GenericTypeVariable) {
+            ((JavaType.GenericTypeVariable) type).getBounds().forEach(b -> fqns.addAll(collectFullyQualifiedNames(b)));
+        } else if (type instanceof JavaType.Array) {
+            fqns.addAll(collectFullyQualifiedNames(((JavaType.Array) type).getElemType()));
+        } else {
+            FullyQualified fq = TypeUtils.asFullyQualified(type);
+            if (fq != null) {
+                fqns.add(fq.getFullyQualifiedName());
+            }
+        }
+        return fqns;
+    }
+
 
     @RequiredArgsConstructor
     private static class AddConstructorVisitor extends JavaVisitor<ExecutionContext> {
@@ -152,58 +180,48 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
 
         @Override
         public J visitBlock(Block block, ExecutionContext p) {
-            if (getCursor().getParent() != null) {
-                Object n = getCursor().getParent().getValue();
-                if (n instanceof ClassDeclaration) {
-                    ClassDeclaration classDecl = (ClassDeclaration) n;
-                    JavaType.FullyQualified typeFqn = TypeUtils.asFullyQualified(type.getType());
-                    if (typeFqn != null && classDecl.getKind() == ClassDeclaration.Kind.Type.Class && className.equals(classDecl.getSimpleName())) {
-                        JavaTemplate.Builder template = JavaTemplate.builder("" +
-                                classDecl.getSimpleName() + "(" + typeFqn.getClassName() + " " + fieldName + ") {\n" +
-                                "this." + fieldName + " = " + fieldName + ";\n" +
-                                "}\n"
-                        ).contextSensitive();
-                        FullyQualified fq = TypeUtils.asFullyQualified(type.getType());
-                        if (fq != null) {
-                            template.imports(fq.getFullyQualifiedName());
-                            maybeAddImport(fq);
-                        }
-                        Optional<Statement> firstMethod = block.getStatements().stream().filter(MethodDeclaration.class::isInstance).findFirst();
-
-                        return firstMethod.map(statement ->
-                                (J) template.build()
-                                    .apply(getCursor(),
-                                        statement.getCoordinates().before()
-                                    )
-                            )
-                            .orElseGet(() ->
-                                template.build()
-                                    .apply(
-                                        getCursor(),
-                                        block.getCoordinates().lastStatement()
-                                    )
-                            );
-                    }
-                }
+            if (getCursor().getParent() == null
+                    || !(getCursor().getParent().getValue() instanceof ClassDeclaration)) {
+                return block;
             }
-            return block;
+            ClassDeclaration classDecl = (ClassDeclaration) getCursor().getParent().getValue();
+            JavaType fieldType = type.getType();
+            if (classDecl.getKind() != ClassDeclaration.Kind.Type.Class
+                    || !className.equals(classDecl.getSimpleName())
+                    || TypeUtils.asFullyQualified(fieldType) == null) {
+                return block;
+            }
+
+            String fieldTypeStr = type.toString();
+            JavaTemplate.Builder template = JavaTemplate.builder(
+                    classDecl.getSimpleName() + "(" + fieldTypeStr + " " + fieldName + ") {\n" +
+                    "this." + fieldName + " = " + fieldName + ";\n" +
+                    "}\n"
+            ).contextSensitive();
+            addImportsForType(template, fieldType, this);
+
+            Optional<Statement> firstMethod = block.getStatements().stream()
+                    .filter(MethodDeclaration.class::isInstance).findFirst();
+            return firstMethod.map(statement ->
+                    (J) template.build()
+                        .apply(getCursor(), statement.getCoordinates().before())
+                )
+                .orElseGet(() ->
+                    template.build()
+                        .apply(getCursor(), block.getCoordinates().lastStatement())
+                );
         }
     }
 
     private static class AddConstructorParameterAndAssignment extends JavaIsoVisitor<ExecutionContext> {
         private final MethodDeclaration constructor;
         private final String fieldName;
-        private final String methodType;
+        private final TypeTree type;
 
         public AddConstructorParameterAndAssignment(MethodDeclaration constructor, String fieldName, TypeTree type) {
             this.constructor = constructor;
             this.fieldName = fieldName;
-            JavaType.FullyQualified fq = TypeUtils.asFullyQualified(type.getType());
-            if (fq != null) {
-                methodType = fq.getClassName();
-            } else {
-                throw new IllegalArgumentException("Unable to determine parameter type");
-            }
+            this.type = type;
         }
 
         @Override
@@ -212,11 +230,12 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             if (md == this.constructor && md.getBody() != null) {
                 List<J> params = md.getParameters().stream().filter(s -> !(s instanceof J.Empty)).collect(toList());
                 String paramsStr = Stream.concat(params.stream()
-                        .map(s -> "#{}"), Stream.of(methodType + " " + fieldName)).collect(joining(", "));
+                        .map(s -> "#{}"), Stream.of(type.toString() + " " + fieldName)).collect(joining(", "));
 
-                md = JavaTemplate.builder(paramsStr)
-                    .contextSensitive()
-                    .build()
+                JavaTemplate.Builder templateBuilder = JavaTemplate.builder(paramsStr)
+                    .contextSensitive();
+                addImportsForType(templateBuilder, type.getType(), this);
+                md = templateBuilder.build()
                     .apply(
                         getCursor(),
                         md.getCoordinates().replaceParameters(),
