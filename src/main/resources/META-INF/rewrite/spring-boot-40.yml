@@ -151,6 +151,7 @@ description: >-
 preconditions:
   - org.openrewrite.gradle.search.ModuleHasPlugin:
       pluginId: io.spring.dependency-management
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.boot
