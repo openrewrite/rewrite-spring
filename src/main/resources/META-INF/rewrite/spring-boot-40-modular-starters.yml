@@ -448,6 +448,16 @@ recipeList:
       oldPackageName: org.springframework.boot.actuate.health
       newPackageName: org.springframework.boot.health.contributor
       recursive: true
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.boot.actuate.health.Health getHealth(..)
+      newMethodName: health
+      matchOverrides: true
+      ignoreDefinition: false
+  # spring-boot-micrometer-metrics
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.autoconfigure.metrics.export.*
+      newPackageName: org.springframework.boot.micrometer.metrics.autoconfigure.export.*
+      recursive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway

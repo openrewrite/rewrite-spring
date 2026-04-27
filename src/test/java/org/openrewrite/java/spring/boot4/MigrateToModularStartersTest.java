@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot4;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -443,6 +444,48 @@ class MigrateToModularStartersTest implements RewriteTest {
               //language=java
               java(
                 """
+                  import org.springframework.boot.actuate.health.AbstractHealthIndicator;
+                  import org.springframework.boot.actuate.health.Health;
+                  import org.springframework.boot.actuate.health.HealthIndicator;
+
+                  class MyHealthIndicator extends AbstractHealthIndicator {
+                      @Override
+                      protected void doHealthCheck(Health.Builder builder) {
+                          builder.up().build();
+                      }
+
+                      protected HealthIndicator getHealthIndicator(Health.Builder builder) {
+                          return builder.up().build().getHealth();
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+                  import org.springframework.boot.health.contributor.Health;
+                  import org.springframework.boot.health.contributor.HealthIndicator;
+
+                  class MyHealthIndicator extends AbstractHealthIndicator {
+                      @Override
+                      protected void doHealthCheck(Health.Builder builder) {
+                          builder.up().build();
+                      }
+
+                      protected HealthIndicator getHealthIndicator(Health.Builder builder) {
+                          return builder.up().build().health();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void migrategetHealthMethodRenaming() {
+            rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              //language=java
+              java(
+                """
                   import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 
                   class A {
@@ -724,6 +767,39 @@ class MigrateToModularStartersTest implements RewriteTest {
                 .containsPattern("4\\.0\\.\\d+")
                 .actual())
             )
+          )
+        );
+    }
+
+    @Test
+    @Disabled("LST contains missing or invalid type information which causes the recipe to not be applied")
+    void migrateDynatraceMeticsConfiguration() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+              import org.springframework.boot.actuate.autoconfigure.metrics.export.dynatrace.DynatraceMetricsExportAutoConfiguration;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.context.annotation.Import;
+
+               @Configuration
+               @ConditionalOnProperty("vcap.services.dynatrace.instance_name")
+               @Import(DynatraceMetricsExportAutoConfiguration.class)
+               class CustomDynatraceRegistryConfiguration {}
+              """
+            ,
+            """
+              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+              import org.springframework.boot.micrometer.metrics.autoconfigure.export.dynatrace.DynatraceMetricsExportAutoConfiguration;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.context.annotation.Import;
+
+               @Configuration
+               @ConditionalOnProperty("vcap.services.dynatrace.instance_name")
+               @Import(DynatraceMetricsExportAutoConfiguration.class)
+               class CustomDynatraceRegistryConfiguration {}
+              """
           )
         );
     }
