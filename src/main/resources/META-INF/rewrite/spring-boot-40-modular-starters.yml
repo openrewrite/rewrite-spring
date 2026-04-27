@@ -448,15 +448,16 @@ recipeList:
       oldPackageName: org.springframework.boot.actuate.health
       newPackageName: org.springframework.boot.health.contributor
       recursive: true
+  # the functional interface HealthIndicator lost the method getHealth(boolean includeDetails) in favor of health(boolean includeDetails)
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: org.springframework.boot.actuate.health.Health getHealth(..)
+      methodPattern: org.springframework.boot.health.contributor.HealthIndicator getHealth(..)
       newMethodName: health
       matchOverrides: true
       ignoreDefinition: false
   # spring-boot-micrometer-metrics
   - org.openrewrite.java.ChangePackage:
-      oldPackageName: org.springframework.boot.actuate.autoconfigure.metrics.export.*
-      newPackageName: org.springframework.boot.micrometer.metrics.autoconfigure.export.*
+      oldPackageName: org.springframework.boot.actuate.autoconfigure.metrics.export.dynatrace
+      newPackageName: org.springframework.boot.micrometer.metrics.autoconfigure.export.dynatrace
       recursive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
