@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.boot4;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -466,41 +465,29 @@ class MigrateToModularStartersTest implements RewriteTest {
         }
 
         @Test
-        @Disabled("test doesa not work as expected")
         void migrateGetHealthMethodRenaming() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               //language=java
               java(
                 """
-                  import org.springframework.boot.actuate.health.AbstractHealthIndicator;
                   import org.springframework.boot.actuate.health.Health;
                   import org.springframework.boot.actuate.health.HealthIndicator;
 
-                  class MyHealthIndicator extends AbstractHealthIndicator {
+                  class MyHealthIndicator implements HealthIndicator {
                       @Override
-                      protected void doHealthCheck(Health.Builder builder) {
-                          builder.up().build();
-                      }
-
-                      protected Health myHealth(Health.Builder builder) {
-                          return builder.up().build().getHealth();
+                      public Health getHealth() {
+                          return Health.up().build();
                       }
                   }
                   """,
                 """
-                  import org.springframework.boot.health.contributor.AbstractHealthIndicator;
                   import org.springframework.boot.health.contributor.Health;
                   import org.springframework.boot.health.contributor.HealthIndicator;
 
-                  class MyHealthIndicator extends AbstractHealthIndicator {
+                  class MyHealthIndicator implements HealthIndicator {
                       @Override
-                      protected void doHealthCheck(Health.Builder builder) {
-                          builder.up().build();
-                      }
-
-                      protected Health myHealth(Health.Builder builder) {
-                          return builder.up().build().health();
+                      public Health health() {
+                          return Health.up().build();
                       }
                   }
                   """
@@ -773,9 +760,9 @@ class MigrateToModularStartersTest implements RewriteTest {
     }
 
     @Test
-    @Disabled("LST contains missing or invalid type information which causes the recipe to not be applied")
     void migrateDynatraceMeticsConfiguration() {
         rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.none()),
           //language=java
           java(
             """

@@ -443,17 +443,17 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.actuate.health.ReactiveHealthContributorRegistry
       newFullyQualifiedTypeName: org.springframework.boot.health.registry.ReactiveHealthContributorRegistry
+  # Remaining types move to health.contributor (catch-all)
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.health
+      newPackageName: org.springframework.boot.health.contributor
+      recursive: true
   # the functional interface HealthIndicator lost the method getHealth(boolean includeDetails) in favor of health(boolean includeDetails)
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.boot.health.contributor.HealthIndicator getHealth(..)
       newMethodName: health
       matchOverrides: true
       ignoreDefinition: false
-  # Remaining types move to health.contributor (catch-all)
-  - org.openrewrite.java.ChangePackage:
-      oldPackageName: org.springframework.boot.actuate.health
-      newPackageName: org.springframework.boot.health.contributor
-      recursive: true
   # spring-boot-micrometer-metrics
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.actuate.autoconfigure.metrics.export.dynatrace
