@@ -454,11 +454,6 @@ recipeList:
       newMethodName: health
       matchOverrides: true
       ignoreDefinition: false
-  # spring-boot-micrometer-metrics
-  - org.openrewrite.java.ChangePackage:
-      oldPackageName: org.springframework.boot.actuate.autoconfigure.metrics.export.dynatrace
-      newPackageName: org.springframework.boot.micrometer.metrics.autoconfigure.export.dynatrace
-      recursive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway

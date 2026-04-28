@@ -759,36 +759,4 @@ class MigrateToModularStartersTest implements RewriteTest {
         );
     }
 
-    @Test
-    void migrateDynatraceMeticsConfiguration() {
-        rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
-          //language=java
-          java(
-            """
-              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-              import org.springframework.boot.actuate.autoconfigure.metrics.export.dynatrace.DynatraceMetricsExportAutoConfiguration;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.context.annotation.Import;
-
-               @Configuration
-               @ConditionalOnProperty("vcap.services.dynatrace.instance_name")
-               @Import(DynatraceMetricsExportAutoConfiguration.class)
-               class CustomDynatraceRegistryConfiguration {}
-              """
-            ,
-            """
-              import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-              import org.springframework.boot.micrometer.metrics.autoconfigure.export.dynatrace.DynatraceMetricsExportAutoConfiguration;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.context.annotation.Import;
-
-               @Configuration
-               @ConditionalOnProperty("vcap.services.dynatrace.instance_name")
-               @Import(DynatraceMetricsExportAutoConfiguration.class)
-               class CustomDynatraceRegistryConfiguration {}
-              """
-          )
-        );
-    }
 }
