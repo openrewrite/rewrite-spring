@@ -48,6 +48,8 @@ public class AddConfigurationAnnotationIfBeansPresent extends ScanningRecipe<Set
     private static final String FQN_ENABLE_FEIGN_CLIENTS = "org.springframework.cloud.openfeign.EnableFeignClients";
     private static final String FQN_LOAD_BALANCER_CLIENT = "org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient";
     private static final String FQN_LOAD_BALANCER_CLIENTS = "org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients";
+    private static final String FQN_RIBBON_CLIENT = "org.springframework.cloud.netflix.ribbon.RibbonClient";
+    private static final String FQN_RIBBON_CLIENTS = "org.springframework.cloud.netflix.ribbon.RibbonClients";
 
     @Getter
     final String displayName = "Add missing `@Configuration` annotation";
@@ -69,9 +71,9 @@ public class AddConfigurationAnnotationIfBeansPresent extends ScanningRecipe<Set
                 JavaType.FullyQualified annoType = TypeUtils.asFullyQualified(annotation.getType());
                 if (annoType != null) {
                     String fqn = annoType.getFullyQualifiedName();
-                    if (FQN_FEIGN_CLIENT.equals(fqn) || FQN_LOAD_BALANCER_CLIENT.equals(fqn)) {
+                    if (FQN_FEIGN_CLIENT.equals(fqn) || FQN_LOAD_BALANCER_CLIENT.equals(fqn) || FQN_RIBBON_CLIENT.equals(fqn)) {
                         collectClassLiterals(annotation, "configuration", scopedConfigurationClasses);
-                    } else if (FQN_ENABLE_FEIGN_CLIENTS.equals(fqn) || FQN_LOAD_BALANCER_CLIENTS.equals(fqn)) {
+                    } else if (FQN_ENABLE_FEIGN_CLIENTS.equals(fqn) || FQN_LOAD_BALANCER_CLIENTS.equals(fqn) || FQN_RIBBON_CLIENTS.equals(fqn)) {
                         collectClassLiterals(annotation, "defaultConfiguration", scopedConfigurationClasses);
                     }
                 }
