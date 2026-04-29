@@ -47,8 +47,8 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                 name: test
                 """,
               """
-              name: main
-              """,
+                name: main
+                """,
               spec -> spec.path("application.yml").noTrim()
             ),
             yaml(
@@ -78,8 +78,8 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                 name: test
                 """,
               """
-              name: main
-              """,
+                name: main
+                """,
               spec -> spec.path("application.yml").noTrim()
             ),
             yaml(
@@ -121,37 +121,37 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                     root: DEBUG
                 """,
               """
-              server:
-                port: 8080
-              """,
+                server:
+                  port: 8080
+                """,
               spec -> spec.path("application.yml").noTrim()
             ),
             yaml(
               """
-              server:
-                port: 9090
-              spring:
-                datasource:
-                  password: devpassword
-              """,
+                server:
+                  port: 9090
+                spring:
+                  datasource:
+                    password: devpassword
+                """,
               """
-              server:
-                port: 9090
-              spring:
-                datasource:
-                  password: devpassword
-                  url: jdbc:mysql://devserver
-                  driver-class-name: com.mysql.jdbc.Driver
+                server:
+                  port: 9090
+                spring:
+                  datasource:
+                    password: devpassword
+                    url: jdbc:mysql://devserver
+                    driver-class-name: com.mysql.jdbc.Driver
 
-                jpa:
-                  hibernate:
-                    ddl-auto: update
-                  show-sql: true
+                  jpa:
+                    hibernate:
+                      ddl-auto: update
+                    show-sql: true
 
-              logging:
-                level:
-                  root: DEBUG
-              """,
+                logging:
+                  level:
+                    root: DEBUG
+                """,
               spec -> spec.path("application-dev.yml").noTrim()
             )
           )
@@ -173,19 +173,19 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                 name: dev
                 """,
               """
-              name: main
-              """,
+                name: main
+                """,
               spec -> spec.path("application.yml").noTrim()
             ),
             yaml(
               """
-              existing: property
-              """,
+                existing: property
+                """,
               """
-              existing: property
+                existing: property
 
-              name: dev
-              """,
+                name: dev
+                """,
               spec -> spec.path("application-dev.yml").noTrim()
             )
           )
@@ -207,8 +207,8 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                 name: test
                 """,
               """
-              name: main
-              """,
+                name: main
+                """,
               spec -> spec.path("application.yml").noTrim()
             ),
             yaml(
@@ -218,8 +218,8 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
             ),
             yaml(
               """
-              existing: property
-              """,
+                existing: property
+                """,
               spec -> spec.path("application-dev.yml")
             )
           )
@@ -278,8 +278,8 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                 name: test
                 """,
               """
-              name: main
-              """,
+                name: main
+                """,
               spec -> spec.path("application.yml").noTrim()
             ),
             yaml(
@@ -306,25 +306,25 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
     @Test
     void onCloudPlatformLeftAsIs() {
         rewriteRun(
-            srcMainResources(
-                yaml(
-                    //language=yaml
-                    """
-                    name: main
-                    ---
-                    spring:
-                      config:
-                        activate:
-                          on-cloud-platform: kubernetes
-                    logging:
-                      structured:
-                        format:
-                          console: logstash
-                    name: test
-                    """,
-                    spec -> spec.path("application.yml")
-                )
+          srcMainResources(
+            yaml(
+              //language=yaml
+              """
+                name: main
+                ---
+                spring:
+                  config:
+                    activate:
+                      on-cloud-platform: kubernetes
+                logging:
+                  structured:
+                    format:
+                      console: logstash
+                name: test
+                """,
+              spec -> spec.path("application.yml")
             )
+          )
         );
     }
 }

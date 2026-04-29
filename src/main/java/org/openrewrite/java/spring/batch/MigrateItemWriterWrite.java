@@ -59,7 +59,7 @@ public class MigrateItemWriterWrite extends Recipe {
 
                 J.VariableDeclarations parameter = (J.VariableDeclarations) m.getParameters().get(0);
                 if (!(parameter.getTypeExpression() instanceof J.ParameterizedType) ||
-                    ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() == null) {
+                        ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() == null) {
                     return m;
                 }
                 String chunkTypeParameter = ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters().get(0).toString();
@@ -183,8 +183,8 @@ public class MigrateItemWriterWrite extends Recipe {
 
         private boolean isParameter(@Nullable Expression maybeParameter) {
             return maybeParameter instanceof J.Identifier &&
-                   ((J.Identifier) maybeParameter).getFieldType() != null &&
-                   ((J.Identifier) maybeParameter).getFieldType().getName().equals(parameterName);
+                    ((J.Identifier) maybeParameter).getFieldType() != null &&
+                    ((J.Identifier) maybeParameter).getFieldType().getName().equals(parameterName);
         }
 
         private static J.MethodInvocation newGetItemsMethodInvocation(JRightPadded<Expression> select) {

@@ -64,7 +64,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                             }
 
                             String message = " Manual migration to `SocketConfig.Builder.setSoTimeout(Timeout)` necessary; see: " +
-                                             "https://docs.spring.io/spring-framework/docs/6.0.0/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html#setReadTimeout(int)";
+                                    "https://docs.spring.io/spring-framework/docs/6.0.0/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html#setReadTimeout(int)";
                             if (method.getComments().stream().noneMatch(c -> c.printComment(getCursor()).contains(message))) {
                                 return method.withPrefix(method.getPrefix().withComments(ListUtils.concat(method.getComments(),
                                         new TextComment(false, message, "\n" + method.getPrefix().getIndent(), Markers.EMPTY)
@@ -88,8 +88,8 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                     public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
                         for (Statement statement : block.getStatements()) {
                             if (statement instanceof J.VariableDeclarations &&
-                                TypeUtils.isAssignableTo(POOLING_CONNECTION_MANAGER,
-                                        ((J.VariableDeclarations) statement).getTypeAsFullyQualified())) {
+                                    TypeUtils.isAssignableTo(POOLING_CONNECTION_MANAGER,
+                                            ((J.VariableDeclarations) statement).getTypeAsFullyQualified())) {
                                 J.VariableDeclarations varDecl = (J.VariableDeclarations) statement;
                                 maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
                                 maybeAddImport("java.util.concurrent.TimeUnit");

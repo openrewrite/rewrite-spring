@@ -30,7 +30,7 @@ class NoHttpExchangeAnnotationTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new NoHttpExchangeAnnotation())
           .parser(JavaParser.fromJavaVersion()
-              .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.+"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.+"));
     }
 
     @DocumentExample

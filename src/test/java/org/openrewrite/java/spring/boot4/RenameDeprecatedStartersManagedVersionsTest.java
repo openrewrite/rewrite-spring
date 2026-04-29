@@ -30,8 +30,8 @@ class RenameDeprecatedStartersManagedVersionsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-                .recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
-                .beforeRecipe(withToolingApi());
+          .recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
+          .beforeRecipe(withToolingApi());
     }
 
 

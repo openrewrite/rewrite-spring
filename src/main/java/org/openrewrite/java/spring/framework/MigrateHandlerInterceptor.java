@@ -70,8 +70,8 @@ public class MigrateHandlerInterceptor extends Recipe {
             public @Nullable J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (mi.getMethodType() != null &&
-                    TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR_INTERFACE) &&
-                    mi.getSelect() instanceof J.Identifier && "super".equals(((J.Identifier) mi.getSelect()).getSimpleName())) {
+                        TypeUtils.isOfClassType(mi.getMethodType().getDeclaringType(), HANDLER_INTERCEPTOR_INTERFACE) &&
+                        mi.getSelect() instanceof J.Identifier && "super".equals(((J.Identifier) mi.getSelect()).getSimpleName())) {
                     if (PRE_HANDLE.matches(mi)) {
                         // No need to call super for the hardcoded `true` return value there
                         return JavaTemplate.apply("true", getCursor(), mi.getCoordinates().replace());

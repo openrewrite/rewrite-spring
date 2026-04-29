@@ -48,8 +48,8 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
               """,
             spec -> spec.after(actual -> {
                 return assertThat(actual)
-                        .describedAs("Kotlin version should be bumped to 2.2.x for Spring Boot 4")
-                        .containsPattern("val kotlinVersion = \"2\\.2\\.\\d+\"").actual();
+                  .describedAs("Kotlin version should be bumped to 2.2.x for Spring Boot 4")
+                  .containsPattern("val kotlinVersion = \"2\\.2\\.\\d+\"").actual();
             })
           )
         );
@@ -98,8 +98,8 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                 """,
               spec -> spec.after(actual -> {
                   return assertThat(actual)
-                          .describedAs("kotlin.version property should be bumped to 2.2.x")
-                          .containsPattern("<kotlin\\.version>2\\.2\\.\\d+</kotlin\\.version>").actual();
+                    .describedAs("kotlin.version property should be bumped to 2.2.x")
+                    .containsPattern("<kotlin\\.version>2\\.2\\.\\d+</kotlin\\.version>").actual();
               })
             )
           )

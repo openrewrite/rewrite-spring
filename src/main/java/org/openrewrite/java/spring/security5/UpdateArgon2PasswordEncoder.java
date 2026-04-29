@@ -60,7 +60,7 @@ public class UpdateArgon2PasswordEncoder extends Recipe {
     String displayName = "Use new `Argon2PasswordEncoder` factory methods";
 
     String description = "In Spring Security 5.8 some `Argon2PasswordEncoder` constructors have been deprecated in favor of factory methods. " +
-                "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_argon2passwordencoder) for more information.";
+            "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_argon2passwordencoder) for more information.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

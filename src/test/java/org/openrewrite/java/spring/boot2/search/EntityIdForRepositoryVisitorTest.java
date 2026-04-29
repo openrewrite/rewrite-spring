@@ -44,12 +44,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Employee {
-                @Id String id;
-            }
-            """
+              public class Employee {
+                  @Id String id;
+              }
+              """
           ),
           java(
             """
@@ -74,10 +74,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            public class Employee {
-                String id;
-            }
-            """
+              public class Employee {
+                  String id;
+              }
+              """
           ),
           java(
             """
@@ -96,12 +96,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Employee {
-                @Id String id;
-            }
-            """
+              public class Employee {
+                  @Id String id;
+              }
+              """
           ),
           java(
             """
@@ -122,12 +122,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Employee {
-                @Id String id;
-            }
-            """
+              public class Employee {
+                  @Id String id;
+              }
+              """
           ),
           java(
             """
@@ -152,12 +152,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Employee {
-                @Id Integer id;
-            }
-            """
+              public class Employee {
+                  @Id Integer id;
+              }
+              """
           ),
           java(
             """
@@ -182,12 +182,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Employee {
-                @Id String id;
-            }
-            """
+              public class Employee {
+                  @Id String id;
+              }
+              """
           ),
           java(
             """
@@ -206,12 +206,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Employee {
-                @Id CharSequence id;
-            }
-            """
+              public class Employee {
+                  @Id CharSequence id;
+              }
+              """
           ),
           java(
             """
@@ -230,12 +230,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Employee {
-                @Id int id;
-            }
-            """
+              public class Employee {
+                  @Id int id;
+              }
+              """
           ),
           java(
             """
@@ -254,12 +254,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
             """
@@ -282,12 +282,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
             """
@@ -310,21 +310,21 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
-                """
-            import org.springframework.data.repository.NoRepositoryBean;
-            import org.springframework.data.repository.Repository;
-
-            @NoRepositoryBean
-            interface MyIntermediateRepository<T extends Customer, ID extends Number> extends Repository<T, ID>{}
             """
+              import org.springframework.data.repository.NoRepositoryBean;
+              import org.springframework.data.repository.Repository;
+
+              @NoRepositoryBean
+              interface MyIntermediateRepository<T extends Customer, ID extends Number> extends Repository<T, ID>{}
+              """
           ),
           java(
             """
@@ -343,21 +343,21 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
-                """
-            import org.springframework.data.repository.NoRepositoryBean;
-            import org.springframework.data.repository.Repository;
-
-            @NoRepositoryBean
-            interface MyOtherIntermediateRepository1<T extends Customer> extends Repository<T, Long>{}
             """
+              import org.springframework.data.repository.NoRepositoryBean;
+              import org.springframework.data.repository.Repository;
+
+              @NoRepositoryBean
+              interface MyOtherIntermediateRepository1<T extends Customer> extends Repository<T, Long>{}
+              """
           ),
           java(
             """
@@ -376,21 +376,21 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
-                """
-            import org.springframework.data.repository.NoRepositoryBean;
-            import org.springframework.data.repository.Repository;
-
-            @NoRepositoryBean
-            interface MyOtherIntermediateRepository2<ID extends Number> extends Repository<Customer, ID>{}
             """
+              import org.springframework.data.repository.NoRepositoryBean;
+              import org.springframework.data.repository.Repository;
+
+              @NoRepositoryBean
+              interface MyOtherIntermediateRepository2<ID extends Number> extends Repository<Customer, ID>{}
+              """
           ),
           java(
             """
@@ -409,21 +409,21 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
-                """
-            import org.springframework.data.repository.NoRepositoryBean;
-            import org.springframework.data.repository.Repository;
-
-            @NoRepositoryBean
-            interface MyOtherIntermediateRepository2<ID extends Number, T> extends Repository<Customer, ID>, Iterator<T>{}
             """
+              import org.springframework.data.repository.NoRepositoryBean;
+              import org.springframework.data.repository.Repository;
+
+              @NoRepositoryBean
+              interface MyOtherIntermediateRepository2<ID extends Number, T> extends Repository<Customer, ID>, Iterator<T>{}
+              """
           ),
           java(
             """
@@ -443,30 +443,30 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
-                """
-            import org.springframework.data.repository.NoRepositoryBean;
-            import org.springframework.data.repository.Repository;
-
-            @NoRepositoryBean
-            interface MyOtherIntermediateRepository1<ID extends Number, T> extends Repository<T, ID>{}
             """
+              import org.springframework.data.repository.NoRepositoryBean;
+              import org.springframework.data.repository.Repository;
+
+              @NoRepositoryBean
+              interface MyOtherIntermediateRepository1<ID extends Number, T> extends Repository<T, ID>{}
+              """
           ),
           java(
-                """
-            import org.springframework.data.repository.NoRepositoryBean;
-            import org.springframework.data.repository.Repository;
-
-            @NoRepositoryBean
-            interface MyOtherIntermediateRepository2<ID, T> extends MyOtherIntermediateRepository1<ID, T>{}
             """
+              import org.springframework.data.repository.NoRepositoryBean;
+              import org.springframework.data.repository.Repository;
+
+              @NoRepositoryBean
+              interface MyOtherIntermediateRepository2<ID, T> extends MyOtherIntermediateRepository1<ID, T>{}
+              """
           ),
           java(
             """
@@ -485,21 +485,21 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
-                """
-            import org.springframework.data.repository.NoRepositoryBean;
-            import org.springframework.data.repository.Repository;
-
-            @NoRepositoryBean
-            interface MyOtherIntermediateRepository1<ID, DOMAIN> extends Repository<DOMAIN, ID>{}
             """
+              import org.springframework.data.repository.NoRepositoryBean;
+              import org.springframework.data.repository.Repository;
+
+              @NoRepositoryBean
+              interface MyOtherIntermediateRepository1<ID, DOMAIN> extends Repository<DOMAIN, ID>{}
+              """
           ),
           java(
             """
@@ -518,21 +518,21 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
-                """
-            import org.springframework.data.repository.NoRepositoryBean;
-            import org.springframework.data.repository.Repository;
-
-            @NoRepositoryBean
-            interface MyOtherIntermediateRepository2<S, T, ID, D> extends Repository<D, ID>, Iterator<T>, List<S>{}
             """
+              import org.springframework.data.repository.NoRepositoryBean;
+              import org.springframework.data.repository.Repository;
+
+              @NoRepositoryBean
+              interface MyOtherIntermediateRepository2<S, T, ID, D> extends Repository<D, ID>, Iterator<T>, List<S>{}
+              """
           ),
           java(
             """
@@ -551,29 +551,29 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Customer {
-                @Id String id;
-            }
-            """
+              public class Customer {
+                  @Id String id;
+              }
+              """
           ),
           java(
-                """
-            import org.springframework.data.repository.NoRepositoryBean;
-            import org.springframework.data.repository.Repository;
-
-            @NoRepositoryBean
-            interface MyOtherIntermediateRepository1<S, T, ID, D> extends Repository<D, ID>, Iterator<T>, List<S>{}
             """
+              import org.springframework.data.repository.NoRepositoryBean;
+              import org.springframework.data.repository.Repository;
+
+              @NoRepositoryBean
+              interface MyOtherIntermediateRepository1<S, T, ID, D> extends Repository<D, ID>, Iterator<T>, List<S>{}
+              """
           ),
           java(
-                """
-            interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, Long, Customer>{}
-            """,
             """
-            interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
+              interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, Long, Customer>{}
+              """,
             """
+              interface MyOtherIntermediateRepository2<S> extends MyOtherIntermediateRepository1<S, String, /*~~(Expected Domain Type ID is 'java.lang.String')~~>*/Long, Customer>{}
+              """
           ),
           java(
             """
@@ -592,10 +592,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public record Employee(@Id String id) {}
-            """
+              public record Employee(@Id String id) {}
+              """
           ),
           java(
             """
@@ -620,10 +620,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public record Employee(@Id String id) {}
-            """
+              public record Employee(@Id String id) {}
+              """
           ),
           java(
             """
@@ -642,18 +642,18 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Person {
-                @Id String id;
-            }
-            """
+              public class Person {
+                  @Id String id;
+              }
+              """
           ),
           java(
             """
-            public class Employee extends Person {
-            }
-            """
+              public class Employee extends Person {
+              }
+              """
           ),
           java(
             """
@@ -678,19 +678,19 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
         rewriteRun(
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Person {
-                @Id String id;
-            }
-            """
+              public class Person {
+                  @Id String id;
+              }
+              """
           ),
           java(
             """
-            public class Employee extends Person {
-                String id;
-            }
-            """
+              public class Employee extends Person {
+                  String id;
+              }
+              """
           ),
           java(
             """
@@ -707,14 +707,14 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
     void id_field_invalid_DomainId_1() {
         //language=java
         rewriteRun(spec -> {
-            spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>(true)));
+              spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>(true)));
           },
           java(
             """
-            public class Employee {
-                String id;
-            }
-            """
+              public class Employee {
+                  String id;
+              }
+              """
           ),
           java(
             """
@@ -734,7 +734,6 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
     }
 
 
-
     @Test
     void id_field_invalid_DomainId_2() {
         //language=java
@@ -743,16 +742,16 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           },
           java(
             """
-            public class Person {
-                String id;
-            }
-            """
+              public class Person {
+                  String id;
+              }
+              """
           ),
           java(
             """
-            public class Employee extends Person {
-            }
-            """
+              public class Employee extends Person {
+              }
+              """
           ),
           java(
             """
@@ -779,10 +778,10 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           },
           java(
             """
-            public class Employee {
-                String id;
-            }
-            """
+              public class Employee {
+                  String id;
+              }
+              """
           ),
           java(
             """
@@ -808,12 +807,12 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
           },
           java(
             """
-            import org.springframework.data.annotation.Id;
+              import org.springframework.data.annotation.Id;
 
-            public class Employee {
-                @Id String id;
-            }
-            """
+              public class Employee {
+                  @Id String id;
+              }
+              """
           ),
           java(
             """

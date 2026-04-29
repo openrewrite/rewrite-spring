@@ -30,7 +30,7 @@ class MigratePagingAndSortingRepositoryTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigratePagingAndSortingRepository())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-                  "spring-data-commons-2.*", "spring-data-jpa-2.*"));
+            "spring-data-commons-2.*", "spring-data-jpa-2.*"));
     }
 
     @DocumentExample
@@ -196,7 +196,7 @@ class MigratePagingAndSortingRepositoryTest implements RewriteTest {
     void noChangeWhenAlreadyOnSpringData3() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-                  "spring-data-commons-3.*")),
+            "spring-data-commons-3.*")),
           //language=java
           java(
             """

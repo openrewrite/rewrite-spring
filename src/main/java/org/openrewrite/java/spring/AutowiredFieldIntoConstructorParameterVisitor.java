@@ -171,18 +171,18 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                         Optional<Statement> firstMethod = block.getStatements().stream().filter(MethodDeclaration.class::isInstance).findFirst();
 
                         return firstMethod.map(statement ->
-                                (J) template.build()
-                                    .apply(getCursor(),
-                                        statement.getCoordinates().before()
-                                    )
-                            )
-                            .orElseGet(() ->
-                                template.build()
-                                    .apply(
-                                        getCursor(),
-                                        block.getCoordinates().lastStatement()
-                                    )
-                            );
+                                        (J) template.build()
+                                                .apply(getCursor(),
+                                                        statement.getCoordinates().before()
+                                                )
+                                )
+                                .orElseGet(() ->
+                                        template.build()
+                                                .apply(
+                                                        getCursor(),
+                                                        block.getCoordinates().lastStatement()
+                                                )
+                                );
                     }
                 }
             }
@@ -215,23 +215,23 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                         .map(s -> "#{}"), Stream.of(methodType + " " + fieldName)).collect(joining(", "));
 
                 md = JavaTemplate.builder(paramsStr)
-                    .contextSensitive()
-                    .build()
-                    .apply(
-                        getCursor(),
-                        md.getCoordinates().replaceParameters(),
-                        params.toArray()
-                    );
+                        .contextSensitive()
+                        .build()
+                        .apply(
+                                getCursor(),
+                                md.getCoordinates().replaceParameters(),
+                                params.toArray()
+                        );
                 updateCursor(md);
 
                 //noinspection ConstantConditions
                 md = JavaTemplate.builder("this." + fieldName + " = " + fieldName + ";")
-                    .contextSensitive()
-                    .build()
-                    .apply(
-                        getCursor(),
-                        md.getBody().getCoordinates().lastStatement()
-                    );
+                        .contextSensitive()
+                        .build()
+                        .apply(
+                                getCursor(),
+                                md.getBody().getCoordinates().lastStatement()
+                        );
             }
             return md;
         }

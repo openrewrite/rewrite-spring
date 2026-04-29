@@ -51,7 +51,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.data.domain.AuditorAware;
 
               import java.util.Optional;
@@ -81,7 +81,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.data.domain.AuditorAware;
 
               import java.util.Optional;
@@ -114,7 +114,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.data.domain.AuditorAware;
 
               import java.util.Objects;
@@ -151,7 +151,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.data.domain.AuditorAware;
 
               import java.util.Optional;
@@ -189,7 +189,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.data.domain.AuditorAware;
 
               import java.util.Optional;
@@ -326,7 +326,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.data.domain.AuditorAware;
 
               import java.util.Optional;
@@ -445,7 +445,7 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.data.domain.AuditorAware;
 
               import java.util.Optional;

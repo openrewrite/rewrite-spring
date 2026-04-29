@@ -86,7 +86,7 @@ public class RemoveSolrAutoConfigurationExclude extends Recipe {
 
                     private boolean isSolrAutoConfigurationClassReference(Expression expr) {
                         return expr instanceof J.FieldAccess &&
-                               TypeUtils.isAssignableTo(SOLR_AUTOCONFIGURATION_FQN, ((J.FieldAccess) expr).getTarget().getType());
+                                TypeUtils.isAssignableTo(SOLR_AUTOCONFIGURATION_FQN, ((J.FieldAccess) expr).getTarget().getType());
                     }
                 });
     }

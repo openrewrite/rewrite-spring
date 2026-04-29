@@ -78,7 +78,7 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
                 // Strip calls to super.*()
                 md = md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(),
                         s -> (s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.Identifier &&
-                              "super".equals(((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName())) ? null : s)));
+                                "super".equals(((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName())) ? null : s)));
 
                 // Strip (now) empty methods
                 if (md.getBody().getStatements().isEmpty()) {
@@ -89,9 +89,9 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
             // Strip calls to new DefaultBatchConfigurer()
             List<Statement> statements = md.getBody().getStatements();
             if (statements.size() == 1 &&
-                statements.get(0) instanceof J.Return &&
-                new MethodMatcher(DEFAULT_BATCH_CONFIGURER + " <constructor>(..)")
-                        .matches(((J.Return) statements.get(0)).getExpression())) {
+                    statements.get(0) instanceof J.Return &&
+                    new MethodMatcher(DEFAULT_BATCH_CONFIGURER + " <constructor>(..)")
+                            .matches(((J.Return) statements.get(0)).getExpression())) {
                 maybeRemoveImport(BATCH_CONFIGURER);
                 maybeRemoveImport(DEFAULT_BATCH_CONFIGURER);
                 return null;

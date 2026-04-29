@@ -53,12 +53,12 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
         J.Identifier failureParam = ((J.VariableDeclarations) failureCallback.getParameters().get(0)).getVariables().get(0).getName();
 
         String template = String.format("class %s implements BiConsumer<%s, Throwable> {\n" +
-                                        "    @Override\n" +
-                                        "    public void accept(%s, %s) {\n" +
-                                        "        if (#{any(java.lang.Throwable)} == null) #{}\n" +
-                                        "        else #{}\n" +
-                                        "    }\n" +
-                                        "}",
+                        "    @Override\n" +
+                        "    public void accept(%s, %s) {\n" +
+                        "        if (#{any(java.lang.Throwable)} == null) #{}\n" +
+                        "        else #{}\n" +
+                        "    }\n" +
+                        "}",
                 cd.getSimpleName(),
                 ((J.VariableDeclarations) successCallback.getParameters().get(0)).getTypeExpression(),
                 successCallback.getParameters().get(0),
@@ -109,12 +109,12 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
         maybeRemoveImport(LISTENABLE_FUTURE_CALLBACK);
         if (nc.getBody().getStatements().size() > 2) {
             String template = String.format("new BiConsumer<%s, Throwable>() {\n" +
-                                            "    @Override\n" +
-                                            "    public void accept(%s, %s) {\n" +
-                                            "        if (#{any(java.lang.Throwable)} == null) #{}\n" +
-                                            "        else #{}\n" +
-                                            "    }\n" +
-                                            "}",
+                            "    @Override\n" +
+                            "    public void accept(%s, %s) {\n" +
+                            "        if (#{any(java.lang.Throwable)} == null) #{}\n" +
+                            "        else #{}\n" +
+                            "    }\n" +
+                            "}",
                     ((J.VariableDeclarations) successCallback.getParameters().get(0)).getTypeExpression(),
                     successCallback.getParameters().get(0),
                     failureCallback.getParameters().get(0)
@@ -140,9 +140,9 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
         }
 
         String template = String.format("(%s, %s) -> {\n" +
-                                        "    if (#{any(java.lang.Throwable)} == null) #{}\n" +
-                                        "    else #{}\n" +
-                                        "}",
+                        "    if (#{any(java.lang.Throwable)} == null) #{}\n" +
+                        "    else #{}\n" +
+                        "}",
                 successCallback.getParameters().get(0),
                 failureCallback.getParameters().get(0)
         );

@@ -354,31 +354,31 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     return stmt;
                 }));
                 return JavaTemplate.builder("return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
-                    .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion()
-                        .dependsOn("package org.springframework.security.config.annotation;" +
-                                   "public interface SecurityBuilder<O> {\n" +
-                                   "    O build() throws Exception;" +
-                                   "}"))
-                    .imports("org.springframework.security.config.annotation.SecurityBuilder")
-                    .build()
-                    .apply(
-                        updateCursor(b),
-                        b.getCoordinates().lastStatement(),
-                        ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName()
-                    );
+                        .contextSensitive()
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .dependsOn("package org.springframework.security.config.annotation;" +
+                                        "public interface SecurityBuilder<O> {\n" +
+                                        "    O build() throws Exception;" +
+                                        "}"))
+                        .imports("org.springframework.security.config.annotation.SecurityBuilder")
+                        .build()
+                        .apply(
+                                updateCursor(b),
+                                b.getCoordinates().lastStatement(),
+                                ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName()
+                        );
             }
 
             private J.Block handleWebSecurity(J.Block b, J.MethodDeclaration parentMethod) {
                 String t = "return (" + ((J.VariableDeclarations) parentMethod.getParameters().get(0)).getVariables().get(0).getName().getSimpleName() + ") -> #{any()};";
                 b = JavaTemplate.builder(t)
-                    .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion())
-                    .build()
-                    .apply(
-                        getCursor(),
-                        b.getCoordinates().firstStatement(), b
-                    );
+                        .contextSensitive()
+                        .javaParser(JavaParser.fromJavaVersion())
+                        .build()
+                        .apply(
+                                getCursor(),
+                                b.getCoordinates().firstStatement(), b
+                        );
                 return b.withStatements(ListUtils.map(b.getStatements(), (index, stmt) -> {
                     if (index == 0) {
                         return stmt;

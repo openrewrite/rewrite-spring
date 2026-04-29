@@ -28,12 +28,12 @@ class MigrateJobStepTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-		spec.recipeFromResources("org.openrewrite.java.spring.batch.SpringBatch5To6Migration")
+        spec.recipeFromResources("org.openrewrite.java.spring.batch.SpringBatch5To6Migration")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-			"spring-batch-core-4.3.10",
-			"spring-batch-infrastructure-4.3.10",
-			"spring-beans-4.3.30.RELEASE",
-			"spring-context-4.3.30.RELEASE"
+            "spring-batch-core-4.3.10",
+            "spring-batch-infrastructure-4.3.10",
+            "spring-beans-4.3.30.RELEASE",
+            "spring-context-4.3.30.RELEASE"
           ));
     }
 
@@ -108,26 +108,26 @@ class MigrateJobStepTest implements RewriteTest {
               }
               """,
             """
-             import org.springframework.batch.core.launch.JobOperator;
-             import org.springframework.batch.core.repository.JobRepository;
-             import org.springframework.batch.core.step.Step;
-             import org.springframework.batch.core.step.job.JobStep;
-             import org.springframework.beans.factory.annotation.Autowired;
-             import org.springframework.context.annotation.Bean;
+              import org.springframework.batch.core.launch.JobOperator;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.Step;
+              import org.springframework.batch.core.step.job.JobStep;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
 
-             class MyJobConfig {
+              class MyJobConfig {
 
-                 @Autowired
-                 private JobOperator jobLauncher;
+                  @Autowired
+                  private JobOperator jobLauncher;
 
-                 @Bean
-                 JobStep myStep(JobRepository jobRepository) {
-                     JobStep jobStep = new JobStep(jobRepository);
-                     jobStep.setJobOperator(jobLauncher);
-                     return jobStep;
-                 }
-             }
-             """
+                  @Bean
+                  JobStep myStep(JobRepository jobRepository) {
+                      JobStep jobStep = new JobStep(jobRepository);
+                      jobStep.setJobOperator(jobLauncher);
+                      return jobStep;
+                  }
+              }
+              """
           )
         );
     }
@@ -162,29 +162,29 @@ class MigrateJobStepTest implements RewriteTest {
               }
               """,
             """
-             import org.springframework.batch.core.launch.JobOperator;
-             import org.springframework.batch.core.repository.JobRepository;
-             import org.springframework.batch.core.step.Step;
-             import org.springframework.batch.core.step.job.JobStep;
-             import org.springframework.beans.factory.annotation.Autowired;
-             import org.springframework.context.annotation.Bean;
+              import org.springframework.batch.core.launch.JobOperator;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.Step;
+              import org.springframework.batch.core.step.job.JobStep;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
 
-             class MyJobConfig {
+              class MyJobConfig {
 
-                 private final JobOperator jobLauncher;
+                  private final JobOperator jobLauncher;
 
-                 public MyJobConfig(JobOperator jobLauncher) {
-                     this.jobLauncher = jobLauncher;
-                 }
+                  public MyJobConfig(JobOperator jobLauncher) {
+                      this.jobLauncher = jobLauncher;
+                  }
 
-                 @Bean
-                 JobStep myStep(JobRepository jobRepository) {
-                     JobStep jobStep = new JobStep(jobRepository);
-                     jobStep.setJobOperator(jobLauncher);
-                     return jobStep;
-                 }
-             }
-             """
+                  @Bean
+                  JobStep myStep(JobRepository jobRepository) {
+                      JobStep jobStep = new JobStep(jobRepository);
+                      jobStep.setJobOperator(jobLauncher);
+                      return jobStep;
+                  }
+              }
+              """
           )
         );
     }

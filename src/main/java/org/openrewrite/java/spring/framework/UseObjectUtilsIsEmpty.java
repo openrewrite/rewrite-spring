@@ -82,8 +82,8 @@ public class UseObjectUtilsIsEmpty extends Recipe {
                     return true;
                 }
                 return TypeUtils.isAssignableTo("java.util.Collection", argType) ||
-                       TypeUtils.isAssignableTo("java.util.Map", argType) ||
-                       TypeUtils.isAssignableTo("java.util.Optional", argType);
+                        TypeUtils.isAssignableTo("java.util.Map", argType) ||
+                        TypeUtils.isAssignableTo("java.util.Optional", argType);
             }
         });
     }

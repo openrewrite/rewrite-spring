@@ -50,15 +50,15 @@ public class EnvironmentAcceptsProfiles extends Recipe {
                 maybeAddImport("org.springframework.core.env.Profiles");
                 String template = "Profiles.of(" + method.getArguments().stream().map(a -> "#{any(java.lang.String)}").collect(joining(",")) + ")";
                 method = JavaTemplate.builder(template)
-                    .imports("org.springframework.core.env.Profiles", "org.springframework.core.env.Environment")
-                    .javaParser(JavaParser.fromJavaVersion()
-                        .classpathFromResources(ctx, "spring-core-5.*"))
-                    .build()
-                    .apply(
-                        getCursor(),
-                        method.getCoordinates().replaceArguments(),
-                        method.getArguments().toArray()
-                    );
+                        .imports("org.springframework.core.env.Profiles", "org.springframework.core.env.Environment")
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-core-5.*"))
+                        .build()
+                        .apply(
+                                getCursor(),
+                                method.getCoordinates().replaceArguments(),
+                                method.getArguments().toArray()
+                        );
             }
             return super.visitMethodInvocation(method, ctx);
         }

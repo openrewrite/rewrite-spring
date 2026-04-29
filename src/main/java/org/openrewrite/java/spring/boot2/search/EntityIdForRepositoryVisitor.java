@@ -206,7 +206,7 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
         ArrayList<JavaType.FullyQualified> ls = new ArrayList<>(visited.size() + 1);
         ls.addAll(visited);
         ls.add(type);
-        if (type instanceof JavaType.Parameterized &&  REPOSITORY.equals(((JavaType.Parameterized) type).getType().getFullyQualifiedName())) {
+        if (type instanceof JavaType.Parameterized && REPOSITORY.equals(((JavaType.Parameterized) type).getType().getFullyQualifiedName())) {
             return ls;
         }
 

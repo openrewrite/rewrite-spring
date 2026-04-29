@@ -63,7 +63,7 @@ class SamlRelyingPartyPropertyApplicationPropertiesMoveTest implements RewriteTe
                     spring.security.saml2.relyingparty.registration.idpone.identityprovider.entity-id=https://idpone.com
                     spring.security.saml2.relyingparty.registration.idpone.identityprovider.sso-url=https://idpone.com
                     spring.security.saml2.relyingparty.registration.idpone.identityprovider.verification.credentials.certificate-location=classpath:saml/idpone.crt
-                                
+
                     spring.security.saml2.relyingparty.registration.okta.identityprovider.entity-id=https://idpone.com
                     spring.security.saml2.relyingparty.registration.okta.identityprovider.sso-url=https://idpone.com
                     spring.security.saml2.relyingparty.registration.okta.identityprovider.verification.credentials.certificate-location=classpath:saml/idpone.crt
@@ -72,7 +72,7 @@ class SamlRelyingPartyPropertyApplicationPropertiesMoveTest implements RewriteTe
                 spring.security.saml2.relyingparty.registration.idpone.assertingparty.entity-id=https://idpone.com
                 spring.security.saml2.relyingparty.registration.idpone.assertingparty.sso-url=https://idpone.com
                 spring.security.saml2.relyingparty.registration.idpone.assertingparty.verification.credentials.certificate-location=classpath:saml/idpone.crt
-                            
+
                 spring.security.saml2.relyingparty.registration.okta.assertingparty.entity-id=https://idpone.com
                 spring.security.saml2.relyingparty.registration.okta.assertingparty.sso-url=https://idpone.com
                 spring.security.saml2.relyingparty.registration.okta.assertingparty.verification.credentials.certificate-location=classpath:saml/idpone.crt

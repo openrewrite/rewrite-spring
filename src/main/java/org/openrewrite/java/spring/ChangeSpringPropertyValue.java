@@ -42,7 +42,7 @@ public class ChangeSpringPropertyValue extends Recipe {
     String displayName = "Change the value of a spring application property";
 
     String description = "Change Spring application property values existing in either Properties or YAML files, " +
-                         "and in `@Value`, `@ConditionalOnProperty`, `@SpringBootTest`, or `@TestPropertySource` annotations.";
+            "and in `@Value`, `@ConditionalOnProperty`, `@SpringBootTest`, or `@TestPropertySource` annotations.";
 
     @Option(displayName = "Property key",
             description = "The name of the property key whose value is to be changed.",
@@ -69,7 +69,7 @@ public class ChangeSpringPropertyValue extends Recipe {
 
     @Option(displayName = "Use relaxed binding",
             description = "Whether to match the `propertyKey` using [relaxed binding](https://docs.spring.io/spring-boot/docs/2.5.6/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding) " +
-                          "rules. Default is `true`. Set to `false` to use exact matching.",
+                    "rules. Default is `true`. Set to `false` to use exact matching.",
             required = false)
     @Nullable
     Boolean relaxedBinding;
@@ -112,6 +112,7 @@ public class ChangeSpringPropertyValue extends Recipe {
     }
 
     private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");
+
     private boolean quoteValue(String value) {
         return scalarNeedsAQuote.matcher(value).matches();
     }

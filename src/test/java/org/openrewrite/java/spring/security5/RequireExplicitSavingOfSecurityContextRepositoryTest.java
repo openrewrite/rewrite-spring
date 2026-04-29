@@ -204,24 +204,24 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
               }
               """,
             """
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
 
-            import java.util.function.Consumer;
-            import java.util.function.Function;
+              import java.util.function.Consumer;
+              import java.util.function.Function;
 
-            public class config2 {
-                public void doSomething(
-                    Consumer<SecurityContextConfigurer<HttpSecurity>> f1) {
-                }
+              public class config2 {
+                  public void doSomething(
+                      Consumer<SecurityContextConfigurer<HttpSecurity>> f1) {
+                  }
 
-                void method() throws Exception {
-                    doSomething(configurer -> {
-                        }
-                    );
-                }
-            }
-            """
+                  void method() throws Exception {
+                      doSomething(configurer -> {
+                          }
+                      );
+                  }
+              }
+              """
           )
         );
     }

@@ -116,14 +116,14 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
 
                     if (anyConditionClassExists) {
                         a = JavaTemplate.builder("@Conditional(#{}.class)")
-                            .imports("org.springframework.context.annotation.Conditional")
-                            .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
-                            .build()
-                            .apply(
-                                getCursor(),
-                                a.getCoordinates().replace(), conditionalClassName
-                            );
+                                .imports("org.springframework.context.annotation.Conditional")
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
+                                .build()
+                                .apply(
+                                        getCursor(),
+                                        a.getCoordinates().replace(), conditionalClassName
+                                );
                         maybeAddImport("org.springframework.context.annotation.Conditional");
                     } else {
                         // add the new conditional class template string to the parent ClassDeclaration Cursor
