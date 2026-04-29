@@ -21,6 +21,7 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
@@ -402,6 +403,450 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
               public class A {
 
                   final private String a;
+
+                  A(String a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithGenericTypeIntoNewConstructor() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<String> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+
+              public class A {
+
+                  private final List<String> a;
+
+                  A(List<String> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithGenericTypeIntoExistingConstructor() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<String> a;
+
+                  A() {
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+
+              public class A {
+
+                  private final List<String> a;
+
+                  A(List<String> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithGenericTypeIntoExistingConstructorWithParams() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<String> a;
+
+                  A() {
+                  }
+
+                  @Autowired
+                  A(long l) {
+                  }
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  private final List<String> a;
+
+                  A() {
+                  }
+
+                  @Autowired
+                  A(long l, List<String> a) {
+                      this.a = a;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithNestedGenericType() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import java.util.Map;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private Map<String, List<Integer>> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+              import java.util.Map;
+
+              public class A {
+
+                  private final Map<String, List<Integer>> a;
+
+                  A(Map<String, List<Integer>> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithWildcardGenericType() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<?> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+
+              public class A {
+
+                  private final List<?> a;
+
+                  A(List<?> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithUpperBoundedWildcard() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<? extends Number> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+
+              public class A {
+
+                  private final List<? extends Number> a;
+
+                  A(List<? extends Number> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithUserDefinedGenericType() {
+        //language=java
+        rewriteRun(
+          spec -> spec.afterTypeValidationOptions(TypeValidation.none()),
+          java(
+            """
+              package demo.model;
+
+              public class MyConfig {
+              }
+              """
+          ),
+          java(
+            """
+              package demo.service;
+
+              public class MyService<T> {
+              }
+              """
+          ),
+          java(
+            """
+              package demo;
+
+              import demo.model.MyConfig;
+              import demo.service.MyService;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private MyService<MyConfig> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import demo.model.MyConfig;
+              import demo.service.MyService;
+
+              public class A {
+
+                  private final MyService<MyConfig> a;
+
+                  A(MyService<MyConfig> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithLowerBoundedWildcard() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<? super Integer> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+
+              public class A {
+
+                  private final List<? super Integer> a;
+
+                  A(List<? super Integer> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithArrayType() {
+        //language=java
+        rewriteRun(
+          spec -> spec.afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private String[] a;
+
+              }
+              """,
+            """
+              package demo;
+
+              public class A {
+
+                  private final String[] a;
+
+                  A(String[] a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithAutowiredRequired() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired(required = false)
+                  private String a;
+
+                  A() {
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              public class A {
+
+                  private final String a;
+
+                  A(String a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithMultipleAnnotations() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.beans.factory.annotation.Qualifier;
+
+              public class A {
+
+                  @Autowired
+                  @Qualifier("myBean")
+                  private String a;
+
+                  A() {
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Qualifier;
+
+              public class A {
+
+                  @Qualifier("myBean")
+                  private final String a;
 
                   A(String a) {
                       this.a = a;
