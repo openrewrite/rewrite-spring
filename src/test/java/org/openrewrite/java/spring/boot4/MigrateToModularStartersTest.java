@@ -464,6 +464,37 @@ class MigrateToModularStartersTest implements RewriteTest {
             );
         }
 
+        @Test
+        void migrateGetHealthMethodRenaming() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.actuate.health.Health;
+                  import org.springframework.boot.actuate.health.HealthIndicator;
+
+                  class MyHealthIndicator implements HealthIndicator {
+                      @Override
+                      public Health getHealth() {
+                          return Health.up().build();
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.boot.health.contributor.Health;
+                  import org.springframework.boot.health.contributor.HealthIndicator;
+
+                  class MyHealthIndicator implements HealthIndicator {
+                      @Override
+                      public Health health() {
+                          return Health.up().build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
     }
 
     @Nested
@@ -727,4 +758,5 @@ class MigrateToModularStartersTest implements RewriteTest {
           )
         );
     }
+
 }

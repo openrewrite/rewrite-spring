@@ -24,19 +24,13 @@ import org.openrewrite.xml.search.FindTags;
 @EqualsAndHashCode(callSuper = false)
 public class RenameLogbackToLogbackSpring extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Rename `logback.xml` to `logback-spring.xml`";
-    }
+    String displayName = "Rename `logback.xml` to `logback-spring.xml`";
 
-    @Override
-    public String getDescription() {
-        return "Spring Boot only processes Spring-specific logback extensions (`<springProfile>`, `<springProperty>`) " +
-               "when the configuration file is named `logback-spring.xml`. " +
-               "A plain `logback.xml` is loaded too early by logback itself, before Spring's `Environment` is ready, " +
-               "so these extensions are silently ignored. " +
-               "This recipe renames `logback.xml` to `logback-spring.xml` when Spring extensions are detected.";
-    }
+    String description = "Spring Boot only processes Spring-specific logback extensions (`<springProfile>`, `<springProperty>`) " +
+            "when the configuration file is named `logback-spring.xml`. " +
+            "A plain `logback.xml` is loaded too early by logback itself, before Spring's `Environment` is ready, " +
+            "so these extensions are silently ignored. " +
+            "This recipe renames `logback.xml` to `logback-spring.xml` when Spring extensions are detected.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

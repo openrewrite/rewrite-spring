@@ -95,7 +95,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
         public J visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
             J j = super.visitVariableDeclarations(multiVariable, ctx);
             VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
-            visitMethodInvocation.visitVariableDeclarations(multiVariable, ctx);
+            visitMethodInvocation.visit(multiVariable, ctx, getCursor().getParentTreeCursor());
             if (visitMethodInvocation.isFound) {
                 doAfterVisit(new AddCast());
             }
@@ -135,7 +135,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                     return j;
                 }
                 VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
-                visitMethodInvocation.visitMethodInvocation(method, ctx);
+                visitMethodInvocation.visit(method, ctx, getCursor().getParentTreeCursor());
                 if (visitMethodInvocation.isFound) {
                     doAfterVisit(new AddCast());
                 }
@@ -149,7 +149,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
         public J visitReturn(J.Return return_, ExecutionContext ctx) {
             J j = super.visitReturn(return_, ctx);
             VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
-            visitMethodInvocation.visitReturn(return_, ctx);
+            visitMethodInvocation.visit(return_, ctx, getCursor().getParentTreeCursor());
             if (visitMethodInvocation.isFound) {
                 doAfterVisit(new AddCast());
             }

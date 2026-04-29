@@ -279,6 +279,7 @@ description: >-
 preconditions:
   - org.openrewrite.java.search.FindTypes:
       fullyQualifiedTypeName: springfox..*
+  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.staticanalysis.RemoveUnusedPrivateFields
   - org.openrewrite.staticanalysis.RemoveUnusedPrivateMethods
