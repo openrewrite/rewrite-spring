@@ -99,9 +99,9 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
             Yaml.Documents yaml = (Yaml.Documents) acc.getBootstrapYaml();
             String fileName = PathUtils.matchesGlob(yaml.getSourcePath(), "**/*.yaml") ? "application.yaml" : "application.yml";
             Optional<SourceFile> newApplicationYaml = YamlParser.builder().build()
-                                .parse("")
-                                .map(brandNewFile -> (SourceFile) brandNewFile
-                                        .withSourcePath(yaml.getSourcePath().resolveSibling(fileName)))
+                    .parse("")
+                    .map(brandNewFile -> (SourceFile) brandNewFile
+                            .withSourcePath(yaml.getSourcePath().resolveSibling(fileName)))
                     .findFirst();
             if (newApplicationYaml.isPresent()) {
                 acc.applicationYaml = newApplicationYaml.get();
@@ -114,7 +114,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
         if (acc.isSpringCloudBootstrapPresent() ||
-            !(acc.getBootstrapYaml() instanceof Yaml.Documents && acc.getApplicationYaml() instanceof Yaml.Documents)) {
+                !(acc.getBootstrapYaml() instanceof Yaml.Documents && acc.getApplicationYaml() instanceof Yaml.Documents)) {
             return TreeVisitor.noop();
         }
 

@@ -56,8 +56,8 @@ public class AddRouteTrailingSlash extends Recipe {
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 J.Annotation anno = super.visitAnnotation(annotation, ctx);
                 if (anno.getType() == null ||
-                    !isHttpVerbMappingAnnotation(anno.getType().toString()) ||
-                    anno.getArguments() == null) {
+                        !isHttpVerbMappingAnnotation(anno.getType().toString()) ||
+                        anno.getArguments() == null) {
                     return anno;
                 }
 
@@ -73,8 +73,8 @@ public class AddRouteTrailingSlash extends Recipe {
                         if (exp instanceof J.Assignment) {
                             J.Assignment assignment = (J.Assignment) exp;
                             if (assignment.getVariable() instanceof J.Identifier &&
-                                "value".equals(((J.Identifier) assignment.getVariable()).getSimpleName()) &&
-                                isStringLiteral(assignment.getAssignment())) {
+                                    "value".equals(((J.Identifier) assignment.getVariable()).getSimpleName()) &&
+                                    isStringLiteral(assignment.getAssignment())) {
 
                                 J.Literal str = (J.Literal) assignment.getAssignment();
                                 if (shouldAddTrailingSlashArgument(str.getValue().toString())) {
@@ -116,11 +116,11 @@ public class AddRouteTrailingSlash extends Recipe {
 
     private static boolean isHttpVerbMappingAnnotation(String fqn) {
         return GET_ANNOTATION_TYPE.equals(fqn) ||
-               REQUEST_ANNOTATION_TYPE.equals(fqn) ||
-               POST_ANNOTATION_TYPE.equals(fqn) ||
-               PUT_ANNOTATION_TYPE.equals(fqn) ||
-               PATCH_ANNOTATION_TYPE.equals(fqn) ||
-               DELETE_ANNOTATION_TYPE.equals(fqn);
+                REQUEST_ANNOTATION_TYPE.equals(fqn) ||
+                POST_ANNOTATION_TYPE.equals(fqn) ||
+                PUT_ANNOTATION_TYPE.equals(fqn) ||
+                PATCH_ANNOTATION_TYPE.equals(fqn) ||
+                DELETE_ANNOTATION_TYPE.equals(fqn);
     }
 
 

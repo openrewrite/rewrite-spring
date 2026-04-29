@@ -175,7 +175,7 @@ public class AddConfigurationAnnotationIfBeansPresent extends ScanningRecipe<Set
                         .imports(FQN_CONFIGURATION)
                         .javaParser(JavaParser.fromJavaVersion().dependsOn(
                                 "package " + CONFIGURATION_PACKAGE +
-                                "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
+                                        "; public @interface " + CONFIGURATION_SIMPLE_NAME + " {}"))
                         .build().apply(
                                 getCursor(),
                                 c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))

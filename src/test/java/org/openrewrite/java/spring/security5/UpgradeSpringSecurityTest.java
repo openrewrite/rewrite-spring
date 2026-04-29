@@ -28,7 +28,7 @@ class UpgradeSpringSecurityTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-                "spring-core-5.3.+", "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+", "spring-security-core-5.8.+", "tomcat-embed"))
+            "spring-core-5.3.+", "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+", "spring-security-core-5.8.+", "tomcat-embed"))
           .recipeFromResources("org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8");
     }
 
@@ -74,37 +74,37 @@ class UpgradeSpringSecurityTest implements RewriteTest {
               }
               """,
             """
-            package com.example;
+              package com.example;
 
-            import org.springframework.context.annotation.Configuration;
-            import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-            import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-            import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-            import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-            import org.springframework.security.config.http.SessionCreationPolicy;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.http.SessionCreationPolicy;
 
-            /**
-             * Security configuration.
-             */
-            @Configuration
-            @EnableWebSecurity
-            public class  WebSecurityConfig {
+              /**
+               * Security configuration.
+               */
+              @Configuration
+              @EnableWebSecurity
+              public class  WebSecurityConfig {
 
-                @Configuration
-                public static class AdminWebSecurityConfig extends WebSecurityConfigurerAdapter {
+                  @Configuration
+                  public static class AdminWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-                    /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
-                    protected void configure( final AuthenticationManagerBuilder auth ) throws Exception {}
+                      /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
+                      protected void configure( final AuthenticationManagerBuilder auth ) throws Exception {}
 
-                    @Override
-                    protected void configure( final HttpSecurity http ) throws Exception {
-                        http.securityMatcher("***")
-                                .authorizeHttpRequests(requests -> requests.anyRequest().hasAuthority("***"))
-                                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).httpBasic(basic -> basic.authenticationEntryPoint(null)).csrf(csrf -> csrf.disable());
-                    }
-                }
-            }
-            """
+                      @Override
+                      protected void configure( final HttpSecurity http ) throws Exception {
+                          http.securityMatcher("***")
+                                  .authorizeHttpRequests(requests -> requests.anyRequest().hasAuthority("***"))
+                                  .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).httpBasic(basic -> basic.authenticationEntryPoint(null)).csrf(csrf -> csrf.disable());
+                      }
+                  }
+              }
+              """
           )
         );
     }

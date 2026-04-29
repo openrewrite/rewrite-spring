@@ -115,26 +115,26 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                     assertThat(version.find()).describedAs("Expected 2.7.x in %s", pom).isTrue();
                     //language=xml
                     return """
-                        <project>
-                          <modelVersion>4.0.0</modelVersion>
-                          <groupId>com.example</groupId>
-                          <artifactId>demo</artifactId>
-                          <version>0.0.1-SNAPSHOT</version>
-                          <parent>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-parent</artifactId>
-                            <version>%s</version>
-                            <relativePath/> <!-- lookup parent from repository -->
-                          </parent>
-                          <dependencies>
-                            <dependency>
-                              <groupId>com.mysql</groupId>
-                              <artifactId>mysql-connector-j</artifactId>
-                              <scope>runtime</scope>
-                            </dependency>
-                          </dependencies>
-                        </project>
-                        """.formatted(version.group(0));
+                      <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>com.example</groupId>
+                        <artifactId>demo</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                        <parent>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-parent</artifactId>
+                          <version>%s</version>
+                          <relativePath/> <!-- lookup parent from repository -->
+                        </parent>
+                        <dependencies>
+                          <dependency>
+                            <groupId>com.mysql</groupId>
+                            <artifactId>mysql-connector-j</artifactId>
+                            <scope>runtime</scope>
+                          </dependency>
+                        </dependencies>
+                      </project>
+                      """.formatted(version.group(0));
                 })
               )
             );
@@ -155,11 +155,11 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   plugins {
                     id 'java'
                   }
-                  
+
                   repositories {
                      mavenCentral()
                   }
-                  
+
                   dependencies {
                       runtimeOnly 'mysql:mysql-connector-java:8.0.30'
                   }
@@ -171,11 +171,11 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                   plugins {
                     id 'java'
                   }
-                  
+
                   repositories {
                      mavenCentral()
                   }
-                  
+
                   dependencies {
                       runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
                   }
@@ -198,11 +198,11 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                     id 'org.springframework.boot' version '2.5.14'
                     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
                   }
-                  
+
                   repositories {
                      mavenCentral()
                   }
-                  
+
                   dependencies {
                       runtimeOnly 'mysql:mysql-connector-java'
                   }
@@ -210,29 +210,29 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
                       useJUnitPlatform()
                   }
                   """,
-                    spec -> spec.after(gradle -> {
-                        Matcher version = Pattern.compile("2\\.5\\.\\d+").matcher(gradle);
-                        assertThat(version.find()).describedAs("Expected 2.5.x in %s", gradle).isTrue();
-                        //language=gradle
-                        return """
-                  plugins {
-                    id 'java'
-                    id 'org.springframework.boot' version '%s'
-                    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
-                  }
-                  
-                  repositories {
-                     mavenCentral()
-                  }
-                  
-                  dependencies {
-                      runtimeOnly 'com.mysql:mysql-connector-j'
-                  }
-                  tasks.withType(Test).configureEach {
-                      useJUnitPlatform()
-                  }
-                  """.formatted(version.group());
-                    })
+                spec -> spec.after(gradle -> {
+                    Matcher version = Pattern.compile("2\\.5\\.\\d+").matcher(gradle);
+                    assertThat(version.find()).describedAs("Expected 2.5.x in %s", gradle).isTrue();
+                    //language=gradle
+                    return """
+                      plugins {
+                        id 'java'
+                        id 'org.springframework.boot' version '%s'
+                        id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+                      }
+
+                      repositories {
+                         mavenCentral()
+                      }
+
+                      dependencies {
+                          runtimeOnly 'com.mysql:mysql-connector-j'
+                      }
+                      tasks.withType(Test).configureEach {
+                          useJUnitPlatform()
+                      }
+                      """.formatted(version.group());
+                })
               )
             );
         }

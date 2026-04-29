@@ -39,8 +39,8 @@ public class UseNewSecurityMatchers extends Recipe {
     String displayName = "Use the new `securityMatcher()` method";
 
     String description = "In Spring Security 5.8, the `HttpSecurity#antMatcher()`, `HttpSecurity#mvcMatcher()`, and `HttpSecurity#regexMatcher()` methods were deprecated " +
-                "in favor of new `HttpSecurity#securityMatcher()` method. Refer to the [Spring Security docs](https://docs.spring.io/spring-security/reference/5.8/migration/servlet/config.html#use-new-security-matchers) " +
-                "for more information.";
+            "in favor of new `HttpSecurity#securityMatcher()` method. Refer to the [Spring Security docs](https://docs.spring.io/spring-security/reference/5.8/migration/servlet/config.html#use-new-security-matchers) " +
+            "for more information.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

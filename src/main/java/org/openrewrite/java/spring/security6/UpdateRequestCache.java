@@ -71,17 +71,17 @@ public class UpdateRequestCache extends Recipe {
                     Statement statement = statements.get(i);
                     if (isNewHttpSessionRequestCacheStatement(statement)) {
                         statement = JavaTemplate.builder("#{any()}.setMatchingRequestParameterName(\"continue\");")
-                            .contextSensitive()
-                            .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-security-web-6"))
-                            .imports(
-                                "org.springframework.security.web.savedrequest.HttpSessionRequestCache")
-                            .build()
-                            .apply(
-                                new Cursor(getCursor(), statement),
-                                statement.getCoordinates().replace(),
-                                getSelect(statement)
-                            );
+                                .contextSensitive()
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-security-web-6"))
+                                .imports(
+                                        "org.springframework.security.web.savedrequest.HttpSessionRequestCache")
+                                .build()
+                                .apply(
+                                        new Cursor(getCursor(), statement),
+                                        statement.getCoordinates().replace(),
+                                        getSelect(statement)
+                                );
                         statements = ListUtils.insert(statements, statement, i + 1);
 
                         return block.withStatements(statements);
@@ -106,8 +106,8 @@ public class UpdateRequestCache extends Recipe {
                         maybeRemoveImport("org.springframework.security.web.savedrequest.HttpSessionRequestCache");
                         maybeAddImport("org.springframework.security.web.savedrequest.NullRequestCache");
                         arg = template.apply(
-                            new Cursor(getCursor(), arg),
-                            arg.getCoordinates().replace());
+                                new Cursor(getCursor(), arg),
+                                arg.getCoordinates().replace());
                         return method.withArguments(singletonList(arg));
                     }
 

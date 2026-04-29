@@ -38,8 +38,8 @@ public class FindApiEndpoints extends Recipe {
     String displayName = "Find Spring API endpoints";
 
     String description = "Find all HTTP API endpoints exposed by Spring applications. " +
-                "More specifically, this marks method declarations annotated with `@RequestMapping`, `@GetMapping`, " +
-                "`@PostMapping`, `@PutMapping`, `@DeleteMapping`, and `@PatchMapping` as search results.";
+            "More specifically, this marks method declarations annotated with `@RequestMapping`, `@GetMapping`, " +
+            "`@PostMapping`, `@PutMapping`, `@DeleteMapping`, and `@PatchMapping` as search results.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -35,7 +35,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
     String displayName = "Transform classes that extend a given Class to implement the given Interface instead";
 
     String description = "As of spring-batch 5.x Listeners has default methods (made possible by a Java 8 baseline) and can be " +
-               "implemented directly without the need for this adapter.";
+            "implemented directly without the need for this adapter.";
 
     @Option(displayName = "Fully qualified class name",
             description = "A fully-qualified class name to be replaced.",
@@ -57,7 +57,7 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                                                             ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null &&
-                    TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
+                        TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
                     cd = cd.withExtends(null);
                     updateCursor(cd);
                     // This is an interesting one... JobExecutionListenerSupport implements

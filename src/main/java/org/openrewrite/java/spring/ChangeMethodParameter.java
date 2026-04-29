@@ -88,8 +88,8 @@ public class ChangeMethodParameter extends Recipe {
 
             if (methodMatcher.matches(md.getMethodType())) {
                 if (md.getParameters().isEmpty() ||
-                    md.getParameters().get(0) instanceof J.Empty ||
-                    md.getParameters().size() <= parameterIndex) {
+                        md.getParameters().get(0) instanceof J.Empty ||
+                        md.getParameters().size() <= parameterIndex) {
                     return md;
                 }
                 if (md.getParameters().get(parameterIndex) instanceof J.VariableDeclarations) {

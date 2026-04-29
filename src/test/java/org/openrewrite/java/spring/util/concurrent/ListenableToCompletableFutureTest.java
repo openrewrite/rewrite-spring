@@ -302,46 +302,46 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     void addSuccessFailureCallbackWithTypeCast() {
         //language=java
         rewriteRun(
-            spec -> spec
-              .typeValidationOptions(TypeValidation.all().methodInvocations(false))
-              .afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
-            java(
-                """
-                  import org.springframework.util.concurrent.ListenableFuture;
-                  import org.springframework.kafka.core.KafkaFailureCallback;
+          spec -> spec
+            .typeValidationOptions(TypeValidation.all().methodInvocations(false))
+            .afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFuture;
+              import org.springframework.kafka.core.KafkaFailureCallback;
 
-                  class Example {
-                      void test(ListenableFuture<String> future) {
-                          future.addCallback(
-                              string -> {
-                                  System.out.print("success: ");
-                                  System.out.println(string);
-                              },
-                              (KafkaFailureCallback<Integer, String>) ex -> {
-                                  System.out.println(ex.getFailedProducerRecord());
-                              });
-                      }
-                  }
-                  """,
-                """
-                  import org.springframework.kafka.core.KafkaProducerException;
-
-                  import java.util.concurrent.CompletableFuture;
-
-                  class Example {
-                      void test(CompletableFuture<String> future) {
-                          future.whenComplete((string, ex) -> {
-                              if (ex == null) {
-                                  System.out.print("success: ");
-                                  System.out.println(string);
-                              } else {
-                                  System.out.println(((KafkaProducerException) ex).getFailedProducerRecord());
-                              }
+              class Example {
+                  void test(ListenableFuture<String> future) {
+                      future.addCallback(
+                          string -> {
+                              System.out.print("success: ");
+                              System.out.println(string);
+                          },
+                          (KafkaFailureCallback<Integer, String>) ex -> {
+                              System.out.println(ex.getFailedProducerRecord());
                           });
-                      }
                   }
-                  """
-            )
+              }
+              """,
+            """
+              import org.springframework.kafka.core.KafkaProducerException;
+
+              import java.util.concurrent.CompletableFuture;
+
+              class Example {
+                  void test(CompletableFuture<String> future) {
+                      future.whenComplete((string, ex) -> {
+                          if (ex == null) {
+                              System.out.print("success: ");
+                              System.out.println(string);
+                          } else {
+                              System.out.println(((KafkaProducerException) ex).getFailedProducerRecord());
+                          }
+                      });
+                  }
+              }
+              """
+          )
         );
     }
 }

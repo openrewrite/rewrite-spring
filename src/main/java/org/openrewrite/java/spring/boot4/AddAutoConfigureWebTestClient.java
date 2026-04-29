@@ -62,7 +62,7 @@ public class AddAutoConfigureWebTestClient extends Recipe {
                             .imports(FULLY_QUALIFIED)
                             .javaParser(JavaParser.fromJavaVersion().dependsOn(
                                     "package org.springframework.boot.webtestclient.autoconfigure;" +
-                                    "public @interface AutoConfigureWebTestClient {}"))
+                                            "public @interface AutoConfigureWebTestClient {}"))
                             .build()
                             .apply(updateCursor(cd), cd.getCoordinates().addAnnotation(comparing(J.Annotation::getSimpleName)));
                 }

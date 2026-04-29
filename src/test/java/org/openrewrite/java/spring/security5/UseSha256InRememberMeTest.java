@@ -31,11 +31,11 @@ class UseSha256InRememberMeTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UseSha256InRememberMe())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans-6.+",
-              "spring-context-6.+",
-              "spring-security-core-6.+",
-              "spring-security-config-6.+",
-              "spring-security-web-6.+"));
+            "spring-beans-6.+",
+            "spring-context-6.+",
+            "spring-security-core-6.+",
+            "spring-security-config-6.+",
+            "spring-security-web-6.+"));
     }
 
     @DocumentExample

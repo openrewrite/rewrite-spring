@@ -33,7 +33,7 @@ class OAuth2LoginLambdaDslTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-boot-2.4",
               "spring-beans-5.3", "spring-context-5.3", "spring-web-5.3", "spring-webmvc-5.3", "spring-core-5.3",
-              "spring-security-core-5.5","spring-security-config-5.5","spring-security-web-5.5",
+              "spring-security-core-5.5", "spring-security-config-5.5", "spring-security-web-5.5",
               "tomcat-embed"));
     }
 

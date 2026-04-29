@@ -33,7 +33,7 @@ import static java.util.Collections.singletonList;
 
 public class MigrateLocalServerPortAnnotation extends Recipe {
     private static final AnnotationMatcher LOCAL_SERVER_PORT_MATCHER =
-        new AnnotationMatcher("@org.springframework.boot.context.embedded.LocalServerPort");
+            new AnnotationMatcher("@org.springframework.boot.context.embedded.LocalServerPort");
 
     @Getter
     final String displayName = "Use `org.springframework.boot.web.server.LocalServerPort`";
@@ -44,30 +44,30 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("org.springframework.boot.context.embedded.LocalServerPort", false),
-            new JavaIsoVisitor<ExecutionContext>() {
-                @Override
-                public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                    J.Annotation a = super.visitAnnotation(annotation, ctx);
-                    if (LOCAL_SERVER_PORT_MATCHER.matches(annotation)) {
-                        a = a.withAnnotationType(a.getAnnotationType().withType(JavaType.buildType("org.springframework.boot.web.server.LocalServerPort")));
-                        maybeRemoveImport("org.springframework.boot.context.embedded.LocalServerPort");
-                        maybeAddImport("org.springframework.boot.web.server.LocalServerPort");
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                        J.Annotation a = super.visitAnnotation(annotation, ctx);
+                        if (LOCAL_SERVER_PORT_MATCHER.matches(annotation)) {
+                            a = a.withAnnotationType(a.getAnnotationType().withType(JavaType.buildType("org.springframework.boot.web.server.LocalServerPort")));
+                            maybeRemoveImport("org.springframework.boot.context.embedded.LocalServerPort");
+                            maybeAddImport("org.springframework.boot.web.server.LocalServerPort");
+                        }
+                        return a;
                     }
-                    return a;
-                }
-            });
+                });
     }
 
     @Override
     public List<Recipe> getRecipeList() {
         return singletonList(new AddDependency(
-            "org.springframework.boot",
-            "spring-boot-starter-web",
-            "2.0.x",
-            null,
-            "org.springframework.boot.web.server.LocalServerPort",
-            null,
-            null,
-            null, null, null, null, null, null, null));
+                "org.springframework.boot",
+                "spring-boot-starter-web",
+                "2.0.x",
+                null,
+                "org.springframework.boot.web.server.LocalServerPort",
+                null,
+                null,
+                null, null, null, null, null, null, null));
     }
 }

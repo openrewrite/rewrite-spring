@@ -89,13 +89,13 @@ public class MigrateJobParameter extends Recipe {
                             multiVariable = (J.VariableDeclarations) new JNewClassOfMap().visit(multiVariable, ctx, getCursor().getParentTreeCursor());
                             maybeAddImport("java.util.Map");
                             return multiVariable.withTypeExpression(TypeTree.build("Map<String, JobParameter<?>>")
-                                    .withPrefix(multiVariable.getTypeExpression().getPrefix()))
+                                            .withPrefix(multiVariable.getTypeExpression().getPrefix()))
                                     .withType(JavaType.buildType("java.util.Map"));
                         }
                         if (defineMapEntryTypeWithJobParameter(multiVariable.getType())) {
                             maybeAddImport("java.util.Map");
                             return multiVariable.withTypeExpression(TypeTree.build("Map.Entry<String, JobParameter<?>>")
-                                    .withPrefix(multiVariable.getTypeExpression().getPrefix()))
+                                            .withPrefix(multiVariable.getTypeExpression().getPrefix()))
                                     .withType(JavaType.buildType("java.util.Map.Entry"));
                         }
                         return multiVariable;
@@ -144,7 +144,7 @@ public class MigrateJobParameter extends Recipe {
                         if (nc.getClazz() != null &&
                                 nc.getClazz().getType() != null &&
                                 nc.getClazz().getType().isAssignableFrom(Pattern.compile("org.springframework.batch.core.JobParameter"))) {
-                            if(newClass.getArguments().stream().filter(expression -> expression.getType()!=null).anyMatch(expression -> expression.getType().isAssignableFrom(Pattern.compile("java.lang.Class")))) {
+                            if (newClass.getArguments().stream().filter(expression -> expression.getType() != null).anyMatch(expression -> expression.getType().isAssignableFrom(Pattern.compile("java.lang.Class")))) {
                                 return newClass;
                             }
                             JavaType javaType = nc.getArguments().get(0).getType();

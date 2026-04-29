@@ -65,6 +65,7 @@ public class ExpandProperties extends Recipe {
             private Yaml.Documents removeEmptyFirstLine(Yaml.Documents docs, ExecutionContext ctx) {
                 return (Yaml.Documents) new YamlIsoVisitor<ExecutionContext>() {
                     boolean doneTrimming;
+
                     @Override
                     public Yaml.Scalar visitScalar(Yaml.Scalar scalar, ExecutionContext ctx) {
                         doneTrimming = true;
@@ -93,7 +94,7 @@ public class ExpandProperties extends Recipe {
 
                     private String trimNewlineBeforeComment(String prefix) {
                         int hashIndex = prefix.indexOf('#');
-                        if(hashIndex >= 0) {
+                        if (hashIndex >= 0) {
                             return prefix.substring(0, hashIndex).trim() + prefix.substring(hashIndex);
                         }
                         return prefix.trim();

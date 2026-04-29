@@ -69,11 +69,11 @@ public class PropertiesToKebabCaseYaml extends Recipe {
                                 .collect(joining("."));
 
                         return (prop.startsWith("spring.") && prop.contains(".properties.")) ||
-                               prop.startsWith("logging.level.") ||
-                               prop.startsWith("management.metrics.tags.") ||
-                               prop.startsWith("management.metrics.enable.") ||
-                               prop.startsWith("management.metrics.distribution.") ||
-                               prop.startsWith("spring.flyway.placeholders.");
+                                prop.startsWith("logging.level.") ||
+                                prop.startsWith("management.metrics.tags.") ||
+                                prop.startsWith("management.metrics.enable.") ||
+                                prop.startsWith("management.metrics.distribution.") ||
+                                prop.startsWith("spring.flyway.placeholders.");
                     }
                 });
     }

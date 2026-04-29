@@ -110,7 +110,8 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private static String generateParamNameFromMethodName(String n) {
         int i = n.length() - 1;
         //noinspection StatementWithEmptyBody
-        for (; i >= 0 && Character.isLowerCase(n.charAt(i)); i--) {}
+        for (; i >= 0 && Character.isLowerCase(n.charAt(i)); i--) {
+        }
         if (i >= 0) {
             return StringUtils.uncapitalize(i == 0 ? n : n.substring(i));
         }
@@ -181,17 +182,17 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                 }
             }
             return securityFqn.equals(declaringType.getFullyQualifiedName()) &&
-                   (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
-                   convertableMethods.contains(m.getSimpleName());
+                    (type.getParameterTypes().isEmpty() || hasHandleableArg(m)) &&
+                    convertableMethods.contains(m.getSimpleName());
         }
         return false;
     }
 
     private boolean hasHandleableArg(J.MethodInvocation m) {
         return argReplacements.containsKey(m.getSimpleName()) &&
-               m.getMethodType() != null &&
-               m.getMethodType().getParameterTypes().size() == 1 &&
-               !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
+                m.getMethodType() != null &&
+                m.getMethodType().getParameterTypes().size() == 1 &&
+                !TypeUtils.isAssignableTo(FQN_CUSTOMIZER, m.getMethodType().getParameterTypes().get(0));
     }
 
     private Optional<JavaType.Method> createDesiredReplacement(J.MethodInvocation m) {

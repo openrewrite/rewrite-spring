@@ -53,9 +53,9 @@ public class ApplyToWithLambdaDsl extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
-          new UsesType<>(FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER, true),
-          new ConvertToSecurityDslVisitor<>(FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER,
-                  APPLICABLE_METHOD_NAMES, ARG_REPLACEMENTS, METHOD_RENAMES)
+                new UsesType<>(FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER, true),
+                new ConvertToSecurityDslVisitor<>(FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER,
+                        APPLICABLE_METHOD_NAMES, ARG_REPLACEMENTS, METHOD_RENAMES)
         );
     }
 }

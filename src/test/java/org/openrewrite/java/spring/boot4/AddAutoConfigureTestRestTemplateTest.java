@@ -113,8 +113,10 @@ class AddAutoConfigureTestRestTemplateTest implements RewriteTest {
               "spring-boot-test-3",
               "spring-beans-6")
             .dependsOn(
-              "package org.springframework.boot.test.web.client;" +
-              "public class TestRestTemplate {}"
+              """
+                package org.springframework.boot.test.web.client;
+                public class TestRestTemplate {}
+                """
             )),
           //language=java
           java(

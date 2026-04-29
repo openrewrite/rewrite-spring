@@ -53,7 +53,7 @@ public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
         return Preconditions.check(Preconditions.or(
                 new UsesType<>(ANNOTATION_IMPORT, false),
                 new UsesType<>(BEAN_VALIDATOR_PLUGINS_CONFIGURATION, false)
-                ), new JavaIsoVisitor<ExecutionContext>() {
+        ), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
@@ -95,7 +95,7 @@ public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
 
             private boolean isBeanValidator(Expression e) {
                 if (e instanceof J.NewArray && ((J.NewArray) e).getInitializer() != null && ((J.NewArray) e).getInitializer().size() == 1) {
-                     e = ((J.NewArray) e).getInitializer().get(0);
+                    e = ((J.NewArray) e).getInitializer().get(0);
                 }
                 return e.getType() instanceof JavaType.Parameterized && BEAN_VALIDATOR_TYPEMATCHER.matches(((JavaType.Parameterized) e.getType()).getTypeParameters().get(0));
             }

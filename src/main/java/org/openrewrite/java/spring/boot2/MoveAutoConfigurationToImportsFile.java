@@ -54,8 +54,8 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
     String displayName = "Use `AutoConfiguration#imports`";
 
     String description = "Use `AutoConfiguration#imports` instead of the deprecated entry " +
-               "`EnableAutoConfiguration` in `spring.factories` when defining " +
-               "autoconfiguration classes.";
+            "`EnableAutoConfiguration` in `spring.factories` when defining " +
+            "autoconfiguration classes.";
 
     @Override
     public Accumulator getInitialValue(ExecutionContext ctx) {

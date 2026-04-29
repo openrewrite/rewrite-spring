@@ -34,10 +34,14 @@ class AddAutoConfigureWebTestClientTest implements RewriteTest {
               "spring-boot-test-3",
               "spring-beans-6")
             .dependsOn(
-              "package org.springframework.test.web.reactive.server;" +
-              "public interface WebTestClient {}",
-              "package org.springframework.boot.webtestclient.autoconfigure;" +
-              "public @interface AutoConfigureWebTestClient {}"));
+              """
+                package org.springframework.test.web.reactive.server;
+                public interface WebTestClient {}
+                """,
+              """
+                package org.springframework.boot.webtestclient.autoconfigure;
+                public @interface AutoConfigureWebTestClient {}
+                """));
     }
 
     @DocumentExample

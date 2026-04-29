@@ -106,28 +106,28 @@ class MigrateProjectTest implements RewriteTest {
                   assertThat(matcher.find()).describedAs(after).isTrue();
                   String micrometerVersion = matcher.group(1);
                   return """
-                    <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>com.example</groupId>
-                    <artifactId>explicit-deps-app</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <name>explicit-deps-app</name>
-                    <description>explicit-deps-app</description>
-                    <properties>
-                        <java.version>17</java.version>
-                        <maven.compiler.source>17</maven.compiler.source>
-                        <maven.compiler.target>17</maven.compiler.target>
-                    </properties>
-                    <dependencies>
-                        <dependency>
-                            <groupId>io.micrometer</groupId>
-                            <artifactId>micrometer-tracing-bridge-brave</artifactId>
-                            <version>%s</version>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """.formatted(micrometerVersion);
-                })
+                        <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>com.example</groupId>
+                        <artifactId>explicit-deps-app</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                        <name>explicit-deps-app</name>
+                        <description>explicit-deps-app</description>
+                        <properties>
+                            <java.version>17</java.version>
+                            <maven.compiler.source>17</maven.compiler.source>
+                            <maven.compiler.target>17</maven.compiler.target>
+                        </properties>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.micrometer</groupId>
+                                <artifactId>micrometer-tracing-bridge-brave</artifactId>
+                                <version>%s</version>
+                            </dependency>
+                        </dependencies>
+                    </project>
+                    """.formatted(micrometerVersion);
+              })
             )
           )
         );

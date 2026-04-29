@@ -37,8 +37,8 @@ public class HttpComponentsClientHttpRequestFactoryConnectTimeout extends Recipe
 
     @Getter
     final String description = "`setConnectTimeout(..)` was deprecated in Spring Framework 6.2 and removed in 7.0. " +
-                               "This recipe adds a comment directing users to migrate to `ConnectionConfig.setConnectTimeout()` " +
-                               "on the `PoolingHttpClientConnectionManager`.";
+            "This recipe adds a comment directing users to migrate to `ConnectionConfig.setConnectTimeout()` " +
+            "on the `PoolingHttpClientConnectionManager`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -47,7 +47,7 @@ public class HttpComponentsClientHttpRequestFactoryConnectTimeout extends Recipe
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 if (SET_CONNECT_TIMEOUT_METHOD_MATCHER.matches(method)) {
                     String message = " Manual migration to `ConnectionConfig.Builder.setConnectTimeout(Timeout)` necessary; see: " +
-                                     "https://github.com/spring-projects/spring-framework/issues/35748";
+                            "https://github.com/spring-projects/spring-framework/issues/35748";
                     if (method.getComments().stream().noneMatch(c -> c.printComment(getCursor()).contains(message))) {
                         return method.withPrefix(method.getPrefix().withComments(ListUtils.concat(method.getComments(),
                                 new TextComment(false, message, "\n" + method.getPrefix().getIndent(), Markers.EMPTY)

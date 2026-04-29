@@ -62,29 +62,29 @@ class UpdateGradleTest implements RewriteTest {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
               """,
-                spec -> spec.after(gradle -> {
-                    Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
-                    assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
-                    //language=gradle
-                    return """
-              plugins {
-                  id "java"
-                  id "org.springframework.boot" version "%s"
-                  id "io.spring.dependency-management" version "1.0.15.RELEASE"
-              }
+            spec -> spec.after(gradle -> {
+                Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
+                assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                //language=gradle
+                return """
+                  plugins {
+                      id "java"
+                      id "org.springframework.boot" version "%s"
+                      id "io.spring.dependency-management" version "1.0.15.RELEASE"
+                  }
 
-              repositories {
-                  mavenCentral()
-              }
+                  repositories {
+                      mavenCentral()
+                  }
 
-              dependencies {
-                  implementation "org.springframework.boot:spring-boot-starter-web"
-              }
-              tasks.withType(Test).configureEach {
-                  useJUnitPlatform()
-              }
-              """.formatted(version.group());
-                })
+                  dependencies {
+                      implementation "org.springframework.boot:spring-boot-starter-web"
+                  }
+                  tasks.withType(Test).configureEach {
+                      useJUnitPlatform()
+                  }
+                  """.formatted(version.group());
+            })
             //language=gradle
           ),
           properties(
@@ -180,29 +180,29 @@ class UpdateGradleTest implements RewriteTest {
                   implementation "org.springframework.boot:spring-boot-starter-web"
               }
               """,
-                spec -> spec.after(gradle -> {
-                    Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
-                    assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
-                    //language=gradle
-                    return """
-              plugins {
-                  id "java"
-                  id "org.springframework.boot" version "%s"
-              }
+            spec -> spec.after(gradle -> {
+                Matcher version = Pattern.compile("2\\.7\\.\\d+").matcher(gradle);
+                assertThat(version.find()).describedAs("Expected 2.7.x in %s", gradle).isTrue();
+                //language=gradle
+                return """
+                  plugins {
+                      id "java"
+                      id "org.springframework.boot" version "%s"
+                  }
 
-              repositories {
-                  mavenCentral()
-              }
+                  repositories {
+                      mavenCentral()
+                  }
 
-              dependencies {
-                  implementation platform("org.springframework.boot:spring-boot-dependencies:%s")
-                  implementation "org.springframework.boot:spring-boot-starter-web"
-              }
-              tasks.withType(Test).configureEach {
-                  useJUnitPlatform()
-              }
-              """.formatted(version.group(), version.group());
-                })
+                  dependencies {
+                      implementation platform("org.springframework.boot:spring-boot-dependencies:%s")
+                      implementation "org.springframework.boot:spring-boot-starter-web"
+                  }
+                  tasks.withType(Test).configureEach {
+                      useJUnitPlatform()
+                  }
+                  """.formatted(version.group(), version.group());
+            })
           ),
           properties(
             //language=properties
@@ -232,7 +232,7 @@ class UpdateGradleTest implements RewriteTest {
                   return after + "\n";
               }).afterRecipe(gradlew -> {
                   assertThat(gradlew.getFileAttributes())
-                      .matches(FileAttributes::isReadable);
+                    .matches(FileAttributes::isReadable);
                   assertThat(gradlew.getFileAttributes().isExecutable()).isTrue();
               })
           ),

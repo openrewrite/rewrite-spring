@@ -41,14 +41,15 @@ class SpringBootReleases {
     private final String milestoneRepositoryUrl = "https://repo.spring.io/milestone";
 
     private final boolean includeReleaseCandidates;
+
     public Stream<ModuleDownload> download(String version) {
         List<String> denyList = List.of("sample", "gradle", "experimental", "legacy",
-                "maven", "tests", "spring-boot-versions");
+          "maven", "tests", "spring-boot-versions");
         HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
 
         HttpSender.Request request = HttpSender.Request.build((version.contains("-RC") ? milestoneRepositoryUrl : repositoryUrl) + "/org/springframework/boot", httpSender)
-                .withMethod(HttpSender.Method.GET)
-                .build();
+          .withMethod(HttpSender.Method.GET)
+          .build();
 
         try (HttpSender.Response response = httpSender.send(request)) {
             if (!response.isSuccessful()) {
@@ -59,7 +60,7 @@ class SpringBootReleases {
 
             if (response.isSuccessful()) {
                 Matcher moduleMatcher = Pattern.compile("href=\"([^\"]+)/\"")
-                        .matcher(new String(response.getBodyAsBytes()));
+                  .matcher(new String(response.getBodyAsBytes()));
 
                 while (moduleMatcher.find()) {
                     String module = moduleMatcher.group(1);
@@ -69,30 +70,30 @@ class SpringBootReleases {
                 }
 
                 return modules.stream()
-                        .map(module -> {
-                            HttpSender.Request moduleRequest = HttpSender.Request
-                                    .build((version.contains("-RC") ? milestoneRepositoryUrl : repositoryUrl) + "/org/springframework/boot/" + module + "/" + version +
-                                            "/" + module + "-" + version + ".jar", httpSender)
-                                    .withMethod(HttpSender.Method.GET)
-                                    .build();
+                  .map(module -> {
+                      HttpSender.Request moduleRequest = HttpSender.Request
+                        .build((version.contains("-RC") ? milestoneRepositoryUrl : repositoryUrl) + "/org/springframework/boot/" + module + "/" + version +
+                          "/" + module + "-" + version + ".jar", httpSender)
+                        .withMethod(HttpSender.Method.GET)
+                        .build();
 
-                            try (HttpSender.Response moduleResponse = httpSender.send(moduleRequest)) {
-                                if (!moduleResponse.isSuccessful()) {
-                                    if (moduleResponse.getCode() == 404) {
-                                        return null;
-                                    }
-                                    throw new IOException("Unexpected code " + moduleResponse);
-                                }
-                                byte[] body = moduleResponse.getBodyAsBytes();
-                                if (body.length == 0) {
-                                    return null;
-                                }
-                                return new ModuleDownload(module, body);
-                            } catch (IOException e) {
-                                throw new UncheckedIOException(e);
-                            }
-                        })
-                        .filter(Objects::nonNull);
+                      try (HttpSender.Response moduleResponse = httpSender.send(moduleRequest)) {
+                          if (!moduleResponse.isSuccessful()) {
+                              if (moduleResponse.getCode() == 404) {
+                                  return null;
+                              }
+                              throw new IOException("Unexpected code " + moduleResponse);
+                          }
+                          byte[] body = moduleResponse.getBodyAsBytes();
+                          if (body.length == 0) {
+                              return null;
+                          }
+                          return new ModuleDownload(module, body);
+                      } catch (IOException e) {
+                          throw new UncheckedIOException(e);
+                      }
+                  })
+                  .filter(Objects::nonNull);
             }
 
             return empty();
@@ -105,9 +106,9 @@ class SpringBootReleases {
         if (availableReleases == null) {
             HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
             HttpSender.Request request = HttpSender.Request
-                    .build(repositoryUrl + "/org/springframework/boot/spring-boot-starter-parent", httpSender)
-                    .withMethod(HttpSender.Method.GET)
-                    .build();
+              .build(repositoryUrl + "/org/springframework/boot/spring-boot-starter-parent", httpSender)
+              .withMethod(HttpSender.Method.GET)
+              .build();
 
             Set<String> releases = new HashSet<>();
 
@@ -119,7 +120,7 @@ class SpringBootReleases {
                 byte[] responseBody = response.getBodyAsBytes();
                 if (responseBody.length > 0) {
                     Matcher releaseMatcher = Pattern.compile("href=\"([^\"]+[.RELEASE]*)/\"")
-                            .matcher(new String(responseBody));
+                      .matcher(new String(responseBody));
 
                     while (releaseMatcher.find()) {
                         String release = releaseMatcher.group(1);
@@ -139,9 +140,9 @@ class SpringBootReleases {
 
             if (includeReleaseCandidates) {
                 request = HttpSender.Request
-                        .build(milestoneRepositoryUrl + "/org/springframework/boot/spring-boot-starter-parent", httpSender)
-                        .withMethod(HttpSender.Method.GET)
-                        .build();
+                  .build(milestoneRepositoryUrl + "/org/springframework/boot/spring-boot-starter-parent", httpSender)
+                  .withMethod(HttpSender.Method.GET)
+                  .build();
 
                 try (HttpSender.Response response = httpSender.send(request)) {
                     if (!response.isSuccessful()) {
@@ -151,7 +152,7 @@ class SpringBootReleases {
                     byte[] responseBody = response.getBodyAsBytes();
                     if (responseBody.length > 0) {
                         Matcher releaseMatcher = Pattern.compile("href=\"([^\"]+-RC[0-9]]*)/\"")
-                                .matcher(new String(responseBody));
+                          .matcher(new String(responseBody));
 
                         while (releaseMatcher.find()) {
                             if ("..".equals(releaseMatcher.group(1))) {
@@ -178,37 +179,37 @@ class SpringBootReleases {
      */
     public Set<String> latestPatchReleases() {
         return allReleases().stream()
-                .collect(groupingBy(v -> {
-                    String[] versionParts = v.split("\\.");
-                    return versionParts[0] + "." + versionParts[1];
-                }))
-                .values()
-                .stream()
-                .map(patches -> patches.stream().max((r1, r2) -> {
-                            String[] r1Parts = r1.split("[\\.-]");
-                            String[] r2Parts = r2.split("[\\.-]");
+          .collect(groupingBy(v -> {
+              String[] versionParts = v.split("\\.");
+              return versionParts[0] + "." + versionParts[1];
+          }))
+          .values()
+          .stream()
+          .map(patches -> patches.stream().max((r1, r2) -> {
+                String[] r1Parts = r1.split("[\\.-]");
+                String[] r2Parts = r2.split("[\\.-]");
 
-                            int majorVersionComp = r1Parts[0].compareTo(r2Parts[0]);
-                            if (majorVersionComp != 0) {
-                                return majorVersionComp;
-                            }
+                int majorVersionComp = r1Parts[0].compareTo(r2Parts[0]);
+                if (majorVersionComp != 0) {
+                    return majorVersionComp;
+                }
 
-                            int minorVersionComp = Integer.parseInt(r1Parts[1]) - Integer.parseInt(r2Parts[1]);
-                            if (minorVersionComp != 0) {
-                                return minorVersionComp;
-                            }
+                int minorVersionComp = Integer.parseInt(r1Parts[1]) - Integer.parseInt(r2Parts[1]);
+                if (minorVersionComp != 0) {
+                    return minorVersionComp;
+                }
 
-                            int patchVersionComp = Integer.parseInt(r1Parts[2]) - Integer.parseInt(r2Parts[2]);
-                            if (patchVersionComp != 0) {
-                                return patchVersionComp;
-                            }
+                int patchVersionComp = Integer.parseInt(r1Parts[2]) - Integer.parseInt(r2Parts[2]);
+                if (patchVersionComp != 0) {
+                    return patchVersionComp;
+                }
 
-                            // should never get to this point
-                            return r1.compareTo(r2);
-                        }).orElseThrow(() -> new IllegalStateException("Patch list should not be empty"))
-                )
-                .sorted()
-                .collect(toCollection(LinkedHashSet::new));
+                // should never get to this point
+                return r1.compareTo(r2);
+            }).orElseThrow(() -> new IllegalStateException("Patch list should not be empty"))
+          )
+          .sorted()
+          .collect(toCollection(LinkedHashSet::new));
     }
 
     public String latestMatchingVersion(String version) {
@@ -217,30 +218,30 @@ class SpringBootReleases {
         }
 
         return allReleases().stream()
-                .filter(release -> release.matches(version.replace("+", ".+")))
-                .max((r1, r2) -> {
-                    String[] r1Parts = r1.split("\\.");
-                    String[] r2Parts = r2.split("\\.");
+          .filter(release -> release.matches(version.replace("+", ".+")))
+          .max((r1, r2) -> {
+              String[] r1Parts = r1.split("\\.");
+              String[] r2Parts = r2.split("\\.");
 
-                    int majorVersionComp = r1Parts[0].compareTo(r2Parts[0]);
-                    if (majorVersionComp != 0) {
-                        return majorVersionComp;
-                    }
+              int majorVersionComp = r1Parts[0].compareTo(r2Parts[0]);
+              if (majorVersionComp != 0) {
+                  return majorVersionComp;
+              }
 
-                    int minorVersionComp = Integer.parseInt(r1Parts[1]) - Integer.parseInt(r2Parts[1]);
-                    if (minorVersionComp != 0) {
-                        return minorVersionComp;
-                    }
+              int minorVersionComp = Integer.parseInt(r1Parts[1]) - Integer.parseInt(r2Parts[1]);
+              if (minorVersionComp != 0) {
+                  return minorVersionComp;
+              }
 
-                    int patchVersionComp = Integer.parseInt(r1Parts[2]) - Integer.parseInt(r2Parts[2]);
-                    if (patchVersionComp != 0) {
-                        return patchVersionComp;
-                    }
+              int patchVersionComp = Integer.parseInt(r1Parts[2]) - Integer.parseInt(r2Parts[2]);
+              if (patchVersionComp != 0) {
+                  return patchVersionComp;
+              }
 
-                    // should never get to this point
-                    return r1.compareTo(r2);
-                })
-                .orElse(null);
+              // should never get to this point
+              return r1.compareTo(r2);
+          })
+          .orElse(null);
     }
 
     @RequiredArgsConstructor

@@ -72,19 +72,19 @@ public class MigrateQuerydslJpaRepository extends Recipe {
 
                     J.FieldAccess entityPathResolver = TypeTree.build("SimpleEntityPathResolver.INSTANCE");
                     return JavaTemplate.builder(template)
-                        .imports(targetFqn)
-                        .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx,
-                                "javax.persistence-api-2.*",
-                                "spring-data-commons-2.*",
-                                "spring-data-jpa-2.*"
-                            ))
-                        .build().apply(
-                            getCursor(),
-                            newClass.getCoordinates().replace(),
-                            newClass.getArguments().get(0),
-                            newClass.getArguments().get(1),
-                            newClass.getArguments().size() == 3 ? newClass.getArguments().get(2) : entityPathResolver);
+                            .imports(targetFqn)
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx,
+                                            "javax.persistence-api-2.*",
+                                            "spring-data-commons-2.*",
+                                            "spring-data-jpa-2.*"
+                                    ))
+                            .build().apply(
+                                    getCursor(),
+                                    newClass.getCoordinates().replace(),
+                                    newClass.getArguments().get(0),
+                                    newClass.getArguments().get(1),
+                                    newClass.getArguments().size() == 3 ? newClass.getArguments().get(2) : entityPathResolver);
                 }
                 return super.visitNewClass(newClass, ctx);
             }
