@@ -42,7 +42,7 @@ public class FindConfigurationProperties extends Recipe {
     String displayName = "Find Spring `@ConfigurationProperties`";
 
     String description = "Find all classes annotated with `@ConfigurationProperties` and extract their prefix values. " +
-                "This is useful for discovering all externalized configuration properties in Spring Boot applications.";
+            "This is useful for discovering all externalized configuration properties in Spring Boot applications.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

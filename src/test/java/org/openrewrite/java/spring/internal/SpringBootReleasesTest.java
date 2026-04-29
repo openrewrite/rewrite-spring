@@ -25,9 +25,9 @@ class SpringBootReleasesTest {
     void latestAvailableVersion() {
         var releases = new SpringBootReleases(false);
         assertThat(releases.latestMatchingVersion("2.+"))
-            .isGreaterThanOrEqualTo("2.3.0.RELEASE");
+          .isGreaterThanOrEqualTo("2.3.0.RELEASE");
         assertThat(releases.latestMatchingVersion("2.1.+"))
-            .isGreaterThanOrEqualTo("2.1.14.RELEASE");
+          .isGreaterThanOrEqualTo("2.1.14.RELEASE");
     }
 
     @Test

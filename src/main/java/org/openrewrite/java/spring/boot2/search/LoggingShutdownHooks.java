@@ -84,7 +84,7 @@ public class LoggingShutdownHooks extends ScanningRecipe<AtomicBoolean> {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean acc) {
         return Preconditions.check(acc.get(),
-                        new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication", null).getVisitor());
+                new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication", null).getVisitor());
     }
 
 }

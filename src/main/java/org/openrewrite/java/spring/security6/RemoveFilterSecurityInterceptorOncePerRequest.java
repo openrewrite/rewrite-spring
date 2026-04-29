@@ -40,7 +40,7 @@ public class RemoveFilterSecurityInterceptorOncePerRequest extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         Map<MethodMatcher, Predicate<List<Expression>>> matchers = new HashMap<>();
         matchers.put(new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer.AbstractInterceptUrlRegistry filterSecurityInterceptorOncePerRequest(boolean)"
-            ), RemoveMethodInvocationsVisitor.isFalseArgument());
+        ), RemoveMethodInvocationsVisitor.isFalseArgument());
         return new RemoveMethodInvocationsVisitor(matchers);
     }
 }

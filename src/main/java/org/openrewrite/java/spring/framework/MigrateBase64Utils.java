@@ -45,6 +45,7 @@ public class MigrateBase64Utils extends Recipe {
     private static final MethodMatcher DECODE_FROM_URL_SAFE_STRING = new MethodMatcher(SPRING_BASE_64_UTILS + " decodeFromUrlSafeString(String)");
 
     private static final Map<MethodMatcher, String> MAPPINGS = new HashMap<>();
+
     static {
         MAPPINGS.put(ENCODE, "Base64.getEncoder().encode(#{anyArray(byte)})");
         MAPPINGS.put(DECODE, "Base64.getDecoder().decode(#{anyArray(byte)})");

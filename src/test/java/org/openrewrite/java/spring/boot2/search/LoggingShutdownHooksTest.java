@@ -43,11 +43,11 @@ class LoggingShutdownHooksTest implements RewriteTest {
     //language=java
     private final SourceSpecs found = srcMainJava(
       java(app, """
-          import org.springframework.boot.autoconfigure.SpringBootApplication;
+            import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-          /*~~>*/@SpringBootApplication
-          class Application {}
-      """)
+            /*~~>*/@SpringBootApplication
+            class Application {}
+        """)
     );
 
     private final SourceSpecs notFound = srcMainJava(

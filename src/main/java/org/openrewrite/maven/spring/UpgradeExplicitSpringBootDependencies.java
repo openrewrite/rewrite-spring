@@ -55,8 +55,8 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
     String displayName = "Upgrade Spring dependencies";
 
     String description = "Upgrades dependencies according to the specified version of spring boot. " +
-                "Spring boot has many direct and transitive dependencies. When a module has an explicit dependency on " +
-                "one of these it may also need to be upgraded to match the version used by spring boot.";
+            "Spring boot has many direct and transitive dependencies. When a module has an explicit dependency on " +
+            "one of these it may also need to be upgraded to match the version used by spring boot.";
 
     @Data
     public static class Accumulator {

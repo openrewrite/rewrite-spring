@@ -57,23 +57,23 @@ public class AddAutoConfigureTestRestTemplate extends Recipe {
                         new UsesType<>(TEST_REST_TEMPLATE_OLD, true)
                 ),
                 new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
+                    @Override
+                    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                        J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
-                AnnotationService annotationService = service(AnnotationService.class);
-                if (annotationService.matches(getCursor(), SPRING_BOOT_TEST) &&
-                        !annotationService.matches(getCursor(), AUTO_CONFIGURE_TEST_REST_TEMPLATE)) {
-                    maybeAddImport(FULLY_QUALIFIED);
-                    return JavaTemplate.builder("@" + SIMPLE_NAME)
-                            .imports(FULLY_QUALIFIED)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-boot-resttestclient-4"))
-                            .build()
-                            .apply(updateCursor(cd), cd.getCoordinates().addAnnotation(comparing(J.Annotation::getSimpleName)));
-                }
+                        AnnotationService annotationService = service(AnnotationService.class);
+                        if (annotationService.matches(getCursor(), SPRING_BOOT_TEST) &&
+                                !annotationService.matches(getCursor(), AUTO_CONFIGURE_TEST_REST_TEMPLATE)) {
+                            maybeAddImport(FULLY_QUALIFIED);
+                            return JavaTemplate.builder("@" + SIMPLE_NAME)
+                                    .imports(FULLY_QUALIFIED)
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-boot-resttestclient-4"))
+                                    .build()
+                                    .apply(updateCursor(cd), cd.getCoordinates().addAnnotation(comparing(J.Annotation::getSimpleName)));
+                        }
 
-                return cd;
-            }
-        });
+                        return cd;
+                    }
+                });
     }
 }

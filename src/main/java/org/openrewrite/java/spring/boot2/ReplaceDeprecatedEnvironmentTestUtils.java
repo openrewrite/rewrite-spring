@@ -144,7 +144,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                     SemanticallyEqual.areEqual(contextOrEnvironmentToCheck, collectedContextOrEnvironment) &&
                     (environmentNameToCheck == null && collectedEnvironmentName == null) ||
                     (environmentNameToCheck != null && collectedEnvironmentName != null &&
-                    SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
+                            SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
         }
 
         private @Nullable Expression getEnvironmentNameArgument(J.MethodInvocation methodInvocation) {
@@ -242,15 +242,15 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             if (maybeMarker.isPresent()) {
                 ReplaceEnvironmentUtilsMarker marker = maybeMarker.get();
                 m = JavaTemplate.builder(marker.templateString)
-                    .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion()
-                        .classpathFromResources(ctx, "spring-boot-test-2.*"))
-                    .imports("org.springframework.boot.test.util.TestPropertyValues")
-                    .build().apply(
-                        getCursor(),
-                        m.getCoordinates().replace(),
-                        marker.parameters.toArray()
-                );
+                        .contextSensitive()
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-boot-test-2.*"))
+                        .imports("org.springframework.boot.test.util.TestPropertyValues")
+                        .build().apply(
+                                getCursor(),
+                                m.getCoordinates().replace(),
+                                marker.parameters.toArray()
+                        );
 
                 maybeRemoveImport("org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment");
                 maybeAddImport("org.springframework.boot.test.util.TestPropertyValues");

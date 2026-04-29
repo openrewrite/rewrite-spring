@@ -448,6 +448,12 @@ recipeList:
       oldPackageName: org.springframework.boot.actuate.health
       newPackageName: org.springframework.boot.health.contributor
       recursive: true
+  # the functional interface HealthIndicator lost the method getHealth(boolean includeDetails) in favor of health(boolean includeDetails)
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.boot.health.contributor.HealthIndicator getHealth(..)
+      newMethodName: health
+      matchOverrides: true
+      ignoreDefinition: false
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway

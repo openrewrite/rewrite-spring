@@ -80,9 +80,9 @@ class SuccessFailureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Execution
             J.Identifier failureParam = ((J.VariableDeclarations) failureCallback.getParameters().getParameters().get(0)).getVariables().get(0).getName();
             J.MethodInvocation whenComplete = JavaTemplate.builder(String.format(
                             "(%s, %s) -> {\n" +
-                            "    if (#{any()} == null) { #{any()}; }" +
-                            "    else { #{any()}; }\n" +
-                            "}",
+                                    "    if (#{any()} == null) { #{any()}; }" +
+                                    "    else { #{any()}; }\n" +
+                                    "}",
                             successParam,
                             failureParam
                     ))

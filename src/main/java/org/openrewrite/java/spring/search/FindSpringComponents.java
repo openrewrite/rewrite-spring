@@ -68,7 +68,7 @@ public class FindSpringComponents extends Recipe {
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
                 if (!FindAnnotations.find(m, "@org.springframework.context.annotation.Bean").isEmpty() &&
-                    m.getReturnTypeExpression() != null) {
+                        m.getReturnTypeExpression() != null) {
 
                     m = SearchResult.found(m, "bean");
                     recordDependencies(TypeUtils.asFullyQualified(requireNonNull(m.getReturnTypeExpression()).getType()), m, ctx);

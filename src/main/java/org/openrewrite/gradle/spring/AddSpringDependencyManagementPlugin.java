@@ -37,8 +37,8 @@ public class AddSpringDependencyManagementPlugin extends Recipe {
     String displayName = "Add `io.spring.dependency-management` plugin, if in use";
 
     String description = "Prior to Spring Boot 2.0 the dependency management plugin was applied automatically as part of the overall spring boot plugin. " +
-               "Afterwards the dependency-management plugin must be applied explicitly, or Gradle's `platform()` feature may be used instead. " +
-               "This recipe makes usage of io-spring.dependency-management explicit in anticipation of upgrade to Spring Boot 2.0 or later.";
+            "Afterwards the dependency-management plugin must be applied explicitly, or Gradle's `platform()` feature may be used instead. " +
+            "This recipe makes usage of io-spring.dependency-management explicit in anticipation of upgrade to Spring Boot 2.0 or later.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -63,7 +63,7 @@ public class AddSpringDependencyManagementPlugin extends Recipe {
                 GradleProject gp = maybeGp.get();
                 if (gp.getPlugins().stream().anyMatch(plugin -> "io.spring.dependency-management".equals(plugin.getId()) ||
                         "io.spring.gradle.dependencymanagement.DependencyManagementPlugin".equals(plugin.getFullyQualifiedClassName())) &&
-                    usesDependencyManagementDsl(cu)
+                        usesDependencyManagementDsl(cu)
                 ) {
                     return SearchResult.found(cu);
                 }

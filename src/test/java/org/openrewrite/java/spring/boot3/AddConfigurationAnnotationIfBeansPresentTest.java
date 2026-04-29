@@ -34,7 +34,8 @@ class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-boot-autoconfigure-3", "spring-boot-3",
               "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6",
-              "spring-security-core-6", "spring-security-config-6"));
+              "spring-security-core-6", "spring-security-config-6",
+              "spring-cloud-openfeign-core"));
     }
 
     @DocumentExample
@@ -136,4 +137,122 @@ class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
         );
     }
 
+    @Test
+    void feignClientScopedConfiguration() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              public class MyFeignConfiguration {
+                  @Bean
+                  public String authInterceptor() {
+                      return "interceptor";
+                  }
+              }
+              """
+          ),
+          java(
+            """
+              import org.springframework.cloud.openfeign.FeignClient;
+
+              @FeignClient(name = "my-service", configuration = MyFeignConfiguration.class)
+              public interface MyFeignClient {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void feignClientScopedConfigurationArray() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              public class FeignConfigA {
+                  @Bean String a() { return "a"; }
+              }
+              """
+          ),
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              public class FeignConfigB {
+                  @Bean String b() { return "b"; }
+              }
+              """
+          ),
+          java(
+            """
+              import org.springframework.cloud.openfeign.FeignClient;
+
+              @FeignClient(name = "svc", configuration = {FeignConfigA.class, FeignConfigB.class})
+              public interface SvcClient {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void enableFeignClientsDefaultConfiguration() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              public class DefaultFeignConfig {
+                  @Bean String defaultBean() { return "default"; }
+              }
+              """
+          ),
+          java(
+            """
+              import org.springframework.cloud.openfeign.EnableFeignClients;
+              import org.springframework.context.annotation.Configuration;
+
+              @Configuration
+              @EnableFeignClients(defaultConfiguration = DefaultFeignConfig.class)
+              public class App {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void beansClassNotReferencedStillGetsConfiguration() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              public class UsedElsewhereConfig {
+                  @Bean String bean() { return "bean"; }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+
+              @Configuration
+              public class UsedElsewhereConfig {
+                  @Bean String bean() { return "bean"; }
+              }
+              """
+          ),
+          java(
+            """
+              import org.springframework.cloud.openfeign.FeignClient;
+
+              @FeignClient(name = "unrelated")
+              public interface UnrelatedClient {
+              }
+              """
+          )
+        );
+    }
 }

@@ -86,7 +86,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                         if (arg instanceof J.Assignment) {
                             J.Assignment assignment = (J.Assignment) arg;
                             return "prePostEnabled".equals(((J.Identifier) assignment.getVariable()).getSimpleName()) &&
-                                   RemoveMethodInvocationsVisitor.isTrue(assignment.getAssignment());
+                                    RemoveMethodInvocationsVisitor.isTrue(assignment.getAssignment());
                         }
                         return false;
                     }

@@ -50,7 +50,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               class Foo {
               }
               """
@@ -76,7 +76,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               class Foo {
               }
               """
@@ -99,7 +99,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               class Foo {
                   /*~~(TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed)~~>*/
                   public void setDataSource(javax.sql.DataSource dataSource) {
@@ -138,7 +138,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               class Foo implements bar.Bar {
 
                   @Override
@@ -165,7 +165,7 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               class FooConfig {
               }
               """

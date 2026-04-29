@@ -146,14 +146,14 @@ public class MigrateJobBuilderFactory extends Recipe {
 
         private boolean isJobRepositoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
-                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                           "org.springframework.batch.core.repository.JobRepository");
+                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                            "org.springframework.batch.core.repository.JobRepository");
         }
 
         private boolean isJobBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
-                   TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                           "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
+                    TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
+                            "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
         }
     }
 }

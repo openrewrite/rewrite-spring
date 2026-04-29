@@ -46,91 +46,91 @@ public class MigrateRequestMappingOnFeignClient extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(Preconditions.and(
-                new UsesType<>(FEIGN_CLIENT, false),
-                new UsesType<>(REQUEST_MAPPING, false)),
-            new JavaIsoVisitor<ExecutionContext>() {
-                @Override
-                public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                    J.Annotation requestMapping = classDecl.getLeadingAnnotations().stream()
-                        .filter(a -> TypeUtils.isOfClassType(a.getType(), REQUEST_MAPPING))
-                        .findFirst().orElse(null);
-                    J.Annotation feignClient = classDecl.getLeadingAnnotations().stream()
-                        .filter(a -> TypeUtils.isOfClassType(a.getType(), FEIGN_CLIENT))
-                        .findFirst().orElse(null);
+                        new UsesType<>(FEIGN_CLIENT, false),
+                        new UsesType<>(REQUEST_MAPPING, false)),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                        J.Annotation requestMapping = classDecl.getLeadingAnnotations().stream()
+                                .filter(a -> TypeUtils.isOfClassType(a.getType(), REQUEST_MAPPING))
+                                .findFirst().orElse(null);
+                        J.Annotation feignClient = classDecl.getLeadingAnnotations().stream()
+                                .filter(a -> TypeUtils.isOfClassType(a.getType(), FEIGN_CLIENT))
+                                .findFirst().orElse(null);
 
-                    if (requestMapping != null && feignClient != null) {
-                        J.ClassDeclaration cd = classDecl;
-                        if (requestMapping.getArguments() == null || requestMapping.getArguments().isEmpty()) {
-                            cd = removeRequestMapping(cd, ctx);
-                        } else if (requestMapping.getArguments().size() == 1) {
-                            String pathValueFromRequestMapping = getPathValue(requestMapping.getArguments().get(0));
-                            if (pathValueFromRequestMapping != null && !hasPathAttribute(feignClient)) {
+                        if (requestMapping != null && feignClient != null) {
+                            J.ClassDeclaration cd = classDecl;
+                            if (requestMapping.getArguments() == null || requestMapping.getArguments().isEmpty()) {
                                 cd = removeRequestMapping(cd, ctx);
-                                cd = addAttributeToFeignClient(cd, ctx, pathValueFromRequestMapping);
+                            } else if (requestMapping.getArguments().size() == 1) {
+                                String pathValueFromRequestMapping = getPathValue(requestMapping.getArguments().get(0));
+                                if (pathValueFromRequestMapping != null && !hasPathAttribute(feignClient)) {
+                                    cd = removeRequestMapping(cd, ctx);
+                                    cd = addAttributeToFeignClient(cd, ctx, pathValueFromRequestMapping);
+                                }
                             }
+                            return cd;
                         }
-                        return cd;
+                        return super.visitClassDeclaration(classDecl, ctx);
                     }
-                    return super.visitClassDeclaration(classDecl, ctx);
-                }
 
-                private boolean hasPathAttribute(J.Annotation annotation) {
-                    if (annotation.getArguments() == null || annotation.getArguments().isEmpty()) {
-                        return false;
+                    private boolean hasPathAttribute(J.Annotation annotation) {
+                        if (annotation.getArguments() == null || annotation.getArguments().isEmpty()) {
+                            return false;
+                        }
+                        return annotation.getArguments().stream().anyMatch(arg -> {
+                            if (arg instanceof J.Assignment) {
+                                J.Assignment assignment = (J.Assignment) arg;
+                                if (assignment.getVariable() instanceof J.Identifier) {
+                                    J.Identifier variable = (J.Identifier) assignment.getVariable();
+                                    return "path".equals(variable.getSimpleName());
+                                }
+                            }
+                            return false;
+                        });
                     }
-                    return annotation.getArguments().stream().anyMatch(arg -> {
+
+                    private J.ClassDeclaration addAttributeToFeignClient(J.ClassDeclaration cd, ExecutionContext ctx, String path) {
+                        return cd.withLeadingAnnotations(
+                                ListUtils.map(cd.getLeadingAnnotations(), a -> (J.Annotation)
+                                        new AddOrUpdateAnnotationAttribute(FEIGN_CLIENT, "path",
+                                                path, null, true, false).getVisitor()
+                                                .visit(a, ctx, getCursor().getParentOrThrow())));
+                    }
+
+                    private J.ClassDeclaration removeRequestMapping(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                        maybeRemoveImport(REQUEST_MAPPING);
+                        return classDecl.withLeadingAnnotations(ListUtils.map(classDecl.getLeadingAnnotations(),
+                                a -> (J.Annotation) new RemoveAnnotation(REQUEST_MAPPING).getVisitor()
+                                        .visit(a, ctx, getCursor().getParentOrThrow())));
+                    }
+
+                    private String getPathValue(Expression arg) {
+                        if (arg instanceof J.Literal) {
+                            J.Literal literal = (J.Literal) arg;
+                            return (String) literal.getValue();
+                        }
                         if (arg instanceof J.Assignment) {
                             J.Assignment assignment = (J.Assignment) arg;
                             if (assignment.getVariable() instanceof J.Identifier) {
                                 J.Identifier variable = (J.Identifier) assignment.getVariable();
-                                return "path".equals(variable.getSimpleName());
-                            }
-                        }
-                        return false;
-                    });
-                }
-
-                private J.ClassDeclaration addAttributeToFeignClient(J.ClassDeclaration cd, ExecutionContext ctx, String path) {
-                    return cd.withLeadingAnnotations(
-                        ListUtils.map(cd.getLeadingAnnotations(), a -> (J.Annotation)
-                            new AddOrUpdateAnnotationAttribute(FEIGN_CLIENT, "path",
-                                path, null, true, false).getVisitor()
-                                .visit(a, ctx, getCursor().getParentOrThrow())));
-                }
-
-                private J.ClassDeclaration removeRequestMapping(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                    maybeRemoveImport(REQUEST_MAPPING);
-                    return classDecl.withLeadingAnnotations(ListUtils.map(classDecl.getLeadingAnnotations(),
-                        a -> (J.Annotation) new RemoveAnnotation(REQUEST_MAPPING).getVisitor()
-                            .visit(a, ctx, getCursor().getParentOrThrow())));
-                }
-
-                private String getPathValue(Expression arg) {
-                    if (arg instanceof J.Literal) {
-                        J.Literal literal = (J.Literal) arg;
-                        return (String) literal.getValue();
-                    }
-                    if (arg instanceof J.Assignment) {
-                        J.Assignment assignment = (J.Assignment) arg;
-                        if (assignment.getVariable() instanceof J.Identifier) {
-                            J.Identifier variable = (J.Identifier) assignment.getVariable();
-                            if ("path".equals(variable.getSimpleName()) || "value".equals(variable.getSimpleName())) {
-                                Expression expression = assignment.getAssignment();
-                                if (expression instanceof J.Literal) {
-                                    J.Literal value = (J.Literal) expression;
-                                    return (String) value.getValue();
+                                if ("path".equals(variable.getSimpleName()) || "value".equals(variable.getSimpleName())) {
+                                    Expression expression = assignment.getAssignment();
+                                    if (expression instanceof J.Literal) {
+                                        J.Literal value = (J.Literal) expression;
+                                        return (String) value.getValue();
+                                    }
                                 }
                             }
+                        } else if (arg instanceof J.NewArray) {
+                            List<Expression> initializer = ((J.NewArray) arg).getInitializer();
+                            if (initializer != null && initializer.size() == 1) {
+                                return getPathValue(initializer.get(0));
+                            }
                         }
-                    } else if (arg instanceof J.NewArray) {
-                        List<Expression> initializer = ((J.NewArray) arg).getInitializer();
-                        if (initializer != null && initializer.size() == 1) {
-                            return getPathValue(initializer.get(0));
-                        }
+                        return null;
                     }
-                    return null;
-                }
-            });
+                });
     }
 
 }

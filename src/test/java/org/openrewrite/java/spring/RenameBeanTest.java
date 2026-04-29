@@ -31,20 +31,20 @@ class RenameBeanTest implements RewriteTest {
         spec
           .recipe(new RenameBean("sample.MyType", "foo", "bar"))
           .parser(JavaParser.fromJavaVersion()
-              //language=java
-              .dependsOn(
+            //language=java
+            .dependsOn(
+              """
+                package sample;
+                class MyType {}
+                """,
+              """
+                package sample;
+                @interface MyAnnotation {
+                    String value() default "";
+                }
                 """
-                  package sample;
-                  class MyType {}
-                  """,
-                """
-                  package sample;
-                  @interface MyAnnotation {
-                      String value() default "";
-                  }
-                  """
-              )
-              .classpathFromResources(new InMemoryExecutionContext(), "spring-context-6.+", "spring-beans-6.+")
+            )
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-6.+", "spring-beans-6.+")
           );
     }
 

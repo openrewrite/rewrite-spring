@@ -52,23 +52,23 @@ public class MigrateMultipartConfigFactory extends Recipe {
                         J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                         if (setMaxFileSizeByLong.matches(m) || setMaxRequestSizeByLong.matches(m) || setFileSizeThresholdByInt.matches(m)) {
                             m = JavaTemplate.builder("DataSize.ofBytes(#{any()})")
-                                            .imports("org.springframework.util.unit.DataSize")
-                                            .javaParser(JavaParser.fromJavaVersion()
-                                                    .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
-                                            .build().apply(
-                                    getCursor(),
-                                    m.getCoordinates().replaceArguments(),
-                                    m.getArguments().get(0));
+                                    .imports("org.springframework.util.unit.DataSize")
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
+                                    .build().apply(
+                                            getCursor(),
+                                            m.getCoordinates().replaceArguments(),
+                                            m.getArguments().get(0));
                         } else if (setMaxFileSizeByString.matches(m) || setMaxRequestSizeByString.matches(m) || setFileSizeThresholdByString.matches(m)) {
                             m = JavaTemplate
-                                .builder("DataSize.parse(#{any(java.lang.String)})")
-                                .imports("org.springframework.util.unit.DataSize")
-                                .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
-                                .build().apply(
-                                    getCursor(),
-                                    m.getCoordinates().replaceArguments(),
-                                    m.getArguments().get(0));
+                                    .builder("DataSize.parse(#{any(java.lang.String)})")
+                                    .imports("org.springframework.util.unit.DataSize")
+                                    .javaParser(JavaParser.fromJavaVersion()
+                                            .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))
+                                    .build().apply(
+                                            getCursor(),
+                                            m.getCoordinates().replaceArguments(),
+                                            m.getArguments().get(0));
                         }
                         maybeAddImport("org.springframework.util.unit.DataSize");
                         return m;

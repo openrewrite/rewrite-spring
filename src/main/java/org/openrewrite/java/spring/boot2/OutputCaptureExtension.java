@@ -98,12 +98,12 @@ public class OutputCaptureExtension extends Recipe {
                             .build();
 
                     c = addOutputCaptureExtension.apply(
-                        getCursor(),
-                        c.getCoordinates()
-                            .addAnnotation(Comparator.comparing(
-                                J.Annotation::getSimpleName,
-                                new RuleBasedCollator("< ExtendWith")
-                            ))
+                            getCursor(),
+                            c.getCoordinates()
+                                    .addAnnotation(Comparator.comparing(
+                                            J.Annotation::getSimpleName,
+                                            new RuleBasedCollator("< ExtendWith")
+                                    ))
                     );
 
                     maybeAddImport("org.springframework.boot.test.system.OutputCaptureExtension");

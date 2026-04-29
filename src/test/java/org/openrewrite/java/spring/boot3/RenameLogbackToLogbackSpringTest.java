@@ -58,8 +58,7 @@ class RenameLogbackToLogbackSpringTest implements RewriteTest {
               </configuration>
               """,
             spec -> spec.path("src/main/resources/logback.xml")
-                        .afterRecipe(doc -> assertThat(doc.getSourcePath().toString())
-                                .isEqualTo("src/main/resources/logback-spring.xml"))
+              .afterRecipe(doc -> assertThat(doc.getSourcePath()).hasToString("src/main/resources/logback-spring.xml"))
           )
         );
     }
@@ -91,8 +90,7 @@ class RenameLogbackToLogbackSpringTest implements RewriteTest {
               </configuration>
               """,
             spec -> spec.path("src/main/resources/logback.xml")
-                        .afterRecipe(doc -> assertThat(doc.getSourcePath().toString())
-                                .isEqualTo("src/main/resources/logback-spring.xml"))
+              .afterRecipe(doc -> assertThat(doc.getSourcePath()).hasToString("src/main/resources/logback-spring.xml"))
           )
         );
     }
@@ -161,8 +159,7 @@ class RenameLogbackToLogbackSpringTest implements RewriteTest {
               </configuration>
               """,
             spec -> spec.path("src/main/resources/logback.xml")
-                        .afterRecipe(doc -> assertThat(doc.getSourcePath().toString())
-                                .isEqualTo("src/main/resources/logback-spring.xml"))
+              .afterRecipe(doc -> assertThat(doc.getSourcePath()).hasToString("src/main/resources/logback-spring.xml"))
           )
         );
     }

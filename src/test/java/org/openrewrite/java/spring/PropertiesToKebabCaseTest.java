@@ -143,13 +143,13 @@ class PropertiesToKebabCaseTest implements RewriteTest {
           srcMainResources(
             yaml(
               """
-                  spring:
-                    jpa:
-                      properties:
-                        hibernate:
-                          default_schema: my_schema
-                          default_batch_fetch_size: 16
-                  """,
+                spring:
+                  jpa:
+                    properties:
+                      hibernate:
+                        default_schema: my_schema
+                        default_batch_fetch_size: 16
+                """,
               spec -> spec.path("application.yaml")
             )
           )
@@ -177,21 +177,21 @@ class PropertiesToKebabCaseTest implements RewriteTest {
           srcMainResources(
             yaml(
               """
-                  spring:
-                    jpa:
-                      showSql: true
-                      properties:
-                        hibernate:
-                          default_schema: my_schema
-                  """,
+                spring:
+                  jpa:
+                    showSql: true
+                    properties:
+                      hibernate:
+                        default_schema: my_schema
+                """,
               """
-                  spring:
-                    jpa:
-                      show-sql: true
-                      properties:
-                        hibernate:
-                          default_schema: my_schema
-                  """,
+                spring:
+                  jpa:
+                    show-sql: true
+                    properties:
+                      hibernate:
+                        default_schema: my_schema
+                """,
               spec -> spec.path("application.yaml")
             )
           )
@@ -204,14 +204,14 @@ class PropertiesToKebabCaseTest implements RewriteTest {
           srcMainResources(
             yaml(
               """
-                  spring:
-                    kafka:
+                spring:
+                  kafka:
+                    properties:
+                      sasl.jaas.config: something
+                    consumer:
                       properties:
-                        sasl.jaas.config: something
-                      consumer:
-                        properties:
-                          max.poll_interval.ms: 300000
-                  """,
+                        max.poll_interval.ms: 300000
+                """,
               spec -> spec.path("application.yaml")
             )
           )
@@ -238,8 +238,8 @@ class PropertiesToKebabCaseTest implements RewriteTest {
           srcMainResources(
             yaml(
               """
-                  spring.jpa.properties.hibernate.default_schema: my_schema
-                  """,
+                spring.jpa.properties.hibernate.default_schema: my_schema
+                """,
               spec -> spec.path("application.yaml")
             )
           )
@@ -275,27 +275,27 @@ class PropertiesToKebabCaseTest implements RewriteTest {
           srcMainResources(
             yaml(
               """
-                  logging:
-                    level:
-                      org.springframework.web: DEBUG
-                      com.example.MyService: TRACE
-                  management:
-                    metrics:
-                      tags:
-                        applicationName: myApp
-                        teamName: backend
-                      enable:
-                        jvm: false
-                        process: true
-                      distribution:
-                        percentiles:
-                          http.server.requests: 0.5,0.95,0.99
-                  spring:
-                    flyway:
-                      placeholders:
-                        schema_name: public
-                        appVersion: 1.0
-                  """,
+                logging:
+                  level:
+                    org.springframework.web: DEBUG
+                    com.example.MyService: TRACE
+                management:
+                  metrics:
+                    tags:
+                      applicationName: myApp
+                      teamName: backend
+                    enable:
+                      jvm: false
+                      process: true
+                    distribution:
+                      percentiles:
+                        http.server.requests: 0.5,0.95,0.99
+                spring:
+                  flyway:
+                    placeholders:
+                      schema_name: public
+                      appVersion: 1.0
+                """,
               spec -> spec.path("application.yaml")
             )
           )

@@ -70,8 +70,8 @@ public class ChangeEmbeddedServletContainerCustomizer extends Recipe {
                             .build();
                     J.CompilationUnit cu = parser.parse(
                                     "import org.springframework.boot.web.server.WebServerFactoryCustomizer;\n" +
-                                    "import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;\n" +
-                                    "public abstract class Template implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {}"
+                                            "import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;\n" +
+                                            "public abstract class Template implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {}"
                             )
                             .map(J.CompilationUnit.class::cast)
                             .findFirst()

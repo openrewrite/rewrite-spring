@@ -66,16 +66,16 @@ public class MigrateJpaSort extends Recipe {
                             .collect(joining(",", "JpaSort.of(", ")"));
 
                     return JavaTemplate.builder(template)
-                        .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-data-commons-2.*",
-                                "spring-data-jpa-2.3.*", "javax.persistence-api-2.*"))
-                        .imports("org.springframework.data.jpa.domain.JpaSort")
-                        .build()
-                        .apply(
-                            getCursor(),
-                            newClass.getCoordinates().replace(),
-                            newClass.getArguments().toArray()
+                            .contextSensitive()
+                            .javaParser(JavaParser.fromJavaVersion()
+                                    .classpathFromResources(ctx, "spring-data-commons-2.*",
+                                            "spring-data-jpa-2.3.*", "javax.persistence-api-2.*"))
+                            .imports("org.springframework.data.jpa.domain.JpaSort")
+                            .build()
+                            .apply(
+                                    getCursor(),
+                                    newClass.getCoordinates().replace(),
+                                    newClass.getArguments().toArray()
                             );
                 }
 

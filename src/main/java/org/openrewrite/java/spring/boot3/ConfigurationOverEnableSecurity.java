@@ -53,8 +53,8 @@ public class ConfigurationOverEnableSecurity extends Recipe {
     String displayName = "Add `@Configuration` to classes with `@EnableXXXSecurity` annotations";
 
     String description = "Prior to Spring Security 6, `@EnableXXXSecurity` implicitly had `@Configuration`. " +
-                "`Configuration` was removed from the definitions of the `@EnableSecurity` definitions in Spring Security 6. " +
-                "Consequently classes annotated with `@EnableXXXSecurity` coming from pre-Boot 3 should have `@Configuration` annotation added.";
+            "`Configuration` was removed from the definitions of the `@EnableSecurity` definitions in Spring Security 6. " +
+            "Consequently classes annotated with `@EnableXXXSecurity` coming from pre-Boot 3 should have `@Configuration` annotation added.";
 
     private JavaVisitor<ExecutionContext> precondition() {
         return new JavaVisitor<ExecutionContext>() {
@@ -112,14 +112,14 @@ public class ConfigurationOverEnableSecurity extends Recipe {
                 maybeAddImport(CONFIGURATION_FQN);
 
                 return JavaTemplate.builder("@Configuration")
-                    .imports(CONFIGURATION_FQN)
-                    .javaParser(JavaParser.fromJavaVersion()
-                        .classpathFromResources(ctx, "spring-context-5.3.+"))
-                    .build()
-                    .apply(
-                        getCursor(),
-                        c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
-                    );
+                        .imports(CONFIGURATION_FQN)
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-context-5.3.+"))
+                        .build()
+                        .apply(
+                                getCursor(),
+                                c.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName))
+                        );
             }
 
             private boolean isExcluded(Set<J.Annotation> securityAnnotations) {

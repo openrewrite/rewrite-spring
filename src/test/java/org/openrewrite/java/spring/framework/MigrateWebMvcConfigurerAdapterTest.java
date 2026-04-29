@@ -50,7 +50,7 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
                   }
               }
               """,
-                """
+            """
               import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
               public class CustomMvcConfigurer implements WebMvcConfigurer {

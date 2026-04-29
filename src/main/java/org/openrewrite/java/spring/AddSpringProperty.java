@@ -32,10 +32,10 @@ import java.util.List;
  * A recipe to uniformly add a property to Spring configuration file. This recipe supports adding properties to
  * ".properties" and YAML files. This recipe will only add the property if it does not already exist within the
  * configuration file.
- * <P>
+ * <p>
  * NOTE: Because an application may have a large collection of yaml files (some of which may not even be related to
- *       Spring configuration), this recipe will only make changes to files that match one of the pathExpressions. If
- *       the recipe is configured without pathExpressions, it will query the execution context for reasonable defaults.
+ * Spring configuration), this recipe will only make changes to files that match one of the pathExpressions. If
+ * the recipe is configured without pathExpressions, it will query the execution context for reasonable defaults.
  */
 @EqualsAndHashCode(callSuper = false)
 @Value
@@ -60,8 +60,8 @@ public class AddSpringProperty extends Recipe {
 
     @Option(displayName = "Optional list of file path matcher",
             description = "Each value in this list represents a glob expression that is used to match which files will " +
-                          "be modified. If this value is not present, this recipe will query the execution context for " +
-                          "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\".",
+                    "be modified. If this value is not present, this recipe will query the execution context for " +
+                    "reasonable defaults. (\"**/application.yml\", \"**/application.yml\", and \"**/application.properties\".",
             required = false,
             example = "[\"**/application.yml\"]")
     @Nullable
