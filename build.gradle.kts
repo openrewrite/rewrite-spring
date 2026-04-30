@@ -208,7 +208,7 @@ dependencies {
     implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
-    runtimeOnly("org.openrewrite:rewrite-java-21")
+    runtimeOnly("org.openrewrite:rewrite-java-25")
     runtimeOnly("org.openrewrite.recipe:rewrite-apache:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-jackson:${rewriteVersion}")
@@ -226,7 +226,7 @@ dependencies {
 
     // for generating properties migration configurations
     testImplementation("io.github.classgraph:classgraph:latest.release")
-    testImplementation("org.openrewrite:rewrite-java-21")
+    testImplementation("org.openrewrite:rewrite-java-25")
     testImplementation("org.openrewrite:rewrite-kotlin")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
