@@ -23,6 +23,7 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.java.Assertions.srcMainJava;
 import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.properties.Assertions.properties;
@@ -68,50 +69,52 @@ class MigrateSpringFoxSecurityConfigurationTest implements RewriteTest {
     @Test
     void enableCsrfSupportToProperty() {
         rewriteRun(
-          srcMainResources(
-            //language=properties
-            properties(
-              """
-                spring.application.name=demo
-                """,
-              """
-                spring.application.name=demo
-                springdoc.swagger-ui.csrf.enabled=true
-                """,
-              spec -> spec.path("application.properties")
-            )
-          ),
-          srcMainJava(
-            //language=java
-            java(
-              """
-                package com.example;
-
-                import org.springframework.context.annotation.Bean;
-                import org.springframework.context.annotation.Configuration;
-                import springfox.documentation.swagger.web.SecurityConfiguration;
-                import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
-
-                @Configuration
-                public class SwaggerConfig {
-
-                    @Bean
-                    SecurityConfiguration security() {
-                        return SecurityConfigurationBuilder.builder()
-                                .enableCsrfSupport(true)
-                                .build();
-                    }
-                }
-                """,
-              """
-                package com.example;
-
-                import org.springframework.context.annotation.Configuration;
-
-                @Configuration
-                public class SwaggerConfig {
-                }
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
                 """
+                  spring.application.name=demo
+                  """,
+                """
+                  spring.application.name=demo
+                  springdoc.swagger-ui.csrf.enabled=true
+                  """,
+                spec -> spec.path("application.properties")
+              )
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  package com.example;
+
+                  import org.springframework.context.annotation.Bean;
+                  import org.springframework.context.annotation.Configuration;
+                  import springfox.documentation.swagger.web.SecurityConfiguration;
+                  import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
+
+                  @Configuration
+                  public class SwaggerConfig {
+
+                      @Bean
+                      SecurityConfiguration security() {
+                          return SecurityConfigurationBuilder.builder()
+                                  .enableCsrfSupport(true)
+                                  .build();
+                      }
+                  }
+                  """,
+                """
+                  package com.example;
+
+                  import org.springframework.context.annotation.Configuration;
+
+                  @Configuration
+                  public class SwaggerConfig {
+                  }
+                  """
+              )
             )
           )
         );
@@ -120,43 +123,45 @@ class MigrateSpringFoxSecurityConfigurationTest implements RewriteTest {
     @Test
     void multipleBuilderCallsToProperties() {
         rewriteRun(
-          srcMainResources(
-            //language=properties
-            properties(
-              """
-                """,
-              """
-                springdoc.swagger-ui.csrf.enabled=true
-                springdoc.swagger-ui.oauth.client-id=demo-client
-                springdoc.swagger-ui.oauth.realm=demo-realm
-                """,
-              spec -> spec.path("application.properties")
-            )
-          ),
-          srcMainJava(
-            //language=java
-            java(
-              """
-                import org.springframework.context.annotation.Bean;
-                import springfox.documentation.swagger.web.SecurityConfiguration;
-                import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
-
-                class SwaggerConfig {
-
-                    @Bean
-                    SecurityConfiguration security() {
-                        return SecurityConfigurationBuilder.builder()
-                                .clientId("demo-client")
-                                .realm("demo-realm")
-                                .enableCsrfSupport(true)
-                                .build();
-                    }
-                }
-                """,
-              """
-                class SwaggerConfig {
-                }
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
                 """
+                  """,
+                """
+                  springdoc.swagger-ui.csrf.enabled=true
+                  springdoc.swagger-ui.oauth.client-id=demo-client
+                  springdoc.swagger-ui.oauth.realm=demo-realm
+                  """,
+                spec -> spec.path("application.properties")
+              )
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.context.annotation.Bean;
+                  import springfox.documentation.swagger.web.SecurityConfiguration;
+                  import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
+
+                  class SwaggerConfig {
+
+                      @Bean
+                      SecurityConfiguration security() {
+                          return SecurityConfigurationBuilder.builder()
+                                  .clientId("demo-client")
+                                  .realm("demo-realm")
+                                  .enableCsrfSupport(true)
+                                  .build();
+                      }
+                  }
+                  """,
+                """
+                  class SwaggerConfig {
+                  }
+                  """
+              )
             )
           )
         );
@@ -165,44 +170,46 @@ class MigrateSpringFoxSecurityConfigurationTest implements RewriteTest {
     @Test
     void writesYamlWhenYamlExists() {
         rewriteRun(
-          srcMainResources(
-            //language=yaml
-            yaml(
-              """
-                spring.application.name: demo
-                """,
-              """
-                spring.application.name: demo
-                springdoc:
-                  swagger-ui:
-                    csrf:
-                      enabled: true
-                """,
-              spec -> spec.path("application.yml")
-            )
-          ),
-          srcMainJava(
-            //language=java
-            java(
-              """
-                import org.springframework.context.annotation.Bean;
-                import springfox.documentation.swagger.web.SecurityConfiguration;
-                import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
-
-                class SwaggerConfig {
-
-                    @Bean
-                    SecurityConfiguration security() {
-                        return SecurityConfigurationBuilder.builder()
-                                .enableCsrfSupport(true)
-                                .build();
-                    }
-                }
-                """,
-              """
-                class SwaggerConfig {
-                }
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
                 """
+                  spring.application.name: demo
+                  """,
+                """
+                  spring.application.name: demo
+                  springdoc:
+                    swagger-ui:
+                      csrf:
+                        enabled: true
+                  """,
+                spec -> spec.path("application.yml")
+              )
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.context.annotation.Bean;
+                  import springfox.documentation.swagger.web.SecurityConfiguration;
+                  import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
+
+                  class SwaggerConfig {
+
+                      @Bean
+                      SecurityConfiguration security() {
+                          return SecurityConfigurationBuilder.builder()
+                                  .enableCsrfSupport(true)
+                                  .build();
+                      }
+                  }
+                  """,
+                """
+                  class SwaggerConfig {
+                  }
+                  """
+              )
             )
           )
         );

@@ -19,10 +19,12 @@ import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.ScanningRecipe;
+import org.openrewrite.SourceFile;
 import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.tree.Expression;
@@ -34,10 +36,12 @@ import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -73,6 +77,10 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
             "If no Spring application configuration file exists, the bean is left in place to avoid silently dropping configuration.";
 
     static class Accumulator {
+        final Map<JavaProject, ProjectInfo> perProject = new HashMap<>();
+    }
+
+    static class ProjectInfo {
         final List<PropertyAssignment> assignments = new ArrayList<>();
         final Set<UUID> methodsToRemove = new HashSet<>();
         boolean hasConfigFile;
@@ -88,10 +96,17 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (isApplicationConfigFile(tree)) {
-                    acc.hasConfigFile = true;
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
                 }
-                if (tree instanceof J.CompilationUnit) {
+                Optional<JavaProject> javaProject = ((SourceFile) tree).getMarkers().findFirst(JavaProject.class);
+                if (!javaProject.isPresent()) {
+                    return tree;
+                }
+                if (isApplicationConfigFile(tree)) {
+                    acc.perProject.computeIfAbsent(javaProject.get(), k -> new ProjectInfo()).hasConfigFile = true;
+                } else if (tree instanceof J.CompilationUnit) {
+                    ProjectInfo info = acc.perProject.computeIfAbsent(javaProject.get(), k -> new ProjectInfo());
                     new JavaIsoVisitor<ExecutionContext>() {
                         @Override
                         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
@@ -114,8 +129,8 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
                             }
                             List<PropertyAssignment> collected = new ArrayList<>();
                             if (walkBuilderChain(returnExpr, collected)) {
-                                acc.assignments.addAll(collected);
-                                acc.methodsToRemove.add(md.getId());
+                                info.assignments.addAll(collected);
+                                info.methodsToRemove.add(md.getId());
                             }
                             return md;
                         }
@@ -131,7 +146,15 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!acc.hasConfigFile || acc.assignments.isEmpty()) {
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
+                }
+                Optional<JavaProject> javaProject = ((SourceFile) tree).getMarkers().findFirst(JavaProject.class);
+                if (!javaProject.isPresent()) {
+                    return tree;
+                }
+                ProjectInfo info = acc.perProject.get(javaProject.get());
+                if (info == null || !info.hasConfigFile || info.assignments.isEmpty()) {
                     return tree;
                 }
                 if (tree instanceof J.CompilationUnit) {
@@ -139,7 +162,7 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
                         @Override
                         public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                            if (!acc.methodsToRemove.contains(md.getId())) {
+                            if (!info.methodsToRemove.contains(md.getId())) {
                                 return md;
                             }
                             maybeRemoveImport(SECURITY_CONFIG);
@@ -151,7 +174,7 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
                 }
                 if (isApplicationConfigFile(tree)) {
                     Tree result = tree;
-                    for (PropertyAssignment pa : acc.assignments) {
+                    for (PropertyAssignment pa : info.assignments) {
                         result = new AddSpringProperty(pa.key, pa.value, null, null).getVisitor().visitNonNull(result, ctx);
                     }
                     return result;
