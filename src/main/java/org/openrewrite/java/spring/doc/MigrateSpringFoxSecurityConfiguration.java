@@ -34,9 +34,12 @@ import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<MigrateSpringFoxSecurityConfiguration.Accumulator> {
 
@@ -71,6 +74,7 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
 
     static class Accumulator {
         final List<PropertyAssignment> assignments = new ArrayList<>();
+        final Set<UUID> methodsToRemove = new HashSet<>();
         boolean hasConfigFile;
     }
 
@@ -88,11 +92,31 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
                     acc.hasConfigFile = true;
                 }
                 if (tree instanceof J.CompilationUnit) {
-                    new MigratableSecurityConfigVisitor() {
+                    new JavaIsoVisitor<ExecutionContext>() {
                         @Override
                         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                            migratableReturnExpression(md, acc.assignments);
+                            if (md.getReturnTypeExpression() == null ||
+                                    !TypeUtils.isOfClassType(md.getReturnTypeExpression().getType(), SECURITY_CONFIG) ||
+                                    md.getBody() == null) {
+                                return md;
+                            }
+                            if (!service(AnnotationService.class).matches(getCursor(), BEAN_MATCHER)) {
+                                return md;
+                            }
+                            List<Statement> statements = md.getBody().getStatements();
+                            if (statements.size() != 1 || !(statements.get(0) instanceof J.Return)) {
+                                return md;
+                            }
+                            Expression returnExpr = ((J.Return) statements.get(0)).getExpression();
+                            if (returnExpr == null) {
+                                return md;
+                            }
+                            List<PropertyAssignment> collected = new ArrayList<>();
+                            if (walkBuilderChain(returnExpr, collected)) {
+                                acc.assignments.addAll(collected);
+                                acc.methodsToRemove.add(md.getId());
+                            }
                             return md;
                         }
                     }.visit(tree, ctx);
@@ -111,11 +135,11 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
                     return tree;
                 }
                 if (tree instanceof J.CompilationUnit) {
-                    return new MigratableSecurityConfigVisitor() {
+                    return new JavaIsoVisitor<ExecutionContext>() {
                         @Override
                         public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                            if (migratableReturnExpression(md, null) == null) {
+                            if (!acc.methodsToRemove.contains(md.getId())) {
                                 return md;
                             }
                             maybeRemoveImport(SECURITY_CONFIG);
@@ -145,35 +169,6 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
             return ((Yaml.Documents) tree).getSourcePath().getFileName().toString().matches("application\\.ya?ml");
         }
         return false;
-    }
-
-    private abstract static class MigratableSecurityConfigVisitor extends JavaIsoVisitor<ExecutionContext> {
-        @Nullable Expression migratableReturnExpression(J.MethodDeclaration md, @Nullable List<PropertyAssignment> assignmentsOut) {
-            if (md.getReturnTypeExpression() == null ||
-                    !TypeUtils.isOfClassType(md.getReturnTypeExpression().getType(), SECURITY_CONFIG) ||
-                    md.getBody() == null) {
-                return null;
-            }
-            if (!service(AnnotationService.class).matches(getCursor(), BEAN_MATCHER)) {
-                return null;
-            }
-            List<Statement> statements = md.getBody().getStatements();
-            if (statements.size() != 1 || !(statements.get(0) instanceof J.Return)) {
-                return null;
-            }
-            Expression returnExpr = ((J.Return) statements.get(0)).getExpression();
-            if (returnExpr == null) {
-                return null;
-            }
-            List<PropertyAssignment> collected = new ArrayList<>();
-            if (!walkBuilderChain(returnExpr, collected)) {
-                return null;
-            }
-            if (assignmentsOut != null) {
-                assignmentsOut.addAll(collected);
-            }
-            return returnExpr;
-        }
     }
 
     private static boolean walkBuilderChain(Expression expr, List<PropertyAssignment> assignments) {
