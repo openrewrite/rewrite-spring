@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.doc;
 
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
-import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.ScanningRecipe;
 import org.openrewrite.Tree;
@@ -89,11 +88,11 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
                     acc.hasConfigFile = true;
                 }
                 if (tree instanceof J.CompilationUnit) {
-                    new JavaIsoVisitor<ExecutionContext>() {
+                    new MigratableSecurityConfigVisitor() {
                         @Override
                         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                            migratableReturnExpression(md, acc.assignments, service(AnnotationService.class), getCursor());
+                            migratableReturnExpression(md, acc.assignments);
                             return md;
                         }
                     }.visit(tree, ctx);
@@ -112,11 +111,11 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
                     return tree;
                 }
                 if (tree instanceof J.CompilationUnit) {
-                    return new JavaIsoVisitor<ExecutionContext>() {
+                    return new MigratableSecurityConfigVisitor() {
                         @Override
                         public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                            if (migratableReturnExpression(md, null, service(AnnotationService.class), getCursor()) == null) {
+                            if (migratableReturnExpression(md, null) == null) {
                                 return md;
                             }
                             maybeRemoveImport(SECURITY_CONFIG);
@@ -148,34 +147,33 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
         return false;
     }
 
-    private static @Nullable Expression migratableReturnExpression(J.MethodDeclaration md,
-                                                                   @Nullable List<PropertyAssignment> assignmentsOut,
-                                                                   AnnotationService annotationService,
-                                                                   Cursor cursor) {
-        if (md.getReturnTypeExpression() == null ||
-                !TypeUtils.isOfClassType(md.getReturnTypeExpression().getType(), SECURITY_CONFIG) ||
-                md.getBody() == null) {
-            return null;
+    private abstract static class MigratableSecurityConfigVisitor extends JavaIsoVisitor<ExecutionContext> {
+        @Nullable Expression migratableReturnExpression(J.MethodDeclaration md, @Nullable List<PropertyAssignment> assignmentsOut) {
+            if (md.getReturnTypeExpression() == null ||
+                    !TypeUtils.isOfClassType(md.getReturnTypeExpression().getType(), SECURITY_CONFIG) ||
+                    md.getBody() == null) {
+                return null;
+            }
+            if (!service(AnnotationService.class).matches(getCursor(), BEAN_MATCHER)) {
+                return null;
+            }
+            List<Statement> statements = md.getBody().getStatements();
+            if (statements.size() != 1 || !(statements.get(0) instanceof J.Return)) {
+                return null;
+            }
+            Expression returnExpr = ((J.Return) statements.get(0)).getExpression();
+            if (returnExpr == null) {
+                return null;
+            }
+            List<PropertyAssignment> collected = new ArrayList<>();
+            if (!walkBuilderChain(returnExpr, collected)) {
+                return null;
+            }
+            if (assignmentsOut != null) {
+                assignmentsOut.addAll(collected);
+            }
+            return returnExpr;
         }
-        if (!annotationService.matches(cursor, BEAN_MATCHER)) {
-            return null;
-        }
-        List<Statement> statements = md.getBody().getStatements();
-        if (statements.size() != 1 || !(statements.get(0) instanceof J.Return)) {
-            return null;
-        }
-        Expression returnExpr = ((J.Return) statements.get(0)).getExpression();
-        if (returnExpr == null) {
-            return null;
-        }
-        List<PropertyAssignment> collected = new ArrayList<>();
-        if (!walkBuilderChain(returnExpr, collected)) {
-            return null;
-        }
-        if (assignmentsOut != null) {
-            assignmentsOut.addAll(collected);
-        }
-        return returnExpr;
     }
 
     private static boolean walkBuilderChain(Expression expr, List<PropertyAssignment> assignments) {
