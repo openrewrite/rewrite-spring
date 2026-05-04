@@ -17,12 +17,14 @@ package org.openrewrite.java.spring.doc;
 
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.ScanningRecipe;
 import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
@@ -91,10 +93,7 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
                         @Override
                         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                            Expression returnExpr = migratableReturnExpression(md);
-                            if (returnExpr != null) {
-                                walkBuilderChain(returnExpr, acc.assignments);
-                            }
+                            migratableReturnExpression(md, acc.assignments, service(AnnotationService.class), getCursor());
                             return md;
                         }
                     }.visit(tree, ctx);
@@ -117,7 +116,7 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
                         @Override
                         public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                            if (migratableReturnExpression(md) == null) {
+                            if (migratableReturnExpression(md, null, service(AnnotationService.class), getCursor()) == null) {
                                 return md;
                             }
                             maybeRemoveImport(SECURITY_CONFIG);
@@ -149,20 +148,16 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
         return false;
     }
 
-    private static @Nullable Expression migratableReturnExpression(J.MethodDeclaration md) {
+    private static @Nullable Expression migratableReturnExpression(J.MethodDeclaration md,
+                                                                   @Nullable List<PropertyAssignment> assignmentsOut,
+                                                                   AnnotationService annotationService,
+                                                                   Cursor cursor) {
         if (md.getReturnTypeExpression() == null ||
                 !TypeUtils.isOfClassType(md.getReturnTypeExpression().getType(), SECURITY_CONFIG) ||
                 md.getBody() == null) {
             return null;
         }
-        boolean isBean = false;
-        for (J.Annotation a : md.getLeadingAnnotations()) {
-            if (BEAN_MATCHER.matches(a)) {
-                isBean = true;
-                break;
-            }
-        }
-        if (!isBean) {
+        if (!annotationService.matches(cursor, BEAN_MATCHER)) {
             return null;
         }
         List<Statement> statements = md.getBody().getStatements();
@@ -173,11 +168,14 @@ public class MigrateSpringFoxSecurityConfiguration extends ScanningRecipe<Migrat
         if (returnExpr == null) {
             return null;
         }
-        return chainIsMigratable(returnExpr) ? returnExpr : null;
-    }
-
-    private static boolean chainIsMigratable(Expression returnExpr) {
-        return walkBuilderChain(returnExpr, new ArrayList<>());
+        List<PropertyAssignment> collected = new ArrayList<>();
+        if (!walkBuilderChain(returnExpr, collected)) {
+            return null;
+        }
+        if (assignmentsOut != null) {
+            assignmentsOut.addAll(collected);
+        }
+        return returnExpr;
     }
 
     private static boolean walkBuilderChain(Expression expr, List<PropertyAssignment> assignments) {
