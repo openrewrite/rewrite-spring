@@ -37,6 +37,7 @@ recipeList:
   - org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
   - org.openrewrite.java.spring.doc.ApiInfoBuilderToInfo
   - org.openrewrite.java.spring.doc.SecurityContextToSecurityScheme
+  - org.openrewrite.java.spring.doc.MigrateSpringFoxSecurityConfiguration
   - org.openrewrite.java.springdoc.MigrateSpringdocCommon
   - org.openrewrite.java.springdoc.CleanupRemainingSpringfox
 
