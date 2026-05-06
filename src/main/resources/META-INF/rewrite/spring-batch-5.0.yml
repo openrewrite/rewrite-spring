@@ -35,6 +35,7 @@ recipeList:
   - org.openrewrite.java.spring.batch.MigrateStepBuilderFactory
   - org.openrewrite.java.spring.batch.AddTransactionManagerToTaskletAndChunk
   - org.openrewrite.java.spring.batch.MigrateItemWriterWrite
+  - org.openrewrite.java.spring.batch.MigrateItemWriterWriteCalls
   - org.openrewrite.java.spring.batch.RemoveDefaultBatchConfigurer
   - org.openrewrite.java.spring.batch.UpgradeSkipPolicyParameterType
   - org.openrewrite.java.ChangeType:
