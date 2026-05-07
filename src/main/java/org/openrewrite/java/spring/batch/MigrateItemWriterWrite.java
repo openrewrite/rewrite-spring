@@ -25,6 +25,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.DeclaresMethod;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
@@ -43,11 +44,59 @@ public class MigrateItemWriterWrite extends Recipe {
     @Getter
     final String description = "In `ItemWriter` the signature of the `write()` method has changed in spring-batch 5.x.";
 
+    private static final String CHUNK_FQN = "org.springframework.batch.item.Chunk";
     private static final MethodMatcher ITEM_WRITER_MATCHER = new MethodMatcher("org.springframework.batch.item.ItemWriter write(java.util.List)", true);
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new DeclaresMethod<>(ITEM_WRITER_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(
+                Preconditions.or(new DeclaresMethod<>(ITEM_WRITER_MATCHER), new UsesMethod<>(ITEM_WRITER_MATCHER)),
+                new JavaIsoVisitor<ExecutionContext>() {
+
+            @Override
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                if (!ITEM_WRITER_MATCHER.matches(mi)) {
+                    return mi;
+                }
+                Expression arg = mi.getArguments().get(0);
+                if (TypeUtils.isAssignableTo(CHUNK_FQN, arg.getType())) {
+                    return mi;
+                }
+                // Skip if the argument is the parameter of the enclosing ItemWriter.write(List) declaration —
+                // that case is handled by the parameter type migration below; wrapping here would force the
+                // body to round-trip through .getItems() instead of just passing the migrated Chunk through.
+                if (arg instanceof J.Identifier && isEnclosingWriteParameter((J.Identifier) arg)) {
+                    return mi;
+                }
+                maybeAddImport(CHUNK_FQN);
+                return JavaTemplate.builder("#{any(org.springframework.batch.item.ItemWriter)}.write(new Chunk<>(#{any(java.util.List)}))")
+                        .imports(CHUNK_FQN)
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
+                        .build()
+                        .apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect(), arg);
+            }
+
+            private boolean isEnclosingWriteParameter(J.Identifier ident) {
+                if (ident.getFieldType() == null) {
+                    return false;
+                }
+                String identName = ident.getFieldType().getName();
+                Cursor c = getCursor();
+                while (c != null) {
+                    if (c.getValue() instanceof J.MethodDeclaration) {
+                        J.MethodDeclaration md = c.getValue();
+                        if (!ITEM_WRITER_MATCHER.matches(md.getMethodType())) {
+                            return false;
+                        }
+                        J.VariableDeclarations param = (J.VariableDeclarations) md.getParameters().get(0);
+                        return identName.equals(param.getVariables().get(0).getSimpleName());
+                    }
+                    c = c.getParent();
+                }
+                return false;
+            }
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
