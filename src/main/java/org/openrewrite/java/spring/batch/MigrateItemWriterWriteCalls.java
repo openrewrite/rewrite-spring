@@ -47,6 +47,10 @@ public class MigrateItemWriterWriteCalls extends Recipe {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                // Match by simpleName + receiver type rather than MethodMatcher: when MigrateItemWriterWrite
+                // runs first in the chain it reparses the migrated method body with the 5.1 classpath, which
+                // leaves inner ItemWriter.write(List) calls with a null methodType — so neither the 4.3
+                // write(List) nor the 5.x write(Chunk) MethodMatcher signature would match here.
                 if (!"write".equals(mi.getSimpleName()) || mi.getArguments().size() != 1) {
                     return mi;
                 }
