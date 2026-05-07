@@ -477,4 +477,268 @@ class MigrateItemWriterWriteTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void wrapsListPassedToWriter() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              class Caller {
+                  private final ItemWriter<String> writer;
+
+                  Caller(ItemWriter<String> writer) {
+                      this.writer = writer;
+                  }
+
+                  void send(List<String> items) throws Exception {
+                      writer.write(items);
+                  }
+              }
+              """,
+            """
+              import java.util.List;
+
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              class Caller {
+                  private final ItemWriter<String> writer;
+
+                  Caller(ItemWriter<String> writer) {
+                      this.writer = writer;
+                  }
+
+                  void send(List<String> items) throws Exception {
+                      writer.write(new Chunk<>(items));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void wrapsListLocalVariableFromForLoop() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              class Partitioner {
+                  private final ItemWriter<String> victorFileWriter;
+
+                  Partitioner(ItemWriter<String> victorFileWriter) {
+                      this.victorFileWriter = victorFileWriter;
+                  }
+
+                  void writeAll(List<List<String>> partitions) throws Exception {
+                      for (List<String> list : partitions) {
+                          this.victorFileWriter.write(list);
+                      }
+                  }
+              }
+              """,
+            """
+              import java.util.List;
+
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              class Partitioner {
+                  private final ItemWriter<String> victorFileWriter;
+
+                  Partitioner(ItemWriter<String> victorFileWriter) {
+                      this.victorFileWriter = victorFileWriter;
+                  }
+
+                  void writeAll(List<List<String>> partitions) throws Exception {
+                      for (List<String> list : partitions) {
+                          this.victorFileWriter.write(new Chunk<>(list));
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void wrapsArrayListSubtype() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.ArrayList;
+              import org.springframework.batch.item.ItemWriter;
+
+              class Caller {
+                  private final ItemWriter<String> writer;
+
+                  Caller(ItemWriter<String> writer) {
+                      this.writer = writer;
+                  }
+
+                  void send() throws Exception {
+                      ArrayList<String> list = new ArrayList<>();
+                      writer.write(list);
+                  }
+              }
+              """,
+            """
+              import java.util.ArrayList;
+
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              class Caller {
+                  private final ItemWriter<String> writer;
+
+                  Caller(ItemWriter<String> writer) {
+                      this.writer = writer;
+                  }
+
+                  void send() throws Exception {
+                      ArrayList<String> list = new ArrayList<>();
+                      writer.write(new Chunk<>(list));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doesNotWrapWhenReceiverIsNotItemWriter() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+
+              class NotAWriter {
+                  void write(List<String> items) {
+                  }
+              }
+
+              class Caller {
+                  private final NotAWriter writer = new NotAWriter();
+
+                  void send(List<String> items) {
+                      writer.write(items);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migratesImplementerWithDelegatedWriteCalls() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class PartitionedItemWriter<T> implements ItemWriter<T> {
+
+                  private final ItemWriter<T> victorFileWriter;
+
+                  public PartitionedItemWriter(ItemWriter<T> victorFileWriter) {
+                      this.victorFileWriter = victorFileWriter;
+                  }
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      for (List<? extends T> list : partition(items)) {
+                          this.victorFileWriter.write(list);
+                      }
+                  }
+
+                  private List<List<? extends T>> partition(List<? extends T> items) {
+                      return java.util.Collections.singletonList(items);
+                  }
+              }
+              """,
+            """
+              import java.util.List;
+
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class PartitionedItemWriter<T> implements ItemWriter<T> {
+
+                  private final ItemWriter<T> victorFileWriter;
+
+                  public PartitionedItemWriter(ItemWriter<T> victorFileWriter) {
+                      this.victorFileWriter = victorFileWriter;
+                  }
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      for (List<? extends T> list : partition(items.getItems())) {
+                          this.victorFileWriter.write(new Chunk<>(list));
+                      }
+                  }
+
+                  private List<List<? extends T>> partition(List<? extends T> items) {
+                      return java.util.Collections.singletonList(items);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doesNotWrapPassthroughOfMigratedParameter() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class DelegatingItemWriter<T> implements ItemWriter<T> {
+
+                  private final ItemWriter<T> delegate;
+
+                  public DelegatingItemWriter(ItemWriter<T> delegate) {
+                      this.delegate = delegate;
+                  }
+
+                  @Override
+                  public void write(final List<? extends T> items) throws Exception {
+                      delegate.write(items);
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class DelegatingItemWriter<T> implements ItemWriter<T> {
+
+                  private final ItemWriter<T> delegate;
+
+                  public DelegatingItemWriter(ItemWriter<T> delegate) {
+                      this.delegate = delegate;
+                  }
+
+                  @Override
+                  public void write(final Chunk<? extends T> items) throws Exception {
+                      delegate.write(items);
+                  }
+              }
+              """
+          )
+        );
+    }
 }
