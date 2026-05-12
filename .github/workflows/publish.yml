@@ -11,12 +11,56 @@ concurrency:
   group: publish-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  GRADLE_SWITCHES: --console=plain --info --stacktrace --warning-mode=all --no-daemon
+  ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
+  ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_TOKEN }}
+  ORG_GRADLE_PROJECT_signingKey: ${{ secrets.OSSRH_SIGNING_KEY }}
+  ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.OSSRH_SIGNING_PASSWORD }}
+
 jobs:
   release:
-    uses: openrewrite/gh-automation/.github/workflows/publish-gradle.yml@main
-    secrets:
-      gradle_enterprise_access_key: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-      sonatype_username: ${{ secrets.SONATYPE_USERNAME }}
-      sonatype_token: ${{ secrets.SONATYPE_TOKEN }}
-      ossrh_signing_key: ${{ secrets.OSSRH_SIGNING_KEY }}
-      ossrh_signing_password: ${{ secrets.OSSRH_SIGNING_PASSWORD }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: openrewrite/gh-automation/.github/actions/setup@main
+        with:
+          develocity_access_key: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+
+      # Route Maven resolution through Moderne's Artifactory cache to avoid
+      # Maven Central rate-limiting (HTTP 429) under parallel test load.
+      - uses: s4u/maven-settings-action@v4.0.0
+        with:
+          mirrors: '[{"id": "moderne-cache", "name": "Moderne Artifactory Cache", "mirrorOf": "*", "url": "https://artifactory.moderne.ninja/artifactory/moderne-cache-3/"}]'
+          servers: ${{ secrets.ARTIFACTORY_USERNAME != '' && format('[{{"id":"moderne-cache","username":"{0}","password":"{1}"}}]', secrets.ARTIFACTORY_USERNAME, secrets.ARTIFACTORY_PASSWORD) || '[]' }}
+
+      - name: publish-candidate
+        if: contains(github.ref, '-rc.')
+        env:
+          REWRITE_GRADLE_MIRROR_URL: https://artifactory.moderne.ninja/artifactory/moderne-cache-3/
+          REWRITE_GRADLE_MIRROR_USERNAME: ${{ secrets.AST_PUBLISH_USERNAME }}
+          REWRITE_GRADLE_MIRROR_PASSWORD: ${{ secrets.AST_PUBLISH_PASSWORD }}
+        run: |
+          ./gradlew \
+          ${{ env.GRADLE_SWITCHES }} \
+          -Preleasing \
+          -Prelease.disableGitChecks=true \
+          -Prelease.useLastTag=true \
+          candidate \
+          publish \
+          closeAndReleaseSonatypeStagingRepository
+
+      - name: publish-release
+        if: (!contains(github.ref, '-rc.'))
+        env:
+          REWRITE_GRADLE_MIRROR_URL: https://artifactory.moderne.ninja/artifactory/moderne-cache-3/
+          REWRITE_GRADLE_MIRROR_USERNAME: ${{ secrets.AST_PUBLISH_USERNAME }}
+          REWRITE_GRADLE_MIRROR_PASSWORD: ${{ secrets.AST_PUBLISH_PASSWORD }}
+        run: |
+          ./gradlew \
+          ${{ env.GRADLE_SWITCHES }} \
+          -Preleasing \
+          -Prelease.disableGitChecks=true \
+          -Prelease.useLastTag=true \
+          final \
+          publish \
+          closeAndReleaseSonatypeStagingRepository
