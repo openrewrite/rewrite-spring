@@ -30,14 +30,16 @@ class MarkAdditionalSpringConfigFilesTest implements RewriteTest {
 
     @Test
     void marksMatchingPropertiesFileOutsideSourceSet() {
+        //language=properties
+        String content = """
+          server.servlet-path=/tmp/my-server-path
+          """;
         rewriteRun(
-          spec -> spec.recipe(new MarkAdditionalSpringConfigFiles(List.of("**/properties/*.properties")))
-            .expectedCyclesThatMakeChanges(1),
+          spec -> spec.recipe(new MarkAdditionalSpringConfigFiles(List.of("**/properties/*.properties"))),
           //language=properties
           properties(
-            """
-              server.servlet-path=/tmp/my-server-path
-              """,
+            content,
+            content,
             spec -> spec.path("svc/properties/base-prod.properties")
               .afterRecipe(file ->
                 assertThat(file.getMarkers().findFirst(SpringConfigFile.class)).isPresent())
@@ -47,15 +49,17 @@ class MarkAdditionalSpringConfigFilesTest implements RewriteTest {
 
     @Test
     void marksMatchingYamlFileOutsideSourceSet() {
+        //language=yaml
+        String content = """
+          server:
+            port: 8080
+          """;
         rewriteRun(
-          spec -> spec.recipe(new MarkAdditionalSpringConfigFiles(List.of("**/config/*.yml")))
-            .expectedCyclesThatMakeChanges(1),
+          spec -> spec.recipe(new MarkAdditionalSpringConfigFiles(List.of("**/config/*.yml"))),
           //language=yaml
           yaml(
-            """
-              server:
-                port: 8080
-              """,
+            content,
+            content,
             spec -> spec.path("svc/config/base-prod.yml")
               .afterRecipe(file ->
                 assertThat(file.getMarkers().findFirst(SpringConfigFile.class)).isPresent())
@@ -101,34 +105,49 @@ class MarkAdditionalSpringConfigFilesTest implements RewriteTest {
 
     @Test
     void onlyMarksMatchingFilesAmongMultiple() {
+        //language=yaml
+        String matchingYaml = """
+          server:
+            port: 8080
+          """;
         rewriteRun(
-          spec -> spec.recipe(new MarkAdditionalSpringConfigFiles(List.of("**/config/*.yml")))
-            .expectedCyclesThatMakeChanges(1),
+          spec -> spec.recipe(new MarkAdditionalSpringConfigFiles(List.of("**/config/*.yml"))),
           //language=yaml
           yaml(
-            """
-              server:
-                port: 8080
-              """,
+            matchingYaml,
+            matchingYaml,
             spec -> spec.path("svc/config/base-prod.yml")
               .afterRecipe(file ->
                 assertThat(file.getMarkers().findFirst(SpringConfigFile.class)).isPresent())
+          ),
+          //language=yaml
+          yaml(
+            """
+              name: CI
+              on: push
+              """,
+            spec -> spec.path(".github/workflows/ci.yml")
+              .afterRecipe(file ->
+                assertThat(file.getMarkers().findFirst(SpringConfigFile.class)).isNotPresent())
           )
         );
     }
 
     @Test
     void idempotentOnRepeatedRuns() {
+        //language=properties
+        String content = """
+          server.servlet-path=/tmp/my-server-path
+          """;
         rewriteRun(
           spec -> spec.recipes(
             new MarkAdditionalSpringConfigFiles(List.of("**/properties/*.properties")),
             new MarkAdditionalSpringConfigFiles(List.of("**/properties/*.properties"))
-          ).expectedCyclesThatMakeChanges(1),
+          ),
           //language=properties
           properties(
-            """
-              server.servlet-path=/tmp/my-server-path
-              """,
+            content,
+            content,
             spec -> spec.path("svc/properties/base-prod.properties")
               .afterRecipe(file ->
                 assertThat(file.getMarkers().getMarkers().stream()
@@ -143,8 +162,7 @@ class MarkAdditionalSpringConfigFilesTest implements RewriteTest {
         rewriteRun(
           spec -> spec.recipes(
             new MarkAdditionalSpringConfigFiles(List.of("**/properties/*.properties")),
-            new org.openrewrite.java.spring.ChangeSpringPropertyKey(
-              "server.servlet-path", "server.servlet.path", null)
+            new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null)
           ),
           //language=properties
           properties(
@@ -155,6 +173,8 @@ class MarkAdditionalSpringConfigFilesTest implements RewriteTest {
               server.servlet.path=/tmp/my-server-path
               """,
             spec -> spec.path("svc/properties/base-prod.properties")
+              .afterRecipe(file ->
+                assertThat(file.getMarkers().findFirst(SpringConfigFile.class)).isPresent())
           )
         );
     }
@@ -162,7 +182,7 @@ class MarkAdditionalSpringConfigFilesTest implements RewriteTest {
     @Test
     void changeSpringPropertyKeyAloneSkipsFileOutsideSourceSet() {
         rewriteRun(
-          spec -> spec.recipe(new org.openrewrite.java.spring.ChangeSpringPropertyKey(
+          spec -> spec.recipe(new ChangeSpringPropertyKey(
             "server.servlet-path", "server.servlet.path", null)),
           //language=properties
           properties(
@@ -170,6 +190,8 @@ class MarkAdditionalSpringConfigFilesTest implements RewriteTest {
               server.servlet-path=/tmp/my-server-path
               """,
             spec -> spec.path("svc/properties/base-prod.properties")
+              .afterRecipe(file ->
+                assertThat(file.getMarkers().findFirst(SpringConfigFile.class)).isNotPresent())
           )
         );
     }
