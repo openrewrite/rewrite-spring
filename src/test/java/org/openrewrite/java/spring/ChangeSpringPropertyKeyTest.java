@@ -26,7 +26,6 @@ import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
 
-import static java.util.Collections.emptyList;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.kotlin.Assertions.kotlin;
 import static org.openrewrite.properties.Assertions.properties;
@@ -484,7 +483,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         rewriteRun(
           spec -> spec
             .recipe(
-              new ChangeSpringPropertyKey("spring.data.redis.ssl", "spring.data.redis.ssl.enabled", emptyList()))
+              new ChangeSpringPropertyKey("spring.data.redis.ssl", "spring.data.redis.ssl.enabled", List.of()))
             .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2")),
           java(
             """
@@ -508,7 +507,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         rewriteRun(
           spec -> spec
             .recipe(
-              new ChangeSpringPropertyKey("spring.data.redis.ssl.enabled", "some.other.key.enabled", emptyList()))
+              new ChangeSpringPropertyKey("spring.data.redis.ssl.enabled", "some.other.key.enabled", List.of()))
             .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2")),
           kotlin(
             """

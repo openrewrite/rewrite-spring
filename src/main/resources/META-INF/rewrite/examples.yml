@@ -3842,6 +3842,48 @@ examples:
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.doc.MigrateSpringFoxSecurityConfiguration
+examples:
+- description: '`MigrateSpringFoxSecurityConfigurationTest#enableCsrfSupportToProperty`'
+  sources:
+  - before: |
+      package com.example;
+
+      import org.springframework.context.annotation.Bean;
+      import org.springframework.context.annotation.Configuration;
+      import springfox.documentation.swagger.web.SecurityConfiguration;
+      import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
+
+      @Configuration
+      public class SwaggerConfig {
+
+          @Bean
+          SecurityConfiguration security() {
+              return SecurityConfigurationBuilder.builder()
+                      .enableCsrfSupport(true)
+                      .build();
+          }
+      }
+    after: |
+      package com.example;
+
+      import org.springframework.context.annotation.Configuration;
+
+      @Configuration
+      public class SwaggerConfig {
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - before: |
+      spring.application.name=demo
+    after: |
+      spring.application.name=demo
+      springdoc.swagger-ui.csrf.enabled=true
+    path: application.properties
+    language: properties
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.doc.RemoveBeanValidatorPluginsConfiguration
 examples:
 - description: '`RemoveBeanValidatorPluginsConfigurationTest#removeImportWithBeanValidatorPluginsConfiguration`'

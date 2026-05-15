@@ -33,7 +33,7 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>()))
+        spec.recipe(toRecipe(EntityIdForRepositoryVisitor::new))
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-data-commons-2"));
     }
 

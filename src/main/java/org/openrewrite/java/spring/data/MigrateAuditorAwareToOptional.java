@@ -114,7 +114,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 expression = (Expression) new MemberReferenceToMethodInvocation().visitNonNull(memberReference, ctx, new Cursor(getCursor(), expression).getParent());
             }
             if (expression instanceof J.Lambda) {
-                J.Lambda lambda = ((J.Lambda) expression);
+                J.Lambda lambda = (J.Lambda) expression;
                 J body = lambda.getBody();
                 if (body instanceof J.MethodInvocation &&
                         (((J.MethodInvocation) body).getMethodType() != null && isOptional.matches(((J.MethodInvocation) body).getMethodType().getReturnType()))) {
@@ -150,7 +150,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             if (expression instanceof J.NewClass && isAuditorAware.matches(((J.NewClass) expression).getClazz().getType())) {
                 implementationVisitor.setCursor(new Cursor(getCursor(), expression));
                 maybeAddImport("java.util.Optional");
-                return return_.withExpression((J.NewClass) implementationVisitor.visit((J.NewClass) expression, ctx, getCursor().getParentTreeCursor()));
+                return return_.withExpression((J.NewClass) implementationVisitor.visit(expression, ctx, getCursor().getParentTreeCursor()));
             }
             return return_;
         }

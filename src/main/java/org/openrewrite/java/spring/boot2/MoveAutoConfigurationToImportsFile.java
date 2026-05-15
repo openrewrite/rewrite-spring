@@ -35,7 +35,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.sort;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toSet;
 
@@ -76,7 +75,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof PlainText) {
-                    PlainText source = ((PlainText) tree);
+                    PlainText source = (PlainText) tree;
                     Path sourcePath = source.getSourcePath();
                     if (sourcePath.endsWith("spring.factories")) {
                         Set<String> configs = new HashSet<>();
@@ -105,7 +104,7 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
             }
 
             List<String> finalList = new ArrayList<>(entry.getValue().getAutoConfigurations());
-            sort(finalList);
+            finalList.sort(null);
 
             PlainTextParser parser = new PlainTextParser();
             PlainText brandNewFile = parser.parse(String.join("\n", finalList))

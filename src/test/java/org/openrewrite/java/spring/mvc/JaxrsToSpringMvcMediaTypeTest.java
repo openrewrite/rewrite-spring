@@ -38,43 +38,43 @@ class JaxrsToSpringMvcMediaTypeTest implements RewriteTest {
     void migrateMediaTypeJavaxTest() {
         rewriteRun(
           java(
-            """
-              import javax.ws.rs.core.MediaType;
-              import javax.ws.rs.Produces;
-
-              class TestExample {
-
-                  @Produces(MediaType.APPLICATION_JSON)
-                  void updateUser() {}
-
-                  String getJsonType() {
-                      return MediaType.APPLICATION_JSON;
-                  }
-
-                  MediaType getFormType() {
-                      return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
-                  }
-              }
-              """,
-            """
-              import org.springframework.http.MediaType;
-
-              import javax.ws.rs.Produces;
-
-              class TestExample {
-
-                  @Produces(MediaType.APPLICATION_JSON_VALUE)
-                  void updateUser() {}
-
-                  String getJsonType() {
-                      return MediaType.APPLICATION_JSON_VALUE;
-                  }
-
-                  MediaType getFormType() {
-                      return MediaType.APPLICATION_FORM_URLENCODED;
-                  }
-              }
-              """
+                  """
+                          import javax.ws.rs.core.MediaType;
+                          import javax.ws.rs.Produces;
+                          
+                          class TestExample {
+                          
+                              @Produces(MediaType.APPLICATION_JSON)
+                              void updateUser() {}
+                          
+                              String getJsonType() {
+                                  return MediaType.APPLICATION_JSON;
+                              }
+                          
+                              MediaType getFormType() {
+                                  return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
+                              }
+                          }
+                          """,
+                  """
+                          import org.springframework.http.MediaType;
+                          
+                          import javax.ws.rs.Produces;
+                          
+                          class TestExample {
+                          
+                              @Produces(MediaType.APPLICATION_JSON_VALUE)
+                              void updateUser() {}
+                          
+                              String getJsonType() {
+                                  return MediaType.APPLICATION_JSON_VALUE;
+                              }
+                          
+                              MediaType getFormType() {
+                                  return MediaType.APPLICATION_FORM_URLENCODED;
+                              }
+                          }
+                          """
           )
         );
     }
@@ -83,32 +83,32 @@ class JaxrsToSpringMvcMediaTypeTest implements RewriteTest {
     void fullyQualifiedJavaxFieldAccess() {
         rewriteRun(
           java(
-            """
-              class TestExample {
-
-                  String getJsonType() {
-                      return javax.ws.rs.core.MediaType.APPLICATION_JSON;
-                  }
-
-                  javax.ws.rs.core.MediaType getFormType() {
-                      return javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED_TYPE;
-                  }
-              }
-              """,
-            """
-              import org.springframework.http.MediaType;
-
-              class TestExample {
-
-                  String getJsonType() {
-                      return MediaType.APPLICATION_JSON_VALUE;
-                  }
-
-                  MediaType getFormType() {
-                      return MediaType.APPLICATION_FORM_URLENCODED;
-                  }
-              }
-              """
+                  """
+                          class TestExample {
+                          
+                              String getJsonType() {
+                                  return javax.ws.rs.core.MediaType.APPLICATION_JSON;
+                              }
+                          
+                              javax.ws.rs.core.MediaType getFormType() {
+                                  return javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED_TYPE;
+                              }
+                          }
+                          """,
+                  """
+                          import org.springframework.http.MediaType;
+                          
+                          class TestExample {
+                          
+                              String getJsonType() {
+                                  return MediaType.APPLICATION_JSON_VALUE;
+                              }
+                          
+                              MediaType getFormType() {
+                                  return MediaType.APPLICATION_FORM_URLENCODED;
+                              }
+                          }
+                          """
           )
         );
     }
@@ -117,32 +117,32 @@ class JaxrsToSpringMvcMediaTypeTest implements RewriteTest {
     void fullyQualifiedJakartaFieldAccess() {
         rewriteRun(
           java(
-            """
-              class TestExample {
-
-                  String getJsonType() {
-                      return jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-                  }
-
-                  jakarta.ws.rs.core.MediaType getXmlType() {
-                      return jakarta.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-                  }
-              }
-              """,
-            """
-              import org.springframework.http.MediaType;
-
-              class TestExample {
-
-                  String getJsonType() {
-                      return MediaType.APPLICATION_JSON_VALUE;
-                  }
-
-                  MediaType getXmlType() {
-                      return MediaType.APPLICATION_XML;
-                  }
-              }
-              """
+                  """
+                          class TestExample {
+                          
+                              String getJsonType() {
+                                  return jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+                              }
+                          
+                              jakarta.ws.rs.core.MediaType getXmlType() {
+                                  return jakarta.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+                              }
+                          }
+                          """,
+                  """
+                          import org.springframework.http.MediaType;
+                          
+                          class TestExample {
+                          
+                              String getJsonType() {
+                                  return MediaType.APPLICATION_JSON_VALUE;
+                              }
+                          
+                              MediaType getXmlType() {
+                                  return MediaType.APPLICATION_XML;
+                              }
+                          }
+                          """
           )
         );
     }
@@ -151,38 +151,38 @@ class JaxrsToSpringMvcMediaTypeTest implements RewriteTest {
     void staticImportJavax() {
         rewriteRun(
           java(
-            """
-              import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-              import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-
-              class TestExample {
-
-                  String getJsonType() {
-                      return APPLICATION_JSON;
-                  }
-
-                  javax.ws.rs.core.MediaType getXmlType() {
-                      return APPLICATION_XML_TYPE;
-                  }
-              }
-              """,
-            """
-              import org.springframework.http.MediaType;
-
-              import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-              import static org.springframework.http.MediaType.APPLICATION_XML;
-
-              class TestExample {
-
-                  String getJsonType() {
-                      return APPLICATION_JSON_VALUE;
-                  }
-
-                  MediaType getXmlType() {
-                      return APPLICATION_XML;
-                  }
-              }
-              """
+                  """
+                          import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+                          import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+                          
+                          class TestExample {
+                          
+                              String getJsonType() {
+                                  return APPLICATION_JSON;
+                              }
+                          
+                              javax.ws.rs.core.MediaType getXmlType() {
+                                  return APPLICATION_XML_TYPE;
+                              }
+                          }
+                          """,
+                  """
+                          import org.springframework.http.MediaType;
+                          
+                          import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+                          import static org.springframework.http.MediaType.APPLICATION_XML;
+                          
+                          class TestExample {
+                          
+                              String getJsonType() {
+                                  return APPLICATION_JSON_VALUE;
+                              }
+                          
+                              MediaType getXmlType() {
+                                  return APPLICATION_XML;
+                              }
+                          }
+                          """
           )
         );
     }
@@ -191,42 +191,42 @@ class JaxrsToSpringMvcMediaTypeTest implements RewriteTest {
     void migrateMediaTypeJakartaTest() {
         rewriteRun(
           java(
-            """
-              import jakarta.ws.rs.core.MediaType;
-              import jakarta.ws.rs.Produces;
-
-              class TestExample {
-
-                  @Produces(MediaType.APPLICATION_JSON)
-                  void updateUser() {}
-
-                  String getJsonType() {
-                      return MediaType.APPLICATION_JSON;
-                  }
-
-                  MediaType getFormType() {
-                      return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
-                  }
-              }
-              """,
-            """
-              import jakarta.ws.rs.Produces;
-              import org.springframework.http.MediaType;
-
-              class TestExample {
-
-                  @Produces(MediaType.APPLICATION_JSON_VALUE)
-                  void updateUser() {}
-
-                  String getJsonType() {
-                      return MediaType.APPLICATION_JSON_VALUE;
-                  }
-
-                  MediaType getFormType() {
-                      return MediaType.APPLICATION_FORM_URLENCODED;
-                  }
-              }
-              """
+                  """
+                          import jakarta.ws.rs.core.MediaType;
+                          import jakarta.ws.rs.Produces;
+                          
+                          class TestExample {
+                          
+                              @Produces(MediaType.APPLICATION_JSON)
+                              void updateUser() {}
+                          
+                              String getJsonType() {
+                                  return MediaType.APPLICATION_JSON;
+                              }
+                          
+                              MediaType getFormType() {
+                                  return MediaType.APPLICATION_FORM_URLENCODED_TYPE;
+                              }
+                          }
+                          """,
+                  """
+                          import jakarta.ws.rs.Produces;
+                          import org.springframework.http.MediaType;
+                          
+                          class TestExample {
+                          
+                              @Produces(MediaType.APPLICATION_JSON_VALUE)
+                              void updateUser() {}
+                          
+                              String getJsonType() {
+                                  return MediaType.APPLICATION_JSON_VALUE;
+                              }
+                          
+                              MediaType getFormType() {
+                                  return MediaType.APPLICATION_FORM_URLENCODED;
+                              }
+                          }
+                          """
           )
         );
     }

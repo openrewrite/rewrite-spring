@@ -24,7 +24,8 @@ import org.openrewrite.java.marker.JavaSourceSet;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static java.util.Collections.emptyList;
+import java.util.List;
+
 import static org.openrewrite.java.Assertions.java;
 
 @Disabled
@@ -152,7 +153,7 @@ class FindApiCallsTest implements RewriteTest {
                   }
               }
               """,
-            sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
+            sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
           )
         );
     }
