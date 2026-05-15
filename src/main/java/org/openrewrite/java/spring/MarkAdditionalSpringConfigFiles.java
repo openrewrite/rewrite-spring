@@ -23,7 +23,6 @@ import org.openrewrite.marker.SourceSet;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.util.Collections;
 import java.util.List;
 
 @Value
@@ -53,24 +52,24 @@ public class MarkAdditionalSpringConfigFiles extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new TreeVisitor<Tree, ExecutionContext>() {
-            @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!(tree instanceof Properties.File) && !(tree instanceof Yaml.Documents)) {
-                    return tree;
-                }
-                SourceFile sf = (SourceFile) tree;
-                if (sf.getMarkers().findFirst(SourceSet.class).isPresent() ||
-                        sf.getMarkers().findFirst(SpringConfigFile.class).isPresent()) {
-                    return tree;
-                }
-                for (String pattern : pathPatterns == null ? Collections.<String>emptyList() : pathPatterns) {
-                    if (PathUtils.matchesGlob(sf.getSourcePath(), pattern)) {
+        if (pathPatterns == null || pathPatterns.isEmpty()) {
+            return TreeVisitor.noop();
+        }
+        return Preconditions.check(
+                new FindSourceFiles(String.join(";", pathPatterns)).getVisitor(),
+                new TreeVisitor<Tree, ExecutionContext>() {
+                    @Override
+                    public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                        if (!(tree instanceof Properties.File) && !(tree instanceof Yaml.Documents)) {
+                            return tree;
+                        }
+                        SourceFile sf = (SourceFile) tree;
+                        if (sf.getMarkers().findFirst(SourceSet.class).isPresent() ||
+                                sf.getMarkers().findFirst(SpringConfigFile.class).isPresent()) {
+                            return tree;
+                        }
                         return sf.withMarkers(sf.getMarkers().add(new SpringConfigFile(Tree.randomId())));
                     }
-                }
-                return tree;
-            }
-        };
+                });
     }
 }
