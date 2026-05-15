@@ -23,7 +23,8 @@ import org.openrewrite.java.marker.JavaSourceSet;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static java.util.Collections.emptyList;
+import java.util.List;
+
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
@@ -52,7 +53,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                 """
                   management.endpoints.access.default=read-only
                   """,
-                sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
+                sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               ),
               yaml(
                 //language=yaml
@@ -67,7 +68,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                     endpoints:
                       access.default: read-only
                   """,
-                sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
+                sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               )
             );
         }
@@ -84,7 +85,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                 """
                   management.endpoints.access.default=none
                   """,
-                sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
+                sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               ),
               yaml(
                 //language=yaml
@@ -99,7 +100,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                     endpoints:
                       access.default: none
                   """,
-                sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
+                sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               )
             );
         }
@@ -123,7 +124,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                       management.endpoint.auditevents.access=read-only
                       management.endpoint.threaddump.access=read-only
                       """,
-                    sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
+                    sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
                   )
                 );
             }
@@ -142,7 +143,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                       management.endpoint.auditevents.access=none
                       management.endpoint.threaddump.access=none
                       """,
-                    sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
+                    sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
                   )
                 );
             }
@@ -172,7 +173,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                           threaddump:
                             access: read-only
                       """,
-                    sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
+                    sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
                   )
                 );
             }
@@ -199,7 +200,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                           threaddump:
                             access: none
                       """,
-                    sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", emptyList()))
+                    sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
                   )
                 );
             }

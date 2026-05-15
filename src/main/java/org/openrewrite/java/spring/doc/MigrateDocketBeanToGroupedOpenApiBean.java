@@ -200,7 +200,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
             if (argumentExtractorResult.builder.isValid() &&
                     tree instanceof J.MethodInvocation &&
                     ((J.MethodInvocation) tree).getSelect() != null &&
-                    methodMatchers.stream().anyMatch(e -> e.matches(((J.MethodInvocation) tree)))) {
+                    methodMatchers.stream().anyMatch(e -> e.matches((J.MethodInvocation) tree))) {
                 return super.visit(tree, argumentExtractorResult);
             }
             argumentExtractorResult.builder.invalidate();

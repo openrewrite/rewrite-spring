@@ -23,8 +23,9 @@ import org.openrewrite.marker.Markers;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
@@ -33,7 +34,7 @@ class MigrateArtemisPropertiesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateArtemisProperties())
-          .allSources(sourceSpec -> sourceSpec.markers(new JavaSourceSet(Tree.randomId(), "main", emptyList(), emptyMap())));
+          .allSources(sourceSpec -> sourceSpec.markers(new JavaSourceSet(Tree.randomId(), "main", List.of(), Map.of())));
     }
 
     @DocumentExample
