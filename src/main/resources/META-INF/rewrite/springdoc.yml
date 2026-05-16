@@ -55,12 +55,6 @@ preconditions:
 recipeList:
   - org.openrewrite.openapi.swagger.SwaggerToOpenAPI
   - org.openrewrite.java.spring.doc.RemoveBeanValidatorPluginsConfiguration
-  - org.openrewrite.java.spring.DeleteSpringProperty:
-      propertyKey: swagger.title
-  - org.openrewrite.java.spring.DeleteSpringProperty:
-      propertyKey: swagger.description
-  - org.openrewrite.java.spring.DeleteSpringProperty:
-      propertyKey: swagger.contact
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: '@springfox.documentation.swagger2.annotations.EnableSwagger2'
   - org.openrewrite.java.spring.doc.MigrateDocketBeanToGroupedOpenApiBean
