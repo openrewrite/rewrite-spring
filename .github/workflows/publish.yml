@@ -20,3 +20,5 @@ jobs:
       sonatype_token: ${{ secrets.SONATYPE_TOKEN }}
       ossrh_signing_key: ${{ secrets.OSSRH_SIGNING_KEY }}
       ossrh_signing_password: ${{ secrets.OSSRH_SIGNING_PASSWORD }}
+      artifactory_username: ${{ secrets.ARTIFACTORY_USERNAME }}
+      artifactory_password: ${{ secrets.ARTIFACTORY_PASSWORD }}
