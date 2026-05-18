@@ -25,6 +25,9 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.kotlin.marker.AnnotationConstructor;
+import org.openrewrite.kotlin.marker.Modifier;
+import org.openrewrite.kotlin.tree.K;
 import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
@@ -61,6 +64,7 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                         J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
+                        boolean isKotlin = getCursor().firstEnclosing(K.CompilationUnit.class) != null;
                         return cd.withLeadingAnnotations(ListUtils.map(cd.getLeadingAnnotations(), annotation -> {
                             boolean isMockBeans = MOCK_BEANS_MATCHER.matches(annotation);
                             boolean isSpyBeans = SPY_BEANS_MATCHER.matches(annotation);
@@ -80,10 +84,19 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
                                 allTypes.addAll(extractTypeExpressions(inner));
                             }
 
-                            return innerAnnotations.get(0)
+                            J.Annotation lifted = innerAnnotations.get(0);
+                            if (isKotlin) {
+                                // Inner annotations in Kotlin containers carry markers that suppress the
+                                // leading `@`; strip them so the lifted annotation prints with `@`.
+                                Markers m = lifted.getMarkers();
+                                m = m.removeByType(AnnotationConstructor.class);
+                                m = m.removeByType(Modifier.class);
+                                lifted = lifted.withMarkers(m);
+                            }
+                            return lifted
                                     .withPrefix(annotation.getPrefix())
                                     .withArguments(singletonList(
-                                            createTypesAssignment(allTypes)));
+                                            createTypesAssignment(allTypes, isKotlin)));
                         }));
                     }
                 }
@@ -98,38 +111,34 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
         }
 
         for (Expression arg : args) {
-            if (arg instanceof J.NewArray) {
-                // @MockBeans({@MockBean(A.class), @MockBean(B.class)})
-                J.NewArray newArray = (J.NewArray) arg;
-                if (newArray.getInitializer() != null) {
-                    for (Expression init : newArray.getInitializer()) {
-                        if (init instanceof J.Annotation) {
-                            annotations.add((J.Annotation) init);
-                        }
-                    }
-                }
-            } else if (arg instanceof J.Annotation) {
-                // @MockBeans(@MockBean(A.class))
-                annotations.add((J.Annotation) arg);
-            } else if (arg instanceof J.Assignment) {
-                // @MockBeans(value = {...})
-                J.Assignment assignment = (J.Assignment) arg;
-                Expression value = assignment.getAssignment();
-                if (value instanceof J.NewArray) {
-                    J.NewArray newArray = (J.NewArray) value;
-                    if (newArray.getInitializer() != null) {
-                        for (Expression init : newArray.getInitializer()) {
-                            if (init instanceof J.Annotation) {
-                                annotations.add((J.Annotation) init);
-                            }
-                        }
-                    }
-                } else if (value instanceof J.Annotation) {
-                    annotations.add((J.Annotation) value);
-                }
-            }
+            collectAnnotationArgument(arg, annotations);
         }
         return annotations;
+    }
+
+    private static void collectAnnotationArgument(Expression arg, List<J.Annotation> annotations) {
+        if (arg instanceof J.NewArray) {
+            // Java: @MockBeans({@MockBean(A.class), @MockBean(B.class)})
+            J.NewArray newArray = (J.NewArray) arg;
+            if (newArray.getInitializer() != null) {
+                for (Expression init : newArray.getInitializer()) {
+                    collectAnnotationArgument(init, annotations);
+                }
+            }
+        } else if (arg instanceof K.ListLiteral) {
+            // Kotlin: @MockBeans([MockBean(A::class), MockBean(B::class)])
+            for (Expression element : ((K.ListLiteral) arg).getElements()) {
+                collectAnnotationArgument(element, annotations);
+            }
+        } else if (arg instanceof J.Annotation) {
+            // Java single-arg: @MockBeans(@MockBean(A.class))
+            // Kotlin variadic:  @MockBeans(MockBean(A::class), MockBean(B::class))
+            annotations.add((J.Annotation) arg);
+        } else if (arg instanceof J.Assignment) {
+            // @MockBeans(value = ...)
+            J.Assignment assignment = (J.Assignment) arg;
+            collectAnnotationArgument(assignment.getAssignment(), annotations);
+        }
     }
 
     private static List<Expression> extractTypeExpressions(J.Annotation annotation) {
@@ -139,31 +148,40 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
         }
 
         for (Expression arg : annotation.getArguments()) {
-            if (arg instanceof J.Assignment) {
-                J.Assignment assignment = (J.Assignment) arg;
-                if (assignment.getVariable() instanceof J.Identifier) {
-                    String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                    if ("value".equals(name) || "classes".equals(name)) {
-                        Expression value = assignment.getAssignment();
-                        if (value instanceof J.NewArray && ((J.NewArray) value).getInitializer() != null) {
-                            types.addAll(((J.NewArray) value).getInitializer());
-                        } else {
-                            types.add(value);
-                        }
-                    }
-                }
-            } else if (arg instanceof J.FieldAccess && "class".equals(((J.FieldAccess) arg).getSimpleName())) {
-                // Implicit value: @MockBean(ClassA.class)
-                types.add(arg);
-            } else if (arg instanceof J.NewArray && ((J.NewArray) arg).getInitializer() != null) {
-                // Implicit value: @MockBean({A.class, B.class})
-                types.addAll(((J.NewArray) arg).getInitializer());
-            }
+            collectTypeExpression(arg, types);
         }
         return types;
     }
 
-    private static J.Assignment createTypesAssignment(List<Expression> typeExpressions) {
+    private static void collectTypeExpression(Expression arg, List<Expression> types) {
+        if (arg instanceof J.Assignment) {
+            J.Assignment assignment = (J.Assignment) arg;
+            if (assignment.getVariable() instanceof J.Identifier) {
+                String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
+                if ("value".equals(name) || "classes".equals(name) || "types".equals(name)) {
+                    collectTypeExpression(assignment.getAssignment(), types);
+                }
+            }
+        } else if (arg instanceof J.NewArray && ((J.NewArray) arg).getInitializer() != null) {
+            // Java: {A.class, B.class}
+            for (Expression init : ((J.NewArray) arg).getInitializer()) {
+                collectTypeExpression(init, types);
+            }
+        } else if (arg instanceof K.ListLiteral) {
+            // Kotlin: [A::class, B::class]
+            for (Expression element : ((K.ListLiteral) arg).getElements()) {
+                collectTypeExpression(element, types);
+            }
+        } else if (arg instanceof J.FieldAccess && "class".equals(((J.FieldAccess) arg).getSimpleName())) {
+            // Java: A.class
+            types.add(arg);
+        } else if (arg instanceof J.MemberReference && "class".equals(((J.MemberReference) arg).getReference().getSimpleName())) {
+            // Kotlin: A::class
+            types.add(arg);
+        }
+    }
+
+    private static J.Assignment createTypesAssignment(List<Expression> typeExpressions, boolean kotlin) {
         J.Identifier typesIdent = new J.Identifier(
                 randomId(), Space.EMPTY, Markers.EMPTY,
                 emptyList(), "types", null, null
@@ -172,16 +190,25 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
         Expression rhs;
         if (typeExpressions.size() == 1) {
             rhs = typeExpressions.get(0).withPrefix(Space.SINGLE_SPACE);
+        } else if (kotlin) {
+            // Format as [A::class, B::class]
+            List<JRightPadded<Expression>> padded = new ArrayList<>();
+            for (int i = 0; i < typeExpressions.size(); i++) {
+                Expression expr = typeExpressions.get(i);
+                expr = expr.withPrefix(i == 0 ? Space.EMPTY : Space.format(" "));
+                padded.add(JRightPadded.build(expr));
+            }
+            rhs = new K.ListLiteral(
+                    randomId(), Space.SINGLE_SPACE, Markers.EMPTY,
+                    JContainer.build(Space.EMPTY, padded, Markers.EMPTY),
+                    null
+            );
         } else {
             // Format as {A.class, B.class}
             List<JRightPadded<Expression>> padded = new ArrayList<>();
             for (int i = 0; i < typeExpressions.size(); i++) {
                 Expression expr = typeExpressions.get(i);
-                if (i == 0) {
-                    expr = expr.withPrefix(Space.EMPTY);
-                } else {
-                    expr = expr.withPrefix(Space.format(" "));
-                }
+                expr = expr.withPrefix(i == 0 ? Space.EMPTY : Space.format(" "));
                 padded.add(JRightPadded.build(expr));
             }
             rhs = new J.NewArray(
