@@ -27,6 +27,14 @@ import org.openrewrite.yaml.tree.Yaml;
 /**
  * A precondition to determine if a file might be a
  * <a href="https://docs.spring.io/spring-boot/docs/2.1.7.RELEASE/reference/html/boot-features-external-config.html#boot-features-external-config-application-property-files">Spring configuration file</a>.
+ * A file passes the check when it is a YAML or properties source file and either:
+ * <ul>
+ *   <li>carries a {@link SourceSet} marker (i.e. it is part of a recognized source set such as
+ *       {@code src/main/resources}), or</li>
+ *   <li>carries a {@link SpringConfigFile} marker — typically attached by
+ *       {@link MarkAdditionalSpringConfigFiles} for files that live outside a standard resource layout
+ *       but should still be treated as Spring configuration.</li>
+ * </ul>
  * This does not make positive identification of files which are spring configuration files, as there are few hard limits.
  * Instead, this tries to rule out files which, due to their type or location, cannot be spring properties.
  */
@@ -34,8 +42,11 @@ public class IsPossibleSpringConfigFile extends TreeVisitor<Tree, ExecutionConte
 
     @Override
     public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-        if (((tree instanceof Yaml.Documents) || (tree instanceof Properties.File)) && tree.getMarkers().findFirst(SourceSet.class).isPresent()) {
-            return SearchResult.found(tree);
+        if ((tree instanceof Yaml.Documents) || (tree instanceof Properties.File)) {
+            if (tree.getMarkers().findFirst(SourceSet.class).isPresent() ||
+                    tree.getMarkers().findFirst(SpringConfigFile.class).isPresent()) {
+                return SearchResult.found(tree);
+            }
         }
         return tree;
     }
