@@ -25,6 +25,7 @@ preconditions:
   - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.framework.MigrateWebMvcConfigurerAdapter
+  - org.openrewrite.java.spring.boot2.MigrateHibernateConstraintsToJavax
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: "*"
