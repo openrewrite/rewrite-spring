@@ -36,19 +36,13 @@ public class MarkAdditionalSpringConfigFiles extends Recipe {
             example = "**/properties/*.properties")
     List<String> pathPatterns;
 
-    @Override
-    public String getDisplayName() {
-        return "Mark additional files as Spring configuration";
-    }
+    String displayName = "Mark additional files as Spring configuration";
 
-    @Override
-    public String getDescription() {
-        return "Attach a `SpringConfigFile` marker to YAML/properties files matching the provided glob patterns " +
-                "so that Spring property recipes such as `ChangeSpringPropertyKey`, `DeleteSpringProperty`, " +
-                "`ChangeSpringPropertyValue`, and `CommentOutSpringPropertyKey` will visit files that live " +
-                "outside standard resource source sets. Files that already pass the `SourceSet`-based check are " +
-                "skipped to avoid redundant markers.";
-    }
+    String description = "Attach a `SpringConfigFile` marker to YAML/properties files matching the provided glob patterns " +
+            "so that Spring property recipes such as `ChangeSpringPropertyKey`, `DeleteSpringProperty`, " +
+            "`ChangeSpringPropertyValue`, and `CommentOutSpringPropertyKey` will visit files that live " +
+            "outside standard resource source sets. Files that already pass the `SourceSet`-based check are " +
+            "skipped to avoid redundant markers.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

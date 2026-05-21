@@ -3303,6 +3303,30 @@ examples:
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.UnwrapMockAndSpyBeanContainers
+examples:
+- description: '`UnwrapMockAndSpyBeanContainersTest#mergesMockBeansContainer`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.mock.mockito.MockBean;
+      import org.springframework.boot.test.mock.mockito.MockBeans;
+
+      @MockBeans({@MockBean(Foo.class), @MockBean(Bar.class)})
+      class SomeTest {
+      }
+      class Foo {}
+      class Bar {}
+    after: |
+      import org.springframework.boot.test.mock.mockito.MockBean;
+
+      @MockBean(types = {Foo.class, Bar.class})
+      class SomeTest {
+      }
+      class Foo {}
+      class Bar {}
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
 examples:
 - description: '`AddLoggingPatternLevelForSleuthTest#addLoggingPatternWhenUsingSleuth`'
