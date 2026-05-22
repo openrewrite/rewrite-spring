@@ -79,7 +79,6 @@ recipeList:
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
-  - org.openrewrite.java.spring.boot2.MigrateHibernateConstraintsToJavax
   - org.openrewrite.java.spring.boot2.MigrateLocalServerPortAnnotation
   - org.openrewrite.java.spring.boot2.MaybeAddSpringBootStarterActuator
   # Update properties
@@ -173,6 +172,9 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.ErrorController
       newFullyQualifiedTypeName: org.springframework.boot.web.servlet.error.ErrorController
 ---
+# TODO: Rename to `org.openrewrite.java.spring.framework.MigrateHibernateConstraintsToJavax`
+# (with a `recipe-rename` entry for backwards compatibility) and move the
+# definition into `spring-framework-50.yml`.
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateHibernateConstraintsToJavax
 displayName: Use `javax.validation.constraints`
