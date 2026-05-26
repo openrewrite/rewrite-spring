@@ -247,6 +247,80 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1027")
+    @Test
+    void redisSslBundleNotMangled() {
+        rewriteRun(
+          spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-31-properties.yml", "org.openrewrite.java.spring.boot3.SpringBootProperties_3_1"),
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.data.redis.ssl.bundle=redis
+                  spring.cassandra.ssl.bundle=cassandra
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  spring:
+                    data:
+                      redis:
+                        ssl:
+                          bundle: redis
+                    cassandra:
+                      ssl:
+                        bundle: cassandra
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1027")
+    @Test
+    void redisSslBooleanStillRenamed() {
+        rewriteRun(
+          spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-31-properties.yml", "org.openrewrite.java.spring.boot3.SpringBootProperties_3_1"),
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.data.redis.ssl=true
+                  spring.cassandra.ssl=true
+                  """,
+                """
+                  spring.data.redis.ssl.enabled=true
+                  spring.cassandra.ssl.enabled=true
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  spring:
+                    data:
+                      redis:
+                        ssl: true
+                    cassandra:
+                      ssl: true
+                  """,
+                """
+                  spring:
+                    data:
+                      redis:
+                        ssl.enabled: true
+                    cassandra:
+                      ssl.enabled: true
+                  """
+              )
+            )
+          )
+        );
+    }
+
     @Disabled
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/436")
     @Test
