@@ -188,10 +188,7 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
         );
 
         Expression rhs;
-        if (typeExpressions.size() == 1 && !kotlin) {
-            // Java single-element shorthand: types = Foo.class
-            rhs = typeExpressions.get(0).withPrefix(Space.SINGLE_SPACE);
-        } else if (kotlin) {
+        if (kotlin) {
             // Format as [A::class, B::class]
             List<JRightPadded<Expression>> padded = new ArrayList<>();
             for (int i = 0; i < typeExpressions.size(); i++) {
@@ -204,6 +201,9 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
                     JContainer.build(Space.EMPTY, padded, Markers.EMPTY),
                     null
             );
+        } else if (typeExpressions.size() == 1) {
+            // Java single-element shorthand: types = Foo.class
+            rhs = typeExpressions.get(0).withPrefix(Space.SINGLE_SPACE);
         } else {
             // Format as {A.class, B.class}
             List<JRightPadded<Expression>> padded = new ArrayList<>();
