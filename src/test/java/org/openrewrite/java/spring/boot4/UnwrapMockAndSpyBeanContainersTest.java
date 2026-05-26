@@ -169,6 +169,8 @@ class UnwrapMockAndSpyBeanContainersTest implements RewriteTest {
 
     @Test
     void kotlinSingleInnerAnnotation() {
+        // Kotlin requires an array literal for Array<KClass<*>> attributes —
+        // the Java single-element shorthand does not compile (Sunbit, customer-requests#2435).
         rewriteRun(
           //language=kotlin
           kotlin(
@@ -184,10 +186,36 @@ class UnwrapMockAndSpyBeanContainersTest implements RewriteTest {
             """
               import org.springframework.boot.test.mock.mockito.MockBean
 
-              @MockBean(types = Foo::class)
+              @MockBean(types = [Foo::class])
               class SomeTest {
               }
               class Foo
+              """
+          )
+        );
+    }
+
+    @Test
+    void javaSingleInnerAnnotationKeepsShorthand() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.MockBean;
+              import org.springframework.boot.test.mock.mockito.MockBeans;
+
+              @MockBeans(@MockBean(Foo.class))
+              class SomeTest {
+              }
+              class Foo {}
+              """,
+            """
+              import org.springframework.boot.test.mock.mockito.MockBean;
+
+              @MockBean(types = Foo.class)
+              class SomeTest {
+              }
+              class Foo {}
               """
           )
         );
