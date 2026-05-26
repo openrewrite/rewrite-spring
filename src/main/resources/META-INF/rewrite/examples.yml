@@ -143,6 +143,17 @@ examples:
       server:
         servlet.path: /tmp/my-server-path
     language: yaml
+- description: '`MarkAdditionalSpringConfigFilesTest#enablesChangeSpringPropertyKeyOnFileOutsideSourceSet`'
+  parameters:
+  - server.servlet-path
+  - server.servlet.path
+  - 'null'
+  sources:
+  - before: |
+      server.servlet-path=/tmp/my-server-path
+    after: |
+      server.servlet.path=/tmp/my-server-path
+    language: properties
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.ChangeSpringPropertyValue
