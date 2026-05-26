@@ -188,7 +188,8 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
         );
 
         Expression rhs;
-        if (typeExpressions.size() == 1) {
+        if (typeExpressions.size() == 1 && !kotlin) {
+            // Java single-element shorthand: types = Foo.class
             rhs = typeExpressions.get(0).withPrefix(Space.SINGLE_SPACE);
         } else if (kotlin) {
             // Format as [A::class, B::class]
