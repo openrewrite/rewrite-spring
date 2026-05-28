@@ -30,6 +30,18 @@ recipeList:
       groupId: org.springframework
       artifactId: "*"
       newVersion: 6.0.x
+  - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_3_0
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.integration
+      artifactId: "*"
+      newVersion: 6.0.x
+  - org.openrewrite.gradle.plugins.UpgradePluginVersion:
+      pluginIdPattern: io.spring.dependency-management
+      newVersion: 1.1.x
+  - org.openrewrite.maven.UpgradePluginVersion:
+      groupId: io.spring.gradle
+      artifactId: dependency-management-plugin
+      newVersion: 1.1.x
   - org.openrewrite.java.spring.framework.MigrateSpringAssert
   - org.openrewrite.apache.httpclient5.UpgradeApacheHttpClient_5
   - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryReadTimeout
