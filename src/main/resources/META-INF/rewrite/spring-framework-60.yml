@@ -30,7 +30,6 @@ recipeList:
       groupId: org.springframework
       artifactId: "*"
       newVersion: 6.0.x
-  # Companion libraries that must move in lockstep with Spring Framework 6
   - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_3_0
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.integration
