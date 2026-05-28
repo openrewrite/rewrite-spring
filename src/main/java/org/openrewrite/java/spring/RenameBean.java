@@ -43,14 +43,21 @@ import static org.openrewrite.java.MethodMatcher.methodPattern;
 @Value
 public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionContext>>> {
 
-    @Option(required = false, example = "foo.MyType")
+    @Option(displayName = "Type",
+            description = "The fully qualified name of the bean type to rename. If omitted, beans are matched by name alone.",
+            required = false,
+            example = "foo.MyType")
     @Nullable
     String type;
 
-    @Option(example = "fooBean")
+    @Option(displayName = "Old name",
+            description = "The existing name of the bean to rename.",
+            example = "fooBean")
     String oldName;
 
-    @Option(example = "barBean")
+    @Option(displayName = "New name",
+            description = "The new name to give the matching bean.",
+            example = "barBean")
     String newName;
 
     private static final String FQN_QUALIFIER = "org.springframework.beans.factory.annotation.Qualifier";
