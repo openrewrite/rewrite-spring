@@ -48,6 +48,9 @@ recipeList:
   - org.openrewrite.java.spring.framework.MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode
   - org.openrewrite.java.spring.framework.MigrateResponseStatusException
   - org.openrewrite.java.spring.framework.MigrateClientHttpResponseGetRawStatusCodeMethod
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
+      methodPattern: org.springframework.http.ResponseEntity getStatusCode()
+      newReturnType: org.springframework.http.HttpStatusCode
   - org.openrewrite.java.spring.data.UpgradeSpringData_3_0
   - org.openrewrite.java.spring.data.JdbcTemplateQueryForLongMigration
 ---
