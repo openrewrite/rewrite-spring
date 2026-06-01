@@ -52,6 +52,10 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (FROM_HTTP_URL.matches(mi)) {
+                    if (mi.getSelect() == null) {
+                        maybeRemoveImport(TARGET_CLASS + ".fromHttpUrl");
+                        maybeAddImport(TARGET_CLASS, "fromUriString", false);
+                    }
                     return mi.withName(mi.getName().withSimpleName("fromUriString"));
                 }
                 if (FROM_HTTP_REQUEST.matches(mi)) {
