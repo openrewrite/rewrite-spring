@@ -22,7 +22,6 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -33,8 +32,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateJobBuilderFactory())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch-core-5.+",
-            "spring-batch-infrastructure-5.+",
+            "spring-batch-core-4.+",
+            "spring-batch-infrastructure-4.+",
             "spring-beans-5.+",
             "spring-core-5.+",
             "spring-context-5.+"));
@@ -45,9 +44,6 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     void replaceAutowiredJobBuilderFactory() {
         // language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.builder()
-            .identifiers(false)
-            .build()),
           java(
             """
               import org.springframework.batch.core.Job;
@@ -92,8 +88,16 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
 
     @Test
     void doNotChangeCurrentApi() {
-        // language=java
         rewriteRun(
+          // This test's source is already the migrated (Spring Batch 5) API, so it must be
+          // parsed against Spring Batch 5 rather than the class default of Spring Batch 4.
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-batch-core-5.+",
+            "spring-batch-infrastructure-5.+",
+            "spring-beans-5.+",
+            "spring-core-5.+",
+            "spring-context-5.+")),
+          // language=java
           java(
             """
               import org.springframework.batch.core.Job;
@@ -120,9 +124,6 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     void replaceJobBuilderFactory() {
         // language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.builder()
-            .identifiers(false)
-            .build()),
           java(
             """
               import org.springframework.batch.core.Job;
@@ -165,9 +166,6 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     void replaceJobBuilderFactoryInsideConstructor() {
         // language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.builder()
-            .identifiers(false)
-            .build()),
           java(
             """
               import org.springframework.batch.core.Job;

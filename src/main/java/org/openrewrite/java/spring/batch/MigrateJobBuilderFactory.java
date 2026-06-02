@@ -17,20 +17,24 @@ package org.openrewrite.java.spring.batch;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.marker.Markers;
 
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -60,8 +64,15 @@ public class MigrateJobBuilderFactory extends Recipe {
 
                     doAfterVisit(new MigrateJobBuilderFactory.RemoveJobBuilderFactoryVisitor(clazz, enclosingMethod));
 
+                    // The `jobRepository` argument references the parameter introduced by
+                    // RemoveJobBuilderFactoryVisitor, which doesn't exist yet. Pass a typed shim
+                    // identifier so the generated reference carries `JobRepository` type attribution.
+                    J.Identifier jobRepository = new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
+                            emptyList(), "jobRepository",
+                            JavaType.ShallowClass.build("org.springframework.batch.core.repository.JobRepository"), null);
+
                     return JavaTemplate
-                            .builder("new JobBuilder(#{any(java.lang.String)}, jobRepository)")
+                            .builder("new JobBuilder(#{any(java.lang.String)}, #{any(org.springframework.batch.core.repository.JobRepository)})")
                             .contextSensitive()
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-batch-core-5.1.+"))
@@ -70,7 +81,8 @@ public class MigrateJobBuilderFactory extends Recipe {
                             .build().apply(
                                     getCursor(),
                                     method.getCoordinates().replace(),
-                                    method.getArguments().get(0)
+                                    method.getArguments().get(0),
+                                    jobRepository
                             );
                 }
                 return super.visitMethodInvocation(method, ctx);
@@ -96,6 +108,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                 if (statement instanceof J.VariableDeclarations && ((J.VariableDeclarations) statement).getTypeExpression() != null) {
                     if (TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getTypeExpression().getType(),
                             "org.springframework.batch.core.configuration.annotation.JobBuilderFactory")) {
+                        //noinspection DataFlowIssue
                         return null;
                     }
                 }
@@ -106,7 +119,7 @@ public class MigrateJobBuilderFactory extends Recipe {
         }
 
         @Override
-        public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDecl, ExecutionContext ctx) {
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration methodDecl, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(methodDecl, ctx);
 
             if (!enclosingMethod.equals(md) && !md.isConstructor()) {
