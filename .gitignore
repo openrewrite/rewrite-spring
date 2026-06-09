@@ -9,3 +9,5 @@ bin/
 .settings/
 .DS_Store
 .moderne/
+
+.context/
