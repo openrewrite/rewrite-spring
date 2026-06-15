@@ -437,6 +437,58 @@ class MigrateToModularStartersTest implements RewriteTest {
         }
 
         @Test
+        void migrateCompositeHealthAndHealthComponentToDescriptors() {
+            rewriteRun(
+              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.actuate.health.CompositeHealth;
+                  import org.springframework.boot.actuate.health.HealthComponent;
+                  import org.springframework.boot.actuate.health.HealthEndpoint;
+
+                  import java.util.HashMap;
+                  import java.util.Map;
+
+                  class HealthController {
+                      HealthEndpoint endpoint;
+
+                      Map<String, Object> health() {
+                          HealthComponent health = endpoint.health();
+                          Map<String, Object> body = new HashMap<>();
+                          if (health instanceof CompositeHealth composite) {
+                              body.put("components", composite.getComponents());
+                          }
+                          return body;
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.boot.health.actuate.endpoint.CompositeHealthDescriptor;
+                  import org.springframework.boot.health.actuate.endpoint.HealthDescriptor;
+                  import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
+
+                  import java.util.HashMap;
+                  import java.util.Map;
+
+                  class HealthController {
+                      HealthEndpoint endpoint;
+
+                      Map<String, Object> health() {
+                          HealthDescriptor health = endpoint.health();
+                          Map<String, Object> body = new HashMap<>();
+                          if (health instanceof CompositeHealthDescriptor composite) {
+                              body.put("components", composite.getComponents());
+                          }
+                          return body;
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
         void migrateEndpointRequest() {
             rewriteRun(
               spec -> spec.typeValidationOptions(TypeValidation.none()),
