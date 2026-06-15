@@ -21,6 +21,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Tree;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
+import org.openrewrite.java.service.ImportService;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.Block;
 import org.openrewrite.java.tree.J.ClassDeclaration;
@@ -156,10 +157,10 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 Object n = getCursor().getParent().getValue();
                 if (n instanceof ClassDeclaration) {
                     ClassDeclaration classDecl = (ClassDeclaration) n;
-                    JavaType.FullyQualified typeFqn = TypeUtils.asFullyQualified(type.getType());
-                    if (typeFqn != null && classDecl.getKind() == ClassDeclaration.Kind.Type.Class && className.equals(classDecl.getSimpleName())) {
+                    JavaType fieldType = type.getType();
+                    if (fieldType != null && !(fieldType instanceof JavaType.Primitive) && classDecl.getKind() == ClassDeclaration.Kind.Type.Class && className.equals(classDecl.getSimpleName())) {
                         JavaTemplate.Builder template = JavaTemplate.builder("" +
-                                classDecl.getSimpleName() + "(" + typeFqn.getClassName() + " " + fieldName + ") {\n" +
+                                classDecl.getSimpleName() + "(" + type + " " + fieldName + ") {\n" +
                                 "this." + fieldName + " = " + fieldName + ";\n" +
                                 "}\n"
                         ).contextSensitive();
@@ -198,12 +199,9 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
         public AddConstructorParameterAndAssignment(MethodDeclaration constructor, String fieldName, TypeTree type) {
             this.constructor = constructor;
             this.fieldName = fieldName;
-            JavaType.FullyQualified fq = TypeUtils.asFullyQualified(type.getType());
-            if (fq != null) {
-                methodType = fq.getClassName();
-            } else {
-                throw new IllegalArgumentException("Unable to determine parameter type");
-            }
+            // The parameter template is parsed without the surrounding file's imports, so simple names would not
+            // resolve; render the type fully qualified and shorten the references after the template is applied.
+            this.methodType = type.getType() == null ? type.toString() : TypeUtils.toString(type.getType()).replace("$", ".");
         }
 
         @Override
@@ -223,6 +221,13 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                                 params.toArray()
                         );
                 updateCursor(md);
+                Statement addedParam = md.getParameters().get(md.getParameters().size() - 1);
+                if (addedParam instanceof J.VariableDeclarations) {
+                    TypeTree addedType = ((J.VariableDeclarations) addedParam).getTypeExpression();
+                    if (addedType != null && !(addedType instanceof J.Identifier || addedType instanceof J.Primitive)) {
+                        doAfterVisit(service(ImportService.class).shortenFullyQualifiedTypeReferencesIn(addedType));
+                    }
+                }
 
                 //noinspection ConstantConditions
                 md = JavaTemplate.builder("this." + fieldName + " = " + fieldName + ";")

@@ -21,6 +21,7 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
@@ -404,6 +405,386 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
                   final private String a;
 
                   A(String a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithGenericTypeIntoNewConstructor() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<String> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+
+              public class A {
+
+                  private final List<String> a;
+
+                  A(List<String> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithGenericTypeIntoExistingConstructor() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<String> a;
+
+                  A() {
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+
+              public class A {
+
+                  private final List<String> a;
+
+                  A(List<String> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithGenericTypeIntoExistingConstructorWithParams() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<String> a;
+
+                  A() {
+                  }
+
+                  @Autowired
+                  A(long l) {
+                  }
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  private final List<String> a;
+
+                  A() {
+                  }
+
+                  @Autowired
+                  A(long l, List<String> a) {
+                      this.a = a;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithNestedGenericType() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import java.util.Map;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private Map<String, List<Integer>> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+              import java.util.Map;
+
+              public class A {
+
+                  private final Map<String, List<Integer>> a;
+
+                  A(Map<String, List<Integer>> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithUpperBoundedWildcard() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private List<? extends Number> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+
+              public class A {
+
+                  private final List<? extends Number> a;
+
+                  A(List<? extends Number> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithUserDefinedGenericType() {
+        //language=java
+        rewriteRun(
+          // The template parser re-parses the synthetic source from scratch, so types only present as sibling
+          // sources of this run (MyService/MyConfig) cannot be resolved and the generated constructor lacks type
+          // attribution for them. This predates this change and applies equally to non-generic user-defined types;
+          // it would only be fixable by supplying the user's types to the template parser, which the visitor
+          // cannot know a priori.
+          spec -> spec.afterTypeValidationOptions(TypeValidation.all().methodDeclarations(false).identifiers(false)),
+          java(
+            """
+              package demo.model;
+
+              public class MyConfig {
+              }
+              """
+          ),
+          java(
+            """
+              package demo.service;
+
+              public class MyService<T> {
+              }
+              """
+          ),
+          java(
+            """
+              package demo;
+
+              import demo.model.MyConfig;
+              import demo.service.MyService;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private MyService<MyConfig> a;
+
+              }
+              """,
+            """
+              package demo;
+
+              import demo.model.MyConfig;
+              import demo.service.MyService;
+
+              public class A {
+
+                  private final MyService<MyConfig> a;
+
+                  A(MyService<MyConfig> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithArrayType() {
+        //language=java
+        rewriteRun(
+          // JavaTemplate mis-attributes the generated assignment for array-typed fields (the right-hand side
+          // identifier lacks a type); an upstream JavaTemplate limitation, not specific to this visitor.
+          spec -> spec.afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private String[] a;
+
+              }
+              """,
+            """
+              package demo;
+
+              public class A {
+
+                  private final String[] a;
+
+                  A(String[] a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithNestedGenericTypeIntoExistingConstructor() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import java.util.List;
+              import java.util.Map;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private Map<String, List<Integer>> a;
+
+                  A() {
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              import java.util.List;
+              import java.util.Map;
+
+              public class A {
+
+                  private final Map<String, List<Integer>> a;
+
+                  A(Map<String, List<Integer>> a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void fieldWithArrayTypeIntoExistingConstructor() {
+        //language=java
+        rewriteRun(
+          // JavaTemplate mis-attributes the generated assignment for array-typed fields (the right-hand side
+          // identifier lacks a type); an upstream JavaTemplate limitation, not specific to this visitor.
+          spec -> spec.afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private String[] a;
+
+                  A() {
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              public class A {
+
+                  private final String[] a;
+
+                  A(String[] a) {
                       this.a = a;
                   }
 
