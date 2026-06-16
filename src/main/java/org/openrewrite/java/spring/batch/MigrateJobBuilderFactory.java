@@ -25,7 +25,9 @@ import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
+import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
@@ -33,11 +35,15 @@ import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public class MigrateJobBuilderFactory extends Recipe {
     private static final MethodMatcher JOB_BUILDER_FACTORY = new MethodMatcher(
@@ -94,28 +100,45 @@ public class MigrateJobBuilderFactory extends Recipe {
     @RequiredArgsConstructor
     private static class RemoveJobBuilderFactoryVisitor extends JavaIsoVisitor<ExecutionContext> {
 
+        private static final String JOB_BUILDER_FACTORY_FQN =
+                "org.springframework.batch.core.configuration.annotation.JobBuilderFactory";
+
         private final J.ClassDeclaration scope;
 
         private final J.MethodDeclaration enclosingMethod;
 
+        // Set true before children are visited when the class has references to a
+        // JobBuilderFactory field that the visitor will not rewrite (getters/setters,
+        // helper methods). In that case we leave the field, constructor parameters,
+        // and constructor body assignments intact rather than producing broken code.
+        private boolean preserveField;
+
+        private Set<String> jobBuilderFactoryFieldNames = new HashSet<>();
+
         @Override
         public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+            if (classDecl.equals(scope)) {
+                jobBuilderFactoryFieldNames = collectJobBuilderFactoryFieldNames(classDecl);
+                preserveField = !jobBuilderFactoryFieldNames.isEmpty() &&
+                        hasReferencesOutsideRewrittenMethods(classDecl, jobBuilderFactoryFieldNames);
+            }
+
             J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
 
-            if (!cd.equals(scope)) {
+            if (!cd.equals(scope) || preserveField) {
                 return cd;
             }
             cd = cd.withBody(cd.getBody().withStatements(ListUtils.map(cd.getBody().getStatements(), statement -> {
                 if (statement instanceof J.VariableDeclarations && ((J.VariableDeclarations) statement).getTypeExpression() != null) {
                     if (TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getTypeExpression().getType(),
-                            "org.springframework.batch.core.configuration.annotation.JobBuilderFactory")) {
+                            JOB_BUILDER_FACTORY_FQN)) {
                         //noinspection DataFlowIssue
                         return null;
                     }
                 }
                 return statement;
             })));
-            maybeRemoveImport("org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
+            maybeRemoveImport(JOB_BUILDER_FACTORY_FQN);
             return cd;
         }
 
@@ -126,6 +149,17 @@ public class MigrateJobBuilderFactory extends Recipe {
             if (!enclosingMethod.equals(md) && !md.isConstructor()) {
                 return md;
             }
+
+            // When the field is preserved (external references exist), leave constructors alone too —
+            // their parameter + body assignment form a wired-up trio with the field.
+            if (preserveField && md.isConstructor() && !enclosingMethod.equals(md)) {
+                return md;
+            }
+
+            Set<String> removedParamNames = md.getParameters().stream()
+                    .filter(this::isJobBuilderFactoryParameter)
+                    .map(p -> ((J.VariableDeclarations) p).getVariables().get(0).getSimpleName())
+                    .collect(toSet());
 
             List<Object> params = md.getParameters().stream()
                     .filter(j -> !(j instanceof J.Empty) && !isJobBuilderFactoryParameter(j))
@@ -152,7 +186,10 @@ public class MigrateJobBuilderFactory extends Recipe {
 
             md = paramsTemplate.apply(getCursor(), md.getCoordinates().replaceParameters(), params.toArray());
 
-            maybeRemoveImport("org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
+            // Remove orphaned `this.<field> = <removedParam>;` assignments left behind by parameter removal.
+            md = removeOrphanedFieldAssignments(md, removedParamNames);
+
+            maybeRemoveImport(JOB_BUILDER_FACTORY_FQN);
             maybeRemoveImport("org.springframework.beans.factory.annotation.Autowired");
             maybeAddImport("org.springframework.batch.core.repository.JobRepository");
             return md;
@@ -167,7 +204,80 @@ public class MigrateJobBuilderFactory extends Recipe {
         private boolean isJobBuilderFactoryParameter(Statement statement) {
             return statement instanceof J.VariableDeclarations &&
                     TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                            "org.springframework.batch.core.configuration.annotation.JobBuilderFactory");
+                            JOB_BUILDER_FACTORY_FQN);
+        }
+
+        private Set<String> collectJobBuilderFactoryFieldNames(J.ClassDeclaration cd) {
+            Set<String> names = new HashSet<>();
+            for (Statement stmt : cd.getBody().getStatements()) {
+                if (stmt instanceof J.VariableDeclarations) {
+                    J.VariableDeclarations vd = (J.VariableDeclarations) stmt;
+                    if (vd.getTypeExpression() != null &&
+                            TypeUtils.isOfClassType(vd.getTypeExpression().getType(), JOB_BUILDER_FACTORY_FQN)) {
+                        vd.getVariables().forEach(v -> names.add(v.getSimpleName()));
+                    }
+                }
+            }
+            return names;
+        }
+
+        private boolean hasReferencesOutsideRewrittenMethods(J.ClassDeclaration cd, Set<String> fieldNames) {
+            for (Statement stmt : cd.getBody().getStatements()) {
+                if (!(stmt instanceof J.MethodDeclaration)) {
+                    continue;
+                }
+                J.MethodDeclaration m = (J.MethodDeclaration) stmt;
+                // Constructors get rewritten by visitMethodDeclaration
+                if (m.isConstructor()) {
+                    continue;
+                }
+                // The enclosingMethod for this visitor instance gets rewritten
+                if (m.equals(enclosingMethod)) {
+                    continue;
+                }
+                // Other methods containing JobBuilderFactory.get(...) are handled by other visitor instances
+                if (!FindMethods.find(m, JOB_BUILDER_FACTORY_FQN + " get(java.lang.String)").isEmpty()) {
+                    continue;
+                }
+                if (containsFieldReference(m, fieldNames)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean containsFieldReference(J.MethodDeclaration m, Set<String> fieldNames) {
+            JavaType scopeType = scope.getType();
+            return new JavaIsoVisitor<AtomicBoolean>() {
+                @Override
+                public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean flag) {
+                    JavaType.Variable fieldType = identifier.getFieldType();
+                    // getFieldType() is non-null only for field references; local variables
+                    // and parameters that happen to share the field's simple name are skipped.
+                    if (fieldType != null &&
+                            fieldNames.contains(identifier.getSimpleName()) &&
+                            TypeUtils.isOfType(fieldType.getOwner(), scopeType)) {
+                        flag.set(true);
+                    }
+                    return super.visitIdentifier(identifier, flag);
+                }
+            }.reduce(m, new AtomicBoolean()).get();
+        }
+
+        private J.MethodDeclaration removeOrphanedFieldAssignments(J.MethodDeclaration md, Set<String> removedParamNames) {
+            if (md.getBody() == null || removedParamNames.isEmpty()) {
+                return md;
+            }
+            return md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(), stmt -> {
+                if (stmt instanceof J.Assignment) {
+                    Expression rhs = ((J.Assignment) stmt).getAssignment();
+                    if (rhs instanceof J.Identifier && removedParamNames.contains(((J.Identifier) rhs).getSimpleName())) {
+                        //noinspection DataFlowIssue
+                        return null;
+                    }
+                }
+                return stmt;
+            })));
         }
     }
 }

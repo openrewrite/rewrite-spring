@@ -163,6 +163,186 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
     }
 
     @Test
+    void preserveFieldWhenGettersOrSettersReferenceIt() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private JobBuilderFactory jobBuilderFactory;
+
+                  public MyJobConfig(JobBuilderFactory jobBuilderFactory, String other) {
+                      this.jobBuilderFactory = jobBuilderFactory;
+                  }
+
+                  public JobBuilderFactory getJobBuilderFactory() {
+                      return jobBuilderFactory;
+                  }
+
+                  public void setJobBuilderFactory(JobBuilderFactory jobBuilderFactory) {
+                      this.jobBuilderFactory = jobBuilderFactory;
+                  }
+
+                  @Bean
+                  Job myJob(Step step) {
+                      return this.jobBuilderFactory.get("myJob")
+                          .start(step)
+                          .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private JobBuilderFactory jobBuilderFactory;
+
+                  public MyJobConfig(JobBuilderFactory jobBuilderFactory, String other) {
+                      this.jobBuilderFactory = jobBuilderFactory;
+                  }
+
+                  public JobBuilderFactory getJobBuilderFactory() {
+                      return jobBuilderFactory;
+                  }
+
+                  public void setJobBuilderFactory(JobBuilderFactory jobBuilderFactory) {
+                      this.jobBuilderFactory = jobBuilderFactory;
+                  }
+
+                  @Bean
+                  Job myJob(Step step, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void cleanUpConstructorBodyWhenParameterRemoved() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private JobBuilderFactory jobBuilderFactory;
+                  private String other;
+
+                  public MyJobConfig(JobBuilderFactory jobBuilderFactory, String other) {
+                      this.jobBuilderFactory = jobBuilderFactory;
+                      this.other = other;
+                  }
+
+                  @Bean
+                  Job myJob(Step step) {
+                      return this.jobBuilderFactory.get("myJob")
+                          .start(step)
+                          .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+                  private String other;
+
+                  public MyJobConfig(String other) {
+                      this.other = other;
+                  }
+
+                  @Bean
+                  Job myJob(Step step, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void localVariableShadowingFieldNameDoesNotPreserveField() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private JobBuilderFactory jobBuilderFactory;
+
+                  void unrelatedHelper() {
+                      String jobBuilderFactory = "not the field";
+                      System.out.println(jobBuilderFactory);
+                  }
+
+                  @Bean
+                  Job myJob(Step step) {
+                      return this.jobBuilderFactory.get("myJob")
+                          .start(step)
+                          .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  void unrelatedHelper() {
+                      String jobBuilderFactory = "not the field";
+                      System.out.println(jobBuilderFactory);
+                  }
+
+                  @Bean
+                  Job myJob(Step step, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void replaceJobBuilderFactoryInsideConstructor() {
         // language=java
         rewriteRun(

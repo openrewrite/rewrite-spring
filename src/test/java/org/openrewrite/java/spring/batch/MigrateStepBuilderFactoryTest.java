@@ -127,6 +127,132 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
     }
 
     @Test
+    void removeStepBuilderFactoryConstructorParameterAndBodyAssignment() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private StepBuilderFactory stepBuilderFactory;
+                  private String other;
+
+                  public MyJobConfig(StepBuilderFactory stepBuilderFactory, String other) {
+                      this.stepBuilderFactory = stepBuilderFactory;
+                      this.other = other;
+                  }
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet) {
+                      return this.stepBuilderFactory.get("myStep")
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+                  private String other;
+
+                  public MyJobConfig(String other) {
+                      this.other = other;
+                  }
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet, JobRepository jobRepository) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void preserveStepBuilderFactoryFieldWhenGettersOrSettersReferenceIt() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private StepBuilderFactory stepBuilderFactory;
+
+                  public MyJobConfig(StepBuilderFactory stepBuilderFactory, String other) {
+                      this.stepBuilderFactory = stepBuilderFactory;
+                  }
+
+                  public StepBuilderFactory getStepBuilderFactory() {
+                      return stepBuilderFactory;
+                  }
+
+                  public void setStepBuilderFactory(StepBuilderFactory stepBuilderFactory) {
+                      this.stepBuilderFactory = stepBuilderFactory;
+                  }
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet) {
+                      return this.stepBuilderFactory.get("myStep")
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private StepBuilderFactory stepBuilderFactory;
+
+                  public MyJobConfig(StepBuilderFactory stepBuilderFactory, String other) {
+                      this.stepBuilderFactory = stepBuilderFactory;
+                  }
+
+                  public StepBuilderFactory getStepBuilderFactory() {
+                      return stepBuilderFactory;
+                  }
+
+                  public void setStepBuilderFactory(StepBuilderFactory stepBuilderFactory) {
+                      this.stepBuilderFactory = stepBuilderFactory;
+                  }
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet, JobRepository jobRepository) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void replaceStepBuilderFactoryWithChunk() {
         // language=java
         rewriteRun(
