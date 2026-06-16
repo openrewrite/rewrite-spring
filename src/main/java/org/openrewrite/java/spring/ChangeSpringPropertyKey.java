@@ -46,6 +46,13 @@ import static java.util.regex.Pattern.quote;
 @Value
 public class ChangeSpringPropertyKey extends Recipe {
 
+    private static final AnnotationMatcher VALUE_MATCHER =
+            new AnnotationMatcher("@org.springframework.beans.factory.annotation.Value");
+    private static final AnnotationMatcher CONDITIONAL_ON_PROPERTY_MATCHER =
+            new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty");
+    private static final AnnotationMatcher SPRING_BOOT_TEST_MATCHER =
+            new AnnotationMatcher("@org.springframework.boot..*Test");
+
     String displayName = "Change the key of a Spring application property";
 
     String description = "Change Spring application property keys existing in either Properties or YAML files, and in `@Value`, `@ConditionalOnProperty` or `@SpringBootTest` annotations.";
@@ -110,12 +117,6 @@ public class ChangeSpringPropertyKey extends Recipe {
     }
 
     private class JavaPropertyKeyVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private final AnnotationMatcher VALUE_MATCHER =
-                new AnnotationMatcher("@org.springframework.beans.factory.annotation.Value");
-        private final AnnotationMatcher CONDITIONAL_ON_PROPERTY_MATCHER =
-                new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty");
-        private final AnnotationMatcher SPRING_BOOT_TEST_MATCHER =
-                new AnnotationMatcher("@org.springframework.boot..*Test");
 
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
