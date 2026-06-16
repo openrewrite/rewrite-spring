@@ -246,9 +246,8 @@ public class MigrateJobBuilderFactory extends Recipe {
         }
 
         private boolean containsFieldReference(J.MethodDeclaration m, Set<String> fieldNames) {
-            AtomicBoolean found = new AtomicBoolean();
             JavaType scopeType = scope.getType();
-            new JavaIsoVisitor<AtomicBoolean>() {
+            return new JavaIsoVisitor<AtomicBoolean>() {
                 @Override
                 public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean flag) {
                     JavaType.Variable fieldType = identifier.getFieldType();
@@ -261,8 +260,7 @@ public class MigrateJobBuilderFactory extends Recipe {
                     }
                     return super.visitIdentifier(identifier, flag);
                 }
-            }.visit(m, found);
-            return found.get();
+            }.reduce(m, new AtomicBoolean()).get();
         }
 
         private J.MethodDeclaration removeOrphanedFieldAssignments(J.MethodDeclaration md, Set<String> removedParamNames) {
@@ -270,24 +268,15 @@ public class MigrateJobBuilderFactory extends Recipe {
                 return md;
             }
             return md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(), stmt -> {
-                J.Assignment assign = unwrapAssignment(stmt);
-                if (assign == null) {
-                    return stmt;
-                }
-                Expression rhs = assign.getAssignment();
-                if (rhs instanceof J.Identifier && removedParamNames.contains(((J.Identifier) rhs).getSimpleName())) {
-                    //noinspection DataFlowIssue
-                    return null;
+                if (stmt instanceof J.Assignment) {
+                    Expression rhs = ((J.Assignment) stmt).getAssignment();
+                    if (rhs instanceof J.Identifier && removedParamNames.contains(((J.Identifier) rhs).getSimpleName())) {
+                        //noinspection DataFlowIssue
+                        return null;
+                    }
                 }
                 return stmt;
             })));
-        }
-
-        private J.Assignment unwrapAssignment(Statement stmt) {
-            if (stmt instanceof J.Assignment) {
-                return (J.Assignment) stmt;
-            }
-            return null;
         }
     }
 }

@@ -211,9 +211,8 @@ public class MigrateStepBuilderFactory extends Recipe {
         }
 
         private boolean containsFieldReference(J.MethodDeclaration m, Set<String> fieldNames) {
-            AtomicBoolean found = new AtomicBoolean();
             JavaType currentScopeType = scopeType;
-            new JavaIsoVisitor<AtomicBoolean>() {
+            return new JavaIsoVisitor<AtomicBoolean>() {
                 @Override
                 public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean flag) {
                     JavaType.Variable fieldType = identifier.getFieldType();
@@ -226,8 +225,7 @@ public class MigrateStepBuilderFactory extends Recipe {
                     }
                     return super.visitIdentifier(identifier, flag);
                 }
-            }.visit(m, found);
-            return found.get();
+            }.reduce(m, new AtomicBoolean()).get();
         }
 
         private J.MethodDeclaration removeOrphanedFieldAssignments(J.MethodDeclaration md, Set<String> removedParamNames) {
