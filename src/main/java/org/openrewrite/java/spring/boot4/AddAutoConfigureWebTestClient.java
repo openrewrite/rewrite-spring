@@ -24,11 +24,13 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.J;
 
 import static java.util.Comparator.comparing;
+import static org.openrewrite.Preconditions.*;
 
 public class AddAutoConfigureWebTestClient extends Recipe {
 
@@ -49,7 +51,10 @@ public class AddAutoConfigureWebTestClient extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(WEB_TEST_CLIENT, true), new JavaIsoVisitor<ExecutionContext>() {
+        return check(and(new UsesType<>(WEB_TEST_CLIENT, true),
+                        // this assumes either all or no `WebTestClient` is created manually
+                        not(new UsesMethod<>("org.springframework.test.web.reactive.server.WebTestClient.MockServerSpec build()", true))),
+                new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
