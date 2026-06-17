@@ -36,7 +36,14 @@ class AddAutoConfigureWebTestClientTest implements RewriteTest {
             .dependsOn(
               """
                 package org.springframework.test.web.reactive.server;
-                public interface WebTestClient {}
+                public interface WebTestClient {
+                    interface MockServerSpec<B extends MockServerSpec<B>> {
+                        WebTestClient build();
+                    }
+                    static MockServerSpec<?> bindToServer() {
+                        return null;
+                    }
+                }
                 """,
               """
                 package org.springframework.boot.webtestclient.autoconfigure;
@@ -100,6 +107,26 @@ class AddAutoConfigureWebTestClientTest implements RewriteTest {
 
               class ExampleTest {
                   WebTestClient webTestClient;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldNotAddAnnotationIfConfiguredManual() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.test.web.reactive.server.WebTestClient;
+
+              class ExampleTest {
+                  WebTestClient webTestClient;
+
+                  void setUp() {
+                      webTestClient = WebTestClient.bindToServer().build();
+                  }
               }
               """
           )
