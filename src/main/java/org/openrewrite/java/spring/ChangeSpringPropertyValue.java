@@ -113,24 +113,25 @@ public class ChangeSpringPropertyValue extends Recipe {
 
     private static final Pattern scalarNeedsAQuote = Pattern.compile("[^a-zA-Z\\d\\s]*");
 
+    private static final AnnotationMatcher VALUE_MATCHER =
+            new AnnotationMatcher("@org.springframework.beans.factory.annotation.Value");
+    private static final AnnotationMatcher CONDITIONAL_ON_PROPERTY_MATCHER =
+            new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty");
+    private static final AnnotationMatcher SPRING_BOOT_TEST_MATCHER =
+            new AnnotationMatcher("@org.springframework.boot..*Test");
+    private static final AnnotationMatcher TEST_PROPERTY_SOURCE_MATCHER =
+            new AnnotationMatcher("@org.springframework.test.context.TestPropertySource");
+
+    // Pattern to match ${key:defaultValue} in @Value annotations
+    private static final Pattern valueAnnotationPattern = Pattern.compile("\\$\\{([^:}]+)(?::([^}]*))?\\}");
+    // Pattern to match key=value in test annotations
+    private static final Pattern keyValuePattern = Pattern.compile("^([^=]+)=(.*)$");
+
     private boolean quoteValue(String value) {
         return scalarNeedsAQuote.matcher(value).matches();
     }
 
     private class JavaPropertyValueVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private final AnnotationMatcher VALUE_MATCHER =
-                new AnnotationMatcher("@org.springframework.beans.factory.annotation.Value");
-        private final AnnotationMatcher CONDITIONAL_ON_PROPERTY_MATCHER =
-                new AnnotationMatcher("@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty");
-        private final AnnotationMatcher SPRING_BOOT_TEST_MATCHER =
-                new AnnotationMatcher("@org.springframework.boot..*Test");
-        private final AnnotationMatcher TEST_PROPERTY_SOURCE_MATCHER =
-                new AnnotationMatcher("@org.springframework.test.context.TestPropertySource");
-
-        // Pattern to match ${key:defaultValue} in @Value annotations
-        private final Pattern valueAnnotationPattern = Pattern.compile("\\$\\{([^:}]+)(?::([^}]*))?\\}");
-        // Pattern to match key=value in test annotations
-        private final Pattern keyValuePattern = Pattern.compile("^([^=]+)=(.*)$");
 
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
