@@ -137,6 +137,20 @@ recipeList:
       artifactId: error-handling-spring-boot-starter
       newVersion: 5.0.x
       overrideManagedVersion: true
+  # JobRunr 8.x ships a dedicated Spring Boot 4 starter; the Spring Boot 3 starter
+  # is not compatible with Spring Boot 4. Rename to the new starter, then bump every
+  # JobRunr artifact (core library and starter) to the latest 8.x release.
+  # https://www.jobrunr.io/en/documentation/configuration/spring/
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.jobrunr
+      oldArtifactId: jobrunr-spring-boot-3-starter
+      newArtifactId: jobrunr-spring-boot-4-starter
+      newVersion: 8.x
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.jobrunr
+      artifactId: "*"
+      newVersion: 8.x
+      overrideManagedVersion: true
 
   - org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
   - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient

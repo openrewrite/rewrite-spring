@@ -20,6 +20,7 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.gradle.Assertions.buildGradleKts;
 import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.mavenProject;
@@ -101,6 +102,111 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                     .describedAs("kotlin.version property should be bumped to 2.2.x")
                     .containsPattern("<kotlin\\.version>2\\.2\\.\\d+</kotlin\\.version>").actual();
               })
+            )
+          )
+        );
+    }
+
+    @Test
+    void upgradeJobRunrStarterToSpringBoot4Starter() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>jobrunr-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                            <version>3.5.7</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.jobrunr</groupId>
+                            <artifactId>jobrunr-spring-boot-3-starter</artifactId>
+                            <version>7.5.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual ->
+                assertThat(actual)
+                  .describedAs("JobRunr Spring Boot 3 starter should be renamed to the Spring Boot 4 starter at 8.x")
+                  .contains("jobrunr-spring-boot-4-starter")
+                  .doesNotContain("jobrunr-spring-boot-3-starter")
+                  .containsPattern("<artifactId>jobrunr-spring-boot-4-starter</artifactId>\\s*<version>8\\.\\d+(\\.\\d+)?</version>")
+                  .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void upgradeJobRunrCoreDependency() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>jobrunr-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                            <version>3.5.7</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.jobrunr</groupId>
+                            <artifactId>jobrunr</artifactId>
+                            <version>7.5.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual ->
+                assertThat(actual)
+                  .describedAs("JobRunr core library should be upgraded to 8.x")
+                  .containsPattern("<artifactId>jobrunr</artifactId>\\s*<version>8\\.\\d+(\\.\\d+)?</version>")
+                  .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void upgradeJobRunrStarterInGradle() {
+        rewriteRun(
+          mavenProject("project",
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                    id 'org.springframework.boot' version '3.5.7'
+                    id 'io.spring.dependency-management' version '1.1.7'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'org.jobrunr:jobrunr-spring-boot-3-starter:7.5.0'
+                }
+                """,
+              spec -> spec.after(actual ->
+                assertThat(actual)
+                  .describedAs("JobRunr Spring Boot 3 starter should be renamed to the Spring Boot 4 starter at 8.x")
+                  .contains("jobrunr-spring-boot-4-starter")
+                  .doesNotContain("jobrunr-spring-boot-3-starter")
+                  .containsPattern("org\\.jobrunr:jobrunr-spring-boot-4-starter:8\\.\\d+(\\.\\d+)?")
+                  .actual())
             )
           )
         );
