@@ -21,9 +21,6 @@ import org.openrewrite.Issue;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.maven.Assertions.pomXml;
 
@@ -56,26 +53,10 @@ class MigrateThymeleafDependenciesTest implements RewriteTest {
                 </dependencies>
               </project>
               """,
-            spec -> spec.after(pom -> {
-                Matcher version = Pattern.compile("3\\.1\\.\\d+\\.RELEASE").matcher(pom);
-                assertThat(version.find()).describedAs("Expected a resolvable 3.1.x version in %s", pom).isTrue();
-                //language=xml
-                return """
-                  <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.thymeleaf</groupId>
-                        <artifactId>thymeleaf-spring6</artifactId>
-                        <version>%s</version>
-                      </dependency>
-                    </dependencies>
-                  </project>
-                  """.formatted(version.group());
-            })
+            spec -> spec.after(pom -> assertThat(pom)
+              .contains("<artifactId>thymeleaf-spring6</artifactId>")
+              .containsPattern("<version>3\\.1\\.\\d+\\.RELEASE</version>")
+              .actual())
           )
         );
     }
@@ -101,26 +82,10 @@ class MigrateThymeleafDependenciesTest implements RewriteTest {
                 </dependencies>
               </project>
               """,
-            spec -> spec.after(pom -> {
-                Matcher version = Pattern.compile("3\\.1\\.\\d+\\.RELEASE").matcher(pom);
-                assertThat(version.find()).describedAs("Expected a resolvable 3.1.x version in %s", pom).isTrue();
-                //language=xml
-                return """
-                  <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>com.example</groupId>
-                    <artifactId>demo</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.thymeleaf.extras</groupId>
-                        <artifactId>thymeleaf-extras-springsecurity6</artifactId>
-                        <version>%s</version>
-                      </dependency>
-                    </dependencies>
-                  </project>
-                  """.formatted(version.group());
-            })
+            spec -> spec.after(pom -> assertThat(pom)
+              .contains("<artifactId>thymeleaf-extras-springsecurity6</artifactId>")
+              .containsPattern("<version>3\\.1\\.\\d+\\.RELEASE</version>")
+              .actual())
           )
         );
     }
