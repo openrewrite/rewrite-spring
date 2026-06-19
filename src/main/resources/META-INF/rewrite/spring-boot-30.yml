@@ -149,10 +149,12 @@ recipeList:
       oldGroupId: org.thymeleaf
       oldArtifactId: thymeleaf-spring5
       newArtifactId: thymeleaf-spring6
+      newVersion: 3.1.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.thymeleaf.extras
       oldArtifactId: thymeleaf-extras-springsecurity5
       newArtifactId: thymeleaf-extras-springsecurity6
+      newVersion: 3.1.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
