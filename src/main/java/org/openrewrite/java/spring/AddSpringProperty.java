@@ -26,6 +26,8 @@ import org.openrewrite.yaml.MergeYaml;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -82,6 +84,9 @@ public class AddSpringProperty extends Recipe {
             @Override
             public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
                 if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
+                    if (yamlPropertyExists((Yaml.Documents) t)) {
+                        return t;
+                    }
                     t = createMergeYamlVisitor().getVisitor().visit(t, ctx);
                 } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
                     t = new AddProperty(property, value, comment, null, null, null, null).getVisitor().visit(t, ctx);
@@ -106,6 +111,35 @@ public class AddSpringProperty extends Recipe {
             }
         }
 
+        return false;
+    }
+
+    /**
+     * Determines whether the property already exists in the YAML document, taking into account that Spring treats a
+     * flattened key (e.g. {@code some.property: true}) as equivalent to its nested form. {@link MergeYaml} only
+     * recognizes the nested form, so without this check a flattened key would be duplicated.
+     */
+    private boolean yamlPropertyExists(Yaml.Documents documents) {
+        List<String> target = Arrays.asList(property.split("\\."));
+        for (Yaml.Document document : documents.getDocuments()) {
+            if (mappingContainsProperty(document.getBlock(), new ArrayList<>(), target)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean mappingContainsProperty(Yaml.Block block, List<String> prefix, List<String> target) {
+        if (!(block instanceof Yaml.Mapping)) {
+            return false;
+        }
+        for (Yaml.Mapping.Entry entry : ((Yaml.Mapping) block).getEntries()) {
+            List<String> path = new ArrayList<>(prefix);
+            path.addAll(Arrays.asList(entry.getKey().getValue().split("\\.")));
+            if (path.equals(target) || mappingContainsProperty(entry.getValue(), path, target)) {
+                return true;
+            }
+        }
         return false;
     }
 
