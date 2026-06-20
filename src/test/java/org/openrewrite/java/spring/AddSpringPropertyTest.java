@@ -110,6 +110,33 @@ class AddSpringPropertyTest implements RewriteTest {
     }
 
     @Test
+    void propertyAlreadyExistsAsFlattenedYamlKey() {
+        rewriteRun(
+          spec -> spec.recipe(new AddSpringProperty("some.property", "true", null, List.of("*"))),
+          //language=yaml
+          yaml(
+            """
+              some.property: true
+              """
+          )
+        );
+    }
+
+    @Test
+    void propertyAlreadyExistsAsPartiallyFlattenedYamlKey() {
+        rewriteRun(
+          spec -> spec.recipe(new AddSpringProperty("some.nested.property", "true", null, List.of("*"))),
+          //language=yaml
+          yaml(
+            """
+              some:
+                nested.property: true
+              """
+          )
+        );
+    }
+
+    @Test
     void addPropertyWithComment() {
         rewriteRun(
           spec -> spec.recipe(new AddSpringProperty("server.servlet.path", "/tmp/my-server-path", "This property was added", List.of("*"))),

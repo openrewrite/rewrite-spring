@@ -23,6 +23,7 @@ import org.openrewrite.internal.StringUtils;
 import org.openrewrite.properties.AddProperty;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.MergeYaml;
+import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
@@ -82,6 +83,12 @@ public class AddSpringProperty extends Recipe {
             @Override
             public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
                 if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
+                    // Spring treats a flattened key (e.g. `some.property: true`) as equivalent to its nested form, but
+                    // MergeYaml only recognizes the nested form. Skip the merge if the property already exists in either
+                    // form to avoid duplicating a flattened key.
+                    if (!FindProperty.find((Yaml.Documents) t, property, true).isEmpty()) {
+                        return t;
+                    }
                     t = createMergeYamlVisitor().getVisitor().visit(t, ctx);
                 } else if (t instanceof Properties.File && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
                     t = new AddProperty(property, value, comment, null, null, null, null).getVisitor().visit(t, ctx);
