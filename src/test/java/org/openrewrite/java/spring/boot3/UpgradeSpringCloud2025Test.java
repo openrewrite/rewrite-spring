@@ -70,4 +70,35 @@ class UpgradeSpringCloud2025Test implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void doesNotReMigrateAlreadyMigratedProperties() {
+        rewriteRun(
+          srcMainResources(
+            //language=properties
+            properties(
+              """
+                spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled=false
+                spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled=false
+                spring.cloud.gateway.server.webflux.routes[0].id=foo
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void migratesMvcPropertiesToWebMvc() {
+        rewriteRun(
+          srcMainResources(
+            //language=properties
+            properties(
+              "spring.cloud.gateway.mvc.routes[0].id=foo",
+              "spring.cloud.gateway.server.webmvc.routes[0].id=foo",
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
 }
