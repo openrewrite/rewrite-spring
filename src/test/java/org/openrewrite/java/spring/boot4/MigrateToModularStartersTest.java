@@ -814,7 +814,6 @@ class MigrateToModularStartersTest implements RewriteTest {
     @Test
     void migrateOrmJpaTestPackageSplit() {
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           //language=java
           java(
             """
