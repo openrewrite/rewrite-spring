@@ -811,4 +811,39 @@ class MigrateToModularStartersTest implements RewriteTest {
         );
     }
 
+    @Test
+    void migrateOrmJpaTestPackageSplit() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager;
+              import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+              import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+              import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
+
+              @DataJpaTest
+              @AutoConfigureDataJpa
+              @AutoConfigureTestEntityManager
+              class A {
+                  TestEntityManager entityManager;
+              }
+              """,
+            """
+              import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+              import org.springframework.boot.jpa.test.autoconfigure.AutoConfigureTestEntityManager;
+              import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+              import org.springframework.boot.data.jpa.test.autoconfigure.AutoConfigureDataJpa;
+
+              @DataJpaTest
+              @AutoConfigureDataJpa
+              @AutoConfigureTestEntityManager
+              class A {
+                  TestEntityManager entityManager;
+              }
+              """
+          )
+        );
+    }
+
 }

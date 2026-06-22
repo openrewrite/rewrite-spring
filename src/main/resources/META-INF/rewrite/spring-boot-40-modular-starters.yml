@@ -216,6 +216,16 @@ recipeList:
       oldPackageName: org.springframework.boot.actuate.autoconfigure.metrics.orm.jpa
       newPackageName: org.springframework.boot.hibernate.autoconfigure.metrics
       recursive: true
+  # spring-boot-jpa-test
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager
+      newFullyQualifiedTypeName: org.springframework.boot.jpa.test.autoconfigure.AutoConfigureTestEntityManager
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
+      newFullyQualifiedTypeName: org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManagerAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.jpa.test.autoconfigure.TestEntityManagerAutoConfiguration
   # spring-boot-data-jpa-test
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.test.autoconfigure.orm.jpa
