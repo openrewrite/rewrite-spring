@@ -41,9 +41,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 
 public class MigrateJobBuilderFactory extends Recipe {
     private static final MethodMatcher JOB_BUILDER_FACTORY = new MethodMatcher(

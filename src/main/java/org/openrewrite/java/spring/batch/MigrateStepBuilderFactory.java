@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public class MigrateStepBuilderFactory extends Recipe {
@@ -150,16 +151,15 @@ public class MigrateStepBuilderFactory extends Recipe {
                     md = md.withParameters(params);
                     if (md.getMethodType() != null) {
                         List<org.openrewrite.java.tree.JavaType> remainingTypes = md.getParameters().stream()
-                                .filter(p -> p instanceof J.VariableDeclarations)
+                                .filter(J.VariableDeclarations.class::isInstance)
                                 .map(p -> ((J.VariableDeclarations) p).getType())
-                                .collect(java.util.stream.Collectors.toList());
+                                .collect(toList());
                         md = md.withMethodType(md.getMethodType().withParameterTypes(remainingTypes));
                     }
                 }
 
                 // Remove orphaned `this.<field> = <removedParam>;` body assignments left by parameter removal.
-                md = removeOrphanedFieldAssignments(md, removedParamNames);
-                return md;
+                return removeOrphanedFieldAssignments(md, removedParamNames);
             }
 
             return super.visitMethodDeclaration(md, ctx);
