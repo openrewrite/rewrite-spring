@@ -487,3 +487,102 @@ recipeList:
       acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: "*..*" # https://github.com/openrewrite/rewrite/issues/6468
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.RelocateWebServerClasses
+displayName: Relocate Spring Boot web server classes to their Spring Boot 4.0 packages
+description: >-
+  Spring Boot 4.0 relocated the embedded web server (Tomcat, Jetty) and web server
+  application context classes into dedicated modular packages. This recipe updates
+  references to the relocated classes' new fully-qualified names. Classes that were
+  removed (Undertow) or merged (the servlet/reactive `WebServerFactory` variants into a
+  single `WebServerFactory` per server) are intentionally not handled here.
+tags:
+  - spring
+  - boot
+recipeList:
+  # Embedded Tomcat: org.springframework.boot.web.embedded.tomcat -> org.springframework.boot.tomcat
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.CompressionConnectorCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.CompressionConnectorCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.ConfigurableTomcatWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.ConfigurableTomcatWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedException
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.ConnectorStartFailedException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.ConnectorStartFailureAnalyzer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.ConnectorStartFailureAnalyzer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.DisableReferenceClearingContextCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.DisableReferenceClearingContextCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.LazySessionIdGenerator
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.LazySessionIdGenerator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.SslConnectorCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.SslConnectorCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatConnectorCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatContextCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedContext
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatEmbeddedContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatEmbeddedWebappClassLoader
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatProtocolHandlerCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatWebServer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatWebServer
+  # Embedded Jetty: org.springframework.boot.web.embedded.jetty -> org.springframework.boot.jetty
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.ConfigurableJettyWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.ConfigurableJettyWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.ForwardHeadersCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.ForwardHeadersCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyServerCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.JettyServerCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyWebServer
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.JettyWebServer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.SslServerCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.SslServerCustomizer
+  # Servlet context: org.springframework.boot.web.servlet.context -> org.springframework.boot.web.server.servlet.context
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.AnnotationConfigServletWebServerApplicationContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.ServletWebServerApplicationContextFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContextFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.ServletWebServerInitializedEvent
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.XmlServletWebServerApplicationContext
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.XmlServletWebServerApplicationContext
+  # Reactive context: org.springframework.boot.web.reactive.context -> org.springframework.boot.web.server.reactive.context
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.reactive.context.AnnotationConfigReactiveWebServerApplicationContext
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.reactive.context.AnnotationConfigReactiveWebServerApplicationContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContext
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.reactive.context.ReactiveWebServerApplicationContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContextFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.reactive.context.ReactiveWebServerApplicationContextFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.reactive.context.ReactiveWebServerInitializedEvent
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.reactive.context.ReactiveWebServerInitializedEvent
