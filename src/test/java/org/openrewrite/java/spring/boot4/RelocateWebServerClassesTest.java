@@ -24,13 +24,13 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class MoveWebServerClassesTest implements RewriteTest {
+class RelocateWebServerClassesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResource(
-          "/META-INF/rewrite/spring-boot-40-web-server.yml",
-          "org.openrewrite.java.spring.boot4.MoveWebServerClasses"
+          "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
+          "org.openrewrite.java.spring.boot4.RelocateWebServerClasses"
         ).parser(JavaParser.fromJavaVersion()
           .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3"));
     }

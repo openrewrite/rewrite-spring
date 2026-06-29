@@ -34,7 +34,7 @@ recipeList:
   - org.openrewrite.java.spring.batch.SpringBatch5To6Migration
   - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
   - org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
-  - org.openrewrite.java.spring.boot4.MoveWebServerClasses
+  - org.openrewrite.java.spring.boot4.RelocateWebServerClasses
   - org.openrewrite.hibernate.MigrateToHibernate71
   - org.openrewrite.java.testing.testcontainers.Testcontainers2Migration
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_3_0
