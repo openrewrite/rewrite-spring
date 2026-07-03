@@ -31,3 +31,51 @@ recipeList:
   - org.openrewrite.java.jackson.UpgradeJackson_2_3
   - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
   - org.openrewrite.java.jspecify.MigrateFromSpringFrameworkAnnotations
+  - org.openrewrite.java.spring.framework.MigrateSpringRetryToResilience
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.MigrateSpringRetryToResilience
+displayName: Migrate Spring Retry to Spring Resilience
+description: >-
+  Migrate from the external `spring-retry` library (`org.springframework.retry`) to the built-in
+  Spring Resilience support in Spring Framework 7 (`org.springframework.core.retry`).
+  This recipe changes types, updates imports, and removes the `spring-retry` dependency.
+tags:
+  - spring
+  - retry
+  - resilience
+recipeList:
+  # Remove the external spring-retry dependency (no longer needed in Spring Framework 7)
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.retry
+      artifactId: spring-retry
+  # Migrate RetryTemplate from spring-retry's support package to spring-core's retry package
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.retry.support.RetryTemplate
+      newFullyQualifiedTypeName: org.springframework.core.retry.RetryTemplate
+  # Migrate RetryCallback to Retryable (the new functional interface)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.retry.RetryCallback
+      newFullyQualifiedTypeName: org.springframework.core.retry.Retryable
+  # Migrate RetryListener
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.retry.RetryListener
+      newFullyQualifiedTypeName: org.springframework.core.retry.RetryListener
+  # Migrate RetryOperations interface
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.retry.RetryOperations
+      newFullyQualifiedTypeName: org.springframework.core.retry.RetryOperations
+  # Migrate @EnableRetry to @EnableResilientMethods
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.retry.annotation.EnableRetry
+      newFullyQualifiedTypeName: org.springframework.resilience.annotation.EnableResilientMethods
+  # Migrate @Retryable annotation
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.retry.annotation.Retryable
+      newFullyQualifiedTypeName: org.springframework.resilience.annotation.Retryable
+  # Migrate @Recover annotation (removed in new API, but change type to keep compilation error visible)
+  # Users will need to manually refactor recovery logic
+  # Clean up type arguments of Retryable to match the new 1-parameter signature
+  - org.openrewrite.java.spring.framework.CleanUpRetryableTypeArguments
+
