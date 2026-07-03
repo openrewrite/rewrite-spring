@@ -29,7 +29,7 @@ public class CommentOutSpringPropertyKey extends Recipe {
 
     String displayName = "Comment out Spring properties";
 
-    String description = "Add comment to specified Spring properties, and comment out the property.";
+    String description = "Add comment to specified Spring properties, and optionally comment out the property.";
 
     @Option(displayName = "Property key",
             description = "The name of the property key to comment out.",
@@ -41,10 +41,17 @@ public class CommentOutSpringPropertyKey extends Recipe {
             example = "This property is deprecated and no longer applicable starting from Spring Boot 3.0.x")
     String comment;
 
+    @Option(displayName = "Comment out property",
+            description = "If `false` the property is kept and only the comment is added. Defaults to `true`.",
+            required = false)
+    @Nullable
+    Boolean commentOutProperty;
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        Recipe changeProperties = new org.openrewrite.properties.AddPropertyComment(propertyKey, comment, true);
-        Recipe changeYaml = new org.openrewrite.yaml.CommentOutProperty(propertyKey, comment, true);
+        boolean commentOut = !Boolean.FALSE.equals(commentOutProperty);
+        Recipe changeProperties = new org.openrewrite.properties.AddPropertyComment(propertyKey, comment, commentOut);
+        Recipe changeYaml = new org.openrewrite.yaml.CommentOutProperty(propertyKey, comment, commentOut);
         return Preconditions.check(new IsPossibleSpringConfigFile(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree preVisit(@NonNull Tree tree, ExecutionContext ctx) {
