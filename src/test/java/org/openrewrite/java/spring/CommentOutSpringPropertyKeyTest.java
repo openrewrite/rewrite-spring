@@ -33,7 +33,7 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
     @Test
     void yamlComment() {
         rewriteRun(
-          spec -> spec.recipe(new CommentOutSpringPropertyKey("server.port", "This property has been removed.")),
+          spec -> spec.recipe(new CommentOutSpringPropertyKey("server.port", "This property has been removed.", null)),
           mavenProject("project",
             srcMainResources(
               //language=yaml
@@ -52,8 +52,8 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
     void multipleYamlComments() {
         rewriteRun(
           spec -> spec.recipes(
-            new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1"),
-            new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2")
+            new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1", null),
+            new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2", null)
           ),
           mavenProject("project",
             srcMainResources(
@@ -102,8 +102,8 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
     void multiplePropertiesComments() {
         rewriteRun(
           spec -> spec.recipes(
-            new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1"),
-            new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2")
+            new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1", null),
+            new CommentOutSpringPropertyKey("test.propertyKey2", "my comment 2", null)
           ),
           mavenProject("project",
             srcMainResources(
@@ -125,6 +125,48 @@ class CommentOutSpringPropertyKeyTest implements RewriteTest {
                   .afterRecipe(file ->
                     assertThat(((Properties.Comment) file.getContent().get(3)).getMessage())
                       .isEqualTo(" test.propertyKey2=yyy"))
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void yamlCommentWithoutCommentingOut() {
+        rewriteRun(
+          spec -> spec.recipe(new CommentOutSpringPropertyKey("server.port", "This property is deprecated.", false)),
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                "server.port: 8080",
+                """
+                  # This property is deprecated.
+                  server.port: 8080
+                  """)
+            )
+          )
+        );
+    }
+
+    @Test
+    void propertiesCommentWithoutCommentingOut() {
+        rewriteRun(
+          spec -> spec.recipe(new CommentOutSpringPropertyKey("test.propertyKey1", "my comment 1", false)),
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  test.propertyKey1=xxx
+                  test.propertyKey2=yyy
+                  """,
+                """
+                  # my comment 1
+                  test.propertyKey1=xxx
+                  test.propertyKey2=yyy
+                  """,
+                spec -> spec.path("application.properties")
               )
             )
           )
