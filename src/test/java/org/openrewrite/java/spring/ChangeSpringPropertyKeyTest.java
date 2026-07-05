@@ -143,6 +143,70 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
             )));
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1047")
+    @Test
+    void movingAcrossRootsUsesExistingYamlParent() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey(
+            "project.metrics.prometheus.enabled",
+            "management.prometheus.metrics.export.enabled",
+            null
+          )),
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  project:
+                    metrics:
+                      prometheus:
+                        enabled: true
+                        percentiles: [0.99, 0.9]
+                  management:
+                    observations:
+                      requests:
+                        name: spring.http.client.metrics
+                  """,
+                """
+                  project:
+                    metrics:
+                      prometheus:
+                        percentiles: [0.99, 0.9]
+                  management:
+                    observations:
+                      requests:
+                        name: spring.http.client.metrics
+                    prometheus.metrics.export.enabled: true
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  project:
+                    metrics:
+                      prometheus:
+                        enabled: true
+                        percentiles: [0.99, 0.9]
+                  management:
+                    prometheus:
+                      test: true
+                  """,
+                """
+                  project:
+                    metrics:
+                      prometheus:
+                        percentiles: [0.99, 0.9]
+                  management:
+                    prometheus:
+                      test: true
+                      metrics.export.enabled: true
+                  """
+              )
+            )
+          )
+        );
+    }
+
     @Test
     void except() {
         rewriteRun(

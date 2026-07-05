@@ -27,14 +27,23 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.kotlin.tree.K;
+import org.openrewrite.marker.Markers;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.ChangePropertyKey;
+import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.util.regex.Pattern.quote;
 
@@ -82,6 +91,8 @@ public class ChangeSpringPropertyKey extends Recipe {
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey) + exceptRegex() + "(.+)", newPropertyKey + "$1", true, true);
+        NormalizeInsertedYamlParentVisitor normalizeInsertedYamlParentVisitor = new NormalizeInsertedYamlParentVisitor();
+        CoalesceYamlMappingsVisitor coalesceYamlMappingsVisitor = new CoalesceYamlMappingsVisitor();
 
         return Preconditions.check(Preconditions.or(
                 new IsPossibleSpringConfigFile(),
@@ -93,6 +104,10 @@ public class ChangeSpringPropertyKey extends Recipe {
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Yaml.Documents) {
                     tree = yamlChangePropertyKey.getVisitor().visit(tree, ctx);
+                    if (tree instanceof Yaml.Documents) {
+                        tree = normalizeInsertedYamlParentVisitor.visit(tree, ctx);
+                        tree = coalesceYamlMappingsVisitor.visit(tree, ctx);
+                    }
                 } else if (tree instanceof Properties.File) {
                     if (FindProperties.find((Properties.File) tree, newPropertyKey, true).isEmpty()) {
                         Tree newTree = propertiesChangePropertyKey.getVisitor().visit(tree, ctx);
@@ -271,6 +286,202 @@ public class ChangeSpringPropertyKey extends Recipe {
                         .withValueSource(literal.getValueSource().replaceFirst(quote(oldPropertyKey), newPropertyKey));
             }
             return literal;
+        }
+    }
+
+    private class NormalizeInsertedYamlParentVisitor extends YamlIsoVisitor<ExecutionContext> {
+        @Override
+        public Yaml.Mapping visitMapping(Yaml.Mapping mapping, ExecutionContext ctx) {
+            Yaml.Mapping m = super.visitMapping(mapping, ctx);
+            return m.withEntries(ListUtils.map(m.getEntries(), entry -> relocateDottedTargetEntry(m, entry, ctx)));
+        }
+
+        private Yaml.Mapping.Entry relocateDottedTargetEntry(Yaml.Mapping mapping, Yaml.Mapping.Entry entry, ExecutionContext ctx) {
+            String key = entry.getKey().getValue();
+            if (!matchesInsertedTargetKey(key)) {
+                return entry;
+            }
+
+            List<String> segments = Arrays.asList(key.split("\\."));
+            int deepestExistingPrefix = deepestExistingPrefix(mapping, entry, segments);
+            if (deepestExistingPrefix <= 0 || deepestExistingPrefix >= segments.size()) {
+                return entry;
+            }
+
+            return autoFormat(buildNestedEntry(entry, segments, deepestExistingPrefix), ctx, getCursor());
+        }
+
+        private boolean matchesInsertedTargetKey(String key) {
+            return key.equals(newPropertyKey) || key.startsWith(newPropertyKey + ".");
+        }
+
+        private int deepestExistingPrefix(Yaml.Mapping mapping, Yaml.Mapping.Entry candidate, List<String> segments) {
+            Yaml.Mapping currentMapping = mapping;
+            int matched = 0;
+            for (int i = 0; i < segments.size() - 1; i++) {
+                Yaml.Mapping.Entry existingEntry = findEntry(currentMapping, segments.get(i), i == 0 ? candidate : null);
+                if (existingEntry == null || !(existingEntry.getValue() instanceof Yaml.Mapping)) {
+                    break;
+                }
+                matched = i + 1;
+                currentMapping = (Yaml.Mapping) existingEntry.getValue();
+            }
+            return matched;
+        }
+
+        private Yaml.Mapping.Entry findEntry(Yaml.Mapping mapping, String key, Yaml.Mapping.Entry exclude) {
+            for (Yaml.Mapping.Entry entry : mapping.getEntries()) {
+                if (entry != exclude && entry.getKey().getValue().equals(key)) {
+                    return entry;
+                }
+            }
+            return null;
+        }
+
+        private Yaml.Mapping.Entry buildNestedEntry(Yaml.Mapping.Entry originalEntry, List<String> segments, int matchedSegments) {
+            Yaml.Mapping.Entry nestedEntry = new Yaml.Mapping.Entry(
+                    Tree.randomId(),
+                    "",
+                    Markers.EMPTY,
+                    new Yaml.Scalar(Tree.randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, null,
+                            String.join(".", segments.subList(matchedSegments, segments.size()))),
+                    originalEntry.getBeforeMappingValueIndicator(),
+                    originalEntry.getValue()
+            );
+
+            for (int i = matchedSegments - 1; i >= 0; i--) {
+                nestedEntry = new Yaml.Mapping.Entry(
+                        Tree.randomId(),
+                        i == 0 ? originalEntry.getPrefix() : "",
+                        Markers.EMPTY,
+                        new Yaml.Scalar(Tree.randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, null, segments.get(i)),
+                        "",
+                        new Yaml.Mapping(
+                                Tree.randomId(),
+                                Markers.EMPTY,
+                                null,
+                                Collections.singletonList(nestedEntry),
+                                null,
+                                null,
+                                null
+                        )
+                );
+            }
+
+            return nestedEntry;
+        }
+    }
+
+    private class CoalesceYamlMappingsVisitor extends YamlIsoVisitor<ExecutionContext> {
+        @Override
+        public Yaml.Mapping visitMapping(Yaml.Mapping mapping, ExecutionContext ctx) {
+            Yaml.Mapping m = super.visitMapping(mapping, ctx);
+            Map<String, List<Yaml.Mapping>> mappingsByKey = new HashMap<>();
+            for (Yaml.Mapping.Entry entry : m.getEntries()) {
+                if (entry.getValue() instanceof Yaml.Mapping) {
+                    mappingsByKey.computeIfAbsent(entry.getKey().getValue(), key -> new ArrayList<>()).add((Yaml.Mapping) entry.getValue());
+                }
+            }
+
+            for (Map.Entry<String, List<Yaml.Mapping>> keyMappings : mappingsByKey.entrySet()) {
+                if (keyMappings.getValue().size() > 1) {
+                    Yaml.Mapping mergedMapping = new Yaml.Mapping(
+                            Tree.randomId(),
+                            Markers.EMPTY,
+                            null,
+                            keyMappings.getValue().stream()
+                                    .flatMap(duplicateMapping -> duplicateMapping.getEntries().stream())
+                                    .collect(Collectors.toList()),
+                            null,
+                            null,
+                            null
+                    );
+                    mergedMapping = coalesceDuplicateMappings(mergedMapping);
+
+                    Yaml.Mapping.Entry mergedEntry = autoFormat(
+                            new Yaml.Mapping.Entry(
+                                    Tree.randomId(),
+                                    "",
+                                    Markers.EMPTY,
+                                    new Yaml.Scalar(Tree.randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, null, keyMappings.getKey()),
+                                    "",
+                                    mergedMapping
+                            ),
+                            ctx,
+                            getCursor()
+                    );
+
+                    AtomicInteger insertIndex = new AtomicInteger(-1);
+                    m = m.withEntries(ListUtils.map(m.getEntries(), (i, entry) -> {
+                        if (entry.getKey().getValue().equals(keyMappings.getKey()) && entry.getValue() instanceof Yaml.Mapping) {
+                            if (insertIndex.get() < 0) {
+                                insertIndex.set(i);
+                            }
+                            return null;
+                        }
+                        return entry;
+                    }));
+                    m = m.withEntries(ListUtils.insertAll(m.getEntries(), insertIndex.get(), Collections.singletonList(mergedEntry)));
+                }
+            }
+            return m;
+        }
+
+        private Yaml.Mapping coalesceDuplicateMappings(Yaml.Mapping mapping) {
+            Yaml.Mapping coalesced = mapping.withEntries(ListUtils.map(mapping.getEntries(), entry -> {
+                if (entry.getValue() instanceof Yaml.Mapping) {
+                    return entry.withValue(coalesceDuplicateMappings((Yaml.Mapping) entry.getValue()));
+                }
+                return entry;
+            }));
+
+            Map<String, List<Yaml.Mapping>> mappingsByKey = new HashMap<>();
+            for (Yaml.Mapping.Entry entry : coalesced.getEntries()) {
+                if (entry.getValue() instanceof Yaml.Mapping) {
+                    mappingsByKey.computeIfAbsent(entry.getKey().getValue(), key -> new ArrayList<>()).add((Yaml.Mapping) entry.getValue());
+                }
+            }
+
+            for (Map.Entry<String, List<Yaml.Mapping>> keyMappings : mappingsByKey.entrySet()) {
+                if (keyMappings.getValue().size() > 1) {
+                    Yaml.Mapping mergedMapping = coalesceDuplicateMappings(new Yaml.Mapping(
+                            Tree.randomId(),
+                            Markers.EMPTY,
+                            null,
+                            keyMappings.getValue().stream()
+                                    .flatMap(duplicateMapping -> duplicateMapping.getEntries().stream())
+                                    .collect(Collectors.toList()),
+                            null,
+                            null,
+                            null
+                    ));
+
+                    AtomicInteger insertIndex = new AtomicInteger(-1);
+                    coalesced = coalesced.withEntries(ListUtils.map(coalesced.getEntries(), (i, entry) -> {
+                        if (entry.getKey().getValue().equals(keyMappings.getKey()) && entry.getValue() instanceof Yaml.Mapping) {
+                            if (insertIndex.get() < 0) {
+                                insertIndex.set(i);
+                            }
+                            return null;
+                        }
+                        return entry;
+                    }));
+                    coalesced = coalesced.withEntries(ListUtils.insertAll(
+                            coalesced.getEntries(),
+                            insertIndex.get(),
+                            Collections.singletonList(new Yaml.Mapping.Entry(
+                                    Tree.randomId(),
+                                    "",
+                                    Markers.EMPTY,
+                                    new Yaml.Scalar(Tree.randomId(), "", Markers.EMPTY, Yaml.Scalar.Style.PLAIN, null, null, keyMappings.getKey()),
+                                    "",
+                                    mergedMapping
+                            ))
+                    ));
+                }
+            }
+
+            return coalesced;
         }
     }
 }
