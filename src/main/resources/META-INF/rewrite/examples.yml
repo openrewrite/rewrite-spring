@@ -179,6 +179,7 @@ examples:
   parameters:
   - server.port
   - This property has been removed.
+  - 'null'
   sources:
   - before: project
     language: mavenProject
