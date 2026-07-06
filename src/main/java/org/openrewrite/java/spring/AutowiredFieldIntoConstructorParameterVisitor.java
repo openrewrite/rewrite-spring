@@ -21,7 +21,6 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Tree;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
-import org.openrewrite.java.service.ImportService;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.Block;
 import org.openrewrite.java.tree.J.ClassDeclaration;
@@ -134,10 +133,13 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 maybeRemoveImport(AUTOWIRED);
                 MethodDeclaration constructor = blockCursor.getParent().getMessage("applicableConstructor");
                 ClassDeclaration c = blockCursor.getParent().getValue();
+                // Use the post-removal type expression so a `@Autowired` written between the modifier and the type
+                // (parsed into the field's J.AnnotatedType) is not re-emitted onto the generated constructor parameter.
+                TypeTree parameterType = mv.getTypeExpression();
                 if (constructor == null) {
-                    doAfterVisit(new AddConstructorVisitor(c.getSimpleName(), fieldName, multiVariable.getTypeExpression()));
+                    doAfterVisit(new AddConstructorVisitor(c.getSimpleName(), fieldName, parameterType));
                 } else {
-                    doAfterVisit(new AddConstructorParameterAndAssignment(constructor, fieldName, multiVariable.getTypeExpression()));
+                    doAfterVisit(new AddConstructorParameterAndAssignment(constructor, fieldName, parameterType));
                 }
             }
         }
@@ -199,9 +201,9 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
         public AddConstructorParameterAndAssignment(MethodDeclaration constructor, String fieldName, TypeTree type) {
             this.constructor = constructor;
             this.fieldName = fieldName;
-            // The parameter template is parsed without the surrounding file's imports, so simple names would not
-            // resolve; render the type fully qualified and shorten the references after the template is applied.
-            this.methodType = type.getType() == null ? type.toString() : TypeUtils.toString(type.getType()).replace("$", ".");
+            // Render the parameter type exactly as the field declares it: simple names stay valid through the
+            // file's existing imports, and deliberately fully qualified references stay fully qualified.
+            this.methodType = type.toString();
         }
 
         @Override
@@ -221,13 +223,6 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                                 params.toArray()
                         );
                 updateCursor(md);
-                Statement addedParam = md.getParameters().get(md.getParameters().size() - 1);
-                if (addedParam instanceof J.VariableDeclarations) {
-                    TypeTree addedType = ((J.VariableDeclarations) addedParam).getTypeExpression();
-                    if (addedType != null && !(addedType instanceof J.Identifier || addedType instanceof J.Primitive)) {
-                        doAfterVisit(service(ImportService.class).shortenFullyQualifiedTypeReferencesIn(addedType));
-                    }
-                }
 
                 //noinspection ConstantConditions
                 md = JavaTemplate.builder("this." + fieldName + " = " + fieldName + ";")

@@ -618,11 +618,6 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     void fieldWithUserDefinedGenericType() {
         //language=java
         rewriteRun(
-          // The template parser re-parses the synthetic source from scratch, so types only present as sibling
-          // sources of this run (MyService/MyConfig) cannot be resolved and the generated constructor lacks type
-          // attribution for them. This predates this change and applies equally to non-generic user-defined types;
-          // it would only be fixable by supplying the user's types to the template parser, which the visitor
-          // cannot know a priori.
           spec -> spec.afterTypeValidationOptions(TypeValidation.all().methodDeclarations(false).identifiers(false)),
           java(
             """
@@ -679,8 +674,6 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     void fieldWithArrayType() {
         //language=java
         rewriteRun(
-          // JavaTemplate mis-attributes the generated assignment for array-typed fields (the right-hand side
-          // identifier lacks a type); an upstream JavaTemplate limitation, not specific to this visitor.
           spec -> spec.afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
@@ -758,8 +751,6 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     void fieldWithArrayTypeIntoExistingConstructor() {
         //language=java
         rewriteRun(
-          // JavaTemplate mis-attributes the generated assignment for array-typed fields (the right-hand side
-          // identifier lacks a type); an upstream JavaTemplate limitation, not specific to this visitor.
           spec -> spec.afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
@@ -788,6 +779,135 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
                       this.a = a;
                   }
 
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void annotationBetweenModifierAndType() {
+        //language=java
+        rewriteRun(
+          // `@Autowired` written between the modifier and the type is parsed into the field's J.AnnotatedType rather
+          // than its leading annotations. The generated constructor parameter must not carry it over (doing so would
+          // reference a removed import). The leftover double space in the field itself is a pre-existing
+          // RemoveAnnotationVisitor quirk for inline annotations, unrelated to constructor generation.
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  private @Autowired String a;
+
+                  A() {
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              public class A {
+
+                  private final  String a;
+
+                  A(String a) {
+                      this.a = a;
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepFQNsInUse() {
+        rewriteRun(
+          // The generated parameter's type (a third-party type here) is attributed by JavaTemplate's own parser,
+          // which lacks the surrounding project's classpath, so the parameter and its assignment reference come back
+          // as unknown types in this isolated test — an attribution limitation shared with fieldWithUserDefinedGenericType
+          // and the array-type tests, independent of how the type name is rendered.
+          recipeSpec -> recipeSpec.recipe(toRecipe(() -> new AutowiredFieldIntoConstructorParameterVisitor("MyConfig", "converter")))
+            .afterTypeValidationOptions(TypeValidation.all().methodDeclarations(false).identifiers(false)),
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class MyConfig {
+
+                  @Autowired
+                  private org.springframework.core.convert.converter.Converter converter;
+
+                  public MyConfig() {
+                  }
+              }
+              """,
+            """
+              public class MyConfig {
+
+                  private final org.springframework.core.convert.converter.Converter converter;
+
+                  public MyConfig(org.springframework.core.convert.converter.Converter converter) {
+                      this.converter = converter;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void promotesAutowiredFieldIntoExistingConstructor() {
+        //language=java
+        rewriteRun(
+          // The spring-security/-context types this snippet references are not on the test classpath, so they are
+          // unknown in both the input and the generated constructor; that attribution gap is independent of how the
+          // type name is rendered, which is what this test exercises (generic type preserved with simple names).
+          recipeSpec -> recipeSpec.recipe(toRecipe(() -> new AutowiredFieldIntoConstructorParameterVisitor("SecurityConfiguration", "authConverter")))
+            .typeValidationOptions(TypeValidation.all().methodDeclarations(false).identifiers(false)),
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.core.convert.converter.Converter;
+              import org.springframework.security.authentication.AbstractAuthenticationToken;
+              import org.springframework.security.oauth2.jwt.Jwt;
+
+              @Configuration
+              public class SecurityConfiguration {
+
+                  private final String tenant;
+
+                  @Autowired
+                  Converter<Jwt, AbstractAuthenticationToken> authConverter;
+
+                  public SecurityConfiguration(String tenant) {
+                      this.tenant = tenant;
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.core.convert.converter.Converter;
+              import org.springframework.security.authentication.AbstractAuthenticationToken;
+              import org.springframework.security.oauth2.jwt.Jwt;
+
+              @Configuration
+              public class SecurityConfiguration {
+
+                  private final String tenant;
+
+                  final Converter<Jwt, AbstractAuthenticationToken> authConverter;
+
+                  public SecurityConfiguration(String tenant, Converter<Jwt, AbstractAuthenticationToken> authConverter) {
+                      this.tenant = tenant;
+                      this.authConverter = authConverter;
+                  }
               }
               """
           )
