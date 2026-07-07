@@ -18,10 +18,10 @@ package org.openrewrite.java.spring;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
@@ -618,7 +618,6 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     void fieldWithUserDefinedGenericType() {
         //language=java
         rewriteRun(
-          spec -> spec.afterTypeValidationOptions(TypeValidation.all().methodDeclarations(false).identifiers(false)),
           java(
             """
               package demo.model;
@@ -674,7 +673,6 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     void fieldWithArrayType() {
         //language=java
         rewriteRun(
-          spec -> spec.afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               package demo;
@@ -751,7 +749,6 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     void fieldWithArrayTypeIntoExistingConstructor() {
         //language=java
         rewriteRun(
-          spec -> spec.afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               package demo;
@@ -786,13 +783,10 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     }
 
     @Test
+    @Issue("https://github.com/moderneinc/customer-requests/issues/2630")
     void annotationBetweenModifierAndType() {
         //language=java
         rewriteRun(
-          // `@Autowired` written between the modifier and the type is parsed into the field's J.AnnotatedType rather
-          // than its leading annotations. The generated constructor parameter must not carry it over (doing so would
-          // reference a removed import). The leftover double space in the field itself is a pre-existing
-          // RemoveAnnotationVisitor quirk for inline annotations, unrelated to constructor generation.
           java(
             """
               package demo;
@@ -826,14 +820,11 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     }
 
     @Test
+    @Issue("https://github.com/moderneinc/customer-requests/issues/2630")
     void keepFQNsInUse() {
         rewriteRun(
-          // The generated parameter's type (a third-party type here) is attributed by JavaTemplate's own parser,
-          // which lacks the surrounding project's classpath, so the parameter and its assignment reference come back
-          // as unknown types in this isolated test — an attribution limitation shared with fieldWithUserDefinedGenericType
-          // and the array-type tests, independent of how the type name is rendered.
           recipeSpec -> recipeSpec.recipe(toRecipe(() -> new AutowiredFieldIntoConstructorParameterVisitor("MyConfig", "converter")))
-            .afterTypeValidationOptions(TypeValidation.all().methodDeclarations(false).identifiers(false)),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+", "spring-core-5.+")),
           java(
             """
               import org.springframework.beans.factory.annotation.Autowired;
@@ -862,14 +853,13 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
     }
 
     @Test
+    @Issue("https://github.com/moderneinc/customer-requests/issues/2630")
     void promotesAutowiredFieldIntoExistingConstructor() {
         //language=java
         rewriteRun(
-          // The spring-security/-context types this snippet references are not on the test classpath, so they are
-          // unknown in both the input and the generated constructor; that attribution gap is independent of how the
-          // type name is rendered, which is what this test exercises (generic type preserved with simple names).
           recipeSpec -> recipeSpec.recipe(toRecipe(() -> new AutowiredFieldIntoConstructorParameterVisitor("SecurityConfiguration", "authConverter")))
-            .typeValidationOptions(TypeValidation.all().methodDeclarations(false).identifiers(false)),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+              "spring-beans-6.+", "spring-context-6.+", "spring-core-6.+", "spring-security-core-6.0.+", "spring-security-oauth2-jose-6.0.+")),
           java(
             """
               import org.springframework.beans.factory.annotation.Autowired;

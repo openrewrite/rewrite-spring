@@ -16,11 +16,13 @@
 package org.openrewrite.java.spring;
 
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Tree;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.Block;
 import org.openrewrite.java.tree.J.ClassDeclaration;
@@ -29,12 +31,13 @@ import org.openrewrite.java.tree.J.VariableDeclarations;
 import org.openrewrite.java.tree.JavaType.FullyQualified;
 import org.openrewrite.marker.Markers;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -62,12 +65,8 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 getCursor().putMessage("applicableConstructor", c);
                 applicable = isNotConstructorInitializingField(c, fieldName);
             } else {
-                List<MethodDeclaration> autowiredConstructors = constructors.stream().filter(constr -> constr.getLeadingAnnotations().stream()
-                                .map(a -> TypeUtils.asFullyQualified(a.getType()))
-                                .filter(Objects::nonNull)
-                                .map(FullyQualified::getFullyQualifiedName)
-                                .anyMatch(AUTOWIRED::equals)
-                        )
+                List<MethodDeclaration> autowiredConstructors = constructors.stream()
+                        .filter(constr -> service(AnnotationService.class).isAnnotatedWith(constr, AUTOWIRED))
                         .limit(2)
                         .collect(toList());
                 if (autowiredConstructors.size() == 1) {
@@ -133,8 +132,6 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 maybeRemoveImport(AUTOWIRED);
                 MethodDeclaration constructor = blockCursor.getParent().getMessage("applicableConstructor");
                 ClassDeclaration c = blockCursor.getParent().getValue();
-                // Use the post-removal type expression so a `@Autowired` written between the modifier and the type
-                // (parsed into the field's J.AnnotatedType) is not re-emitted onto the generated constructor parameter.
                 TypeTree parameterType = mv.getTypeExpression();
                 if (constructor == null) {
                     doAfterVisit(new AddConstructorVisitor(c.getSimpleName(), fieldName, parameterType));
@@ -173,19 +170,18 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                         }
                         Optional<Statement> firstMethod = block.getStatements().stream().filter(MethodDeclaration.class::isInstance).findFirst();
 
-                        return firstMethod.map(statement ->
-                                        (J) template.build()
-                                                .apply(getCursor(),
-                                                        statement.getCoordinates().before()
-                                                )
-                                )
-                                .orElseGet(() ->
-                                        template.build()
-                                                .apply(
-                                                        getCursor(),
-                                                        block.getCoordinates().lastStatement()
-                                                )
-                                );
+                        Block applied = firstMethod
+                                .map(statement -> (Block) template.build()
+                                        .apply(getCursor(), statement.getCoordinates().before()))
+                                .orElseGet(() -> (Block) template.build()
+                                        .apply(getCursor(), block.getCoordinates().lastStatement()));
+                        return applied.withStatements(ListUtils.map(applied.getStatements(), s -> {
+                            if (s instanceof MethodDeclaration && ((MethodDeclaration) s).isConstructor()) {
+                                MethodDeclaration ctor = typeAddedParameter((MethodDeclaration) s, fieldName, type);
+                                return typeAssignmentReference(ctor, fieldName, fieldType);
+                            }
+                            return s;
+                        }));
                     }
                 }
             }
@@ -196,11 +192,13 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
     private static class AddConstructorParameterAndAssignment extends JavaIsoVisitor<ExecutionContext> {
         private final MethodDeclaration constructor;
         private final String fieldName;
+        private final TypeTree type;
         private final String methodType;
 
         public AddConstructorParameterAndAssignment(MethodDeclaration constructor, String fieldName, TypeTree type) {
             this.constructor = constructor;
             this.fieldName = fieldName;
+            this.type = type;
             // Render the parameter type exactly as the field declares it: simple names stay valid through the
             // file's existing imports, and deliberately fully qualified references stay fully qualified.
             this.methodType = type.toString();
@@ -222,6 +220,10 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                                 md.getCoordinates().replaceParameters(),
                                 params.toArray()
                         );
+                // A type the template parser could not resolve (a third-party or project-local type absent from the
+                // parser's classpath) comes back unattributed. Graft the field's own resolved type onto the parameter
+                // so the constructor is well typed regardless of what the isolated parser could see.
+                md = typeAddedParameter(md, fieldName, type);
                 updateCursor(md);
 
                 //noinspection ConstantConditions
@@ -232,8 +234,79 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                                 getCursor(),
                                 md.getBody().getCoordinates().lastStatement()
                         );
+                md = typeAssignmentReference(md, fieldName, type.getType());
             }
             return md;
         }
+    }
+
+    /**
+     * Replace the generated parameter's type expression with the field's own (already resolved) {@link TypeTree} when
+     * the template parser left it unattributed, and rebuild the constructor's {@link JavaType.Method} from the
+     * resulting parameter types. This makes the constructor well typed for types the isolated parser cannot resolve
+     * (third-party types or project-local sibling types not on its classpath).
+     */
+    private static MethodDeclaration typeAddedParameter(MethodDeclaration md, String fieldName, TypeTree fieldType) {
+        JavaType resolved = fieldType.getType();
+        if (resolved == null) {
+            return md;
+        }
+        List<Statement> parameters = ListUtils.map(md.getParameters(), parameter -> {
+            if (parameter instanceof J.VariableDeclarations) {
+                J.VariableDeclarations vd = (J.VariableDeclarations) parameter;
+                if (vd.getVariables().size() == 1 &&
+                        fieldName.equals(vd.getVariables().get(0).getSimpleName()) &&
+                        !TypeUtils.isWellFormedType(vd.getTypeExpression() == null ? null : vd.getTypeExpression().getType())) {
+                    Space prefix = vd.getTypeExpression() == null ? Space.EMPTY : vd.getTypeExpression().getPrefix();
+                    J.VariableDeclarations.NamedVariable namedVariable = vd.getVariables().get(0);
+                    namedVariable = namedVariable.withName(namedVariable.getName().withType(resolved));
+                    if (namedVariable.getVariableType() != null) {
+                        namedVariable = namedVariable.withVariableType(namedVariable.getVariableType().withType(resolved));
+                    }
+                    return vd.withTypeExpression(fieldType.withPrefix(prefix)).withVariables(singletonList(namedVariable));
+                }
+            }
+            return parameter;
+        });
+        md = md.withParameters(parameters);
+
+        JavaType.Method methodType = md.getMethodType();
+        if (methodType != null) {
+            List<JavaType> parameterTypes = new ArrayList<>(parameters.size());
+            for (Statement parameter : parameters) {
+                if (parameter instanceof J.VariableDeclarations) {
+                    TypeTree typeExpression = ((J.VariableDeclarations) parameter).getTypeExpression();
+                    parameterTypes.add(typeExpression == null ? null : typeExpression.getType());
+                }
+            }
+            if (!parameterTypes.contains(null)) {
+                methodType = methodType.withParameterTypes(parameterTypes);
+                md = md.withMethodType(methodType).withName(md.getName().withType(methodType));
+            }
+        }
+        return md;
+    }
+
+    /**
+     * Attribute the right-hand side of the generated {@code this.<field> = <field>} assignment. The template parser
+     * leaves the reference untyped for array-typed parameters, so set the identifier's type from the field's own
+     * (already resolved) type; the reference and the parameter share it.
+     */
+    private static MethodDeclaration typeAssignmentReference(MethodDeclaration md, String fieldName, @Nullable JavaType fieldType) {
+        if (fieldType == null || md.getBody() == null) {
+            return md;
+        }
+        return md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(), statement -> {
+            if (statement instanceof J.Assignment) {
+                J.Assignment assignment = (J.Assignment) statement;
+                Expression rhs = assignment.getAssignment();
+                if (rhs instanceof J.Identifier &&
+                        fieldName.equals(((J.Identifier) rhs).getSimpleName()) &&
+                        !TypeUtils.isWellFormedType(rhs.getType())) {
+                    return assignment.withAssignment(((J.Identifier) rhs).withType(fieldType));
+                }
+            }
+            return statement;
+        })));
     }
 }
