@@ -119,6 +119,14 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
 
             mv = (VariableDeclarations) new RemoveAnnotationVisitor(new AnnotationMatcher("@" + AUTOWIRED)).visit(multiVariable, p, getCursor().getParentOrThrow());
             if (mv != multiVariable && multiVariable.getTypeExpression() != null) {
+                // An inline annotation on the type (`private @Autowired String a`) parses as a J.AnnotatedType wrapper.
+                // RemoveAnnotationVisitor strips the annotation but leaves the empty wrapper, whose prefix then doubles
+                // the space before the type; unwrap it onto the inner type so the field stays single-spaced.
+                if (mv.getTypeExpression() instanceof J.AnnotatedType &&
+                        ((J.AnnotatedType) mv.getTypeExpression()).getAnnotations().isEmpty()) {
+                    J.AnnotatedType annotatedType = (J.AnnotatedType) mv.getTypeExpression();
+                    mv = mv.withTypeExpression(annotatedType.getTypeExpression().withPrefix(annotatedType.getPrefix()));
+                }
                 if (mv.getModifiers().stream().noneMatch(m -> m.getType() == J.Modifier.Type.Final)) {
                     Space prefix = Space.firstPrefix(mv.getVariables());
                     J.Modifier m = new J.Modifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, null, J.Modifier.Type.Final, emptyList());

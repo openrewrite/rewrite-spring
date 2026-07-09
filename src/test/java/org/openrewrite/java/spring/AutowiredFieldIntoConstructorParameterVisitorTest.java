@@ -807,7 +807,7 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
 
               public class A {
 
-                  private final  String a;
+                  private final String a;
 
                   A(String a) {
                       this.a = a;
