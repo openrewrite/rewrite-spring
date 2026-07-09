@@ -179,6 +179,7 @@ examples:
   parameters:
   - server.port
   - This property has been removed.
+  - 'null'
   sources:
   - before: project
     language: mavenProject
@@ -2527,6 +2528,28 @@ examples:
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
+examples:
+- description: '`MigrateThymeleafDependenciesTest#migrateThymeleafSpring5ToSpring6WithResolvableVersion`'
+  sources:
+  - before: |
+      <project>
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>com.example</groupId>
+        <artifactId>demo</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.thymeleaf</groupId>
+            <artifactId>thymeleaf-spring5</artifactId>
+            <version>3.0.15.RELEASE</version>
+          </dependency>
+        </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.MigrateWebMvcTagsToObservationConvention
 examples:
 - description: '`MigrateWebMvcTagsToObservationConventionTest#shouldMigrateWebMvcTagsProviderToDefaultServerRequestObservationConvention`'
@@ -4076,7 +4099,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
 examples:
-- description: '`HttpComponentsClientHttpRequestFactoryConnectTimeoutTest#addsCommentWhenNoPoolingHttpClientConnectionManager`'
+- description: '`HttpComponentsClientHttpRequestFactoryConnectTimeoutTest#addsCommentToSetConnectTimeoutOnly`'
   sources:
   - before: |
       import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -4093,7 +4116,7 @@ examples:
       class Example {
           void configure() {
               HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-              // Manual migration to `ConnectionConfig.Builder.setConnectTimeout(Timeout)` necessary; see: https://github.com/spring-projects/spring-framework/issues/35748
+              /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
               factory.setConnectTimeout(5000);
           }
       }
