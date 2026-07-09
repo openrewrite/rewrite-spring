@@ -4099,7 +4099,7 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
 examples:
-- description: '`HttpComponentsClientHttpRequestFactoryConnectTimeoutTest#addsCommentWhenNoPoolingHttpClientConnectionManager`'
+- description: '`HttpComponentsClientHttpRequestFactoryConnectTimeoutTest#addsCommentToSetConnectTimeoutOnly`'
   sources:
   - before: |
       import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -4116,7 +4116,7 @@ examples:
       class Example {
           void configure() {
               HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-              // Manual migration to `ConnectionConfig.Builder.setConnectTimeout(Timeout)` necessary; see: https://github.com/spring-projects/spring-framework/issues/35748
+              /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
               factory.setConnectTimeout(5000);
           }
       }
