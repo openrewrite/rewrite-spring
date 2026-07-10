@@ -210,6 +210,9 @@ dependencies {
     implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
 
+    // Provided at runtime by rewrite-yaml; compileOnly avoids pinning a second version
+    compileOnly("org.yaml:snakeyaml:2.6")
+
     runtimeOnly("org.openrewrite:rewrite-java-21")
     runtimeOnly("org.openrewrite.recipe:rewrite-apache:$rewriteVersion")
     runtimeOnly("org.openrewrite.recipe:rewrite-hibernate:$rewriteVersion")
