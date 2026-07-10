@@ -57,7 +57,7 @@ class RemoveAutoConfigurationExcludeTest implements RewriteTest {
               import org.springframework.boot.autoconfigure.SpringBootApplication;
               import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
-              @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
+              @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
               public class Application {
               }
               """
@@ -198,7 +198,7 @@ class RemoveAutoConfigurationExcludeTest implements RewriteTest {
             """
               import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-              @SpringBootApplication(excludeName = {"org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"})
+              @SpringBootApplication(excludeName = { "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration" })
               class Application {
               }
               """

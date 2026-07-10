@@ -28,6 +28,8 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JContainer;
+import org.openrewrite.java.tree.JRightPadded;
 import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
@@ -98,13 +100,34 @@ public class RemoveAutoConfigurationExclude extends Recipe {
                         }
                         if (as.getAssignment() instanceof J.NewArray) {
                             J.NewArray array = (J.NewArray) as.getAssignment();
-                            List<Expression> newInitializer = ListUtils.map(array.getInitializer(),
-                                    expr -> matches.test(expr) ? null : expr);
+                            JContainer<Expression> initContainer = array.getPadding().getInitializer();
+                            if (initContainer == null) {
+                                return original;
+                            }
+                            List<JRightPadded<Expression>> padded = initContainer.getPadding().getElements();
+                            if (padded.isEmpty()) {
+                                return original;
+                            }
+                            List<JRightPadded<Expression>> newPadded = ListUtils.map(padded,
+                                    rp -> matches.test(rp.getElement()) ? null : rp);
                             //noinspection DataFlowIssue
-                            if (newInitializer.isEmpty()) {
+                            if (newPadded.isEmpty()) {
                                 return null;
                             }
-                            return maybeAutoFormat(original, as.withAssignment(array.withInitializer(newInitializer)), ctx);
+                            if (newPadded.size() == padded.size()) {
+                                return original;
+                            }
+                            // Preserve inner-brace whitespace: the first surviving element already carries
+                            // the leading space after `{`, but if it wasn't originally first we splice in the
+                            // original first element's prefix. The last surviving element's trailing space
+                            // (before `}`) comes from the original last element's JRightPadded.after.
+                            JRightPadded<Expression> firstOrig = padded.get(0);
+                            JRightPadded<Expression> lastOrig = padded.get(padded.size() - 1);
+                            newPadded = ListUtils.mapFirst(newPadded,
+                                    rp -> rp.withElement(rp.getElement().withPrefix(firstOrig.getElement().getPrefix())));
+                            newPadded = ListUtils.mapLast(newPadded, rp -> rp.withAfter(lastOrig.getAfter()));
+                            return as.withAssignment(array.getPadding().withInitializer(
+                                    initContainer.getPadding().withElements(newPadded)));
                         }
                         return original;
                     }
