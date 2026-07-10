@@ -219,3 +219,14 @@ recipeList:
       artifactId: "*"
       newVersion: 3.0.2
       overrideManagedVersion: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot3.RemoveSolrAutoConfigurationExclude
+displayName: Remove `SolrAutoConfiguration`
+description: >-
+  `SolrAutoConfiguration` was removed in Spring Boot 3; remove references to it
+  from exclusions on annotations.
+recipeList:
+  - org.openrewrite.java.spring.RemoveAutoConfigurationExclude:
+      fullyQualifiedName: org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration

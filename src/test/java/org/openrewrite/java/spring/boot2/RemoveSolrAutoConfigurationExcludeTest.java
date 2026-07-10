@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.boot3.RemoveSolrAutoConfigurationExclude;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,7 +29,7 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new RemoveSolrAutoConfigurationExclude())
+        spec.recipeFromResources("org.openrewrite.java.spring.boot3.RemoveSolrAutoConfigurationExclude")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-boot-2.2",
             "spring-security-core-5.1",
