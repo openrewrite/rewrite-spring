@@ -1,0 +1,36 @@
+#
+# Copyright 2026 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.AddParametersCompilerFlag
+displayName: Add `-parameters` compiler flag for Spring
+description: >-
+  Adds the `-parameters` compiler flag to Maven and Gradle build files.
+  Spring uses parameter name retention (enabled by this flag) for dependency injection
+  name resolution. Projects that already retain parameter names — through their own
+  configuration, `spring-boot-starter-parent`, or the Spring Boot Gradle plugin — are not modified.
+tags:
+  - spring
+  - maven
+  - gradle
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework*
+      artifactIdPattern: "*"
+recipeList:
+  - org.openrewrite.java.spring.AddParametersCompilerFlagToMaven
+  - org.openrewrite.gradle.spring.AddParametersCompilerFlagToGradle
