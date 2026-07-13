@@ -157,7 +157,7 @@ class ConvertAutoConfigurationExcludeToExcludeNameTest implements RewriteTest {
               import org.springframework.boot.autoconfigure.SpringBootApplication;
 
               @SpringBootApplication(
-                  excludeName = {"org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration", "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration"}
+                  excludeName = { "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration", "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration" }
               )
               class Application {
               }

@@ -180,8 +180,9 @@ public class ConvertAutoConfigurationExcludeToExcludeName extends Recipe {
                                 return as;
                             }
                             List<JRightPadded<Expression>> elements = new ArrayList<>();
-                            elements.add(JRightPadded.build((Expression) literal.withPrefix(Space.EMPTY)));
-                            elements.add(JRightPadded.build((Expression) newStringLiteral(Space.SINGLE_SPACE)));
+                            elements.add(JRightPadded.build((Expression) literal.withPrefix(Space.SINGLE_SPACE)));
+                            elements.add(JRightPadded.<Expression>build(newStringLiteral(Space.SINGLE_SPACE))
+                                    .withAfter(Space.SINGLE_SPACE));
                             J.NewArray array = new J.NewArray(
                                     Tree.randomId(), Space.SINGLE_SPACE, Markers.EMPTY,
                                     null, emptyList(),
