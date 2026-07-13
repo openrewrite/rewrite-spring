@@ -135,6 +135,8 @@ recipeDependencies {
 
     testParserClasspath("org.springframework.kafka:spring-kafka:2.8.+")
 
+    testParserClasspath("org.springframework.security:spring-security-oauth2-jose:6.0.+")
+
     testParserClasspath("org.springframework.boot:spring-boot-actuator:2.1.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.0.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.4.+")
