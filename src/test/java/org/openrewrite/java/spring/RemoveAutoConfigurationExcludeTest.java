@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  * <p>
  * Licensed under the Moderne Source Available License (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.boot2;
+package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,11 +25,11 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
+class RemoveAutoConfigurationExcludeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.boot3.RemoveSolrAutoConfigurationExclude")
+        spec.recipe(new RemoveAutoConfigurationExclude("org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration"))
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-boot-2.2",
             "spring-security-core-5.1",
@@ -40,7 +40,7 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void removeFromArray() {
+    void removeFromExcludeArray() {
         rewriteRun(
           //language=java
           java(
@@ -66,7 +66,7 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
     }
 
     @Test
-    void removeEntireArray() {
+    void removeEntireExcludeArray() {
         rewriteRun(
           //language=java
           java(
@@ -90,7 +90,7 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
     }
 
     @Test
-    void removeArgument() {
+    void removeSingleExcludeArgument() {
         rewriteRun(
           //language=java
           java(
@@ -114,7 +114,7 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
     }
 
     @Test
-    void removeFullyQualifiedArgument() {
+    void removeFullyQualifiedExcludeArgument() {
         rewriteRun(
           //language=java
           java(
@@ -160,10 +160,106 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
         );
     }
 
+    @Test
+    void removeSingleExcludeNameArgument() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication(excludeName = "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration")
+              class Application {
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication
+              class Application {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void removeFromExcludeNameArray() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication(excludeName = { "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration", "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration" })
+              class Application {
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication(excludeName = { "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration" })
+              class Application {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void removeEntireExcludeNameArray() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+
+              @EnableAutoConfiguration(excludeName = {"org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration"})
+              class Application {
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+
+              @EnableAutoConfiguration
+              class Application {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void removeMixedExcludeAndExcludeName() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+              import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
+
+              @EnableAutoConfiguration(
+                  exclude = SolrAutoConfiguration.class,
+                  excludeName = "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration"
+              )
+              class Application {
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+
+              @EnableAutoConfiguration
+              class Application {
+              }
+              """
+          )
+        );
+    }
+
     @Nested
     class NoChange {
         @Test
-        void retainOtherAutoConfigurationClasses() {
+        void retainOtherAutoConfigurationClass() {
             rewriteRun(
               //language=java
               java(
@@ -180,15 +276,14 @@ class RemoveSolrAutoConfigurationExcludeTest implements RewriteTest {
         }
 
         @Test
-        void retainOtherAutoConfigurationClassesInArray() {
+        void retainOtherExcludeNameEntry() {
             rewriteRun(
               //language=java
               java(
                 """
                   import org.springframework.boot.autoconfigure.SpringBootApplication;
-                  import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
-                  @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
+                  @SpringBootApplication(excludeName = "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration")
                   public class Application {
                   }
                   """
