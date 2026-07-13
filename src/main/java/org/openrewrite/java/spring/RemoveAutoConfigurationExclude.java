@@ -40,25 +40,20 @@ public class RemoveAutoConfigurationExclude extends Recipe {
 
     private static final String SPRING_BOOT_APPLICATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
     private static final String ENABLE_AUTO_CONFIGURATION = "org.springframework.boot.autoconfigure.EnableAutoConfiguration";
-    private static final AnnotationMatcher SBA_MATCHER = new AnnotationMatcher(SPRING_BOOT_APPLICATION);
-    private static final AnnotationMatcher EAC_MATCHER = new AnnotationMatcher(ENABLE_AUTO_CONFIGURATION);
+    // `@SpringBootApplication` is meta-annotated with `@EnableAutoConfiguration`, so meta-annotation
+    // matching lets a single matcher cover both annotations.
+    private static final AnnotationMatcher EAC_MATCHER = new AnnotationMatcher(ENABLE_AUTO_CONFIGURATION, true);
 
     @Option(displayName = "Fully qualified name",
             description = "The fully qualified name of the auto-configuration class to remove from `exclude` and `excludeName` attributes.",
             example = "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration")
     String fullyQualifiedName;
 
-    @Override
-    public String getDisplayName() {
-        return "Remove auto-configuration exclude";
-    }
+    String displayName = "Remove auto-configuration exclude";
 
-    @Override
-    public String getDescription() {
-        return "Remove a given auto-configuration class from the `exclude` and `excludeName` attributes of " +
-                "`@SpringBootApplication` and `@EnableAutoConfiguration` annotations. When removing the last entry, " +
-                "the attribute itself is removed.";
-    }
+    String description = "Remove a given auto-configuration class from the `exclude` and `excludeName` attributes of " +
+            "`@SpringBootApplication` and `@EnableAutoConfiguration` annotations. When removing the last entry, " +
+            "the attribute itself is removed.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -69,7 +64,7 @@ public class RemoveAutoConfigurationExclude extends Recipe {
                     @Override
                     public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                         J.Annotation a = super.visitAnnotation(annotation, ctx);
-                        if (!SBA_MATCHER.matches(a) && !EAC_MATCHER.matches(a)) {
+                        if (!EAC_MATCHER.matches(a)) {
                             return a;
                         }
                         maybeRemoveImport(fullyQualifiedName);
