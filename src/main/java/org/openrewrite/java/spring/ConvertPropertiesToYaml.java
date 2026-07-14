@@ -22,6 +22,7 @@ import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
+import org.openrewrite.marker.Markers;
 import org.openrewrite.marker.SearchResult;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.YamlParser;
@@ -64,8 +65,14 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
                 "when a corresponding `.yml` or `.yaml` file already exists.";
     }
 
+    @Value
+    static class PendingConversion {
+        String yamlContent;
+        Markers markers;
+    }
+
     public static class Accumulator {
-        final Map<Path, SourceFile> toConvert = new LinkedHashMap<>();
+        final Map<Path, PendingConversion> toConvert = new LinkedHashMap<>();
         // parent directory -> file name stem (e.g. "application-dev") -> existing .yml/.yaml file
         final Map<Path, Map<String, Path>> existingYaml = new HashMap<>();
         final Set<String> fileNamesReferencedFromJava = new HashSet<>();
@@ -105,7 +112,9 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
                 if (tree instanceof Properties.File &&
                         PROPERTIES_NAME_PATTERN.matcher(fileName).matches() &&
                         isSpringConfigFile.visit(tree, ctx) != tree) {
-                    acc.toConvert.put(sourcePath, source);
+                    acc.toConvert.put(sourcePath, new PendingConversion(
+                            PropertiesToYamlConverter.convert((Properties.File) tree),
+                            source.getMarkers()));
                 }
 
                 // Track file names referenced from Java string literals (e.g. @PropertySource,
@@ -137,23 +146,20 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
             return emptyList();
         }
         List<SourceFile> newFiles = new ArrayList<>();
-        acc.toConvert.forEach((propertiesPath, value) -> {
+        acc.toConvert.forEach((propertiesPath, pending) -> {
             if (skipReason(acc, propertiesPath) != null) {
                 return;
             }
-            String yamlContent = PropertiesToYamlConverter.convert((Properties.File) value);
-            if (yamlContent.isEmpty()) {
+            if (pending.getYamlContent().isEmpty()) {
                 acc.converted.add(propertiesPath);
                 return;
             }
             YamlParser.builder().build()
-                    .parse(yamlContent)
+                    .parse(pending.getYamlContent())
                     .findFirst()
                     .map(brandNew -> (SourceFile) brandNew
                             .withSourcePath(toYamlPath(propertiesPath))
-                            // Copy markers (SourceSet, JavaProject, …) from the source file
-                            // so the generated file is placed in the correct source set / module
-                            .withMarkers(value.getMarkers()))
+                            .withMarkers(pending.getMarkers()))
                     .ifPresent(newFile -> {
                         newFiles.add(newFile);
                         acc.converted.add(propertiesPath);
