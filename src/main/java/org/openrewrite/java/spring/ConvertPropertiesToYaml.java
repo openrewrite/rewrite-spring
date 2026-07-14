@@ -138,8 +138,7 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
         }
         List<SourceFile> newFiles = new ArrayList<>();
         acc.toConvert.forEach((propertiesPath, value) -> {
-            if (findExistingYaml(acc, propertiesPath) != null ||
-                    acc.fileNamesReferencedFromJava.contains(propertiesPath.getFileName().toString())) {
+            if (skipReason(acc, propertiesPath) != null) {
                 return;
             }
             String yamlContent = PropertiesToYamlConverter.convert((Properties.File) value);
@@ -177,27 +176,29 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
                     return tree;
                 }
 
-                if (acc.fileNamesReferencedFromJava.contains(sourcePath.getFileName().toString())) {
-                    return SearchResult.found(
-                            propertiesFile,
-                            "Skipped: this file is referenced from Java sources (e.g. `@PropertySource`), " +
-                                    "which cannot load YAML files. Update those references before converting."
-                    );
-                }
-
-                Path conflictingYaml = findExistingYaml(acc, sourcePath);
-                if (conflictingYaml != null) {
-                    return SearchResult.found(
-                            propertiesFile,
-                            "Skipped: a corresponding YAML file already exists at '" + conflictingYaml + "'. " +
-                                    "Merge these properties into it manually; when both files exist the " +
-                                    "`.properties` values take precedence, so converting automatically " +
-                                    "could change the effective configuration."
-                    );
+                String skipReason = skipReason(acc, sourcePath);
+                if (skipReason != null) {
+                    // Attach a visible skip message instead of deleting
+                    return SearchResult.found(propertiesFile, skipReason);
                 }
                 return acc.converted.contains(sourcePath) ? null : tree;
             }
         };
+    }
+
+    private @Nullable String skipReason(Accumulator acc, Path propertiesPath) {
+        if (acc.fileNamesReferencedFromJava.contains(propertiesPath.getFileName().toString())) {
+            return "Skipped: this file is referenced from Java sources (e.g. `@PropertySource`), " +
+                    "which cannot load YAML files. Update those references before converting.";
+        }
+        Path conflictingYaml = findExistingYaml(acc, propertiesPath);
+        if (conflictingYaml != null) {
+            return "Skipped: a corresponding YAML file already exists at '" + conflictingYaml + "'. " +
+                    "Merge these properties into it manually; when both files exist the " +
+                    "`.properties` values take precedence, so converting automatically " +
+                    "could change the effective configuration.";
+        }
+        return null;
     }
 
     private @Nullable Path findExistingYaml(Accumulator acc, Path propertiesPath) {
