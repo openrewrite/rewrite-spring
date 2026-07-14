@@ -190,6 +190,28 @@ examples:
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.ConvertAutoConfigurationExcludeToExcludeName
+examples:
+- description: '`ConvertAutoConfigurationExcludeToExcludeNameTest#convertSingleExcludeToExcludeName`'
+  parameters:
+  - org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration
+  sources:
+  - before: |
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+      import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
+
+      @SpringBootApplication(exclude = SolrAutoConfiguration.class)
+      class Application {
+      }
+    after: |
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+      @SpringBootApplication(excludeName = "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration")
+      class Application {
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.DeleteSpringProperty
 examples:
 - description: '`DeleteSpringPropertyKeyTest#deleteOnlyKey`'
@@ -380,6 +402,30 @@ examples:
     after: 'spring.main.show-banner: true'
     path: application.yaml
     language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.RemoveAutoConfigurationExclude
+examples:
+- description: '`RemoveAutoConfigurationExcludeTest#removeFromExcludeArray`'
+  parameters:
+  - org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration
+  sources:
+  - before: |
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+      import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+      import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
+
+      @SpringBootApplication(exclude = { SecurityAutoConfiguration.class, SolrAutoConfiguration.class })
+      public class Application {
+      }
+    after: |
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+      import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+
+      @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
+      public class Application {
+      }
+    language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.RenameBean
@@ -2689,7 +2735,7 @@ examples:
       import org.springframework.boot.autoconfigure.SpringBootApplication;
       import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
-      @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
+      @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
       public class Application {
       }
     language: java
