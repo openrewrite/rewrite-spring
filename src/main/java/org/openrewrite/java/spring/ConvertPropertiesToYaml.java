@@ -69,6 +69,9 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
         // parent directory -> file name stem (e.g. "application-dev") -> existing .yml/.yaml file
         final Map<Path, Map<String, Path>> existingYaml = new HashMap<>();
         final Set<String> fileNamesReferencedFromJava = new HashSet<>();
+        // Paths whose conversion succeeded (YAML generated, or the file had no content
+        // to carry over); only these may be deleted
+        final Set<Path> converted = new HashSet<>();
     }
 
     @Override
@@ -141,6 +144,7 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
             }
             String yamlContent = PropertiesToYamlConverter.convert((Properties.File) value);
             if (yamlContent.isEmpty()) {
+                acc.converted.add(propertiesPath);
                 return;
             }
             YamlParser.builder().build()
@@ -151,7 +155,10 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
                             // Copy markers (SourceSet, JavaProject, …) from the source file
                             // so the generated file is placed in the correct source set / module
                             .withMarkers(value.getMarkers()))
-                    .ifPresent(newFiles::add);
+                    .ifPresent(newFile -> {
+                        newFiles.add(newFile);
+                        acc.converted.add(propertiesPath);
+                    });
         });
         return newFiles;
     }
@@ -180,7 +187,6 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
 
                 Path conflictingYaml = findExistingYaml(acc, sourcePath);
                 if (conflictingYaml != null) {
-                    // Attach a visible skip message instead of deleting
                     return SearchResult.found(
                             propertiesFile,
                             "Skipped: a corresponding YAML file already exists at '" + conflictingYaml + "'. " +
@@ -189,8 +195,7 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
                                     "could change the effective configuration."
                     );
                 }
-                // Delete the original .properties file
-                return null;
+                return acc.converted.contains(sourcePath) ? null : tree;
             }
         };
     }
