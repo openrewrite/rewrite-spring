@@ -57,6 +57,32 @@ final class PropertiesToYamlConverter {
         List<String> comments;
     }
 
+    /**
+     * A node in the YAML tree built from the entries: a {@link Scalar} value,
+     * a {@link Mapping} of keys to child nodes, or a {@link Sequence} of items.
+     */
+    private interface Node {
+    }
+
+    @Value
+    private static class Scalar implements Node {
+        String value;
+        List<String> comments;
+    }
+
+    private static class Mapping implements Node {
+        final Map<String, Node> entries = new LinkedHashMap<>();
+
+        Mapping childMapping(String key) {
+            return (Mapping) entries.computeIfAbsent(key, k -> new Mapping());
+        }
+    }
+
+    @Value
+    private static class Sequence implements Node {
+        List<Node> items;
+    }
+
     static String convert(Properties.File file) {
         List<KeyValue> entries = new ArrayList<>();
         List<String> pendingComments = new ArrayList<>();
@@ -68,7 +94,7 @@ final class PropertiesToYamlConverter {
                 pendingComments = new ArrayList<>();
             }
         }
-        List<String> lines = renderMap(buildTree(entries), 0);
+        List<String> lines = renderMapping(buildTree(entries), 0);
         for (String comment : pendingComments) {
             lines.add("#" + comment);
         }
@@ -96,7 +122,7 @@ final class PropertiesToYamlConverter {
      * {@code a.b=1}) keeps its conflicting remainder as a literal dotted key, which Spring's
      * relaxed binding reads the same way.
      */
-    private static Map<String, Object> buildTree(List<KeyValue> entries) {
+    private static Mapping buildTree(List<KeyValue> entries) {
         Map<String, NavigableMap<Integer, List<KeyValue>>> sequences = groupSequences(entries);
         Set<String> terminalKeys = new HashSet<>();
         for (KeyValue entry : entries) {
@@ -104,7 +130,7 @@ final class PropertiesToYamlConverter {
             terminalKeys.add(indexed.matches() && sequences.containsKey(indexed.group(1)) ?
                     indexed.group(1) : entry.getKey());
         }
-        Map<String, Object> root = new LinkedHashMap<>();
+        Mapping root = new Mapping();
         Set<String> insertedSequences = new HashSet<>();
         for (KeyValue entry : entries) {
             Matcher indexed = INDEXED_KEY_PATTERN.matcher(entry.getKey());
@@ -114,7 +140,7 @@ final class PropertiesToYamlConverter {
                 }
                 continue;
             }
-            insert(root, entry.getKey(), entry, terminalKeys);
+            insert(root, entry.getKey(), new Scalar(entry.getValue(), entry.getComments()), terminalKeys);
         }
         return root;
     }
@@ -122,12 +148,14 @@ final class PropertiesToYamlConverter {
     /**
      * A sequence item is either a scalar (single entry with an empty key) or a nested mapping.
      */
-    private static List<Object> buildSequence(NavigableMap<Integer, List<KeyValue>> items) {
-        List<Object> sequence = new ArrayList<>();
+    private static Sequence buildSequence(NavigableMap<Integer, List<KeyValue>> items) {
+        List<Node> sequence = new ArrayList<>();
         for (List<KeyValue> item : items.values()) {
-            sequence.add(item.get(0).getKey().isEmpty() ? item.get(0) : buildTree(item));
+            sequence.add(item.get(0).getKey().isEmpty() ?
+                    new Scalar(item.get(0).getValue(), item.get(0).getComments()) :
+                    buildTree(item));
         }
-        return sequence;
+        return new Sequence(sequence);
     }
 
     /**
@@ -135,55 +163,52 @@ final class PropertiesToYamlConverter {
      * remainder stays a literal dotted key, so a scalar (or sequence) and its dotted descendants
      * can coexist without duplicate YAML keys, regardless of entry order.
      */
-    @SuppressWarnings("unchecked")
-    private static void insert(Map<String, Object> root, String key, Object value, Set<String> terminalKeys) {
-        Map<String, Object> current = root;
+    private static void insert(Mapping root, String key, Node value, Set<String> terminalKeys) {
+        Mapping current = root;
         String[] segments = key.split("\\.");
         StringBuilder path = new StringBuilder();
         for (int i = 0; i < segments.length - 1; i++) {
             path.append(i == 0 ? "" : ".").append(segments[i]);
             if (terminalKeys.contains(path.toString())) {
-                current.put(String.join(".", Arrays.asList(segments).subList(i, segments.length)), value);
+                current.entries.put(String.join(".", Arrays.asList(segments).subList(i, segments.length)), value);
                 return;
             }
-            current = (Map<String, Object>) current.computeIfAbsent(segments[i], k -> new LinkedHashMap<>());
+            current = current.childMapping(segments[i]);
         }
-        current.put(segments[segments.length - 1], value);
+        current.entries.put(segments[segments.length - 1], value);
     }
 
-    @SuppressWarnings("unchecked")
-    private static List<String> renderMap(Map<String, Object> map, int depth) {
+    private static List<String> renderMapping(Mapping mapping, int depth) {
         List<String> lines = new ArrayList<>();
         String indent = indent(depth);
-        map.forEach((key, value) -> {
-            if (value instanceof KeyValue) {
-                KeyValue kv = (KeyValue) value;
-                addComments(lines, indent, kv);
-                lines.add(indent + key + ": " + quoteYamlValue(kv.getValue()));
-            } else if (value instanceof Map) {
+        mapping.entries.forEach((key, node) -> {
+            if (node instanceof Scalar) {
+                Scalar scalar = (Scalar) node;
+                addComments(lines, indent, scalar.getComments());
+                lines.add(indent + key + ": " + quoteYamlValue(scalar.getValue()));
+            } else if (node instanceof Mapping) {
                 lines.add(indent + key + ":");
-                lines.addAll(renderMap((Map<String, Object>) value, depth + 1));
+                lines.addAll(renderMapping((Mapping) node, depth + 1));
             } else {
                 lines.add(indent + key + ":");
-                lines.addAll(renderSequence((List<Object>) value, depth + 1));
+                lines.addAll(renderSequence((Sequence) node, depth + 1));
             }
         });
         return lines;
     }
 
-    @SuppressWarnings("unchecked")
-    private static List<String> renderSequence(List<Object> sequence, int depth) {
+    private static List<String> renderSequence(Sequence sequence, int depth) {
         List<String> lines = new ArrayList<>();
         String indent = indent(depth);
-        for (Object item : sequence) {
-            if (item instanceof KeyValue) {
-                KeyValue kv = (KeyValue) item;
-                addComments(lines, indent, kv);
-                lines.add(indent + "- " + quoteYamlValue(kv.getValue()));
+        for (Node item : sequence.getItems()) {
+            if (item instanceof Scalar) {
+                Scalar scalar = (Scalar) item;
+                addComments(lines, indent, scalar.getComments());
+                lines.add(indent + "- " + quoteYamlValue(scalar.getValue()));
             } else {
                 // Hang the mapping's first line off the dash, hoisting any comments above it,
                 // and align the remaining lines with the first
-                List<String> itemLines = renderMap((Map<String, Object>) item, 0);
+                List<String> itemLines = renderMapping((Mapping) item, 0);
                 int first = 0;
                 while (itemLines.get(first).startsWith("#")) {
                     lines.add(indent + itemLines.get(first++));
@@ -197,8 +222,8 @@ final class PropertiesToYamlConverter {
         return lines;
     }
 
-    private static void addComments(List<String> lines, String indent, KeyValue kv) {
-        for (String comment : kv.getComments()) {
+    private static void addComments(List<String> lines, String indent, List<String> comments) {
+        for (String comment : comments) {
             lines.add(indent + "#" + comment);
         }
     }
