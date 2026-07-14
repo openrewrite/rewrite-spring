@@ -88,56 +88,61 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
-        TreeVisitor<Tree, ExecutionContext> isSpringConfigFile = new IsPossibleSpringConfigFile();
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!(tree instanceof SourceFile)) {
-                    return tree;
+                if (tree instanceof SourceFile) {
+                    SourceFile source = (SourceFile) tree;
+                    trackExistingYaml(acc, source);
+                    trackCandidate(acc, source, ctx);
+                    collectJavaReferences(acc, source);
                 }
-                SourceFile source = (SourceFile) tree;
-                Path sourcePath = source.getSourcePath();
-                String fileName = sourcePath.getFileName() == null ? "" : sourcePath.getFileName().toString();
-
-                // Track existing YAML files by path, regardless of how they were parsed
-                // (a sibling .yml that failed to parse as YAML must still prevent conversion)
-                if (YAML_NAME_PATTERN.matcher(fileName).matches()) {
-                    String stem = fileName.replaceAll("\\.(yml|yaml)$", "");
-                    Path parent = sourcePath.getParent() != null ? sourcePath.getParent() : Paths.get("");
-                    acc.existingYaml.computeIfAbsent(parent, k -> new HashMap<>()).putIfAbsent(stem, sourcePath);
-                    return tree;
-                }
-
-                // Track properties files that are candidates for conversion
-                if (tree instanceof Properties.File &&
-                        PROPERTIES_NAME_PATTERN.matcher(fileName).matches() &&
-                        isSpringConfigFile.visit(tree, ctx) != tree) {
-                    acc.toConvert.put(sourcePath, new PendingConversion(
-                            PropertiesToYamlConverter.convert((Properties.File) tree),
-                            source.getMarkers()));
-                }
-
-                // Track file names referenced from Java string literals (e.g. @PropertySource,
-                // @TestPropertySource, resource loading): such references cannot load YAML,
-                // so the referenced files must not be converted
-                if (tree instanceof JavaSourceFile) {
-                    new JavaIsoVisitor<ExecutionContext>() {
-                        @Override
-                        public J.Literal visitLiteral(J.Literal literal, ExecutionContext ctx) {
-                            if (literal.getValue() instanceof String) {
-                                Matcher reference = REFERENCED_FILE_NAME_PATTERN.matcher((String) literal.getValue());
-                                while (reference.find()) {
-                                    acc.fileNamesReferencedFromJava.add(reference.group());
-                                }
-                            }
-                            return literal;
-                        }
-                    }.visit(tree, ctx);
-                }
-
                 return tree;
             }
         };
+    }
+
+    private static void trackExistingYaml(Accumulator acc, SourceFile source) {
+        String fileName = fileName(source);
+        if (YAML_NAME_PATTERN.matcher(fileName).matches()) {
+            Path sourcePath = source.getSourcePath();
+            String stem = fileName.replaceAll("\\.(yml|yaml)$", "");
+            Path parent = sourcePath.getParent() != null ? sourcePath.getParent() : Paths.get("");
+            acc.existingYaml.computeIfAbsent(parent, k -> new HashMap<>()).putIfAbsent(stem, sourcePath);
+        }
+    }
+
+    private static void trackCandidate(Accumulator acc, SourceFile source, ExecutionContext ctx) {
+        if (source instanceof Properties.File &&
+                PROPERTIES_NAME_PATTERN.matcher(fileName(source)).matches() &&
+                new IsPossibleSpringConfigFile().visit(source, ctx) != source) {
+            acc.toConvert.put(source.getSourcePath(), new PendingConversion(
+                    PropertiesToYamlConverter.convert((Properties.File) source),
+                    source.getMarkers()));
+        }
+    }
+
+    private static void collectJavaReferences(Accumulator acc, SourceFile source) {
+        if (!(source instanceof JavaSourceFile)) {
+            return;
+        }
+        new JavaIsoVisitor<Set<String>>() {
+            @Override
+            public J.Literal visitLiteral(J.Literal literal, Set<String> referencedFileNames) {
+                if (literal.getValue() instanceof String) {
+                    Matcher reference = REFERENCED_FILE_NAME_PATTERN.matcher((String) literal.getValue());
+                    while (reference.find()) {
+                        referencedFileNames.add(reference.group());
+                    }
+                }
+                return literal;
+            }
+        }.visit(source, acc.fileNamesReferencedFromJava);
+    }
+
+    private static String fileName(SourceFile source) {
+        Path fileName = source.getSourcePath().getFileName();
+        return fileName == null ? "" : fileName.toString();
     }
 
     @Override
