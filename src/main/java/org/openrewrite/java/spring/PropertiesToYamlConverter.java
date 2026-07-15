@@ -17,20 +17,25 @@ package org.openrewrite.java.spring;
 
 import lombok.Value;
 import org.openrewrite.properties.tree.Properties;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.nodes.NodeId;
+import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.resolver.Resolver;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.yaml.snakeyaml.DumperOptions.ScalarStyle.DOUBLE_QUOTED;
 
 /**
  * Converts a parsed Spring Boot {@code .properties} file into equivalent YAML text,
@@ -306,17 +311,18 @@ final class PropertiesToYamlConverter {
                 value.startsWith("- ") || "-".equals(value) ||
                 value.startsWith("? ") || "?".equals(value) ||
                 typeChangesWhenPlain(value);
-        if (!needsQuoting) {
-            return value;
-        }
-        String escaped = value
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\t", "\\t")
-                .replace("\r", "\\r")
-                .replace("\f", "\\f");
-        return "\"" + escaped + "\"";
+        return needsQuoting ? dumpDoubleQuoted(value) : value;
+    }
+
+    private static String dumpDoubleQuoted(String value) {
+        DumperOptions options = new DumperOptions();
+        options.setSplitLines(false);
+        options.setAllowUnicode(true);
+
+        StringWriter out = new StringWriter();
+        ScalarNode node = new ScalarNode(Tag.STR, value, null, null, DOUBLE_QUOTED);
+        new Yaml(options).serialize(node, out);
+        return out.toString().trim();
     }
 
     /**
