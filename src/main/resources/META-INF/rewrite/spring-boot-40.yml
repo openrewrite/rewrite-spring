@@ -161,6 +161,8 @@ recipeList:
   - org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
   - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
 
+  - org.openrewrite.java.spring.boot4.MigrateOpenApiGeneratorToSpringBoot4
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.RenameDeprecatedStartersManagedVersions
