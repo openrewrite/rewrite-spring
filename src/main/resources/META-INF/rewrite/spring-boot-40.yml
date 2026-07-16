@@ -55,15 +55,11 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 4.0.x
-  # In Spring Boot 3 `jackson-bom.version` overrode the Jackson 2 BOM; in Spring Boot 4 it
-  # controls the Jackson 3 (`tools.jackson`) BOM while the Jackson 2 BOM is `jackson-2-bom.version`.
-  # Migrate the override so it keeps pointing at Jackson 2 rather than resolving an invalid
-  # `tools.jackson:jackson-bom` version, and so Jackson 3 dependencies stay BOM-managed.
+  # In Spring Boot 4 `jackson-bom.version` controls the Jackson 3 BOM; an existing override
+  # targets Jackson 2, so migrate it to `jackson-2-bom.version` to keep pointing at Jackson 2.
   - org.openrewrite.maven.RenamePropertyKey:
       oldKey: jackson-bom.version
       newKey: jackson-2-bom.version
-  # Drop explicit Jackson 3 versions introduced while the Jackson 3 BOM was not yet managed,
-  # so Spring Boot's dependency management controls them again.
   - org.openrewrite.maven.RemoveRedundantDependencyVersions:
       groupPattern: tools.jackson*
       onlyIfManagedVersionIs: ANY

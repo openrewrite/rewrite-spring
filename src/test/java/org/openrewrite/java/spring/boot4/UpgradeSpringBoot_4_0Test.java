@@ -245,17 +245,15 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(actual -> {
-                  assertThat(actual)
-                    .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
-                    .contains("<groupId>tools.jackson.core</groupId>")
-                    .contains("<groupId>tools.jackson.dataformat</groupId>")
-                    .doesNotContain("<version>3")
-                    .describedAs("The Spring Boot 3 jackson-bom.version override (a Jackson 2 version) should migrate to jackson-2-bom.version")
-                    .contains("<jackson-2-bom.version>2.21.1</jackson-2-bom.version>")
-                    .doesNotContain("<jackson-bom.version>");
-                  return actual;
-              })
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
+                .contains("<groupId>tools.jackson.core</groupId>")
+                .contains("<groupId>tools.jackson.dataformat</groupId>")
+                .doesNotContain("<version>3")
+                .describedAs("The Spring Boot 3 jackson-bom.version override (a Jackson 2 version) should migrate to jackson-2-bom.version")
+                .contains("<jackson-2-bom.version>2.21.1</jackson-2-bom.version>")
+                .doesNotContain("<jackson-bom.version>")
+                .actual())
             )
           )
         );
@@ -287,13 +285,11 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(actual -> {
-                  assertThat(actual)
-                    .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
-                    .contains("<groupId>tools.jackson.core</groupId>")
-                    .doesNotContain("<version>3");
-                  return actual;
-              })
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
+                .contains("<groupId>tools.jackson.core</groupId>")
+                .doesNotContain("<version>3")
+                .actual())
             )
           )
         );
