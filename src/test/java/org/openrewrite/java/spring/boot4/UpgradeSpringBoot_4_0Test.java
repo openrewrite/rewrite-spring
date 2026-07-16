@@ -212,4 +212,120 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
         );
     }
 
+    @Test
+    void jacksonBomVersionPropertyMigratedToJackson2Bom() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <jackson-bom.version>2.21.1</jackson-bom.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.fasterxml.jackson.core</groupId>
+                            <artifactId>jackson-databind</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.fasterxml.jackson.dataformat</groupId>
+                            <artifactId>jackson-dataformat-xml</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
+                .contains("<groupId>tools.jackson.core</groupId>")
+                .contains("<groupId>tools.jackson.dataformat</groupId>")
+                .doesNotContain("<version>3")
+                .describedAs("The Spring Boot 3 jackson-bom.version override (a Jackson 2 version) should migrate to jackson-2-bom.version")
+                .contains("<jackson-2-bom.version>2.21.1</jackson-2-bom.version>")
+                .doesNotContain("<jackson-bom.version>")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void jacksonDependenciesStayManagedWithoutOverrideProperty() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.fasterxml.jackson.core</groupId>
+                            <artifactId>jackson-databind</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
+                .contains("<groupId>tools.jackson.core</groupId>")
+                .doesNotContain("<version>3")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void jacksonBomVersionOverrideOnAlreadyBoot4ProjectLeftUntouched() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.0</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <jackson-bom.version>3.1.0</jackson-bom.version>
+                    </properties>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("A deliberate Jackson 3 override on an already-Spring-Boot-4 project must not be renamed to jackson-2-bom.version")
+                .contains("<jackson-bom.version>3.1.0</jackson-bom.version>")
+                .doesNotContain("jackson-2-bom.version")
+                .actual())
+            )
+          )
+        );
+    }
+
 }
