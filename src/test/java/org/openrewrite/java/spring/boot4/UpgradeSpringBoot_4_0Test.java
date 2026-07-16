@@ -295,4 +295,37 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
         );
     }
 
+    @Test
+    void jacksonBomVersionOverrideOnAlreadyBoot4ProjectLeftUntouched() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.0</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <jackson-bom.version>3.1.0</jackson-bom.version>
+                    </properties>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("A deliberate Jackson 3 override on an already-Spring-Boot-4 project must not be renamed to jackson-2-bom.version")
+                .contains("<jackson-bom.version>3.1.0</jackson-bom.version>")
+                .doesNotContain("jackson-2-bom.version")
+                .actual())
+            )
+          )
+        );
+    }
+
 }

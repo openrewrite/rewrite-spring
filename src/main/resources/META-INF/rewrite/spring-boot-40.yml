@@ -51,11 +51,13 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: spring-boot-maven-plugin
       newVersion: 4.0.x
+  # Must run while still on Spring Boot 3 so the precondition can distinguish a Boot 3
+  # `jackson-bom.version` override (a Jackson 2 version) from a deliberate Boot 4 one.
+  - org.openrewrite.java.spring.boot4.MigrateJacksonBomProperty
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-parent
       newVersion: 4.0.x
-  - org.openrewrite.java.spring.boot4.MigrateJacksonBomProperty
   - org.openrewrite.maven.RemoveRedundantDependencyVersions:
       groupPattern: tools.jackson*
       onlyIfManagedVersionIs: ANY
@@ -195,3 +197,22 @@ recipeList:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-aop
       newArtifactId: spring-boot-starter-aspectj
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.MigrateJacksonBomProperty
+displayName: Migrate a Spring Boot 3 `jackson-bom.version` override to `jackson-2-bom.version`
+description: >-
+  In Spring Boot 4 `jackson-bom.version` controls the Jackson 3 (`tools.jackson`) BOM, while the Jackson 2 BOM is
+  controlled by `jackson-2-bom.version`. A Spring Boot 3 override pins a Jackson 2 version, so rename it to keep
+  managing Jackson 2. Gated on a Spring Boot 3 parent so a deliberate Jackson 3 override on an already-Spring-Boot-4
+  project is left untouched.
+preconditions:
+  - org.openrewrite.maven.search.ParentPomInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-parent
+      version: 3.x
+recipeList:
+  - org.openrewrite.maven.RenamePropertyKey:
+      oldKey: jackson-bom.version
+      newKey: jackson-2-bom.version
