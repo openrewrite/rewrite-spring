@@ -35,6 +35,11 @@ recipeList:
       artifactId: spring-boot-dependencies
       newVersion: 2.7.x
       overrideManagedVersion: true
+  # Spring Boot 2.7 switched to importing org.mockito:mockito-bom:${mockito.version}; a stale
+  # mockito.version override predating the mockito-bom (< 4.3.0) resolves to a non-existent POM,
+  # which breaks dependency resolution and silently stalls later upgrades such as Spring Cloud.
+  - org.openrewrite.maven.RemoveProperty:
+      propertyName: mockito.version
   - org.openrewrite.maven.UpgradePluginVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-maven-plugin
