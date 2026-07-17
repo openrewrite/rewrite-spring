@@ -35,11 +35,7 @@ recipeList:
       artifactId: spring-boot-dependencies
       newVersion: 2.7.x
       overrideManagedVersion: true
-  # Spring Boot 2.7 switched to importing org.mockito:mockito-bom:${mockito.version}; a stale
-  # mockito.version override predating the mockito-bom (< 4.3.0) resolves to a non-existent POM,
-  # which breaks dependency resolution and silently stalls later upgrades such as Spring Cloud.
-  - org.openrewrite.maven.RemoveProperty:
-      propertyName: mockito.version
+  - org.openrewrite.java.spring.boot2.RemoveStaleMockitoVersionProperty
   - org.openrewrite.maven.UpgradePluginVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-maven-plugin
@@ -85,6 +81,24 @@ recipeList:
       oldValue: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
       newValue: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_7
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.RemoveStaleMockitoVersionProperty
+displayName: Remove stale `mockito.version` property predating the Mockito BOM
+description: >-
+  Spring Boot 2.7 switched to importing `org.mockito:mockito-bom:${mockito.version}`. A stale
+  `mockito.version` override predating the Mockito BOM (before 4.3.0) resolves to a non-existent POM,
+  which breaks dependency resolution and silently stalls later upgrades such as Spring Cloud. Only
+  remove the property when it still points at such an older Mockito version, so that deliberate
+  overrides on newer versions are preserved when this recipe is chained into later Spring Boot upgrades.
+preconditions:
+  - org.openrewrite.maven.search.FindProperties:
+      propertyPattern: mockito\.version
+      valuePattern: ([0-3]\..*)|(4\.[0-2](\..*)?)
+recipeList:
+  - org.openrewrite.maven.RemoveProperty:
+      propertyName: mockito.version
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
