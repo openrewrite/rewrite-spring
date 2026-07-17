@@ -61,6 +61,11 @@ recipeList:
   - org.openrewrite.maven.RemoveRedundantDependencyVersions:
       groupPattern: tools.jackson*
       onlyIfManagedVersionIs: ANY
+  # Drop explicit dependency versions that the Spring Boot 4 BOM now manages at the same or a
+  # newer version, along with any version property left unused. `GTE` keeps overrides that are
+  # newer than the managed version, so intentional forward pins are preserved.
+  - org.openrewrite.maven.RemoveRedundantDependencyVersions:
+      onlyIfManagedVersionIs: GTE
   - org.openrewrite.gradle.plugins.UpgradePluginVersion:
       pluginIdPattern: org.springframework.boot
       newVersion: 4.0.x
