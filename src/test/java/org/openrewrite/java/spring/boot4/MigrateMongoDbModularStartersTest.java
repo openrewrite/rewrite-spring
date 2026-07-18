@@ -196,10 +196,9 @@ class MigrateMongoDbModularStartersTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(pom -> assertThat(pom)
+              spec -> spec.afterRecipe(pom -> assertThat(pom.printAll())
                 .doesNotContain("spring-boot-starter-data-mongodb-test")
-                .doesNotContain("spring-boot-starter-data-mongodb-reactive-test")
-                .actual())
+                .doesNotContain("spring-boot-starter-data-mongodb-reactive-test"))
             )
           )
         );
@@ -212,8 +211,8 @@ class MigrateMongoDbModularStartersTest implements RewriteTest {
             """
               import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
               import org.springframework.boot.autoconfigure.data.mongo.MongoReactiveDataAutoConfiguration;
-              import org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration;
               import org.springframework.boot.autoconfigure.data.mongo.MongoReactiveRepositoriesAutoConfiguration;
+              import org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration;
 
               class MongoConfigurations {
                   Class<?>[] configurations = {
@@ -227,8 +226,8 @@ class MigrateMongoDbModularStartersTest implements RewriteTest {
             """
               import org.springframework.boot.data.mongodb.autoconfigure.DataMongoAutoConfiguration;
               import org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveAutoConfiguration;
-              import org.springframework.boot.data.mongodb.autoconfigure.DataMongoRepositoriesAutoConfiguration;
               import org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveRepositoriesAutoConfiguration;
+              import org.springframework.boot.data.mongodb.autoconfigure.DataMongoRepositoriesAutoConfiguration;
 
               class MongoConfigurations {
                   Class<?>[] configurations = {
