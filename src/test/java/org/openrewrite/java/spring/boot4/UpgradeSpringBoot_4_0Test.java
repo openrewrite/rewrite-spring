@@ -212,4 +212,254 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
         );
     }
 
+    @Test
+    void jacksonBomVersionPropertyMigratedToJackson2Bom() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <jackson-bom.version>2.21.1</jackson-bom.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.fasterxml.jackson.core</groupId>
+                            <artifactId>jackson-databind</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.fasterxml.jackson.dataformat</groupId>
+                            <artifactId>jackson-dataformat-xml</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
+                .contains("<groupId>tools.jackson.core</groupId>")
+                .contains("<groupId>tools.jackson.dataformat</groupId>")
+                .doesNotContain("<version>3")
+                .describedAs("The Spring Boot 3 jackson-bom.version override (a Jackson 2 version) should migrate to jackson-2-bom.version")
+                .contains("<jackson-2-bom.version>2.21.1</jackson-2-bom.version>")
+                .doesNotContain("<jackson-bom.version>")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void jacksonDependenciesStayManagedWithoutOverrideProperty() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.fasterxml.jackson.core</groupId>
+                            <artifactId>jackson-databind</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
+                .contains("<groupId>tools.jackson.core</groupId>")
+                .doesNotContain("<version>3")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void jacksonBomVersionOverrideOnAlreadyBoot4ProjectLeftUntouched() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.0</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <jackson-bom.version>3.1.0</jackson-bom.version>
+                    </properties>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("A deliberate Jackson 3 override on an already-Spring-Boot-4 project must not be renamed to jackson-2-bom.version")
+                .contains("<jackson-bom.version>3.1.0</jackson-bom.version>")
+                .doesNotContain("jackson-2-bom.version")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void removeOverrideOvertakenByBoot4Bom() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>redundant-version-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <commons-lang3-override.version>3.18.0</commons-lang3-override.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.commons</groupId>
+                            <artifactId>commons-lang3</artifactId>
+                            <version>${commons-lang3-override.version}</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("A commons-lang3 override newer than the Boot 3.5 managed version (3.17.0) but " +
+                             "older than the Boot 4 managed version (3.19.0) should be removed once on the Boot 4 BOM")
+                .contains("<artifactId>commons-lang3</artifactId>")
+                .doesNotContain("<version>${commons-lang3-override.version}</version>")
+                .describedAs("The now-unused version property should also be removed")
+                .doesNotContain("commons-lang3-override.version")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void preserveDependencyVersionNewerThanBoot4Bom() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>newer-override-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.google.code.gson</groupId>
+                            <artifactId>gson</artifactId>
+                            <version>2.14.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("A gson override newer than the Spring Boot 4 managed version must be preserved")
+                .contains("<version>2.14.0</version>")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void removeRedundantVersionAlreadyOnBoot4() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.7</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>redundant-version-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <commons-lang3-override.version>3.18.0</commons-lang3-override.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.commons</groupId>
+                            <artifactId>commons-lang3</artifactId>
+                            <version>${commons-lang3-override.version}</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.7</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>redundant-version-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.commons</groupId>
+                            <artifactId>commons-lang3</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
+          )
+        );
+    }
+
 }

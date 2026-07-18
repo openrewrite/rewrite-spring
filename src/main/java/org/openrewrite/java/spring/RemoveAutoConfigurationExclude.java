@@ -1,0 +1,141 @@
+/*
+ * Copyright 2026 the original author or authors.
+ * <p>
+ * Licensed under the Moderne Source Available License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://docs.moderne.io/licensing/moderne-source-available-license
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.openrewrite.java.spring;
+
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Option;
+import org.openrewrite.Preconditions;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
+import org.openrewrite.java.AnnotationMatcher;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JContainer;
+import org.openrewrite.java.tree.JRightPadded;
+import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.List;
+
+@Value
+@EqualsAndHashCode(callSuper = false)
+public class RemoveAutoConfigurationExclude extends Recipe {
+
+    private static final String SPRING_BOOT_APPLICATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
+    private static final String ENABLE_AUTO_CONFIGURATION = "org.springframework.boot.autoconfigure.EnableAutoConfiguration";
+    // `@SpringBootApplication` is meta-annotated with `@EnableAutoConfiguration`, so meta-annotation
+    // matching lets a single matcher cover both annotations.
+    private static final AnnotationMatcher EAC_MATCHER = new AnnotationMatcher(ENABLE_AUTO_CONFIGURATION, true);
+
+    @Option(displayName = "Fully qualified name",
+            description = "The fully qualified name of the auto-configuration class to remove from `exclude` and `excludeName` attributes.",
+            example = "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration")
+    String fullyQualifiedName;
+
+    String displayName = "Remove auto-configuration exclude";
+
+    String description = "Remove a given auto-configuration class from the `exclude` and `excludeName` attributes of " +
+            "`@SpringBootApplication` and `@EnableAutoConfiguration` annotations. When removing the last entry, " +
+            "the attribute itself is removed.";
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(Preconditions.or(
+                        new UsesType<>(SPRING_BOOT_APPLICATION, true),
+                        new UsesType<>(ENABLE_AUTO_CONFIGURATION, true)),
+                new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
+                        J.Annotation a = super.visitAnnotation(annotation, ctx);
+                        if (!EAC_MATCHER.matches(a)) {
+                            return a;
+                        }
+                        maybeRemoveImport(fullyQualifiedName);
+
+                        return a.withArguments(ListUtils.map(a.getArguments(), it -> {
+                            if (!(it instanceof J.Assignment)) {
+                                return it;
+                            }
+                            J.Assignment as = (J.Assignment) it;
+                            if (as.getAssignment() == null || !(as.getVariable() instanceof J.Identifier)) {
+                                return it;
+                            }
+                            String attribute = ((J.Identifier) as.getVariable()).getSimpleName();
+                            if ("exclude".equals(attribute)) {
+                                return trimExclusion(it, as, ctx, this::isTargetClassReference);
+                            }
+                            if ("excludeName".equals(attribute)) {
+                                return trimExclusion(it, as, ctx, this::isTargetNameLiteral);
+                            }
+                            return it;
+                        }));
+                    }
+
+                    private Expression trimExclusion(Expression original, J.Assignment as, ExecutionContext ctx,
+                                                    java.util.function.Predicate<Expression> matches) {
+                        if (matches.test(as.getAssignment())) {
+                            return null;
+                        }
+                        if (as.getAssignment() instanceof J.NewArray) {
+                            J.NewArray array = (J.NewArray) as.getAssignment();
+                            JContainer<Expression> initContainer = array.getPadding().getInitializer();
+                            if (initContainer == null) {
+                                return original;
+                            }
+                            List<JRightPadded<Expression>> padded = initContainer.getPadding().getElements();
+                            if (padded.isEmpty()) {
+                                return original;
+                            }
+                            List<JRightPadded<Expression>> newPadded = ListUtils.map(padded,
+                                    rp -> matches.test(rp.getElement()) ? null : rp);
+                            //noinspection DataFlowIssue
+                            if (newPadded.isEmpty()) {
+                                return null;
+                            }
+                            if (newPadded.size() == padded.size()) {
+                                return original;
+                            }
+                            // Preserve inner-brace whitespace: the first surviving element already carries
+                            // the leading space after `{`, but if it wasn't originally first we splice in the
+                            // original first element's prefix. The last surviving element's trailing space
+                            // (before `}`) comes from the original last element's JRightPadded.after.
+                            JRightPadded<Expression> firstOrig = padded.get(0);
+                            JRightPadded<Expression> lastOrig = padded.get(padded.size() - 1);
+                            newPadded = ListUtils.mapFirst(newPadded,
+                                    rp -> rp.withElement(rp.getElement().withPrefix(firstOrig.getElement().getPrefix())));
+                            newPadded = ListUtils.mapLast(newPadded, rp -> rp.withAfter(lastOrig.getAfter()));
+                            return as.withAssignment(array.getPadding().withInitializer(
+                                    initContainer.getPadding().withElements(newPadded)));
+                        }
+                        return original;
+                    }
+
+                    private boolean isTargetClassReference(Expression expr) {
+                        return expr instanceof J.FieldAccess &&
+                                TypeUtils.isAssignableTo(fullyQualifiedName, ((J.FieldAccess) expr).getTarget().getType());
+                    }
+
+                    private boolean isTargetNameLiteral(Expression expr) {
+                        return expr instanceof J.Literal &&
+                                fullyQualifiedName.equals(((J.Literal) expr).getValue());
+                    }
+                });
+    }
+}
