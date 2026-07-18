@@ -524,6 +524,8 @@ preconditions:
       artifactId: spring-boot-starter-data-mongodb
   - org.openrewrite.Singleton
 recipeList:
+  # This recipe is independently invocable, so check both the pre- and post-`ChangePackage`
+  # annotation package to catch usage whether the package migration has already run.
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-data-mongodb-test
@@ -552,6 +554,8 @@ preconditions:
       artifactId: spring-boot-starter-data-mongodb-reactive
   - org.openrewrite.Singleton
 recipeList:
+  # This recipe is independently invocable, so check both the pre- and post-`ChangePackage`
+  # annotation package to catch usage whether the package migration has already run.
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-data-mongodb-reactive-test

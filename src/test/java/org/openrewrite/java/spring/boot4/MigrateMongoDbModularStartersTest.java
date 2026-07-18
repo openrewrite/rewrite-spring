@@ -204,6 +204,35 @@ class MigrateMongoDbModularStartersTest implements RewriteTest {
         );
     }
 
+
+    @Test
+    void doNotAddReactiveMongoDbTestStarterWithoutMongoDbTestSliceUsage() {
+      rewriteRun(
+        mavenProject("project",
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>org.example</groupId>
+                  <artifactId>example</artifactId>
+                  <version>1.0-SNAPSHOT</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
+                          <version>3.5.14</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """,
+            spec -> spec.afterRecipe(pom -> assertThat(pom.printAll())
+              .doesNotContain("spring-boot-starter-data-mongodb-test")
+              .doesNotContain("spring-boot-starter-data-mongodb-reactive-test"))
+          )
+        )
+      );
+    }
+
     @Test
     void migrateMongoDbAutoConfigurationTypes() {
         rewriteRun(
