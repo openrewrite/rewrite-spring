@@ -167,6 +167,7 @@ recipeList:
   - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
 
   - org.openrewrite.java.spring.boot4.MigrateOpenApiGeneratorToSpringBoot4
+  - org.openrewrite.java.spring.boot4.MigrateJsonschema2PojoToSpringBoot4
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
