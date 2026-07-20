@@ -1615,6 +1615,31 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.RemoveStaleMockitoVersionProperty
+examples:
+- description: '`RemoveStaleMockitoVersionPropertyTest#removeStaleMockitoVersion`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>fooservice</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <properties>
+              <mockito.version>2.18.3</mockito.version>
+          </properties>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>fooservice</artifactId>
+          <version>1.0-SNAPSHOT</version>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
 examples:
 - description: '`ReplaceDeprecatedEnvironmentTestUtilsTest#givenHasStringVariableWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties`'
@@ -3316,6 +3341,116 @@ examples:
           WebTestClient webTestClient;
       }
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.MigrateJsonschema2PojoToSpringBoot4
+examples:
+- description: '`MigrateJsonschema2PojoToSpringBoot4Test#migrateJacksonAndJakartaValidation`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.jsonschema2pojo</groupId>
+                      <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+                      <version>1.3.0</version>
+                      <configuration>
+                          <annotationStyle>jackson2</annotationStyle>
+                          <includeJsr303Annotations>true</includeJsr303Annotations>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.jsonschema2pojo</groupId>
+                      <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+                      <version>1.3.0</version>
+                      <configuration>
+                          <annotationStyle>jackson3</annotationStyle>
+                          <includeJsr303Annotations>true</includeJsr303Annotations>
+                          <useJakartaValidation>true</useJakartaValidation>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.MigrateOpenApiGeneratorToSpringBoot4
+examples:
+- description: '`MigrateOpenApiGeneratorToSpringBoot4Test#replaceUseSpringBoot3`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.openapitools</groupId>
+                      <artifactId>openapi-generator-maven-plugin</artifactId>
+                      <version>7.16.0</version>
+                      <executions>
+                          <execution>
+                              <configuration>
+                                  <generatorName>spring</generatorName>
+                                  <configOptions>
+                                      <useSpringBoot3>true</useSpringBoot3>
+                                  </configOptions>
+                              </configuration>
+                          </execution>
+                      </executions>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.openapitools</groupId>
+                      <artifactId>openapi-generator-maven-plugin</artifactId>
+                      <version>7.16.0</version>
+                      <executions>
+                          <execution>
+                              <configuration>
+                                  <generatorName>spring</generatorName>
+                                  <configOptions>
+                                      <useSpringBoot4>true</useSpringBoot4>
+                                      <useJackson3>true</useJackson3>
+                                  </configOptions>
+                              </configuration>
+                          </execution>
+                      </executions>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    path: pom.xml
+    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.MigrateToModularStarters
