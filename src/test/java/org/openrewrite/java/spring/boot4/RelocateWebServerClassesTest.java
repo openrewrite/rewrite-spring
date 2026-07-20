@@ -83,6 +83,101 @@ class RelocateWebServerClassesTest implements RewriteTest {
     }
 
     @Test
+    void movesTomcatServletAndReactiveFactories() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.web.embedded.tomcat.TomcatReactiveWebServerFactory;
+              import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+
+              class A {
+                  TomcatServletWebServerFactory servlet() {
+                      return new TomcatServletWebServerFactory();
+                  }
+
+                  TomcatReactiveWebServerFactory reactive() {
+                      return new TomcatReactiveWebServerFactory();
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.tomcat.reactive.TomcatReactiveWebServerFactory;
+              import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
+
+              class A {
+                  TomcatServletWebServerFactory servlet() {
+                      return new TomcatServletWebServerFactory();
+                  }
+
+                  TomcatReactiveWebServerFactory reactive() {
+                      return new TomcatReactiveWebServerFactory();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void movesJettyServletAndReactiveFactories() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.web.embedded.jetty.JettyReactiveWebServerFactory;
+              import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
+
+              class A {
+                  JettyServletWebServerFactory servlet() {
+                      return new JettyServletWebServerFactory();
+                  }
+
+                  JettyReactiveWebServerFactory reactive() {
+                      return new JettyReactiveWebServerFactory();
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.jetty.reactive.JettyReactiveWebServerFactory;
+              import org.springframework.boot.jetty.servlet.JettyServletWebServerFactory;
+
+              class A {
+                  JettyServletWebServerFactory servlet() {
+                      return new JettyServletWebServerFactory();
+                  }
+
+                  JettyReactiveWebServerFactory reactive() {
+                      return new JettyReactiveWebServerFactory();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void extendedFactoryIsRelocated() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+
+              class CustomFactory extends TomcatServletWebServerFactory {
+              }
+              """,
+            """
+              import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
+
+              class CustomFactory extends TomcatServletWebServerFactory {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void movesServletWebServerApplicationContext() {
         rewriteRun(
           //language=java

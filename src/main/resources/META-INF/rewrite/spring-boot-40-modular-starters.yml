@@ -595,9 +595,10 @@ displayName: Relocate Spring Boot web server classes to their Spring Boot 4.0 pa
 description: >-
   Spring Boot 4.0 relocated the embedded web server (Tomcat, Jetty) and web server
   application context classes into dedicated modular packages. This recipe updates
-  references to the relocated classes' new fully-qualified names. Classes that were
-  removed (Undertow) or merged (the servlet/reactive `WebServerFactory` variants into a
-  single `WebServerFactory` per server) are intentionally not handled here.
+  references to the relocated classes' new fully-qualified names, including the servlet
+  and reactive `WebServerFactory` variants, which moved into `servlet` and `reactive`
+  subpackages. Undertow support was removed in Spring Boot 4.0 and is intentionally not
+  handled here.
 tags:
   - spring
   - boot
@@ -642,6 +643,15 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatWebServer
       newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatWebServer
+  # The servlet and reactive factories moved one level deeper, into dedicated subpackages.
+  # `org.springframework.boot.tomcat.TomcatWebServerFactory` is a new shared base class, not
+  # a replacement for either of them.
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatReactiveWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.reactive.TomcatReactiveWebServerFactory
   # Embedded Jetty: org.springframework.boot.web.embedded.jetty -> org.springframework.boot.jetty
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.ConfigurableJettyWebServerFactory
@@ -658,6 +668,13 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.SslServerCustomizer
       newFullyQualifiedTypeName: org.springframework.boot.jetty.SslServerCustomizer
+  # As with Tomcat, the servlet and reactive factories moved into dedicated subpackages.
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.servlet.JettyServletWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyReactiveWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.reactive.JettyReactiveWebServerFactory
   # Servlet context: org.springframework.boot.web.servlet.context -> org.springframework.boot.web.server.servlet.context
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext
