@@ -50,6 +50,8 @@ recipeList:
       version: 4.0.x
       scope: test
       onlyIfUsing: org.springframework.boot.test.autoconfigure.orm.jpa.*
+  - org.openrewrite.java.spring.boot4.AddSpringBootStarterDataMongoDbTest
+  - org.openrewrite.java.spring.boot4.AddSpringBootStarterDataMongoDbReactiveTest
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-jdbc-test
@@ -257,9 +259,43 @@ recipeList:
       newPackageName: org.springframework.boot.graphql.autoconfigure
       recursive: true
   # spring-boot-data-mongodb
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.mongodb.autoconfigure.DataMongoAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.mongo.MongoReactiveDataAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.mongodb.autoconfigure.DataMongoRepositoriesAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.mongo.MongoReactiveRepositoriesAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveRepositoriesAutoConfiguration
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.data.mongo
+      newPackageName: org.springframework.boot.data.mongodb.autoconfigure
+      recursive: true
+  # spring-boot-data-mongodb-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.data.mongo
+      newPackageName: org.springframework.boot.data.mongodb.test.autoconfigure
+      recursive: true
+  # spring-boot-mongodb
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.mongo
       newPackageName: org.springframework.boot.mongodb.autoconfigure
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.autoconfigure.data.mongo
+      newPackageName: org.springframework.boot.mongodb.autoconfigure.health
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.autoconfigure.metrics.mongo
+      newPackageName: org.springframework.boot.mongodb.autoconfigure.metrics
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.data.mongo
+      newPackageName: org.springframework.boot.mongodb.health
       recursive: true
   # spring-boot-kafka
   - org.openrewrite.java.ChangeType:
@@ -474,6 +510,67 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
       newFullyQualifiedTypeName: org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.AddSpringBootStarterDataMongoDbTest
+displayName: Add `spring-boot-starter-data-mongodb-test` for imperative MongoDB tests
+description: >-
+  Adds the dedicated Spring Boot 4.0 imperative Spring Data MongoDB test starter when the
+  application directly uses the imperative Spring Data MongoDB starter and MongoDB test slices.
+preconditions:
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb
+  - org.openrewrite.Singleton
+recipeList:
+  # This recipe is independently invocable, so check both the pre- and post-`ChangePackage`
+  # annotation package to catch usage whether the package migration has already run.
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.data.mongo.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.data.mongodb.test.autoconfigure.*
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.AddSpringBootStarterDataMongoDbReactiveTest
+displayName: Add `spring-boot-starter-data-mongodb-reactive-test` for reactive MongoDB tests
+description: >-
+  Adds the dedicated Spring Boot 4.0 reactive Spring Data MongoDB test starter when the
+  application directly uses the reactive Spring Data MongoDB starter and MongoDB test slices.
+preconditions:
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-reactive
+  - org.openrewrite.Singleton
+recipeList:
+  # This recipe is independently invocable, so check both the pre- and post-`ChangePackage`
+  # annotation package to catch usage whether the package migration has already run.
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-reactive-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.data.mongo.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-reactive-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.data.mongodb.test.autoconfigure.*
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway

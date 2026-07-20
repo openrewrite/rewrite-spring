@@ -782,8 +782,8 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/moderneinc/customer-requests/issues/2630")
+    @Test
     void annotationBetweenModifierAndType() {
         //language=java
         rewriteRun(
@@ -819,8 +819,8 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/moderneinc/customer-requests/issues/2630")
+    @Test
     void keepFQNsInUse() {
         rewriteRun(
           recipeSpec -> recipeSpec.recipe(toRecipe(() -> new AutowiredFieldIntoConstructorParameterVisitor("MyConfig", "converter")))
@@ -852,8 +852,8 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
         );
     }
 
-    @Test
     @Issue("https://github.com/moderneinc/customer-requests/issues/2630")
+    @Test
     void promotesAutowiredFieldIntoExistingConstructor() {
         //language=java
         rewriteRun(
