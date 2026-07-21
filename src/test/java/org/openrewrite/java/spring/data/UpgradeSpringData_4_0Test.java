@@ -21,7 +21,10 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.maven.Assertions.pomXml;
 
 class UpgradeSpringData_4_0Test implements RewriteTest {
 
@@ -54,6 +57,36 @@ class UpgradeSpringData_4_0Test implements RewriteTest {
                   void customQuery();
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void includesSpringDataMongoDb5Migration() {
+        rewriteRun(
+          mavenProject("mongodb",
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>example</artifactId>
+                    <version>1.0.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.data</groupId>
+                            <artifactId>spring-data-mongodb</artifactId>
+                            <version>4.5.13</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual ->
+                assertThat(actual)
+                  .containsPattern("<artifactId>spring-data-mongodb</artifactId>\\s*<version>5\\.0\\.\\d+</version>")
+                  .actual())
+            ),
+            java("class Application {}")
           )
         );
     }
