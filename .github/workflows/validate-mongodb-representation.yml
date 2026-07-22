@@ -1,65 +1,35 @@
 ---
-# Temporary workflow file; removed after focused validation.
-name: validate MongoDB representation recipe
+# Temporary workflow file; removed after generated metadata is committed.
+name: generate MongoDB representation recipe metadata
 
 on:
-  pull_request:
-    branches:
-      - migrate-spring-data-mongodb-5
   push:
     branches:
       - detect-mongodb-value-representations
-  workflow_dispatch: {}
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  compile:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-      - name: Compile main sources
-        run: ./gradlew --console=plain --stacktrace --no-daemon compileJava
-      - name: Compile test sources
-        run: ./gradlew --console=plain --stacktrace --no-daemon compileTestJava
-
-  focused-tests:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-      - name: Run focused tests
-        run: >-
-          ./gradlew --console=plain --stacktrace --no-daemon test
-          --tests org.openrewrite.java.spring.data.FindMissingMongoValueRepresentationTest
-          --tests org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0RepresentationTest
-
   recipe-metadata:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: detect-mongodb-value-representations
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v5
       - name: Generate recipe metadata
         run: ./gradlew --console=plain --stacktrace --no-daemon recipeCsvGenerate
-      - name: Upload generated recipe metadata
-        uses: actions/upload-artifact@v7
-        with:
-          name: generated-recipes-csv
-          path: src/main/resources/META-INF/rewrite/recipes.csv
+      - name: Commit generated recipe metadata
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/main/resources/META-INF/rewrite/recipes.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Update generated recipe metadata"
+            git push origin HEAD:detect-mongodb-value-representations
+          fi
