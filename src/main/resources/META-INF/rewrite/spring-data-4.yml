@@ -33,7 +33,8 @@ name: org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0
 displayName: Migrate to Spring Data MongoDB 5.0
 description: >-
   Align explicitly versioned Spring Data MongoDB and supported MongoDB JVM driver
-  dependencies with Spring Data MongoDB 5.0. Managed, versionless dependencies remain managed.
+  dependencies with Spring Data MongoDB 5.0, and identify persisted values that require
+  an explicit storage representation. Managed, versionless dependencies remain managed.
 preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.data
@@ -85,3 +86,4 @@ recipeList:
       artifactId: mongodb-driver-legacy
       newVersion: 5.6.x
       overrideManagedVersion: false
+  - org.openrewrite.java.spring.data.FindMissingMongoValueRepresentation
