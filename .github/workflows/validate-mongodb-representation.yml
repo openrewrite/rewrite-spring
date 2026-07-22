@@ -2,6 +2,9 @@
 name: validate MongoDB representation recipe
 
 on:
+  pull_request:
+    branches:
+      - migrate-spring-data-mongodb-5
   push:
     branches:
       - detect-mongodb-value-representations
@@ -11,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  compile:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -21,10 +24,41 @@ jobs:
           java-version: 21
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
-      - name: Compile main and test sources
-        run: ./gradlew --console=plain --stacktrace --no-daemon compileJava compileTestJava
+      - name: Compile main sources
+        run: ./gradlew --console=plain --stacktrace --no-daemon compileJava
+      - name: Compile test sources
+        run: ./gradlew --console=plain --stacktrace --no-daemon compileTestJava
+
+  focused-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
       - name: Run focused tests
         run: >-
           ./gradlew --console=plain --stacktrace --no-daemon test
           --tests org.openrewrite.java.spring.data.FindMissingMongoValueRepresentationTest
           --tests org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0RepresentationTest
+
+  recipe-metadata:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+      - name: Generate recipe metadata
+        run: ./gradlew --console=plain --stacktrace --no-daemon recipeCsvGenerate
+      - name: Upload generated recipe metadata
+        uses: actions/upload-artifact@v7
+        with:
+          name: generated-recipes-csv
+          path: src/main/resources/META-INF/rewrite/recipes.csv
