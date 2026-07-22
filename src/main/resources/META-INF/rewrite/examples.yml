@@ -3455,6 +3455,39 @@ examples:
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.MigrateToModularStarters
 examples:
+- description: '`MigrateMongoDbModularStartersTest#addImperativeMongoDbTestStarter`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+
+      @DataMongoTest
+      class RepositoryTest {
+      }
+    after: |
+      import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest;
+
+      @DataMongoTest
+      class RepositoryTest {
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>org.example</groupId>
+          <artifactId>example</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-data-mongodb</artifactId>
+                  <version>3.5.14</version>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
 - description: '`MigrateToModularStartersTest#migrateLiquibaseToStarterInMaven`'
   sources:
   - before: |
@@ -3540,6 +3573,58 @@ examples:
       class Foo {}
       class Bar {}
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0
+examples:
+- description: '`UpgradeSpringBoot_4_0Test#removeRedundantVersionAlreadyOnBoot4`'
+  sources:
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <parent>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-parent</artifactId>
+              <version>4.0.7</version>
+              <relativePath/>
+          </parent>
+          <groupId>com.example</groupId>
+          <artifactId>redundant-version-app</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <properties>
+              <commons-lang3-override.version>3.18.0</commons-lang3-override.version>
+          </properties>
+          <dependencies>
+              <dependency>
+                  <groupId>org.apache.commons</groupId>
+                  <artifactId>commons-lang3</artifactId>
+                  <version>${commons-lang3-override.version}</version>
+              </dependency>
+          </dependencies>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <parent>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-parent</artifactId>
+              <version>4.0.7</version>
+              <relativePath/>
+          </parent>
+          <groupId>com.example</groupId>
+          <artifactId>redundant-version-app</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.apache.commons</groupId>
+                  <artifactId>commons-lang3</artifactId>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth
