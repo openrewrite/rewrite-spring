@@ -675,32 +675,10 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyReactiveWebServerFactory
       newFullyQualifiedTypeName: org.springframework.boot.jetty.reactive.JettyReactiveWebServerFactory
-  # Servlet context: org.springframework.boot.web.servlet.context -> org.springframework.boot.web.server.servlet.context
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext
-      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.AnnotationConfigServletWebServerApplicationContext
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext
-      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.ServletWebServerApplicationContextFactory
-      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContextFactory
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent
-      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.ServletWebServerInitializedEvent
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.context.XmlServletWebServerApplicationContext
-      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.context.XmlServletWebServerApplicationContext
-  # Reactive context: org.springframework.boot.web.reactive.context -> org.springframework.boot.web.server.reactive.context
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.reactive.context.AnnotationConfigReactiveWebServerApplicationContext
-      newFullyQualifiedTypeName: org.springframework.boot.web.server.reactive.context.AnnotationConfigReactiveWebServerApplicationContext
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContext
-      newFullyQualifiedTypeName: org.springframework.boot.web.server.reactive.context.ReactiveWebServerApplicationContext
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContextFactory
-      newFullyQualifiedTypeName: org.springframework.boot.web.server.reactive.context.ReactiveWebServerApplicationContextFactory
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.web.reactive.context.ReactiveWebServerInitializedEvent
-      newFullyQualifiedTypeName: org.springframework.boot.web.server.reactive.context.ReactiveWebServerInitializedEvent
+  # Servlet and reactive application context packages moved wholesale under web.server.
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.web.servlet.context
+      newPackageName: org.springframework.boot.web.server.servlet.context
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.web.reactive.context
+      newPackageName: org.springframework.boot.web.server.reactive.context
