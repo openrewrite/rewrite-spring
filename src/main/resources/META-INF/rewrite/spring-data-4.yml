@@ -25,3 +25,63 @@ preconditions:
   - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.data.UpgradeSpringData_3_4
+  - org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0
+displayName: Migrate to Spring Data MongoDB 5.0
+description: >-
+  Align explicitly versioned Spring Data MongoDB and supported MongoDB JVM driver
+  dependencies with Spring Data MongoDB 5.0. Managed, versionless dependencies remain managed.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.data
+      artifactIdPattern: spring-data-mongodb
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.data
+      artifactId: spring-data-mongodb
+      newVersion: 5.0.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mongodb
+      artifactId: mongodb-driver-bom
+      newVersion: 5.6.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mongodb
+      artifactId: mongodb-driver-core
+      newVersion: 5.6.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mongodb
+      artifactId: mongodb-driver-sync
+      newVersion: 5.6.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mongodb
+      artifactId: mongodb-driver-reactivestreams
+      newVersion: 5.6.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mongodb
+      artifactId: mongodb-crypt
+      newVersion: 5.6.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mongodb
+      artifactId: bson
+      newVersion: 5.6.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mongodb
+      artifactId: bson-record-codec
+      newVersion: 5.6.x
+      overrideManagedVersion: false
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.mongodb
+      artifactId: mongodb-driver-legacy
+      newVersion: 5.6.x
+      overrideManagedVersion: false
