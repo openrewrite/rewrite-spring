@@ -142,12 +142,10 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                     password: devpassword
                     url: jdbc:mysql://devserver
                     driver-class-name: com.mysql.jdbc.Driver
-
                   jpa:
                     hibernate:
                       ddl-auto: update
                     show-sql: true
-
                 logging:
                   level:
                     root: DEBUG
@@ -183,7 +181,6 @@ class SeparateApplicationYamlByProfileTest implements RewriteTest {
                 """,
               """
                 existing: property
-
                 name: dev
                 """,
               spec -> spec.path("application-dev.yml").noTrim()

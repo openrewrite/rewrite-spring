@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.data;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -32,6 +33,7 @@ class UpgradeSpringData_4_0Test implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(), "spring-data-jpa-3.4.7"));
     }
 
+    @DocumentExample
     @Test
     void chainsSpringData34Migration() {
         rewriteRun(
