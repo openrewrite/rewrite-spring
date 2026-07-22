@@ -6,7 +6,7 @@ plugins {
 }
 
 develocity {
-    server = "https://ge.openrewrite.org/"
+    server = "https://community.develocity.cloud/"
 
     val isCiServer = System.getenv("CI")?.equals("true") ?: false
     val accessKey = System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY")
