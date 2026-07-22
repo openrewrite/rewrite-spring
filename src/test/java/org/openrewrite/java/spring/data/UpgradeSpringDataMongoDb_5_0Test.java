@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import org.assertj.core.api.AbstractStringAssert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -29,11 +30,11 @@ import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-class MigrateSpringDataMongoDb5Test implements RewriteTest {
+class UpgradeSpringDataMongoDb_5_0Test implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.data.MigrateSpringDataMongoDb5")
+        spec.recipeFromResources("org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0")
           .beforeRecipe(withToolingApi());
     }
 
@@ -58,10 +59,8 @@ class MigrateSpringDataMongoDb5Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(actual -> {
-                  assertDependencyVersion(actual, "spring-data-mongodb", "5\\.0\\.\\d+");
-                  return actual;
-              })
+              spec -> spec.after(actual ->
+                assertDependencyVersion(actual, "spring-data-mongodb", "5\\.0\\.\\d+").actual())
             ),
             java("class Application {}")
           )
@@ -102,10 +101,8 @@ class MigrateSpringDataMongoDb5Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """.formatted(artifactId, currentVersion),
-              spec -> spec.after(actual -> {
-                  assertDependencyVersion(actual, artifactId, "5\\.6\\.\\d+");
-                  return actual;
-              })
+              spec -> spec.after(actual ->
+                assertDependencyVersion(actual, artifactId, "5\\.6\\.\\d+").actual())
             ),
             java("class Application {}")
           )
@@ -184,13 +181,11 @@ class MigrateSpringDataMongoDb5Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(actual -> {
-                  assertDependencyVersion(actual, "mongodb-driver-bom", "5\\.6\\.\\d+");
-                  assertThat(actual)
-                    .doesNotContainPattern("<artifactId>mongodb-driver-sync</artifactId>\\s*<version>")
-                    .doesNotContainPattern("<artifactId>bson-record-codec</artifactId>\\s*<version>");
-                  return actual;
-              })
+              spec -> spec.after(actual ->
+                assertDependencyVersion(actual, "mongodb-driver-bom", "5\\.6\\.\\d+")
+                  .doesNotContainPattern("<artifactId>mongodb-driver-sync</artifactId>\\s*<version>")
+                  .doesNotContainPattern("<artifactId>bson-record-codec</artifactId>\\s*<version>")
+                  .actual())
             ),
             java("class Application {}")
           )
@@ -319,12 +314,10 @@ class MigrateSpringDataMongoDb5Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(actual -> {
-                  assertDependencyVersion(actual, "mongodb-driver-sync", "5\\.6\\.\\d+");
-                  assertThat(actual).doesNotContainPattern(
-                    "<artifactId>spring-boot-starter-data-mongodb</artifactId>\\s*<version>");
-                  return actual;
-              })
+              spec -> spec.after(actual ->
+                assertDependencyVersion(actual, "mongodb-driver-sync", "5\\.6\\.\\d+")
+                  .doesNotContainPattern("<artifactId>spring-boot-starter-data-mongodb</artifactId>\\s*<version>")
+                  .actual())
             ),
             java("class Application {}")
           )
@@ -443,8 +436,8 @@ class MigrateSpringDataMongoDb5Test implements RewriteTest {
         );
     }
 
-    private static void assertDependencyVersion(String pom, String artifactId, String versionPattern) {
-        assertThat(pom).containsPattern(
+    private static AbstractStringAssert<?> assertDependencyVersion(String pom, String artifactId, String versionPattern) {
+        return assertThat(pom).containsPattern(
           "<artifactId>" + artifactId + "</artifactId>\\s*<version>" + versionPattern + "</version>");
     }
 }

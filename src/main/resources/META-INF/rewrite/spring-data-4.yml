@@ -25,11 +25,11 @@ preconditions:
   - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.data.UpgradeSpringData_3_4
-  - org.openrewrite.java.spring.data.MigrateSpringDataMongoDb5
+  - org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.data.MigrateSpringDataMongoDb5
+name: org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0
 displayName: Migrate to Spring Data MongoDB 5.0
 description: >-
   Align explicitly versioned Spring Data MongoDB and supported MongoDB JVM driver
@@ -45,16 +45,11 @@ recipeList:
       artifactId: spring-data-mongodb
       newVersion: 5.0.x
       overrideManagedVersion: false
-
-  # Spring Data MongoDB 5.x requires MongoDB Java Driver 5.6 or later.
-  # Upgrade an explicitly imported MongoDB dependency platform before its components.
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: mongodb-driver-bom
       newVersion: 5.6.x
       overrideManagedVersion: false
-
-  # Driver modules used directly or optionally by Spring Data MongoDB.
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: mongodb-driver-core
@@ -75,8 +70,6 @@ recipeList:
       artifactId: mongodb-crypt
       newVersion: 5.6.x
       overrideManagedVersion: false
-
-  # Java driver component libraries that applications may explicitly pin.
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: bson
@@ -87,9 +80,6 @@ recipeList:
       artifactId: bson-record-codec
       newVersion: 5.6.x
       overrideManagedVersion: false
-
-  # Keep legacy API users on a compatible driver generation. Replacing the legacy
-  # artifact and APIs with the sync driver belongs in a separate source migration.
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: mongodb-driver-legacy
