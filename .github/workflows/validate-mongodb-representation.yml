@@ -1,4 +1,5 @@
 ---
+# Temporary workflow file; removed after focused validation.
 name: validate MongoDB representation recipe
 
 on:
