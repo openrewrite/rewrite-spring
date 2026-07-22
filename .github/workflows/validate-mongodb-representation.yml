@@ -1,0 +1,30 @@
+---
+name: validate MongoDB representation recipe
+
+on:
+  push:
+    branches:
+      - detect-mongodb-value-representations
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+      - name: Compile main and test sources
+        run: ./gradlew --console=plain --stacktrace --no-daemon compileJava compileTestJava
+      - name: Run focused tests
+        run: >-
+          ./gradlew --console=plain --stacktrace --no-daemon test
+          --tests org.openrewrite.java.spring.data.FindMissingMongoValueRepresentationTest
+          --tests org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0RepresentationTest
