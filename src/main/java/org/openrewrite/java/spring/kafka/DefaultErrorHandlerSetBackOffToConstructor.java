@@ -27,19 +27,17 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 public class DefaultErrorHandlerSetBackOffToConstructor extends Recipe {
 
     private static final String DEFAULT_ERROR_HANDLER = "org.springframework.kafka.listener.DefaultErrorHandler";
+    private static final MethodMatcher NO_ARG_CONSTRUCTOR = new MethodMatcher(DEFAULT_ERROR_HANDLER + " <constructor>()");
     private static final MethodMatcher SET_BACK_OFF = new MethodMatcher(DEFAULT_ERROR_HANDLER + " setBackOff(org.springframework.util.backoff.BackOff)");
 
     @Getter
@@ -60,13 +58,12 @@ public class DefaultErrorHandlerSetBackOffToConstructor extends Recipe {
                 if (toRemove == null || toRemove.isEmpty()) {
                     return b;
                 }
-                return b.withStatements(ListUtils.map(b.getStatements(),
-                        s -> toRemove.contains(s.getId()) ? null : s));
+                return b.withStatements(ListUtils.filter(b.getStatements(), s -> !toRemove.contains(s.getId())));
             }
 
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
-                if (isNoArgDefaultErrorHandler(newClass)) {
+                if (NO_ARG_CONSTRUCTOR.matches(newClass)) {
                     Cursor parent = getCursor().getParentTreeCursor();
                     if (parent.getValue() instanceof J.VariableDeclarations.NamedVariable) {
                         String variableName = ((J.VariableDeclarations.NamedVariable) parent.getValue()).getSimpleName();
@@ -85,14 +82,6 @@ public class DefaultErrorHandlerSetBackOffToConstructor extends Recipe {
                     }
                 }
                 return super.visitNewClass(newClass, ctx);
-            }
-
-            private boolean isNoArgDefaultErrorHandler(J.NewClass newClass) {
-                if (!TypeUtils.isOfClassType(newClass.getType(), DEFAULT_ERROR_HANDLER)) {
-                    return false;
-                }
-                List<Expression> arguments = newClass.getArguments();
-                return arguments.isEmpty() || arguments.get(0) instanceof J.Empty;
             }
 
             private J.MethodInvocation findSetBackOff(J.Block block, String variableName) {
