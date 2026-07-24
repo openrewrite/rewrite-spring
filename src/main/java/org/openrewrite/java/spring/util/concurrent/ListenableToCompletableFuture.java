@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.util.concurrent;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -31,17 +32,13 @@ public class ListenableToCompletableFuture extends Recipe {
 
     private static final String LISTENABLE_FUTURE_CALLBACK = "org.springframework.util.concurrent.ListenableFutureCallback";
 
-    @Override
-    public String getDisplayName() {
-        return "Migrate `ListenableFuture` to `CompletableFuture`";
-    }
+    @Getter
+    final String displayName = "Migrate `ListenableFuture` to `CompletableFuture`";
 
-    @Override
-    public String getDescription() {
-        return "Spring Framework 6.0 removed `org.springframework.util.concurrent.ListenableFuture` in favor of " +
-                "`java.util.concurrent.CompletableFuture`. This recipe migrates `ListenableFuture` types, along with " +
-                "their `addCallback` invocations and `ListenableFutureCallback` implementations, to `CompletableFuture`.";
-    }
+    @Getter
+    final String description = "Spring Framework 6.0 removed `org.springframework.util.concurrent.ListenableFuture` in favor of " +
+            "`java.util.concurrent.CompletableFuture`. This recipe migrates `ListenableFuture` types, along with " +
+            "their `addCallback` invocations and `ListenableFutureCallback` implementations, to `CompletableFuture`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
