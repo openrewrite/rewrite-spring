@@ -16,23 +16,51 @@
 package org.openrewrite.java.spring.util.concurrent;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeMethodName;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 
-public class ListenableToCompletableFuture extends JavaIsoVisitor<ExecutionContext> {
+public class ListenableToCompletableFuture extends Recipe {
+
+    private static final String LISTENABLE_FUTURE = "org.springframework.util.concurrent.ListenableFuture";
+
+    private static final String LISTENABLE_FUTURE_CALLBACK = "org.springframework.util.concurrent.ListenableFutureCallback";
+
     @Override
-    public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
-        J.CompilationUnit cu = super.visitCompilationUnit(compilationUnit, ctx);
-        cu = (J.CompilationUnit) new ListenableFutureCallbackToBiConsumerVisitor().visitNonNull(cu, ctx);
-        cu = (J.CompilationUnit) new SuccessFailureCallbackToBiConsumerVisitor().visitNonNull(cu, ctx);
-        cu = (J.CompilationUnit) new ChangeMethodName(
-                "org.springframework.util.concurrent.ListenableFuture addCallback(..)", "whenComplete", true, true)
-                .getVisitor().visit(cu, ctx, getCursor().getParent());
-        return (J.CompilationUnit) new ChangeType(
-                "org.springframework.util.concurrent.ListenableFuture",
-                "java.util.concurrent.CompletableFuture", null)
-                .getVisitor().visit(cu, ctx, getCursor().getParent());
+    public String getDisplayName() {
+        return "Migrate `ListenableFuture` to `CompletableFuture`";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Spring Framework 6.0 removed `org.springframework.util.concurrent.ListenableFuture` in favor of " +
+                "`java.util.concurrent.CompletableFuture`. This recipe migrates `ListenableFuture` types, along with " +
+                "their `addCallback` invocations and `ListenableFutureCallback` implementations, to `CompletableFuture`.";
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(Preconditions.or(
+                new UsesType<>(LISTENABLE_FUTURE, false),
+                new UsesType<>(LISTENABLE_FUTURE_CALLBACK, false)), new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
+                J.CompilationUnit cu = super.visitCompilationUnit(compilationUnit, ctx);
+                cu = (J.CompilationUnit) new ListenableFutureCallbackToBiConsumerVisitor().visitNonNull(cu, ctx);
+                cu = (J.CompilationUnit) new SuccessFailureCallbackToBiConsumerVisitor().visitNonNull(cu, ctx);
+                cu = (J.CompilationUnit) new ChangeMethodName(
+                        LISTENABLE_FUTURE + " addCallback(..)", "whenComplete", true, true)
+                        .getVisitor().visit(cu, ctx, getCursor().getParent());
+                return (J.CompilationUnit) new ChangeType(
+                        LISTENABLE_FUTURE,
+                        "java.util.concurrent.CompletableFuture", null)
+                        .getVisitor().visit(cu, ctx, getCursor().getParent());
+            }
+        });
     }
 }
