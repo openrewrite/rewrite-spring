@@ -812,6 +812,104 @@ class MigrateToModularStartersTest implements RewriteTest {
     }
 
     @Test
+    void addJdbcStarterWhenSb3JdbcAutoconfigurePackageIsUsed() {
+        rewriteRun(
+          mavenProject("app",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>org.example</groupId>
+                    <artifactId>example</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-autoconfigure</artifactId>
+                            <version>3.3.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("<artifactId>spring-boot-starter-jdbc</artifactId>")
+                .containsPattern("<version>4\\.0\\.\\d+</version>")
+                .actual())
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+
+                  class Config {
+                      Class<?> cfg = DataSourceAutoConfiguration.class;
+                  }
+                  """,
+                """
+                  import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+
+                  class Config {
+                      Class<?> cfg = DataSourceAutoConfiguration.class;
+                  }
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void addHibernateModuleWhenSb3OrmJpaAutoconfigurePackageIsUsed() {
+        rewriteRun(
+          mavenProject("app",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>org.example</groupId>
+                    <artifactId>example</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-autoconfigure</artifactId>
+                            <version>3.3.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("<artifactId>spring-boot-hibernate</artifactId>")
+                .containsPattern("<version>4\\.0\\.\\d+</version>")
+                .actual())
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+
+                  class Config {
+                      Class<?> cfg = HibernateJpaAutoConfiguration.class;
+                  }
+                  """,
+                """
+                  import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
+
+                  class Config {
+                      Class<?> cfg = HibernateJpaAutoConfiguration.class;
+                  }
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
     void migrateOrmJpaTestPackageSplit() {
         rewriteRun(
           //language=java
