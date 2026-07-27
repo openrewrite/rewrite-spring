@@ -24,13 +24,12 @@ import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
-import static org.openrewrite.test.RewriteTest.toRecipe;
 
 class ListenableToCompletableFutureTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(toRecipe(ListenableToCompletableFuture::new))
+        spec.recipe(new ListenableToCompletableFuture())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6", "spring-kafka-2"));
     }
 
@@ -292,6 +291,29 @@ class ListenableToCompletableFutureTest implements RewriteTest {
                           successCallback != null ? result -> successCallback.onSuccess(result) : null,
                           failureCallback != null ? ex -> failureCallback.onFailure(ex) : null);
                   }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replacesListenableFutureReturnTypeInInterface() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFuture;
+
+              public interface CustomerDao {
+                  ListenableFuture<String> findCustomerById(String id);
+              }
+              """,
+            """
+              import java.util.concurrent.CompletableFuture;
+
+              public interface CustomerDao {
+                  CompletableFuture<String> findCustomerById(String id);
               }
               """
           )

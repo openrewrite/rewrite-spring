@@ -121,6 +121,18 @@ recipeList:
       version: 4.0.x
       scope: test
       onlyIfUsing: org.springframework.boot.test.web.client.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-jdbc
+      acceptTransitive: true
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.autoconfigure.jdbc.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-hibernate
+      acceptTransitive: true
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.autoconfigure.orm.jpa.*
 
   # Update packages to match the new modular starter structure
   - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
