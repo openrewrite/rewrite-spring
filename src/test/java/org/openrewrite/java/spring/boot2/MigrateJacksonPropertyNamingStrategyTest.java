@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -28,12 +27,9 @@ class MigrateJacksonPropertyNamingStrategyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder()
-            .scanRuntimeClasspath()
-            .build()
-            .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5"))
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(
-            new InMemoryExecutionContext(), "jackson-databind"));
+            new InMemoryExecutionContext(), "jackson-databind-2.19"));
     }
 
     @Test
