@@ -73,6 +73,8 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.ResourceProperties
       newFullyQualifiedTypeName: org.springframework.boot.autoconfigure.web.WebProperties$Resources
+  # Jackson 2.12 shipped with Spring Boot 2.5 relocated PropertyNamingStrategy inner classes and constants to PropertyNamingStrategies
+  - org.openrewrite.java.jackson.ReplacePropertyNamingStrategyConstants
 
   # Update properties
   - org.openrewrite.java.spring.boot2.SpringBootProperties_2_5
