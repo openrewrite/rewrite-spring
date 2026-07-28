@@ -30,3 +30,5 @@ jobs:
       artifactory_username: ${{ secrets.ARTIFACTORY_USERNAME }}
       artifactory_password: ${{ secrets.ARTIFACTORY_PASSWORD }}
       OPS_GITHUB_ACTIONS_WEBHOOK: ${{ secrets.OPS_GITHUB_ACTIONS_WEBHOOK }}
+      cgp_aws_access_key_id: ${{ secrets.CGP_AWS_ACCESS_KEY_ID }}
+      cgp_aws_secret_access_key: ${{ secrets.CGP_AWS_SECRET_ACCESS_KEY }}
