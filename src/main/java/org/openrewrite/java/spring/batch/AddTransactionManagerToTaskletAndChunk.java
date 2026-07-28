@@ -84,7 +84,7 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-tx-5.+"))
                         .build()
-                        .<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
+                        .apply(getCursor(), md.getCoordinates().replaceParameters())
                         .getParameters().get(0).withPrefix(parametersEmpty ? Space.EMPTY : Space.SINGLE_SPACE);
                 if (parametersEmpty) {
                     return md.withParameters(singletonList(vdd))

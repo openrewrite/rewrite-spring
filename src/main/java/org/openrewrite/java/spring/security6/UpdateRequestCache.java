@@ -158,11 +158,7 @@ public class UpdateRequestCache extends Recipe {
             return false;
         }
         J.NewClass newClass = (J.NewClass) expression;
-
-        if (newClass.getConstructorType() != null && TypeUtils.isOfClassType(newClass.getConstructorType().getReturnType(),
-                "org.springframework.security.web.savedrequest.HttpSessionRequestCache")) {
-            return true;
-        }
-        return false;
+        return newClass.getConstructorType() != null && TypeUtils.isOfClassType(newClass.getConstructorType().getReturnType(),
+                "org.springframework.security.web.savedrequest.HttpSessionRequestCache");
     }
 }

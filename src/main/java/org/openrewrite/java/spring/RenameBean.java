@@ -67,15 +67,19 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
     private static final String FQN_COMPONENT = "org.springframework.stereotype.Component";
 
     private static final Set<String> JUST_QUALIFIER = singleton(FQN_QUALIFIER);
-    private static final Set<String> BEAN_METHOD_ANNOTATIONS = new HashSet<String>() {{
-        add(FQN_QUALIFIER);
-        add(FQN_BEAN);
-    }};
+    private static final Set<String> BEAN_METHOD_ANNOTATIONS;
+    static {
+        BEAN_METHOD_ANNOTATIONS = new HashSet<String>();
+        BEAN_METHOD_ANNOTATIONS.add(FQN_QUALIFIER);
+        BEAN_METHOD_ANNOTATIONS.add(FQN_BEAN);
+    }
 
-    private static final Set<String> BEAN_TYPE_ANNOTATIONS = new HashSet<String>() {{
-        add(FQN_QUALIFIER);
-        add(FQN_COMPONENT);
-    }};
+    private static final Set<String> BEAN_TYPE_ANNOTATIONS;
+    static {
+        BEAN_TYPE_ANNOTATIONS = new HashSet<String>();
+        BEAN_TYPE_ANNOTATIONS.add(FQN_QUALIFIER);
+        BEAN_TYPE_ANNOTATIONS.add(FQN_COMPONENT);
+    }
 
     String displayName = "Rename bean";
 

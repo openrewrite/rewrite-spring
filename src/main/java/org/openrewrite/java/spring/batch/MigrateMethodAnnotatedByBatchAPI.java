@@ -44,13 +44,13 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
     @Getter
     final String description = "Migrate method when it annotated by Spring Batch API.";
 
-    private static final Set<String> annotatedMethods = new HashSet<String>() {
-        {
-            add("org.springframework.batch.core.annotation.OnWriteError");
-            add("org.springframework.batch.core.annotation.BeforeWrite");
-            add("org.springframework.batch.core.annotation.AfterWrite");
-        }
-    };
+    private static final Set<String> annotatedMethods;
+    static {
+        annotatedMethods = new HashSet<String>();
+        annotatedMethods.add("org.springframework.batch.core.annotation.OnWriteError");
+        annotatedMethods.add("org.springframework.batch.core.annotation.BeforeWrite");
+        annotatedMethods.add("org.springframework.batch.core.annotation.AfterWrite");
+    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -111,7 +111,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk")
                     .build()
-                    .<J.MethodDeclaration>apply(getCursor(), method.getCoordinates().replaceParameters())
+                    .apply(getCursor(), method.getCoordinates().replaceParameters())
                     .getParameters().get(0).withPrefix(Space.EMPTY);
             vdd = vdd.withTypeExpression(TypeTree.build("org.springframework.batch.item.Chunk")).withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
 

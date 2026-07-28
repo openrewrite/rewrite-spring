@@ -36,13 +36,17 @@ public class ApplyToWithLambdaDsl extends Recipe {
 
     private static final Collection<String> APPLICABLE_METHOD_NAMES = singletonList("apply");
 
-    private static final Map<String, String> ARG_REPLACEMENTS = new HashMap<String, String>() {{
-        put("apply", null);
-    }};
+    private static final Map<String, String> ARG_REPLACEMENTS;
+    static {
+        ARG_REPLACEMENTS = new HashMap<String, String>();
+        ARG_REPLACEMENTS.put("apply", null);
+    }
 
-    private static final Map<String, String> METHOD_RENAMES = new HashMap<String, String>() {{
-        put("apply", "with");
-    }};
+    private static final Map<String, String> METHOD_RENAMES;
+    static {
+        METHOD_RENAMES = new HashMap<String, String>();
+        METHOD_RENAMES.put("apply", "with");
+    }
 
     @Getter
     final String displayName = "Convert `HttpSecurity::apply` chained calls into `HttpSecurity::with` Lambda DSL";
