@@ -30,18 +30,22 @@ import org.openrewrite.kotlin.tree.K;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.ChangePropertyKey;
+import org.openrewrite.yaml.MergeYamlVisitor;
 import org.openrewrite.yaml.UnfoldProperties;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.quote;
@@ -117,8 +121,11 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
                     ChangePropertyKey changeKey = except == null || except.isEmpty() ? yamlChangePropertyKey :
                             new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, exceptedYamlSubKeys((Yaml.Documents) tree), null);
                     Tree newTree = changeKey.getVisitor().visit(tree, ctx);
-                    if (newTree != tree && isWrittenAsNestedMappings((Yaml.Documents) tree)) {
-                        newTree = unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
+                    if (newTree != tree) {
+                        if (isWrittenAsNestedMappings((Yaml.Documents) tree)) {
+                            newTree = unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
+                        }
+                        newTree = new MergeRelocatedSectionsVisitor().visit(newTree, ctx);
                     }
                     tree = newTree;
                 } else if (tree instanceof Properties.File) {
@@ -192,6 +199,35 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
             }
         }.visit(documents, subKeys);
         return new ArrayList<>(subKeys);
+    }
+
+    /**
+     * Relocating a property into a section that already exists leaves two mapping entries with the same key; merge
+     * those back together, limited to the segments of `newPropertyKey` so unrelated duplicates are left alone.
+     */
+    private class MergeRelocatedSectionsVisitor extends YamlIsoVisitor<ExecutionContext> {
+        private final List<String> newKeySegments = asList(newPropertyKey.split("\\."));
+
+        @Override
+        public Yaml.Mapping visitMapping(Yaml.Mapping mapping, ExecutionContext ctx) {
+            Yaml.Mapping m = super.visitMapping(mapping, ctx);
+            Map<String, Yaml.Mapping.Entry> merged = new LinkedHashMap<>();
+            boolean changed = false;
+            for (Yaml.Mapping.Entry entry : m.getEntries()) {
+                String key = entry.getKey().getValue();
+                Yaml.Mapping.Entry existing = merged.get(key);
+                if (existing == null || !newKeySegments.contains(key) ||
+                        entry.getPrefix().contains("#") || existing.getPrefix().contains("#")) {
+                    merged.put(key, entry);
+                    continue;
+                }
+                Yaml value = new MergeYamlVisitor<>(existing.getValue(), entry.getValue(), false, null, null, null)
+                        .visitNonNull(existing.getValue(), ctx, getCursor());
+                merged.put(key, existing.withValue((Yaml.Block) value));
+                changed = true;
+            }
+            return changed ? m.withEntries(new ArrayList<>(merged.values())) : m;
+        }
     }
 
     private String exceptRegex() {
