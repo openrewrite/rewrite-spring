@@ -127,8 +127,22 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
             return "transactionManager";
         }
 
+        /**
+         * Spring Batch 6.0 reintroduced single argument `tasklet` and `chunk` methods, where the transaction manager
+         * is configured through a chained `transactionManager` call instead.
+         */
+        private boolean chainConfiguresTransactionManager(J.MethodInvocation mi) {
+            Object parent = getCursor().getParentTreeCursor().getValue();
+            return parent instanceof J.MethodInvocation &&
+                    "transactionManager".equals(((J.MethodInvocation) parent).getSimpleName()) &&
+                    ((J.MethodInvocation) parent).getSelect() == mi;
+        }
+
         @Override
         public J visitMethodInvocation(J.MethodInvocation mi, ExecutionContext ctx) {
+            if (chainConfiguresTransactionManager(mi)) {
+                return super.visitMethodInvocation(mi, ctx);
+            }
             String tmName = findTransactionManagerParameterName();
             if (TASKLET_MATCHER.matches(mi)) {
                 return JavaTemplate.builder("#{any(org.springframework.batch.core.step.tasklet.Tasklet)}, " + tmName)
