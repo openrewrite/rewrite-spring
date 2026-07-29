@@ -66,7 +66,8 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                 """
                   management:
                     endpoints:
-                      access.default: read-only
+                      access:
+                        default: read-only
                   """,
                 sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               )
@@ -98,7 +99,8 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                 """
                   management:
                     endpoints:
-                      access.default: none
+                      access:
+                        default: none
                   """,
                 sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               )

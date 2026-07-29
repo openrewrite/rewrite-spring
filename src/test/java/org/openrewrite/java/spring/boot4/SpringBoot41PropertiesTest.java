@@ -71,11 +71,13 @@ class SpringBoot41PropertiesTest implements RewriteTest {
                 """,
               """
                 logging:
-                  logback.rollingpolicy.clean-history-on-start: true
-                  logback.rollingpolicy.max-history: 7
-                  logback.rollingpolicy.max-file-size: 10MB
-                  logback.rollingpolicy.total-size-cap: 1GB
-                  logback.rollingpolicy.file-name-pattern: app-%d.log
+                  logback:
+                    rollingpolicy:
+                      clean-history-on-start: true
+                      max-history: 7
+                      max-file-size: 10MB
+                      total-size-cap: 1GB
+                      file-name-pattern: app-%d.log
                 """
             )
           )

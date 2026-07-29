@@ -20,6 +20,7 @@ import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -30,12 +31,16 @@ import org.openrewrite.kotlin.tree.K;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.ChangePropertyKey;
+import org.openrewrite.yaml.UnfoldProperties;
+import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
 
 /**
@@ -82,6 +87,8 @@ public class ChangeSpringPropertyKey extends Recipe {
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey) + exceptRegex() + "(.+)", newPropertyKey + "$1", true, true);
+        UnfoldProperties unfoldNewPropertyKey =
+                new UnfoldProperties(null, singletonList("$." + newPropertyKey));
 
         return Preconditions.check(Preconditions.or(
                 new IsPossibleSpringConfigFile(),
@@ -92,7 +99,12 @@ public class ChangeSpringPropertyKey extends Recipe {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Yaml.Documents) {
-                    tree = yamlChangePropertyKey.getVisitor().visit(tree, ctx);
+                    boolean nested = isWrittenAsNestedMappings((Yaml.Documents) tree);
+                    Tree newTree = yamlChangePropertyKey.getVisitor().visit(tree, ctx);
+                    if (newTree != tree && nested) {
+                        newTree = unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
+                    }
+                    tree = newTree;
                 } else if (tree instanceof Properties.File) {
                     if (FindProperties.find((Properties.File) tree, newPropertyKey, true).isEmpty()) {
                         Tree newTree = propertiesChangePropertyKey.getVisitor().visit(tree, ctx);
@@ -108,6 +120,36 @@ public class ChangeSpringPropertyKey extends Recipe {
                 return tree;
             }
         });
+    }
+
+    /**
+     * Spring configuration accepts both `a: {b: {c: value}}` and `a.b.c: value`; only unfold the renamed key back into
+     * nested mappings when the original file spelled the old key out as one mapping entry per segment, such that we do
+     * not convert a deliberately flattened file to nested mappings.
+     */
+    private boolean isWrittenAsNestedMappings(Yaml.Documents documents) {
+        AtomicBoolean nested = new AtomicBoolean();
+        new YamlIsoVisitor<AtomicBoolean>() {
+            @Override
+            public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, AtomicBoolean found) {
+                if (!found.get() && !entry.getKey().getValue().contains(".") &&
+                        NameCaseConvention.matchesGlobRelaxedBinding(propertyPath(entry), oldPropertyKey)) {
+                    found.set(true);
+                }
+                return super.visitMappingEntry(entry, found);
+            }
+
+            private String propertyPath(Yaml.Mapping.Entry entry) {
+                StringBuilder path = new StringBuilder(entry.getKey().getValue());
+                for (Cursor c = getCursor().getParent(); c != null; c = c.getParent()) {
+                    if (c.getValue() instanceof Yaml.Mapping.Entry) {
+                        path.insert(0, ((Yaml.Mapping.Entry) c.getValue()).getKey().getValue() + '.');
+                    }
+                }
+                return path.toString();
+            }
+        }.visit(documents, nested);
+        return nested.get();
     }
 
     private String exceptRegex() {

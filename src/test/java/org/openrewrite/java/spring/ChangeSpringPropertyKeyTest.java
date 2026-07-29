@@ -56,7 +56,8 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   """,
                 """
                   server:
-                    servlet.path: /tmp/my-server-path
+                    servlet:
+                      path: /tmp/my-server-path
                   """
               ))
           )
@@ -91,7 +92,10 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                 """
                   server:
                     port: 8888
-                  servlet.session.cookie.path: /tmp/my-server-path
+                  servlet:
+                    session:
+                      cookie:
+                        path: /tmp/my-server-path
                   """
               )
             )));
@@ -130,17 +134,78 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   """,
                 """
                   spring:
-                    web.resources:
-                      chain:
-                        strategy:
-                          content:
-                            enabled: true
-                            paths:
-                              - /foo/**
-                              - /bar/**
+                    web:
+                      resources:
+                        chain:
+                          strategy:
+                            content:
+                              enabled: true
+                              paths:
+                                - /foo/**
+                                - /bar/**
                   """
               )
             )));
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/353")
+    @Test
+    void nestYamlMappings() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("org.test.property", "org.test2.property", null)),
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  org:
+                    test:
+                      property: false
+                  """,
+                """
+                  org:
+                    test2:
+                      property: false
+                  """,
+                spec -> spec.path("application.yml")
+              )
+            )
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/353")
+    @Test
+    void nestYamlMappingsWithMultipleSubproperties() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("ezpaas.oauth2.client.cps", "ezpaas.oauth2.restclient.cps", null)),
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  ezpaas:
+                    oauth2:
+                      client:
+                        cps:
+                          token-relay: false
+                          token-uri: https://localhost.com/v1
+                          client-secret: my-secret-key
+                  """,
+                """
+                  ezpaas:
+                    oauth2:
+                      restclient:
+                        cps:
+                          token-relay: false
+                          token-uri: https://localhost.com/v1
+                          client-secret: my-secret-key
+                  """,
+                spec -> spec.path("application.yml")
+              )
+            )
+          )
+        );
     }
 
     @Test
@@ -197,7 +262,8 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   """,
                 """
                   logging:
-                    file.name: foo.txt
+                    file:
+                      name: foo.txt
                   """
               ),
               yaml(
@@ -311,9 +377,11 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   spring:
                     data:
                       redis:
-                        ssl.enabled: true
+                        ssl:
+                          enabled: true
                     cassandra:
-                      ssl.enabled: true
+                      ssl:
+                        enabled: true
                   """
               )
             )

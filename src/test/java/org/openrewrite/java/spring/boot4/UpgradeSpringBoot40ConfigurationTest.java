@@ -100,8 +100,10 @@ class UpgradeSpringBoot40ConfigurationTest implements RewriteTest {
                 """
                   spring:
                     jackson:
-                        datatype.datetime.write-dates-as-timestamps: true
-                        datatype.datetime.adjust-dates-to-context-time-zone: false
+                      datatype:
+                        datetime:
+                          write-dates-as-timestamps: true
+                          adjust-dates-to-context-time-zone: false
                   """
               )
             )
