@@ -148,7 +148,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
             )));
     }
 
-    @Issue("https://github.com/openrewrite/rewrite-spring/issues/353")
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1107")
     @Test
     void nestYamlMappings() {
         rewriteRun(
@@ -174,7 +174,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
-    @Issue("https://github.com/openrewrite/rewrite-spring/issues/353")
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1107")
     @Test
     void nestYamlMappingsWithMultipleSubproperties() {
         rewriteRun(
