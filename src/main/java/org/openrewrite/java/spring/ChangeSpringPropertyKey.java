@@ -37,10 +37,8 @@ import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -188,22 +186,30 @@ public class ChangeSpringPropertyKey extends Recipe {
         @Override
         public Yaml.Mapping visitMapping(Yaml.Mapping mapping, ExecutionContext ctx) {
             Yaml.Mapping m = super.visitMapping(mapping, ctx);
-            Map<String, Yaml.Mapping.Entry> merged = new LinkedHashMap<>();
-            boolean changed = false;
-            for (Yaml.Mapping.Entry entry : m.getEntries()) {
-                String key = entry.getKey().getValue();
-                Yaml.Mapping.Entry existing = merged.get(key);
-                if (existing == null || !newKeySegments.contains(key) ||
-                        entry.getPrefix().contains("#") || existing.getPrefix().contains("#")) {
-                    merged.put(key, entry);
-                    continue;
+            List<Yaml.Mapping.Entry> entries = m.getEntries();
+            return m.withEntries(ListUtils.map(entries, (i, entry) -> {
+                if (!isMergeable(entry)) {
+                    return entry;
                 }
-                Yaml value = new MergeYamlVisitor<>(existing.getValue(), entry.getValue(), false, null, null, null)
-                        .visitNonNull(existing.getValue(), ctx, getCursor());
-                merged.put(key, existing.withValue((Yaml.Block) value));
-                changed = true;
-            }
-            return changed ? m.withEntries(new ArrayList<>(merged.values())) : m;
+                Yaml.Block value = entry.getValue();
+                for (int j = 0; j < entries.size(); j++) {
+                    Yaml.Mapping.Entry other = entries.get(j);
+                    if (i == j || !isMergeable(other) ||
+                            !entry.getKey().getValue().equals(other.getKey().getValue())) {
+                        continue;
+                    }
+                    if (j < i) {
+                        return null; // already merged into the first entry with this key
+                    }
+                    value = (Yaml.Block) new MergeYamlVisitor<>(value, other.getValue(), false, null, null, null)
+                            .visitNonNull(value, ctx, getCursor());
+                }
+                return entry.withValue(value);
+            }));
+        }
+
+        private boolean isMergeable(Yaml.Mapping.Entry entry) {
+            return newKeySegments.contains(entry.getKey().getValue()) && !entry.getPrefix().contains("#");
         }
     }
 
