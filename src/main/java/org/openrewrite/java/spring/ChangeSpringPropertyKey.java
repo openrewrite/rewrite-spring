@@ -128,8 +128,7 @@ public class ChangeSpringPropertyKey extends Recipe {
      * not convert a deliberately flattened file to nested mappings.
      */
     private boolean isWrittenAsNestedMappings(Yaml.Documents documents) {
-        AtomicBoolean nested = new AtomicBoolean();
-        new YamlIsoVisitor<AtomicBoolean>() {
+        return new YamlIsoVisitor<AtomicBoolean>() {
             @Override
             public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, AtomicBoolean found) {
                 if (!found.get() && !entry.getKey().getValue().contains(".") &&
@@ -148,8 +147,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                 }
                 return path.toString();
             }
-        }.visit(documents, nested);
-        return nested.get();
+        }.reduce(documents, new AtomicBoolean()).get();
     }
 
     private String exceptRegex() {

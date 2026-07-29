@@ -208,6 +208,46 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/581")
+    @Test
+    void keepFlattenedYamlFlat() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("spring.resources", "spring.web.resources", null)),
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  spring.resources.chain.strategy.content.enabled: true
+                  spring.resources.chain.strategy.content.paths:
+                    - /foo/**
+                    - /bar/**
+                  """,
+                """
+                  spring.web.resources.chain.strategy.content.enabled: true
+                  spring.web.resources.chain.strategy.content.paths:
+                    - /foo/**
+                    - /bar/**
+                  """,
+                spec -> spec.path("application.yml")
+              ),
+              //language=yaml
+              yaml(
+                """
+                  spring:
+                    resources.chain.strategy.content.enabled: true
+                  """,
+                """
+                  spring:
+                    web.resources.chain.strategy.content.enabled: true
+                  """,
+                spec -> spec.path("application-dev.yml")
+              )
+            )
+          )
+        );
+    }
+
     @Test
     void except() {
         rewriteRun(
