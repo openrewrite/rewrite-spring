@@ -31,15 +31,22 @@ import org.openrewrite.kotlin.tree.K;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.ChangePropertyKey;
+import org.openrewrite.yaml.MergeYamlVisitor;
 import org.openrewrite.yaml.UnfoldProperties;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
 
@@ -81,8 +88,6 @@ public class ChangeSpringPropertyKey extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        ChangePropertyKey yamlChangePropertyKey =
-                new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except, null);
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
@@ -99,10 +104,15 @@ public class ChangeSpringPropertyKey extends Recipe {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Yaml.Documents) {
-                    boolean nested = isWrittenAsNestedMappings((Yaml.Documents) tree);
-                    Tree newTree = yamlChangePropertyKey.getVisitor().visit(tree, ctx);
-                    if (newTree != tree && nested) {
-                        newTree = unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
+                    Yaml.Documents documents = (Yaml.Documents) tree;
+                    boolean nested = isWrittenAsNestedMappings(documents);
+                    Tree newTree = new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, excludedSubkeys(documents), null)
+                            .getVisitor().visit(tree, ctx);
+                    if (newTree != tree) {
+                        if (nested) {
+                            newTree = unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
+                        }
+                        newTree = new MergeRelocatedSectionsVisitor().visit(newTree, ctx);
                     }
                     tree = newTree;
                 } else if (tree instanceof Properties.File) {
@@ -132,22 +142,79 @@ public class ChangeSpringPropertyKey extends Recipe {
             @Override
             public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, AtomicBoolean found) {
                 if (!found.get() && !entry.getKey().getValue().contains(".") &&
-                        NameCaseConvention.matchesGlobRelaxedBinding(propertyPath(entry), oldPropertyKey)) {
+                        NameCaseConvention.matchesGlobRelaxedBinding(propertyPath(entry, getCursor()), oldPropertyKey)) {
                     found.set(true);
                 }
                 return super.visitMappingEntry(entry, found);
             }
+        }.reduce(documents, new AtomicBoolean()).get();
+    }
 
-            private String propertyPath(Yaml.Mapping.Entry entry) {
-                StringBuilder path = new StringBuilder(entry.getKey().getValue());
-                for (Cursor c = getCursor().getParent(); c != null; c = c.getParent()) {
-                    if (c.getValue() instanceof Yaml.Mapping.Entry) {
-                        path.insert(0, ((Yaml.Mapping.Entry) c.getValue()).getKey().getValue() + '.');
+    /**
+     * `except` is documented as a regex, and applied as such to properties files, but
+     * `org.openrewrite.yaml.ChangePropertyKey` matches it as a glob. Resolve the regex against the subkeys actually
+     * present under `oldPropertyKey` here, so both formats exclude the same subproperties.
+     */
+    private @Nullable List<String> excludedSubkeys(Yaml.Documents documents) {
+        if (except == null || except.isEmpty()) {
+            return except;
+        }
+        Pattern exceptedSubkey = Pattern.compile("(?:" + String.join("|", except) + ")\\b.*", Pattern.DOTALL);
+        Set<String> subkeys = new YamlIsoVisitor<Set<String>>() {
+            @Override
+            public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, Set<String> subkeys) {
+                if (entry.getValue() instanceof Yaml.Mapping &&
+                        NameCaseConvention.matchesGlobRelaxedBinding(propertyPath(entry, getCursor()), oldPropertyKey)) {
+                    for (Yaml.Mapping.Entry child : ((Yaml.Mapping) entry.getValue()).getEntries()) {
+                        String subkey = child.getKey().getValue();
+                        if (exceptedSubkey.matcher(subkey).matches()) {
+                            subkeys.add(subkey);
+                        }
                     }
                 }
-                return path.toString();
+                return super.visitMappingEntry(entry, subkeys);
             }
-        }.reduce(documents, new AtomicBoolean()).get();
+        }.reduce(documents, new LinkedHashSet<>());
+        return new ArrayList<>(subkeys);
+    }
+
+    /**
+     * Relocating a property into a section that already exists leaves two mapping entries with the same key; merge
+     * those back together, limited to the segments of `newPropertyKey` so unrelated duplicates are left alone.
+     */
+    private class MergeRelocatedSectionsVisitor extends YamlIsoVisitor<ExecutionContext> {
+        private final List<String> newKeySegments = asList(newPropertyKey.split("\\."));
+
+        @Override
+        public Yaml.Mapping visitMapping(Yaml.Mapping mapping, ExecutionContext ctx) {
+            Yaml.Mapping m = super.visitMapping(mapping, ctx);
+            Map<String, Yaml.Mapping.Entry> merged = new LinkedHashMap<>();
+            boolean changed = false;
+            for (Yaml.Mapping.Entry entry : m.getEntries()) {
+                String key = entry.getKey().getValue();
+                Yaml.Mapping.Entry existing = merged.get(key);
+                if (existing == null || !newKeySegments.contains(key) ||
+                        entry.getPrefix().contains("#") || existing.getPrefix().contains("#")) {
+                    merged.put(key, entry);
+                    continue;
+                }
+                Yaml value = new MergeYamlVisitor<>(existing.getValue(), entry.getValue(), false, null, null, null)
+                        .visitNonNull(existing.getValue(), ctx, getCursor());
+                merged.put(key, existing.withValue((Yaml.Block) value));
+                changed = true;
+            }
+            return changed ? m.withEntries(new ArrayList<>(merged.values())) : m;
+        }
+    }
+
+    private static String propertyPath(Yaml.Mapping.Entry entry, Cursor cursor) {
+        StringBuilder path = new StringBuilder(entry.getKey().getValue());
+        for (Cursor c = cursor.getParent(); c != null; c = c.getParent()) {
+            if (c.getValue() instanceof Yaml.Mapping.Entry) {
+                path.insert(0, ((Yaml.Mapping.Entry) c.getValue()).getKey().getValue() + '.');
+            }
+        }
+        return path.toString();
     }
 
     private String exceptRegex() {
