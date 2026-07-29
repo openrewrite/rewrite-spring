@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.batch;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -242,158 +243,6 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
     }
 
     @Test
-    void backOffPolicyHasNoEquivalent() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.retry.backoff.FixedBackOffPolicy;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer) {
-                      return new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager)
-                              .reader(reader)
-                              .writer(writer)
-                              .faultTolerant()
-                              .backOffPolicy(new FixedBackOffPolicy())
-                              .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void retryPolicyHasNoEquivalent() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.retry.policy.SimpleRetryPolicy;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer) {
-                      return new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager)
-                              .reader(reader)
-                              .writer(writer)
-                              .faultTolerant()
-                              .retryPolicy(new SimpleRetryPolicy(3))
-                              .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void retryListenerIsSilentlyDroppedByTheNewModel() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.retry.RetryListener;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer, RetryListener listener) {
-                      return new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager)
-                              .reader(reader)
-                              .writer(writer)
-                              .faultTolerant()
-                              .listener(listener)
-                              .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void annotatedPojoListenerIsSilentlyDroppedByTheNewModel() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer, Object listener) {
-                      return new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager)
-                              .reader(reader)
-                              .writer(writer)
-                              .listener(listener)
-                              .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void plainTaskExecutorIsNotAssignableToAsyncTaskExecutor() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.core.task.TaskExecutor;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer, TaskExecutor taskExecutor) {
-                      return new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager)
-                              .reader(reader)
-                              .writer(writer)
-                              .taskExecutor(taskExecutor)
-                              .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void asyncTaskExecutorIsSupported() {
         // language=java
         rewriteRun(
@@ -438,150 +287,6 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
                               .writer(writer)
                               .taskExecutor(new SimpleAsyncTaskExecutor())
                               .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void readerIsTransactionalQueueHasNoEquivalent() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer) {
-                      return new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager)
-                              .reader(reader)
-                              .readerIsTransactionalQueue()
-                              .writer(writer)
-                              .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void noRollbackHasNoEquivalent() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer) {
-                      return new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager)
-                              .reader(reader)
-                              .writer(writer)
-                              .faultTolerant()
-                              .noRollback(IllegalStateException.class)
-                              .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void chainNotEndingInBuildIsLeftAlone() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.SimpleStepBuilder;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer) {
-                      SimpleStepBuilder<String, String> builder = new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager);
-                      return builder.reader(reader).writer(writer).build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void taskletStepReturnTypeIsLeftAlone() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.core.step.tasklet.TaskletStep;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  TaskletStep myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                                     ItemReader<String> reader, ItemWriter<String> writer) {
-                      return new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager)
-                              .reader(reader)
-                              .writer(writer)
-                              .build();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void taskletStepVariableIsLeftAlone() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.core.step.tasklet.TaskletStep;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer) {
-                      TaskletStep step = new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(10, transactionManager)
-                              .reader(reader)
-                              .writer(writer)
-                              .build();
-                      return step;
                   }
               }
               """
@@ -638,32 +343,332 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
         );
     }
 
-    @Test
-    void completionPolicyChunkHasNoEquivalent() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.repository.JobRepository;
-              import org.springframework.batch.core.step.builder.StepBuilder;
-              import org.springframework.batch.item.ItemReader;
-              import org.springframework.batch.item.ItemWriter;
-              import org.springframework.batch.repeat.policy.SimpleCompletionPolicy;
-              import org.springframework.transaction.PlatformTransactionManager;
+    @Nested
+    class NoChanges {
 
-              class MyJobConfig {
-                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
-                              ItemReader<String> reader, ItemWriter<String> writer) {
-                      return new StepBuilder("myStep", jobRepository)
-                              .<String, String>chunk(new SimpleCompletionPolicy(10), transactionManager)
-                              .reader(reader)
-                              .writer(writer)
-                              .build();
+        @Test
+        void backOffPolicyHasNoEquivalent() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.retry.backoff.FixedBackOffPolicy;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .faultTolerant()
+                                  .backOffPolicy(new FixedBackOffPolicy())
+                                  .build();
+                      }
                   }
-              }
-              """
-          )
-        );
+                  """
+              )
+            );
+        }
+
+        @Test
+        void retryPolicyHasNoEquivalent() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.retry.policy.SimpleRetryPolicy;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .faultTolerant()
+                                  .retryPolicy(new SimpleRetryPolicy(3))
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void retryListenerIsSilentlyDroppedByTheNewModel() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.retry.RetryListener;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer, RetryListener listener) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .faultTolerant()
+                                  .listener(listener)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void annotatedPojoListenerIsSilentlyDroppedByTheNewModel() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer, Object listener) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .listener(listener)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void plainTaskExecutorIsNotAssignableToAsyncTaskExecutor() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.core.task.TaskExecutor;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer, TaskExecutor taskExecutor) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .taskExecutor(taskExecutor)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void readerIsTransactionalQueueHasNoEquivalent() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .readerIsTransactionalQueue()
+                                  .writer(writer)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void noRollbackHasNoEquivalent() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .faultTolerant()
+                                  .noRollback(IllegalStateException.class)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void chainNotEndingInBuildIsLeftAlone() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.SimpleStepBuilder;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer) {
+                          SimpleStepBuilder<String, String> builder = new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager);
+                          return builder.reader(reader).writer(writer).build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void taskletStepReturnTypeIsLeftAlone() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.core.step.tasklet.TaskletStep;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      TaskletStep myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                         ItemReader<String> reader, ItemWriter<String> writer) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void taskletStepVariableIsLeftAlone() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.core.step.tasklet.TaskletStep;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer) {
+                          TaskletStep step = new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .build();
+                          return step;
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void completionPolicyChunkHasNoEquivalent() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.batch.repeat.policy.SimpleCompletionPolicy;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(new SimpleCompletionPolicy(10), transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
     }
 }

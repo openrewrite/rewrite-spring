@@ -31,11 +31,11 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 public class MigrateToChunkOrientedStepBuilder extends Recipe {
 
@@ -46,41 +46,38 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
     private static final String TASKLET_STEP = "org.springframework.batch.core.step.tasklet.TaskletStep";
     private static final String ASYNC_TASK_EXECUTOR = "org.springframework.core.task.AsyncTaskExecutor";
 
-    /**
-     * {@code StepListener} moved package in Spring Batch 6.0, and this recipe runs both standalone against Spring
-     * Batch 5 sources and after the package relocations in {@code SpringBatch5To6Migration}.
-     */
+    // `StepListener` moved package in Spring Batch 6.0; this recipe runs both before and after that relocation
     private static final String[] STEP_LISTENERS = {
             "org.springframework.batch.core.StepListener",
             "org.springframework.batch.core.listener.StepListener"};
 
-    /**
-     * Builder methods available on both {@code SimpleStepBuilder}/{@code FaultTolerantStepBuilder} and
-     * {@code ChunkOrientedStepBuilder} with equivalent semantics. Methods absent from this set, such as
-     * {@code backOffPolicy}, {@code retryContextCache}, {@code keyGenerator}, {@code noRollback}, {@code noRetry},
-     * {@code noSkip}, {@code processorNonTransactional}, {@code readerIsTransactionalQueue}, {@code chunkOperations},
-     * {@code stepOperations} and {@code exceptionHandler}, have no counterpart in the new model, so chains using them
-     * are left for manual migration.
-     */
-    private static final Set<String> SUPPORTED_BUILDER_METHODS = new HashSet<>(Arrays.asList(
-            "allowStartIfComplete",
-            "build",
-            "faultTolerant",
-            "listener",
-            "observationRegistry",
-            "processor",
-            "reader",
-            "retry",
-            "retryLimit",
-            "skip",
-            "skipLimit",
-            "skipPolicy",
-            "startLimit",
-            "stream",
-            "taskExecutor",
-            "transactionAttribute",
-            "transactionManager",
-            "writer"));
+    private static final String STEP_BUILDERS = "org.springframework.batch.core.step.builder.*";
+    private static final MethodMatcher BUILD_MATCHER = new MethodMatcher(STEP_BUILDERS + " build()");
+    private static final MethodMatcher LISTENER_MATCHER = new MethodMatcher(STEP_BUILDERS + " listener(..)");
+    private static final MethodMatcher TASK_EXECUTOR_MATCHER = new MethodMatcher(STEP_BUILDERS + " taskExecutor(..)");
+
+    // Methods absent here have no counterpart on `ChunkOrientedStepBuilder`, so chains using them are left alone
+    private static final List<MethodMatcher> SUPPORTED_BUILDER_METHODS = Stream.of(
+                    "allowStartIfComplete",
+                    "build",
+                    "faultTolerant",
+                    "listener",
+                    "observationRegistry",
+                    "processor",
+                    "reader",
+                    "retry",
+                    "retryLimit",
+                    "skip",
+                    "skipLimit",
+                    "skipPolicy",
+                    "startLimit",
+                    "stream",
+                    "taskExecutor",
+                    "transactionAttribute",
+                    "transactionManager",
+                    "writer")
+            .map(name -> new MethodMatcher(STEP_BUILDERS + " " + name + "(..)"))
+            .collect(toList());
 
     @Getter
     final String displayName = "Migrate to the new chunk-oriented step model";
@@ -137,11 +134,7 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
         });
     }
 
-    /**
-     * Walks the fluent builder chain built on the {@code chunk(int, PlatformTransactionManager)} result. The chain has
-     * to end in {@code build()} so that the widened return type of the new model stays contained, and every method in
-     * between has to exist on {@code ChunkOrientedStepBuilder}.
-     */
+    // The chain has to end in `build()` so that the widened return type of the new model stays contained
     private static boolean chainSupportsNewModel(Cursor chunkCursor) {
         Cursor cursor = chunkCursor;
         J current = cursor.getValue();
@@ -154,7 +147,7 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
             if (next.getSelect() != current || !isSupportedOnChunkOrientedStepBuilder(next)) {
                 return false;
             }
-            if ("build".equals(next.getSimpleName())) {
+            if (BUILD_MATCHER.matches(next)) {
                 return !returnsTaskletStep(parent);
             }
             cursor = parent;
@@ -163,15 +156,15 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
     }
 
     private static boolean isSupportedOnChunkOrientedStepBuilder(J.MethodInvocation method) {
-        if (!SUPPORTED_BUILDER_METHODS.contains(method.getSimpleName())) {
+        if (SUPPORTED_BUILDER_METHODS.stream().noneMatch(matcher -> matcher.matches(method))) {
             return false;
         }
         // `listener(Object)` and `listener(RetryListener)` are silently dropped by the new model
-        if ("listener".equals(method.getSimpleName())) {
+        if (LISTENER_MATCHER.matches(method)) {
             return isArgumentAssignableToAny(method, STEP_LISTENERS);
         }
         // The new model narrowed `taskExecutor(TaskExecutor)` to `taskExecutor(AsyncTaskExecutor)`
-        if ("taskExecutor".equals(method.getSimpleName())) {
+        if (TASK_EXECUTOR_MATCHER.matches(method)) {
             return isArgumentAssignableToAny(method, ASYNC_TASK_EXECUTOR);
         }
         return true;
