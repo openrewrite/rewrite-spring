@@ -108,7 +108,14 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
 
                 Expression chunkSize = mi.getArguments().get(0);
                 Expression transactionManager = mi.getArguments().get(1);
-                JavaType.FullyQualified chunkOrientedStepBuilder = JavaType.ShallowClass.build(CHUNK_ORIENTED_STEP_BUILDER);
+                JavaType.FullyQualified chunkOrientedStepBuilderRaw = JavaType.ShallowClass.build(CHUNK_ORIENTED_STEP_BUILDER);
+                JavaType.FullyQualified chunkOrientedStepBuilder = chunkOrientedStepBuilderRaw;
+                if (mi.getMethodType() != null && mi.getMethodType().getReturnType() instanceof JavaType.Parameterized) {
+                    List<JavaType> typeArgs = ((JavaType.Parameterized) mi.getMethodType().getReturnType()).getTypeParameters();
+                    if (!typeArgs.isEmpty()) {
+                        chunkOrientedStepBuilder = new JavaType.Parameterized(null, chunkOrientedStepBuilderRaw, typeArgs);
+                    }
+                }
 
                 JavaType.Method chunkType = mi.getMethodType() == null ? null : mi.getMethodType()
                         .withParameterNames(singletonList("chunkSize"))
