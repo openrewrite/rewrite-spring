@@ -243,6 +243,64 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
     }
 
     @Test
+    void classImplementingStepExecutionListenerIsSupported() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.StepExecutionListener;
+
+              class MyListener implements StepExecutionListener {
+              }
+              """
+          ),
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.item.ItemReader;
+              import org.springframework.batch.item.ItemWriter;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                              ItemReader<String> reader, ItemWriter<String> writer) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .<String, String>chunk(10, transactionManager)
+                              .reader(reader)
+                              .writer(writer)
+                              .listener(new MyListener())
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.item.ItemReader;
+              import org.springframework.batch.item.ItemWriter;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+                  Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                              ItemReader<String> reader, ItemWriter<String> writer) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .<String, String>chunk(10)
+                              .transactionManager(transactionManager)
+                              .reader(reader)
+                              .writer(writer)
+                              .listener(new MyListener())
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void asyncTaskExecutorIsSupported() {
         // language=java
         rewriteRun(
@@ -455,6 +513,47 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
                   class MyJobConfig {
                       Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
                                   ItemReader<String> reader, ItemWriter<String> writer, Object listener) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .listener(listener)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void annotatedPojoListenerByDeclaredTypeIsLeftAlone() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.StepExecution;
+                  import org.springframework.batch.core.annotation.BeforeStep;
+
+                  class MyPojoListener {
+                      @BeforeStep
+                      public void before(StepExecution stepExecution) {
+                      }
+                  }
+                  """
+              ),
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer, MyPojoListener listener) {
                           return new StepBuilder("myStep", jobRepository)
                                   .<String, String>chunk(10, transactionManager)
                                   .reader(reader)
