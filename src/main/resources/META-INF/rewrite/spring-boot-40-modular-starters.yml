@@ -97,6 +97,13 @@ recipeList:
       onlyIfUsing: org.springframework.boot.test.autoconfigure.web.servlet.*
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webmvc-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.test.web.servlet.MockMvc
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient
       acceptTransitive: true
       version: 4.0.x

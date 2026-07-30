@@ -3337,6 +3337,31 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.AddAutoConfigureMockMvc
+examples:
+- description: '`AddAutoConfigureMockMvcTest#shouldAddAnnotationIfMockMvcIsUsed`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.test.web.servlet.MockMvc;
+
+      @SpringBootTest
+      class ExampleTest {
+          MockMvc mockMvc;
+      }
+    after: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+      import org.springframework.test.web.servlet.MockMvc;
+
+      @AutoConfigureMockMvc
+      @SpringBootTest
+      class ExampleTest {
+          MockMvc mockMvc;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
 examples:
 - description: '`AddAutoConfigureTestRestTemplateTest#shouldAddAnnotationIfTypeIsUsed`'

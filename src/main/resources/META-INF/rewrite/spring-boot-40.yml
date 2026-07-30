@@ -166,6 +166,7 @@ recipeList:
 
   - org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
   - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
+  - org.openrewrite.java.spring.boot4.AddAutoConfigureMockMvc
 
   - org.openrewrite.java.spring.boot4.MigrateOpenApiGeneratorToSpringBoot4
   - org.openrewrite.java.spring.boot4.MigrateJsonschema2PojoToSpringBoot4
