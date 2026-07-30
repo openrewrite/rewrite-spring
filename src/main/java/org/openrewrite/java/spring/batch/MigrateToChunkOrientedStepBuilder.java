@@ -192,6 +192,32 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
             J.MethodDeclaration enclosing = buildCursor.firstEnclosing(J.MethodDeclaration.class);
             return enclosing != null && TypeUtils.isOfClassType(enclosing.getType(), TASKLET_STEP);
         }
+        if (parent instanceof J.Assignment) {
+            return TypeUtils.isOfClassType(((J.Assignment) parent).getType(), TASKLET_STEP);
+        }
+        if (parent instanceof J.TypeCast) {
+            return TypeUtils.isOfClassType(((J.TypeCast) parent).getType(), TASKLET_STEP);
+        }
+        if (parent instanceof J.MethodInvocation) {
+            J.MethodInvocation call = (J.MethodInvocation) parent;
+            if (call.getSelect() == buildCursor.getValue() || call.getMethodType() == null) {
+                return false;
+            }
+            int argIndex = call.getArguments().indexOf(buildCursor.getValue());
+            List<JavaType> paramTypes = call.getMethodType().getParameterTypes();
+            return argIndex >= 0 && argIndex < paramTypes.size() &&
+                    TypeUtils.isOfClassType(paramTypes.get(argIndex), TASKLET_STEP);
+        }
+        if (parent instanceof J.NewClass) {
+            J.NewClass newClass = (J.NewClass) parent;
+            if (newClass.getArguments() == null || newClass.getConstructorType() == null) {
+                return false;
+            }
+            int argIndex = newClass.getArguments().indexOf(buildCursor.getValue());
+            List<JavaType> paramTypes = newClass.getConstructorType().getParameterTypes();
+            return argIndex >= 0 && argIndex < paramTypes.size() &&
+                    TypeUtils.isOfClassType(paramTypes.get(argIndex), TASKLET_STEP);
+        }
         return false;
     }
 }

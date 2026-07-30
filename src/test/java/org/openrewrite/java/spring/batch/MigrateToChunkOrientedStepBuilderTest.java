@@ -643,6 +643,92 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
         }
 
         @Test
+        void taskletStepFieldAssignmentIsLeftAlone() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.core.step.tasklet.TaskletStep;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      TaskletStep step;
+                      void configure(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                     ItemReader<String> reader, ItemWriter<String> writer) {
+                          this.step = new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void taskletStepMethodArgumentIsLeftAlone() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.core.step.tasklet.TaskletStep;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      void register(TaskletStep step) {}
+                      void configure(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                     ItemReader<String> reader, ItemWriter<String> writer) {
+                          register(new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .build());
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void taskletStepCastIsLeftAlone() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.core.step.tasklet.TaskletStep;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Object myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                    ItemReader<String> reader, ItemWriter<String> writer) {
+                          return (TaskletStep) new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .build();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
         void completionPolicyChunkHasNoEquivalent() {
             // language=java
             rewriteRun(
