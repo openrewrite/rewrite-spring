@@ -244,6 +244,80 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
     }
 
     @Test
+    void transactionManagerConfiguredLaterInChain() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.item.ItemReader;
+              import org.springframework.batch.item.ItemWriter;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+
+                  @Autowired
+                  private StepBuilderFactory stepBuilderFactory;
+
+                  @Bean
+                  Step myStep(PlatformTransactionManager transactionManager) {
+                      return stepBuilderFactory.get("myStep")
+                              .<String, String>chunk(10)
+                              .reader(reader())
+                              .writer(writer())
+                              .transactionManager(transactionManager)
+                              .build();
+                  }
+
+                  private ItemWriter<String> writer() {
+                      return null;
+                  }
+
+                  private ItemReader<String> reader() {
+                      return null;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void transactionManagerConfiguredLaterInChainForTasklet() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+
+                  @Autowired
+                  private StepBuilderFactory stepBuilderFactory;
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet, PlatformTransactionManager transactionManager) {
+                      return stepBuilderFactory.get("myStep")
+                              .tasklet(myTasklet)
+                              .allowStartIfComplete(true)
+                              .transactionManager(transactionManager)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void existingTransactionManagerParameter() {
         // language=java
         rewriteRun(

@@ -218,3 +218,5 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.repository.explore.JobExplorer
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.JobRepository
+
+  - org.openrewrite.java.spring.batch.MigrateToChunkOrientedStepBuilder

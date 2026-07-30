@@ -134,6 +134,7 @@ recipeDependencies {
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:4.3.10")
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
     testParserClasspath("org.springframework.batch:spring-batch-test:4.3.+")
+    testParserClasspath("org.springframework.retry:spring-retry:2.+")
 
     testParserClasspath("org.springframework.kafka:spring-kafka:2.8.+")
 
