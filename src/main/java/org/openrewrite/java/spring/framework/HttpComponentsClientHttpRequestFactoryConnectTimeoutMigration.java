@@ -95,11 +95,10 @@ public class HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration exten
                     if (timeout == null) {
                         continue;
                     }
-                    maybeAddImport("org.apache.hc.client5.http.config.ConnectionConfig");
                     maybeAddImport("org.apache.hc.core5.util.Timeout");
-                    b = JavaTemplate.builder("#{any()}.setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(#{any(int)})).build());")
+                    b = JavaTemplate.builder("#{any()}.setDefaultConnectionConfig(org.apache.hc.client5.http.config.ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(#{any(int)})).build());")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpclient5", "httpcore5"))
-                            .imports("org.apache.hc.client5.http.config.ConnectionConfig", "org.apache.hc.core5.util.Timeout")
+                            .imports("org.apache.hc.core5.util.Timeout")
                             .build()
                             .apply(getCursor(), migration.getValue().getCoordinates().after(),
                                     migration.getValue().getVariables().get(0).getName().withPrefix(Space.EMPTY),
