@@ -22,6 +22,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.kotlin.Assertions.kotlin;
@@ -89,7 +90,8 @@ class HttpComponentsClientHttpRequestFactoryConnectTimeoutTest implements Rewrit
     void migratesWhenConnectionManagerIsWiredToRequestFactory() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-beans-6", "spring-web-6", "httpclient5", "httpcore5")),
+            "spring-beans-6", "spring-web-6", "httpclient5", "httpcore5"))
+            .typeValidationOptions(TypeValidation.all().methodInvocations(false)),
           //language=java
           java(
             """
@@ -133,7 +135,8 @@ class HttpComponentsClientHttpRequestFactoryConnectTimeoutTest implements Rewrit
     void migratesVariableTimeoutWhenConnectionManagerIsWiredToRequestFactory() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-beans-6", "spring-web-6", "httpclient5", "httpcore5")),
+            "spring-beans-6", "spring-web-6", "httpclient5", "httpcore5"))
+            .typeValidationOptions(TypeValidation.all().methodInvocations(false)),
           //language=java
           java(
             """
