@@ -36,7 +36,7 @@ recipeList:
   - org.openrewrite.java.spring.framework.MigrateResourceHttpMessageWriterAddHeadersMethod
   - org.openrewrite.java.spring.framework.MigrateUriComponentsBuilderMethods
   - org.openrewrite.java.spring.framework.MigrateWebExchangeBindExceptionResolveErrorMethod
-  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration
+  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
 
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.http.client.observation.ClientHttpObservationDocumentation.HighCardinalityKeyNames.CLIENT_NAME
@@ -70,4 +70,4 @@ recipeList:
   - org.openrewrite.java.AddCommentToMethodInvocations:
       comment: "TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748"
       methodPattern: "org.springframework.http.client.HttpComponentsClientHttpRequestFactory setConnectTimeout(..)"
-  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
+  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration
