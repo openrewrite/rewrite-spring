@@ -86,7 +86,7 @@ class HttpComponentsClientHttpRequestFactoryConnectTimeoutTest implements Rewrit
     }
 
     @Test
-    void commentsEvenWhenConnectionManagerIsPresent() {
+    void migratesWhenConnectionManagerIsWiredToRequestFactory() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-beans-6", "spring-web-6", "httpclient5", "httpcore5")),
@@ -109,16 +109,55 @@ class HttpComponentsClientHttpRequestFactoryConnectTimeoutTest implements Rewrit
               }
               """,
             """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
               import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
               import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(2000)).build());
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentsWhenConnectionManagerIsNotWiredToRequestFactory() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-beans-6", "spring-web-6", "httpclient5", "httpcore5")),
+          //language=java
+          java(
+            """
               import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
               import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
               class Example {
                   HttpComponentsClientHttpRequestFactory requestFactory() {
                       PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
-                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
                       /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
                       factory.setConnectTimeout(2000);
                       return factory;

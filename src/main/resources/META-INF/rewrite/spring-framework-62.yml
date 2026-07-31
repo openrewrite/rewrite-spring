@@ -36,7 +36,7 @@ recipeList:
   - org.openrewrite.java.spring.framework.MigrateResourceHttpMessageWriterAddHeadersMethod
   - org.openrewrite.java.spring.framework.MigrateUriComponentsBuilderMethods
   - org.openrewrite.java.spring.framework.MigrateWebExchangeBindExceptionResolveErrorMethod
-  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
+  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration
 
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.http.client.observation.ClientHttpObservationDocumentation.HighCardinalityKeyNames.CLIENT_NAME
@@ -61,12 +61,13 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
-displayName: Migrate `setConnectTimeout(..)` to ConnectionConfig `setConnectTimeout(..)`
+displayName: Migrate `setConnectTimeout(int)` to ConnectionConfig `setConnectTimeout(..)`
 description: >-
   `setConnectTimeout(..)` was deprecated in Spring Framework 6.2 and removed in 7.0.
-  This recipe adds a comment directing users to migrate to `ConnectionConfig.setConnectTimeout()`
-  on the `PoolingHttpClientConnectionManager`.
+  This recipe migrates local `PoolingHttpClientConnectionManager` instances that are wired into the request factory,
+  and adds a comment when the configuration is not safe to migrate automatically.
 recipeList:
   - org.openrewrite.java.AddCommentToMethodInvocations:
       comment: "TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748"
       methodPattern: "org.springframework.http.client.HttpComponentsClientHttpRequestFactory setConnectTimeout(..)"
+  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeout
