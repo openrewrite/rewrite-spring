@@ -88,6 +88,32 @@ class AddParametersCompilerFlagToGradleTest implements RewriteTest {
     }
 
     @Test
+    void addsJavaCompileBlockWhenPluginIsRuntimeDecoratedWithNoId() {
+        rewriteRun(
+          spec -> spec.recipe(new AddParametersCompilerFlagToGradle())
+            .allSources(source -> source.markers(gradleProject(
+              new GradlePluginDescriptor("org.gradle.api.plugins.JavaPlugin_Decorated", null)))),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'java'
+              }
+              """,
+            """
+              plugins {
+                  id 'java'
+              }
+
+              tasks.withType(JavaCompile).configureEach {
+                  options.compilerArgs.add('-parameters')
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void addsJavaAndKotlinCompileBlockGroovy() {
         rewriteRun(
           spec -> spec.recipe(new AddParametersCompilerFlagToGradle())

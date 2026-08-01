@@ -151,7 +151,7 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
     private static boolean isJavaPlugin(GradlePluginDescriptor p) {
         return "java".equals(p.getId())
                 || "org.gradle.java".equals(p.getId())
-                || "org.gradle.api.plugins.JavaPlugin".equals(p.getFullyQualifiedClassName());
+                || p.getFullyQualifiedClassName().startsWith("org.gradle.api.plugins.JavaPlugin");
     }
 
     private static boolean hasKotlinPlugin(GradleProject gradleProject) {
