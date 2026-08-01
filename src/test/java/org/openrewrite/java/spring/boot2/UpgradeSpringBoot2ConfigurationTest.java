@@ -67,7 +67,9 @@ class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
                       active: dev
                   ---
                   spring:
-                    config.activate.on-profile: prod
+                    config:
+                      activate:
+                        on-profile: prod
                   """
               )
             )

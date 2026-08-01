@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -32,6 +33,62 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
           .beforeRecipe(withToolingApi());
+    }
+
+    @DocumentExample
+    @Test
+    void removeRedundantVersionAlreadyOnBoot4() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.7</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>redundant-version-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <commons-lang3-override.version>3.18.0</commons-lang3-override.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.commons</groupId>
+                            <artifactId>commons-lang3</artifactId>
+                            <version>${commons-lang3-override.version}</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.7</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>redundant-version-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.commons</groupId>
+                            <artifactId>commons-lang3</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
+          )
+        );
     }
 
     @Test
@@ -402,61 +459,6 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                 .describedAs("A gson override newer than the Spring Boot 4 managed version must be preserved")
                 .contains("<version>2.14.0</version>")
                 .actual())
-            )
-          )
-        );
-    }
-
-    @Test
-    void removeRedundantVersionAlreadyOnBoot4() {
-        rewriteRun(
-          mavenProject("project",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.7</version>
-                        <relativePath/>
-                    </parent>
-                    <groupId>com.example</groupId>
-                    <artifactId>redundant-version-app</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <properties>
-                        <commons-lang3-override.version>3.18.0</commons-lang3-override.version>
-                    </properties>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.apache.commons</groupId>
-                            <artifactId>commons-lang3</artifactId>
-                            <version>${commons-lang3-override.version}</version>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """,
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.7</version>
-                        <relativePath/>
-                    </parent>
-                    <groupId>com.example</groupId>
-                    <artifactId>redundant-version-app</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.apache.commons</groupId>
-                            <artifactId>commons-lang3</artifactId>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """
             )
           )
         );

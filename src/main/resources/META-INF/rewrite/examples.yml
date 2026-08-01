@@ -962,6 +962,50 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.batch.MigrateToChunkOrientedStepBuilder
+examples:
+- description: '`MigrateToChunkOrientedStepBuilderTest#moveTransactionManagerOutOfChunk`'
+  sources:
+  - before: |
+      import org.springframework.batch.core.Step;
+      import org.springframework.batch.core.repository.JobRepository;
+      import org.springframework.batch.core.step.builder.StepBuilder;
+      import org.springframework.batch.item.ItemReader;
+      import org.springframework.batch.item.ItemWriter;
+      import org.springframework.transaction.PlatformTransactionManager;
+
+      class MyJobConfig {
+          Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                      ItemReader<String> reader, ItemWriter<String> writer) {
+              return new StepBuilder("myStep", jobRepository)
+                      .<String, String>chunk(10, transactionManager)
+                      .reader(reader)
+                      .writer(writer)
+                      .build();
+          }
+      }
+    after: |
+      import org.springframework.batch.core.Step;
+      import org.springframework.batch.core.repository.JobRepository;
+      import org.springframework.batch.core.step.builder.StepBuilder;
+      import org.springframework.batch.item.ItemReader;
+      import org.springframework.batch.item.ItemWriter;
+      import org.springframework.transaction.PlatformTransactionManager;
+
+      class MyJobConfig {
+          Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                      ItemReader<String> reader, ItemWriter<String> writer) {
+              return new StepBuilder("myStep", jobRepository)
+                      .<String, String>chunk(10)
+                      .transactionManager(transactionManager)
+                      .reader(reader)
+                      .writer(writer)
+                      .build();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.batch.RemoveDefaultBatchConfigurer
 examples:
 - description: '`RemoveDefaultBatchConfigurerTest#removeSetDataSourceWithCommentOnly`'
@@ -1613,6 +1657,31 @@ examples:
            }
       }
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.RemoveStaleMockitoVersionProperty
+examples:
+- description: '`RemoveStaleMockitoVersionPropertyTest#removeStaleMockitoVersion`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>fooservice</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <properties>
+              <mockito.version>2.18.3</mockito.version>
+          </properties>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>fooservice</artifactId>
+          <version>1.0-SNAPSHOT</version>
+      </project>
+    path: pom.xml
+    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.ReplaceDeprecatedEnvironmentTestUtils
@@ -3268,6 +3337,31 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.AddAutoConfigureMockMvc
+examples:
+- description: '`AddAutoConfigureMockMvcTest#shouldAddAnnotationIfMockMvcIsUsed`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.test.web.servlet.MockMvc;
+
+      @SpringBootTest
+      class ExampleTest {
+          MockMvc mockMvc;
+      }
+    after: |
+      import org.springframework.boot.test.context.SpringBootTest;
+      import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+      import org.springframework.test.web.servlet.MockMvc;
+
+      @AutoConfigureMockMvc
+      @SpringBootTest
+      class ExampleTest {
+          MockMvc mockMvc;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
 examples:
 - description: '`AddAutoConfigureTestRestTemplateTest#shouldAddAnnotationIfTypeIsUsed`'
@@ -3318,8 +3412,151 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.MigrateJsonschema2PojoToSpringBoot4
+examples:
+- description: '`MigrateJsonschema2PojoToSpringBoot4Test#migrateJacksonAndJakartaValidation`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.jsonschema2pojo</groupId>
+                      <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+                      <version>1.3.0</version>
+                      <configuration>
+                          <annotationStyle>jackson2</annotationStyle>
+                          <includeJsr303Annotations>true</includeJsr303Annotations>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.jsonschema2pojo</groupId>
+                      <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+                      <version>1.3.0</version>
+                      <configuration>
+                          <annotationStyle>jackson3</annotationStyle>
+                          <includeJsr303Annotations>true</includeJsr303Annotations>
+                          <useJakartaValidation>true</useJakartaValidation>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.MigrateOpenApiGeneratorToSpringBoot4
+examples:
+- description: '`MigrateOpenApiGeneratorToSpringBoot4Test#replaceUseSpringBoot3`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.openapitools</groupId>
+                      <artifactId>openapi-generator-maven-plugin</artifactId>
+                      <version>7.16.0</version>
+                      <executions>
+                          <execution>
+                              <configuration>
+                                  <generatorName>spring</generatorName>
+                                  <configOptions>
+                                      <useSpringBoot3>true</useSpringBoot3>
+                                  </configOptions>
+                              </configuration>
+                          </execution>
+                      </executions>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>1.0.0</version>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.openapitools</groupId>
+                      <artifactId>openapi-generator-maven-plugin</artifactId>
+                      <version>7.16.0</version>
+                      <executions>
+                          <execution>
+                              <configuration>
+                                  <generatorName>spring</generatorName>
+                                  <configOptions>
+                                      <useSpringBoot4>true</useSpringBoot4>
+                                      <useJackson3>true</useJackson3>
+                                  </configOptions>
+                              </configuration>
+                          </execution>
+                      </executions>
+                  </plugin>
+              </plugins>
+          </build>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.MigrateToModularStarters
 examples:
+- description: '`MigrateMongoDbModularStartersTest#addImperativeMongoDbTestStarter`'
+  sources:
+  - before: |
+      import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+
+      @DataMongoTest
+      class RepositoryTest {
+      }
+    after: |
+      import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest;
+
+      @DataMongoTest
+      class RepositoryTest {
+      }
+    language: java
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>org.example</groupId>
+          <artifactId>example</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-data-mongodb</artifactId>
+                  <version>3.5.14</version>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
 - description: '`MigrateToModularStartersTest#migrateLiquibaseToStarterInMaven`'
   sources:
   - before: |
@@ -3405,6 +3642,58 @@ examples:
       class Foo {}
       class Bar {}
     language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0
+examples:
+- description: '`UpgradeSpringBoot_4_0Test#removeRedundantVersionAlreadyOnBoot4`'
+  sources:
+  - before: project
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <parent>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-parent</artifactId>
+              <version>4.0.7</version>
+              <relativePath/>
+          </parent>
+          <groupId>com.example</groupId>
+          <artifactId>redundant-version-app</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <properties>
+              <commons-lang3-override.version>3.18.0</commons-lang3-override.version>
+          </properties>
+          <dependencies>
+              <dependency>
+                  <groupId>org.apache.commons</groupId>
+                  <artifactId>commons-lang3</artifactId>
+                  <version>${commons-lang3-override.version}</version>
+              </dependency>
+          </dependencies>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <parent>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-parent</artifactId>
+              <version>4.0.7</version>
+              <relativePath/>
+          </parent>
+          <groupId>com.example</groupId>
+          <artifactId>redundant-version-app</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.apache.commons</groupId>
+                  <artifactId>commons-lang3</artifactId>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.cloud2022.AddLoggingPatternLevelForSleuth

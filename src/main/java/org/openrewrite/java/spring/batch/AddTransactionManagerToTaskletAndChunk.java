@@ -109,6 +109,7 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
         private static final MethodMatcher TASKLET_MATCHER = new MethodMatcher(TASKLET_1ARG);
         private static final MethodMatcher CHUNK_INT_MATCHER = new MethodMatcher(CHUNK_INT);
         private static final MethodMatcher CHUNK_POLICY_MATCHER = new MethodMatcher(CHUNK_POLICY);
+        private static final MethodMatcher TRANSACTION_MANAGER_MATCHER = new MethodMatcher("org.springframework.batch.core.step.builder.* transactionManager(..)");
 
         private String findTransactionManagerParameterName() {
             Cursor cursor = getCursor();
@@ -127,8 +128,30 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
             return "transactionManager";
         }
 
+        private boolean chainConfiguresTransactionManager() {
+            Cursor cursor = getCursor();
+            while (true) {
+                Cursor parent = cursor.getParentTreeCursor();
+                Object parentValue = parent.getValue();
+                if (!(parentValue instanceof J.MethodInvocation)) {
+                    return false;
+                }
+                J.MethodInvocation parentMi = (J.MethodInvocation) parentValue;
+                if (parentMi.getSelect() != cursor.getValue()) {
+                    return false;
+                }
+                if (TRANSACTION_MANAGER_MATCHER.matches(parentMi)) {
+                    return true;
+                }
+                cursor = parent;
+            }
+        }
+
         @Override
         public J visitMethodInvocation(J.MethodInvocation mi, ExecutionContext ctx) {
+            if (chainConfiguresTransactionManager()) {
+                return super.visitMethodInvocation(mi, ctx);
+            }
             String tmName = findTransactionManagerParameterName();
             if (TASKLET_MATCHER.matches(mi)) {
                 return JavaTemplate.builder("#{any(org.springframework.batch.core.step.tasklet.Tasklet)}, " + tmName)

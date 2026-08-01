@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.security5;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -106,12 +105,7 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     @Test
     void removeUseAuthorizationManagerAttribute() {
         rewriteRun(
-          spec -> spec.recipe(
-            Environment.builder()
-              .scanRuntimeClasspath("org.openrewrite.java.spring")
-              .build()
-              .activateRecipes("org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml")
-          ),
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml"),
           //language=xml
           xml(
             """

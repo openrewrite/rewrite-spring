@@ -53,6 +53,7 @@ recipeList:
       newReturnType: org.springframework.http.HttpStatusCode
   - org.openrewrite.java.spring.data.UpgradeSpringData_3_0
   - org.openrewrite.java.spring.data.JdbcTemplateQueryForLongMigration
+  - org.openrewrite.java.spring.util.concurrent.ListenableToCompletableFuture
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.MigrateResponseStatusException

@@ -71,3 +71,7 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.kafka.listener.SeekToCurrentErrorHandler
       newFullyQualifiedTypeName: org.springframework.kafka.listener.DefaultErrorHandler
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.kafka.listener.SeekToCurrentBatchErrorHandler
+      newFullyQualifiedTypeName: org.springframework.kafka.listener.DefaultErrorHandler
+  - org.openrewrite.java.spring.kafka.DefaultErrorHandlerSetBackOffToConstructor
