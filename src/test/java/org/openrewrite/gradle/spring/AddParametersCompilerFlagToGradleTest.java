@@ -116,8 +116,67 @@ class AddParametersCompilerFlagToGradleTest implements RewriteTest {
     }
 
     @Test
-    void addsKotlinBlockWhenPluginIdentifiedByClassNameOnly() {
-        // Plugins applied via the buildscript classpath (apply plugin: SomeClass) have no id in the marker
+    void usesLegacyKotlinOptionsFormBelowKgp18Groovy() {
+        // compilerOptions.javaParameters requires Kotlin Gradle Plugin 1.8+; older plugins only understand kotlinOptions
+        rewriteRun(
+          spec -> spec.recipe(new AddParametersCompilerFlagToGradle())
+            .allSources(source -> source.markers(gradleProject(javaPlugin(), kotlinJvmPlugin()))),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'org.jetbrains.kotlin.jvm' version '1.7.20'
+              }
+              """,
+            """
+              plugins {
+                  id 'org.jetbrains.kotlin.jvm' version '1.7.20'
+              }
+
+              tasks.withType(JavaCompile).configureEach {
+                  options.compilerArgs.add('-parameters')
+              }
+              tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                  kotlinOptions.javaParameters = true
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void usesLegacyKotlinOptionsFormBelowKgp18KotlinDsl() {
+        rewriteRun(
+          spec -> spec.recipe(new AddParametersCompilerFlagToGradle())
+            .allSources(source -> source.markers(gradleProject(javaPlugin(), kotlinJvmPlugin()))),
+          //language=kotlin
+          buildGradleKts(
+            """
+              plugins {
+                  kotlin("jvm") version "1.6.21"
+              }
+              """,
+            """
+              plugins {
+                  kotlin("jvm") version "1.6.21"
+              }
+
+              tasks.withType<JavaCompile>().configureEach {
+                  options.compilerArgs.add("-parameters")
+              }
+              tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                  kotlinOptions.javaParameters = true
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addsOnlyJavaBlockWhenKotlinPluginVersionCannotBeDetermined() {
+        // Plugins applied via the buildscript classpath (apply plugin: SomeClass) have no id, and no
+        // version literal appears in this file, so we can't tell whether compilerOptions (KGP 1.8+) or
+        // kotlinOptions (older) is safe to emit. Skip the Kotlin block rather than guess wrong.
         rewriteRun(
           spec -> spec.recipe(new AddParametersCompilerFlagToGradle())
             .allSources(source -> source.markers(gradleProject(javaPlugin(),
@@ -132,9 +191,6 @@ class AddParametersCompilerFlagToGradleTest implements RewriteTest {
 
               tasks.withType(JavaCompile).configureEach {
                   options.compilerArgs.add('-parameters')
-              }
-              tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-                  compilerOptions.javaParameters = true
               }
               """
           )
