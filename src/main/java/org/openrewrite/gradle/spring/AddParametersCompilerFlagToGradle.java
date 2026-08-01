@@ -50,7 +50,7 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new IsBuildGradle<>(), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new IsBuildGradle<>(true), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
