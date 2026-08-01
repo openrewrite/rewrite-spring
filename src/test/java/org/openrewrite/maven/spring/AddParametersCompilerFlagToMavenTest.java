@@ -506,6 +506,72 @@ class AddParametersCompilerFlagToMavenTest implements RewriteTest {
     }
 
     @Test
+    void addsJavaParametersToKotlinPluginDeclaredInProfile() {
+        // kotlin-maven-plugin declared only inside an active profile's <build><plugins>, not the top-level build
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <profiles>
+                      <profile>
+                          <id>kotlin</id>
+                          <activation>
+                              <activeByDefault>true</activeByDefault>
+                          </activation>
+                          <build>
+                              <plugins>
+                                  <plugin>
+                                      <groupId>org.jetbrains.kotlin</groupId>
+                                      <artifactId>kotlin-maven-plugin</artifactId>
+                                      <version>1.9.25</version>
+                                  </plugin>
+                              </plugins>
+                          </build>
+                      </profile>
+                  </profiles>
+              </project>
+              """,
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                  </properties>
+                  <profiles>
+                      <profile>
+                          <id>kotlin</id>
+                          <activation>
+                              <activeByDefault>true</activeByDefault>
+                          </activation>
+                          <build>
+                              <plugins>
+                                  <plugin>
+                                      <groupId>org.jetbrains.kotlin</groupId>
+                                      <artifactId>kotlin-maven-plugin</artifactId>
+                                      <version>1.9.25</version>
+                                      <configuration>
+                                          <javaParameters>true</javaParameters>
+                                      </configuration>
+                                  </plugin>
+                              </plugins>
+                          </build>
+                      </profile>
+                  </profiles>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
     void multiModuleWithStarterParentIsUntouched() {
         rewriteRun(
           mavenProject("parent",

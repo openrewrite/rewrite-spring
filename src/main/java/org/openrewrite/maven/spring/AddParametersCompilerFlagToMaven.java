@@ -41,6 +41,7 @@ import static org.openrewrite.xml.MapTagChildrenVisitor.mapTagChildren;
 public class AddParametersCompilerFlagToMaven extends Recipe {
 
     private static final XPathMatcher PLUGINS_MATCHER = new XPathMatcher("/project/build/plugins");
+    private static final XPathMatcher PROFILE_PLUGINS_MATCHER = new XPathMatcher("/project/profiles/profile/build/plugins");
 
     @Override
     public String getDisplayName() {
@@ -75,7 +76,8 @@ public class AddParametersCompilerFlagToMaven extends Recipe {
             @Override
             public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
                 Xml.Tag t = super.visitTag(tag, ctx);
-                if (PLUGINS_MATCHER.matches(getCursor()) && needsKotlinJavaParameters()) {
+                if ((PLUGINS_MATCHER.matches(getCursor()) || PROFILE_PLUGINS_MATCHER.matches(getCursor())) &&
+                        needsKotlinJavaParameters()) {
                     Optional<Xml.Tag> kotlinPlugin = t.getChildren().stream()
                             .filter(child -> "plugin".equals(child.getName()) &&
                                     "org.jetbrains.kotlin".equals(child.getChildValue("groupId").orElse(null)) &&
