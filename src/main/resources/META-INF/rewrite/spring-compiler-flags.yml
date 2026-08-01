@@ -32,5 +32,5 @@ preconditions:
       groupIdPattern: org.springframework*
       artifactIdPattern: "*"
 recipeList:
-  - org.openrewrite.java.spring.AddParametersCompilerFlagToMaven
+  - org.openrewrite.maven.spring.AddParametersCompilerFlagToMaven
   - org.openrewrite.gradle.spring.AddParametersCompilerFlagToGradle
