@@ -44,7 +44,7 @@ public class AddParametersCompilerFlagToMaven extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Add `-parameters` compiler flag for Spring";
+        return "Add `-parameters` compiler flag for Spring in Maven";
     }
 
     @Override
