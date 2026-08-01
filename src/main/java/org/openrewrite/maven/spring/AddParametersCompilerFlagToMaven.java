@@ -67,7 +67,7 @@ public class AddParametersCompilerFlagToMaven extends Recipe {
                 }
                 // Modules with an in-project parent inherit the property from that parent instead
                 if (needsCompilerParameters() && !getResolutionResult().parentPomIsProjectPom()) {
-                    doAfterVisit(new AddPropertyVisitor("maven.compiler.parameters", "true", false));
+                    doAfterVisit(new AddPropertyVisitor("maven.compiler.parameters", "true", true));
                 }
                 return super.visitDocument(document, ctx);
             }
