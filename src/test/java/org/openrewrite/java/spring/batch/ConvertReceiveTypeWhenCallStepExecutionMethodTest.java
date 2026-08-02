@@ -30,7 +30,7 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch-core-4", "spring-batch-infrastructure", "spring-beans", "mockito-core-5.+"))
+            "spring-batch-core-4", "spring-batch-infrastructure-4", "spring-beans-5", "mockito-core-5.+"))
           .recipe(new ConvertReceiveTypeWhenCallStepExecutionMethod());
     }
 

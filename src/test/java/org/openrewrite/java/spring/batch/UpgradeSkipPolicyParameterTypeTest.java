@@ -34,9 +34,9 @@ class UpgradeSkipPolicyParameterTypeTest implements RewriteTest {
             "spring-batch-infrastructure-4.3.10",
             "spring-beans-4.3.30.RELEASE",
             "spring-batch",
-            "spring-boot",
-            "spring-core",
-            "spring-context"
+            "spring-boot-1",
+            "spring-core-4",
+            "spring-context-4"
           ));
     }
 

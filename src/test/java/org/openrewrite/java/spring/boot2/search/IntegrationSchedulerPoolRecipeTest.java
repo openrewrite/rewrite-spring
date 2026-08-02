@@ -36,7 +36,7 @@ class IntegrationSchedulerPoolRecipeTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new IntegrationSchedulerPoolRecipe())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2", "spring-boot-autoconfigure"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2", "spring-boot-autoconfigure-2.7"));
     }
 
     @DocumentExample

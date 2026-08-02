@@ -254,7 +254,7 @@ class MoveAutoConfigurationToImportsFileTest implements RewriteTest {
     @Test
     void dontChangeAnnotationsOnAutoConfigurationClasses() {
         rewriteRun(
-          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure", "spring-context-5")),
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7", "spring-context-5")),
           text(
             """
               org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\
