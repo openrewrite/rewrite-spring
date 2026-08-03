@@ -29,7 +29,7 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ReplaceGlobalMethodSecurityWithMethodSecurity())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-security-config-5.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-security-config-5.8"));
     }
 
     @DocumentExample

@@ -187,7 +187,6 @@ recipeDependencies {
     testParserClasspath("org.springframework.security:spring-security-web:6.2.+")
 
     testParserClasspath("org.springframework:spring-context:6.0.+")
-    testParserClasspath("org.springframework:spring-context:6.2.+")
     testParserClasspath("org.springframework:spring-orm:5.3.+")
     testParserClasspath("org.springframework:spring-test:5.3.+")
     testParserClasspath("org.springframework:spring-tx:4.1.+")

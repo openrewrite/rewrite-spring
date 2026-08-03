@@ -33,7 +33,11 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new NoAutowiredOnConstructor())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5.+", "spring-boot-1.5.+", "spring-context-5.+", "spring-core-5.+"))
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-beans-5.+",
+            "spring-boot-1.5.+",
+            "spring-context-5.+",
+            "spring-core-5.+"))
           .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-1.5", "spring-context-5", "spring-core-5"));
     }
 

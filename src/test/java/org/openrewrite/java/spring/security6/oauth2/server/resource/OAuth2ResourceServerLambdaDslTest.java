@@ -36,13 +36,19 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
         spec.recipe(new OAuth2ResourceServerLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans", "spring-context", "spring-boot", "spring-web", "spring-core",
-              "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
+              "spring-beans-5",
+              "spring-context-5",
+              "spring-boot-2.7",
+              "spring-web-5.3",
+              "spring-core-5",
+              "spring-security-core-5.8",
+              "spring-security-config-5.8",
+              "spring-security-web-5.8",
               "tomcat-embed"))
           .parser(KotlinParser.builder()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans", "spring-context", "spring-boot", "spring-web", "spring-core",
-              "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
+              "spring-beans-5", "spring-context-5", "spring-boot-2.7", "spring-web-5.3", "spring-core-5",
+              "spring-security-core-5.8", "spring-security-config-5.8", "spring-security-web-5.8",
               "tomcat-embed")
           );
     }

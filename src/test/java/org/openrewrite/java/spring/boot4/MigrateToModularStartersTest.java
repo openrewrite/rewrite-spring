@@ -41,12 +41,12 @@ class MigrateToModularStartersTest implements RewriteTest {
         ).parser(JavaParser.fromJavaVersion()
           .classpathFromResources(new InMemoryExecutionContext(),
             "spring-boot-autoconfigure-3",
-            "spring-boot-3",
-            "spring-boot-test-3",
+            "spring-boot-3.5",
+            "spring-boot-test-3.2",
             "spring-boot-test-autoconfigure-3",
             "spring-beans-6",
-            "spring-context-6",
-            "spring-web-6",
+            "spring-context-6.2",
+            "spring-web-6.2",
             "spring-core-6"));
     }
 
@@ -342,7 +342,7 @@ class MigrateToModularStartersTest implements RewriteTest {
               "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
             ).parser(JavaParser.fromJavaVersion()
               .classpathFromResources(new InMemoryExecutionContext(),
-                "spring-boot-actuator-3"));
+                "spring-boot-actuator-3.4"));
         }
 
         @Test

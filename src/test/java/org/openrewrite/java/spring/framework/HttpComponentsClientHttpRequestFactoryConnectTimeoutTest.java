@@ -90,7 +90,10 @@ class HttpComponentsClientHttpRequestFactoryConnectTimeoutTest implements Rewrit
     void migratesWhenConnectionManagerIsWiredToRequestFactory() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-beans-6", "spring-web-6", "httpclient5", "httpcore5"))
+            "spring-beans-6",
+            "spring-web-6.2",
+            "httpclient5",
+            "httpcore5"))
             .typeValidationOptions(TypeValidation.all().methodInvocations(false)),
           //language=java
           java(

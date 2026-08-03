@@ -30,9 +30,9 @@ class UpgradeSpringKafkaErrorHandlersTest implements RewriteTest {
         spec
           .recipeFromResources("org.openrewrite.java.spring.kafka.UpgradeSpringKafka_2_8_ErrorHandlers")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "kafka-clients",
-            "spring-beans",
-            "spring-context",
+            "kafka-clients-3.2",
+            "spring-beans-5",
+            "spring-context-5",
             "spring-core-5",
             "spring-kafka-2.8"
           ));

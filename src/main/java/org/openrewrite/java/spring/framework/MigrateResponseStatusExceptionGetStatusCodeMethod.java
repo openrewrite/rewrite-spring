@@ -53,7 +53,10 @@ public class MigrateResponseStatusExceptionGetStatusCodeMethod extends Recipe {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                 if (GET_STATUS_METHOD_MATCHER.matches(mi)) {
                     return JavaTemplate.builder("#{any()}.getStatusCode()")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-core-6", "spring-beans-6", "spring-web-6"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx,
+                                    "spring-core-6",
+                                    "spring-beans-6",
+                                    "spring-web-6"))
                             .build()
                             .apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect());
                 }
