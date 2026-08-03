@@ -34,6 +34,10 @@ class MigrateToStubbornContractTest implements RewriteTest {
             package org.springframework.cloud.contract.stubrunner.spring;
             public @interface AutoConfigureStubRunner {
             }
+            """, """
+            package org.springframework.cloud.openfeign;
+            public @interface FeignClient {
+            }
             """));
     }
 
@@ -159,6 +163,43 @@ class MigrateToStubbornContractTest implements RewriteTest {
             """
               stubborn.contract.stubrunner.ids=com.example:demo:+:stubs
               stubborn.contract.stubrunner.stubs-mode=remote
+              """
+          )
+        );
+    }
+
+    @Test
+    void doesNotMigrateUnrelatedSpringCloudUsage() {
+        rewriteRun(
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>1.0.0</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.springframework.cloud</groupId>
+                          <artifactId>spring-cloud-openfeign-core</artifactId>
+                          <version>5.0.0</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          ),
+          Assertions.java(
+            """
+              import org.springframework.cloud.openfeign.FeignClient;
+
+              @FeignClient
+              interface Client {
+              }
+              """
+          ),
+          properties(
+            """
+              spring.cloud.openfeign.client.config.default.connect-timeout=1000
               """
           )
         );
