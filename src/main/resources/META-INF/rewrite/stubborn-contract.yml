@@ -25,19 +25,6 @@ tags:
   - spring-cloud-contract
   - stubborn-contract
 recipeList:
-  - org.openrewrite.java.spring.cloud.UpdateDependenciesToStubbornContract
-  - org.openrewrite.java.spring.cloud.RenameSpringCloudContractPackages
-  - org.openrewrite.java.spring.cloud.RenameStubRunnerProperties
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.cloud.UpdateDependenciesToStubbornContract
-displayName: Update Spring Cloud Contract coordinates to Stubborn Contract
-description: Replace Spring Cloud Contract dependencies, BOM, and build plugin coordinates with Stubborn Contract equivalents, in both Maven and Gradle build files.
-tags:
-  - spring-cloud-contract
-  - stubborn-contract
-recipeList:
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-contract-verifier
@@ -96,16 +83,6 @@ recipeList:
   - org.openrewrite.gradle.plugins.ChangePlugin:
       pluginId: org.springframework.cloud.contract
       newPluginId: sh.stubborn.contract
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.cloud.RenameSpringCloudContractPackages
-displayName: Rename Spring Cloud Contract packages to Stubborn Contract
-description: Rename Spring Cloud Contract and its JSON/XML assertion packages to their Stubborn Contract equivalents.
-tags:
-  - spring-cloud-contract
-  - stubborn-contract
-recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.cloud.contract
       newPackageName: sh.stubborn.contract
@@ -118,16 +95,6 @@ recipeList:
       oldPackageName: com.toomuchcoding.xmlassert
       newPackageName: sh.stubborn.xmlassert
       recursive: true
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.cloud.RenameStubRunnerProperties
-displayName: Rename Spring Cloud Contract Stub Runner properties
-description: Rename Spring Cloud Contract Stub Runner properties to the Stubborn Contract property prefix.
-tags:
-  - spring-cloud-contract
-  - stubborn-contract
-recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.contract.stubrunner
       newPropertyKey: stubborn.contract.stubrunner
