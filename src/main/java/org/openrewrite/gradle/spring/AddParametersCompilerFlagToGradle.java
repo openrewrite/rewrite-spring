@@ -259,8 +259,7 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
             }
             if (modernKotlinOptions != null) {
                 String option = modernKotlinOptions ? "compilerOptions.javaParameters" : "kotlinOptions.javaParameters";
-                snippet += (snippet.isEmpty() ? "\n" : "") +
-                        "\ntasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {\n" +
+                snippet += "\n\ntasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {\n" +
                         "    " + option + " = true\n" +
                         "}";
             }
@@ -303,8 +302,7 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
             }
             if (modernKotlinOptions != null) {
                 String option = modernKotlinOptions ? "compilerOptions.javaParameters.set(true)" : "kotlinOptions.javaParameters = true";
-                snippet += (snippet.isEmpty() ? "\n" : "") +
-                        "\ntasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {\n" +
+                snippet += "\n\ntasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {\n" +
                         "    " + option + "\n" +
                         "}";
             }

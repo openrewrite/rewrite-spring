@@ -121,9 +121,8 @@ public class AddParametersCompilerFlagToMaven extends Recipe {
      */
     private static boolean hasSpringBootStarterParent(Xml.Tag root) {
         return root.getChild("parent")
-                .flatMap(parent -> parent.getChild("artifactId"))
-                .flatMap(Xml.Tag::getValue)
-                .map("spring-boot-starter-parent"::equals)
+                .map(parent -> "org.springframework.boot".equals(parent.getChildValue("groupId").orElse(null)) &&
+                        "spring-boot-starter-parent".equals(parent.getChildValue("artifactId").orElse(null)))
                 .orElse(false);
     }
 

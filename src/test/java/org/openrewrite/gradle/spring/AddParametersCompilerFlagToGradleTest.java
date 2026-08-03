@@ -133,6 +133,7 @@ class AddParametersCompilerFlagToGradleTest implements RewriteTest {
               tasks.withType(JavaCompile).configureEach {
                   options.compilerArgs.add('-parameters')
               }
+
               tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
                   compilerOptions.javaParameters = true
               }
@@ -162,6 +163,7 @@ class AddParametersCompilerFlagToGradleTest implements RewriteTest {
               tasks.withType(JavaCompile).configureEach {
                   options.compilerArgs.add('-parameters')
               }
+
               tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
                   kotlinOptions.javaParameters = true
               }
@@ -190,6 +192,7 @@ class AddParametersCompilerFlagToGradleTest implements RewriteTest {
               tasks.withType<JavaCompile>().configureEach {
                   options.compilerArgs.add("-parameters")
               }
+
               tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                   kotlinOptions.javaParameters = true
               }
@@ -405,6 +408,7 @@ class AddParametersCompilerFlagToGradleTest implements RewriteTest {
               tasks.withType<JavaCompile>().configureEach {
                   options.compilerArgs.add("-parameters")
               }
+
               tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                   compilerOptions.javaParameters.set(true)
               }
