@@ -32,11 +32,9 @@ class UpgradeSkipPolicyParameterTypeTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-batch-core-4.3.+",
             "spring-batch-infrastructure-4.3.10",
-            "spring-beans-4.3.30.RELEASE",
-            "spring-batch",
-            "spring-boot-1",
-            "spring-core-4",
-            "spring-context-4"
+            "spring-beans-5",
+            "spring-core-5",
+            "spring-context-5"
           ));
     }
 
