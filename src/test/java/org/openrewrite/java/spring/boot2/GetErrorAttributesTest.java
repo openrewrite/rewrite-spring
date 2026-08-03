@@ -30,7 +30,7 @@ class GetErrorAttributesTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .recipe(new GetErrorAttributes())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2", "spring-web-5"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.2", "spring-web-5.3"));
     }
 
     @DocumentExample

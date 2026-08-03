@@ -33,12 +33,12 @@ class AddAutoConfigureTestRestTemplateTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-boot-resttestclient-4",
               "spring-boot-autoconfigure-3",
-              "spring-boot-3",
-              "spring-boot-test-3",
+              "spring-boot-3.5",
+              "spring-boot-test-3.2",
               "spring-boot-test-autoconfigure-3",
               "spring-beans-6",
-              "spring-context-6",
-              "spring-web-6",
+              "spring-context-6.2",
+              "spring-web-6.2",
               "spring-core-6"));
     }
 
@@ -110,7 +110,7 @@ class AddAutoConfigureTestRestTemplateTest implements RewriteTest {
           spec -> spec.parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-boot-resttestclient-4",
-              "spring-boot-test-3",
+              "spring-boot-test-3.2",
               "spring-beans-6")
             .dependsOn(
               """

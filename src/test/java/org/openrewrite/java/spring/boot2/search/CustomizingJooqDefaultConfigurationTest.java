@@ -31,7 +31,12 @@ class CustomizingJooqDefaultConfigurationTest implements RewriteTest {
         spec.recipe(new CustomizingJooqDefaultConfiguration())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans-5", "spring-context-5", "spring-boot-2.4", "spring-jdbc-4", "spring-orm-5", "jooq-3"));
+              "spring-beans-5",
+              "spring-context-5",
+              "spring-boot-2.4",
+              "spring-jdbc-4",
+              "spring-orm-5",
+              "jooq-3"));
     }
 
     @DocumentExample

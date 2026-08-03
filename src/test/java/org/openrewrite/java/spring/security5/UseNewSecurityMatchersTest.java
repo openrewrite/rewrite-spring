@@ -36,7 +36,11 @@ class UseNewSecurityMatchersTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UseNewSecurityMatchers())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.7.+", "spring-security-config-5.7.+"));
+            "spring-context-5.3.+",
+            "spring-beans-5.3.+",
+            "spring-web-5.3.+",
+            "spring-security-web-5.7.+",
+            "spring-security-config-5.7.+"));
     }
 
     @DocumentExample

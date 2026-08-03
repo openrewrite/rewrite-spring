@@ -33,7 +33,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new RemoveConstructorBindingAnnotation())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-boot-2"));
+            "spring-boot-2.7"));
     }
 
     @DocumentExample

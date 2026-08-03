@@ -28,7 +28,14 @@ class UpgradeSpringSecurityTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-core-5.3.+", "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.8.+", "spring-security-config-5.8.+", "spring-security-core-5.8.+", "tomcat-embed"))
+            "spring-core-5.3.+",
+            "spring-context-5.3.+",
+            "spring-beans-5.3.+",
+            "spring-web-5.3.+",
+            "spring-security-web-5.8.+",
+            "spring-security-config-5.8.+",
+            "spring-security-core-5.8.+",
+            "tomcat-embed"))
           .recipeFromResources("org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8");
     }
 

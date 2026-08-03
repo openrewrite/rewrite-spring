@@ -32,9 +32,14 @@ class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
         spec.recipe(new AddConfigurationAnnotationIfBeansPresent())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-autoconfigure-3", "spring-boot-3",
-              "spring-beans-6", "spring-context-6", "spring-web-6", "spring-core-6",
-              "spring-security-core-6", "spring-security-config-6",
+              "spring-boot-autoconfigure-3",
+              "spring-boot-3.5",
+              "spring-beans-6",
+              "spring-context-6.2",
+              "spring-web-6.2",
+              "spring-core-6",
+              "spring-security-core-6",
+              "spring-security-config-6.2",
               "spring-cloud-openfeign-core"));
     }
 

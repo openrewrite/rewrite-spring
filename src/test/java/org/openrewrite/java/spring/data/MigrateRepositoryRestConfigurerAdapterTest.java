@@ -29,7 +29,9 @@ class MigrateRepositoryRestConfigurerAdapterTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-data-rest-webmvc", "spring-context-5", "spring-web-5"))
+            "spring-data-rest-webmvc",
+            "spring-context-5",
+            "spring-web-5.3"))
           .recipe(new MigrateRepositoryRestConfigurerAdapter());
     }
 

@@ -32,9 +32,9 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateDocketBeanToGroupedOpenApiBean())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-core",
-            "spring-context",
-            "spring-beans",
+            "spring-core-5",
+            "spring-context-5",
+            "spring-beans-5",
             "spring-plugin-core",
             "springfox-core",
             "springfox-spring-web",

@@ -31,8 +31,8 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateToChunkOrientedStepBuilder())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch-core-5.+",
-            "spring-batch-infrastructure-5.+",
+            "spring-batch-core-5.2",
+            "spring-batch-infrastructure-5.2",
             "spring-beans-5.+",
             "spring-core-5.+",
             "spring-retry-2.+",
