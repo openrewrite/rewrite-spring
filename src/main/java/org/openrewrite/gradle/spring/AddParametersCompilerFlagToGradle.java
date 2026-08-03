@@ -39,22 +39,16 @@ import java.util.concurrent.atomic.AtomicReference;
 @EqualsAndHashCode(callSuper = false)
 public class AddParametersCompilerFlagToGradle extends Recipe {
 
-    @Override
-    public String getDisplayName() {
-        return "Add `-parameters` compiler flag for Spring in Gradle";
-    }
+    final String displayName = "Add `-parameters` compiler flag for Spring in Gradle";
 
-    @Override
-    public String getDescription() {
-        return "Adds `options.compilerArgs.add(\"-parameters\")` to `JavaCompile` tasks and, when the Kotlin " +
-                "Gradle Plugin version can be determined from this file's `plugins {}` block, the matching " +
-                "`javaParameters` flag (`compilerOptions.javaParameters` on 1.8+, `kotlinOptions.javaParameters` " +
-                "on older versions) to Kotlin compile tasks. Spring uses parameter name retention for dependency " +
-                "injection. Projects using the Spring Boot Gradle plugin already have both flags configured and " +
-                "are not modified. When the Kotlin plugin's version can't be determined from this file (version " +
-                "catalogs, convention plugins, buildscript classpath declarations) the Kotlin flag is left alone " +
-                "rather than risk emitting a form the applied plugin doesn't support.";
-    }
+    final String description = "Adds `options.compilerArgs.add(\"-parameters\")` to `JavaCompile` tasks and, when the Kotlin " +
+            "Gradle Plugin version can be determined from this file's `plugins {}` block, the matching " +
+            "`javaParameters` flag (`compilerOptions.javaParameters` on 1.8+, `kotlinOptions.javaParameters` " +
+            "on older versions) to Kotlin compile tasks. Spring uses parameter name retention for dependency " +
+            "injection. Projects using the Spring Boot Gradle plugin already have both flags configured and " +
+            "are not modified. When the Kotlin plugin's version can't be determined from this file (version " +
+            "catalogs, convention plugins, buildscript classpath declarations) the Kotlin flag is left alone " +
+            "rather than risk emitting a form the applied plugin doesn't support.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

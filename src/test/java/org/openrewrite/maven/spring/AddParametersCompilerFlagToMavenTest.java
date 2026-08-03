@@ -572,6 +572,59 @@ class AddParametersCompilerFlagToMavenTest implements RewriteTest {
     }
 
     @Test
+    void addsJavaParametersToKotlinPluginDeclaredInPluginManagement() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <build>
+                      <pluginManagement>
+                          <plugins>
+                              <plugin>
+                                  <groupId>org.jetbrains.kotlin</groupId>
+                                  <artifactId>kotlin-maven-plugin</artifactId>
+                                  <version>1.9.25</version>
+                              </plugin>
+                          </plugins>
+                      </pluginManagement>
+                  </build>
+              </project>
+              """,
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <properties>
+                      <maven.compiler.parameters>true</maven.compiler.parameters>
+                  </properties>
+                  <build>
+                      <pluginManagement>
+                          <plugins>
+                              <plugin>
+                                  <groupId>org.jetbrains.kotlin</groupId>
+                                  <artifactId>kotlin-maven-plugin</artifactId>
+                                  <version>1.9.25</version>
+                                  <configuration>
+                                      <javaParameters>true</javaParameters>
+                                  </configuration>
+                              </plugin>
+                          </plugins>
+                      </pluginManagement>
+                  </build>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
     void multiModuleWithStarterParentIsUntouched() {
         rewriteRun(
           mavenProject("parent",

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.Nullable;
-import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -27,7 +26,6 @@ import org.openrewrite.maven.AddPropertyVisitor;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.tree.Plugin;
 import org.openrewrite.maven.tree.ResolvedPom;
-import org.openrewrite.xml.XPathMatcher;
 import org.openrewrite.xml.tree.Xml;
 
 import java.util.Optional;
@@ -40,22 +38,13 @@ import static org.openrewrite.xml.MapTagChildrenVisitor.mapTagChildren;
 @EqualsAndHashCode(callSuper = false)
 public class AddParametersCompilerFlagToMaven extends Recipe {
 
-    private static final XPathMatcher PLUGINS_MATCHER = new XPathMatcher("/project/build/plugins");
-    private static final XPathMatcher PROFILE_PLUGINS_MATCHER = new XPathMatcher("/project/profiles/profile/build/plugins");
+    final String displayName = "Add `-parameters` compiler flag for Spring in Maven";
 
-    @Override
-    public String getDisplayName() {
-        return "Add `-parameters` compiler flag for Spring in Maven";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Sets the `maven.compiler.parameters` property to `true` and, when `kotlin-maven-plugin` " +
-                "is declared, configures its `javaParameters` option. " +
-                "Spring uses parameter name retention for dependency injection. " +
-                "Projects whose effective build already decides parameter name retention — through their own " +
-                "configuration or any parent such as `spring-boot-starter-parent` — are not modified.";
-    }
+    final String description = "Sets the `maven.compiler.parameters` property to `true` and, when `kotlin-maven-plugin` " +
+            "is declared, configures its `javaParameters` option. " +
+            "Spring uses parameter name retention for dependency injection. " +
+            "Projects whose effective build already decides parameter name retention — through their own " +
+            "configuration or any parent such as `spring-boot-starter-parent` — are not modified.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -76,16 +65,8 @@ public class AddParametersCompilerFlagToMaven extends Recipe {
             @Override
             public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
                 Xml.Tag t = super.visitTag(tag, ctx);
-                if ((PLUGINS_MATCHER.matches(getCursor()) || PROFILE_PLUGINS_MATCHER.matches(getCursor())) &&
-                        needsKotlinJavaParameters()) {
-                    Optional<Xml.Tag> kotlinPlugin = t.getChildren().stream()
-                            .filter(child -> "plugin".equals(child.getName()) &&
-                                    "org.jetbrains.kotlin".equals(child.getChildValue("groupId").orElse(null)) &&
-                                    "kotlin-maven-plugin".equals(child.getChildValue("artifactId").orElse(null)))
-                            .findAny();
-                    if (kotlinPlugin.isPresent()) {
-                        t = addJavaParametersOption(t, kotlinPlugin.get());
-                    }
+                if (isPluginTag("org.jetbrains.kotlin", "kotlin-maven-plugin") && needsKotlinJavaParameters()) {
+                    return addJavaParametersOption(t);
                 }
                 return t;
             }
@@ -113,12 +94,11 @@ public class AddParametersCompilerFlagToMaven extends Recipe {
                 return Stream.concat(pom.getPlugins().stream(), pom.getPluginManagement().stream());
             }
 
-            private Xml.Tag addJavaParametersOption(Xml.Tag plugins, Xml.Tag plugin) {
+            private Xml.Tag addJavaParametersOption(Xml.Tag plugin) {
                 Optional<Xml.Tag> maybeConfig = plugin.getChild("configuration");
                 if (!maybeConfig.isPresent()) {
-                    Xml.Tag updatedPlugin = addToTag(plugin, Xml.Tag.build(
-                            "<configuration>\n<javaParameters>true</javaParameters>\n</configuration>"), getCursor());
-                    return mapTagChildren(plugins, child -> child == plugin ? updatedPlugin : child);
+                    return addToTag(plugin, Xml.Tag.build(
+                            "<configuration>\n<javaParameters>true</javaParameters>\n</configuration>"), getCursor().getParentOrThrow());
                 }
                 Xml.Tag config = maybeConfig.get();
                 boolean alreadyDecided = config.getChild("javaParameters").isPresent() ||
@@ -127,12 +107,10 @@ public class AddParametersCompilerFlagToMaven extends Recipe {
                                         .anyMatch(arg -> "-java-parameters".equals(arg.getValue().orElse(null))))
                                 .orElse(false);
                 if (alreadyDecided) {
-                    return plugins;
+                    return plugin;
                 }
-                Xml.Tag updatedConfig = addToTag(config, Xml.Tag.build("<javaParameters>true</javaParameters>"),
-                        new Cursor(getCursor(), plugin));
-                Xml.Tag updatedPlugin = mapTagChildren(plugin, child -> child == config ? updatedConfig : child);
-                return mapTagChildren(plugins, child -> child == plugin ? updatedPlugin : child);
+                Xml.Tag updatedConfig = addToTag(config, Xml.Tag.build("<javaParameters>true</javaParameters>"), getCursor());
+                return mapTagChildren(plugin, child -> child == config ? updatedConfig : child);
             }
         };
     }
