@@ -23,6 +23,8 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.maven.Assertions.pomXml;
@@ -98,6 +100,48 @@ class MigrateToStubbornContractTest implements RewriteTest {
                     .contains("<artifactId>stubborn-contract-maven-plugin</artifactId>");
                   return actual;
               })
+          )
+        );
+    }
+
+    @Test
+    void migratesGradleCoordinatesAndPlugin() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'java'
+                  id 'org.springframework.cloud.contract' version '5.0.0'
+              }
+
+              repositories {
+                  mavenCentral()
+              }
+
+              dependencies {
+                  implementation platform('org.springframework.cloud:spring-cloud-contract-dependencies:5.0.0')
+                  testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner:5.0.0'
+                  testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock:5.0.0'
+              }
+              """,
+            """
+              plugins {
+                  id 'java'
+                  id 'sh.stubborn.contract' version '5.0.0'
+              }
+
+              repositories {
+                  mavenCentral()
+              }
+
+              dependencies {
+                  implementation platform('sh.stubborn:stubborn-contract-dependencies:5.0.0')
+                  testImplementation 'sh.stubborn:stubborn-starter-contract-stub-runner:5.0.0'
+                  testImplementation 'sh.stubborn:stubborn-contract-wiremock:5.0.0'
+              }
+              """
           )
         );
     }
