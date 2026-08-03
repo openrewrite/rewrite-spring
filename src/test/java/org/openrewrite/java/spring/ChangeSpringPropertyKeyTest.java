@@ -666,7 +666,10 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
           spec -> spec
             .recipe(
               new ChangeSpringPropertyKey("spring.data.redis.ssl", "spring.data.redis.ssl.enabled", List.of()))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2.7")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+              "spring-beans-5",
+              "spring-boot-test-3.2",
+              "spring-boot-autoconfigure-2.7")),
           java(
             """
               import org.springframework.beans.factory.annotation.Value;

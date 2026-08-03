@@ -30,7 +30,10 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new AddValidToNestedConfigProperties())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3.5", "spring-context-5.+", "jakarta.validation-api-3.0.+")
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-3.5",
+              "spring-context-5.+",
+              "jakarta.validation-api-3.0.+")
             .dependsOn(
               // language=java
               """
@@ -206,7 +209,11 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     void doNotAddValidToStaticFields() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3.5", "spring-context-5.+", "jakarta.validation-api-3.0.+", "slf4j-api-2.+")),
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-3.5",
+              "spring-context-5.+",
+              "jakarta.validation-api-3.0.+",
+              "slf4j-api-2.+")),
           // language=java
           java(
             """

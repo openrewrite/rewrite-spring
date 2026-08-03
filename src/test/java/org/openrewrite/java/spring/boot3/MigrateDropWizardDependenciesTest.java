@@ -28,7 +28,10 @@ class MigrateDropWizardDependenciesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies")
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3.5", "spring-context-5.+", "spring-beans-5.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-3.5",
+            "spring-context-5.+",
+            "spring-beans-5.+"));
     }
 
     @Test
