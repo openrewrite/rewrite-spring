@@ -506,7 +506,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeConditionalOnPropertyAnnotation() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("foo", "bar", List.of("baz")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7")),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -666,7 +666,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
           spec -> spec
             .recipe(
               new ChangeSpringPropertyKey("spring.data.redis.ssl", "spring.data.redis.ssl.enabled", List.of()))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2.7")),
           java(
             """
               import org.springframework.beans.factory.annotation.Value;
@@ -690,7 +690,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
           spec -> spec
             .recipe(
               new ChangeSpringPropertyKey("spring.data.redis.ssl.enabled", "some.other.key.enabled", List.of()))
-            .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2")),
+            .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2.7")),
           kotlin(
             """
               import org.springframework.beans.factory.annotation.Value

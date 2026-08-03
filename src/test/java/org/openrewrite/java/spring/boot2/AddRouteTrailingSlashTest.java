@@ -29,7 +29,7 @@ class AddRouteTrailingSlashTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-context-5", "spring-boot-2", "spring-security", "spring-web-5", "spring-core-5"))
+        spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-context-5", "spring-boot-2.7", "spring-security-config-5.8", "spring-security-core-5.8", "spring-security-web-5.8", "spring-web-5.3", "spring-core-5"))
           .recipe(new AddRouteTrailingSlash());
     }
 

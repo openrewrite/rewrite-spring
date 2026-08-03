@@ -30,7 +30,7 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-web-5", "spring-webmvc-5", "jspecify-1"));
+            "spring-web-5.3", "spring-webmvc-5", "jspecify-1"));
     }
 
     @DocumentExample

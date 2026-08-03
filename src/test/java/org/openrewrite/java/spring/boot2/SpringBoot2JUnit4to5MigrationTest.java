@@ -32,7 +32,7 @@ class SpringBoot2JUnit4to5MigrationTest implements RewriteTest {
           .recipeFromResources("org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration")
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-test-2", "junit-4", "spring-test-5", "spring-context-5"));
+              "spring-boot-test-2.7", "junit-4", "spring-test-5", "spring-context-5"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/43")

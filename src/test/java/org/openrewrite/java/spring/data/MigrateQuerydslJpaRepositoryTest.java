@@ -29,7 +29,7 @@ class MigrateQuerydslJpaRepositoryTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateQuerydslJpaRepository())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "javax.persistence-api-2.+", "spring-data-jpa-2.+", "spring-data-commons-2.7.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "javax.persistence-api-2.+", "spring-data-jpa-2.7", "spring-data-commons-2.7.+"));
     }
 
     @DocumentExample

@@ -32,10 +32,10 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-beans-5",
               "spring-context-5",
-              "spring-boot-2",
+              "spring-boot-2.7",
               "spring-security-config-5.8.+",
               "spring-security-web-5.8.+",
-              "spring-web-5",
+              "spring-web-5.3",
               "tomcat-embed",
               "spring-core-5"
             ));

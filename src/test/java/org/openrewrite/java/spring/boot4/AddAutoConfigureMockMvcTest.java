@@ -31,7 +31,7 @@ class AddAutoConfigureMockMvcTest implements RewriteTest {
         spec.recipe(new AddAutoConfigureMockMvc())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-test-3",
+              "spring-boot-test-3.2",
               "spring-beans-6")
             .dependsOn(
               """

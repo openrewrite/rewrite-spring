@@ -29,7 +29,7 @@ class RemoveEnableBatchProcessingTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new RemoveEnableBatchProcessing())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4", "spring-boot-autoconfigure-2"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4", "spring-boot-autoconfigure-2.7"));
     }
 
     @DocumentExample

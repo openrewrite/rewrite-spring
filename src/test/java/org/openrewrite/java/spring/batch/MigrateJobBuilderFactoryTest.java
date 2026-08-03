@@ -92,8 +92,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
           // This test's source is already the migrated (Spring Batch 5) API, so it must be
           // parsed against Spring Batch 5 rather than the class default of Spring Batch 4.
           spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch-core-5.+",
-            "spring-batch-infrastructure-5.+",
+            "spring-batch-core-5.2",
+            "spring-batch-infrastructure-5.2",
             "spring-beans-5.+",
             "spring-core-5.+",
             "spring-context-5.+")),

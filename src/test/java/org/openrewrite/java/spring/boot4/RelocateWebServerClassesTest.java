@@ -32,7 +32,7 @@ class RelocateWebServerClassesTest implements RewriteTest {
           "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
           "org.openrewrite.java.spring.boot4.RelocateWebServerClasses"
         ).parser(JavaParser.fromJavaVersion()
-          .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3"));
+          .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3.5"));
     }
 
     @DocumentExample

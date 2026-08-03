@@ -278,7 +278,7 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
         void conditionalOnPropertyHavingValue() {
             rewriteRun(
               spec -> spec.recipe(new ChangeSpringPropertyValue("feature.enabled", "true", "false", null, null))
-                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2")),
+                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7")),
               java(
                 """
                   import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -300,7 +300,7 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
         void conditionalOnPropertyDifferentKey() {
             rewriteRun(
               spec -> spec.recipe(new ChangeSpringPropertyValue("feature.enabled", "true", "false", null, null))
-                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2")),
+                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7")),
               java(
                 """
                   import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
