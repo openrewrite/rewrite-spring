@@ -32,4 +32,5 @@ recipeList:
   - org.openrewrite.java.RemoveMethodInvocations:
       methodPattern: org.springframework.http.client.SimpleClientHttpRequestFactory setOutputStreaming(boolean)
   # Spring Framework 6.1 no longer falls back to reading parameter names from the local variable table
-  - org.openrewrite.java.spring.AddParametersCompilerFlag
+  - org.openrewrite.maven.spring.AddParametersCompilerFlagToMaven
+  - org.openrewrite.gradle.spring.AddParametersCompilerFlagToGradle
