@@ -18,7 +18,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - uses: gradle/actions/setup-gradle@v6
+      - uses: gradle/actions/setup-gradle@v6.2.0
 
       # Generate Spring Boot property migrations recipes
       - name: Create jar and copy dependencies
