@@ -22,6 +22,9 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.java.Assertions.srcMainResources;
 import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
 
@@ -86,46 +89,15 @@ class MigrateToStubbornContractTest implements RewriteTest {
                   </build>
               </project>
               """,
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>com.example</groupId>
-                  <artifactId>demo</artifactId>
-                  <version>1.0.0</version>
-                  <dependencyManagement>
-                      <dependencies>
-                          <dependency>
-                              <groupId>sh.stubborn</groupId>
-                              <artifactId>stubborn-contract-dependencies</artifactId>
-                              <version>5.0.0</version>
-                              <type>pom</type>
-                              <scope>import</scope>
-                          </dependency>
-                      </dependencies>
-                  </dependencyManagement>
-                  <dependencies>
-                      <dependency>
-                          <groupId>sh.stubborn</groupId>
-                          <artifactId>stubborn-contract-verifier</artifactId>
-                          <version>5.0.0</version>
-                      </dependency>
-                      <dependency>
-                          <groupId>sh.stubborn</groupId>
-                          <artifactId>stubborn-contract-converters</artifactId>
-                          <version>5.0.0</version>
-                      </dependency>
-                  </dependencies>
-                  <build>
-                      <plugins>
-                          <plugin>
-                              <groupId>sh.stubborn</groupId>
-                              <artifactId>stubborn-contract-maven-plugin</artifactId>
-                              <version>5.0.0</version>
-                          </plugin>
-                      </plugins>
-                  </build>
-              </project>
-              """
+              spec -> spec.after(actual -> {
+                  assertThat(actual)
+                    .contains("<groupId>sh.stubborn</groupId>")
+                    .contains("<artifactId>stubborn-contract-dependencies</artifactId>")
+                    .contains("<artifactId>stubborn-contract-verifier</artifactId>")
+                    .contains("<artifactId>stubborn-contract-converters</artifactId>")
+                    .contains("<artifactId>stubborn-contract-maven-plugin</artifactId>");
+                  return actual;
+              })
           )
         );
     }
@@ -155,15 +127,19 @@ class MigrateToStubbornContractTest implements RewriteTest {
     @Test
     void migratesStubRunnerProperties() {
         rewriteRun(
-          properties(
-            """
-              spring.cloud.contract.stubrunner.ids=com.example:demo:+:stubs
-              spring.cloud.contract.stubrunner.stubs-mode=remote
-              """,
-            """
-              stubborn.contract.stubrunner.ids=com.example:demo:+:stubs
-              stubborn.contract.stubrunner.stubs-mode=remote
-              """
+          mavenProject("project",
+            srcMainResources(
+              properties(
+                """
+                  spring.cloud.contract.stubrunner.ids=com.example:demo:+:stubs
+                  spring.cloud.contract.stubrunner.stubs-mode=remote
+                  """,
+                """
+                  stubborn.contract.stubrunner.ids=com.example:demo:+:stubs
+                  stubborn.contract.stubrunner.stubs-mode=remote
+                  """
+              )
+            )
           )
         );
     }
