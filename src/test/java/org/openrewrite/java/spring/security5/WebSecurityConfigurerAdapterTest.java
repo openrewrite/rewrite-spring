@@ -33,9 +33,15 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
         spec.recipe(new WebSecurityConfigurerAdapter())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-autoconfigure-2", "spring-boot-2",
-              "spring-beans-4", "spring-context-4", "spring-web-4", "spring-core-4",
-              "spring-security-core-5.7", "spring-security-config-5.7", "spring-security-web-5.7",
+              "spring-boot-autoconfigure-2.7",
+              "spring-boot-2.7",
+              "spring-beans-4",
+              "spring-context-4",
+              "spring-web-4",
+              "spring-core-4",
+              "spring-security-core-5.7",
+              "spring-security-config-5.7",
+              "spring-security-web-5.7",
               "tomcat-embed"
             ));
     }

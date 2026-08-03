@@ -32,7 +32,11 @@ class ReplaceExtendWithAndContextConfigurationTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ReplaceExtendWithAndContextConfiguration())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-test", "spring-test", "junit-jupiter-api", "spring-context-5"));
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-boot-test-2.4",
+              "spring-test-5",
+              "junit-jupiter-api",
+              "spring-context-5"));
     }
 
     @DocumentExample

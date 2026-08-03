@@ -31,7 +31,7 @@ class PreciseBeanTypeTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new PreciseBeanType())
           .parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.+", "spring-boot-3.+"));
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.+", "spring-boot-3.5"));
     }
 
     @DocumentExample

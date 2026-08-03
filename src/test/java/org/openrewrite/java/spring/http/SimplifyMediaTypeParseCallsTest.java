@@ -29,7 +29,7 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .recipe(new SimplifyMediaTypeParseCalls())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.+", "spring-core-6.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2", "spring-core-6.+"));
     }
 
     @ParameterizedTest

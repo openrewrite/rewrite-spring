@@ -350,7 +350,7 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
               spec -> spec
                 .typeValidationOptions(TypeValidation.none())
                 .parser(JavaParser.fromJavaVersion()
-                  .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.+", "spring-context-5.+")),
+                  .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7", "spring-context-5.+")),
               mavenProject("project",
                 pomXml(POM_BOOT_2),
                 //language=java
