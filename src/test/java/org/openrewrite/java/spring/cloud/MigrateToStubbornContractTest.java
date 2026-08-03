@@ -91,15 +91,13 @@ class MigrateToStubbornContractTest implements RewriteTest {
                   </build>
               </project>
               """,
-              spec -> spec.after(actual -> {
-                  assertThat(actual)
-                    .contains("<groupId>sh.stubborn</groupId>")
-                    .contains("<artifactId>stubborn-contract-dependencies</artifactId>")
-                    .contains("<artifactId>stubborn-contract-verifier</artifactId>")
-                    .contains("<artifactId>stubborn-contract-converters</artifactId>")
-                    .contains("<artifactId>stubborn-contract-maven-plugin</artifactId>");
-                  return actual;
-              })
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("<groupId>sh.stubborn</groupId>")
+                .contains("<artifactId>stubborn-contract-dependencies</artifactId>")
+                .contains("<artifactId>stubborn-contract-verifier</artifactId>")
+                .contains("<artifactId>stubborn-contract-converters</artifactId>")
+                .contains("<artifactId>stubborn-contract-maven-plugin</artifactId>")
+                .actual())
           )
         );
     }
