@@ -148,20 +148,19 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
     }
 
     private static KotlinOptionsForm kotlinOptionsForm(JavaSourceFile sourceFile) {
-        String version = new JavaIsoVisitor<AtomicReference<String>>() {
+        return new JavaIsoVisitor<AtomicReference<KotlinOptionsForm>>() {
             @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicReference<String> acc) {
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicReference<KotlinOptionsForm> acc) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, acc);
                 if ("version".equals(m.getSimpleName()) && isKotlinPluginSelect(m.getSelect())) {
                     String version = singleStringArgument(m.getArguments());
                     if (version != null) {
-                        acc.set(version);
+                        acc.set(kotlinOptionsForm(version));
                     }
                 }
                 return m;
             }
-        }.reduce(sourceFile, new AtomicReference<String>()).get();
-        return version == null ? KotlinOptionsForm.UNKNOWN : kotlinOptionsForm(version);
+        }.reduce(sourceFile, new AtomicReference<>(KotlinOptionsForm.UNKNOWN)).get();
     }
 
     private static boolean isKotlinPluginSelect(@Nullable Expression select) {
