@@ -173,7 +173,10 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                 return JavaTemplate.builder("#{any(org.springframework.batch.repeat.CompletionPolicy)}, " + tmName)
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+", "spring-tx-5.+"))
+                                .classpathFromResources(ctx,
+                                        "spring-batch-core-5.1.+",
+                                        "spring-batch-infrastructure-5.1.+",
+                                        "spring-tx-5.+"))
                         .build()
                         .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0));
             }

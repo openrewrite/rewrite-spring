@@ -29,7 +29,10 @@ class MigrateToWebServerFactoryCustomizerTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer")
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-1.+", "spring-context-4.+", "spring-beans-4.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-1.+",
+            "spring-context-4.+",
+            "spring-beans-4.+"));
     }
 
     @DocumentExample

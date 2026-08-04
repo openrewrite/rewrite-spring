@@ -859,7 +859,11 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
         rewriteRun(
           recipeSpec -> recipeSpec.recipe(toRecipe(() -> new AutowiredFieldIntoConstructorParameterVisitor("SecurityConfiguration", "authConverter")))
             .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans-6.+", "spring-context-6.+", "spring-core-6.+", "spring-security-core-6.0.+", "spring-security-oauth2-jose-6.0.+")),
+              "spring-beans-6.+",
+              "spring-context-6.2",
+              "spring-core-6.+",
+              "spring-security-core-6.0.+",
+              "spring-security-oauth2-jose-6.0.+")),
           java(
             """
               import org.springframework.beans.factory.annotation.Autowired;

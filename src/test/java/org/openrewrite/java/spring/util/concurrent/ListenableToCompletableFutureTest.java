@@ -30,7 +30,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ListenableToCompletableFuture())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6", "spring-kafka-2"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6", "spring-kafka-2.9"));
     }
 
     @DocumentExample

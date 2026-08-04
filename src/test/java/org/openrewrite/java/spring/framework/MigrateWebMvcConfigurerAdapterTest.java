@@ -29,7 +29,9 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-webmvc-5", "spring-core-5", "spring-web-5"))
+            "spring-webmvc-5",
+            "spring-core-5",
+            "spring-web-5.3"))
           .recipe(new MigrateWebMvcConfigurerAdapter());
     }
 

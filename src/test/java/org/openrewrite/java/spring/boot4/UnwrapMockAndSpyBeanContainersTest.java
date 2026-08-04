@@ -32,9 +32,9 @@ class UnwrapMockAndSpyBeanContainersTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UnwrapMockAndSpyBeanContainers())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-boot-test-3", "mockito-core-5"))
+            "spring-boot-test-3.2", "mockito-core-5"))
           .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-boot-test-3", "mockito-core-5"));
+            "spring-boot-test-3.2", "mockito-core-5"));
     }
 
     @DocumentExample

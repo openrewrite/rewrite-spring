@@ -31,7 +31,7 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
         spec.recipe(new HttpComponentsClientHttpRequestFactoryReadTimeout())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-beans-5.3",
-            "spring-boot-3",
+            "spring-boot-3.5",
             "spring-web-5.3",
             "httpclient5",
             "httpcore5"));
