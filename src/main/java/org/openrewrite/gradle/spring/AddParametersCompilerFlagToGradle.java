@@ -21,7 +21,6 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.gradle.GradleParser;
 import org.openrewrite.gradle.IsBuildGradle;
-import org.openrewrite.gradle.marker.GradlePluginDescriptor;
 import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.groovy.tree.G;
 import org.openrewrite.internal.ListUtils;
@@ -69,20 +68,17 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
                 boolean kotlin = hasKotlinPlugin(gradleProject);
                 ExistingFlags present = existingFlags(sourceFile);
                 boolean addJavaFlag = (hasJavaPlugin(gradleProject) || kotlin) && !present.javaFlag;
-                // compilerOptions.javaParameters requires Kotlin Gradle Plugin 1.8+; older plugins only
-                // understand kotlinOptions.javaParameters. If the applied version can't be determined
-                // (version catalog, convention plugin, buildscript classpath, ...) skip rather than guess.
-                Boolean modernKotlinOptions = kotlin && !present.kotlinFlag ? useCompilerOptionsForm(sourceFile) : null;
-                boolean addKotlinFlag = modernKotlinOptions != null;
-                if (!addJavaFlag && !addKotlinFlag) {
+                KotlinOptionsForm kotlinForm = kotlin && !present.kotlinFlag ?
+                        kotlinOptionsForm(sourceFile) : KotlinOptionsForm.UNKNOWN;
+                if (!addJavaFlag && kotlinForm == KotlinOptionsForm.UNKNOWN) {
                     return sourceFile;
                 }
 
                 if (sourceFile instanceof G.CompilationUnit) {
-                    return GroovyDsl.addParametersFlags((G.CompilationUnit) sourceFile, addJavaFlag, modernKotlinOptions, ctx);
+                    return addParametersFlags((G.CompilationUnit) sourceFile, addJavaFlag, kotlinForm, ctx);
                 }
                 if (sourceFile instanceof K.CompilationUnit) {
-                    return KotlinDsl.addParametersFlags((K.CompilationUnit) sourceFile, addJavaFlag, modernKotlinOptions, ctx);
+                    return addParametersFlags((K.CompilationUnit) sourceFile, addJavaFlag, kotlinForm, ctx);
                 }
                 return sourceFile;
             }
@@ -90,18 +86,21 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
     }
 
     /**
-     * Which flags the build file already configures: the Java `-parameters` flag, and the Kotlin
-     * equivalent (`-java-parameters` free arg or the first-class `javaParameters` compiler option).
-     * Would be a record if this library did not target Java 8.
+     * Kotlin Gradle Plugin 1.8+ understands {@code compilerOptions.javaParameters}; older versions only
+     * {@code kotlinOptions.javaParameters}. {@code UNKNOWN} when the applied version can't be determined
+     * from this file, in which case no Kotlin flag is emitted rather than guessing at a form.
      */
+    private enum KotlinOptionsForm {
+        COMPILER_OPTIONS, KOTLIN_OPTIONS, UNKNOWN
+    }
+
     private static class ExistingFlags {
         boolean javaFlag;
         boolean kotlinFlag;
     }
 
     private static ExistingFlags existingFlags(JavaSourceFile sourceFile) {
-        ExistingFlags found = new ExistingFlags();
-        new JavaIsoVisitor<ExistingFlags>() {
+        return new JavaIsoVisitor<ExistingFlags>() {
             @Override
             public J.Literal visitLiteral(J.Literal literal, ExistingFlags acc) {
                 if ("-parameters".equals(literal.getValue())) {
@@ -119,63 +118,37 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
                 }
                 return identifier;
             }
-        }.visit(sourceFile, found);
-        return found;
+        }.reduce(sourceFile, new ExistingFlags());
     }
 
     private static boolean hasBootPlugin(GradleProject gradleProject) {
         return gradleProject
                 .getPlugins()
                 .stream()
-                .anyMatch(AddParametersCompilerFlagToGradle::isBootPlugin);
-    }
-
-    private static boolean isBootPlugin(GradlePluginDescriptor p) {
-        return "org.springframework.boot".equals(p.getId())
-                || p.getFullyQualifiedClassName().startsWith("org.springframework.boot.");
+                .anyMatch(p -> "org.springframework.boot".equals(p.getId()) ||
+                        p.getFullyQualifiedClassName().startsWith("org.springframework.boot."));
     }
 
     private static boolean hasJavaPlugin(GradleProject gradleProject) {
         return gradleProject
                 .getPlugins()
                 .stream()
-                .anyMatch(AddParametersCompilerFlagToGradle::isJavaPlugin);
-    }
-
-    private static boolean isJavaPlugin(GradlePluginDescriptor p) {
-        return "java".equals(p.getId())
-                || "org.gradle.java".equals(p.getId())
-                || p.getFullyQualifiedClassName().startsWith("org.gradle.api.plugins.JavaPlugin");
+                .anyMatch(p -> "java".equals(p.getId()) ||
+                        "org.gradle.java".equals(p.getId()) ||
+                        p.getFullyQualifiedClassName().startsWith("org.gradle.api.plugins.JavaPlugin"));
     }
 
     private static boolean hasKotlinPlugin(GradleProject gradleProject) {
         return gradleProject
                 .getPlugins()
                 .stream()
-                .anyMatch(AddParametersCompilerFlagToGradle::isKotlinPlugin);
+                .anyMatch(p -> "kotlin".equals(p.getId()) ||
+                        (p.getId() != null && p.getId().startsWith("org.jetbrains.kotlin.")) ||
+                        p.getFullyQualifiedClassName().startsWith("org.jetbrains.kotlin."));
     }
 
-    private static boolean isKotlinPlugin(GradlePluginDescriptor p) {
-        return "kotlin".equals(p.getId()) ||
-                (p.getId() != null && p.getId().startsWith("org.jetbrains.kotlin.")) ||
-                p.getFullyQualifiedClassName().startsWith("org.jetbrains.kotlin.");
-    }
-
-    /**
-     * Whether to emit the modern {@code compilerOptions} form (Kotlin Gradle Plugin 1.8+) or the legacy
-     * {@code kotlinOptions} form (pre-1.8), based on the version literal in this file's {@code plugins {}}
-     * block (e.g. {@code id 'org.jetbrains.kotlin.jvm' version '1.9.25'} or {@code kotlin("jvm") version "1.9.25"}).
-     * Null when the version can't be determined from this file alone (version catalogs, convention plugins,
-     * buildscript classpath declarations, ...).
-     */
-    private static @Nullable Boolean useCompilerOptionsForm(JavaSourceFile sourceFile) {
-        String version = findKotlinPluginVersion(sourceFile);
-        return version == null ? null : isAtLeastKotlin18(version);
-    }
-
-    private static @Nullable String findKotlinPluginVersion(JavaSourceFile sourceFile) {
-        AtomicReference<String> found = new AtomicReference<>();
-        new JavaIsoVisitor<AtomicReference<String>>() {
+    private static KotlinOptionsForm kotlinOptionsForm(JavaSourceFile sourceFile) {
+        String version = new JavaIsoVisitor<AtomicReference<String>>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicReference<String> acc) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, acc);
@@ -187,8 +160,8 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
                 }
                 return m;
             }
-        }.visit(sourceFile, found);
-        return found.get();
+        }.reduce(sourceFile, new AtomicReference<String>()).get();
+        return version == null ? KotlinOptionsForm.UNKNOWN : kotlinOptionsForm(version);
     }
 
     private static boolean isKotlinPluginSelect(@Nullable Expression select) {
@@ -212,101 +185,80 @@ public class AddParametersCompilerFlagToGradle extends Recipe {
         return null;
     }
 
-    private static @Nullable Boolean isAtLeastKotlin18(String version) {
+    private static KotlinOptionsForm kotlinOptionsForm(String version) {
         String[] parts = version.split("\\.");
         if (parts.length < 2) {
-            return null;
+            return KotlinOptionsForm.UNKNOWN;
         }
         try {
             int major = Integer.parseInt(parts[0]);
             int minor = Integer.parseInt(parts[1]);
-            return major > 1 || (major == 1 && minor >= 8);
+            return major > 1 || (major == 1 && minor >= 8) ?
+                    KotlinOptionsForm.COMPILER_OPTIONS : KotlinOptionsForm.KOTLIN_OPTIONS;
         } catch (NumberFormatException e) {
-            return null;
+            return KotlinOptionsForm.UNKNOWN;
         }
     }
 
-    /**
-     * Appends the compiler-flag task configuration blocks to a Groovy DSL build file.
-     */
-    private static class GroovyDsl {
+    private static G.CompilationUnit addParametersFlags(
+            G.CompilationUnit cu,
+            boolean addJavaFlag,
+            KotlinOptionsForm kotlinForm,
+            ExecutionContext ctx) {
 
-        private static G.CompilationUnit addParametersFlags(
-                G.CompilationUnit cu,
-                boolean addJavaFlag,
-                @Nullable Boolean modernKotlinOptions,
-                ExecutionContext ctx) {
-
-            String snippet = createSnippet(addJavaFlag, modernKotlinOptions);
-
-            SourceFile parsed = GradleParser.builder().build()
-                    .parse(ctx, snippet)
-                    .findFirst()
-                    .orElse(null);
-            if (!(parsed instanceof G.CompilationUnit)) {
-                // Snippet could not be parsed (e.g. Gradle API unresolvable in this environment)
-                return cu;
-            }
-            return cu.withStatements(ListUtils.concatAll(cu.getStatements(), ((G.CompilationUnit) parsed).getStatements()));
+        String snippet = "";
+        if (addJavaFlag) {
+            snippet += "\n\ntasks.withType(JavaCompile).configureEach {\n" +
+                    "    options.compilerArgs.add('-parameters')\n" +
+                    "}";
+        }
+        if (kotlinForm != KotlinOptionsForm.UNKNOWN) {
+            String option = kotlinForm == KotlinOptionsForm.COMPILER_OPTIONS ?
+                    "compilerOptions.javaParameters" : "kotlinOptions.javaParameters";
+            snippet += "\n\ntasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {\n" +
+                    "    " + option + " = true\n" +
+                    "}";
         }
 
-        private static String createSnippet(boolean addJavaFlag, @Nullable Boolean modernKotlinOptions) {
-            String snippet = "";
-            if (addJavaFlag) {
-                snippet += "\n\ntasks.withType(JavaCompile).configureEach {\n" +
-                        "    options.compilerArgs.add('-parameters')\n" +
-                        "}";
-            }
-            if (modernKotlinOptions != null) {
-                String option = modernKotlinOptions ? "compilerOptions.javaParameters" : "kotlinOptions.javaParameters";
-                snippet += "\n\ntasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {\n" +
-                        "    " + option + " = true\n" +
-                        "}";
-            }
-            return snippet;
+        SourceFile parsed = GradleParser.builder().build()
+                .parse(ctx, snippet)
+                .findFirst()
+                .orElse(null);
+        if (!(parsed instanceof G.CompilationUnit)) {
+            return cu;
         }
+        return cu.withStatements(ListUtils.concatAll(cu.getStatements(), ((G.CompilationUnit) parsed).getStatements()));
     }
 
-    /**
-     * Appends the compiler-flag task configuration blocks to a Kotlin DSL (.gradle.kts) build file.
-     */
-    private static class KotlinDsl {
+    private static K.CompilationUnit addParametersFlags(
+            K.CompilationUnit cu,
+            boolean addJavaFlag,
+            KotlinOptionsForm kotlinForm,
+            ExecutionContext ctx) {
 
-        private static K.CompilationUnit addParametersFlags(
-                K.CompilationUnit cu,
-                boolean addJavaFlag,
-                @Nullable Boolean modernKotlinOptions,
-                ExecutionContext ctx) {
-
-            String snippet = createSnippet(addJavaFlag, modernKotlinOptions);
-
-            SourceFile parsed = KotlinParser.builder()
-                    .isKotlinScript(true)
-                    .build()
-                    .parse(ctx, snippet)
-                    .findFirst()
-                    .orElse(null);
-            if (!(parsed instanceof K.CompilationUnit)) {
-                // Snippet could not be parsed; leave the build file unchanged rather than fail the run
-                return cu;
-            }
-            return cu.withStatements(ListUtils.concatAll(cu.getStatements(), ((K.CompilationUnit) parsed).getStatements()));
+        String snippet = "";
+        if (addJavaFlag) {
+            snippet += "\n\ntasks.withType<JavaCompile>().configureEach {\n" +
+                    "    options.compilerArgs.add(\"-parameters\")\n" +
+                    "}";
+        }
+        if (kotlinForm != KotlinOptionsForm.UNKNOWN) {
+            String option = kotlinForm == KotlinOptionsForm.COMPILER_OPTIONS ?
+                    "compilerOptions.javaParameters.set(true)" : "kotlinOptions.javaParameters = true";
+            snippet += "\n\ntasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {\n" +
+                    "    " + option + "\n" +
+                    "}";
         }
 
-        private static String createSnippet(boolean addJavaFlag, @Nullable Boolean modernKotlinOptions) {
-            String snippet = "";
-            if (addJavaFlag) {
-                snippet += "\n\ntasks.withType<JavaCompile>().configureEach {\n" +
-                        "    options.compilerArgs.add(\"-parameters\")\n" +
-                        "}";
-            }
-            if (modernKotlinOptions != null) {
-                String option = modernKotlinOptions ? "compilerOptions.javaParameters.set(true)" : "kotlinOptions.javaParameters = true";
-                snippet += "\n\ntasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {\n" +
-                        "    " + option + "\n" +
-                        "}";
-            }
-            return snippet;
+        SourceFile parsed = KotlinParser.builder()
+                .isKotlinScript(true)
+                .build()
+                .parse(ctx, snippet)
+                .findFirst()
+                .orElse(null);
+        if (!(parsed instanceof K.CompilationUnit)) {
+            return cu;
         }
+        return cu.withStatements(ListUtils.concatAll(cu.getStatements(), ((K.CompilationUnit) parsed).getStatements()));
     }
 }
