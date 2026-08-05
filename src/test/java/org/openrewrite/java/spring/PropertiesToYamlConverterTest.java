@@ -65,6 +65,20 @@ class PropertiesToYamlConverterTest {
     }
 
     @Test
+    void duplicateKeyLastValueWins() {
+        assertThat(convert(
+          """
+            server.port=8080
+            server.port=9090
+            """))
+          .isEqualTo(
+            """
+              server:
+                port: 9090
+              """);
+    }
+
+    @Test
     void valueContainingColonIsQuoted() {
         assertThat(convert("spring.datasource.url=jdbc:h2:mem:db"))
           .isEqualTo(
