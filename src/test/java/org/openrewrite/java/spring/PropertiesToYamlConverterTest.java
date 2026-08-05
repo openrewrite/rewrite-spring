@@ -33,6 +33,16 @@ class PropertiesToYamlConverterTest {
     }
 
     @Test
+    void runtimeSnakeYamlVersionMatchesCompileTimePin() throws ClassNotFoundException {
+        Class<?> yamlClass = Class.forName("org.yaml.snakeyaml.Yaml");
+        String jarPath = yamlClass.getProtectionDomain().getCodeSource().getLocation().getPath();
+        assertThat(jarPath)
+          .as("SnakeYAML runtime version has drifted from the version pinned by " +
+              "compileOnly(\"org.yaml:snakeyaml:...\") in build.gradle.kts; update the pin to match")
+          .contains("snakeyaml-2.6");
+    }
+
+    @Test
     void emptyFileYieldsEmptyString() {
         assertThat(convert("")).isEmpty();
     }
