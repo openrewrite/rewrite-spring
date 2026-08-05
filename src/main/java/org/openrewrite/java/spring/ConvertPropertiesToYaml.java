@@ -20,6 +20,7 @@ import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.marker.Markers;
@@ -75,7 +76,7 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
         final Map<Path, PendingConversion> toConvert = new LinkedHashMap<>();
         // parent directory -> file name stem (e.g. "application-dev") -> existing .yml/.yaml file
         final Map<Path, Map<String, Path>> existingYaml = new HashMap<>();
-        final Set<String> fileNamesReferencedFromJava = new HashSet<>();
+        final Map<@Nullable JavaProject, Set<String>> fileNamesReferencedFromJava = new HashMap<>();
         // Paths whose conversion succeeded (YAML generated, or the file had no content
         // to carry over); only these may be deleted
         final Set<Path> converted = new HashSet<>();
@@ -126,6 +127,8 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
         if (!(source instanceof JavaSourceFile)) {
             return;
         }
+        JavaProject javaProject = source.getMarkers().findFirst(JavaProject.class).orElse(null);
+        Set<String> referencedFileNames = acc.fileNamesReferencedFromJava.computeIfAbsent(javaProject, k -> new HashSet<>());
         new JavaIsoVisitor<Set<String>>() {
             @Override
             public J.Literal visitLiteral(J.Literal literal, Set<String> referencedFileNames) {
@@ -137,7 +140,7 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
                 }
                 return literal;
             }
-        }.visit(source, acc.fileNamesReferencedFromJava);
+        }.visit(source, referencedFileNames);
     }
 
     private static String fileName(SourceFile source) {
@@ -198,7 +201,9 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
     }
 
     private @Nullable String skipReason(Accumulator acc, Path propertiesPath) {
-        if (acc.fileNamesReferencedFromJava.contains(propertiesPath.getFileName().toString())) {
+        String fileName = propertiesPath.getFileName().toString();
+        JavaProject javaProject = acc.toConvert.get(propertiesPath).getMarkers().findFirst(JavaProject.class).orElse(null);
+        if (referencedFromJava(acc, null, fileName) || (javaProject != null && referencedFromJava(acc, javaProject, fileName))) {
             return "Skipped: this file is referenced from Java sources (e.g. `@PropertySource`), " +
                     "which cannot load YAML files. Update those references before converting.";
         }
@@ -210,6 +215,11 @@ public class ConvertPropertiesToYaml extends ScanningRecipe<ConvertPropertiesToY
                     "could change the effective configuration.";
         }
         return null;
+    }
+
+    private static boolean referencedFromJava(Accumulator acc, @Nullable JavaProject javaProject, String fileName) {
+        Set<String> referencedFileNames = acc.fileNamesReferencedFromJava.get(javaProject);
+        return referencedFileNames != null && referencedFileNames.contains(fileName);
     }
 
     private @Nullable Path findExistingYaml(Accumulator acc, Path propertiesPath) {

@@ -470,4 +470,45 @@ class ConvertPropertiesToYamlTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void javaReferenceInOneModuleDoesNotBlockSameNamedFileInUnrelatedModule() {
+        // fileNamesReferencedFromJava is scoped per-module (by JavaProject marker), so a
+        // reference in one module must not block conversion of a same-named file in an
+        // unrelated module.
+        rewriteRun(
+          mavenProject("parent",
+            mavenProject("service",
+              srcMainJava(
+                //language=java
+                java(
+                  """
+                    class Config {
+                        String location = "classpath:application-dev.properties";
+                    }
+                    """
+                )
+              )
+            ),
+            mavenProject("client",
+              srcMainResources(
+                properties(
+                  "server.port=8082",
+                  null,
+                  spec -> spec.path("application-dev.properties")
+                ),
+                yaml(
+                  doesNotExist(),
+                  //language=yaml
+                  """
+                    server:
+                      port: 8082
+                    """,
+                  spec -> spec.path("application-dev.yaml")
+                )
+              )
+            )
+          )
+        );
+    }
 }
