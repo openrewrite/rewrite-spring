@@ -60,7 +60,7 @@ recipeDependencies {
     parserClasspath("org.springframework.data:spring-data-jpa:2.3.+")
     parserClasspath("org.springframework.data:spring-data-jpa:3.0.+")
     parserClasspath("org.springframework.data:spring-data-rest-webmvc:3.1.+")
-    parserClasspath("org.springframework.data:spring-data-mongodb:2.2.+")
+    parserClasspath("org.springframework.data:spring-data-mongodb:5.0.6")
     parserClasspath("org.mongodb:mongo-java-driver:3.12.+")
 
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
@@ -170,6 +170,7 @@ recipeDependencies {
     testParserClasspath("org.springframework.data:spring-data-jpa:3.4.7")
     testParserClasspath("org.springframework.data:spring-data-commons:3.0.+")
     testParserClasspath("org.springframework.data:spring-data-mongodb:2.2.+")
+    testParserClasspath("org.springframework.data:spring-data-mongodb:5.0.6")
 
     testParserClasspath("org.springframework.plugin:spring-plugin-core:2.0.0.RELEASE")
 
