@@ -13,6 +13,26 @@
 # limitations under the License.
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.gradle.spring.AddParametersCompilerFlagToGradle
+examples:
+- description: '`AddParametersCompilerFlagToGradleTest#addsJavaCompileBlockGroovy`'
+  sources:
+  - before: |
+      plugins {
+          id 'java'
+      }
+    after: |
+      plugins {
+          id 'java'
+      }
+
+      tasks.withType(JavaCompile).configureEach {
+          options.compilerArgs.add('-parameters')
+      }
+    path: build.gradle
+    language: groovy
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.gradle.spring.AddSpringDependencyManagementPlugin
 examples:
 - description: '`AddSpringDependencyManagementPluginTest#addIfPresent`'
@@ -141,7 +161,8 @@ examples:
         servlet-path: /tmp/my-server-path
     after: |
       server:
-        servlet.path: /tmp/my-server-path
+        servlet:
+          path: /tmp/my-server-path
     language: yaml
 - description: '`MarkAdditionalSpringConfigFilesTest#enablesChangeSpringPropertyKeyOnFileOutsideSourceSet`'
   parameters:
@@ -1907,7 +1928,9 @@ examples:
           active: dev
       ---
       spring:
-        config.activate.on-profile: prod
+        config:
+          activate:
+            on-profile: prod
     language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
@@ -3577,6 +3600,25 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.RelocateWebServerClasses
+examples:
+- description: '`RelocateWebServerClassesTest#movesEmbeddedTomcatClasses`'
+  sources:
+  - before: |
+      import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
+
+      class A {
+          Class<?> type = TomcatWebServer.class;
+      }
+    after: |
+      import org.springframework.boot.tomcat.TomcatWebServer;
+
+      class A {
+          Class<?> type = TomcatWebServer.class;
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
 examples:
 - description: '`ReplaceMockBeanAndSpyBeanTest#replacesMockBeanWithMockitoBean`'
@@ -3783,7 +3825,11 @@ examples:
               baggage:
                   correlation-enabled: true
     after: |
-      management.tracing.baggage.correlation.enabled: true
+      management:
+        tracing:
+          baggage:
+            correlation:
+              enabled: true
     path: src/main/resources/application.yml
     language: yaml
 ---
@@ -4064,6 +4110,32 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.data.UpgradeSpringDataMongoDb_5_0
+examples:
+- description: '`UpgradeSpringDataMongoDb_5_0Test#upgradesExplicitSpringDataMongoDbDependency`'
+  sources:
+  - before: class Application {}
+    language: java
+  - before: spring-data-mongodb
+    language: mavenProject
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>example</artifactId>
+          <version>1.0.0</version>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.data</groupId>
+                  <artifactId>spring-data-mongodb</artifactId>
+                  <version>4.5.13</version>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
 examples:
 - description: '`RefactorSimpleMongoDbFactoryTest#constructorWithAttribute`'
@@ -4122,6 +4194,29 @@ examples:
   - before: |
       package foo;
       public class Book {}
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.data.UpgradeSpringData_4_0
+examples:
+- description: '`UpgradeSpringData_4_0Test#chainsSpringData34Migration`'
+  sources:
+  - before: |
+      import org.springframework.data.jpa.repository.Query;
+
+      interface Repository {
+
+          @Query(value = "select * from foo", nativeQuery = true)
+          void customQuery();
+      }
+    after: |
+      import org.springframework.data.jpa.repository.NativeQuery;
+
+      interface Repository {
+
+          @NativeQuery("select * from foo")
+          void customQuery();
+      }
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
@@ -6681,6 +6776,45 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.util.concurrent.ListenableToCompletableFuture
+examples:
+- description: '`ListenableToCompletableFutureTest#addListenableFutureCallback`'
+  sources:
+  - before: |
+      import org.springframework.util.concurrent.ListenableFuture;
+      import org.springframework.util.concurrent.ListenableFutureCallback;
+      class A {
+          void test(ListenableFuture<String> future) {
+              future.addCallback(new ListenableFutureCallback<String>() {
+                  @Override
+                  public void onSuccess(String result) {
+                      System.out.println(result);
+                  }
+
+                  @Override
+                  public void onFailure(Throwable ex) {
+                      System.err.println(ex.getMessage());
+                  }
+              });
+          }
+      }
+    after: |
+      import java.util.concurrent.CompletableFuture;
+
+      class A {
+          void test(CompletableFuture<String> future) {
+              future.whenComplete((String result, Throwable ex) -> {
+                  if (ex == null) {
+                      System.out.println(result);
+                  } else {
+                      System.err.println(ex.getMessage());
+                  }
+              });
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.springdoc.CleanupRemainingSpringfox
 examples:
 - description: '`CleanupRemainingSpringfoxTest#removeOrphanedPrivateMethodsWithSpringfoxTypes`'
@@ -6806,6 +6940,31 @@ examples:
                   <version>1.5.13</version>
               </dependency>
           </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.maven.spring.AddParametersCompilerFlagToMaven
+examples:
+- description: '`AddParametersCompilerFlagToMavenTest#addsCompilerParametersProperty`'
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>demo</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+          <properties>
+              <maven.compiler.parameters>true</maven.compiler.parameters>
+          </properties>
       </project>
     path: pom.xml
     language: xml

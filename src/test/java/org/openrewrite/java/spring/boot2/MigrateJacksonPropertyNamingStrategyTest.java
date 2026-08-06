@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -32,6 +33,7 @@ class MigrateJacksonPropertyNamingStrategyTest implements RewriteTest {
             new InMemoryExecutionContext(), "jackson-databind-2.19"));
     }
 
+    @DocumentExample
     @Test
     void replaceSnakeCaseStrategyInJsonNamingAnnotation() {
         rewriteRun(

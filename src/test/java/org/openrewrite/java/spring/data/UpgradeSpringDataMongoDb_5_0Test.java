@@ -67,7 +67,6 @@ class UpgradeSpringDataMongoDb_5_0Test implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @CsvSource({
       "mongodb-driver-core,4.11.5",
       "mongodb-driver-sync,4.11.5",
@@ -77,6 +76,7 @@ class UpgradeSpringDataMongoDb_5_0Test implements RewriteTest {
       "bson-record-codec,4.11.5",
       "mongodb-driver-legacy,4.11.5"
     })
+    @ParameterizedTest
     void upgradesExplicitMongoDbDriverDependency(String artifactId, String currentVersion) {
         rewriteRun(
           mavenProject("mongodb-driver-" + artifactId,
