@@ -159,6 +159,31 @@ class MigrateMockMvcHamcrestAssertionsToAssertJTest implements RewriteTest {
     }
 
     @Test
+    void doesNotMigrateAssertJMatches() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.test.web.servlet.MockMvc;
+              import org.springframework.test.web.servlet.assertj.MockMvcTester;
+
+              import static org.assertj.core.api.Assertions.assertThat;
+              import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+              import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+              class Example {
+                  void test(MockMvc mockMvc) {
+                      assertThat(MockMvcTester.create(mockMvc).perform(get("/accounts/{id}", 1)))
+                          .matches(status().isOk())
+                          .matches(status().isOk());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void doesNotMigrateAndExpectAll() {
         rewriteRun(
           //language=java

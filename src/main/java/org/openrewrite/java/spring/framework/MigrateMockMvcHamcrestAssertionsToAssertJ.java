@@ -53,13 +53,13 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (!AND_EXPECT.matches(mi) || isChainedAndExpect()) {
+                if (!isAndExpect(mi) || isChainedAndExpect()) {
                     return mi;
                 }
 
                 List<Expression> matchers = new ArrayList<>();
                 J.MethodInvocation current = mi;
-                while (AND_EXPECT.matches(current)) {
+                while (isAndExpect(current)) {
                     matchers.add(0, current.getArguments().get(0));
                     if (!(current.getSelect() instanceof J.MethodInvocation)) {
                         return mi;
@@ -94,7 +94,11 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
                     return false;
                 }
                 J.MethodInvocation parentInvocation = (J.MethodInvocation) parent;
-                return AND_EXPECT.matches(parentInvocation) && parentInvocation.getSelect() instanceof J.MethodInvocation;
+                return isAndExpect(parentInvocation) && parentInvocation.getSelect() instanceof J.MethodInvocation;
+            }
+
+            private boolean isAndExpect(J.MethodInvocation methodInvocation) {
+                return "andExpect".equals(methodInvocation.getSimpleName()) && AND_EXPECT.matches(methodInvocation);
             }
         });
     }
