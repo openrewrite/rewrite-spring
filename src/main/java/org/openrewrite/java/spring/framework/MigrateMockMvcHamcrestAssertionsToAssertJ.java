@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.framework;
 
 import lombok.Getter;
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -52,7 +53,7 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
         return Preconditions.check(new UsesMethod<>(AND_EXPECT), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                boolean isChainedAndExpect = isChainedAndExpect();
+                boolean isChainedAndExpect = isChainedAndExpect(method);
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                 if (!isAndExpect(mi) || isChainedAndExpect) {
                     return mi;
@@ -89,13 +90,14 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
                         .apply(getCursor(), mi.getCoordinates().replace(), parameters.toArray());
             }
 
-            private boolean isChainedAndExpect() {
-                Object parent = getCursor().getParentOrThrow().getValue();
-                if (!(parent instanceof J.MethodInvocation)) {
-                    return false;
+            private boolean isChainedAndExpect(J.MethodInvocation methodInvocation) {
+                for (Cursor cursor = getCursor().getParent(); cursor != null; cursor = cursor.getParent()) {
+                    if (cursor.getValue() instanceof J.MethodInvocation) {
+                        J.MethodInvocation parentInvocation = (J.MethodInvocation) cursor.getValue();
+                        return parentInvocation.getSelect() == methodInvocation && isAndExpect(parentInvocation);
+                    }
                 }
-                J.MethodInvocation parentInvocation = (J.MethodInvocation) parent;
-                return isAndExpect(parentInvocation) && parentInvocation.getSelect() instanceof J.MethodInvocation;
+                return false;
             }
 
             private boolean isAndExpect(J.MethodInvocation methodInvocation) {
