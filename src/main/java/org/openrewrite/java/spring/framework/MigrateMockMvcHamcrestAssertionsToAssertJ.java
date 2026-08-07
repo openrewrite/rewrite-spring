@@ -83,11 +83,14 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
                 parameters.add(current.getArguments().get(0));
                 parameters.addAll(matchers);
 
-                return JavaTemplate.builder(template.toString())
+                maybeAddImport(MOCK_MVC_TESTER, false);
+                maybeAddImport(ASSERT_THAT, "assertThat", false);
+                J.MethodInvocation replacement = JavaTemplate.builder(template.toString())
                         .imports(MOCK_MVC_TESTER)
                         .staticImports(ASSERT_THAT)
                         .build()
                         .apply(getCursor(), mi.getCoordinates().replace(), parameters.toArray());
+                return autoFormat(replacement, ctx);
             }
 
             private boolean isChainedAndExpect(J.MethodInvocation methodInvocation) {
