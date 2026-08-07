@@ -76,7 +76,7 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
 
                 StringBuilder template = new StringBuilder("assertThat(MockMvcTester.create(#{any()}).perform(#{any()}))");
                 for (int i = 0; i < matchers.size(); i++) {
-                    template.append("\n    .matches(#{any()})");
+                    template.append("\n.matches(#{any()})");
                 }
 
                 List<Object> parameters = new ArrayList<>();
