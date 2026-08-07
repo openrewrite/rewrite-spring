@@ -22,6 +22,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
@@ -87,6 +88,8 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
                 maybeAddImport(MOCK_MVC_TESTER, false);
                 maybeAddImport(ASSERTIONS, "assertThat", false);
                 J.MethodInvocation replacement = JavaTemplate.builder(template.toString())
+                        .javaParser(JavaParser.fromJavaVersion()
+                                .classpathFromResources(ctx, "spring-test-6.+", "assertj-core"))
                         .imports(MOCK_MVC_TESTER)
                         .staticImports(ASSERT_THAT)
                         .build()
