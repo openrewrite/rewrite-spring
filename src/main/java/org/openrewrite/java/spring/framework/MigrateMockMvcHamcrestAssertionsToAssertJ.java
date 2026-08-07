@@ -33,7 +33,8 @@ import java.util.List;
 
 public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
     private static final String MOCK_MVC_TESTER = "org.springframework.test.web.servlet.assertj.MockMvcTester";
-    private static final String ASSERT_THAT = "org.assertj.core.api.Assertions.assertThat";
+    private static final String ASSERTIONS = "org.assertj.core.api.Assertions";
+    private static final String ASSERT_THAT = ASSERTIONS + ".assertThat";
 
     private static final MethodMatcher AND_EXPECT = new MethodMatcher(
             "org.springframework.test.web.servlet.ResultActions andExpect(org.springframework.test.web.servlet.ResultMatcher)"
@@ -75,7 +76,7 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
 
                 StringBuilder template = new StringBuilder("assertThat(MockMvcTester.create(#{any()}).perform(#{any()}))");
                 for (int i = 0; i < matchers.size(); i++) {
-                    template.append(".matches(#{any()})");
+                    template.append("\n    .matches(#{any()})");
                 }
 
                 List<Object> parameters = new ArrayList<>();
@@ -84,13 +85,13 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
                 parameters.addAll(matchers);
 
                 maybeAddImport(MOCK_MVC_TESTER, false);
-                maybeAddImport(ASSERT_THAT, "assertThat", false);
+                maybeAddImport(ASSERTIONS, "assertThat", false);
                 J.MethodInvocation replacement = JavaTemplate.builder(template.toString())
                         .imports(MOCK_MVC_TESTER)
                         .staticImports(ASSERT_THAT)
                         .build()
                         .apply(getCursor(), mi.getCoordinates().replace(), parameters.toArray());
-                return autoFormat(replacement, ctx);
+                return replacement;
             }
 
             private boolean isChainedAndExpect(J.MethodInvocation methodInvocation) {
