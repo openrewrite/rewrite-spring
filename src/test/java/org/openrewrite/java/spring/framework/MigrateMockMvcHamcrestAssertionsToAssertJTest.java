@@ -149,8 +149,8 @@ class MigrateMockMvcHamcrestAssertionsToAssertJTest implements RewriteTest {
               class Example {
                   void test(MockMvc mockMvc) {
                       assertThat(MockMvcTester.create(mockMvc).perform(get("/accounts/{id}", 1)))
-                          .matches(status().isOk())
-                          .matches(status().isOk());
+                              .matches(status().isOk())
+                              .matches(status().isOk());
                   }
               }
               """
