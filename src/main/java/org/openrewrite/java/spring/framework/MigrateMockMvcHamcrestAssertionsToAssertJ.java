@@ -52,8 +52,9 @@ public class MigrateMockMvcHamcrestAssertionsToAssertJ extends Recipe {
         return Preconditions.check(new UsesMethod<>(AND_EXPECT), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                boolean isChainedAndExpect = isChainedAndExpect();
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (!isAndExpect(mi) || isChainedAndExpect()) {
+                if (!isAndExpect(mi) || isChainedAndExpect) {
                     return mi;
                 }
 
