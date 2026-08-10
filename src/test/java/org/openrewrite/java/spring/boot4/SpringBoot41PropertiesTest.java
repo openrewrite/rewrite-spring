@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,6 +31,7 @@ class SpringBoot41PropertiesTest implements RewriteTest {
         spec.recipeFromResources("org.openrewrite.java.spring.boot4.SpringBootProperties_4_1");
     }
 
+    @DocumentExample
     @Test
     void migrateProperties() {
         rewriteRun(
