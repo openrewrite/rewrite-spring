@@ -40,6 +40,7 @@ preconditions:
       artifactIdPattern: spring-data-mongodb
   - org.openrewrite.Singleton
 recipeList:
+  - org.openrewrite.java.spring.data.PreserveDefaultMessageListenerContainerStartup
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.data
       artifactId: spring-data-mongodb
