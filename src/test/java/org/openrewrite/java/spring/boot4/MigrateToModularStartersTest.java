@@ -333,161 +333,165 @@ class MigrateToModularStartersTest implements RewriteTest {
         );
     }
 
-    @Test
-    void addWebFluxTestStarterIfWebFluxTestIsUsedForTest() {
-        rewriteRun(
-          mavenProject("project",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>org.example</groupId>
-                    <artifactId>example</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <dependencies>
-                    </dependencies>
-                </project>
-                """,
-              spec -> spec.after(pom -> assertThat(pom)
-                .contains("<artifactId>spring-boot-starter-webflux-test</artifactId>")
-                .contains("<scope>test</scope>")
-                .containsPattern("<version>4\\.0\\.\\d+</version>")
-                .actual())
-            ),
-            srcTestJava(
-              //language=java
-              java(
-                """
-                  import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+    @Nested
+    class WebFluxTestSlice {
 
-                  @WebFluxTest
-                  class GreetingControllerTest {
-                  }
-                  """,
-                """
-                  import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
-
-                  @WebFluxTest
-                  class GreetingControllerTest {
-                  }
+        @Test
+        void addWebFluxTestStarterIfWebFluxTestIsUsedForTest() {
+            rewriteRun(
+              mavenProject("project",
+                //language=xml
+                pomXml(
                   """
-              )
-            )
-          )
-        );
-    }
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                        </dependencies>
+                    </project>
+                    """,
+                  spec -> spec.after(pom -> assertThat(pom)
+                    .contains("<artifactId>spring-boot-starter-webflux-test</artifactId>")
+                    .contains("<scope>test</scope>")
+                    .containsPattern("<version>4\\.0\\.\\d+</version>")
+                    .actual())
+                ),
+                srcTestJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 
-    @Test
-    void addWebFluxTestStarterIfAutoConfigureWebFluxIsUsedForTest() {
-        rewriteRun(
-          mavenProject("project",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>org.example</groupId>
-                    <artifactId>example</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <dependencies>
-                    </dependencies>
-                </project>
-                """,
-              spec -> spec.after(pom -> assertThat(pom)
-                .contains("<artifactId>spring-boot-starter-webflux-test</artifactId>")
-                .contains("<scope>test</scope>")
-                .containsPattern("<version>4\\.0\\.\\d+</version>")
-                .actual())
-            ),
-            srcTestJava(
+                      @WebFluxTest
+                      class GreetingControllerTest {
+                      }
+                      """,
+                    """
+                      import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
+
+                      @WebFluxTest
+                      class GreetingControllerTest {
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void addWebFluxTestStarterIfAutoConfigureWebFluxIsUsedForTest() {
+            rewriteRun(
+              mavenProject("project",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                        </dependencies>
+                    </project>
+                    """,
+                  spec -> spec.after(pom -> assertThat(pom)
+                    .contains("<artifactId>spring-boot-starter-webflux-test</artifactId>")
+                    .contains("<scope>test</scope>")
+                    .containsPattern("<version>4\\.0\\.\\d+</version>")
+                    .actual())
+                ),
+                srcTestJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux;
+
+                      @AutoConfigureWebFlux
+                      class GreetingIntegrationTest {
+                      }
+                      """,
+                    """
+                      import org.springframework.boot.webflux.test.autoconfigure.AutoConfigureWebFlux;
+
+                      @AutoConfigureWebFlux
+                      class GreetingIntegrationTest {
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void doesNotAddWebFluxTestStarterForAutoConfigureWebTestClientUsage() {
+            rewriteRun(
+              mavenProject("project",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                        </dependencies>
+                    </project>
+                    """
+                ),
+                srcTestJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+
+                      @AutoConfigureWebTestClient
+                      class ApiIntegrationTest {
+                      }
+                      """,
+                    """
+                      import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+
+                      @AutoConfigureWebTestClient
+                      class ApiIntegrationTest {
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void migrateWebFluxTestSliceTypes() {
+            rewriteRun(
               //language=java
               java(
                 """
                   import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux;
+                  import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTypeExcludeFilter;
 
                   @AutoConfigureWebFlux
                   class GreetingIntegrationTest {
+                      WebFluxTypeExcludeFilter filter;
                   }
                   """,
                 """
                   import org.springframework.boot.webflux.test.autoconfigure.AutoConfigureWebFlux;
+                  import org.springframework.boot.webflux.test.autoconfigure.WebFluxTypeExcludeFilter;
 
                   @AutoConfigureWebFlux
                   class GreetingIntegrationTest {
+                      WebFluxTypeExcludeFilter filter;
                   }
                   """
               )
-            )
-          )
-        );
-    }
-
-    @Test
-    void doesNotAddWebFluxTestStarterForAutoConfigureWebTestClientUsage() {
-        rewriteRun(
-          mavenProject("project",
-            //language=xml
-            pomXml(
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <groupId>org.example</groupId>
-                    <artifactId>example</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <dependencies>
-                    </dependencies>
-                </project>
-                """
-            ),
-            srcTestJava(
-              //language=java
-              java(
-                """
-                  import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-
-                  @AutoConfigureWebTestClient
-                  class ApiIntegrationTest {
-                  }
-                  """,
-                """
-                  import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
-
-                  @AutoConfigureWebTestClient
-                  class ApiIntegrationTest {
-                  }
-                  """
-              )
-            )
-          )
-        );
-    }
-
-    @Test
-    void migrateWebFluxTestSliceTypes() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux;
-              import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTypeExcludeFilter;
-
-              @AutoConfigureWebFlux
-              class GreetingIntegrationTest {
-                  WebFluxTypeExcludeFilter filter;
-              }
-              """,
-            """
-              import org.springframework.boot.webflux.test.autoconfigure.AutoConfigureWebFlux;
-              import org.springframework.boot.webflux.test.autoconfigure.WebFluxTypeExcludeFilter;
-
-              @AutoConfigureWebFlux
-              class GreetingIntegrationTest {
-                  WebFluxTypeExcludeFilter filter;
-              }
-              """
-          )
-        );
+            );
+        }
     }
 
     @Nested
