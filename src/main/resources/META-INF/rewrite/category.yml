@@ -28,14 +28,17 @@ description: Recipes for [Spring AMQP](https://spring.io/projects/spring-amqp) m
 type: specs.openrewrite.org/v1beta/category
 name: Spring Batch
 packageName: org.openrewrite.java.spring.batch
+description: Recipes for migrating [Spring Batch](https://spring.io/projects/spring-batch) jobs, steps, and readers.
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring Boot 2.x
 packageName: org.openrewrite.java.spring.boot2
+description: Recipes for migrating to [Spring Boot 2](https://spring.io/projects/spring-boot).
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring Boot 3.x
 packageName: org.openrewrite.java.spring.boot3
+description: Recipes for migrating to [Spring Boot 3](https://spring.io/projects/spring-boot).
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring Boot 4.x
@@ -45,10 +48,12 @@ description: Recipes for migrating to [Spring Boot 4](https://spring.io/projects
 type: specs.openrewrite.org/v1beta/category
 name: Spring Cloud 2022
 packageName: org.openrewrite.java.spring.cloud2022
+description: Recipes for migrating to Spring Cloud 2022.
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring Cloud 2023
 packageName: org.openrewrite.java.spring.cloud2023
+description: Recipes for migrating to Spring Cloud 2023.
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring Cloud 2024
@@ -63,6 +68,7 @@ description: Recipes for migrating to Spring Cloud 2025.
 type: specs.openrewrite.org/v1beta/category
 name: Spring Data
 packageName: org.openrewrite.java.spring.data
+description: Recipes for [Spring Data](https://spring.io/projects/spring-data) repositories and query methods.
 ---
 type: specs.openrewrite.org/v1beta/category
 name: SpringDoc
@@ -72,6 +78,7 @@ description: Recipes for migrating from SpringFox to [springdoc-openapi](https:/
 type: specs.openrewrite.org/v1beta/category
 name: Spring Framework
 packageName: org.openrewrite.java.spring.framework
+description: Recipes for migrating between [Spring Framework](https://spring.io/projects/spring-framework) versions.
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring HTTP
@@ -81,6 +88,7 @@ description: Recipes for [Spring's HTTP](https://docs.spring.io/spring-framework
 type: specs.openrewrite.org/v1beta/category
 name: Spring Kafka
 packageName: org.openrewrite.java.spring.kafka
+description: Recipes for [Spring for Apache Kafka](https://spring.io/projects/spring-kafka) producers, consumers, and listeners.
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring MVC
@@ -100,10 +108,12 @@ description: Recipes for [Spring Security](https://spring.io/projects/spring-sec
 type: specs.openrewrite.org/v1beta/category
 name: Spring Security 5.x
 packageName: org.openrewrite.java.spring.security5
+description: Recipes for migrating to [Spring Security 5](https://spring.io/projects/spring-security).
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring Security 6.x
 packageName: org.openrewrite.java.spring.security6
+description: Recipes for migrating to [Spring Security 6](https://spring.io/projects/spring-security).
 ---
 type: specs.openrewrite.org/v1beta/category
 name: OAuth2
@@ -118,6 +128,7 @@ description: Recipes for the [OAuth2 client](https://docs.spring.io/spring-secur
 type: specs.openrewrite.org/v1beta/category
 name: OAuth2 Server
 packageName: org.openrewrite.java.spring.security6.oauth2.server
+description: Recipes for the [OAuth2 authorization server](https://docs.spring.io/spring-authorization-server/reference/index.html) in Spring Security.
 ---
 type: specs.openrewrite.org/v1beta/category
 name: OAuth2 Resource Server
@@ -132,10 +143,12 @@ description: Recipes for migrating to [Spring Security 7](https://spring.io/proj
 type: specs.openrewrite.org/v1beta/category
 name: Spring Utilities
 packageName: org.openrewrite.java.spring.util
+description: Recipes for the [Spring utility](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/util/package-summary.html) classes.
 ---
 type: specs.openrewrite.org/v1beta/category
 name: Spring Concurrency
 packageName: org.openrewrite.java.spring.util.concurrent
+description: Recipes for Spring's `ListenableFuture` and other concurrency utilities superseded by `CompletableFuture`.
 ---
 type: specs.openrewrite.org/v1beta/category
 name: SpringDoc
