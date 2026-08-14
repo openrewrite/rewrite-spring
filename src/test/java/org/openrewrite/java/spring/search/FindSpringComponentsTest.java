@@ -20,10 +20,12 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.spring.table.SpringComponentRelationships;
+import org.openrewrite.java.spring.table.SpringComponents;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.openrewrite.PathUtils.separatorsToSystem;
 import static org.openrewrite.java.Assertions.java;
 
@@ -114,6 +116,126 @@ class FindSpringComponentsTest implements RewriteTest {
               /*~~(component)~~>*/@Component
               class C {
                   public C(B b) {}
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void beanReturnTypesAddedToComponentsTable() {
+        rewriteRun(
+          spec -> spec.dataTable(SpringComponents.Row.class, rows ->
+            assertThat(rows)
+              .extracting(SpringComponents.Row::getSourcePath, SpringComponents.Row::getComponentType)
+              .containsExactlyInAnyOrder(
+                tuple(separatorsToSystem("test/Config.java"), "test.A"),
+                tuple(separatorsToSystem("test/C.java"), "test.C"))),
+          //language=java
+          java("package test; class A {}"),
+          //language=java
+          java(
+            """
+              package test;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+
+              @Configuration
+              class Config {
+                  @Bean
+                  A a() {
+                      return new A();
+                  }
+              }
+              """,
+            """
+              package test;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+
+              @Configuration
+              class Config {
+                  /*~~(bean)~~>*/@Bean
+                  A a() {
+                      return new A();
+                  }
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              package test;
+              import org.springframework.stereotype.Component;
+
+              @Component
+              class C {
+              }
+              """,
+            """
+              package test;
+              import org.springframework.stereotype.Component;
+
+              /*~~(component)~~>*/@Component
+              class C {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void beanMethodWithoutFullyQualifiedReturnTypeNotAddedToComponentsTable() {
+        rewriteRun(
+          spec -> spec.dataTable(SpringComponents.Row.class, rows ->
+            assertThat(rows)
+              .extracting(SpringComponents.Row::getSourcePath, SpringComponents.Row::getComponentType)
+              .containsExactly(tuple(separatorsToSystem("test/C.java"), "test.C"))),
+          //language=java
+          java(
+            """
+              package test;
+              import org.springframework.stereotype.Component;
+
+              @Component
+              class C {
+              }
+              """,
+            """
+              package test;
+              import org.springframework.stereotype.Component;
+
+              /*~~(component)~~>*/@Component
+              class C {
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              package test;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+
+              @Configuration
+              class Config {
+                  @Bean
+                  int count() {
+                      return 1;
+                  }
+              }
+              """,
+            """
+              package test;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+
+              @Configuration
+              class Config {
+                  /*~~(bean)~~>*/@Bean
+                  int count() {
+                      return 1;
+                  }
               }
               """
           )
