@@ -102,6 +102,21 @@ recipeList:
       version: 4.0.x
       scope: test
       onlyIfUsing: org.springframework.test.web.servlet.MockMvc
+  # @WebFluxTest slice; keyed on specific types rather than the package, since the SB3 package's WebTestClient types belong to spring-boot-webtestclient and also serve MockMvc-backed tests
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webflux-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webflux-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient
@@ -405,6 +420,16 @@ recipeList:
       oldPackageName: org.springframework.boot.test.autoconfigure.web.servlet
       newPackageName: org.springframework.boot.webmvc.test.autoconfigure
       recursive: true
+  # spring-boot-webflux-test: the @WebFluxTest slice, type-by-type since the WebTestClient types below share the SB3 package but move to spring-boot-webtestclient instead
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+      newFullyQualifiedTypeName: org.springframework.boot.webflux.test.autoconfigure.WebFluxTest
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux
+      newFullyQualifiedTypeName: org.springframework.boot.webflux.test.autoconfigure.AutoConfigureWebFlux
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTypeExcludeFilter
+      newFullyQualifiedTypeName: org.springframework.boot.webflux.test.autoconfigure.WebFluxTypeExcludeFilter
   # spring-boot-webtestclient (originating from spring-boot-test-autoconfigure and spring-boot-test)
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
