@@ -32,6 +32,7 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration extends Recipe {
     private static final String POOLING_CONNECTION_MANAGER = "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager";
@@ -62,27 +63,40 @@ public class HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration exten
                     public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
                         J.Block b = super.visitBlock(block, ctx);
 
-                        Map<String, J.VariableDeclarations> managers = new HashMap<>();
-                        Map<String, String> wiredTo = new HashMap<>();
+                        Map<String, J.VariableDeclarations.NamedVariable> managerVariables = new HashMap<>();
+                        Map<String, J.VariableDeclarations> managerDeclarations = new HashMap<>();
+                        Map<String, String> clientToManager = new HashMap<>();
+                        Map<String, String> factoryToManager = new HashMap<>();
                         Set<String> configuredManagers = new HashSet<>();
                         for (Statement statement : b.getStatements()) {
                             if (statement instanceof J.VariableDeclarations) {
                                 J.VariableDeclarations declaration = (J.VariableDeclarations) statement;
-                                J.VariableDeclarations.NamedVariable variable = declaration.getVariables().get(0);
-                                String name = variable.getName().getSimpleName();
                                 JavaType.FullyQualified type = declaration.getTypeAsFullyQualified();
-                                if (TypeUtils.isAssignableTo(POOLING_CONNECTION_MANAGER, type)) {
-                                    managers.put(name, declaration);
-                                } else if (TypeUtils.isAssignableTo(CLOSEABLE_HTTP_CLIENT, type)) {
-                                    String managerName = connectionManagerName(variable.getInitializer());
-                                    if (managerName != null) {
-                                        wiredTo.put(name, managerName);
-                                    }
-                                } else if (TypeUtils.isAssignableTo(REQUEST_FACTORY, type) &&
-                                           variable.getInitializer() instanceof J.NewClass) {
-                                    List<Expression> arguments = ((J.NewClass) variable.getInitializer()).getArguments();
-                                    if (arguments.size() == 1 && arguments.get(0) instanceof J.Identifier) {
-                                        wiredTo.put(name, ((J.Identifier) arguments.get(0)).getSimpleName());
+                                for (J.VariableDeclarations.NamedVariable variable : declaration.getVariables()) {
+                                    String name = variable.getName().getSimpleName();
+                                    if (TypeUtils.isAssignableTo(POOLING_CONNECTION_MANAGER, type)) {
+                                        managerVariables.put(name, variable);
+                                        managerDeclarations.put(name, declaration);
+                                    } else if (TypeUtils.isAssignableTo(CLOSEABLE_HTTP_CLIENT, type)) {
+                                        String managerName = connectionManagerName(variable.getInitializer());
+                                        if (managerName != null) {
+                                            clientToManager.put(name, managerName);
+                                        }
+                                    } else if (TypeUtils.isAssignableTo(REQUEST_FACTORY, type) &&
+                                               variable.getInitializer() instanceof J.NewClass) {
+                                        List<Expression> arguments = ((J.NewClass) variable.getInitializer()).getArguments();
+                                        if (arguments.size() == 1) {
+                                            Expression arg = arguments.get(0);
+                                            String managerName = null;
+                                            if (arg instanceof J.Identifier) {
+                                                managerName = clientToManager.get(((J.Identifier) arg).getSimpleName());
+                                            } else {
+                                                managerName = connectionManagerName(arg);
+                                            }
+                                            if (managerName != null) {
+                                                factoryToManager.put(name, managerName);
+                                            }
+                                        }
                                     }
                                 }
                             } else if (statement instanceof J.MethodInvocation) {
@@ -93,23 +107,35 @@ public class HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration exten
                             }
                         }
 
-                        // Only the first `setConnectTimeout` per connection manager can be migrated; later ones keep the TODO
-                        Map<J.VariableDeclarations, Expression> migrations = new LinkedHashMap<>();
-                        Set<UUID> migrated = new HashSet<>();
+                        // Group setConnectTimeout calls by target factory in source order (last-write-wins in Java)
+                        Map<String, List<J.MethodInvocation>> timeoutsByFactory = new LinkedHashMap<>();
                         for (Statement statement : b.getStatements()) {
-                            if (!(statement instanceof J.MethodInvocation)) {
+                            if (statement instanceof J.MethodInvocation) {
+                                J.MethodInvocation invocation = (J.MethodInvocation) statement;
+                                if (SET_CONNECT_TIMEOUT.matches(invocation) && invocation.getSelect() instanceof J.Identifier) {
+                                    String factoryName = ((J.Identifier) invocation.getSelect()).getSimpleName();
+                                    timeoutsByFactory.computeIfAbsent(factoryName, k -> new ArrayList<>()).add(invocation);
+                                }
+                            }
+                        }
+
+                        Map<String, Expression> migrations = new LinkedHashMap<>();
+                        Set<UUID> removed = new HashSet<>();
+                        for (Map.Entry<String, List<J.MethodInvocation>> entry : timeoutsByFactory.entrySet()) {
+                            String factoryName = entry.getKey();
+                            List<J.MethodInvocation> timeouts = entry.getValue();
+                            String managerName = factoryToManager.get(factoryName);
+                            if (managerName == null || !managerVariables.containsKey(managerName) ||
+                                configuredManagers.contains(managerName) || migrations.containsKey(managerName)) {
                                 continue;
                             }
-                            J.MethodInvocation timeout = (J.MethodInvocation) statement;
-                            if (!SET_CONNECT_TIMEOUT.matches(timeout) || !(timeout.getSelect() instanceof J.Identifier)) {
-                                continue;
-                            }
-                            String clientName = wiredTo.get(((J.Identifier) timeout.getSelect()).getSimpleName());
-                            String managerName = wiredTo.get(clientName);
-                            J.VariableDeclarations manager = managers.get(managerName);
-                            if (manager != null && !configuredManagers.contains(managerName) &&
-                                migrations.putIfAbsent(manager, timeout.getArguments().get(0)) == null) {
-                                migrated.add(timeout.getId());
+                            J.MethodInvocation last = timeouts.get(timeouts.size() - 1);
+                            migrations.put(managerName, last.getArguments().get(0));
+                            removed.add(last.getId());
+                            if (timeouts.size() > 1 && safeToDropEarlier(b, timeouts, factoryName, managerName, clientToManager)) {
+                                for (int i = 0; i < timeouts.size() - 1; i++) {
+                                    removed.add(timeouts.get(i).getId());
+                                }
                             }
                         }
 
@@ -125,13 +151,65 @@ public class HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration exten
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpclient5", "httpcore5"))
                                 .imports(CONNECTION_CONFIG, TIMEOUT)
                                 .build();
-                        for (Map.Entry<J.VariableDeclarations, Expression> migration : migrations.entrySet()) {
-                            J.VariableDeclarations manager = migration.getKey();
-                            b = template.apply(new Cursor(getCursor().getParentOrThrow(), b), manager.getCoordinates().after(),
-                                    manager.getVariables().get(0).getName().withPrefix(Space.EMPTY), migration.getValue());
+                        for (Map.Entry<String, Expression> migration : migrations.entrySet()) {
+                            String managerName = migration.getKey();
+                            J.VariableDeclarations declaration = managerDeclarations.get(managerName);
+                            J.VariableDeclarations.NamedVariable variable = managerVariables.get(managerName);
+                            b = template.apply(new Cursor(getCursor().getParentOrThrow(), b), declaration.getCoordinates().after(),
+                                    variable.getName().withPrefix(Space.EMPTY), migration.getValue());
                         }
                         return b.withStatements(ListUtils.map(b.getStatements(),
-                                statement -> migrated.contains(statement.getId()) ? null : statement));
+                                statement -> removed.contains(statement.getId()) ? null : statement));
+                    }
+
+                    private boolean safeToDropEarlier(J.Block block, List<J.MethodInvocation> timeouts,
+                                                     String factoryName, String managerName,
+                                                     Map<String, String> clientToManager) {
+                        Set<String> observers = new HashSet<>();
+                        observers.add(factoryName);
+                        observers.add(managerName);
+                        for (Map.Entry<String, String> e : clientToManager.entrySet()) {
+                            if (managerName.equals(e.getValue())) {
+                                observers.add(e.getKey());
+                            }
+                        }
+                        UUID firstId = timeouts.get(0).getId();
+                        UUID lastId = timeouts.get(timeouts.size() - 1).getId();
+                        Set<UUID> timeoutIds = new HashSet<>();
+                        for (J.MethodInvocation t : timeouts) {
+                            timeoutIds.add(t.getId());
+                        }
+                        boolean inRange = false;
+                        for (Statement statement : block.getStatements()) {
+                            if (statement.getId().equals(firstId)) {
+                                inRange = true;
+                                continue;
+                            }
+                            if (statement.getId().equals(lastId)) {
+                                break;
+                            }
+                            if (!inRange || timeoutIds.contains(statement.getId())) {
+                                continue;
+                            }
+                            if (referencesAny(statement, observers)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+
+                    private boolean referencesAny(J tree, Set<String> names) {
+                        AtomicBoolean found = new AtomicBoolean(false);
+                        new JavaIsoVisitor<AtomicBoolean>() {
+                            @Override
+                            public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean b) {
+                                if (names.contains(identifier.getSimpleName())) {
+                                    b.set(true);
+                                }
+                                return super.visitIdentifier(identifier, b);
+                            }
+                        }.visit(tree, found);
+                        return found.get();
                     }
 
                     private @Nullable String connectionManagerName(@Nullable Expression expression) {
