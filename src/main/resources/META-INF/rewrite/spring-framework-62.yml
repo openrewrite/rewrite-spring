@@ -67,7 +67,7 @@ description: >-
   This recipe migrates local `PoolingHttpClientConnectionManager` instances that are wired into the request factory,
   and adds a comment when the configuration is not safe to migrate automatically.
 recipeList:
-  - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration
+  - org.openrewrite.java.spring.framework.MoveConnectTimeoutToConnectionConfig
   - org.openrewrite.java.AddCommentToMethodInvocations:
       comment: "TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748"
       methodPattern: "org.springframework.http.client.HttpComponentsClientHttpRequestFactory setConnectTimeout(..)"

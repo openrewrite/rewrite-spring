@@ -34,7 +34,7 @@ import org.openrewrite.java.tree.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration extends Recipe {
+public class MoveConnectTimeoutToConnectionConfig extends Recipe {
     private static final String POOLING_CONNECTION_MANAGER = "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager";
     private static final String CLOSEABLE_HTTP_CLIENT = "org.apache.hc.client5.http.impl.classic.CloseableHttpClient";
     private static final String REQUEST_FACTORY = "org.springframework.http.client.HttpComponentsClientHttpRequestFactory";
@@ -48,10 +48,10 @@ public class HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration exten
     private static final MethodMatcher SET_DEFAULT_CONNECTION_CONFIG = new MethodMatcher(POOLING_CONNECTION_MANAGER + " setDefaultConnectionConfig(..)", true);
 
     @Getter
-    final String displayName = "Migrate `setConnectTimeout(int)` to a locally wired ConnectionConfig";
+    final String displayName = "Move `setConnectTimeout(int)` to a locally wired `ConnectionConfig`";
 
     @Getter
-    final String description = "Migrates `setConnectTimeout(int)` to the Apache HttpClient `ConnectionConfig` when the local " +
+    final String description = "Moves `setConnectTimeout(int)` to the Apache HttpClient `ConnectionConfig` when the local " +
                                "`PoolingHttpClientConnectionManager` is used by the `HttpComponentsClientHttpRequestFactory`.";
 
     @Override
@@ -199,17 +199,15 @@ public class HttpComponentsClientHttpRequestFactoryConnectTimeoutMigration exten
                     }
 
                     private boolean referencesAny(J tree, Set<String> names) {
-                        AtomicBoolean found = new AtomicBoolean(false);
-                        new JavaIsoVisitor<AtomicBoolean>() {
+                        return new JavaIsoVisitor<AtomicBoolean>() {
                             @Override
-                            public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean b) {
+                            public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean found) {
                                 if (names.contains(identifier.getSimpleName())) {
-                                    b.set(true);
+                                    found.set(true);
                                 }
-                                return super.visitIdentifier(identifier, b);
+                                return super.visitIdentifier(identifier, found);
                             }
-                        }.visit(tree, found);
-                        return found.get();
+                        }.reduce(tree, new AtomicBoolean()).get();
                     }
 
                     private @Nullable String connectionManagerName(@Nullable Expression expression) {
