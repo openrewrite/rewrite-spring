@@ -74,7 +74,9 @@ public class MoveConnectTimeoutToConnectionConfig extends Recipe {
                                 JavaType.FullyQualified type = declaration.getTypeAsFullyQualified();
                                 for (J.VariableDeclarations.NamedVariable variable : declaration.getVariables()) {
                                     String name = variable.getName().getSimpleName();
-                                    if (TypeUtils.isAssignableTo(POOLING_CONNECTION_MANAGER, type)) {
+                                    // Only a locally constructed manager is known to not carry a `ConnectionConfig` yet
+                                    if (TypeUtils.isAssignableTo(POOLING_CONNECTION_MANAGER, type) &&
+                                        variable.getInitializer() instanceof J.NewClass) {
                                         managerVariables.put(name, variable);
                                         managerDeclarations.put(name, declaration);
                                     } else if (TypeUtils.isAssignableTo(CLOSEABLE_HTTP_CLIENT, type)) {
@@ -119,6 +121,8 @@ public class MoveConnectTimeoutToConnectionConfig extends Recipe {
                             }
                         }
 
+                        Set<String> reassigned = reassignedNames(b);
+
                         Map<String, Expression> migrations = new LinkedHashMap<>();
                         Set<UUID> removed = new HashSet<>();
                         for (Map.Entry<String, List<J.MethodInvocation>> entry : timeoutsByFactory.entrySet()) {
@@ -126,16 +130,21 @@ public class MoveConnectTimeoutToConnectionConfig extends Recipe {
                             List<J.MethodInvocation> timeouts = entry.getValue();
                             String managerName = factoryToManager.get(factoryName);
                             if (managerName == null || !managerVariables.containsKey(managerName) ||
-                                configuredManagers.contains(managerName) || migrations.containsKey(managerName)) {
+                                configuredManagers.contains(managerName) || reassigned.contains(managerName) ||
+                                migrations.containsKey(managerName)) {
                                 continue;
                             }
-                            J.MethodInvocation last = timeouts.get(timeouts.size() - 1);
-                            migrations.put(managerName, last.getArguments().get(0));
-                            removed.add(last.getId());
-                            if (timeouts.size() > 1 && safeToDropEarlier(b, timeouts, factoryName, managerName, clientToManager)) {
-                                for (int i = 0; i < timeouts.size() - 1; i++) {
-                                    removed.add(timeouts.get(i).getId());
-                                }
+                            // Keeping an earlier call would override the connection config we are about to add
+                            if (timeouts.size() > 1 && !safeToDropEarlier(b, timeouts, factoryName, managerName, clientToManager)) {
+                                continue;
+                            }
+                            Expression timeout = timeouts.get(timeouts.size() - 1).getArguments().get(0);
+                            if (!canEvaluateAfter(timeout, b, managerDeclarations.get(managerName))) {
+                                continue;
+                            }
+                            migrations.put(managerName, timeout);
+                            for (J.MethodInvocation invocation : timeouts) {
+                                removed.add(invocation.getId());
                             }
                         }
 
@@ -160,6 +169,79 @@ public class MoveConnectTimeoutToConnectionConfig extends Recipe {
                         }
                         return b.withStatements(ListUtils.map(b.getStatements(),
                                 statement -> removed.contains(statement.getId()) ? null : statement));
+                    }
+
+                    private Set<String> reassignedNames(J.Block block) {
+                        Set<String> names = new HashSet<>();
+                        new JavaIsoVisitor<Set<String>>() {
+                            @Override
+                            public J.Assignment visitAssignment(J.Assignment assignment, Set<String> reassigned) {
+                                if (assignment.getVariable() instanceof J.Identifier) {
+                                    reassigned.add(((J.Identifier) assignment.getVariable()).getSimpleName());
+                                }
+                                return super.visitAssignment(assignment, reassigned);
+                            }
+                        }.reduce(block, names);
+                        return names;
+                    }
+
+                    /**
+                     * The timeout argument is relocated to just after the connection manager declaration, so it may only
+                     * reference names that are already in scope there, and must be free of side effects.
+                     */
+                    private boolean canEvaluateAfter(Expression timeout, J.Block block, J.VariableDeclarations managerDeclaration) {
+                        Set<String> declaredLater = new HashSet<>();
+                        boolean atOrAfter = false;
+                        for (Statement statement : block.getStatements()) {
+                            atOrAfter |= statement.getId().equals(managerDeclaration.getId());
+                            if (atOrAfter && statement instanceof J.VariableDeclarations) {
+                                for (J.VariableDeclarations.NamedVariable variable : ((J.VariableDeclarations) statement).getVariables()) {
+                                    declaredLater.add(variable.getName().getSimpleName());
+                                }
+                            }
+                        }
+                        return !new JavaIsoVisitor<AtomicBoolean>() {
+                            @Override
+                            public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean unsafe) {
+                                if (declaredLater.contains(identifier.getSimpleName())) {
+                                    unsafe.set(true);
+                                }
+                                return super.visitIdentifier(identifier, unsafe);
+                            }
+
+                            @Override
+                            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation invocation, AtomicBoolean unsafe) {
+                                unsafe.set(true);
+                                return super.visitMethodInvocation(invocation, unsafe);
+                            }
+
+                            @Override
+                            public J.NewClass visitNewClass(J.NewClass newClass, AtomicBoolean unsafe) {
+                                unsafe.set(true);
+                                return super.visitNewClass(newClass, unsafe);
+                            }
+
+                            @Override
+                            public J.Assignment visitAssignment(J.Assignment assignment, AtomicBoolean unsafe) {
+                                unsafe.set(true);
+                                return super.visitAssignment(assignment, unsafe);
+                            }
+
+                            @Override
+                            public J.AssignmentOperation visitAssignmentOperation(J.AssignmentOperation assignment, AtomicBoolean unsafe) {
+                                unsafe.set(true);
+                                return super.visitAssignmentOperation(assignment, unsafe);
+                            }
+
+                            @Override
+                            public J.Unary visitUnary(J.Unary unary, AtomicBoolean unsafe) {
+                                if (unary.getOperator() != J.Unary.Type.Positive && unary.getOperator() != J.Unary.Type.Negative &&
+                                    unary.getOperator() != J.Unary.Type.Complement && unary.getOperator() != J.Unary.Type.Not) {
+                                    unsafe.set(true);
+                                }
+                                return super.visitUnary(unary, unsafe);
+                            }
+                        }.reduce(timeout, new AtomicBoolean()).get();
                     }
 
                     private boolean safeToDropEarlier(J.Block block, List<J.MethodInvocation> timeouts,
