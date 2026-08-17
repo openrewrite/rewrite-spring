@@ -436,6 +436,77 @@ class UpgradeSpringDataMongoDb_5_0Test implements RewriteTest {
         );
     }
 
+    @Test
+    void preservesListenerContainerAutoStartupAlongsideDependencyUpgrade() {
+        rewriteRun(
+          spec -> spec.parser(org.openrewrite.java.JavaParser.fromJavaVersion()
+            .classpathFromResources(new org.openrewrite.InMemoryExecutionContext(), "spring-data-mongodb-5.+", "spring-context-6.+")),
+          mavenProject("spring-data-mongodb-listener",
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>example</artifactId>
+                    <version>1.0.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.data</groupId>
+                            <artifactId>spring-data-mongodb</artifactId>
+                            <version>4.5.13</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.springframework</groupId>
+                            <artifactId>spring-context</artifactId>
+                            <version>6.2.3</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual ->
+                assertDependencyVersion(actual, "spring-data-mongodb", "5\\.0\\.\\d+").actual())
+            ),
+            java(
+              """
+                package com.example;
+
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+                import org.springframework.data.mongodb.core.MongoTemplate;
+                import org.springframework.data.mongodb.core.messaging.DefaultMessageListenerContainer;
+
+                @Configuration
+                class MongoConfig {
+                    @Bean
+                    DefaultMessageListenerContainer listenerContainer(MongoTemplate template) {
+                        DefaultMessageListenerContainer container = new DefaultMessageListenerContainer(template);
+                        return container;
+                    }
+                }
+                """,
+              """
+                package com.example;
+
+                import org.springframework.context.annotation.Bean;
+                import org.springframework.context.annotation.Configuration;
+                import org.springframework.data.mongodb.core.MongoTemplate;
+                import org.springframework.data.mongodb.core.messaging.DefaultMessageListenerContainer;
+
+                @Configuration
+                class MongoConfig {
+                    @Bean
+                    DefaultMessageListenerContainer listenerContainer(MongoTemplate template) {
+                        DefaultMessageListenerContainer container = new DefaultMessageListenerContainer(template);
+                        container.setAutoStartup(false);
+                        return container;
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
     private static AbstractStringAssert<?> assertDependencyVersion(String pom, String artifactId, String versionPattern) {
         return assertThat(pom).containsPattern(
           "<artifactId>" + artifactId + "</artifactId>\\s*<version>" + versionPattern + "</version>");
