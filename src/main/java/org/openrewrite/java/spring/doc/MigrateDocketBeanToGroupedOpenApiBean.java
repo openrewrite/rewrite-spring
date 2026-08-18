@@ -44,6 +44,9 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     private static final TypeMatcher APISELECTORBUILDER_TYPEMATCHER = new TypeMatcher("springfox.documentation.spring.web.plugins.ApiSelectorBuilder");
     private static final ArgumentExtractor REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR = new ArgumentExtractor(Arrays.asList(new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors any()", true), new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors basePackage(..)", true)));
     private static final ArgumentExtractor PATHSELECTOR_ARGUMENT_EXTRACTOR = new ArgumentExtractor(Arrays.asList(new MethodMatcher("springfox.documentation.builders.PathSelectors any()", true), new MethodMatcher("springfox.documentation.builders.PathSelectors ant(..)", true)));
+    private static final MethodMatcher WITH_METHOD_ANNOTATION = new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors withMethodAnnotation(..)", true);
+    private static final MethodMatcher WITH_CLASS_ANNOTATION = new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors withClassAnnotation(..)", true);
+    private static final MethodMatcher PREDICATE_NEGATE = new MethodMatcher("java.util.function.Predicate negate()", true);
 
 
     @Getter
@@ -76,25 +79,26 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(DocketBeanAccumulator acc) {
-        if (acc.docketDefinitions.size() != 1) {
+        if (acc.docketDefinitions.isEmpty()) {
             return TreeVisitor.noop();
         }
-        DocketDefinition docketDefinition = acc.docketDefinitions.get(0);
+        boolean singleDocket = acc.docketDefinitions.size() == 1;
+        DocketDefinition onlyDocket = singleDocket ? acc.docketDefinitions.get(0) : null;
+        boolean canConfigureInProperties = singleDocket && canConfigureInProperties(acc, onlyDocket);
         return Preconditions.check(shouldVisit(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                boolean canConfigureInProperties = canConfigureInProperties(acc, docketDefinition);
                 if (tree instanceof J.CompilationUnit) {
-                    return new DocketBeanVisitor(canConfigureInProperties, docketDefinition).visitNonNull(tree, ctx);
+                    return new DocketBeanVisitor(canConfigureInProperties, acc.docketDefinitions).visitNonNull(tree, ctx);
                 }
                 if (isApplicationProperties(tree) && canConfigureInProperties) {
                     Tree result = addSpringProperty(ctx, tree, "springdoc.api-docs.path", "/v3/api-docs");
                     result = addSpringProperty(ctx, result, "springdoc.swagger-ui.path", "/swagger-ui.html");
-                    if (docketDefinition.groupName == null) {
-                        result = formatGroupProperties(ctx, result, "springdoc", docketDefinition);
+                    if (onlyDocket.groupName == null) {
+                        result = formatGroupProperties(ctx, result, "springdoc", onlyDocket);
                     } else {
-                        result = addSpringProperty(ctx, result, "springdoc.group-configs[0]" + ".group", docketDefinition.groupName.toString());
-                        result = formatGroupProperties(ctx, result, "springdoc.group-configs[0]", docketDefinition);
+                        result = addSpringProperty(ctx, result, "springdoc.group-configs[0]" + ".group", onlyDocket.groupName.toString());
+                        result = formatGroupProperties(ctx, result, "springdoc.group-configs[0]", onlyDocket);
                     }
                     return result;
                 }
@@ -116,6 +120,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
     private static boolean canConfigureInProperties(DocketBeanAccumulator acc, DocketDefinition docketDefinition) {
         return acc.hasProperties &&
+                docketDefinition.annotationFilters.isEmpty() &&
                 (docketDefinition.groupName == null || docketDefinition.groupName instanceof J.Literal) &&
                 (docketDefinition.apis == null || docketDefinition.apis instanceof J.Literal) &&
                 (docketDefinition.paths == null || docketDefinition.paths instanceof J.Literal);
@@ -150,6 +155,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
             if (md.getLeadingAnnotations().stream().anyMatch(BEAN_ANNOTATIONMATCHER::matches) && DOCKET_TYPEMATCHER.matches(md.getReturnTypeExpression())) {
+                J.ClassDeclaration enclosing = getCursor().firstEnclosing(J.ClassDeclaration.class);
+                String owningType = enclosing != null && enclosing.getType() != null ? enclosing.getType().getFullyQualifiedName() : "";
                 DocketDefinition.Builder docketDefinitionBuilder = new JavaIsoVisitor<DocketDefinition.Builder>() {
                     @Override
                     public J.NewClass visitNewClass(J.NewClass newClass, DocketDefinition.Builder builder) {
@@ -173,7 +180,13 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                             PATHSELECTOR_ARGUMENT_EXTRACTOR.visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setPaths));
                         } else if (APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                                 "apis".equals(mi.getSimpleName())) {
-                            REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR.visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setApis));
+                            Expression arg = mi.getArguments().get(0);
+                            AnnotationFilter filter = tryExtractAnnotationFilter(arg);
+                            if (filter != null) {
+                                builder.addAnnotationFilter(filter);
+                            } else {
+                                REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR.visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setApis));
+                            }
                         } else if (DOCKET_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                                 "groupName".equals(mi.getSimpleName())) {
                             builder.setGroupName(mi.getArguments().get(0));
@@ -182,10 +195,29 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                     }
                 }.reduce(md, new DocketDefinition.Builder());
                 if (docketDefinitionBuilder.isValid()) {
-                    acc.docketDefinitions.add(docketDefinitionBuilder.build());
+                    acc.docketDefinitions.add(docketDefinitionBuilder.build(owningType, md.getSimpleName()));
                 }
             }
             return md;
+        }
+
+        private static @Nullable AnnotationFilter tryExtractAnnotationFilter(Expression arg) {
+            if (!(arg instanceof J.MethodInvocation)) {
+                return null;
+            }
+            J.MethodInvocation call = (J.MethodInvocation) arg;
+            boolean negated = false;
+            if (PREDICATE_NEGATE.matches(call) && call.getSelect() instanceof J.MethodInvocation) {
+                negated = true;
+                call = (J.MethodInvocation) call.getSelect();
+            }
+            if (WITH_METHOD_ANNOTATION.matches(call) && call.getArguments().size() == 1) {
+                return new AnnotationFilter(false, negated, call.getArguments().get(0));
+            }
+            if (WITH_CLASS_ANNOTATION.matches(call) && call.getArguments().size() == 1) {
+                return new AnnotationFilter(true, negated, call.getArguments().get(0));
+            }
+            return null;
         }
     }
 
@@ -239,6 +271,10 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
     @Value
     public static class DocketDefinition {
+        String owningType;
+
+        String methodName;
+
         @Nullable
         Expression groupName;
 
@@ -247,6 +283,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
         @Nullable
         Expression apis;
+
+        List<AnnotationFilter> annotationFilters;
 
         static class Builder {
             @Getter
@@ -264,27 +302,44 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
             @Nullable
             private Expression groupName = null;
 
+            private final List<AnnotationFilter> annotationFilters = new ArrayList<>();
+
             public void invalidate() {
                 valid = false;
             }
 
-            public DocketDefinition build() {
-                return new DocketDefinition(groupName, paths, apis);
+            public void addAnnotationFilter(AnnotationFilter filter) {
+                annotationFilters.add(filter);
+            }
+
+            public DocketDefinition build(String owningType, String methodName) {
+                return new DocketDefinition(owningType, methodName, groupName, paths, apis, annotationFilters);
             }
         }
+    }
+
+    @Value
+    public static class AnnotationFilter {
+        boolean classLevel;
+        boolean negated;
+        Expression annotationType;
     }
 
     @EqualsAndHashCode(callSuper = false)
     @Value
     private static class DocketBeanVisitor extends JavaIsoVisitor<ExecutionContext> {
         boolean removeMethod;
-        DocketDefinition docketDefinition;
+        List<DocketDefinition> docketDefinitions;
 
         @Override
         public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
             if (service(AnnotationService.class).matches(getCursor(), BEAN_ANNOTATIONMATCHER) &&
                     DOCKET_TYPEMATCHER.matches(md.getReturnTypeExpression())) {
+                DocketDefinition docketDefinition = findMatching(md);
+                if (docketDefinition == null) {
+                    return md;
+                }
                 maybeRemoveImport("springfox.documentation.builders.PathSelectors");
                 maybeRemoveImport("springfox.documentation.builders.RequestHandlerSelectors");
                 maybeRemoveImport("springfox.documentation.spi.DocumentationType");
@@ -318,6 +373,25 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                         template.append(".packagesToScan(#{any()})\n");
                     }
                 }
+                if (!docketDefinition.annotationFilters.isEmpty()) {
+                    template.append(".addOpenApiMethodFilter(method -> ");
+                    for (int i = 0; i < docketDefinition.annotationFilters.size(); i++) {
+                        AnnotationFilter filter = docketDefinition.annotationFilters.get(i);
+                        if (i > 0) {
+                            template.append(" && ");
+                        }
+                        if (filter.negated) {
+                            template.append("!");
+                        }
+                        template.append("method");
+                        if (filter.classLevel) {
+                            template.append(".getDeclaringClass()");
+                        }
+                        template.append(".isAnnotationPresent(#{any()})");
+                        args.add(filter.annotationType);
+                    }
+                    template.append(")\n");
+                }
                 template.append(".build();\n")
                         .append("}");
 
@@ -329,6 +403,18 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                         .apply(getCursor(), method.getCoordinates().replace(), args.toArray());
             }
             return md;
+        }
+
+        private @Nullable DocketDefinition findMatching(J.MethodDeclaration md) {
+            J.ClassDeclaration enclosing = getCursor().firstEnclosing(J.ClassDeclaration.class);
+            String owningType = enclosing != null && enclosing.getType() != null ? enclosing.getType().getFullyQualifiedName() : "";
+            String methodName = md.getSimpleName();
+            for (DocketDefinition d : docketDefinitions) {
+                if (d.owningType.equals(owningType) && d.methodName.equals(methodName)) {
+                    return d;
+                }
+            }
+            return null;
         }
     }
 }
