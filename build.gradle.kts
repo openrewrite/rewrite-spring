@@ -90,8 +90,8 @@ recipeDependencies {
     parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     parserClasspath("net.minidev:json-smart:2.4.+")
 
-    parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.1.+")
-    parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
+    parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.3.+")
+    parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.5.+")
 
     parserClasspath("jakarta.servlet:jakarta.servlet-api:6.1.+")
     parserClasspath("jakarta.validation:jakarta.validation-api:3.0.+")
