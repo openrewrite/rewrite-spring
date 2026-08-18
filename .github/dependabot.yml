@@ -7,6 +7,19 @@ updates:
       interval: daily
     commit-message:
       prefix: "chore(ci)"
+    # These are referenced by floating major tag, which their authors move
+    # forward as minor and patch releases ship, so only major bumps need a
+    # pull request. Actions not listed here keep the default behaviour; add an
+    # entry only once a workflow references one by floating major tag.
+    ignore:
+      - dependency-name: actions/checkout
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: actions/setup-java
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: gradle/actions
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: peter-evans/create-pull-request
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
   - package-ecosystem: gradle
     directory: /
     schedule:
