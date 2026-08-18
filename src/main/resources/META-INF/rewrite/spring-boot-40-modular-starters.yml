@@ -27,7 +27,22 @@ description: >-
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
+  - org.openrewrite.java.spring.boot4.AddModularStarterDependencies
+  # Update packages to match the new modular starter structure
+  - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
 
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.AddModularStarterDependencies
+displayName: Add Spring Boot 4.0 modular starter dependencies
+description: >-
+  Adds the Spring Boot 4.0 modular starter dependencies implied by a module's Spring Boot 3
+  package usage, without relocating any source. Split out from `MigrateToModularStarters` so
+  that it can be sequenced ahead of `MigrateAutoconfigurePackages` when composed into a larger
+  migration.
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
   # Add modular starter dependencies based on package usage
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
@@ -155,9 +170,6 @@ recipeList:
       acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.autoconfigure.orm.jpa.*
-
-  # Update packages to match the new modular starter structure
-  - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
