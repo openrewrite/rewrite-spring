@@ -7,6 +7,11 @@ updates:
       interval: daily
     commit-message:
       prefix: "chore(ci)"
+    # Workflows reference floating major tags, which already track minor and
+    # patch releases; only major bumps need a pull request.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
   - package-ecosystem: gradle
     directory: /
     schedule:
