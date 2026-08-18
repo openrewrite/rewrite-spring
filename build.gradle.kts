@@ -252,4 +252,13 @@ tasks {
         classpath = sourceSets.getByName("test").runtimeClasspath
         finalizedBy("licenseFormat")
     }
+
+    // recipeCsvValidate* only checks whatever recipes.csv already happens to be on disk, so a
+    // contributor who forgets to run `recipeCsvGenerate` locally only finds out from CI, and the
+    // fix lands as its own commit on their PR. Running generate first makes `check`/`build`
+    // self-healing: recipes.csv is always regenerated from the just-built jar before it's
+    // validated, so nobody has to remember the separate command, and validation always runs
+    // against genuinely current content instead of whatever the contributor happened to commit.
+    named("recipeCsvValidateCompleteness") { dependsOn("recipeCsvGenerate") }
+    named("recipeCsvValidateContent") { dependsOn("recipeCsvGenerate") }
 }
