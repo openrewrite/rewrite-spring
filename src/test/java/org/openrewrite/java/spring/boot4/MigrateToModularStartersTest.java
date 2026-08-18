@@ -26,6 +26,16 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.util.Objects.requireNonNull;
+import static java.util.regex.Pattern.MULTILINE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
@@ -1105,4 +1115,95 @@ class MigrateToModularStartersTest implements RewriteTest {
         );
     }
 
+    @Nested
+    class AddModularStarterDependenciesOnly implements RewriteTest {
+        @Override
+        public void defaults(RecipeSpec spec) {
+            spec.recipeFromResource(
+              "/META-INF/rewrite/spring-boot-40-modular-starters.yml",
+              "org.openrewrite.java.spring.boot4.AddModularStarterDependencies"
+            ).parser(JavaParser.fromJavaVersion()
+              .classpathFromResources(new InMemoryExecutionContext(),
+                "spring-boot-autoconfigure-3",
+                "spring-boot-3.5",
+                "spring-boot-test-3.2",
+                "spring-boot-test-autoconfigure-3",
+                "spring-beans-6",
+                "spring-context-6.2",
+                "spring-web-6.2",
+                "spring-core-6"));
+        }
+
+        @Test
+        void addsStarterWithoutRelocatingPackages() {
+            rewriteRun(
+              mavenProject("app",
+                //language=xml
+                pomXml(
+                  """
+                    <project>
+                        <modelVersion>4.0.0</modelVersion>
+                        <groupId>org.example</groupId>
+                        <artifactId>example</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-autoconfigure</artifactId>
+                                <version>3.3.0</version>
+                            </dependency>
+                        </dependencies>
+                    </project>
+                    """,
+                  spec -> spec.after(pom -> assertThat(pom)
+                    .contains("<artifactId>spring-boot-starter-jdbc</artifactId>")
+                    .containsPattern("<version>4\\.0\\.\\d+</version>")
+                    .actual())
+                ),
+                srcMainJava(
+                  //language=java
+                  java(
+                    """
+                      import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+
+                      class Config {
+                          Class<?> cfg = DataSourceAutoConfiguration.class;
+                      }
+                      """
+                  )
+                )
+              )
+            );
+        }
+    }
+
+    @Test
+    void everyGateNamesAPreRenameNamespace() throws IOException {
+        String yaml = new String(requireNonNull(getClass().getResourceAsStream(
+          "/META-INF/rewrite/spring-boot-40-modular-starters.yml")).readAllBytes(), StandardCharsets.UTF_8);
+
+        List<String> postRenameNamespaces = new ArrayList<>();
+        Matcher relocations = Pattern.compile("^\\s+(?:newPackageName|newFullyQualifiedTypeName): (\\S+)$", MULTILINE).matcher(yaml);
+        while (relocations.find()) {
+            postRenameNamespaces.add(relocations.group(1));
+        }
+        assertThat(postRenameNamespaces).isNotEmpty();
+
+        String addDependencies = Arrays.stream(yaml.split("(?m)^---$"))
+          .filter(doc -> doc.contains("name: org.openrewrite.java.spring.boot4.AddModularStarterDependencies\n"))
+          .findFirst()
+          .orElseThrow();
+
+        Matcher gates = Pattern.compile("^\\s+onlyIfUsing: (\\S+)$", MULTILINE).matcher(addDependencies);
+        int gateCount = 0;
+        while (gates.find()) {
+            gateCount++;
+            String gate = gates.group(1).replaceAll("\\.\\*$", "");
+            assertThat(postRenameNamespaces)
+              .as("`onlyIfUsing: %s` is gated on a post-rename namespace, so it can never match: " +
+                  "AddDependency's scan sees the LST as it was before MigrateAutoconfigurePackages ran", gate)
+              .noneMatch(relocated -> gate.equals(relocated) || gate.startsWith(relocated + "."));
+        }
+        assertThat(gateCount).isNotZero();
+    }
 }
