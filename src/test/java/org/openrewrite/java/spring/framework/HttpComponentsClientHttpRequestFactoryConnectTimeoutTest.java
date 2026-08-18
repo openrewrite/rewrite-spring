@@ -34,6 +34,14 @@ class HttpComponentsClientHttpRequestFactoryConnectTimeoutTest implements Rewrit
             "spring-beans-5.3", "spring-web-5.3"));
     }
 
+    private static JavaParser.Builder<?, ?> httpClient5Parser() {
+        return JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+          "spring-beans-6",
+          "spring-web-6.2",
+          "httpclient5",
+          "httpcore5");
+    }
+
     @DocumentExample
     @Test
     void addsCommentToSetConnectTimeoutOnly() {
@@ -86,13 +94,9 @@ class HttpComponentsClientHttpRequestFactoryConnectTimeoutTest implements Rewrit
     }
 
     @Test
-    void commentsEvenWhenConnectionManagerIsPresent() {
+    void migratesWhenConnectionManagerIsWiredToRequestFactory() {
         rewriteRun(
-          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-beans-6",
-            "spring-web-6.2",
-            "httpclient5",
-            "httpcore5")),
+          spec -> spec.parser(httpClient5Parser()),
           //language=java
           java(
             """
@@ -112,6 +116,252 @@ class HttpComponentsClientHttpRequestFactoryConnectTimeoutTest implements Rewrit
               }
               """,
             """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(2000)).build());
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migratesVariableTimeoutWhenConnectionManagerIsWiredToRequestFactory() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory(int timeout) {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      factory.setConnectTimeout(timeout);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory(int timeout) {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(timeout)).build());
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentsWhenConnectionManagerAlreadyHasConnectionConfig() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofSeconds(5)).build());
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofSeconds(5)).build());
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentsWhenConnectionManagerIsNotWiredToRequestFactory() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+                      /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migratesWhenSecondVariableInMultiDeclarationIsWired() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager unused = new PoolingHttpClientConnectionManager(),
+                                                         connectionManager = new PoolingHttpClientConnectionManager();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager unused = new PoolingHttpClientConnectionManager(),
+                                                         connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(2000)).build());
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migratesWhenFactoryConstructedWithInlineHttpClient() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(
+                              HttpClients.custom().setConnectionManager(connectionManager).build());
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(2000)).build());
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(
+                              HttpClients.custom().setConnectionManager(connectionManager).build());
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migratesLastAndDropsEarlierWhenNoReferencesBetween() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
               import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
               import org.apache.hc.client5.http.impl.classic.HttpClients;
               import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -120,6 +370,270 @@ class HttpComponentsClientHttpRequestFactoryConnectTimeoutTest implements Rewrit
               class Example {
                   HttpComponentsClientHttpRequestFactory requestFactory() {
                       PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      factory.setConnectTimeout(1000);
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(2000)).build());
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentsWhenEarlierSetConnectTimeoutCannotBeDropped() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      factory.setConnectTimeout(1000);
+                      Object obj = factory;
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
+                      factory.setConnectTimeout(1000);
+                      Object obj = factory;
+                      /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentsWhenTimeoutVariableIsDeclaredAfterConnectionManager() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      int timeout = 2000;
+                      factory.setConnectTimeout(timeout);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      int timeout = 2000;
+                      /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
+                      factory.setConnectTimeout(timeout);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentsWhenTimeoutArgumentHasSideEffects() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  int counter = 0;
+
+                  int next() {
+                      return ++counter;
+                  }
+
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      factory.setConnectTimeout(next());
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  int counter = 0;
+
+                  int next() {
+                      return ++counter;
+                  }
+
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
+                      factory.setConnectTimeout(next());
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentsWhenConnectionManagerIsBuiltWithBuilder() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                              .setDefaultConnectionConfig(ConnectionConfig.custom().setSocketTimeout(Timeout.ofSeconds(5)).build())
+                              .build();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.config.ConnectionConfig;
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+              import org.apache.hc.core5.util.Timeout;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                              .setDefaultConnectionConfig(ConnectionConfig.custom().setSocketTimeout(Timeout.ofSeconds(5)).build())
+                              .build();
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentsWhenConnectionManagerIsReassigned() {
+        rewriteRun(
+          spec -> spec.parser(httpClient5Parser()),
+          //language=java
+          java(
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory(PoolingHttpClientConnectionManager other) {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager = other;
+                      CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+                      HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+                      factory.setConnectTimeout(2000);
+                      return factory;
+                  }
+              }
+              """,
+            """
+              import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+              import org.apache.hc.client5.http.impl.classic.HttpClients;
+              import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class Example {
+                  HttpComponentsClientHttpRequestFactory requestFactory(PoolingHttpClientConnectionManager other) {
+                      PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+                      connectionManager = other;
                       CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
                       HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
                       /* TODO: `setConnectTimeout` was removed in Spring Framework 7.0. Set `ConnectionConfig.Builder.setConnectTimeout(Timeout)` on the connection manager when building the HttpClient; see https://hc.apache.org/httpcomponents-client-5.6.x/migration-guide/migration-to-classic.html and https://github.com/spring-projects/spring-framework/issues/35748 */
