@@ -261,4 +261,11 @@ tasks {
     // against genuinely current content instead of whatever the contributor happened to commit.
     named("recipeCsvValidateCompleteness") { dependsOn("recipeCsvGenerate") }
     named("recipeCsvValidateContent") { dependsOn("recipeCsvGenerate") }
+
+    // recipeCsvGenerate rewrites recipes.csv, which both of these tasks also read as part of
+    // packaging/checking src/main/resources. Pulling recipeCsvGenerate into `check` (above) put
+    // it in the same build as these for the first time, and Gradle's task validation correctly
+    // flagged that nothing ordered them relative to it - so order them explicitly.
+    named("sourcesJar") { mustRunAfter("recipeCsvGenerate") }
+    named("licenseMain") { mustRunAfter("recipeCsvGenerate") }
 }
