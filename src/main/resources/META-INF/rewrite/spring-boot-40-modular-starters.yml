@@ -27,7 +27,22 @@ description: >-
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
+  - org.openrewrite.java.spring.boot4.AddModularStarterDependencies
+  # Update packages to match the new modular starter structure
+  - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
 
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.AddModularStarterDependencies
+displayName: Add Spring Boot 4.0 modular starter dependencies
+description: >-
+  Adds the Spring Boot 4.0 modular starter dependencies implied by a module's Spring Boot 3
+  package usage, without relocating any source. Split out from `MigrateToModularStarters` so
+  that it can be sequenced ahead of `MigrateAutoconfigurePackages` when composed into a larger
+  migration.
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
   # Add modular starter dependencies based on package usage
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
@@ -102,6 +117,21 @@ recipeList:
       version: 4.0.x
       scope: test
       onlyIfUsing: org.springframework.test.web.servlet.MockMvc
+  # @WebFluxTest slice; keyed on specific types rather than the package, since the SB3 package's WebTestClient types belong to spring-boot-webtestclient and also serve MockMvc-backed tests
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webflux-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webflux-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient
@@ -140,9 +170,6 @@ recipeList:
       acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.autoconfigure.orm.jpa.*
-
-  # Update packages to match the new modular starter structure
-  - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -405,6 +432,16 @@ recipeList:
       oldPackageName: org.springframework.boot.test.autoconfigure.web.servlet
       newPackageName: org.springframework.boot.webmvc.test.autoconfigure
       recursive: true
+  # spring-boot-webflux-test: the @WebFluxTest slice, type-by-type since the WebTestClient types below share the SB3 package but move to spring-boot-webtestclient instead
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+      newFullyQualifiedTypeName: org.springframework.boot.webflux.test.autoconfigure.WebFluxTest
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux
+      newFullyQualifiedTypeName: org.springframework.boot.webflux.test.autoconfigure.AutoConfigureWebFlux
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTypeExcludeFilter
+      newFullyQualifiedTypeName: org.springframework.boot.webflux.test.autoconfigure.WebFluxTypeExcludeFilter
   # spring-boot-webtestclient (originating from spring-boot-test-autoconfigure and spring-boot-test)
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient

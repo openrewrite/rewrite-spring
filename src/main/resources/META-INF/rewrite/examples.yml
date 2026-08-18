@@ -2248,6 +2248,23 @@ examples:
       </project>
     path: pom.xml
     language: xml
+- description: '`MigrateJacksonPropertyNamingStrategyTest#replaceSnakeCaseStrategyInJsonNamingAnnotation`'
+  sources:
+  - before: |
+      import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+      import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
+      @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+      class Test {
+      }
+    after: |
+      import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
+      import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
+      @JsonNaming(SnakeCaseStrategy.class)
+      class Test {
+      }
+    language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
@@ -3660,6 +3677,25 @@ examples:
       ---
       spring.jpa.hibernate.naming.implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
     language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.SpringBootProperties_4_1
+examples:
+- description: '`SpringBoot41PropertiesTest#migrateProperties`'
+  sources:
+  - before: |
+      logging.file.clean-history-on-start=true
+      logging.file.max-history=7
+      logging.file.max-size=10MB
+      logging.file.total-size-cap=1GB
+      logging.pattern.rolling-file-name=app-%d.log
+    after: |
+      logging.logback.rollingpolicy.clean-history-on-start=true
+      logging.logback.rollingpolicy.max-history=7
+      logging.logback.rollingpolicy.max-file-size=10MB
+      logging.logback.rollingpolicy.total-size-cap=1GB
+      logging.logback.rollingpolicy.file-name-pattern=app-%d.log
+    language: properties
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.UnwrapMockAndSpyBeanContainers
