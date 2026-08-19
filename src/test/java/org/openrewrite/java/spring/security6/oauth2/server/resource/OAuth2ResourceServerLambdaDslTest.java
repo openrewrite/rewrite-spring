@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.security6.oauth2.server.resource;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junitpioneer.jupiter.Issue;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -29,7 +28,6 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.kotlin.Assertions.kotlin;
 
-@DisabledIfEnvironmentVariable(named = "CI", matches = "true")
 class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
