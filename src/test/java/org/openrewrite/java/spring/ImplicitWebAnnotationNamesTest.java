@@ -230,7 +230,7 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
             );
         }
 
-        @ExpectedToFail("Whitespaces in Kotlin around a TypeExpression are problematic see https://github.com/openrewrite/rewrite-kotlin/issues/477. Use a formatter to prevent these situations.")
+        @ExpectedToFail("Whitespaces in Kotlin around a TypeExpression are problematic see https://github.com/openrewrite/rewrite/issues/6613. Use a formatter to prevent these situations.")
         @Test
         void annotationNoWhitespaceBetweenAnnotationAndVariable() {
             //language=kotlin
