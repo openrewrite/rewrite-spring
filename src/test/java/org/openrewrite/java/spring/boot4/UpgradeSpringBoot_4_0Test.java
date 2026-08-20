@@ -48,7 +48,7 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.7</version>
+                        <version>4.0.8</version>
                         <relativePath/>
                     </parent>
                     <groupId>com.example</groupId>
@@ -72,7 +72,7 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.7</version>
+                        <version>4.0.8</version>
                         <relativePath/>
                     </parent>
                     <groupId>com.example</groupId>
