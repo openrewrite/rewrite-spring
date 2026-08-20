@@ -27,6 +27,9 @@ recipeList:
       groupId: org.springframework
       artifactId: "*"
       newVersion: 7.0.x
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
+      fullyQualifiedConstantName: org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT
   - org.openrewrite.java.testing.junit6.JUnit5to6Migration
   - org.openrewrite.java.jackson.UpgradeJackson_2_3
   - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
