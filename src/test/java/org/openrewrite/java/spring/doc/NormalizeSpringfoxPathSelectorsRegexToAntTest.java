@@ -126,7 +126,6 @@ class NormalizeSpringfoxPathSelectorsRegexToAntTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @CsvSource(delimiter = '|', value = {
       "'.*'                | '/**'",
       "'/.*'               | '/**'",
@@ -135,11 +134,11 @@ class NormalizeSpringfoxPathSelectorsRegexToAntTest implements RewriteTest {
       "'^/api/v1/.*$'      | '/api/v1/**'",
       "'/api-v1/foo/.*'    | '/api-v1/foo/**'",
     })
+    @ParameterizedTest
     void safeShapesAreTranslated(String regex, String ant) {
         assertThat(NormalizeSpringfoxPathSelectorsRegexToAnt.toAntIfSafe(regex)).isEqualTo(ant);
     }
 
-    @ParameterizedTest
     @CsvSource(delimiter = '|', value = {
       "'/api/v[0-9]+/.*'",
       "'/api/(v1|v2)/.*'",
@@ -148,6 +147,7 @@ class NormalizeSpringfoxPathSelectorsRegexToAntTest implements RewriteTest {
       "'/api/v1/foo.*bar'",
       "'/api/v1'",
     })
+    @ParameterizedTest
     void unsafeShapesAreLeftAlone(String regex) {
         assertThat(NormalizeSpringfoxPathSelectorsRegexToAnt.toAntIfSafe(regex)).isNull();
     }

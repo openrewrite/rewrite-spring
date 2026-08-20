@@ -4408,6 +4408,51 @@ examples:
     language: properties
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.doc.NormalizeSpringfoxPathSelectorsRegexToAnt
+examples:
+- description: '`NormalizeSpringfoxPathSelectorsRegexToAntTest#rewriteSafeRegexPrefixToAnt`'
+  sources:
+  - before: |
+      package org.project.example;
+
+      import org.springframework.context.annotation.Bean;
+      import springfox.documentation.builders.PathSelectors;
+      import springfox.documentation.builders.RequestHandlerSelectors;
+      import springfox.documentation.spi.DocumentationType;
+      import springfox.documentation.spring.web.plugins.Docket;
+
+      class ApplicationConfiguration {
+          @Bean
+          public Docket publicApi() {
+              return new Docket(DocumentationType.SWAGGER_2)
+                      .select()
+                      .apis(RequestHandlerSelectors.basePackage("com.example"))
+                      .paths(PathSelectors.regex("/api/v1/.*"))
+                      .build();
+          }
+      }
+    after: |
+      package org.project.example;
+
+      import org.springframework.context.annotation.Bean;
+      import springfox.documentation.builders.PathSelectors;
+      import springfox.documentation.builders.RequestHandlerSelectors;
+      import springfox.documentation.spi.DocumentationType;
+      import springfox.documentation.spring.web.plugins.Docket;
+
+      class ApplicationConfiguration {
+          @Bean
+          public Docket publicApi() {
+              return new Docket(DocumentationType.SWAGGER_2)
+                      .select()
+                      .apis(RequestHandlerSelectors.basePackage("com.example"))
+                      .paths(PathSelectors.ant("/api/v1/**"))
+                      .build();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.doc.RemoveBeanValidatorPluginsConfiguration
 examples:
 - description: '`RemoveBeanValidatorPluginsConfigurationTest#removeImportWithBeanValidatorPluginsConfiguration`'
