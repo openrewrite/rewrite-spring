@@ -77,13 +77,12 @@ public class ImplicitWebAnnotationNames extends Recipe {
                                         varDecls.getTypeExpression().getPrefix().withWhitespace(" ")));
                     }
                     // Kotlin case: variable name follows annotation directly (e.g., @PathVariable id: Long)
-                    // Only add space if BOTH typeExpression has no whitespace AND variable has no whitespace
-                    // This avoids adding space when there's already whitespace somewhere
-                    else if (varDecls.getTypeExpression() == null && !varDecls.getVariables().isEmpty()) {
+                    else if (!varDecls.getVariables().isEmpty()) {
                         J.VariableDeclarations.NamedVariable firstVar = varDecls.getVariables().get(0);
-                        if (firstVar.getPrefix().getWhitespace().isEmpty()) {
+                        if (firstVar.getPrefix().getWhitespace().isEmpty() &&
+                                firstVar.getName().getPrefix().getWhitespace().isEmpty()) {
                             varDecls = varDecls.withVariables(ListUtils.mapFirst(varDecls.getVariables(),
-                                    v -> v.withPrefix(v.getPrefix().withWhitespace(" "))));
+                                    v -> v.withName(v.getName().withPrefix(v.getName().getPrefix().withWhitespace(" ")))));
                         }
                     }
                 }
