@@ -203,7 +203,7 @@ class UpgradeSpringDataMongoDb_5_0Test implements RewriteTest {
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.7</version>
+                        <version>4.0.8</version>
                     </parent>
                     <groupId>com.example</groupId>
                     <artifactId>example</artifactId>
@@ -237,7 +237,7 @@ class UpgradeSpringDataMongoDb_5_0Test implements RewriteTest {
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.7</version>
+                        <version>4.0.8</version>
                     </parent>
                     <groupId>com.example</groupId>
                     <artifactId>example</artifactId>
@@ -262,7 +262,7 @@ class UpgradeSpringDataMongoDb_5_0Test implements RewriteTest {
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.7</version>
+                        <version>4.0.8</version>
                     </parent>
                     <groupId>com.example</groupId>
                     <artifactId>example</artifactId>
@@ -366,7 +366,7 @@ class UpgradeSpringDataMongoDb_5_0Test implements RewriteTest {
                     <parent>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.7</version>
+                        <version>4.0.8</version>
                     </parent>
                     <groupId>com.example</groupId>
                     <artifactId>example</artifactId>
