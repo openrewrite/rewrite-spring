@@ -26,11 +26,9 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1178,11 +1176,11 @@ class MigrateToModularStartersTest implements RewriteTest {
     }
 
     @Test
-    void everyGateNamesAPreRenameNamespace() throws IOException {
-        String yaml = new String(requireNonNull(getClass().getResourceAsStream(
+    void everyGateNamesAPreRenameNamespace() throws Exception {
+        var yaml = new String(requireNonNull(getClass().getResourceAsStream(
           "/META-INF/rewrite/spring-boot-40-modular-starters.yml")).readAllBytes(), StandardCharsets.UTF_8);
 
-        List<String> postRenameNamespaces = new ArrayList<>();
+        var postRenameNamespaces = new ArrayList<String>();
         Matcher relocations = Pattern.compile("^\\s+(?:newPackageName|newFullyQualifiedTypeName): (\\S+)$", MULTILINE).matcher(yaml);
         while (relocations.find()) {
             postRenameNamespaces.add(relocations.group(1));
@@ -1195,7 +1193,7 @@ class MigrateToModularStartersTest implements RewriteTest {
           .orElseThrow();
 
         Matcher gates = Pattern.compile("^\\s+onlyIfUsing: (\\S+)$", MULTILINE).matcher(addDependencies);
-        int gateCount = 0;
+        var gateCount = 0;
         while (gates.find()) {
             gateCount++;
             String gate = gates.group(1).replaceAll("\\.\\*$", "");
