@@ -66,26 +66,15 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.8</version>
-                        <relativePath/>
-                    </parent>
-                    <groupId>com.example</groupId>
-                    <artifactId>redundant-version-app</artifactId>
-                    <version>1.0-SNAPSHOT</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.apache.commons</groupId>
-                            <artifactId>commons-lang3</artifactId>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("The Spring Boot parent should remain on the latest 4.0.x patch release")
+                .containsPattern("<artifactId>spring-boot-starter-parent</artifactId>\\s*<version>4\\.0\\.\\d+</version>")
+                .describedAs("A commons-lang3 override older than the Boot 4 managed version should be removed, " +
+                             "leaving the dependency versionless")
+                .containsPattern("<artifactId>commons-lang3</artifactId>\\s*</dependency>")
+                .describedAs("The now-unused version property should also be removed")
+                .doesNotContain("commons-lang3-override.version")
+                .actual())
             )
           )
         );

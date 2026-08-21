@@ -256,29 +256,14 @@ class UpgradeSpringDataMongoDb_5_0Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>4.0.8</version>
-                    </parent>
-                    <groupId>com.example</groupId>
-                    <artifactId>example</artifactId>
-                    <version>1.0.0</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.data</groupId>
-                            <artifactId>spring-data-mongodb</artifactId>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.mongodb</groupId>
-                            <artifactId>mongodb-driver-sync</artifactId>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("The Spring Boot parent should be left alone")
+                .containsPattern("<artifactId>spring-boot-starter-parent</artifactId>\\s*<version>4\\.0\\.\\d+</version>")
+                .describedAs("Boot 3 era overrides should give way to Boot's management, or align with Spring Data MongoDB 5.0 " +
+                             "when Boot manages an older patch release than the recipe targets")
+                .containsPattern("<artifactId>spring-data-mongodb</artifactId>\\s*(<version>5\\.0\\.\\d+</version>\\s*)?</dependency>")
+                .containsPattern("<artifactId>mongodb-driver-sync</artifactId>\\s*(<version>5\\.\\d+\\.\\d+</version>\\s*)?</dependency>")
+                .actual())
             ),
             java("class Application {}")
           )
