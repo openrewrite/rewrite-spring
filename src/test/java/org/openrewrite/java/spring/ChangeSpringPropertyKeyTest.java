@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -331,6 +330,80 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/436")
+    @Test
+    void exceptAppliesAsRegexToYamlAsWellAsProperties() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("logging.file", "logging.file.name", List.of(".+"))),
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  logging.file.max-size = 10MB
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  logging:
+                    file:
+                      max-size: 10MB
+                  """
+              ),
+              //language=properties
+              properties(
+                """
+                  logging.file = foo.txt
+                  """,
+                """
+                  logging.file.name = foo.txt
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  logging:
+                    file: foo.txt
+                  """,
+                """
+                  logging:
+                    file:
+                      name: foo.txt
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/436")
+    @Test
+    void relocatedPropertyMergesIntoExistingSection() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("logging.path", "logging.file.path", null)),
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  logging:
+                    file:
+                      max-size: 10MB
+                    path: ${user.home}/some-folder
+                  """,
+                """
+                  logging:
+                    file:
+                      max-size: 10MB
+                      path: ${user.home}/some-folder
+                  """
+              )
+            )
+          )
+        );
+    }
+
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/432")
     @Test
     void loggingFileSubproperties() {
@@ -429,7 +502,6 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
-    @Disabled
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/436")
     @Test
     void loggingFileSubpropertiesYaml() {
