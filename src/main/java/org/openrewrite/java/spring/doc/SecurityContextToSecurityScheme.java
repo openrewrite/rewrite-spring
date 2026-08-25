@@ -19,8 +19,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.openrewrite.*;
-import org.openrewrite.analysis.constantfold.ConstantFold;
-import org.openrewrite.analysis.util.CursorUtil;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
@@ -80,19 +78,16 @@ public class SecurityContextToSecurityScheme extends Recipe {
                     }
 
                     private String passAsToSecuritySchemeIn(Expression passAsExpr) {
-                        return CursorUtil.findCursorForTree(getCursor(), passAsExpr)
-                                .bind(c -> ConstantFold.findConstantLiteralValue(c, String.class))
-                                .map(passAs -> {
-                                    switch (passAs) {
-                                        case "cookie":
-                                            return "SecurityScheme.In.COOKIE";
-                                        case "query":
-                                            return "SecurityScheme.In.QUERY";
-                                        default:
-                                            return "SecurityScheme.In.HEADER";
-                                    }
-                                })
-                                .orSome("SecurityScheme.In.HEADER");
+                        if (passAsExpr instanceof J.Literal) {
+                            Object passAs = ((J.Literal) passAsExpr).getValue();
+                            if ("cookie".equals(passAs)) {
+                                return "SecurityScheme.In.COOKIE";
+                            }
+                            if ("query".equals(passAs)) {
+                                return "SecurityScheme.In.QUERY";
+                            }
+                        }
+                        return "SecurityScheme.In.HEADER";
                     }
                 }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
             }
