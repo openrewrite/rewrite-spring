@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.doc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
@@ -64,8 +65,8 @@ public class SecurityContextToSecurityScheme extends Recipe {
                 return Preconditions.check(new UsesMethod<>(APIKEY_MATCHER), new JavaVisitor<ExecutionContext>() {
                     @Override
                     public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
-                        if (APIKEY_MATCHER.matches(newClass)) {
-                            String inValue = passAsToSecuritySchemeIn(newClass.getArguments().get(2));
+                        String inValue = APIKEY_MATCHER.matches(newClass) ? passAsToSecuritySchemeIn(newClass.getArguments().get(2)) : null;
+                        if (inValue != null) {
                             maybeRemoveImport("springfox.documentation.service.ApiKey");
                             maybeAddImport("io.swagger.v3.oas.models.security.SecurityScheme");
                             return JavaTemplate.builder("new SecurityScheme()\n.type(SecurityScheme.Type.APIKEY)\n.name(#{any(String)})\n.in(" + inValue + ")")
@@ -77,9 +78,12 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         return super.visitNewClass(newClass, ctx);
                     }
 
-                    private String passAsToSecuritySchemeIn(Expression passAsExpr) {
+                    private @Nullable String passAsToSecuritySchemeIn(Expression passAsExpr) {
                         if (passAsExpr instanceof J.Literal) {
                             Object passAs = ((J.Literal) passAsExpr).getValue();
+                            if ("header".equals(passAs)) {
+                                return "SecurityScheme.In.HEADER";
+                            }
                             if ("cookie".equals(passAs)) {
                                 return "SecurityScheme.In.COOKIE";
                             }
@@ -87,7 +91,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                 return "SecurityScheme.In.QUERY";
                             }
                         }
-                        return "SecurityScheme.In.HEADER";
+                        return null;
                     }
                 }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
             }
