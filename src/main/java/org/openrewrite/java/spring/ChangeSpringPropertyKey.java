@@ -90,6 +90,12 @@ public class ChangeSpringPropertyKey extends Recipe {
         UnfoldProperties unfoldNewPropertyKey =
                 new UnfoldProperties(null, singletonList("$." + newPropertyKey));
 
+        String quotedOldKey = quote(oldPropertyKey);
+        String exceptRegex = exceptRegex();
+        Pattern valueReferencePattern = Pattern.compile("\\$\\{(" + quotedOldKey + exceptRegex + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
+        Pattern prefixPattern = Pattern.compile("^" + quotedOldKey + exceptRegex);
+        Pattern oldKeyPattern = Pattern.compile(quotedOldKey);
+
         return Preconditions.check(Preconditions.or(
                 new IsPossibleSpringConfigFile(),
                 new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
@@ -115,7 +121,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                         tree = newTree;
                     }
                 } else if (tree instanceof JavaSourceFile) {
-                    tree = new JavaPropertyKeyVisitor().visit(tree, ctx);
+                    tree = new JavaPropertyKeyVisitor(valueReferencePattern, prefixPattern, oldKeyPattern).visit(tree, ctx);
                 }
                 return tree;
             }
@@ -157,6 +163,15 @@ public class ChangeSpringPropertyKey extends Recipe {
     }
 
     private class JavaPropertyKeyVisitor extends JavaIsoVisitor<ExecutionContext> {
+        private final Pattern valueReferencePattern;
+        private final Pattern prefixPattern;
+        private final Pattern oldKeyPattern;
+
+        JavaPropertyKeyVisitor(Pattern valueReferencePattern, Pattern prefixPattern, Pattern oldKeyPattern) {
+            this.valueReferencePattern = valueReferencePattern;
+            this.prefixPattern = prefixPattern;
+            this.oldKeyPattern = oldKeyPattern;
+        }
 
         @Override
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
@@ -173,8 +188,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                                     if (newPropertyKey.contains(oldPropertyKey) && value.contains(newPropertyKey)) {
                                         return arg;
                                     }
-                                    Pattern pattern = Pattern.compile("\\$\\{(" + quote(oldPropertyKey) + exceptRegex() + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
-                                    Matcher matcher = pattern.matcher(value);
+                                    Matcher matcher = valueReferencePattern.matcher(value);
                                     int idx = 0;
                                     if (matcher.find()) {
                                         StringBuilder sb = new StringBuilder();
@@ -182,7 +196,7 @@ public class ChangeSpringPropertyKey extends Recipe {
                                             sb.append(value, idx, matcher.start());
                                             idx = matcher.end();
                                             sb.append("${")
-                                                    .append(matcher.group(1).replaceFirst(quote(oldPropertyKey), newPropertyKey))
+                                                    .append(oldKeyPattern.matcher(matcher.group(1)).replaceFirst(newPropertyKey))
                                                     .append(matcher.group(2));
                                         } while (matcher.find());
                                         sb.append(value, idx, value.length());
@@ -300,15 +314,17 @@ public class ChangeSpringPropertyKey extends Recipe {
                 return literal;
             }
             String value = literal.getValue().toString();
+            if (!value.contains(oldPropertyKey)) {
+                return literal;
+            }
             if (newPropertyKey.contains(oldPropertyKey) && value.contains(newPropertyKey)) {
                 return literal;
             }
-            Pattern pattern = Pattern.compile("^" + quote(oldPropertyKey) + exceptRegex());
-            Matcher matcher = pattern.matcher(value);
+            Matcher matcher = prefixPattern.matcher(value);
             if (matcher.find()) {
                 return literal
-                        .withValue(value.replaceFirst(quote(oldPropertyKey), newPropertyKey))
-                        .withValueSource(literal.getValueSource().replaceFirst(quote(oldPropertyKey), newPropertyKey));
+                        .withValue(oldKeyPattern.matcher(value).replaceFirst(newPropertyKey))
+                        .withValueSource(oldKeyPattern.matcher(literal.getValueSource()).replaceFirst(newPropertyKey));
             }
             return literal;
         }
