@@ -105,9 +105,8 @@ public class ChangeSpringPropertyKey extends Recipe {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Yaml.Documents) {
-                    boolean nested = isWrittenAsNestedMappings((Yaml.Documents) tree);
                     Tree newTree = yamlChangePropertyKey.getVisitor().visit(tree, ctx);
-                    if (newTree != tree && nested) {
+                    if (newTree != tree && isWrittenAsNestedMappings((Yaml.Documents) tree)) {
                         newTree = unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
                     }
                     tree = newTree;
