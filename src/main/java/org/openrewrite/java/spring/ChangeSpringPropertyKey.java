@@ -21,7 +21,6 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.NameCaseConvention;
-import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -181,46 +180,24 @@ public class ChangeSpringPropertyKey extends Recipe {
                     a = a.withArguments(ListUtils.map(a.getArguments(), arg -> {
                         if (arg instanceof J.Literal) {
                             J.Literal literal = (J.Literal) arg;
-                            if (literal.getValue() instanceof String) {
+                            if (literal.getValue() instanceof String && literal.getValueSource() != null) {
                                 String value = (String) literal.getValue();
                                 if (value.contains(oldPropertyKey)) {
                                     if (newPropertyKey.contains(oldPropertyKey) && value.contains(newPropertyKey)) {
                                         return arg;
                                     }
-                                    Matcher matcher = valueReferencePattern.matcher(value);
-                                    int idx = 0;
-                                    if (matcher.find()) {
-                                        StringBuilder sb = new StringBuilder();
-                                        do {
-                                            sb.append(value, idx, matcher.start());
-                                            idx = matcher.end();
-                                            sb.append("${")
-                                                    .append(oldKeyPattern.matcher(matcher.group(1)).replaceFirst(newPropertyKey))
-                                                    .append(matcher.group(2));
-                                        } while (matcher.find());
-                                        sb.append(value, idx, value.length());
-
-                                        String newValue = sb.toString();
-
-                                        if (!value.equals(newValue)) {
-                                            if (except != null) {
-                                                for (String e : except) {
-                                                    if (newValue.contains("${" + newPropertyKey + '.' + e)) {
-                                                        return arg;
-                                                    }
+                                    String newValue = renamePropertyPlaceholders(value);
+                                    if (newValue != null && !value.equals(newValue)) {
+                                        if (except != null) {
+                                            for (String e : except) {
+                                                if (newValue.contains("${" + newPropertyKey + '.' + e)) {
+                                                    return arg;
                                                 }
                                             }
-                                            int leadingBackslashes = 0;
-                                            for (int i = 0; i < newValue.length(); i++) {
-                                                if (newValue.charAt(i) == '\\') {
-                                                    leadingBackslashes++;
-                                                } else {
-                                                    break;
-                                                }
-                                            }
-
-                                            return literal.withValue(newValue)
-                                                    .withValueSource("\"" + StringUtils.repeat("\\", leadingBackslashes) + newValue.substring(leadingBackslashes).replace("\\", "\\\\") + "\"");
+                                        }
+                                        String newValueSource = renamePropertyPlaceholders(literal.getValueSource());
+                                        if (newValueSource != null) {
+                                            return literal.withValue(newValue).withValueSource(newValueSource);
                                         }
                                     }
                                 }
@@ -326,6 +303,24 @@ public class ChangeSpringPropertyKey extends Recipe {
                         .withValueSource(oldKeyPattern.matcher(literal.getValueSource()).replaceFirst(newPropertyKey));
             }
             return literal;
+        }
+
+        private @Nullable String renamePropertyPlaceholders(String input) {
+            Matcher matcher = valueReferencePattern.matcher(input);
+            if (!matcher.find()) {
+                return null;
+            }
+            StringBuilder sb = new StringBuilder();
+            int idx = 0;
+            do {
+                sb.append(input, idx, matcher.start());
+                idx = matcher.end();
+                sb.append("${")
+                        .append(oldKeyPattern.matcher(matcher.group(1)).replaceFirst(newPropertyKey))
+                        .append(matcher.group(2));
+            } while (matcher.find());
+            sb.append(input, idx, input.length());
+            return sb.toString();
         }
     }
 }
