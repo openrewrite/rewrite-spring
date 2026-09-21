@@ -49,7 +49,8 @@ public class UseNewSecurityMatchers extends Recipe {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (HTTP_SECURITY_MATCHER.matches(mi) && mi.getMethodType() != null) {
+                if (HTTP_SECURITY_MATCHER.matches(mi) && mi.getMethodType() != null &&
+                        !"securityMatcher".equals(mi.getSimpleName())) {
                     return securityMatcherTemplate(ctx).apply(getCursor(), mi.getCoordinates().replaceMethod(), mi.getArguments().get(0));
                 }
                 return mi;
