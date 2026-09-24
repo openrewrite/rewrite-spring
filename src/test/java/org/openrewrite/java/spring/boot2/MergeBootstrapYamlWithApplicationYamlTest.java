@@ -257,6 +257,134 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     }
 
     @Test
+    void mergeProfileSpecificBootstrapYaml() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              """
+                spring.application.name: main
+                name: integ-test
+                """,
+              spec -> spec.path("application-integTest.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: integ-test
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap-integTest.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void createsProfileSpecificApplicationYaml() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              doesNotExist(),
+              """
+                name: integ-test
+                """,
+              spec -> spec.path("application-integTest.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: integ-test
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap-integTest.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void mergeBaseAndProfileTogether() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              """
+                spring.application.name: main
+                name: base
+                """,
+              spec -> spec.path("application.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: base
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                extra: baseline
+                """,
+              """
+                extra: baseline
+                name: profile
+                """,
+              spec -> spec.path("application-integTest.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: profile
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap-integTest.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void doNotPairBootstrapProfileWithBaseApplication() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              spec -> spec.path("application.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: integ-test
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap-integTest.yml")
+            ),
+            //language=yaml
+            yaml(
+              doesNotExist(),
+              """
+                name: integ-test
+                """,
+              spec -> spec.path("application-integTest.yml")
+            )
+          )
+        );
+    }
+
+    @Test
     void doNotMergeWhenSpringCloudStarterBootstrapPresentGradle() {
         rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
           //language=groovy
