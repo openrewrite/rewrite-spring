@@ -22,6 +22,8 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.List;
+
 import static org.openrewrite.java.Assertions.java;
 
 @SuppressWarnings("rawtypes")
@@ -29,7 +31,7 @@ class PreciseBeanTypeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new PreciseBeanType())
+        spec.recipe(new PreciseBeanType(null))
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(), "spring-context-5.+", "spring-boot-3.5"));
     }
@@ -143,6 +145,53 @@ class PreciseBeanTypeTest implements RewriteTest {
                   @Bean
                   String bean1() {
                       return "hello";
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void excludedTypesAreLeftAlone() {
+        //language=java
+        rewriteRun(
+          spec -> spec.recipe(new PreciseBeanType(List.of("java.util.List"))),
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import java.util.ArrayList;
+              import java.util.HashMap;
+              import java.util.List;
+              import java.util.Map;
+
+              class A {
+                  @Bean
+                  List bean1() {
+                      return new ArrayList();
+                  }
+
+                  @Bean
+                  Map bean2() {
+                      return new HashMap();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import java.util.ArrayList;
+              import java.util.HashMap;
+              import java.util.List;
+
+              class A {
+                  @Bean
+                  List bean1() {
+                      return new ArrayList();
+                  }
+
+                  @Bean
+                  HashMap bean2() {
+                      return new HashMap();
                   }
               }
               """
