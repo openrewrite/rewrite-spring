@@ -20,6 +20,9 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.nio.file.Paths;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.mavenProject;
@@ -122,18 +125,10 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     }
 
     @Test
-    void createsApplicationYaml() {
+    void renameToApplicationYaml() {
         rewriteRun(
+          spec -> spec.expectedCyclesThatMakeChanges(1),
           srcMainResources(
-            //language=yaml
-            yaml(
-              doesNotExist(),
-              """
-                spring.application.name: main
-                name: test
-                """,
-              spec -> spec.path("application.yaml")
-            ),
             //language=yaml
             yaml(
               """
@@ -141,8 +136,8 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                   name: main
                 name: test
                 """,
-              doesNotExist(),
               spec -> spec.path("bootstrap.yaml")
+                .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Paths.get("src/main/resources/application.yaml")))
             )
           )
         );
@@ -288,24 +283,17 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     }
 
     @Test
-    void createsProfileSpecificApplicationYaml() {
+    void renameToProfileSpecificApplicationYaml() {
         rewriteRun(
+          spec -> spec.expectedCyclesThatMakeChanges(1),
           srcMainResources(
             //language=yaml
             yaml(
-              doesNotExist(),
               """
                 name: integ-test
                 """,
-              spec -> spec.path("application-integTest.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: integ-test
-                """,
-              doesNotExist(),
               spec -> spec.path("bootstrap-integTest.yml")
+                .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Paths.get("src/main/resources/application-integTest.yml")))
             )
           )
         );
@@ -360,6 +348,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     @Test
     void doNotPairBootstrapProfileWithBaseApplication() {
         rewriteRun(
+          spec -> spec.expectedCyclesThatMakeChanges(1),
           srcMainResources(
             //language=yaml
             yaml(
@@ -373,16 +362,8 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
               """
                 name: integ-test
                 """,
-              doesNotExist(),
               spec -> spec.path("bootstrap-integTest.yml")
-            ),
-            //language=yaml
-            yaml(
-              doesNotExist(),
-              """
-                name: integ-test
-                """,
-              spec -> spec.path("application-integTest.yml")
+                .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Paths.get("src/main/resources/application-integTest.yml")))
             )
           )
         );
@@ -550,19 +531,11 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             srcMainResources(
               //language=yaml
               yaml(
-                doesNotExist(),
                 """
                   name: b
                   """,
-                spec -> spec.path("application.yml")
-              ),
-              //language=yaml
-              yaml(
-                """
-                  name: b
-                  """,
-                doesNotExist(),
                 spec -> spec.path("bootstrap.yml")
+                  .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Paths.get("b/src/main/resources/application.yml")))
               )
             )
           )
