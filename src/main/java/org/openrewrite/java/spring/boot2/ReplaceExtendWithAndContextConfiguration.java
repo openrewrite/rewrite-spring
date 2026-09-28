@@ -104,8 +104,9 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                                     newArgs.set(i, as);
                                     break;
                                 }
-                            } else {
-                                // The implicit assignment to "value"
+                            } else if (!(expression instanceof J.Empty)) {
+                                // The implicit assignment to "value";
+                                // we won't end up here if annotation has an empty list of args: @ContextConfiguration or @ContextConfiguration()
                                 J.Assignment as = createLocationsAssignment(a, expression).withPrefix(expression.getPrefix());
                                 newArgs.set(i, as);
                                 break;
