@@ -46,6 +46,14 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
+                name: test
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yaml")
+            ),
+            //language=yaml
+            yaml(
+              """
                 spring.application.name: main
                 """,
               """
@@ -53,14 +61,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: test
                 """,
               spec -> spec.path("application.yaml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: test
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap.yaml")
             )
           )
         );
@@ -73,6 +73,14 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
+                name: test
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
                 spring.application.name: main
                 """,
               """
@@ -80,14 +88,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: test
                 """,
               spec -> spec.path("application.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: test
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap.yml")
             )
           )
         );
@@ -100,6 +100,17 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
+                name: test
+                ---
+                other:
+                  document: true
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yaml")
+            ),
+            //language=yaml
+            yaml(
+              """
                 spring.application.name: main
                 """,
               """
@@ -108,17 +119,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 other.document: true
                 """,
               spec -> spec.path("application.yaml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: test
-                ---
-                other:
-                  document: true
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap.yaml")
             )
           )
         );
@@ -150,16 +150,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
-                spring.application.name: main
-                """,
-              """
-                spring.application.name: main
-                """,
-              spec -> spec.path("application.yaml")
-            ),
-            //language=yaml
-            yaml(
-              """
                 spring.application:
                   name: override
                 ---
@@ -171,6 +161,16 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 """,
               doesNotExist(),
               spec -> spec.path("bootstrap.yaml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              """
+                spring.application.name: main
+                """,
+              spec -> spec.path("application.yaml")
             )
           )
         );
@@ -180,6 +180,19 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     void keepProfileSpecificDocumentsSeparate() {
         rewriteRun(
           srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                name: test
+                ---
+                spring.config.activate.on-profile: test
+                name: profile-test
+                other:
+                  document: false
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yaml")
+            ),
             //language=yaml
             yaml(
               """
@@ -195,19 +208,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 other.document: false
                 """,
               spec -> spec.path("application.yaml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: test
-                ---
-                spring.config.activate.on-profile: test
-                name: profile-test
-                other:
-                  document: false
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap.yaml")
             )
           )
         );
@@ -218,18 +218,18 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
         rewriteRun(
           srcMainResources(
             //language=yaml
-            other("""
-                spring:
-                  application.name: main
-                """,
-              spec -> spec.path("application.yaml")),
-            //language=yaml
             yaml(
               """
                 name: test
                 """,
               spec -> spec.path("bootstrap.yaml")
-            )
+            ),
+            //language=yaml
+            other("""
+                spring:
+                  application.name: main
+                """,
+              spec -> spec.path("application.yaml"))
           )
         );
     }
@@ -239,18 +239,18 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
         rewriteRun(
           srcMainResources(
             //language=yaml
-            yaml("""
-                spring:
-                  application.name: main
-                """,
-              spec -> spec.path("application.yaml")),
-            //language=yaml
             other(
               """
                 name: test
                 """,
               spec -> spec.path("bootstrap.yaml")
-            )
+            ),
+            //language=yaml
+            yaml("""
+                spring:
+                  application.name: main
+                """,
+              spec -> spec.path("application.yaml"))
           )
         );
     }
@@ -262,6 +262,14 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
+                name: integ-test
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap-integTest.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
                 spring.application.name: main
                 """,
               """
@@ -269,14 +277,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: integ-test
                 """,
               spec -> spec.path("application-integTest.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: integ-test
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap-integTest.yml")
             )
           )
         );
@@ -306,6 +306,22 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
+                name: base
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: profile
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap-integTest.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
                 spring.application.name: main
                 """,
               """
@@ -317,14 +333,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
-                name: base
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
                 extra: baseline
                 """,
               """
@@ -332,14 +340,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: profile
                 """,
               spec -> spec.path("application-integTest.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: profile
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap-integTest.yml")
             )
           )
         );
@@ -353,17 +353,17 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
-                spring.application.name: main
-                """,
-              spec -> spec.path("application.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
                 name: integ-test
                 """,
               spec -> spec.path("bootstrap-integTest.yml")
                 .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Path.of("src/main/resources/application-integTest.yml")))
+            ),
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              spec -> spec.path("application.yml")
             )
           )
         );
@@ -376,6 +376,17 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
+                name: test
+                ---
+                spring.profiles: dev
+                other: dev-only
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
                 spring.application.name: main
                 """,
               """
@@ -386,17 +397,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 other: dev-only
                 """,
               spec -> spec.path("application.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: test
-                ---
-                spring.profiles: dev
-                other: dev-only
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap.yml")
             )
           )
         );
@@ -409,6 +409,18 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
+                spring.config.activate.on-profile: dev
+                name: dev
+                ---
+                spring.config.activate.on-profile: prod
+                name: prod
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
                 spring.application.name: main
                 """,
               """
@@ -421,18 +433,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: prod
                 """,
               spec -> spec.path("application.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                spring.config.activate.on-profile: dev
-                name: dev
-                ---
-                spring.config.activate.on-profile: prod
-                name: prod
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap.yml")
             )
           )
         );
@@ -445,6 +445,14 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
+                name: test
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
                 spring.config.activate.on-profile: dev
                 other: dev-only
                 """,
@@ -455,14 +463,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 other: dev-only
                 """,
               spec -> spec.path("application.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: test
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap.yml")
             )
           )
         );
@@ -475,6 +475,14 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
             //language=yaml
             yaml(
               """
+                name: test
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
                 spring.config.activate.on-profile: dev
                 other: dev-only
                 ---
@@ -488,14 +496,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: test
                 """,
               spec -> spec.path("application.yml")
-            ),
-            //language=yaml
-            yaml(
-              """
-                name: test
-                """,
-              doesNotExist(),
-              spec -> spec.path("bootstrap.yml")
             )
           )
         );
@@ -509,6 +509,14 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
               //language=yaml
               yaml(
                 """
+                  name: a
+                  """,
+                doesNotExist(),
+                spec -> spec.path("bootstrap.yml")
+              ),
+              //language=yaml
+              yaml(
+                """
                   spring.application.name: a
                   """,
                 """
@@ -516,14 +524,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                   name: a
                   """,
                 spec -> spec.path("application.yml")
-              ),
-              //language=yaml
-              yaml(
-                """
-                  name: a
-                  """,
-                doesNotExist(),
-                spec -> spec.path("bootstrap.yml")
               )
             )
           ),
@@ -564,16 +564,16 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
           //language=yaml
           yaml(
             """
-              spring.application.name: main
+              name: test
               """,
-            spec -> spec.path("src/main/resources/application.yaml")
+            spec -> spec.path("src/main/resources/bootstrap.yaml")
           ),
           //language=yaml
           yaml(
             """
-              name: test
+              spring.application.name: main
               """,
-            spec -> spec.path("src/main/resources/bootstrap.yaml")
+            spec -> spec.path("src/main/resources/application.yaml")
           )
         );
     }
@@ -604,16 +604,16 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
               //language=yaml
               yaml(
                 """
-                  spring.application.name: main
+                  name: test
                   """,
-                spec -> spec.path("application.yaml")
+                spec -> spec.path("bootstrap.yaml")
               ),
               //language=yaml
               yaml(
                 """
-                  name: test
+                  spring.application.name: main
                   """,
-                spec -> spec.path("bootstrap.yaml")
+                spec -> spec.path("application.yaml")
               )
             )
           )
