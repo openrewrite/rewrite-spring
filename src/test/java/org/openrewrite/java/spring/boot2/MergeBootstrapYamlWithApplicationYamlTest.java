@@ -20,7 +20,7 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.buildGradle;
@@ -137,7 +137,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: test
                 """,
               spec -> spec.path("bootstrap.yaml")
-                .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Paths.get("src/main/resources/application.yaml")))
+                .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Path.of("src/main/resources/application.yaml")))
             )
           )
         );
@@ -293,7 +293,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: integ-test
                 """,
               spec -> spec.path("bootstrap-integTest.yml")
-                .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Paths.get("src/main/resources/application-integTest.yml")))
+                .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Path.of("src/main/resources/application-integTest.yml")))
             )
           )
         );
@@ -363,7 +363,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 name: integ-test
                 """,
               spec -> spec.path("bootstrap-integTest.yml")
-                .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Paths.get("src/main/resources/application-integTest.yml")))
+                .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Path.of("src/main/resources/application-integTest.yml")))
             )
           )
         );
@@ -535,7 +535,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                   name: b
                   """,
                 spec -> spec.path("bootstrap.yml")
-                  .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Paths.get("b/src/main/resources/application.yml")))
+                  .afterRecipe(doc -> assertThat(doc.getSourcePath()).isEqualTo(Path.of("b/src/main/resources/application.yml")))
               )
             )
           )
