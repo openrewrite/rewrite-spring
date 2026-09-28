@@ -33,7 +33,6 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -163,33 +162,64 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
     }
 
     private static SourceFile mergeBootstrapInto(Yaml.Documents application, Yaml.Documents bootstrap, ExecutionContext ctx) {
-        AtomicBoolean merged = new AtomicBoolean(false);
-
         Yaml.Documents a = (Yaml.Documents) new ExpandProperties(null).getVisitor().visit(application, ctx);
         Yaml.Documents b = (Yaml.Documents) new ExpandProperties(null).getVisitor().visit(bootstrap, ctx);
         assert a != null;
         assert b != null;
 
-        //noinspection unchecked
-        return (SourceFile) new CoalescePropertiesVisitor<Integer>(null, null).visit(a.withDocuments(ListUtils.map(a.getDocuments(), doc -> {
-            if (doc == null) {
-                return null;
+        List<Yaml.Document> bootstrapBaseDocuments = new ArrayList<>();
+        List<Yaml.Document> bootstrapProfileDocuments = new ArrayList<>();
+        for (Yaml.Document d : b.getDocuments()) {
+            if (isProfileSpecific(d)) {
+                bootstrapProfileDocuments.add(d);
+            } else {
+                bootstrapBaseDocuments.add(d);
             }
-            if (!isProfileSpecific(doc) && merged.compareAndSet(false, true)) {
-                Yaml.Document mergedDocument = doc;
-                Yaml.Document mergedDocumentOrNull;
-                for (Yaml.Document d : b.getDocuments()) {
-                    if (!isProfileSpecific(d)) {
-                        mergedDocumentOrNull = (Yaml.Document) new MergeYamlVisitor<Integer>(mergedDocument.getBlock(), d.getBlock(), true, null, null, null).visit(mergedDocument, 0, new Cursor(new Cursor(null, a), mergedDocument));
-                        if (mergedDocumentOrNull != null) {
-                            mergedDocument = mergedDocumentOrNull;
-                        }
-                    }
+        }
+
+        List<Yaml.Document> documents = new ArrayList<>(a.getDocuments().size() + bootstrapProfileDocuments.size());
+        boolean merged = false;
+        for (Yaml.Document doc : a.getDocuments()) {
+            if (merged || isProfileSpecific(doc)) {
+                documents.add(doc);
+                continue;
+            }
+            Yaml.Document mergedDocument = doc;
+            for (Yaml.Document d : bootstrapBaseDocuments) {
+                Yaml.Document mergedDocumentOrNull = (Yaml.Document) new MergeYamlVisitor<Integer>(mergedDocument.getBlock(), d.getBlock(), true, null, null, null).visit(mergedDocument, 0, new Cursor(new Cursor(null, a), mergedDocument));
+                if (mergedDocumentOrNull != null) {
+                    mergedDocument = mergedDocumentOrNull;
                 }
-                return mergedDocument;
             }
-            return doc;
-        })), 0);
+            documents.add(mergedDocument);
+            documents.addAll(bootstrapProfileDocuments);
+            merged = true;
+        }
+        if (!merged) {
+            documents.addAll(0, ListUtils.concatAll(bootstrapBaseDocuments, bootstrapProfileDocuments));
+        }
+
+        for (int i = 1; i < documents.size(); i++) {
+            Yaml.Document doc = documents.get(i);
+            if (!documents.get(i - 1).getEnd().getPrefix().endsWith("\n") && !doc.getPrefix().startsWith("\n")) {
+                doc = doc.withPrefix("\n" + doc.getPrefix());
+            }
+            if (!doc.isExplicit()) {
+                doc = doc.withExplicit(true).withBlock(startOnNewLine(doc.getBlock()));
+            }
+            documents.set(i, doc);
+        }
+
+        //noinspection unchecked
+        return (SourceFile) new CoalescePropertiesVisitor<Integer>(null, null).visit(a.withDocuments(documents), 0);
+    }
+
+    private static Yaml.Block startOnNewLine(Yaml.Block block) {
+        if (block instanceof Yaml.Mapping) {
+            Yaml.Mapping mapping = (Yaml.Mapping) block;
+            return mapping.withEntries(ListUtils.mapFirst(mapping.getEntries(), entry -> entry.withPrefix("\n" + entry.getPrefix())));
+        }
+        return block.withPrefix("\n" + block.getPrefix());
     }
 
     private static boolean isProfileSpecific(Yaml.Document document) {

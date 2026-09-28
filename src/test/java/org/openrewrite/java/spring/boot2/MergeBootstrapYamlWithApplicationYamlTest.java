@@ -182,7 +182,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     }
 
     @Test
-    void doNotMergeProfileSpecificDocuments() {
+    void keepProfileSpecificDocumentsSeparate() {
         rewriteRun(
           srcMainResources(
             //language=yaml
@@ -194,6 +194,10 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
               """
                 spring.application.name: main
                 name: test
+                ---
+                spring.config.activate.on-profile: test
+                name: profile-test
+                other.document: false
                 """,
               spec -> spec.path("application.yaml")
             ),
@@ -385,7 +389,7 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     }
 
     @Test
-    void doNotMergeLegacyProfileSpecificDocuments() {
+    void keepLegacyProfileSpecificDocumentsSeparate() {
         rewriteRun(
           srcMainResources(
             //language=yaml
@@ -396,6 +400,9 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
               """
                 spring.application.name: main
                 name: test
+                ---
+                spring.profiles: dev
+                other: dev-only
                 """,
               spec -> spec.path("application.yml")
             ),
@@ -406,6 +413,72 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
                 ---
                 spring.profiles: dev
                 other: dev-only
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void keepLeadingProfileSpecificDocumentSeparate() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              """
+                spring.application.name: main
+                ---
+                spring.config.activate.on-profile: dev
+                name: dev
+                ---
+                spring.config.activate.on-profile: prod
+                name: prod
+                """,
+              spec -> spec.path("application.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                spring.config.activate.on-profile: dev
+                name: dev
+                ---
+                spring.config.activate.on-profile: prod
+                name: prod
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void keepBootstrapWhenApplicationHasOnlyProfileSpecificDocuments() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.config.activate.on-profile: dev
+                other: dev-only
+                """,
+              """
+                name: test
+                ---
+                spring.config.activate.on-profile: dev
+                other: dev-only
+                """,
+              spec -> spec.path("application.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: test
                 """,
               doesNotExist(),
               spec -> spec.path("bootstrap.yml")
