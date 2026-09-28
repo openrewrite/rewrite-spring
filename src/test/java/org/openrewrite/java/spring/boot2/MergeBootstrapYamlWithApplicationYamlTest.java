@@ -385,6 +385,118 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
     }
 
     @Test
+    void doNotMergeLegacyProfileSpecificDocuments() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.application.name: main
+                """,
+              """
+                spring.application.name: main
+                name: test
+                """,
+              spec -> spec.path("application.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: test
+                ---
+                spring.profiles: dev
+                other: dev-only
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void mergeIntoFirstNonProfileSpecificDocument() {
+        rewriteRun(
+          srcMainResources(
+            //language=yaml
+            yaml(
+              """
+                spring.config.activate.on-profile: dev
+                other: dev-only
+                ---
+                spring.application.name: main
+                """,
+              """
+                spring.config.activate.on-profile: dev
+                other: dev-only
+                ---
+                spring.application.name: main
+                name: test
+                """,
+              spec -> spec.path("application.yml")
+            ),
+            //language=yaml
+            yaml(
+              """
+                name: test
+                """,
+              doesNotExist(),
+              spec -> spec.path("bootstrap.yml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void mergePerModule() {
+        rewriteRun(
+          mavenProject("a",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  spring.application.name: a
+                  """,
+                """
+                  spring.application.name: a
+                  name: a
+                  """,
+                spec -> spec.path("application.yml")
+              ),
+              //language=yaml
+              yaml(
+                """
+                  name: a
+                  """,
+                doesNotExist(),
+                spec -> spec.path("bootstrap.yml")
+              )
+            )
+          ),
+          mavenProject("b",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                doesNotExist(),
+                """
+                  name: b
+                  """,
+                spec -> spec.path("application.yml")
+              ),
+              //language=yaml
+              yaml(
+                """
+                  name: b
+                  """,
+                doesNotExist(),
+                spec -> spec.path("bootstrap.yml")
+              )
+            )
+          )
+        );
+    }
+
+    @Test
     void doNotMergeWhenSpringCloudStarterBootstrapPresentGradle() {
         rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
           //language=groovy
