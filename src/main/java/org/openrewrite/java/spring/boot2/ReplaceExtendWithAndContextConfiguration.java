@@ -104,7 +104,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                                     newArgs.set(i, as);
                                     break;
                                 }
-                            } else {
+                            } else if (!(expression instanceof J.Empty)) {
                                 // The implicit assignment to "value"
                                 J.Assignment as = createLocationsAssignment(a, expression).withPrefix(expression.getPrefix());
                                 newArgs.set(i, as);
