@@ -26,6 +26,7 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = false)
@@ -53,7 +54,9 @@ public class PreciseBeanType extends Recipe {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-                Object o = getCursor().pollMessage(MSG_KEY);
+                // Only narrow the return type when every return statement returns the same type
+                List<JavaType> returnTypes = getCursor().pollMessage(MSG_KEY);
+                Object o = returnTypes != null && returnTypes.stream().allMatch(returnTypes.get(0)::equals) ? returnTypes.get(0) : null;
                 if (o != null && (method.getReturnTypeExpression() != null && !o.equals(method.getReturnTypeExpression().getType())) && isBeanMethod(m) && !isExcluded(m)) {
                     if (o instanceof JavaType.FullyQualified) {
                         JavaType.FullyQualified actualType = (JavaType.FullyQualified) o;
@@ -127,7 +130,7 @@ public class PreciseBeanType extends Recipe {
                         methodCursor = methodCursor.getParent();
                     }
                     if (methodCursor != null && methodCursor.getValue() instanceof J.MethodDeclaration) {
-                        methodCursor.putMessage(MSG_KEY, _return.getExpression().getType());
+                        methodCursor.computeMessageIfAbsent(MSG_KEY, k -> new ArrayList<JavaType>()).add(_return.getExpression().getType());
                     }
                 }
                 return super.visitReturn(_return, ctx);
