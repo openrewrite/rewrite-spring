@@ -43,6 +43,7 @@ recipeList:
       artifactId: dependency-management-plugin
       newVersion: 1.1.x
   - org.openrewrite.java.spring.framework.MigrateSpringAssert
+  - org.openrewrite.java.spring.boot3.AddSetUseTrailingSlashMatch
   - org.openrewrite.apache.httpclient5.UpgradeApacheHttpClient_5
   - org.openrewrite.java.spring.framework.HttpComponentsClientHttpRequestFactoryReadTimeout
   - org.openrewrite.java.spring.framework.MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode
