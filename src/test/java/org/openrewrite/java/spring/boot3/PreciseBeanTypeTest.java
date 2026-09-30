@@ -112,6 +112,69 @@ class PreciseBeanTypeTest implements RewriteTest {
     }
 
     @Test
+    void sameTypeFromEveryReturn() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import java.util.ArrayList;
+              import java.util.List;
+
+              class A {
+                  @Bean
+                  List bean1(boolean empty) {
+                      if (empty) {
+                          return new ArrayList();
+                      }
+                      return new ArrayList(10);
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import java.util.ArrayList;
+
+              class A {
+                  @Bean
+                  ArrayList bean1(boolean empty) {
+                      if (empty) {
+                          return new ArrayList();
+                      }
+                      return new ArrayList(10);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void differentTypesFromReturns() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import java.util.ArrayList;
+              import java.util.LinkedList;
+              import java.util.List;
+
+              class A {
+                  @Bean
+                  List bean1(boolean linked) {
+                      if (linked) {
+                          return new LinkedList();
+                      }
+                      return new ArrayList();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void notApplicableCase() {
         //language=java
         rewriteRun(
