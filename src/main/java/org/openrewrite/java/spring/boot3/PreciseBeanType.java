@@ -15,7 +15,9 @@
  */
 package org.openrewrite.java.spring.boot3;
 
-import lombok.Getter;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -27,16 +29,24 @@ import org.openrewrite.java.tree.TypeUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
+@Value
 public class PreciseBeanType extends Recipe {
     private static final String BEAN = "org.springframework.context.annotation.Bean";
 
     private static final String MSG_KEY = "returnType";
 
-    @Getter
-    final String displayName = "Bean methods should return concrete types";
+    String displayName = "Bean methods should return concrete types";
 
-    @Getter
-    final String description = "Replace Bean method return types with concrete types being returned. This is required for Spring 6 AOT.";
+    String description = "Replace Bean method return types with concrete types being returned. This is required for Spring 6 AOT.";
+
+    @Option(displayName = "Excluded types",
+            description = "Fully qualified names of bean types to leave as declared, " +
+                    "for example types that are usually built by a builder or a factory.",
+            required = false,
+            example = "org.springframework.security.web.SecurityFilterChain")
+    @Nullable
+    List<String> excludedTypes;
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -47,7 +57,7 @@ public class PreciseBeanType extends Recipe {
                 // Only narrow the return type when every return statement returns the same type
                 List<JavaType> returnTypes = getCursor().pollMessage(MSG_KEY);
                 Object o = returnTypes != null && returnTypes.stream().allMatch(returnTypes.get(0)::equals) ? returnTypes.get(0) : null;
-                if (o != null && (method.getReturnTypeExpression() != null && !o.equals(method.getReturnTypeExpression().getType())) && isBeanMethod(m)) {
+                if (o != null && (method.getReturnTypeExpression() != null && !o.equals(method.getReturnTypeExpression().getType())) && isBeanMethod(m) && !isExcluded(m)) {
                     if (o instanceof JavaType.FullyQualified) {
                         JavaType.FullyQualified actualType = (JavaType.FullyQualified) o;
                         if (m.getReturnTypeExpression() instanceof J.Identifier) {
@@ -93,6 +103,19 @@ public class PreciseBeanType extends Recipe {
             private boolean isBeanMethod(J.MethodDeclaration m) {
                 for (J.Annotation leadingAnnotation : m.getLeadingAnnotations()) {
                     if (TypeUtils.isOfClassType(leadingAnnotation.getType(), BEAN)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            private boolean isExcluded(J.MethodDeclaration m) {
+                TypeTree returnType = m.getReturnTypeExpression();
+                if (excludedTypes == null || returnType == null) {
+                    return false;
+                }
+                for (String excludedType : excludedTypes) {
+                    if (TypeUtils.isOfClassType(returnType.getType(), excludedType)) {
                         return true;
                     }
                 }
