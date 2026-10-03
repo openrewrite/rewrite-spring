@@ -96,7 +96,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             @Override
             public J.@Nullable ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType()) &&
-                        isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION);
+                        (isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION) ||
+                         classDecl.getType() != null && isMetaAnnotated(classDecl.getType(), FQN_CONFIGURATION, new HashSet<>()));
                 boolean hasConflict = false;
                 if (isWebSecurityConfigurerAdapterClass) {
                     for (Statement s : classDecl.getBody().getStatements()) {
