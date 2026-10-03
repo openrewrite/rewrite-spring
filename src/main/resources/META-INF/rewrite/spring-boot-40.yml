@@ -26,6 +26,7 @@ tags:
   - boot
 preconditions:
   - org.openrewrite.Singleton
+  - org.openrewrite.java.spring.boot4.UsesSpringBoot
 recipeList:
   # Upgrade transitive Boot management before older migrations add dependencies against the vendor BOM.
   - org.openrewrite.java.spring.boot4.AddSpringBootBomForTransitiveDependencyManagement:
