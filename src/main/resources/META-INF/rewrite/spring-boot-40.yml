@@ -98,6 +98,7 @@ recipeList:
 
   # Modular starters must run after parent/BOM upgrades so that
   # AddDependency can see the new artifacts are managed and omit explicit versions
+  - org.openrewrite.java.spring.boot4.MigrateLiquibasePropertiesApi
   - org.openrewrite.java.spring.boot4.MigrateToModularStarters
 
   # Replace deprecated starters with their new names
