@@ -43,6 +43,67 @@ class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
               "spring-cloud-openfeign-core"));
     }
 
+    @Test
+    void privateBeanMethod() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              class Utility {
+                  @Bean private Object bean() { return new Object(); }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void finalBeanMethod() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              class Utility {
+                  @Bean final Object bean() { return new Object(); }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void privateBeanAfterOverridableBean() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              class Utility {
+                  @Bean Object first() { return new Object(); }
+                  @Bean private Object second() { return new Object(); }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void finalClassWithBean() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              final class Utility {
+                  @Bean Object bean() { return new Object(); }
+              }
+              """
+          )
+        );
+    }
+
     @DocumentExample
     @Test
     void enableWebSecurityWithBeans() {
