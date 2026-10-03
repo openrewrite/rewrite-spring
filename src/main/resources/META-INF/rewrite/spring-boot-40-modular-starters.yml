@@ -731,6 +731,13 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyReactiveWebServerFactory
       newFullyQualifiedTypeName: org.springframework.boot.jetty.reactive.JettyReactiveWebServerFactory
+  # The common servlet factory interfaces moved alongside the servlet server settings.
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.ConfigurableServletWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.server.ServletWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.ServletWebServerFactory
   # Servlet and reactive application context packages moved wholesale under web.server.
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.web.servlet.context
