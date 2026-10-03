@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot4;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
 import org.openrewrite.Recipe;
@@ -35,7 +36,11 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class AddSpringBootBomForTransitiveDependencyManagement extends Recipe {
-    @Option(displayName = "Spring Boot version", description = "The target Spring Boot version or selector.", example = "4.0.x")
+    @Option(displayName = "Spring Boot version",
+            description = "A Spring Boot 4 version or selector beginning with `4.`. Defaults to `4.0.x`.",
+            example = "4.0.x",
+            required = false)
+    @Nullable
     String newVersion;
 
     String displayName = "Manage Spring Boot directly when a third-party BOM manages an older version";
@@ -43,7 +48,13 @@ public class AddSpringBootBomForTransitiveDependencyManagement extends Recipe {
 
     @Override
     public Validated<Object> validate() {
-        return super.validate().and(Semver.validate(newVersion, null));
+        Validated<Object> validated = super.validate();
+        if (newVersion == null) {
+            return validated;
+        }
+        return validated.and(Semver.validate(newVersion, null))
+                .and(Validated.test("newVersion", "must select a Spring Boot 4 version", newVersion,
+                        version -> version.startsWith("4.")));
     }
 
     @Override
@@ -76,7 +87,7 @@ public class AddSpringBootBomForTransitiveDependencyManagement extends Recipe {
                 }
 
                 AddManagedDependency add = new AddManagedDependency("org.springframework.boot", "spring-boot-dependencies",
-                        newVersion, "import", "pom", null, null, true, null, false, null);
+                        newVersion == null ? "4.0.x" : newVersion, "import", "pom", null, null, true, null, false, null);
                 Xml.Document updated = (Xml.Document) add.getVisitor(add.getInitialValue(ctx))
                         .visitNonNull(document, ctx, getCursor().getParentOrThrow());
                 if (updated == document) {
