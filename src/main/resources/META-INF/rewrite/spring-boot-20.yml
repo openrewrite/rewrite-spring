@@ -34,6 +34,11 @@ recipeList:
   # Migrate multi-condition @ConditionalOnBean before upgrading dependencies,
   # as the OR→AND semantics change only applies to Boot 1.x projects
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedConditionBoot1
+  # Boot 1 metrics implementations were removed when Boot 2 adopted Micrometer.
+  - org.openrewrite.java.spring.RemoveAutoConfigurationExclude:
+      fullyQualifiedName: org.springframework.boot.actuate.autoconfigure.MetricFilterAutoConfiguration
+  - org.openrewrite.java.spring.RemoveAutoConfigurationExclude:
+      fullyQualifiedName: org.springframework.boot.actuate.autoconfigure.MetricRepositoryAutoConfiguration
   # Upgrade 2.0.x from 1.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
