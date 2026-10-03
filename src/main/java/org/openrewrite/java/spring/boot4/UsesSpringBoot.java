@@ -24,25 +24,32 @@ import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Pom;
 
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-
-/** Restricts the composite migration to source files belonging to a Boot build. */
-public class UsesSpringBoot extends ScanningRecipe<Map<Path, Boolean>> {
+/**
+ * Restricts the composite migration to repositories with a Spring Boot build. The decision is made for the
+ * repository as a whole, so modules that do not depend on Spring Boot themselves, such as libraries built under a
+ * company parent that extends Boot's, migrate along with the application modules that do.
+ */
+public class UsesSpringBoot extends ScanningRecipe<UsesSpringBoot.Accumulator> {
     @Getter
-    final String displayName = "Find Spring Boot projects";
+    final String displayName = "Find Spring Boot repositories";
 
     @Getter
-    final String description = "Find build files using Spring Boot and their source files, without treating dependencies merely managed by an unrelated BOM as usage.";
+    final String description = "Find every source file of a repository in which some build uses Spring Boot: a Spring Boot " +
+                               "dependency, direct or transitive, the Spring Boot Gradle plugin, a Spring Boot parent POM, " +
+                               "or an imported `spring-boot-dependencies` BOM. A repository without build files matches.";
 
-    @Override
-    public Map<Path, Boolean> getInitialValue(ExecutionContext ctx) {
-        return new HashMap<>();
+    public static class Accumulator {
+        boolean build;
+        boolean boot;
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getScanner(Map<Path, Boolean> builds) {
+    public Accumulator getInitialValue(ExecutionContext ctx) {
+        return new Accumulator();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
         return new TreeVisitor<Tree, ExecutionContext>() {
             final TreeVisitor<?, ExecutionContext> dependencies = new DependencyInsight("org.springframework.boot", "*", null, null).getVisitor();
             final TreeVisitor<?, ExecutionContext> plugins = new FindPlugins("org.springframework.boot", null).getVisitor();
@@ -57,50 +64,39 @@ public class UsesSpringBoot extends ScanningRecipe<Map<Path, Boolean>> {
                 if (!"pom.xml".equals(file) && !"build.gradle".equals(file) && !"build.gradle.kts".equals(file)) {
                     return tree;
                 }
-                boolean boot = dependencies.visit(tree, ctx) != tree;
-                if (!boot && !"pom.xml".equals(file)) {
-                    boot = plugins.visit(tree, ctx) != tree;
+                acc.build = true;
+                if (!acc.boot) {
+                    acc.boot = dependencies.visit(tree, ctx) != tree ||
+                               !"pom.xml".equals(file) && plugins.visit(tree, ctx) != tree ||
+                               bootParentOrBom(source);
                 }
-                if (!boot) {
-                    MavenResolutionResult resolution = source.getMarkers().findFirst(MavenResolutionResult.class).orElse(null);
-                    while (!boot && resolution != null) {
-                        Pom pom = resolution.getPom().getRequested();
-                        boot = pom.getParent() != null && "org.springframework.boot".equals(pom.getParent().getGroupId()) ||
-                               pom.getDependencyManagement().stream().anyMatch(dependency ->
-                                       "org.springframework.boot".equals(dependency.getGroupId()) &&
-                                       "spring-boot-dependencies".equals(dependency.getArtifactId()));
-                        resolution = resolution.getParent();
-                    }
-                }
-                Path parent = source.getSourcePath().getParent();
-                builds.put(parent == null ? source.getSourcePath().getFileSystem().getPath("") : parent, boot);
                 return tree;
+            }
+
+            private boolean bootParentOrBom(SourceFile source) {
+                MavenResolutionResult resolution = source.getMarkers().findFirst(MavenResolutionResult.class).orElse(null);
+                if (resolution == null) {
+                    return false;
+                }
+                Pom pom = resolution.getPom().getRequested();
+                return pom.getParent() != null && "org.springframework.boot".equals(pom.getParent().getGroupId()) ||
+                       pom.getDependencyManagement().stream().anyMatch(dependency ->
+                               "org.springframework.boot".equals(dependency.getGroupId()) &&
+                               "spring-boot-dependencies".equals(dependency.getArtifactId()));
             }
         };
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor(Map<Path, Boolean> builds) {
+    public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!(tree instanceof SourceFile)) {
-                    return tree;
-                }
                 // Without build metadata, preserve source-only uses of the migration.
-                if (builds.isEmpty()) {
+                if (tree instanceof SourceFile && (!acc.build || acc.boot)) {
                     return SearchResult.found(tree);
                 }
-                Path path = ((SourceFile) tree).getSourcePath();
-                Path directory = path.getParent();
-                while (directory != null) {
-                    Boolean boot = builds.get(directory);
-                    if (boot != null) {
-                        return boot ? SearchResult.found(tree) : tree;
-                    }
-                    directory = directory.getParent();
-                }
-                return Boolean.TRUE.equals(builds.get(path.getFileSystem().getPath(""))) ? SearchResult.found(tree) : tree;
+                return tree;
             }
         };
     }

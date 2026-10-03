@@ -49,7 +49,7 @@ class UsesSpringBootTest implements RewriteTest {
     }
 
     @Test
-    void isolateSiblingProjectsAndIncludeTheirResources() {
+    void migrateEveryProjectOfARepositoryWithABootProject() {
         rewriteRun(
           mavenProject("boot",
             pomXml(
@@ -76,6 +76,92 @@ class UsesSpringBootTest implements RewriteTest {
                     <modelVersion>4.0.0</modelVersion>
                     <groupId>com.example</groupId>
                     <artifactId>other-app</artifactId>
+                    <version>1</version>
+                </project>
+                """
+            ),
+            text("before", "after", source -> source.path("src/main/resources/example.txt"))
+          )
+        );
+    }
+
+    @Test
+    void bootThroughAnotherStarterMigratesModulesWithoutBoot() {
+        // As with an internal framework built on Spring Boot: the application gets Boot only transitively,
+        // and the library module beside it does not use Boot at all.
+        rewriteRun(
+          mavenProject("app",
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>app</artifactId>
+                    <version>1</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.cloud</groupId>
+                            <artifactId>spring-cloud-starter</artifactId>
+                            <version>4.1.4</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
+          ),
+          mavenProject("library",
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>library</artifactId>
+                    <version>1</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework</groupId>
+                            <artifactId>spring-context</artifactId>
+                            <version>6.2.11</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            text("before", "after", source -> source.path("src/main/resources/example.txt"))
+          )
+        );
+    }
+
+    @Test
+    void leaveRepositoryWithoutBootUnchanged() {
+        rewriteRun(
+          mavenProject("micronaut",
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>micronaut-app</artifactId>
+                    <version>1</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>io.micronaut</groupId>
+                            <artifactId>micronaut-runtime</artifactId>
+                            <version>2.4.2</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            text("before", source -> source.path("src/main/resources/example.txt"))
+          ),
+          mavenProject("library",
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>library</artifactId>
                     <version>1</version>
                 </project>
                 """
