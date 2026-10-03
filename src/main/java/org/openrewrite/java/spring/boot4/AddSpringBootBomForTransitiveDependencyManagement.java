@@ -35,7 +35,7 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class AddSpringBootBomForTransitiveDependencyManagement extends Recipe {
-    @Option(displayName = "Spring Boot version", description = "The target Spring Boot version or selector.", example = "4.0.x")
+    @Option(displayName = "Spring Boot version", description = "A Spring Boot 4 version or selector beginning with `4.`.", example = "4.0.x")
     String newVersion;
 
     String displayName = "Manage Spring Boot directly when a third-party BOM manages an older version";
@@ -43,7 +43,9 @@ public class AddSpringBootBomForTransitiveDependencyManagement extends Recipe {
 
     @Override
     public Validated<Object> validate() {
-        return super.validate().and(Semver.validate(newVersion, null));
+        return super.validate().and(Semver.validate(newVersion, null))
+                .and(Validated.test("newVersion", "must select a Spring Boot 4 version", newVersion,
+                        version -> version != null && version.startsWith("4.")));
     }
 
     @Override

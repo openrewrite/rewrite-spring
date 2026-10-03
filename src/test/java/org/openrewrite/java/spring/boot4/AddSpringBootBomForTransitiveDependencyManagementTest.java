@@ -30,6 +30,14 @@ class AddSpringBootBomForTransitiveDependencyManagementTest implements RewriteTe
     }
 
     @Test
+    void rejectSelectorsOutsideBoot4() {
+        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("3.0.0").validate().isValid()).isFalse();
+        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("5.0.x").validate().isValid()).isFalse();
+        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("latest.release").validate().isValid()).isFalse();
+        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("4.0.x").validate().isValid()).isTrue();
+    }
+
+    @Test
     void overrideTransitiveBootManagementBeforeVendorBom() {
         rewriteRun(
           pomXml(
