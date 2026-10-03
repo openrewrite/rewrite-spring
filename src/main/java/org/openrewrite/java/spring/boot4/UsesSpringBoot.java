@@ -63,12 +63,13 @@ public class UsesSpringBoot extends ScanningRecipe<Map<Path, Boolean>> {
                 }
                 if (!boot) {
                     MavenResolutionResult resolution = source.getMarkers().findFirst(MavenResolutionResult.class).orElse(null);
-                    if (resolution != null) {
+                    while (!boot && resolution != null) {
                         Pom pom = resolution.getPom().getRequested();
                         boot = pom.getParent() != null && "org.springframework.boot".equals(pom.getParent().getGroupId()) ||
                                pom.getDependencyManagement().stream().anyMatch(dependency ->
                                        "org.springframework.boot".equals(dependency.getGroupId()) &&
                                        "spring-boot-dependencies".equals(dependency.getArtifactId()));
+                        resolution = resolution.getParent();
                     }
                 }
                 Path parent = source.getSourcePath().getParent();
