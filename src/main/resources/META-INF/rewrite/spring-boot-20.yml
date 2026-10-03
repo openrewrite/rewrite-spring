@@ -76,6 +76,15 @@ recipeList:
       newVersion: ^0.35
   - org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_0
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.thymeleaf.spring4
+      newPackageName: org.thymeleaf.spring5
+      recursive: true
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.thymeleaf
+      oldArtifactId: thymeleaf-spring4
+      newArtifactId: thymeleaf-spring5
+      newVersion: 3.0.x
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
