@@ -42,6 +42,87 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
               "tomcat-embed"));
     }
 
+    @Test
+    void noArgAuthorizeRequestsOnSpringSecurity51() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-beans-4", "spring-context-4", "spring-web-4", "spring-core-4",
+              "spring-security-core-5.1", "spring-security-config-5.1", "spring-security-web-5.1")),
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class Config {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class Config {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests().anyRequest().authenticated();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void customizerWhenOriginalApiDoesNotDeclareReplacement() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().dependsOn(
+            """
+              package org.springframework.security.config;
+              public interface Customizer<T> { void customize(T target); }
+              """,
+            """
+              package org.springframework.security.config.annotation.web.configurers;
+              public class ExpressionUrlAuthorizationConfigurer<H> {
+                  public class ExpressionInterceptUrlRegistry {
+                      public ExpressionInterceptUrlRegistry anyRequest() { return this; }
+                      public ExpressionInterceptUrlRegistry authenticated() { return this; }
+                  }
+              }
+              """,
+            """
+              package org.springframework.security.config.annotation.web.builders;
+              import org.springframework.security.config.Customizer;
+              import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+              public class HttpSecurity {
+                  public HttpSecurity authorizeRequests(Customizer<ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry> customizer) throws Exception {
+                      return this;
+                  }
+              }
+              """
+          )),
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class Config {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests(auth -> auth.anyRequest().authenticated());
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class Config {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @DocumentExample
     @Test
     void noArgAuthorizeRequests() {
