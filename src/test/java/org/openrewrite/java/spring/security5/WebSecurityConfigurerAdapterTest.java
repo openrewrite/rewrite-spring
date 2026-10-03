@@ -46,6 +46,99 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
             ));
     }
 
+    @Test
+    void enableWebSecurityWithoutDirectConfiguration() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.builders.WebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @EnableWebSecurity
+              class SecurityConfig extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                  }
+
+                  @Override
+                  public void configure(WebSecurity web) {
+                      web.ignoring().antMatchers("/static/**");
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.builders.WebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @EnableWebSecurity
+              class SecurityConfig {
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                      return http.build();
+                  }
+
+                  @Bean
+                  WebSecurityCustomizer webSecurityCustomizer() {
+                      return (web) -> {
+                          web.ignoring().antMatchers("/static/**");
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void customConfigurationMetaAnnotation() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @Configuration
+              @interface SecurityConfiguration {}
+
+              @SecurityConfiguration
+              class SecurityConfig extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @Configuration
+              @interface SecurityConfiguration {}
+
+              @SecurityConfiguration
+              class SecurityConfig {
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @DocumentExample
     @Test
     void configureHttpSecurityMethod() {
