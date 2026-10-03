@@ -31,6 +31,9 @@ preconditions:
 recipeList:
   - org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7
   - org.openrewrite.java.spring.boot3.RemoveEnableBatchProcessing
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator
+      newFullyQualifiedTypeName: org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator
   - org.openrewrite.java.migrate.UpgradeToJava17
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
