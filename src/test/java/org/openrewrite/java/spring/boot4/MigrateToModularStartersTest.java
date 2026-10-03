@@ -58,6 +58,38 @@ class MigrateToModularStartersTest implements RewriteTest {
             "spring-core-6"));
     }
 
+    @Test
+    void leavePluginDependenciesWhenDisabled() {
+        rewriteRun(
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>org.example</groupId>
+                  <artifactId>example</artifactId>
+                  <version>1.0</version>
+                  <build>
+                      <plugins>
+                          <plugin>
+                              <groupId>org.liquibase</groupId>
+                              <artifactId>liquibase-maven-plugin</artifactId>
+                              <version>4.24.0</version>
+                              <dependencies>
+                                  <dependency>
+                                      <groupId>org.liquibase</groupId>
+                                      <artifactId>liquibase-core</artifactId>
+                                      <version>4.24.0</version>
+                                  </dependency>
+                              </dependencies>
+                          </plugin>
+                      </plugins>
+                  </build>
+              </project>
+              """
+          )
+        );
+    }
+
     @DocumentExample
     @Test
     void migrateLiquibaseToStarterInMaven() {
