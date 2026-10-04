@@ -59,7 +59,6 @@ public class MigrateJpaSort extends Recipe {
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), "org.springframework.data.jpa.domain.JpaSort")) {
-                    newClass.getArguments();
                     String template = newClass.getArguments().stream()
                             .map(arg -> TypeUtils.asFullyQualified(arg.getType()))
                             .map(type -> "#{any(" + (type == null ? "" : type.getFullyQualifiedName()) + ")}")
