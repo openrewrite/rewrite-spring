@@ -42,6 +42,17 @@ public class DeleteSpringProperty extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
+        org.openrewrite.yaml.DeleteProperty yamlDeleteProperty =
+                new org.openrewrite.yaml.DeleteProperty(propertyKey, false, true, null);
+        DeleteProperty propertiesDeleteProperty =
+                new DeleteProperty(propertyKey, true);
+
+        String descendantPropertyKey = containsGlob(propertyKey) ? null : propertyKey + ".*";
+        org.openrewrite.yaml.DeleteProperty yamlDeleteDescendants =
+                descendantPropertyKey == null ? null : new org.openrewrite.yaml.DeleteProperty(descendantPropertyKey, false, true, null);
+        DeleteProperty propertiesDeleteDescendants =
+                descendantPropertyKey == null ? null : new DeleteProperty(descendantPropertyKey, true);
+
         return Preconditions.check(new IsPossibleSpringConfigFile(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
@@ -51,14 +62,24 @@ public class DeleteSpringProperty extends Recipe {
             @Override
             public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
                 if (t instanceof Yaml.Documents) {
-                    t = new org.openrewrite.yaml.DeleteProperty(propertyKey, false, true, null)
-                            .getVisitor().visitNonNull(t, ctx);
+                    Tree deleted = yamlDeleteProperty.getVisitor().visitNonNull(t, ctx);
+                    if (yamlDeleteDescendants != null) {
+                        deleted = yamlDeleteDescendants.getVisitor().visitNonNull(deleted, ctx);
+                    }
+                    t = deleted;
                 } else if (t instanceof Properties.File) {
-                    t = new DeleteProperty(propertyKey, true)
-                            .getVisitor().visitNonNull(t, ctx);
+                    Tree deleted = propertiesDeleteProperty.getVisitor().visitNonNull(t, ctx);
+                    if (propertiesDeleteDescendants != null) {
+                        deleted = propertiesDeleteDescendants.getVisitor().visitNonNull(deleted, ctx);
+                    }
+                    t = deleted;
                 }
                 return t;
             }
         });
+    }
+
+    private static boolean containsGlob(String propertyKey) {
+        return propertyKey.indexOf('*') >= 0 || propertyKey.indexOf('?') >= 0 || propertyKey.indexOf('[') >= 0;
     }
 }
