@@ -19,10 +19,13 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.maven.Assertions.pomXml;
+
+import static org.openrewrite.java.Assertions.java;
 
 class UpgradeSpringFramework_6_0Test implements RewriteTest {
 
@@ -57,6 +60,43 @@ class UpgradeSpringFramework_6_0Test implements RewriteTest {
           )
         );
     }
+
+
+        @Test
+    void addsSetUseTrailingSlashMatch() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              @Configuration
+              public class MyWebConfiguration implements WebMvcConfigurer {
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              @Configuration
+              public class MyWebConfiguration implements WebMvcConfigurer {
+                  @Override
+                  public void configurePathMatch(PathMatchConfigurer configurer) {
+                      configurer.setUseTrailingSlashMatch(true);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+
 
     @Test
     void upgradesSpringIntegration() {
