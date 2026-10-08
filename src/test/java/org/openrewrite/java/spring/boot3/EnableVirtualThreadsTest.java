@@ -27,8 +27,7 @@ import static org.openrewrite.yaml.Assertions.yaml;
 class EnableVirtualThreadsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("org.openrewrite.java.spring.boot3.EnableVirtualThreads")
-          .allSources(source -> source.markers(javaVersion(21)));
+        spec.recipeFromResources("org.openrewrite.java.spring.boot3.EnableVirtualThreads");
     }
 
     @DocumentExample
@@ -41,7 +40,7 @@ class EnableVirtualThreadsTest implements RewriteTest {
             """
               spring.threads.virtual.enabled=true
               """,
-            s -> s.path("src/main/resources/application.properties")
+            s -> s.path("src/main/resources/application.properties").markers(javaVersion(21))
           )
         );
     }
@@ -58,7 +57,32 @@ class EnableVirtualThreadsTest implements RewriteTest {
                   virtual:
                     enabled: true
               """,
-            s -> s.path("src/main/resources/application.yml")
+            s -> s.path("src/main/resources/application.yml").markers(javaVersion(21))
+          )
+        );
+    }
+
+    @Test
+    void enableVirtualThreadsAboveJava21() {
+        rewriteRun(
+          //language=properties
+          properties(
+            "",
+            """
+              spring.threads.virtual.enabled=true
+              """,
+            s -> s.path("src/main/resources/application.properties").markers(javaVersion(25))
+          )
+        );
+    }
+
+    @Test
+    void dontEnableVirtualThreadsBelowJava21() {
+        rewriteRun(
+          //language=properties
+          properties(
+            "",
+            s -> s.path("src/main/resources/application.properties").markers(javaVersion(17))
           )
         );
     }
@@ -71,7 +95,7 @@ class EnableVirtualThreadsTest implements RewriteTest {
             """
               spring.threads.virtual.enabled=false
               """,
-            s -> s.path("src/main/resources/application.properties")
+            s -> s.path("src/main/resources/application.properties").markers(javaVersion(21))
           ),
           //language=yaml
           yaml(
@@ -81,7 +105,7 @@ class EnableVirtualThreadsTest implements RewriteTest {
                   virtual:
                     enabled: false
               """,
-            s -> s.path("src/main/resources/application.yml")
+            s -> s.path("src/main/resources/application.yml").markers(javaVersion(21))
           )
         );
     }
