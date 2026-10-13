@@ -228,7 +228,7 @@ dependencies {
     testImplementation("org.junit-pioneer:junit-pioneer:2.0.0")
 
     // for generating properties migration configurations
-    testImplementation("io.github.classgraph:classgraph:latest.release")
+    testImplementation("io.github.classgraph:classgraph:4.+")
     testImplementation("org.openrewrite:rewrite-java-21")
     testImplementation("org.openrewrite:rewrite-kotlin")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
