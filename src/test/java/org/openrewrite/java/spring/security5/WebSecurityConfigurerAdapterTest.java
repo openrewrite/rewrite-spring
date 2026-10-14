@@ -46,6 +46,67 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
             ));
     }
 
+    @DocumentExample
+    @Test
+    void configureHttpSecurityMethod() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package com.example.websecuritydemo;
+
+              import static org.springframework.security.config.Customizer.withDefaults;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              @Configuration
+              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeHttpRequests((authz) -> authz
+                              .anyRequest().authenticated()
+                          )
+                          .httpBasic(withDefaults());
+                  }
+
+                  void someMethod() {}
+
+              }
+              """,
+            """
+              package com.example.websecuritydemo;
+
+              import static org.springframework.security.config.Customizer.withDefaults;
+
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @Configuration
+              public class SecurityConfiguration {
+
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeHttpRequests((authz) -> authz
+                              .anyRequest().authenticated()
+                          )
+                          .httpBasic(withDefaults());
+                      return http.build();
+                  }
+
+                  void someMethod() {}
+
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void enableWebSecurityWithoutDirectConfiguration() {
         rewriteRun(
@@ -133,67 +194,6 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                       http.authorizeRequests().anyRequest().authenticated();
                       return http.build();
                   }
-              }
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void configureHttpSecurityMethod() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              package com.example.websecuritydemo;
-
-              import static org.springframework.security.config.Customizer.withDefaults;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-
-              @Configuration
-              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeHttpRequests((authz) -> authz
-                              .anyRequest().authenticated()
-                          )
-                          .httpBasic(withDefaults());
-                  }
-
-                  void someMethod() {}
-
-              }
-              """,
-            """
-              package com.example.websecuritydemo;
-
-              import static org.springframework.security.config.Customizer.withDefaults;
-
-              import org.springframework.context.annotation.Bean;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.web.SecurityFilterChain;
-
-              @Configuration
-              public class SecurityConfiguration {
-
-                  @Bean
-                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeHttpRequests((authz) -> authz
-                              .anyRequest().authenticated()
-                          )
-                          .httpBasic(withDefaults());
-                      return http.build();
-                  }
-
-                  void someMethod() {}
-
               }
               """
           )

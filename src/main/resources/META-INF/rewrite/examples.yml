@@ -2592,7 +2592,6 @@ examples:
   sources:
   - after: |
       spring.threads.virtual.enabled=true
-    path: src/main/resources/application.properties
     language: properties
 ---
 type: specs.openrewrite.org/v1beta/example
@@ -3748,25 +3747,6 @@ examples:
                   <groupId>org.apache.commons</groupId>
                   <artifactId>commons-lang3</artifactId>
                   <version>${commons-lang3-override.version}</version>
-              </dependency>
-          </dependencies>
-      </project>
-    after: |
-      <project>
-          <modelVersion>4.0.0</modelVersion>
-          <parent>
-              <groupId>org.springframework.boot</groupId>
-              <artifactId>spring-boot-starter-parent</artifactId>
-              <version>4.0.8</version>
-              <relativePath/>
-          </parent>
-          <groupId>com.example</groupId>
-          <artifactId>redundant-version-app</artifactId>
-          <version>1.0-SNAPSHOT</version>
-          <dependencies>
-              <dependency>
-                  <groupId>org.apache.commons</groupId>
-                  <artifactId>commons-lang3</artifactId>
               </dependency>
           </dependencies>
       </project>
@@ -5202,6 +5182,29 @@ examples:
           private final String someArg;
           public CustomMvcConfigurer(String someArg) {
               this.someArg = someArg;
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
+examples:
+- description: '`UpgradeSpringFramework_7_0Test#replacesUnprocessableEntityStaticImport`'
+  sources:
+  - before: |
+      import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
+
+      class A {
+          int status() {
+              return UNPROCESSABLE_ENTITY.value();
+          }
+      }
+    after: |
+      import static org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT;
+
+      class A {
+          int status() {
+              return UNPROCESSABLE_CONTENT.value();
           }
       }
     language: java

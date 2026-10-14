@@ -43,6 +43,35 @@ class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
               "spring-cloud-openfeign-core"));
     }
 
+    @DocumentExample
+    @Test
+    void enableWebSecurityWithBeans() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
+              @EnableWebSecurity
+              class A {
+                @Bean String hello() { return "hello"; }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
+              @Configuration
+              @EnableWebSecurity
+              class A {
+                @Bean String hello() { return "hello"; }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void privateBeanMethod() {
         rewriteRun(
@@ -98,35 +127,6 @@ class AddConfigurationAnnotationIfBeansPresentTest implements RewriteTest {
 
               final class Utility {
                   @Bean Object bean() { return new Object(); }
-              }
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void enableWebSecurityWithBeans() {
-        rewriteRun(
-          java(
-            """
-              import org.springframework.context.annotation.Bean;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
-              @EnableWebSecurity
-              class A {
-                @Bean String hello() { return "hello"; }
-              }
-              """,
-            """
-              import org.springframework.context.annotation.Bean;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
-              @Configuration
-              @EnableWebSecurity
-              class A {
-                @Bean String hello() { return "hello"; }
               }
               """
           )

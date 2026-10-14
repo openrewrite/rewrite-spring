@@ -58,6 +58,36 @@ class MigrateToModularStartersTest implements RewriteTest {
             "spring-core-6"));
     }
 
+    @DocumentExample
+    @Test
+    void migrateLiquibaseToStarterInMaven() {
+        rewriteRun(
+          pomXml(
+            //language=xml
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>org.example</groupId>
+                  <artifactId>example</artifactId>
+                  <version>1.0-SNAPSHOT</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.liquibase</groupId>
+                          <artifactId>liquibase-core</artifactId>
+                          <version>4.24.0</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """,
+            spec -> spec.after(pom -> assertThat(pom)
+              .doesNotContain("<artifactId>liquibase-core</artifactId>")
+              .contains("<artifactId>spring-boot-starter-liquibase</artifactId>")
+              .containsPattern("<version>4\\.0\\.\\d+</version>")
+              .actual())
+          )
+        );
+    }
+
     @Test
     void leavePluginDependenciesWhenDisabled() {
         rewriteRun(
@@ -86,36 +116,6 @@ class MigrateToModularStartersTest implements RewriteTest {
                   </build>
               </project>
               """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void migrateLiquibaseToStarterInMaven() {
-        rewriteRun(
-          pomXml(
-            //language=xml
-            """
-              <project>
-                  <modelVersion>4.0.0</modelVersion>
-                  <groupId>org.example</groupId>
-                  <artifactId>example</artifactId>
-                  <version>1.0-SNAPSHOT</version>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.liquibase</groupId>
-                          <artifactId>liquibase-core</artifactId>
-                          <version>4.24.0</version>
-                      </dependency>
-                  </dependencies>
-              </project>
-              """,
-            spec -> spec.after(pom -> assertThat(pom)
-              .doesNotContain("<artifactId>liquibase-core</artifactId>")
-              .contains("<artifactId>spring-boot-starter-liquibase</artifactId>")
-              .containsPattern("<version>4\\.0\\.\\d+</version>")
-              .actual())
           )
         );
     }

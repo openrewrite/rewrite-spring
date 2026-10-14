@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -29,14 +30,7 @@ class AddSpringBootBomForTransitiveDependencyManagementTest implements RewriteTe
         spec.recipe(new AddSpringBootBomForTransitiveDependencyManagement("4.0.0"));
     }
 
-    @Test
-    void rejectSelectorsOutsideBoot4() {
-        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("3.0.0").validate().isValid()).isFalse();
-        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("5.0.x").validate().isValid()).isFalse();
-        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("latest.release").validate().isValid()).isFalse();
-        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("4.0.x").validate().isValid()).isTrue();
-    }
-
+    @DocumentExample
     @Test
     void overrideTransitiveBootManagementBeforeVendorBom() {
         rewriteRun(
@@ -106,6 +100,14 @@ class AddSpringBootBomForTransitiveDependencyManagementTest implements RewriteTe
               .getPom().getManagedVersion("org.springframework.boot", "spring-boot", null, null)).isEqualTo("4.0.0"))
           )
         );
+    }
+
+    @Test
+    void rejectSelectorsOutsideBoot4() {
+        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("3.0.0").validate().isValid()).isFalse();
+        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("5.0.x").validate().isValid()).isFalse();
+        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("latest.release").validate().isValid()).isFalse();
+        assertThat(new AddSpringBootBomForTransitiveDependencyManagement("4.0.x").validate().isValid()).isTrue();
     }
 
     @Test

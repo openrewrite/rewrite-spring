@@ -16,12 +16,14 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
 class MigrateHibernateEmailValidatorTest implements RewriteTest {
+    @DocumentExample
     @Test
     void migrateDirectEmailValidation() {
         rewriteRun(

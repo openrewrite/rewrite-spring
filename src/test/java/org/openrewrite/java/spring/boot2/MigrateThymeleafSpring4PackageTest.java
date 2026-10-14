@@ -89,8 +89,8 @@ class MigrateThymeleafSpring4PackageTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @CsvSource({"2, 2_0, 5", "3, 3_0, 6"})
+    @ParameterizedTest
     void migrateSpring4PackagesThroughBootUpgrade(int boot, String version, int thymeleafSpring) {
         rewriteRun(
           spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot" + boot + ".UpgradeSpringBoot_" + version)

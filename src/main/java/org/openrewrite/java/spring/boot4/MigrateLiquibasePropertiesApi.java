@@ -30,7 +30,7 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.Collections;
+import static java.util.Collections.singletonList;
 
 public class MigrateLiquibasePropertiesApi extends Recipe {
     private static final MethodMatcher SET_CONTEXTS = new MethodMatcher("liquibase.integration.spring.SpringLiquibase setContexts(String)", true);
@@ -72,7 +72,7 @@ public class MigrateLiquibasePropertiesApi extends Recipe {
                                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-core-6"))
                                         .build()
                                         .apply(new Cursor(updateCursor(m), getter), getter.getCoordinates().replace(), getter);
-                                m = m.withArguments(Collections.singletonList(converted));
+                                m = m.withArguments(singletonList(converted));
                             }
                         }
                         if (labels && m.getMethodType() != null) {

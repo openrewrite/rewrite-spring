@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,6 +31,7 @@ class SpringBoot20ActuatorPathTest implements RewriteTest {
         spec.recipeFromResources("org.openrewrite.java.spring.boot2.SpringBootProperties_2_0");
     }
 
+    @DocumentExample
     @Test
     void preservesEndpointPrefixOnApplicationPort() {
         rewriteRun(

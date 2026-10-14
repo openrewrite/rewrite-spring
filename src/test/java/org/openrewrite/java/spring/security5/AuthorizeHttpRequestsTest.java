@@ -42,13 +42,74 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
               "tomcat-embed"));
     }
 
+    @DocumentExample
+    @Test
+    void noArgAuthorizeRequests() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @EnableWebSecurity
+              public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeRequests()
+                              .antMatchers("/blog/**").permitAll()
+                              .anyRequest().authenticated()
+                              .and()
+                          .formLogin()
+                              .loginPage("/login")
+                              .permitAll()
+                              .and()
+                          .rememberMe();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @EnableWebSecurity
+              public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http
+                          .authorizeHttpRequests()
+                              .antMatchers("/blog/**").permitAll()
+                              .anyRequest().authenticated()
+                              .and()
+                          .formLogin()
+                              .loginPage("/login")
+                              .permitAll()
+                              .and()
+                          .rememberMe();
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @Test
     void noArgAuthorizeRequestsOnSpringSecurity51() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans-4", "spring-context-4", "spring-web-4", "spring-core-4",
-              "spring-security-core-5.1", "spring-security-config-5.1", "spring-security-web-5.1")),
+              "spring-beans-4",
+              "spring-context-4",
+              "spring-web-4",
+              "spring-core-4",
+              "spring-security-core-5.1",
+              "spring-security-config-5.1",
+              "spring-security-web-5.1")),
           java(
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -116,62 +177,6 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
               class Config {
                   void configure(HttpSecurity http) throws Exception {
                       http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @DocumentExample
-    @Test
-    void noArgAuthorizeRequests() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeRequests()
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated()
-                              .and()
-                          .formLogin()
-                              .loginPage("/login")
-                              .permitAll()
-                              .and()
-                          .rememberMe();
-                  }
-              }
-              """,
-            """
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeHttpRequests()
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated()
-                              .and()
-                          .formLogin()
-                              .loginPage("/login")
-                              .permitAll()
-                              .and()
-                          .rememberMe();
                   }
               }
               """

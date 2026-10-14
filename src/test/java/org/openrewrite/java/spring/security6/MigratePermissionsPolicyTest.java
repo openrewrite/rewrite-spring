@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.security6;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
@@ -31,10 +32,15 @@ class MigratePermissionsPolicyTest implements RewriteTest {
         spec.recipes(new HeadersConfigurerLambdaDsl(), Environment.builder().scanRuntimeClasspath().build()
             .activateRecipes("org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_4"))
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-beans-5", "spring-context-5", "spring-security-config-5.8.+",
-            "spring-security-web-5.8.+", "spring-web-5.3", "spring-core-5"));
+            "spring-beans-5",
+            "spring-context-5",
+            "spring-security-config-5.8.+",
+            "spring-security-web-5.8.+",
+            "spring-web-5.3",
+            "spring-core-5"));
     }
 
+    @DocumentExample
     @Test
     void keepsFollowingHeaderConfigurationOnHeadersConfigurer() {
         rewriteRun(

@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.boot4;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -48,6 +49,37 @@ class MigrateLiquibasePropertiesApiTest implements RewriteTest {
               }
               """
           ));
+    }
+
+    @DocumentExample
+    @Test
+    void renameLiteralLabelsAndPreserveUnrelatedContexts() {
+        rewriteRun(
+          java(
+            """
+              import liquibase.integration.spring.SpringLiquibase;
+
+              class Config {
+                  String getContexts() { return "test"; }
+                  void configure(SpringLiquibase liquibase) {
+                      liquibase.setContexts(getContexts());
+                      liquibase.setLabels("test");
+                  }
+              }
+              """,
+            """
+              import liquibase.integration.spring.SpringLiquibase;
+
+              class Config {
+                  String getContexts() { return "test"; }
+                  void configure(SpringLiquibase liquibase) {
+                      liquibase.setContexts(getContexts());
+                      liquibase.setLabelFilter("test");
+                  }
+              }
+              """
+          )
+        );
     }
 
     @ParameterizedTest
@@ -110,36 +142,6 @@ class MigrateLiquibasePropertiesApiTest implements RewriteTest {
                   void configure(SpringLiquibase liquibase, LiquibaseProperties properties) {
                       liquibase.setContexts(StringUtils.collectionToCommaDelimitedString(properties.getContexts()));
                       liquibase.setLabelFilter(StringUtils.collectionToCommaDelimitedString(properties.getLabelFilter()));
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void renameLiteralLabelsAndPreserveUnrelatedContexts() {
-        rewriteRun(
-          java(
-            """
-              import liquibase.integration.spring.SpringLiquibase;
-
-              class Config {
-                  String getContexts() { return "test"; }
-                  void configure(SpringLiquibase liquibase) {
-                      liquibase.setContexts(getContexts());
-                      liquibase.setLabels("test");
-                  }
-              }
-              """,
-            """
-              import liquibase.integration.spring.SpringLiquibase;
-
-              class Config {
-                  String getContexts() { return "test"; }
-                  void configure(SpringLiquibase liquibase) {
-                      liquibase.setContexts(getContexts());
-                      liquibase.setLabelFilter("test");
                   }
               }
               """
