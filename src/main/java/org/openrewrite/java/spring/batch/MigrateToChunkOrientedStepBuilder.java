@@ -182,8 +182,11 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
 
                 String includes = exceptions.stream().map(e -> "#{any(java.lang.Class)}").collect(joining(", "));
 
-                Expression retryPolicy = JavaTemplate.builder("RetryPolicy.builder()" +
-                                ".includes(" + includes + ").maxRetries(" + maxRetries + ").delay(Duration.ZERO).build()")
+                Expression retryPolicy = JavaTemplate.builder("RetryPolicy.builder()\n" +
+                                ".includes(" + includes + ")\n" +
+                                ".maxRetries(" + maxRetries + ")\n" +
+                                ".delay(Duration.ZERO)\n" +
+                                ".build()")
                         .imports(RETRY_POLICY, DURATION)
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-core-7"))
                         .build()
@@ -198,37 +201,9 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
                         .withParameterTypes(singletonList(retryPolicy.getType()));
                 return retryLimit
                         .withName(retryLimit.getName().withSimpleName("retryPolicy").withType(retryPolicyType))
-                        .withArguments(singletonList(wrapBuilderSteps(retryLimit, retryPolicy)));
-            }
-
-            private Expression wrapBuilderSteps(J.MethodInvocation retryLimit, Expression retryPolicy) {
-                Space beforeRetryLimit = retryLimit.getPadding().getSelect().getAfter();
-                J lineStart = getCursor().getPathAsStream()
-                        .filter(J.class::isInstance)
-                        .map(J.class::cast)
-                        .filter(j -> j.getPrefix().getLastWhitespace().contains("\n"))
-                        .findFirst()
-                        .orElse(null);
-                if (!beforeRetryLimit.getLastWhitespace().contains("\n") || lineStart == null) {
-                    return retryPolicy;
-                }
-                String chainIndent = beforeRetryLimit.getIndent();
-                String lineStartIndent = lineStart.getPrefix().getIndent();
-                if (chainIndent.length() <= lineStartIndent.length() || !chainIndent.startsWith(lineStartIndent)) {
-                    return retryPolicy;
-                }
-                String continuation = chainIndent.substring(lineStartIndent.length());
-                return onePerLine((J.MethodInvocation) retryPolicy, Space.format("\n" + chainIndent + continuation));
+                        .withArguments(singletonList(retryPolicy));
             }
         });
-    }
-
-    private static J.MethodInvocation onePerLine(J.MethodInvocation method, Space beforeDot) {
-        if (!(method.getSelect() instanceof J.MethodInvocation)) {
-            return method;
-        }
-        J.MethodInvocation select = onePerLine((J.MethodInvocation) method.getSelect(), beforeDot);
-        return method.getPadding().withSelect(method.getPadding().getSelect().withElement(select).withAfter(beforeDot));
     }
 
     private static void markRetryMethods(Cursor chunkCursor) {
