@@ -43,6 +43,7 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-core:4.+")
     parserClasspath("org.springframework:spring-core:5.+")
     parserClasspath("org.springframework:spring-core:6.+")
+    parserClasspath("org.springframework:spring-core:7.+")
 
     parserClasspath("org.springframework:spring-test:6.+")
 
@@ -66,6 +67,7 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.1.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.1.+")
+    parserClasspath("org.springframework.batch:spring-batch-core:6.0.+")
 
     parserClasspath("org.springframework:spring-tx:5.+")
 
