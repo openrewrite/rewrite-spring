@@ -169,7 +169,9 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
             }
 
             private J.MethodInvocation foldIntoRetryPolicy(J.MethodInvocation retryLimit, List<Expression> exceptions, ExecutionContext ctx) {
-                List<Object> parameters = new ArrayList<>(exceptions);
+                List<Object> parameters = new ArrayList<>();
+                parameters.add(retryLimit.getSelect());
+                parameters.addAll(exceptions);
                 Expression limit = retryLimit.getArguments().get(0);
 
                 String maxRetries;
@@ -182,26 +184,21 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
 
                 String includes = exceptions.stream().map(e -> "#{any(java.lang.Class)}").collect(joining(", "));
 
-                Expression retryPolicy = JavaTemplate.builder("RetryPolicy.builder()\n" +
+                maybeAddImport(RETRY_POLICY);
+                maybeAddImport(DURATION);
+                J.MethodInvocation retryPolicy = JavaTemplate.builder("#{any(" + CHUNK_ORIENTED_STEP_BUILDER + ")}\n" +
+                                ".retryPolicy(RetryPolicy.builder()\n" +
                                 ".includes(" + includes + ")\n" +
                                 ".maxRetries(" + maxRetries + ")\n" +
                                 ".delay(Duration.ZERO)\n" +
-                                ".build()")
+                                ".build())")
                         .imports(RETRY_POLICY, DURATION)
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-core-7"))
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-core-7", "spring-batch-core-6"))
                         .build()
-                        .apply(new Cursor(getCursor(), limit), limit.getCoordinates().replace(), parameters.toArray());
-
-                maybeAddImport(RETRY_POLICY);
-                maybeAddImport(DURATION);
-
-                JavaType.Method retryPolicyType = retryLimit.getMethodType() == null ? null : retryLimit.getMethodType()
-                        .withName("retryPolicy")
-                        .withParameterNames(singletonList("retryPolicy"))
-                        .withParameterTypes(singletonList(retryPolicy.getType()));
-                return retryLimit
-                        .withName(retryLimit.getName().withSimpleName("retryPolicy").withType(retryPolicyType))
-                        .withArguments(singletonList(retryPolicy));
+                        .apply(getCursor(), retryLimit.getCoordinates().replace(), parameters.toArray());
+                J.MethodInvocation withOriginalSelect = retryPolicy.getPadding().withSelect(retryLimit.getPadding().getSelect());
+                return withOriginalSelect.withArguments(singletonList(autoFormat(withOriginalSelect.getArguments().get(0), ctx,
+                        new Cursor(getCursor().getParentOrThrow(), withOriginalSelect))));
             }
         });
     }
