@@ -34,6 +34,7 @@ recipeList:
       newVersion: 7.0.x
       overrideManagedVersion: false
   - org.openrewrite.java.spring.security7.SecurityConfigurerRemoveThrowsException
+  - org.openrewrite.java.spring.security7.SecurityBuilderRemoveThrowsException
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.springframework.security.authorization.AuthorizationManager check(..)"
       newMethodName: authorize
@@ -57,5 +58,37 @@ recipeList:
       exceptionTypePattern: "java.lang.Exception"
   - org.openrewrite.java.RemoveMethodThrows:
       methodPattern: "org.springframework.security.config.annotation.SecurityConfigurer configure(..)"
+      matchOverrides: true
+      exceptionTypePattern: "java.lang.Exception"
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.security7.SecurityBuilderRemoveThrowsException
+displayName: Remove throws exception in Spring Security builder methods
+description: >-
+  Spring Security 7 removed `throws Exception` from the overridable template methods of
+  `AbstractConfiguredSecurityBuilder` (`beforeInit`, `beforeConfigure`, `performBuild`) and
+  `AbstractSecurityBuilder` (`doBuild`). Remove the clause from overrides of these methods in custom
+  security builders, which would otherwise no longer compile.
+tags:
+  - spring
+  - security
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.RemoveMethodThrows:
+      methodPattern: "org.springframework.security.config.annotation.AbstractConfiguredSecurityBuilder beforeInit()"
+      matchOverrides: true
+      exceptionTypePattern: "java.lang.Exception"
+  - org.openrewrite.java.RemoveMethodThrows:
+      methodPattern: "org.springframework.security.config.annotation.AbstractConfiguredSecurityBuilder beforeConfigure()"
+      matchOverrides: true
+      exceptionTypePattern: "java.lang.Exception"
+  - org.openrewrite.java.RemoveMethodThrows:
+      methodPattern: "org.springframework.security.config.annotation.AbstractConfiguredSecurityBuilder performBuild()"
+      matchOverrides: true
+      exceptionTypePattern: "java.lang.Exception"
+  - org.openrewrite.java.RemoveMethodThrows:
+      methodPattern: "org.springframework.security.config.annotation.AbstractSecurityBuilder doBuild()"
       matchOverrides: true
       exceptionTypePattern: "java.lang.Exception"

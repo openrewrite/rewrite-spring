@@ -65,6 +65,65 @@ class UpgradeSpringSecurity70Test implements RewriteTest {
     }
 
     @Test
+    void removesThrowsFromSecurityBuilderAndConfigurerOverrides() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-security-core-6",
+              "spring-security-config-6.2",
+              "spring-security-web-6.2")),
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.AbstractSecurityBuilder;
+
+              class CustomBuilder extends AbstractSecurityBuilder<String> {
+                  @Override
+                  protected String doBuild() throws Exception {
+                      return "built";
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.AbstractSecurityBuilder;
+
+              class CustomBuilder extends AbstractSecurityBuilder<String> {
+                  @Override
+                  protected String doBuild() {
+                      return "built";
+                  }
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.DefaultSecurityFilterChain;
+
+              class MyConfigurer extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity> {
+                  @Override
+                  public void configure(HttpSecurity builder) throws Exception {
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.DefaultSecurityFilterChain;
+
+              class MyConfigurer extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity> {
+                  @Override
+                  public void configure(HttpSecurity builder) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void noChangeWhenCheckNotUsed() {
         rewriteRun(
           java(
