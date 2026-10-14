@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -65,8 +66,8 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
     private static final String RETRY_POLICY = "org.springframework.core.retry.RetryPolicy";
     private static final String DURATION = "java.time.Duration";
 
-    private static final String REMOVE_CALL = "removeCall";
-    private static final String RETRY_EXCEPTIONS = "retryExceptions";
+    private static final String MSG_REMOVE_CALL = "removeCall";
+    private static final String MSG_RETRY_EXCEPTIONS = "retryExceptions";
 
     // Methods absent here have no counterpart on `ChunkOrientedStepBuilder`, so chains using them are left alone
     private static final List<MethodMatcher> SUPPORTED_BUILDER_METHODS = Stream.of(
@@ -119,10 +120,11 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
                 if (!CHUNK_MATCHER.matches(mi)) {
                     return foldIntoRetryPolicyOrRemove(mi, ctx);
                 }
-                if (!chainSupportsNewModel(getCursor())) {
+                List<Cursor> chain = chainUpToBuild(getCursor());
+                if (chain.isEmpty()) {
                     return mi;
                 }
-                markRetryMethods(getCursor());
+                markRetryMethods(chain);
 
                 Expression chunkSize = mi.getArguments().get(0);
                 Expression transactionManager = mi.getArguments().get(1);
@@ -158,10 +160,10 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
             }
 
             private J.MethodInvocation foldIntoRetryPolicyOrRemove(J.MethodInvocation mi, ExecutionContext ctx) {
-                if (getCursor().pollMessage(REMOVE_CALL) != null) {
+                if (getCursor().pollMessage(MSG_REMOVE_CALL) != null) {
                     return ((J.MethodInvocation) mi.getSelect()).withPrefix(mi.getPrefix());
                 }
-                List<Expression> retryExceptions = getCursor().pollMessage(RETRY_EXCEPTIONS);
+                List<Expression> retryExceptions = getCursor().pollMessage(MSG_RETRY_EXCEPTIONS);
                 if (retryExceptions != null) {
                     return foldIntoRetryPolicy(mi, retryExceptions, ctx);
                 }
@@ -203,22 +205,19 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
         });
     }
 
-    private static void markRetryMethods(Cursor chunkCursor) {
+    private static void markRetryMethods(List<Cursor> chain) {
         List<Cursor> retries = new ArrayList<>();
         List<Cursor> retryLimits = new ArrayList<>();
         List<Expression> exceptions = new ArrayList<>();
 
-        Cursor cursor = chunkCursor.getParentTreeCursor();
-        J.MethodInvocation method = cursor.getValue();
-        while (!BUILD_MATCHER.matches(method)) {
+        for (Cursor cursor : chain) {
+            J.MethodInvocation method = cursor.getValue();
             if (RETRY_MATCHER.matches(method)) {
                 retries.add(cursor);
                 exceptions.addAll(method.getArguments());
             } else if (RETRY_LIMIT_MATCHER.matches(method)) {
                 retryLimits.add(cursor);
             }
-            cursor = cursor.getParentTreeCursor();
-            method = cursor.getValue();
         }
 
         if (retryLimits.isEmpty()) {
@@ -227,31 +226,31 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
 
         if (!exceptions.isEmpty()) {
             Cursor lastRetryLimit = retryLimits.remove(retryLimits.size() - 1);
-            lastRetryLimit.putMessage(RETRY_EXCEPTIONS, exceptions);
+            lastRetryLimit.putMessage(MSG_RETRY_EXCEPTIONS, exceptions);
         }
 
-        retries.forEach(retry -> retry.putMessage(REMOVE_CALL, true));
-        retryLimits.forEach(limit -> limit.putMessage(REMOVE_CALL, true));
+        retries.forEach(retry -> retry.putMessage(MSG_REMOVE_CALL, true));
+        retryLimits.forEach(limit -> limit.putMessage(MSG_REMOVE_CALL, true));
     }
 
     // The chain has to end in `build()` so that the widened return type of the new model stays contained
-    private static boolean chainSupportsNewModel(Cursor chunkCursor) {
+    private static List<Cursor> chainUpToBuild(Cursor chunkCursor) {
+        List<Cursor> chain = new ArrayList<>();
         Cursor cursor = chunkCursor;
-        J current = cursor.getValue();
         while (true) {
             Cursor parent = cursor.getParentTreeCursor();
             if (!(parent.getValue() instanceof J.MethodInvocation)) {
-                return false;
+                return emptyList();
             }
             J.MethodInvocation next = parent.getValue();
-            if (next.getSelect() != current || !isSupportedOnChunkOrientedStepBuilder(next)) {
-                return false;
+            if (next.getSelect() != cursor.getValue() || !isSupportedOnChunkOrientedStepBuilder(next)) {
+                return emptyList();
             }
+            chain.add(parent);
             if (BUILD_MATCHER.matches(next)) {
-                return !returnsTaskletStep(parent);
+                return returnsTaskletStep(parent) ? emptyList() : chain;
             }
             cursor = parent;
-            current = next;
         }
     }
 
