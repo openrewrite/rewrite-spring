@@ -29,9 +29,11 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JRightPadded;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,10 +101,12 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
     final String description = "Spring Batch 6.0 deprecates `StepBuilder.chunk(int, PlatformTransactionManager)` in " +
             "favor of a new chunk-oriented model. Replaces `chunk(chunkSize, transactionManager)` with " +
             "`chunk(chunkSize).transactionManager(transactionManager)` when every other call in the builder chain " +
-            "has a counterpart on `ChunkOrientedStepBuilder`. Plain `retry(..)` and `retryLimit(..)` calls become " +
-            "one `retryPolicy(RetryPolicy)` that keeps the number of attempts and has no delay, because the new " +
-            "model counts `retryLimit` as retries rather than attempts and, by default, waits one second between " +
-            "them. Unlike Spring Retry, the new policy also retries when a *cause* of the thrown exception matches. " +
+            "has a counterpart on `ChunkOrientedStepBuilder`. A `retryLimit(..)` and the `retry(..)` calls in its " +
+            "chain become one `retryPolicy(RetryPolicy)` that keeps the number of attempts and has no delay, because " +
+            "the new model counts `retryLimit` as retries rather than attempts and, by default, waits one second " +
+            "between them. A `retryLimit(..)` without any `retry(..)` is removed, as the new model would otherwise " +
+            "retry every exception. Unlike Spring Retry, the new policy also retries when a *cause* of the thrown " +
+            "exception matches. " +
             "Chains with advanced Spring Retry configuration are left untouched and remain a manual migration step: " +
             "`retryPolicy`, `backOffPolicy`, `retryContextCache`, `keyGenerator`, `noRetry` and " +
             "`listener(RetryListener)`. The same applies to other APIs the new model dropped: `listener(Object)`, " +
@@ -181,7 +185,7 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
                     maxRetries = String.valueOf(Math.max(0, (Integer) ((J.Literal) limit).getValue() - 1));
                 } else {
                     maxRetries = "Math.max(0, #{any(int)} - 1)";
-                    parameters.add(limit);
+                    parameters.add(parenthesizeUnlessAtomic(limit));
                 }
 
                 String includes = exceptions.stream().map(e -> "#{any(java.lang.Class)}").collect(joining(", "));
@@ -203,6 +207,16 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
                         new Cursor(getCursor().getParentOrThrow(), withOriginalSelect))));
             }
         });
+    }
+
+    // Kotlin expressions such as `if` are not parenthesized by the template engine before the decrement is applied
+    private static Expression parenthesizeUnlessAtomic(Expression expression) {
+        if (expression instanceof J.Identifier || expression instanceof J.FieldAccess ||
+                expression instanceof J.MethodInvocation || expression instanceof J.Parentheses) {
+            return expression;
+        }
+        return new J.Parentheses<>(Tree.randomId(), expression.getPrefix(), Markers.EMPTY,
+                JRightPadded.build(expression.withPrefix(Space.EMPTY)));
     }
 
     private static void markRetryMethods(List<Cursor> chain) {

@@ -409,10 +409,8 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
         );
     }
 
-    /**
-     * Spring Batch 5 {@code retryLimit} counts the initial attempt, while the new model's {@code retryLimit} counts
-     * retries only and adds a one-second delay between attempts.
-     */
+    /// Spring Batch 5 `retryLimit` counts the initial attempt, while the new model's `retryLimit` counts
+    /// retries only and adds a one-second delay between attempts.
     @Nested
     class RetryLimit {
 
@@ -770,6 +768,126 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
                                   .delay(Duration.ZERO)
                                   .build())
                               .build()
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void kotlinRetryLimitFromIfExpressionIsParenthesizedBeforeDecrement() {
+            rewriteRun(
+              spec -> spec.parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(),
+                "spring-batch-core-5.2",
+                "spring-batch-infrastructure-5.2",
+                "spring-beans-5.+",
+                "spring-core-5.+",
+                "spring-retry-2.+",
+                "spring-tx-5.+"
+              )),
+              // language=kotlin
+              kotlin(
+                """
+                  import org.springframework.batch.core.Step
+                  import org.springframework.batch.core.repository.JobRepository
+                  import org.springframework.batch.core.step.builder.StepBuilder
+                  import org.springframework.batch.item.ItemReader
+                  import org.springframework.batch.item.ItemWriter
+                  import org.springframework.transaction.PlatformTransactionManager
+
+                  class MyJobConfig {
+                      fun myStep(jobRepository: JobRepository, transactionManager: PlatformTransactionManager,
+                                 reader: ItemReader<String>, writer: ItemWriter<String>, retryEnabled: Boolean): Step {
+                          return StepBuilder("myStep", jobRepository)
+                              .chunk<String, String>(10, transactionManager)
+                              .reader(reader)
+                              .writer(writer)
+                              .faultTolerant()
+                              .retry(IllegalStateException::class.java)
+                              .retryLimit(if (retryEnabled) 3 else 1)
+                              .build()
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.batch.core.Step
+                  import org.springframework.batch.core.repository.JobRepository
+                  import org.springframework.batch.core.step.builder.StepBuilder
+                  import org.springframework.batch.item.ItemReader
+                  import org.springframework.batch.item.ItemWriter
+                  import org.springframework.core.retry.RetryPolicy
+                  import org.springframework.transaction.PlatformTransactionManager
+
+                  import java.time.Duration
+
+                  class MyJobConfig {
+                      fun myStep(jobRepository: JobRepository, transactionManager: PlatformTransactionManager,
+                                 reader: ItemReader<String>, writer: ItemWriter<String>, retryEnabled: Boolean): Step {
+                          return StepBuilder("myStep", jobRepository)
+                              .chunk<String, String>(10)
+                              .transactionManager(transactionManager)
+                              .reader(reader)
+                              .writer(writer)
+                              .faultTolerant()
+                              .retryPolicy(RetryPolicy.builder()
+                                  .includes(IllegalStateException::class.java)
+                                  .maxRetries(Math.max(0, (if (retryEnabled) 3 else 1) - 1))
+                                  .delay(Duration.ZERO)
+                                  .build())
+                              .build()
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void retryWithoutRetryLimitIsKept() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10, transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .faultTolerant()
+                                  .retry(IllegalStateException.class)
+                                  .build();
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.batch.core.Step;
+                  import org.springframework.batch.core.repository.JobRepository;
+                  import org.springframework.batch.core.step.builder.StepBuilder;
+                  import org.springframework.batch.item.ItemReader;
+                  import org.springframework.batch.item.ItemWriter;
+                  import org.springframework.transaction.PlatformTransactionManager;
+
+                  class MyJobConfig {
+                      Step myStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+                                  ItemReader<String> reader, ItemWriter<String> writer) {
+                          return new StepBuilder("myStep", jobRepository)
+                                  .<String, String>chunk(10)
+                                  .transactionManager(transactionManager)
+                                  .reader(reader)
+                                  .writer(writer)
+                                  .faultTolerant()
+                                  .retry(IllegalStateException.class)
+                                  .build();
                       }
                   }
                   """
