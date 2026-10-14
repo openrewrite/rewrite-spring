@@ -144,7 +144,11 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
                               .processor(processor)
                               .writer(writer)
                               .faultTolerant()
-                              .retryPolicy(RetryPolicy.builder().includes(IllegalStateException.class).maxRetries(2).delay(Duration.ZERO).build())
+                              .retryPolicy(RetryPolicy.builder()
+                                      .includes(IllegalStateException.class)
+                                      .maxRetries(2)
+                                      .delay(Duration.ZERO)
+                                      .build())
                               .skip(IllegalArgumentException.class)
                               .skipLimit(5)
                               .build();
@@ -459,7 +463,11 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
                                   .reader(reader)
                                   .writer(writer)
                                   .faultTolerant()
-                                  .retryPolicy(RetryPolicy.builder().includes(IllegalStateException.class).maxRetries(0).delay(Duration.ZERO).build())
+                                  .retryPolicy(RetryPolicy.builder()
+                                          .includes(IllegalStateException.class)
+                                          .maxRetries(0)
+                                          .delay(Duration.ZERO)
+                                          .build())
                                   .build();
                       }
                   }
@@ -515,7 +523,11 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
                                   .reader(reader)
                                   .writer(writer)
                                   .faultTolerant()
-                                  .retryPolicy(RetryPolicy.builder().includes(IllegalStateException.class).maxRetries(0).delay(Duration.ZERO).build())
+                                  .retryPolicy(RetryPolicy.builder()
+                                          .includes(IllegalStateException.class)
+                                          .maxRetries(0)
+                                          .delay(Duration.ZERO)
+                                          .build())
                                   .build();
                       }
                   }
@@ -571,7 +583,11 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
                                   .reader(reader)
                                   .writer(writer)
                                   .faultTolerant()
-                                  .retryPolicy(RetryPolicy.builder().includes(IllegalStateException.class).maxRetries(Math.max(0, (retryEnabled ? 3 : 1) - 1)).delay(Duration.ZERO).build())
+                                  .retryPolicy(RetryPolicy.builder()
+                                          .includes(IllegalStateException.class)
+                                          .maxRetries(Math.max(0, (retryEnabled ? 3 : 1) - 1))
+                                          .delay(Duration.ZERO)
+                                          .build())
                                   .build();
                       }
                   }
@@ -629,7 +645,11 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
                                   .reader(reader)
                                   .writer(writer)
                                   .faultTolerant()
-                                  .retryPolicy(RetryPolicy.builder().includes(IllegalStateException.class, IllegalArgumentException.class).maxRetries(2).delay(Duration.ZERO).build())
+                                  .retryPolicy(RetryPolicy.builder()
+                                          .includes(IllegalStateException.class, IllegalArgumentException.class)
+                                          .maxRetries(2)
+                                          .delay(Duration.ZERO)
+                                          .build())
                                   .build();
                       }
                   }
@@ -744,7 +764,11 @@ class MigrateToChunkOrientedStepBuilderTest implements RewriteTest {
                               .reader(reader)
                               .writer(writer)
                               .faultTolerant()
-                              .retryPolicy(RetryPolicy.builder().includes(IllegalStateException::class.java).maxRetries(2).delay(Duration.ZERO).build())
+                              .retryPolicy(RetryPolicy.builder()
+                                  .includes(IllegalStateException::class.java)
+                                  .maxRetries(2)
+                                  .delay(Duration.ZERO)
+                                  .build())
                               .build()
                       }
                   }
