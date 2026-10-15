@@ -82,7 +82,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                         String paramName = keepArg ? "configurer" : generateParamNameFromMethodName(m.getSimpleName());
                         return m
                                 .withMethodType(newMethodType)
-                                .withName(m.getName().withSimpleName(newMethodType.getName()))
+                                .withName(m.getName().withSimpleName(newMethodType.getName()).withType(newMethodType))
                                 .withArguments(ListUtils.concat(
                                                 keepArg ? m.getArguments().get(0) : null,
                                                 singletonList(chain.isEmpty() ?
