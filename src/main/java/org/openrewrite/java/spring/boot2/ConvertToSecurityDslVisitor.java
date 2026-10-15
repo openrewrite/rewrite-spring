@@ -61,6 +61,13 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
      */
     private final Map<String, String> methodRenames;
 
+    /**
+     * Whether to leave a call unchanged when the value of the expression is used, e.g. returned or assigned.
+     * Needed for conversions that change the type of the expression, such as `apply(C)` returning the configurer
+     * while `with(C, Customizer)` returns the builder.
+     */
+    private final boolean skipWhenResultIsUsed;
+
     public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods) {
         this(securityFqn, convertableMethods, new HashMap<>());
     }
@@ -70,10 +77,15 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         this(securityFqn, convertableMethods, argReplacements, new HashMap<>());
     }
 
+    public ConvertToSecurityDslVisitor(String securityFqn, Collection<String> convertableMethods,
+                                       Map<String, String> argReplacements, Map<String, String> methodRenames) {
+        this(securityFqn, convertableMethods, argReplacements, methodRenames, false);
+    }
+
     @Override
     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation initialMethod, P executionContext) {
         J.MethodInvocation method = super.visitMethodInvocation(initialMethod, executionContext);
-        if (isApplicableMethod(method)) {
+        if (isApplicableMethod(method) && !(skipWhenResultIsUsed && isResultOfConvertedChainUsed())) {
             J.MethodInvocation m = method;
             method = createDesiredReplacement(method)
                     .map(newMethodType -> {
@@ -286,6 +298,23 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             chain.add(topInvocation.withMarkers(topInvocation.getMarkers().addIfAbsent(new Markup.Info(Tree.randomId(), MSG_TOP_INVOCATION, null))));
         }
         return chain;
+    }
+
+    /**
+     * Converting a configurer call plus the calls chained after it into the lambda form changes the type of the
+     * resulting expression from the configurer to the security builder, unless the chain is terminated by an
+     * `and()` or `disable()` call that already returned the builder. That is only safe when the value of the
+     * expression is not used, so a call whose result is returned, assigned or passed on is left unchanged.
+     */
+    private boolean isResultOfConvertedChainUsed() {
+        Cursor cursor = getCursor().getParent(2);
+        for (; isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
+        }
+        if (cursor != null && cursor.getValue() instanceof J.MethodInvocation) {
+            // terminated by `and()` or `disable()`, so the converted expression still evaluates to the builder
+            return false;
+        }
+        return cursor == null || !(cursor.getValue() instanceof J.Block);
     }
 
     private boolean isAndMethod(J.MethodInvocation method) {

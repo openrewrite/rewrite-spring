@@ -55,7 +55,7 @@ public class ApplyToWithLambdaDsl extends Recipe {
         return Preconditions.check(
                 new UsesType<>(FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER, true),
                 new ConvertToSecurityDslVisitor<>(FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER,
-                        APPLICABLE_METHOD_NAMES, ARG_REPLACEMENTS, METHOD_RENAMES)
+                        APPLICABLE_METHOD_NAMES, ARG_REPLACEMENTS, METHOD_RENAMES, true)
         );
     }
 }
