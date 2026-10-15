@@ -100,8 +100,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                     .withComments(method.getComments());
         }
         // Auto-format the top invocation call if anything has changed down the tree
-        Cursor grandParent = getCursor().getParent(2);
-        if (initialMethod != method && (grandParent == null || !(grandParent.getValue() instanceof J.MethodInvocation))) {
+        if (initialMethod != method && nextCallInChain(getCursor()) == null) {
             method = autoFormat(method, executionContext);
         }
         return method;
@@ -245,13 +244,19 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (c == null) {
             return false;
         }
-
-        if (!(c.getValue() instanceof J.MethodInvocation)) {
-            return false;
-        }
-
         J.MethodInvocation inv = c.getValue();
         return !isAndMethod(inv) && !isDisableMethod(inv);
+    }
+
+    private static @Nullable Cursor nextCallInChain(Cursor call) {
+        Cursor parent = call.getParentTreeCursor();
+        if (parent.getValue() instanceof J.MethodInvocation) {
+            Expression select = ((J.MethodInvocation) parent.getValue()).getSelect();
+            if (select != null && select.isScope(call.getValue())) {
+                return parent;
+            }
+        }
+        return null;
     }
 
     private List<J.MethodInvocation> computeAndMarkChain() {
@@ -261,25 +266,25 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         createDesiredReplacementForArg(initialMethodInvocation).ifPresent(methodType ->
                 chain.add(initialMethodInvocation.withName(
                         initialMethodInvocation.getName().withType(methodType).withSimpleName(methodType.getName()))));
-        cursor = cursor.getParent(2);
-        for (; isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
+        cursor = nextCallInChain(cursor);
+        for (; isApplicableCallCursor(cursor); cursor = nextCallInChain(cursor)) {
             cursor.putMessage(MSG_FLATTEN_CHAIN, true);
             chain.add(cursor.getValue());
         }
-        if (cursor != null && cursor.getValue() instanceof J.MethodInvocation) {
+        if (cursor != null) {
             if (isAndMethod(cursor.getValue())) {
                 cursor.putMessage(MSG_FLATTEN_CHAIN, true);
-                cursor = cursor.getParent(2);
+                cursor = nextCallInChain(cursor);
             } else if (isDisableMethod(cursor.getValue())) {
                 cursor.putMessage(MSG_FLATTEN_CHAIN, true);
                 chain.add(cursor.getValue());
-                cursor = cursor.getParent(2);
+                cursor = nextCallInChain(cursor);
             }
         }
-        if (cursor == null || chain.isEmpty()) {
+        if (chain.isEmpty()) {
             return emptyList();
         }
-        if (!(cursor.getValue() instanceof J.MethodInvocation)) {
+        if (cursor == null) {
             // top invocation is at the end of the chain - mark it. We'd need to strip off prefix from this invocation later
             J.MethodInvocation topInvocation = chain.remove(chain.size() - 1);
             // removed above, now add it back with the marker
@@ -296,11 +301,11 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
      */
     private boolean isResultOfConvertedChainUsed() {
         Cursor topOfChain = getCursor();
-        Cursor parent = topOfChain.getParent(2);
-        for (; isApplicableCallCursor(parent); parent = parent.getParent(2)) {
-            topOfChain = parent;
+        Cursor next = nextCallInChain(topOfChain);
+        for (; isApplicableCallCursor(next); next = nextCallInChain(next)) {
+            topOfChain = next;
         }
-        if (parent != null && parent.getValue() instanceof J.MethodInvocation) {
+        if (next != null) {
             // terminated by `and()` or `disable()`, so the converted expression still evaluates to the builder
             return false;
         }
