@@ -28,7 +28,6 @@ import org.openrewrite.marker.Markers;
 import org.openrewrite.marker.Markup;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -42,8 +41,6 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private static final String FQN_CUSTOMIZER = "org.springframework.security.config.Customizer";
     private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE = JavaType.ShallowClass.build(FQN_CUSTOMIZER);
-
-    private static final Pattern KOTLIN_FUNCTION_TYPE = Pattern.compile("kotlin\\.(jvm\\.functions\\.)?Function\\d+");
 
     private static final MethodMatcher XSS_PROTECTION_ENABLED = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.XXssConfig xssProtectionEnabled(boolean)");
 
@@ -307,70 +304,15 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             // terminated by `and()` or `disable()`, so the converted expression still evaluates to the builder
             return false;
         }
-        Cursor enclosing = topOfChain.getParentTreeCursor();
-        if (enclosing.getValue() instanceof J.Lambda) {
-            return !isVoidLambda(enclosing);
-        }
-        if (enclosing.getValue() instanceof J.Block) {
-            Cursor blockParent = enclosing.getParentTreeCursor();
-            return blockParent.getValue() instanceof J.Lambda &&
-                   isImplicitlyReturned(topOfChain.getValue(), enclosing.getValue()) &&
-                   !isVoidLambda(blockParent);
-        }
-        return true;
+        Object enclosing = topOfChain.getParentTreeCursor().getValue();
+        return !(enclosing instanceof J.Block ||
+                 enclosing instanceof J.Lambda && isVoidLambda((J.Lambda) enclosing));
     }
 
-    /**
-     * Unlike Java, Kotlin and Groovy lambdas evaluate to their last expression without a `return` statement.
-     */
-    private boolean isImplicitlyReturned(J.MethodInvocation method, J.Block lambdaBody) {
-        List<Statement> statements = lambdaBody.getStatements();
-        return getCursor().firstEnclosing(J.CompilationUnit.class) == null &&
-               !statements.isEmpty() && statements.get(statements.size() - 1) == method;
-    }
-
-    private static boolean isVoidLambda(Cursor lambdaCursor) {
-        J.Lambda lambda = lambdaCursor.getValue();
-        JavaType functionalType = lambda.getType() != null ?
-                lambda.getType() :
-                lambdaParameterType(lambda, lambdaCursor.getParentTreeCursor().getValue());
-        return returnsVoid(functionalType);
-    }
-
-    /**
-     * Kotlin lambdas carry no type of their own, so it is taken from the parameter of the invoked method instead.
-     * Parameters are matched from the end, as extension functions also list their receiver as a parameter.
-     */
-    private static @Nullable JavaType lambdaParameterType(J.Lambda lambda, Object invocation) {
-        JavaType.Method methodType;
-        List<Expression> arguments;
-        if (invocation instanceof J.MethodInvocation) {
-            methodType = ((J.MethodInvocation) invocation).getMethodType();
-            arguments = ((J.MethodInvocation) invocation).getArguments();
-        } else if (invocation instanceof J.NewClass) {
-            methodType = ((J.NewClass) invocation).getConstructorType();
-            arguments = ((J.NewClass) invocation).getArguments();
-        } else {
-            return null;
-        }
-        int argumentIndex = arguments.indexOf(lambda);
-        if (methodType == null || argumentIndex < 0 || methodType.hasFlags(Flag.Varargs)) {
-            return null;
-        }
-        List<JavaType> parameterTypes = methodType.getParameterTypes();
-        int parameterIndex = parameterTypes.size() - arguments.size() + argumentIndex;
-        return parameterIndex < 0 ? null : parameterTypes.get(parameterIndex);
-    }
-
-    private static boolean returnsVoid(@Nullable JavaType functionalType) {
-        JavaType.FullyQualified functionalInterface = TypeUtils.asFullyQualified(functionalType);
+    private static boolean isVoidLambda(J.Lambda lambda) {
+        JavaType.FullyQualified functionalInterface = TypeUtils.asFullyQualified(lambda.getType());
         if (functionalInterface == null) {
             return false;
-        }
-        if (KOTLIN_FUNCTION_TYPE.matcher(functionalInterface.getFullyQualifiedName()).matches()) {
-            List<JavaType> typeParameters = functionalInterface.getTypeParameters();
-            JavaType returnType = typeParameters.isEmpty() ? null : typeParameters.get(typeParameters.size() - 1);
-            return returnType == JavaType.Primitive.Void || TypeUtils.isOfClassType(returnType, "kotlin.Unit");
         }
         for (JavaType.Method method : functionalInterface.getMethods()) {
             if (method.hasFlags(Flag.Abstract)) {
