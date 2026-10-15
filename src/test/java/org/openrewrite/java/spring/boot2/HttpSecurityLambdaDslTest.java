@@ -15,14 +15,17 @@
  */
 package org.openrewrite.java.spring.boot2;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.kotlin.Assertions.kotlin;
 
 class HttpSecurityLambdaDslTest implements RewriteTest {
 
@@ -39,7 +42,11 @@ class HttpSecurityLambdaDslTest implements RewriteTest {
               "spring-security-core-5.8",
               "spring-security-config-5.8",
               "spring-security-web-5.8",
-              "tomcat-embed-core-9"));
+              "tomcat-embed-core-9"))
+          .parser(KotlinParser.builder()
+            .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-beans-5", "spring-context-5", "spring-core-5",
+              "spring-security-core-5.8", "spring-security-config-5.8", "spring-security-web-5.8"));
     }
 
     @DocumentExample
@@ -412,5 +419,71 @@ class HttpSecurityLambdaDslTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Nested
+    class Kotlin {
+        @Test
+        void doNotConvertExpressionBody() {
+            rewriteRun(
+              //language=kotlin
+              kotlin(
+                """
+                  import org.springframework.security.config.annotation.web.builders.HttpSecurity
+
+                  class SecurityConfig {
+                      fun httpBasic(http: HttpSecurity) = http.httpBasic()
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void doNotConvertImplicitlyReturnedFromValueLambda() {
+            rewriteRun(
+              //language=kotlin
+              kotlin(
+                """
+                  import org.springframework.security.config.annotation.web.builders.HttpSecurity
+
+                  class SecurityConfig {
+                      fun configure(http: HttpSecurity) {
+                          val basic = run { http.httpBasic() }
+                          basic.realmName("realm")
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void convertImplicitlyReturnedFromUnitLambda() {
+            rewriteRun(
+              //language=kotlin
+              kotlin(
+                """
+                  import org.springframework.security.config.annotation.web.builders.HttpSecurity
+
+                  class SecurityConfig {
+                      fun configure(securities: List<HttpSecurity>) {
+                          securities.forEach { it.httpBasic() }
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.security.config.Customizer.withDefaults
+                  import org.springframework.security.config.annotation.web.builders.HttpSecurity
+
+                  class SecurityConfig {
+                      fun configure(securities: List<HttpSecurity>) {
+                          securities.forEach { it.httpBasic(withDefaults()) }
+                      }
+                  }
+                  """
+              )
+            );
+        }
     }
 }
