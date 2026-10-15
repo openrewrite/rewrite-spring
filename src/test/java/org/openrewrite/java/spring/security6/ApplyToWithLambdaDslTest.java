@@ -188,6 +188,50 @@ class ApplyToWithLambdaDslTest implements RewriteTest {
     }
 
     @Test
+    void doNotConvertWhenReturnedFromCustomBuilder() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.AbstractConfiguredSecurityBuilder;
+              import org.springframework.security.config.annotation.ObjectPostProcessor;
+              import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
+
+              public abstract class CustomSecurity extends AbstractConfiguredSecurityBuilder<String, CustomSecurity> {
+                  CustomSecurity(ObjectPostProcessor<Object> objectPostProcessor) {
+                      super(objectPostProcessor);
+                  }
+
+                  <C extends SecurityConfigurerAdapter<String, CustomSecurity>> C register(C configurer) {
+                      return apply(configurer);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotConvertWhenAssigned() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+
+              public class MySecurityConfig {
+                  public void configure(HttpSecurity http) {
+                      SessionManagementConfigurer<HttpSecurity> session = http.apply(new SessionManagementConfigurer<>());
+                      session.invalidSessionUrl("junk");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void convertUnqualifiedApplyInCustomBuilder() {
         //language=java
         rewriteRun(

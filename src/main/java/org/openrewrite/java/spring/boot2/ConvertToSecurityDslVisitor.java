@@ -73,7 +73,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     @Override
     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation initialMethod, P executionContext) {
         J.MethodInvocation method = super.visitMethodInvocation(initialMethod, executionContext);
-        if (isApplicableMethod(method)) {
+        if (isApplicableMethod(method) && !isResultOfConvertedChainUsed()) {
             J.MethodInvocation m = method;
             method = createDesiredReplacement(method)
                     .map(newMethodType -> {
@@ -100,8 +100,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                     .withComments(method.getComments());
         }
         // Auto-format the top invocation call if anything has changed down the tree
-        Cursor grandParent = getCursor().getParent(2);
-        if (initialMethod != method && (grandParent == null || !(grandParent.getValue() instanceof J.MethodInvocation))) {
+        if (initialMethod != method && nextCallInChain(getCursor()) == null) {
             method = autoFormat(method, executionContext);
         }
         return method;
@@ -245,13 +244,19 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (c == null) {
             return false;
         }
-
-        if (!(c.getValue() instanceof J.MethodInvocation)) {
-            return false;
-        }
-
         J.MethodInvocation inv = c.getValue();
         return !isAndMethod(inv) && !isDisableMethod(inv);
+    }
+
+    private static @Nullable Cursor nextCallInChain(Cursor call) {
+        Cursor parent = call.getParentTreeCursor();
+        if (parent.getValue() instanceof J.MethodInvocation) {
+            Expression select = ((J.MethodInvocation) parent.getValue()).getSelect();
+            if (select != null && select.isScope(call.getValue())) {
+                return parent;
+            }
+        }
+        return null;
     }
 
     private List<J.MethodInvocation> computeAndMarkChain() {
@@ -261,31 +266,65 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         createDesiredReplacementForArg(initialMethodInvocation).ifPresent(methodType ->
                 chain.add(initialMethodInvocation.withName(
                         initialMethodInvocation.getName().withType(methodType).withSimpleName(methodType.getName()))));
-        cursor = cursor.getParent(2);
-        for (; isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
+        cursor = nextCallInChain(cursor);
+        for (; isApplicableCallCursor(cursor); cursor = nextCallInChain(cursor)) {
             cursor.putMessage(MSG_FLATTEN_CHAIN, true);
             chain.add(cursor.getValue());
         }
-        if (cursor != null && cursor.getValue() instanceof J.MethodInvocation) {
+        if (cursor != null) {
             if (isAndMethod(cursor.getValue())) {
                 cursor.putMessage(MSG_FLATTEN_CHAIN, true);
-                cursor = cursor.getParent(2);
+                cursor = nextCallInChain(cursor);
             } else if (isDisableMethod(cursor.getValue())) {
                 cursor.putMessage(MSG_FLATTEN_CHAIN, true);
                 chain.add(cursor.getValue());
-                cursor = cursor.getParent(2);
+                cursor = nextCallInChain(cursor);
             }
         }
-        if (cursor == null || chain.isEmpty()) {
+        if (chain.isEmpty()) {
             return emptyList();
         }
-        if (!(cursor.getValue() instanceof J.MethodInvocation)) {
+        if (cursor == null) {
             // top invocation is at the end of the chain - mark it. We'd need to strip off prefix from this invocation later
             J.MethodInvocation topInvocation = chain.remove(chain.size() - 1);
             // removed above, now add it back with the marker
             chain.add(topInvocation.withMarkers(topInvocation.getMarkers().addIfAbsent(new Markup.Info(Tree.randomId(), MSG_TOP_INVOCATION, null))));
         }
         return chain;
+    }
+
+    /**
+     * Converting a configurer call plus the calls chained after it into the lambda form changes the type of the
+     * resulting expression from the configurer to the security builder, unless the chain is terminated by an
+     * `and()` or `disable()` call that already returned the builder. That is only safe when the value of the
+     * expression is not used, so a call whose result is returned, assigned or passed on is left unchanged.
+     */
+    private boolean isResultOfConvertedChainUsed() {
+        Cursor topOfChain = getCursor();
+        Cursor next = nextCallInChain(topOfChain);
+        for (; isApplicableCallCursor(next); next = nextCallInChain(next)) {
+            topOfChain = next;
+        }
+        if (next != null) {
+            // terminated by `and()` or `disable()`, so the converted expression still evaluates to the builder
+            return false;
+        }
+        Object enclosing = topOfChain.getParentTreeCursor().getValue();
+        return !(enclosing instanceof J.Block ||
+                 enclosing instanceof J.Lambda && isVoidLambda((J.Lambda) enclosing));
+    }
+
+    private static boolean isVoidLambda(J.Lambda lambda) {
+        JavaType.FullyQualified functionalInterface = TypeUtils.asFullyQualified(lambda.getType());
+        if (functionalInterface == null) {
+            return false;
+        }
+        for (JavaType.Method method : functionalInterface.getMethods()) {
+            if (method.hasFlags(Flag.Abstract)) {
+                return method.getReturnType() == JavaType.Primitive.Void;
+            }
+        }
+        return false;
     }
 
     private boolean isAndMethod(J.MethodInvocation method) {
