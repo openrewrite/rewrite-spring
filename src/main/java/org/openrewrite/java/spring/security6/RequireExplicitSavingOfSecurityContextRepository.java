@@ -18,11 +18,14 @@ package org.openrewrite.java.spring.security6;
 import lombok.Getter;
 import lombok.Value;
 import lombok.With;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
@@ -51,6 +54,20 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer", true), new JavaIsoVisitor<ExecutionContext>() {
+            private int depth;
+
+            @Override
+            public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
+                depth++;
+                try {
+                    J j = super.visit(tree, ctx);
+                    // Elements whose parent doesn't remove them, like a lambda passed to a method not on `HttpSecurity`, still carry the marker
+                    return depth == 1 && j != null ? ToBeRemoved.removeAll(j) : j;
+                } finally {
+                    depth--;
+                }
+            }
+
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
@@ -127,6 +144,15 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
 
         static boolean hasMarker(J j) {
             return j.getMarkers().findFirst(ToBeRemoved.class).isPresent();
+        }
+
+        static J removeAll(J j) {
+            return new JavaVisitor<Integer>() {
+                @Override
+                public J preVisit(J tree, Integer p) {
+                    return hasMarker(tree) ? removeMarker(tree) : tree;
+                }
+            }.visitNonNull(j, 0);
         }
     }
 

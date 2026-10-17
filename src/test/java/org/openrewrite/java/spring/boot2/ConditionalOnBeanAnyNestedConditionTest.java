@@ -82,7 +82,6 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
                   public ThingOne thingOne() {
                       return new ThingOne();
                   }
-
                   @Bean
                   @Conditional(ConditionAaOrBb.class)
                   public ThingTwo thingTwo() {

@@ -28,6 +28,7 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
 public class MigrateWebMvcConfigurerAdapter extends Recipe {
@@ -76,13 +77,7 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
             @Override
             public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
-                    if (newClass.getClazz() instanceof J.Identifier) {
-                        J.Identifier identifier = (J.Identifier) newClass.getClazz();
-                        newClass = newClass.withClazz(identifier
-                                .withType(WEB_MVC_CONFIGURER_TYPE)
-                                .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
-                        );
-                    }
+                    newClass = newClass.withClazz(toWebMvcConfigurer(newClass.getClazz()));
                     maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
                     maybeAddImport(WEB_MVC_CONFIGURER);
                 }
@@ -92,18 +87,29 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
                 if (md.getMethodType() != null && TypeUtils.isOfClassType(md.getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
-                    if (md.getReturnTypeExpression() instanceof J.Identifier) {
-                        J.Identifier identifier = (J.Identifier) md.getReturnTypeExpression();
-                        md = md.withReturnTypeExpression(identifier
-                                .withType(WEB_MVC_CONFIGURER_TYPE)
-                                .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName())
-                        );
+                    if (md.getReturnTypeExpression() != null) {
+                        md = md.withReturnTypeExpression(toWebMvcConfigurer(md.getReturnTypeExpression()));
                     }
 
                     maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
                     maybeAddImport(WEB_MVC_CONFIGURER);
                 }
                 return super.visitMethodDeclaration(md, ctx);
+            }
+
+            private TypeTree toWebMvcConfigurer(TypeTree typeTree) {
+                J.Identifier identifier;
+                if (typeTree instanceof J.Identifier) {
+                    identifier = (J.Identifier) typeTree;
+                } else if (typeTree instanceof J.FieldAccess) {
+                    // A fully qualified name, which becomes the simple name of the added import
+                    identifier = ((J.FieldAccess) typeTree).getName().withPrefix(typeTree.getPrefix());
+                } else {
+                    return typeTree;
+                }
+                return identifier
+                        .withType(WEB_MVC_CONFIGURER_TYPE)
+                        .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName());
             }
 
             class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {

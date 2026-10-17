@@ -27,6 +27,7 @@ import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
 
@@ -86,36 +87,34 @@ public class SimplifyWebTestClientCalls extends Recipe {
                 if (expression instanceof J.FieldAccess) {
                     //isEqualTo(HttpStatus.OK)
                     J.FieldAccess fa = (J.FieldAccess) expression;
-                    if (fa.getTarget() instanceof J.Identifier) {
-                        if ("HttpStatus".equals(((J.Identifier) fa.getTarget()).getSimpleName())) {
-                            switch (fa.getSimpleName()) {
-                                case "OK":
-                                    return 200;
-                                case "CREATED":
-                                    return 201;
-                                case "ACCEPTED":
-                                    return 202;
-                                case "NO_CONTENT":
-                                    return 204;
-                                case "FOUND":
-                                    return 302;
-                                case "SEE_OTHER":
-                                    return 303;
-                                case "NOT_MODIFIED":
-                                    return 304;
-                                case "TEMPORARY_REDIRECT":
-                                    return 307;
-                                case "PERMANENT_REDIRECT":
-                                    return 308;
-                                case "BAD_REQUEST":
-                                    return 400;
-                                case "UNAUTHORIZED":
-                                    return 401;
-                                case "FORBIDDEN":
-                                    return 403;
-                                case "NOT_FOUND":
-                                    return 404;
-                            }
+                    if (TypeUtils.isOfClassType(fa.getTarget().getType(), "org.springframework.http.HttpStatus")) {
+                        switch (fa.getSimpleName()) {
+                            case "OK":
+                                return 200;
+                            case "CREATED":
+                                return 201;
+                            case "ACCEPTED":
+                                return 202;
+                            case "NO_CONTENT":
+                                return 204;
+                            case "FOUND":
+                                return 302;
+                            case "SEE_OTHER":
+                                return 303;
+                            case "NOT_MODIFIED":
+                                return 304;
+                            case "TEMPORARY_REDIRECT":
+                                return 307;
+                            case "PERMANENT_REDIRECT":
+                                return 308;
+                            case "BAD_REQUEST":
+                                return 400;
+                            case "UNAUTHORIZED":
+                                return 401;
+                            case "FORBIDDEN":
+                                return 403;
+                            case "NOT_FOUND":
+                                return 404;
                         }
                     }
                 } else if (expression instanceof J.Literal) {

@@ -60,6 +60,14 @@ public class PreciseBeanType extends Recipe {
                                     .withType(actualType)
                                     .withSimpleName(actualType.getClassName())
                             );
+                        } else if (m.getReturnTypeExpression() instanceof J.FieldAccess) {
+                            // A fully qualified return type
+                            J.FieldAccess fieldAccessReturnExpr = (J.FieldAccess) m.getReturnTypeExpression();
+                            maybeAddImport(actualType);
+                            m = m.withReturnTypeExpression(TypeTree.build(actualType.getClassName())
+                                    .withType(actualType)
+                                    .withPrefix(fieldAccessReturnExpr.getPrefix())
+                            );
                         } else if (m.getReturnTypeExpression() instanceof J.ParameterizedType) {
                             J.ParameterizedType parameterizedType = (J.ParameterizedType) m.getReturnTypeExpression();
                             maybeAddImport(actualType);

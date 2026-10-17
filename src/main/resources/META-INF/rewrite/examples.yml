@@ -164,16 +164,23 @@ examples:
         servlet:
           path: /tmp/my-server-path
     language: yaml
-- description: '`MarkAdditionalSpringConfigFilesTest#enablesChangeSpringPropertyKeyOnFileOutsideSourceSet`'
+- description: '`SpringConfigFilesTest#changesFileImportedByApplicationYaml`'
   parameters:
   - server.servlet-path
   - server.servlet.path
   - 'null'
   sources:
   - before: |
+      spring:
+        config:
+          import: optional:file:./config/extra.properties
+    path: application.yml
+    language: yaml
+  - before: |
       server.servlet-path=/tmp/my-server-path
     after: |
       server.servlet.path=/tmp/my-server-path
+    path: config/extra.properties
     language: properties
 ---
 type: specs.openrewrite.org/v1beta/example

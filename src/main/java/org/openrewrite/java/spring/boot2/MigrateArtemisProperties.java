@@ -20,6 +20,7 @@ import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.spring.IsPossibleSpringConfigFile;
+import org.openrewrite.java.spring.SpringConfigFiles;
 import org.openrewrite.properties.AddProperty;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
@@ -31,7 +32,7 @@ import java.util.Set;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
-public class MigrateArtemisProperties extends Recipe {
+public class MigrateArtemisProperties extends ScanningRecipe<SpringConfigFiles> {
 
     String displayName = "Migrate `spring.artemis.host` and `spring.artemis.port` to `spring.artemis.broker-url`";
 
@@ -39,8 +40,18 @@ public class MigrateArtemisProperties extends Recipe {
             "in the format `tcp://host:port`.";
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new IsPossibleSpringConfigFile(), new TreeVisitor<Tree, ExecutionContext>() {
+    public SpringConfigFiles getInitialValue(ExecutionContext ctx) {
+        return new SpringConfigFiles();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(SpringConfigFiles acc) {
+        return acc.getScanner();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
+        return Preconditions.check(new IsPossibleSpringConfigFile(acc), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Properties.File) {
