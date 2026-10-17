@@ -170,7 +170,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
             }
             Yaml.Document mergedDocument = doc;
             for (Yaml.Document d : bootstrapBaseDocuments) {
-                Yaml.Document mergedDocumentOrNull = (Yaml.Document) new MergeYamlVisitor<Integer>(mergedDocument.getBlock(), d.getBlock(), true, null, null, null).visit(mergedDocument, 0, new Cursor(new Cursor(null, a), mergedDocument));
+                Yaml.Document mergedDocumentOrNull = (Yaml.Document) new MergeYamlVisitor<Integer>(mergedDocument.getBlock(), d.getBlock(), true, null, null, null).visit(mergedDocument, 0, new Cursor(null, a));
                 if (mergedDocumentOrNull != null) {
                     mergedDocument = mergedDocumentOrNull;
                 }
