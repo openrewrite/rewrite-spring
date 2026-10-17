@@ -23,11 +23,13 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.spring.IsPossibleSpringConfigFile;
+import org.openrewrite.java.spring.SpringConfigFiles;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,18 +65,19 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(DocketBeanAccumulator acc) {
-        return Preconditions.check(shouldVisit(), new TreeVisitor<Tree, ExecutionContext>() {
+        TreeVisitor<?, ExecutionContext> springConfigFiles = acc.springConfigFiles.getScanner();
+        return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof J.CompilationUnit) {
-                    return new JavaBeanConfigurationScanner(acc).visitNonNull(tree, ctx);
+                springConfigFiles.visit(tree, ctx, getCursor());
+                if (tree instanceof J.CompilationUnit && usesDocketBean().visit(tree, ctx) != tree) {
+                    new JavaBeanConfigurationScanner(acc).visit(tree, ctx);
+                } else if (isApplicationProperties(tree)) {
+                    acc.applicationProperties.add(((SourceFile) tree).getSourcePath());
                 }
-                if (isApplicationProperties(tree)) {
-                    acc.hasProperties = true;
-                }
-                return super.visit(tree, ctx);
+                return tree;
             }
-        });
+        };
     }
 
     @Override
@@ -85,7 +88,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         boolean singleDocket = acc.docketDefinitions.size() == 1;
         DocketDefinition onlyDocket = singleDocket ? acc.docketDefinitions.get(0) : null;
         boolean canConfigureInProperties = singleDocket && canConfigureInProperties(acc, onlyDocket);
-        return Preconditions.check(shouldVisit(), new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(shouldVisit(acc), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof J.CompilationUnit) {
@@ -107,10 +110,13 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         });
     }
 
-    private static TreeVisitor<?, ExecutionContext> shouldVisit() {
-        return or(new IsPossibleSpringConfigFile(),
-                and(new UsesType<>("springfox.documentation.spring.web.plugins.Docket", true),
-                        new UsesType<>("org.springframework.context.annotation.Bean", true)));
+    private static TreeVisitor<?, ExecutionContext> shouldVisit(DocketBeanAccumulator acc) {
+        return or(new IsPossibleSpringConfigFile(acc.springConfigFiles), usesDocketBean());
+    }
+
+    private static TreeVisitor<?, ExecutionContext> usesDocketBean() {
+        return and(new UsesType<>("springfox.documentation.spring.web.plugins.Docket", true),
+                new UsesType<>("org.springframework.context.annotation.Bean", true));
     }
 
     private static boolean isApplicationProperties(@Nullable Tree tree) {
@@ -119,7 +125,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     }
 
     private static boolean canConfigureInProperties(DocketBeanAccumulator acc, DocketDefinition docketDefinition) {
-        return acc.hasProperties &&
+        return acc.applicationProperties.stream().anyMatch(acc.springConfigFiles::isSpringConfigFile) &&
                 docketDefinition.annotationFilters.isEmpty() &&
                 (docketDefinition.groupName == null || docketDefinition.groupName instanceof J.Literal) &&
                 (docketDefinition.apis == null || docketDefinition.apis instanceof J.Literal) &&
@@ -231,7 +237,6 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
         public @Nullable J visit(@Nullable Tree tree, ArgumentExtractorResult argumentExtractorResult) {
             if (argumentExtractorResult.builder.isValid() &&
                     tree instanceof J.MethodInvocation &&
-                    ((J.MethodInvocation) tree).getSelect() != null &&
                     methodMatchers.stream().anyMatch(e -> e.matches((J.MethodInvocation) tree))) {
                 return super.visit(tree, argumentExtractorResult);
             }
@@ -265,7 +270,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     }
 
     public static class DocketBeanAccumulator {
-        public boolean hasProperties = false;
+        public SpringConfigFiles springConfigFiles = new SpringConfigFiles();
+        public List<Path> applicationProperties = new ArrayList<>();
         public List<DocketDefinition> docketDefinitions = new ArrayList<>();
     }
 

@@ -17,14 +17,15 @@ package org.openrewrite.java.spring;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.jspecify.annotations.Nullable;
-import org.openrewrite.*;
-import org.openrewrite.marker.SourceSet;
-import org.openrewrite.properties.tree.Properties;
-import org.openrewrite.yaml.tree.Yaml;
+import org.openrewrite.Option;
+import org.openrewrite.Recipe;
 
 import java.util.List;
 
+/**
+ * @deprecated The Spring property recipes discover Spring configuration files outside source sets themselves.
+ */
+@Deprecated
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class MarkAdditionalSpringConfigFiles extends Recipe {
@@ -38,32 +39,7 @@ public class MarkAdditionalSpringConfigFiles extends Recipe {
 
     String displayName = "Mark additional files as Spring configuration";
 
-    String description = "Attach a `SpringConfigFile` marker to YAML/properties files matching the provided glob patterns " +
-            "so that Spring property recipes such as `ChangeSpringPropertyKey`, `DeleteSpringProperty`, " +
-            "`ChangeSpringPropertyValue`, and `CommentOutSpringPropertyKey` will visit files that live " +
-            "outside standard resource source sets. Files that already pass the `SourceSet`-based check are " +
-            "skipped to avoid redundant markers.";
-
-    @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
-        if (pathPatterns == null || pathPatterns.isEmpty()) {
-            return TreeVisitor.noop();
-        }
-        return Preconditions.check(
-                new FindSourceFiles(String.join(";", pathPatterns)).getVisitor(),
-                new TreeVisitor<Tree, ExecutionContext>() {
-                    @Override
-                    public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                        if (!(tree instanceof Properties.File) && !(tree instanceof Yaml.Documents)) {
-                            return tree;
-                        }
-                        SourceFile sf = (SourceFile) tree;
-                        if (sf.getMarkers().findFirst(SourceSet.class).isPresent() ||
-                                sf.getMarkers().findFirst(SpringConfigFile.class).isPresent()) {
-                            return tree;
-                        }
-                        return sf.withMarkers(sf.getMarkers().add(new SpringConfigFile(Tree.randomId())));
-                    }
-                });
-    }
+    String description = "Deprecated, and makes no changes. Spring property recipes such as " +
+            "`ChangeSpringPropertyKey`, `DeleteSpringProperty`, `ChangeSpringPropertyValue`, and " +
+            "`CommentOutSpringPropertyKey` now discover the Spring configuration files outside source sets themselves.";
 }

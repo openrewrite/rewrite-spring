@@ -436,4 +436,58 @@ class IntegrationSchedulerPoolRecipeTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void commentAddedByPreviousRun() {
+        rewriteRun(
+          mavenProject("sample",
+            pomXml(
+              //language=xml
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.4.13</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>acme</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-integration</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  package demo;
+
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  // TODO: Scheduler thread pool size for Spring Integration either in properties or config server
+                  @SpringBootApplication
+                  public class ExampleApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(ExampleApplication.class, args);
+                      }
+                  }
+                  """
+              )
+            )
+          )
+        );
+    }
 }

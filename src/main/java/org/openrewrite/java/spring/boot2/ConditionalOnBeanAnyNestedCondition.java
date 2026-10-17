@@ -153,10 +153,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                                     .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
                             .build();
 
-                    c = maybeAutoFormat(
-                            c,
-                            t.apply(getCursor(), c.getBody().getCoordinates().lastStatement()),
-                            ctx);
+                    c = t.apply(getCursor(), c.getBody().getCoordinates().lastStatement());
                     updateCursor(c);
                 }
 

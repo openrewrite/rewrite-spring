@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
-public class ChangeSpringPropertyValue extends Recipe {
+public class ChangeSpringPropertyValue extends ScanningRecipe<SpringConfigFiles> {
 
     String displayName = "Change the value of a spring application property";
 
@@ -82,14 +82,24 @@ public class ChangeSpringPropertyValue extends Recipe {
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
+    public SpringConfigFiles getInitialValue(ExecutionContext ctx) {
+        return new SpringConfigFiles();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(SpringConfigFiles acc) {
+        return acc.getScanner();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
         Recipe changeProperties = new org.openrewrite.properties.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
         String yamlValue = quoteValue(newValue) ? "\"" + newValue + "\"" : newValue;
         Recipe changeYaml = new org.openrewrite.yaml.ChangePropertyValue(propertyKey, yamlValue, oldValue, regex, relaxedBinding, null);
         TreeVisitor<?, ExecutionContext> propertiesVisitor = Preconditions.check(
-                new IsPossibleSpringConfigFile(), changeProperties.getVisitor());
+                new IsPossibleSpringConfigFile(acc), changeProperties.getVisitor());
         TreeVisitor<?, ExecutionContext> yamlVisitor = Preconditions.check(
-                new IsPossibleSpringConfigFile(), changeYaml.getVisitor());
+                new IsPossibleSpringConfigFile(acc), changeYaml.getVisitor());
         TreeVisitor<?, ExecutionContext> javaVisitor = Preconditions.check(Preconditions.or(
                 new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
                 new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false),
