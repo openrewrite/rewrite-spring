@@ -126,7 +126,7 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                     for (Yaml.Document incoming : docsToMerge) {
                         Yaml.Document mergedOrNull = (Yaml.Document) new MergeYamlVisitor<Integer>(
                                 mergedDoc.getBlock(), incoming.getBlock(), true, null, null, null
-                        ).visit(mergedDoc, 0, new Cursor(new Cursor(null, result), mergedDoc));
+                        ).visit(mergedDoc, 0, new Cursor(null, result));
                         if (mergedOrNull != null) {
                             mergedDoc = mergedOrNull;
                         }
