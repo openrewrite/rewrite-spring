@@ -27,6 +27,7 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.DeclaresMethod;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.service.AnnotationService;
+import org.openrewrite.java.spring.internal.NamedTypes;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
@@ -137,6 +138,8 @@ public class MigrateItemWriterWrite extends Recipe {
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                         .imports("org.springframework.batch.item.Chunk")
+                        // the method's own annotations, parameter and body are printed into the template
+                        .imports(NamedTypes.in(m))
                         .build()
                         .apply(
                                 getCursor(),

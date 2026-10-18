@@ -27,12 +27,15 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.Space;
-import org.openrewrite.java.tree.TypeTree;
+import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.openrewrite.Tree.randomId;
 
 public class MigrateJobParameter extends Recipe {
 
@@ -88,15 +91,13 @@ public class MigrateJobParameter extends Recipe {
                         if (defineMapTypeWithJobParameter(multiVariable.getType())) {
                             multiVariable = (J.VariableDeclarations) new JNewClassOfMap().visit(multiVariable, ctx, getCursor().getParentTreeCursor());
                             maybeAddImport("java.util.Map");
-                            return multiVariable.withTypeExpression(TypeTree.build("Map<String, JobParameter<?>>")
-                                            .withPrefix(multiVariable.getTypeExpression().getPrefix()))
-                                    .withType(JavaType.buildType("java.util.Map"));
+                            return multiVariable.withTypeExpression(mapOfJobParameters(false,
+                                    multiVariable.getTypeExpression().getPrefix()));
                         }
                         if (defineMapEntryTypeWithJobParameter(multiVariable.getType())) {
                             maybeAddImport("java.util.Map");
-                            return multiVariable.withTypeExpression(TypeTree.build("Map.Entry<String, JobParameter<?>>")
-                                            .withPrefix(multiVariable.getTypeExpression().getPrefix()))
-                                    .withType(JavaType.buildType("java.util.Map.Entry"));
+                            return multiVariable.withTypeExpression(mapOfJobParameters(true,
+                                    multiVariable.getTypeExpression().getPrefix()));
                         }
                         return multiVariable;
                     }
@@ -113,12 +114,12 @@ public class MigrateJobParameter extends Recipe {
                         method = super.visitMethodDeclaration(method, ctx);
 
                         if (method.getReturnTypeExpression() != null && defineMapTypeWithJobParameter(method.getReturnTypeExpression().getType())) {
-                            method = method.withReturnTypeExpression(TypeTree.build("Map<String, JobParameter<?>>")
-                                    .withPrefix(method.getReturnTypeExpression().getPrefix()));
+                            method = method.withReturnTypeExpression(mapOfJobParameters(false,
+                                    method.getReturnTypeExpression().getPrefix()));
                             doAfterVisit(new AddImport<>("java.util.Map", null, false));
                         } else if (method.getReturnTypeExpression() != null && defineMapEntryTypeWithJobParameter(method.getReturnTypeExpression().getType())) {
-                            method = method.withReturnTypeExpression(TypeTree.build("Map.Entry<String, JobParameter<?>>")
-                                    .withPrefix(method.getReturnTypeExpression().getPrefix()));
+                            method = method.withReturnTypeExpression(mapOfJobParameters(true,
+                                    method.getReturnTypeExpression().getPrefix()));
                             doAfterVisit(new AddImport<>("java.util.Map", null, false));
                         }
                         return method;
@@ -179,6 +180,33 @@ public class MigrateJobParameter extends Recipe {
         );
     }
 
+    /**
+     * {@code Map<String, JobParameter<?>>}, or {@code Map.Entry<String, JobParameter<?>>}, built as the parser does.
+     */
+    private static J.ParameterizedType mapOfJobParameters(boolean entry, Space prefix) {
+        JavaType.FullyQualified mapType = JavaType.ShallowClass.build(entry ? "java.util.Map$Entry" : "java.util.Map");
+        JavaType.FullyQualified stringType = JavaType.ShallowClass.build("java.lang.String");
+        JavaType.FullyQualified jobParameterClass = JavaType.ShallowClass.build(JOBPARAMETER);
+        JavaType.Parameterized jobParameterType = new JavaType.Parameterized(null, jobParameterClass, singletonList(
+                new JavaType.GenericTypeVariable(null, "?", JavaType.GenericTypeVariable.Variance.INVARIANT, null)));
+        J.ParameterizedType jobParameter = new J.ParameterizedType(randomId(), Space.SINGLE_SPACE, Markers.EMPTY,
+                identifier("JobParameter", jobParameterClass),
+                JContainer.build(singletonList(JRightPadded.build(new J.Wildcard(randomId(), Space.EMPTY, Markers.EMPTY, null, null)))),
+                jobParameterType);
+        NameTree map = entry ?
+                new J.FieldAccess(randomId(), Space.EMPTY, Markers.EMPTY,
+                        identifier("Map", JavaType.ShallowClass.build("java.util.Map")),
+                        JLeftPadded.build(identifier("Entry", mapType)), mapType) :
+                identifier("Map", mapType);
+        return new J.ParameterizedType(randomId(), prefix, Markers.EMPTY, map,
+                JContainer.build(Arrays.asList(JRightPadded.build(identifier("String", stringType)), JRightPadded.build(jobParameter))),
+                new JavaType.Parameterized(null, mapType, Arrays.asList(stringType, jobParameterType)));
+    }
+
+    private static J.Identifier identifier(String name, JavaType type) {
+        return new J.Identifier(randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), name, type, null);
+    }
+
     private static class JNewClassOfMap extends JavaIsoVisitor<ExecutionContext> {
         @Override
         public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
@@ -186,7 +214,9 @@ public class MigrateJobParameter extends Recipe {
             if (nc.getType() != null &&
                     nc.getType().isAssignableFrom(Pattern.compile("java.util.Map")) &&
                     nc.getClazz() instanceof J.ParameterizedType) {
-                return nc.withClazz(TypeTree.build(((J.ParameterizedType) nc.getClazz()).getClazz() + "<>").withPrefix(Space.SINGLE_SPACE));
+                // the diamond, which the parser holds as a parameterized type with an empty type argument
+                return nc.withClazz(((J.ParameterizedType) nc.getClazz())
+                        .withTypeParameters(singletonList(new J.Empty(randomId(), Space.EMPTY, Markers.EMPTY))));
             }
             return nc;
         }

@@ -189,7 +189,8 @@ public class ChangeMethodParameter extends Recipe {
                 );
             }
             JavaType.Primitive type = JavaType.Primitive.fromKeyword(typeName);
-            if (type != null) {
+            // the parser makes String a name of the class, not a primitive
+            if (type != null && type != JavaType.Primitive.String) {
                 return new J.Primitive(
                         randomId(),
                         Space.EMPTY,
