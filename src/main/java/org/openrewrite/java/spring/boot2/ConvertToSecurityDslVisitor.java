@@ -87,7 +87,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                                                 keepArg ? m.getArguments().get(0) : null,
                                                 singletonList(chain.isEmpty() ?
                                                         createDefaultsCall() :
-                                                        createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
+                                                        createLambdaParam(paramName, requireNonNull(m.getMethodType()).getReturnType(), chain))
                                         )
                                 );
                     })
@@ -118,8 +118,16 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     private J.Lambda createLambdaParam(String paramName, JavaType paramType, List<J.MethodInvocation> chain) {
-        J.Identifier param = createIdentifier(paramName, paramType);
-        J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(paramName, paramType), chain);
+        // like the parser, declare the parameter of `name -> ...` as a variable with no type expression
+        J.MethodDeclaration enclosingMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
+        JavaType.Variable variableType = new JavaType.Variable(null, 0, paramName,
+                enclosingMethod == null ? null : enclosingMethod.getMethodType(), paramType, null);
+        J.VariableDeclarations param = new J.VariableDeclarations(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
+                emptyList(), emptyList(), null, null,
+                singletonList(new JRightPadded<>(new J.VariableDeclarations.NamedVariable(Tree.randomId(), Space.EMPTY,
+                        Markers.EMPTY, createIdentifier(variableType), emptyList(), null, variableType),
+                        Space.EMPTY, Markers.EMPTY)));
+        J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(variableType), chain);
         return new J.Lambda(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
                 new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
                 Space.build(" ", emptyList()),
@@ -128,8 +136,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         );
     }
 
-    private J.Identifier createIdentifier(String name, JavaType type) {
-        return new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), name, type, null);
+    private J.Identifier createIdentifier(JavaType.Variable variableType) {
+        return new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), variableType.getName(),
+                variableType.getType(), variableType);
     }
 
     private J.MethodInvocation unfoldMethodInvocationChain(J.Identifier core, List<J.MethodInvocation> chain) {
