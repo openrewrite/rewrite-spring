@@ -25,6 +25,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.spring.internal.NamedTypes;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
@@ -104,12 +105,15 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             }
             String chunkType = chunkTypeParameter == null ? "" : "<" + chunkTypeParameter + ">";
             String paramName = parameter.getVariables().get(0).getSimpleName();
+            // the templates print parts of the method, such as its type argument, annotations and body
+            String[] namedTypes = NamedTypes.in(method);
 
 
             J.VariableDeclarations vdd = JavaTemplate.builder("Chunk" + chunkType + " _chunk")
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk")
+                    .imports(namedTypes)
                     .build()
                     .<J.MethodDeclaration>apply(getCursor(), method.getCoordinates().replaceParameters())
                     .getParameters().get(0).withPrefix(Space.EMPTY);
@@ -118,7 +122,8 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             J.MethodDeclaration methodDeclaration = JavaTemplate.builder("List" + chunkType + " #{} = _chunk.getItems();")
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
-                    .imports("org.springframework.batch.item.Chunk")
+                    .imports("org.springframework.batch.item.Chunk", "java.util.List")
+                    .imports(namedTypes)
                     .build()
                     .apply(getCursor(), method.getBody().getCoordinates().firstStatement(), paramName);
 
@@ -129,6 +134,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
 
             maybeAddImport("org.springframework.batch.item.Chunk");
+            maybeAddImport("java.util.List");
             String annotations = method.getLeadingAnnotations().stream().map(a -> a.print(getCursor())).reduce((a1, a2) -> a1 + "\n" + a2).orElse("");
             String methodModifiers = method.getModifiers().stream()
                     .map(J.Modifier::toString)
@@ -142,7 +148,8 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
-                    .imports("org.springframework.batch.item.Chunk")
+                    .imports("org.springframework.batch.item.Chunk", "java.util.List")
+                    .imports(namedTypes)
                     .build()
                     .apply(getCursor(), method.getCoordinates().replace());
         }
