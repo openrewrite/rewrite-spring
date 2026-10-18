@@ -148,7 +148,8 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                 for (String s : conditionalTemplates) {
                     JavaTemplate t = JavaTemplate.builder(s)
                             .contextSensitive()
-                            .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition")
+                            .imports("org.springframework.boot.autoconfigure.condition.AnyNestedCondition",
+                                    "org.springframework.boot.autoconfigure.condition.ConditionalOnBean")
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-context-5.*", "spring-boot-autoconfigure-2.*"))
                             .build();
@@ -160,6 +161,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                 // Schedule another visit to modify the associated annotations now that the new conditional classes have been added to the AST
                 doAfterVisit(new ConditionalOnBeanAnyNestedConditionVisitor());
                 maybeAddImport("org.springframework.boot.autoconfigure.condition.AnyNestedCondition");
+                maybeAddImport("org.springframework.boot.autoconfigure.condition.ConditionalOnBean");
             }
             return c;
         }
