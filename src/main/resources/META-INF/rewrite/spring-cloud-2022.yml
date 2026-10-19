@@ -127,11 +127,13 @@ recipeList:
       oldArtifactId: spring-cloud-sleuth-autoconfigure
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-actuator-autoconfigure
+      newVersion: 3.0.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-otel-autoconfigure
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-actuator-autoconfigure
+      newVersion: 3.0.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-zipkin
