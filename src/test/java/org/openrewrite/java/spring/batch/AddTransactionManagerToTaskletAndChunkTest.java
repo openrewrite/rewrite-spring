@@ -34,6 +34,7 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
             "spring-batch-infrastructure-4.3.10",
             "spring-beans-4.3.30.RELEASE",
             "spring-context-4.3.30.RELEASE",
+            "spring-jdbc-4.1.+",
             "spring-tx-4.1.+"
           ));
     }
@@ -309,6 +310,156 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
                               .tasklet(myTasklet)
                               .allowStartIfComplete(true)
                               .transactionManager(transactionManager)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void transactionManagerSubtypeConfiguredInChunkChain() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.item.ItemReader;
+              import org.springframework.batch.item.ItemWriter;
+              import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+
+                  Step step1(DataSourceTransactionManager transactionManager,
+                             ItemReader<String> reader, ItemWriter<String> writer) {
+                      return stepBuilderFactory.get("step1")
+                              .<String, String>chunk(3)
+                              .reader(reader)
+                              .writer(writer)
+                              .transactionManager(transactionManager)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void reuseTransactionManagerSubtypeWithDifferentName() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+
+                  Step myStep(Tasklet tasklet, DataSourceTransactionManager txManager) {
+                      return stepBuilderFactory.get("myStep")
+                              .tasklet(tasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+
+                  Step myStep(Tasklet tasklet, DataSourceTransactionManager txManager) {
+                      return stepBuilderFactory.get("myStep")
+                              .tasklet(tasklet, txManager)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void configuredTransactionManagerFieldDoesNotAddParameter() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+                  PlatformTransactionManager txManager;
+
+                  Step myStep(Tasklet tasklet) {
+                      return stepBuilderFactory.get("myStep")
+                              .tasklet(tasklet)
+                              .allowStartIfComplete(true)
+                              .transactionManager(txManager)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addParameterOnlyForUnconfiguredChainInSameMethod() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+                  PlatformTransactionManager existingManager;
+
+                  Step myStep(Tasklet tasklet) {
+                      Step configured = stepBuilderFactory.get("configured")
+                              .tasklet(tasklet)
+                              .transactionManager(existingManager)
+                              .build();
+                      return stepBuilderFactory.get("unconfigured")
+                              .tasklet(tasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+                  PlatformTransactionManager existingManager;
+
+                  Step myStep(Tasklet tasklet, PlatformTransactionManager transactionManager) {
+                      Step configured = stepBuilderFactory.get("configured")
+                              .tasklet(tasklet)
+                              .transactionManager(existingManager)
+                              .build();
+                      return stepBuilderFactory.get("unconfigured")
+                              .tasklet(tasklet, transactionManager)
                               .build();
                   }
               }

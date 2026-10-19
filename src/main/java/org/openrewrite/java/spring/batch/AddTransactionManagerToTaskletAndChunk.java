@@ -20,7 +20,6 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
-import org.openrewrite.java.search.FindMethods;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Space;
@@ -28,6 +27,7 @@ import org.openrewrite.java.tree.Statement;
 import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.singletonList;
 
@@ -36,6 +36,10 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
     private static final String TASKLET_1ARG = "org.springframework.batch.core.step.builder.StepBuilder tasklet(org.springframework.batch.core.step.tasklet.Tasklet)";
     private static final String CHUNK_INT = "org.springframework.batch.core.step.builder.StepBuilder chunk(int)";
     private static final String CHUNK_POLICY = "org.springframework.batch.core.step.builder.StepBuilder chunk(org.springframework.batch.repeat.CompletionPolicy)";
+    private static final MethodMatcher TASKLET_MATCHER = new MethodMatcher(TASKLET_1ARG);
+    private static final MethodMatcher CHUNK_INT_MATCHER = new MethodMatcher(CHUNK_INT);
+    private static final MethodMatcher CHUNK_POLICY_MATCHER = new MethodMatcher(CHUNK_POLICY);
+    private static final MethodMatcher TRANSACTION_MANAGER_MATCHER = new MethodMatcher("org.springframework.batch.core.step.builder.* transactionManager(..)");
 
     @Getter
     final String displayName = "Add `PlatformTransactionManager` to `tasklet()` and `chunk()` calls";
@@ -64,15 +68,22 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
     }
 
     private static class AddTransactionManagerParameterVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static boolean usesOneArgTaskletOrChunk(J tree) {
-            return !FindMethods.find(tree, TASKLET_1ARG).isEmpty() ||
-                    !FindMethods.find(tree, CHUNK_INT).isEmpty() ||
-                    !FindMethods.find(tree, CHUNK_POLICY).isEmpty();
+        private static boolean needsTransactionManagerArgument(J tree) {
+            return new JavaIsoVisitor<AtomicBoolean>() {
+                @Override
+                public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicBoolean needed) {
+                    boolean matchesAny = TASKLET_MATCHER.matches(method) || CHUNK_INT_MATCHER.matches(method) || CHUNK_POLICY_MATCHER.matches(method);
+                    if (matchesAny && !chainConfiguresTransactionManager(getCursor())) {
+                        needed.set(true);
+                    }
+                    return super.visitMethodInvocation(method, needed);
+                }
+            }.reduce(tree, new AtomicBoolean()).get();
         }
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
-            if (usesOneArgTaskletOrChunk(md) &&
+            if (needsTransactionManagerArgument(md) &&
                     md.getParameters().stream().noneMatch(AddTransactionManagerToTaskletAndChunk::isTransactionManagerParameter) &&
                     !md.isConstructor()) {
                 maybeAddImport("org.springframework.transaction.PlatformTransactionManager");
@@ -101,76 +112,56 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
 
     private static boolean isTransactionManagerParameter(Statement statement) {
         return statement instanceof J.VariableDeclarations &&
-                TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                        "org.springframework.transaction.PlatformTransactionManager");
+                TypeUtils.isAssignableTo("org.springframework.transaction.PlatformTransactionManager",
+                        ((J.VariableDeclarations) statement).getType());
+    }
+
+    private static boolean chainConfiguresTransactionManager(Cursor cursor) {
+        while (true) {
+            Cursor parent = cursor.getParentTreeCursor();
+            Object parentValue = parent.getValue();
+            if (!(parentValue instanceof J.MethodInvocation)) {
+                return false;
+            }
+            J.MethodInvocation parentMi = (J.MethodInvocation) parentValue;
+            if (parentMi.getSelect() != cursor.getValue()) {
+                return false;
+            }
+            if (TRANSACTION_MANAGER_MATCHER.matches(parentMi)) {
+                return true;
+            }
+            cursor = parent;
+        }
     }
 
     private static class AddTransactionManagerArgumentVisitor extends JavaVisitor<ExecutionContext> {
-        private static final MethodMatcher TASKLET_MATCHER = new MethodMatcher(TASKLET_1ARG);
-        private static final MethodMatcher CHUNK_INT_MATCHER = new MethodMatcher(CHUNK_INT);
-        private static final MethodMatcher CHUNK_POLICY_MATCHER = new MethodMatcher(CHUNK_POLICY);
-        private static final MethodMatcher TRANSACTION_MANAGER_MATCHER = new MethodMatcher("org.springframework.batch.core.step.builder.* transactionManager(..)");
-
-        private String findTransactionManagerParameterName() {
-            Cursor cursor = getCursor();
-            while (cursor != null) {
-                Object value = cursor.getValue();
-                if (value instanceof J.MethodDeclaration) {
-                    J.MethodDeclaration md = (J.MethodDeclaration) value;
-                    return md.getParameters().stream()
-                            .filter(AddTransactionManagerToTaskletAndChunk::isTransactionManagerParameter)
-                            .map(p -> ((J.VariableDeclarations) p).getVariables().get(0).getSimpleName())
-                            .findFirst()
-                            .orElse("transactionManager");
-                }
-                cursor = cursor.getParent();
-            }
-            return "transactionManager";
-        }
-
-        private boolean chainConfiguresTransactionManager() {
-            Cursor cursor = getCursor();
-            while (true) {
-                Cursor parent = cursor.getParentTreeCursor();
-                Object parentValue = parent.getValue();
-                if (!(parentValue instanceof J.MethodInvocation)) {
-                    return false;
-                }
-                J.MethodInvocation parentMi = (J.MethodInvocation) parentValue;
-                if (parentMi.getSelect() != cursor.getValue()) {
-                    return false;
-                }
-                if (TRANSACTION_MANAGER_MATCHER.matches(parentMi)) {
-                    return true;
-                }
-                cursor = parent;
-            }
-        }
-
         @Override
         public J visitMethodInvocation(J.MethodInvocation mi, ExecutionContext ctx) {
-            if (chainConfiguresTransactionManager()) {
+            if (chainConfiguresTransactionManager(getCursor())) {
                 return super.visitMethodInvocation(mi, ctx);
             }
-            String tmName = findTransactionManagerParameterName();
+            J.Identifier transactionManager = findTransactionManagerParameter();
+            if (transactionManager == null) {
+                return super.visitMethodInvocation(mi, ctx);
+            }
             if (TASKLET_MATCHER.matches(mi)) {
-                return JavaTemplate.builder("#{any(org.springframework.batch.core.step.tasklet.Tasklet)}, " + tmName)
+                return JavaTemplate.builder("#{any(org.springframework.batch.core.step.tasklet.Tasklet)}, #{any(org.springframework.transaction.PlatformTransactionManager)}")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-tx-5.+"))
                         .build()
-                        .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0));
+                        .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0), transactionManager);
             }
             if (CHUNK_INT_MATCHER.matches(mi)) {
-                return JavaTemplate.builder("#{any(int)}, " + tmName)
+                return JavaTemplate.builder("#{any(int)}, #{any(org.springframework.transaction.PlatformTransactionManager)}")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-tx-5.+"))
                         .build()
-                        .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0));
+                        .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0), transactionManager);
             }
             if (CHUNK_POLICY_MATCHER.matches(mi)) {
-                return JavaTemplate.builder("#{any(org.springframework.batch.repeat.CompletionPolicy)}, " + tmName)
+                return JavaTemplate.builder("#{any(org.springframework.batch.repeat.CompletionPolicy)}, #{any(org.springframework.transaction.PlatformTransactionManager)}")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx,
@@ -178,9 +169,27 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                                         "spring-batch-infrastructure-5.1.+",
                                         "spring-tx-5.+"))
                         .build()
-                        .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0));
+                        .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0), transactionManager);
             }
             return super.visitMethodInvocation(mi, ctx);
+        }
+
+        private J.@Nullable Identifier findTransactionManagerParameter() {
+            Cursor cursor = getCursor();
+            while (cursor != null) {
+                Object value = cursor.getValue();
+                if (value instanceof J.MethodDeclaration) {
+                    J.MethodDeclaration md = (J.MethodDeclaration) value;
+                    return md.getParameters().stream()
+                            .filter(AddTransactionManagerToTaskletAndChunk::isTransactionManagerParameter)
+                            .map(p -> ((J.VariableDeclarations) p).getVariables().get(0).getName()
+                                    .withId(Tree.randomId()).withPrefix(Space.EMPTY))
+                            .findFirst()
+                            .orElse(null);
+                }
+                cursor = cursor.getParent();
+            }
+            return null;
         }
     }
 }
