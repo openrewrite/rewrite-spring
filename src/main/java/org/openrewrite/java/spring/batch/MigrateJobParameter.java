@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.openrewrite.Tree.randomId;
+import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
 
 public class MigrateJobParameter extends Recipe {
 
@@ -114,11 +115,11 @@ public class MigrateJobParameter extends Recipe {
                         method = super.visitMethodDeclaration(method, ctx);
 
                         if (method.getReturnTypeExpression() != null && defineMapTypeWithJobParameter(method.getReturnTypeExpression().getType())) {
-                            method = method.withReturnTypeExpression(mapOfJobParameters(false,
+                            method = withReturnTypeExpression(method, mapOfJobParameters(false,
                                     method.getReturnTypeExpression().getPrefix()));
                             doAfterVisit(new AddImport<>("java.util.Map", null, false));
                         } else if (method.getReturnTypeExpression() != null && defineMapEntryTypeWithJobParameter(method.getReturnTypeExpression().getType())) {
-                            method = method.withReturnTypeExpression(mapOfJobParameters(true,
+                            method = withReturnTypeExpression(method, mapOfJobParameters(true,
                                     method.getReturnTypeExpression().getPrefix()));
                             doAfterVisit(new AddImport<>("java.util.Map", null, false));
                         }

@@ -31,6 +31,8 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
+import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
+
 public class MigrateWebMvcConfigurerAdapter extends Recipe {
     private static final String WEB_MVC_CONFIGURER_ADAPTER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter";
     private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
@@ -88,7 +90,7 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
                 if (md.getMethodType() != null && TypeUtils.isOfClassType(md.getType(), WEB_MVC_CONFIGURER_ADAPTER)) {
                     if (md.getReturnTypeExpression() != null) {
-                        md = md.withReturnTypeExpression(toWebMvcConfigurer(md.getReturnTypeExpression()));
+                        md = withReturnTypeExpression(md, toWebMvcConfigurer(md.getReturnTypeExpression()));
                     }
 
                     maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);

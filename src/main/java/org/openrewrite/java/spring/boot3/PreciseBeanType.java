@@ -27,6 +27,8 @@ import org.openrewrite.java.tree.TypeUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
+
 public class PreciseBeanType extends Recipe {
     private static final String BEAN = "org.springframework.context.annotation.Bean";
 
@@ -56,7 +58,7 @@ public class PreciseBeanType extends Recipe {
                             if (identifierReturnExpr.getType() instanceof JavaType.FullyQualified) {
                                 maybeRemoveImport((JavaType.FullyQualified) identifierReturnExpr.getType());
                             }
-                            m = m.withReturnTypeExpression(identifierReturnExpr
+                            m = withReturnTypeExpression(m, identifierReturnExpr
                                     .withType(actualType)
                                     .withSimpleName(actualType.getClassName())
                             );
@@ -64,7 +66,7 @@ public class PreciseBeanType extends Recipe {
                             // A fully qualified return type
                             J.FieldAccess fieldAccessReturnExpr = (J.FieldAccess) m.getReturnTypeExpression();
                             maybeAddImport(actualType);
-                            m = m.withReturnTypeExpression(TypeTree.build(actualType.getClassName())
+                            m = withReturnTypeExpression(m, TypeTree.build(actualType.getClassName())
                                     .withType(actualType)
                                     .withPrefix(fieldAccessReturnExpr.getPrefix())
                             );
@@ -74,7 +76,7 @@ public class PreciseBeanType extends Recipe {
                             if (parameterizedType.getType() instanceof JavaType.FullyQualified) {
                                 maybeRemoveImport((JavaType.FullyQualified) parameterizedType.getType());
                             }
-                            m = m.withReturnTypeExpression(parameterizedType
+                            m = withReturnTypeExpression(m, parameterizedType
                                     .withType(actualType)
                                     .withClazz(TypeTree.build(actualType.getClassName()).withType(actualType))
                             );
@@ -86,11 +88,12 @@ public class PreciseBeanType extends Recipe {
                             JavaType.FullyQualified actualElementType = (JavaType.FullyQualified) actualType.getElemType();
                             J.ArrayType arrayType = (J.ArrayType) m.getReturnTypeExpression();
                             maybeAddImport(actualElementType);
-                            if (arrayType.getElementType() instanceof JavaType.FullyQualified) {
-                                maybeRemoveImport((JavaType.FullyQualified) arrayType.getElementType());
+                            if (arrayType.getElementType().getType() instanceof JavaType.FullyQualified) {
+                                maybeRemoveImport((JavaType.FullyQualified) arrayType.getElementType().getType());
                             }
-                            m = m.withReturnTypeExpression(arrayType
-                                    .withElementType(TypeTree.build(actualElementType.getClassName()).withType(actualType))
+                            m = withReturnTypeExpression(m, arrayType
+                                    .withElementType(TypeTree.build(actualElementType.getClassName()).withType(actualElementType))
+                                    .withType(actualType)
                             );
                         }
                     }
