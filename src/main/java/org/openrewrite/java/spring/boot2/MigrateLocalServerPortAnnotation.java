@@ -22,14 +22,9 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.dependencies.AddDependency;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
-
-import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 public class MigrateLocalServerPortAnnotation extends Recipe {
     private static final AnnotationMatcher LOCAL_SERVER_PORT_MATCHER =
@@ -39,7 +34,7 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
     final String displayName = "Use `org.springframework.boot.web.server.LocalServerPort`";
 
     @Getter
-    final String description = "Updates the package and adds the necessary dependency if `LocalServerPort` is in use. The package of `LocalServerPort` was changed in Spring Boot 2.0, necessitating changes.";
+    final String description = "Updates the package of `LocalServerPort`, which changed in Spring Boot 2.0.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -56,18 +51,5 @@ public class MigrateLocalServerPortAnnotation extends Recipe {
                         return a;
                     }
                 });
-    }
-
-    @Override
-    public List<Recipe> getRecipeList() {
-        return singletonList(new AddDependency(
-                "org.springframework.boot",
-                "spring-boot-starter-web",
-                "2.0.x",
-                null,
-                "org.springframework.boot.web.server.LocalServerPort",
-                null,
-                null,
-                null, null, null, null, null, null, null));
     }
 }
