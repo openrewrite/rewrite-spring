@@ -85,7 +85,6 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                         return parameter == null ? md : addParameter(md, parameter);
                     }
 
-                    // The enclosing method's transaction manager parameter, or a new one that visitMethodDeclaration adds
                     private J.@Nullable Identifier transactionManagerArgument(ExecutionContext ctx) {
                         Cursor declaration = enclosingMethod(getCursor());
                         if (declaration == null) {
@@ -120,8 +119,6 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
 
     private static J.VariableDeclarations newTransactionManagerParameter(Cursor declaration, ExecutionContext ctx) {
         J.MethodDeclaration md = declaration.getValue();
-        // Only the new parameter goes through a template; re-parsing the existing ones would drop the
-        // types that the file's own classpath resolved
         return (J.VariableDeclarations) JavaTemplate.builder("PlatformTransactionManager transactionManager")
                 .imports(PLATFORM_TRANSACTION_MANAGER)
                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-tx-5"))
@@ -130,8 +127,6 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                 .getParameters().get(0);
     }
 
-    // A method of a local or anonymous class cannot take a new parameter without breaking what it implements, so a
-    // call in there captures the parameter of the method that declares the class
     private static @Nullable Cursor enclosingMethod(Cursor cursor) {
         Cursor method = cursor.dropParentUntil(it -> it instanceof J.MethodDeclaration || it == Cursor.ROOT_VALUE);
         if (!(method.getValue() instanceof J.MethodDeclaration)) {
